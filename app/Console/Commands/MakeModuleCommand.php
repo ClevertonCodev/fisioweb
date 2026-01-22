@@ -62,8 +62,14 @@ class MakeModuleCommand extends Command
         // Criar Views
         $this->createViews($modulePath, $moduleSlug);
 
-        // Criar JS/TSX (Inertia)
-        $this->createInertiaPages($modulePath, $moduleSlug);
+        // Criar Factory
+        $this->createFactory($moduleName, $modulePath, $moduleNamespace);
+
+        // Criar Seeder
+        $this->createSeeder($moduleName, $modulePath, $moduleNamespace);
+
+        // Criar Testes
+        $this->createTests($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
 
         // Registrar no bootstrap/providers.php
         $this->registerProvider($moduleNamespace);
@@ -84,8 +90,12 @@ class MakeModuleCommand extends Command
             "{$modulePath}/Http/Controllers",
             "{$modulePath}/Models",
             "{$modulePath}/database/migrations",
+            "{$modulePath}/database/factories",
+            "{$modulePath}/database/seeders",
             "{$modulePath}/routes",
             "{$modulePath}/resources/views",
+            "{$modulePath}/tests/Feature",
+            "{$modulePath}/tests/Unit",
         ];
 
         foreach ($directories as $directory) {
@@ -257,6 +267,16 @@ class {$modelName} extends Model
     protected \$fillable = [
         //
     ];
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     */
+    protected static function newFactory()
+    {
+        return \Modules\\{$moduleName}\Database\Factories\\{$modelName}Factory::new();
+    }
 }
 
 PHP;
@@ -368,153 +388,154 @@ BLADE;
     }
 
     /**
-     * Create Inertia Pages (TSX).
+     * Create Factory.
      */
-    protected function createInertiaPages(string $modulePath, string $slug): void
+    protected function createFactory(string $moduleName, string $modulePath, string $namespace): void
     {
-        // Criar páginas TSX em resources/js/pages/{slug}/ (fora do módulo)
-        $jsPath = base_path("resources/js/pages/{$slug}");
-        if (!is_dir($jsPath)) {
-            mkdir($jsPath, 0755, true);
-        }
-        $pageName = Str::studly($slug);
+        $modelName = Str::singular($moduleName);
+        $factoryName = "{$modelName}Factory";
+        $factoryPath = "{$modulePath}/database/factories/{$factoryName}.php";
 
-        // Index page
-        $indexPage = <<<TSX
-import { Head } from '@inertiajs/react';
+        $content = <<<PHP
+<?php
 
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+namespace {$namespace}\Database\Factories;
 
-const breadcrumbs: BreadcrumbItem[] = [
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\\{$moduleName}\Models\\{$modelName};
+
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\\{$namespace}\Models\\{$modelName}>
+ */
+class {$factoryName} extends Factory
+{
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected \$model = {$modelName}::class;
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
     {
-        title: '{$pageName}',
-        href: '/{$slug}',
-    },
-];
-
-export default function {$pageName}Index() {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="{$pageName}" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <h1 className="text-2xl font-bold">Listagem de {$pageName}</h1>
-            </div>
-        </AppLayout>
-    );
+        return [
+            //
+        ];
+    }
 }
 
-TSX;
+PHP;
 
-        // Create page
-        $createPage = <<<TSX
-import { Head } from '@inertiajs/react';
+        file_put_contents($factoryPath, $content);
+        $this->info("Created: {$factoryName}.php");
+    }
 
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
+    /**
+     * Create Seeder.
+     */
+    protected function createSeeder(string $moduleName, string $modulePath, string $namespace): void
     {
-        title: '{$pageName}',
-        href: '/{$slug}',
-    },
+        $modelName = Str::singular($moduleName);
+        $seederName = "{$modelName}Seeder";
+        $seederPath = "{$modulePath}/database/seeders/{$seederName}.php";
+
+        $content = <<<PHP
+<?php
+
+namespace {$namespace}\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Modules\\{$moduleName}\Models\\{$modelName};
+
+class {$seederName} extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        title: 'Criar',
-        href: '/{$slug}/create',
-    },
-];
-
-export default function {$pageName}Create() {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Criar {$pageName}" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <h1 className="text-2xl font-bold">Criar Novo {$pageName}</h1>
-            </div>
-        </AppLayout>
-    );
+        // {$modelName}::factory(10)->create();
+    }
 }
 
-TSX;
+PHP;
 
-        // Show page
-        $showPage = <<<TSX
-import { Head } from '@inertiajs/react';
+        file_put_contents($seederPath, $content);
+        $this->info("Created: {$seederName}.php");
+    }
 
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+    /**
+     * Create Tests.
+     */
+    protected function createTests(string $moduleName, string $modulePath, string $namespace, string $slug): void
+    {
+        $modelName = Str::singular($moduleName);
+        $controllerName = "{$modelName}Controller";
+        $testName = "{$modelName}Test";
 
-interface Props {
-    id: string;
+        // Feature Test
+        $featureTestPath = "{$modulePath}/tests/Feature/{$testName}.php";
+        $featureTestContent = <<<PHP
+<?php
+
+namespace {$namespace}\Tests\Feature;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class {$testName} extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_index_page_can_be_rendered(): void
+    {
+        \$response = \$this->get(route('{$slug}.index'));
+
+        \$response->assertStatus(200);
+    }
+
+    public function test_create_page_can_be_rendered(): void
+    {
+        \$response = \$this->get(route('{$slug}.create'));
+
+        \$response->assertStatus(200);
+    }
 }
 
-export default function {$pageName}Show({ id }: Props) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: '{$pageName}',
-            href: '/{$slug}',
-        },
-        {
-            title: 'Detalhes',
-            href: \`/{$slug}/\${id}\`,
-        },
-    ];
+PHP;
 
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Detalhes {$pageName}" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <h1 className="text-2xl font-bold">Detalhes do {$pageName}</h1>
-                <p>ID: {id}</p>
-            </div>
-        </AppLayout>
-    );
+        // Unit Test
+        $unitTestPath = "{$modulePath}/tests/Unit/{$testName}.php";
+        $unitTestContent = <<<PHP
+<?php
+
+namespace {$namespace}\Tests\Unit;
+
+use Modules\\{$moduleName}\Models\\{$modelName};
+use Tests\TestCase;
+
+class {$testName} extends TestCase
+{
+    public function test_model_can_be_instantiated(): void
+    {
+        \$model = new {$modelName}();
+
+        \$this->assertInstanceOf({$modelName}::class, \$model);
+    }
 }
 
-TSX;
+PHP;
 
-        // Edit page
-        $editPage = <<<TSX
-import { Head } from '@inertiajs/react';
+        file_put_contents($featureTestPath, $featureTestContent);
+        file_put_contents($unitTestPath, $unitTestContent);
 
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-
-interface Props {
-    id: string;
-}
-
-export default function {$pageName}Edit({ id }: Props) {
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: '{$pageName}',
-            href: '/{$slug}',
-        },
-        {
-            title: 'Editar',
-            href: \`/{$slug}/\${id}/edit\`,
-        },
-    ];
-
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Editar {$pageName}" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <h1 className="text-2xl font-bold">Editar {$pageName}</h1>
-                <p>ID: {id}</p>
-            </div>
-        </AppLayout>
-    );
-}
-
-TSX;
-
-        file_put_contents("{$jsPath}/index.tsx", $indexPage);
-        file_put_contents("{$jsPath}/create.tsx", $createPage);
-        file_put_contents("{$jsPath}/show.tsx", $showPage);
-        file_put_contents("{$jsPath}/edit.tsx", $editPage);
-
-        $this->info('Created: resources/js/pages/*.tsx');
+        $this->info("Created: tests/Feature/{$testName}.php");
+        $this->info("Created: tests/Unit/{$testName}.php");
     }
 
     /**

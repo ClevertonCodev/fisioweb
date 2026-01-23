@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +16,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
     }
 
     /**
@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureLogViewer();
     }
 
     protected function configureDefaults(): void
@@ -43,5 +44,16 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    protected function configureLogViewer(): void
+    {
+        LogViewer::auth(function ($request) {
+            if ($request->user()) {
+                return true;
+            }
+
+            return false;
+        });
     }
 }

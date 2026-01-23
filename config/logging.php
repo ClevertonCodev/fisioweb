@@ -1,12 +1,12 @@
 <?php
 
+use App\Logging\DatedLogHandler;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Log Channel
@@ -51,7 +51,6 @@ return [
     */
 
     'channels' => [
-
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
@@ -127,6 +126,11 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'dated' => [
+            'driver' => 'monolog',
+            'handler' => DatedLogHandler::class,
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
     ],
-
 ];

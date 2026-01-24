@@ -1,0 +1,148 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Str;
+
+class MakeModuleControllerCommand extends Command
+{
+    protected $signature = 'modules:makeController {name : The name of the module} {controller? : The name of the controller}';
+
+    protected $description = 'Create a controller inside a module (creates module if it does not exist)';
+
+    public function handle(): int
+    {
+        $name = $this->argument('name');
+        $controllerName = $this->argument('controller');
+        $moduleName = Str::studly($name);
+        $modulePath = base_path("modules/{$moduleName}");
+        $moduleNamespace = "Modules\\{$moduleName}";
+        $moduleSlug = Str::kebab($name);
+
+        $moduleExists = is_dir($modulePath);
+
+        if (!$moduleExists) {
+            $this->info("Module {$moduleName} does not exist. Creating module...");
+            $this->createModule($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
+        }
+
+        $this->createController($moduleName, $modulePath, $moduleNamespace, $controllerName);
+
+        $this->info("Controller created successfully!");
+        $this->info("Don't forget to run: composer dump-autoload");
+
+        return Command::SUCCESS;
+    }
+
+    protected function createModule(string $moduleName, string $modulePath, string $namespace, string $slug): void
+    {
+        $directories = [
+            "{$modulePath}/Providers",
+            "{$modulePath}/Http/Controllers",
+        ];
+
+        foreach ($directories as $directory) {
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+        }
+
+        $this->createServiceProvider($moduleName, $modulePath, $namespace, $slug);
+        $this->registerProvider($namespace);
+    }
+
+    protected function createServiceProvider(string $moduleName, string $modulePath, string $namespace, string $slug): void
+    {
+        $providerName = "{$moduleName}ServiceProvider";
+        $providerPath = "{$modulePath}/Providers/{$providerName}.php";
+
+        if (file_exists($providerPath)) {
+            return;
+        }
+
+        $content = <<<PHP
+<?php
+
+namespace {$namespace}\Providers;
+
+use Illuminate\Support\ServiceProvider;
+
+class {$providerName} extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        //
+    }
+}
+
+PHP;
+
+        file_put_contents($providerPath, $content);
+        $this->info("Created: Providers/{$providerName}.php");
+    }
+
+    protected function createController(string $moduleName, string $modulePath, string $namespace, ?string $name): void
+    {
+        $controllerName = $name ? Str::studly($name) : Str::singular($moduleName) . 'Controller';
+        if (!str_ends_with($controllerName, 'Controller')) {
+            $controllerName .= 'Controller';
+        }
+        $controllerPath = "{$modulePath}/Http/Controllers/{$controllerName}.php";
+
+        if (file_exists($controllerPath)) {
+            $this->warn("Controller {$controllerName} already exists!");
+
+            return;
+        }
+
+        if (!is_dir("{$modulePath}/Http/Controllers")) {
+            mkdir("{$modulePath}/Http/Controllers", 0755, true);
+        }
+
+        $content = <<<PHP
+<?php
+
+namespace {$namespace}\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class {$controllerName} extends Controller
+{
+    //
+}
+
+PHP;
+
+        file_put_contents($controllerPath, $content);
+        $this->info("Created: Http/Controllers/{$controllerName}.php");
+    }
+
+    protected function registerProvider(string $namespace): void
+    {
+        $moduleName = class_basename($namespace);
+        $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
+        $providersPath = base_path('bootstrap/providers.php');
+
+        $content = file_get_contents($providersPath);
+
+        if (str_contains($content, $providerClass)) {
+            return;
+        }
+
+        $content = str_replace(
+            '];',
+            "    {$providerClass}::class,\n];",
+            $content
+        );
+
+        file_put_contents($providersPath, $content);
+        $this->info('Registered provider in bootstrap/providers.php');
+    }
+}

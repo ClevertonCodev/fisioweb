@@ -32,19 +32,24 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
+import { dashboard as adminDashboard } from '@/routes/admin';
+import { dashboard as clinicDashboard } from '@/routes/clinic';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+// Função para obter o dashboard correto baseado na URL atual
+function getDashboardUrl(currentUrl: string) {
+    if (currentUrl.startsWith('/admin')) {
+        return adminDashboard();
+    }
+    if (currentUrl.startsWith('/clinic')) {
+        return clinicDashboard();
+    }
+    // Fallback para clinic por padrão
+    return clinicDashboard();
+}
 
 const rightNavItems: NavItem[] = [
     {
@@ -70,7 +75,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
-    const { urlIsActive } = useActiveUrl();
+    const { urlIsActive, currentUrl } = useActiveUrl();
+    
+    // Obter o dashboard correto baseado na área atual
+    const dashboardRoute = getDashboardUrl(currentUrl);
+    
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboardRoute,
+            icon: LayoutGrid,
+        },
+    ];
+    
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -137,7 +154,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={dashboardRoute}
                         prefetch
                         className="flex items-center space-x-2"
                     >

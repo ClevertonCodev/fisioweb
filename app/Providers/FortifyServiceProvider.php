@@ -20,7 +20,6 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
     }
 
     /**
@@ -29,7 +28,8 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureActions();
-        $this->configureViews();
+        // Views desabilitadas - usando controllers customizados para admin e clinic
+        // $this->configureViews();
         $this->configureRateLimiting();
     }
 

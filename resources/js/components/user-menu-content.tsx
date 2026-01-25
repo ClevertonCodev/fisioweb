@@ -8,8 +8,10 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout } from '@/routes';
+import { logout as adminLogout } from '@/routes/admin';
+import { logout as clinicLogout } from '@/routes/clinic';
 import { edit } from '@/routes/profile';
 import { type User } from '@/types';
 
@@ -19,6 +21,21 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
+    const { currentUrl } = useActiveUrl();
+
+    // Obter a rota de logout correta baseado na área atual
+    const getLogoutRoute = () => {
+        if (currentUrl.startsWith('/admin')) {
+            return adminLogout();
+        }
+        if (currentUrl.startsWith('/clinic')) {
+            return clinicLogout();
+        }
+        // Fallback para clinic por padrão
+        return clinicLogout();
+    };
+
+    const logoutRoute = getLogoutRoute();
 
     const handleLogout = () => {
         cleanup();
@@ -50,7 +67,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link
                     className="block w-full cursor-pointer"
-                    href={logout()}
+                    href={logoutRoute}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"

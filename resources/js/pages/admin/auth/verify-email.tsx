@@ -5,16 +5,16 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { logout } from '@/routes';
+import { logout } from '@/routes/admin';
 import { send } from '@/routes/verification';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+export default function AdminVerifyEmail({ status }: { status?: string }) {
     return (
         <AuthLayout
             title="Verificar e-mail"
             description="Por favor, verifique seu endereço de e-mail clicando no link que acabamos de enviar para você."
         >
-            <Head title="Verificação de e-mail" />
+            <Head title="Verificação de e-mail - Admin" />
 
             {status === 'verification-link-sent' && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">

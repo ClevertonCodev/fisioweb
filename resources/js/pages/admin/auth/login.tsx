@@ -8,30 +8,29 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { router } from '@inertiajs/react';
 
-interface LoginProps {
+interface AdminLoginProps {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
 }
 
-export default function Login({
+export default function AdminLogin({
     status,
     canResetPassword,
     canRegister,
-}: LoginProps) {
+}: AdminLoginProps) {
     return (
         <AuthLayout
-            title="Entre na sua conta"
-            description="Digite seu e-mail e senha abaixo para entrar"
+            title="Acesso Administrativo"
+            description="Digite seu e-mail e senha abaixo para acessar o painel administrativo"
         >
-            <Head title="Entrar" />
+            <Head title="Login Admin" />
 
             <Form
-                {...store.form()}
+                action="/admin/login"
+                method="post"
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
@@ -58,7 +57,7 @@ export default function Login({
                                     <Label htmlFor="password">Senha</Label>
                                     {canResetPassword && (
                                         <TextLink
-                                            href={request()}
+                                            href="/admin/forgot-password"
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
@@ -92,7 +91,7 @@ export default function Login({
                                 className="mt-4 w-full"
                                 tabIndex={4}
                                 disabled={processing}
-                                data-test="login-button"
+                                data-test="admin-login-button"
                             >
                                 {processing && <Spinner />}
                                 Entrar
@@ -102,7 +101,7 @@ export default function Login({
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
                                 Não tem uma conta?{' '}
-                                <TextLink href={register()} tabIndex={5}>
+                                <TextLink href="/admin/register" tabIndex={5}>
                                     Cadastre-se
                                 </TextLink>
                             </div>

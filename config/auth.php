@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults
@@ -40,6 +39,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'clinic' => [
+            'driver' => 'session',
+            'provider' => 'clinic_users',
+        ],
     ],
 
     /*
@@ -63,6 +66,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'clinic_users' => [
+            'driver' => 'eloquent',
+            'model' => env('CLINICA_AUTH_MODEL', App\Models\User::class),
         ],
 
         // 'users' => [
@@ -97,6 +105,12 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'clinic_users' => [
+            'provider' => 'clinic_users',
+            'table' => env('CLINICA_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
     /*
@@ -111,5 +125,4 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
-
 ];

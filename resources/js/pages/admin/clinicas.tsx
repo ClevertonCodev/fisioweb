@@ -1,5 +1,5 @@
-import { Head, router } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Plus, Search } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,17 @@ export default function Clinicas({ clinics, plans, filters }: ClinicasProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Clinicas" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {/* Cabeçalho com botão de adicionar */}
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Clínicas</h1>
+                    <Link href="/admin/clinicas/create">
+                        <Button>
+                            <Plus className="mr-2 size-4" />
+                            Nova Clínica
+                        </Button>
+                    </Link>
+                </div>
+
                 {/* Seção de Filtros */}
                 <div className="rounded-xl border border-sidebar-border/70 bg-card p-4">
                     <h2 className="mb-4 text-lg font-semibold">Filtros</h2>

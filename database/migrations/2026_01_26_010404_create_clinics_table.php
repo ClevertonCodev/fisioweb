@@ -18,11 +18,12 @@ return new class extends Migration {
             $table->tinyInteger('status')->default(1);
             $table->string('email');
             $table->string('phone')->nullable();
-            $table->string('url')->nullable();
+            $table->string('slug')->unique();
+            $table->string('zip_code')->nullable();
             $table->string('address')->nullable();
+            $table->string('number')->nullable();
             $table->string('city')->nullable();
             $table->string('state')->nullable();
-            $table->string('zip_code')->nullable();
             $table->foreignId('plan_id')->nullable()->constrained('plans')->onDelete('set null');
             $table->timestamps();
         });

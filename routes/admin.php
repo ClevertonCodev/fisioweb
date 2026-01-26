@@ -55,7 +55,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Rotas protegidas admin
 Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Clínicas
     Route::get('clinicas', [ClinicasController::class, 'index'])->name('clinicas');
+    Route::get('clinicas/create', [ClinicasController::class, 'create'])->name('clinicas.create');
+    Route::post('clinicas', [ClinicasController::class, 'store'])->name('clinicas.store');
 
     // Settings
     Route::redirect('settings', '/admin/settings/profile');

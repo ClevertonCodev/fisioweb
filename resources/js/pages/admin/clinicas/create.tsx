@@ -1,0 +1,490 @@
+import { Form, Head, router, useForm } from '@inertiajs/react';
+import { ArrowLeft, Pencil } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import AppLayout from '@/layouts/app-layout';
+import { generateSlug, validateCnpj, validateCpf } from '@/lib/validators';
+import { type BreadcrumbItem, type Plan } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Clínicas',
+        href: '/admin/clinicas',
+    },
+    {
+        title: 'Nova Clínica',
+        href: '/admin/clinicas/create',
+    },
+];
+
+interface CreateClinicaProps {
+    plans: Plan[];
+}
+
+export default function CreateClinica({ plans }: CreateClinicaProps) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        document: '',
+        type_person: '',
+        status: '1',
+        email: '',
+        phone: '',
+        slug: '',
+        zip_code: '',
+        address: '',
+        number: '',
+        city: '',
+        state: '',
+        plan_id: '',
+    });
+
+    const [documentError, setDocumentError] = useState<string>('');
+    const [isSlugEditable, setIsSlugEditable] = useState<boolean>(false);
+
+    // Gerar slug automaticamente quando o nome mudar (apenas se não estiver editando manualmente)
+    useEffect(() => {
+        if (data.name && !isSlugEditable) {
+            setData('slug', generateSlug(data.name));
+        } else if (!data.name && !isSlugEditable) {
+            setData('slug', '');
+        }
+    }, [data.name, isSlugEditable]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Se houver erro de slug (unicidade), permitir edição
+    useEffect(() => {
+        if (errors.slug) {
+            setIsSlugEditable(true);
+        }
+    }, [errors.slug]);
+
+    // Validar CPF/CNPJ quando o documento ou tipo de pessoa mudar
+    useEffect(() => {
+        if (data.document && data.type_person) {
+            const isValid =
+                data.type_person === 'fisica'
+                    ? validateCpf(data.document)
+                    : validateCnpj(data.document);
+
+            if (!isValid) {
+                setDocumentError(
+                    data.type_person === 'fisica'
+                        ? 'CPF inválido'
+                        : 'CNPJ inválido'
+                );
+            } else {
+                setDocumentError('');
+            }
+        } else {
+            setDocumentError('');
+        }
+    }, [data.document, data.type_person]);
+
+    const handleCancel = useCallback(() => {
+        router.visit('/admin/clinicas');
+    }, []);
+
+    const handleSubmit = useCallback(
+        (e: React.FormEvent) => {
+            e.preventDefault();
+
+            // Validar documento antes de enviar
+            if (data.document && data.type_person) {
+                const isValid =
+                    data.type_person === 'fisica'
+                        ? validateCpf(data.document)
+                        : validateCnpj(data.document);
+
+                if (!isValid) {
+                    setDocumentError(
+                        data.type_person === 'fisica'
+                            ? 'CPF inválido'
+                            : 'CNPJ inválido'
+                    );
+                    return;
+                }
+            }
+
+            post('/admin/clinicas', {
+                onSuccess: () => {
+                    reset();
+                },
+            });
+        },
+        [data.document, data.type_person, post, reset]
+    );
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Nova Clínica" />
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {/* Cabeçalho */}
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleCancel}
+                        className="shrink-0"
+                    >
+                        <ArrowLeft className="size-4" />
+                    </Button>
+                    <h1 className="text-2xl font-bold">Nova Clínica</h1>
+                </div>
+
+                {/* Formulário */}
+                <div className="rounded-xl border border-sidebar-border/70 bg-card p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Informações Básicas */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold">
+                                Informações Básicas
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">
+                                        Nome da Clínica <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        type="text"
+                                        value={data.name}
+                                        onChange={(e) => setData('name', e.target.value)}
+                                        required
+                                        autoFocus
+                                        placeholder="Digite o nome da clínica"
+                                        className={errors.name ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.name} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="type_person">
+                                        Tipo de Pessoa <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Select
+                                        value={data.type_person}
+                                        onValueChange={(value) => setData('type_person', value)}
+                                        required
+                                    >
+                                        <SelectTrigger
+                                            id="type_person"
+                                            className={errors.type_person ? 'border-destructive' : ''}
+                                        >
+                                            <SelectValue placeholder="Selecione o tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="fisica">
+                                                Pessoa Física
+                                            </SelectItem>
+                                            <SelectItem value="juridica">
+                                                Pessoa Jurídica
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.type_person} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="document">
+                                        {data.type_person === 'fisica'
+                                            ? 'CPF'
+                                            : data.type_person === 'juridica'
+                                                ? 'CNPJ'
+                                                : 'CPF/CNPJ'}{' '}
+                                        <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="document"
+                                        name="document"
+                                        type="text"
+                                        value={data.document}
+                                        onChange={(e) => setData('document', e.target.value)}
+                                        required
+                                        disabled={!data.type_person}
+                                        placeholder={
+                                            !data.type_person
+                                                ? 'Selecione o tipo de pessoa primeiro'
+                                                : data.type_person === 'fisica'
+                                                    ? '000.000.000-00'
+                                                    : data.type_person === 'juridica'
+                                                        ? '00.000.000/0000-00'
+                                                        : 'Digite o CPF ou CNPJ'
+                                        }
+                                        className={
+                                            errors.document || documentError
+                                                ? 'border-destructive'
+                                                : ''
+                                        }
+                                    />
+                                    <InputError
+                                        message={errors.document || documentError}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">
+                                        E-mail <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        required
+                                        placeholder="email@exemplo.com"
+                                        className={errors.email ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.email} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Telefone</Label>
+                                    <Input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        value={data.phone}
+                                        onChange={(e) => setData('phone', e.target.value)}
+                                        placeholder="(00) 00000-0000"
+                                        className={errors.phone ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.phone} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="status">
+                                        Status <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Select
+                                        value={data.status}
+                                        onValueChange={(value) => setData('status', value)}
+                                        required
+                                    >
+                                        <SelectTrigger
+                                            id="status"
+                                            className={errors.status ? 'border-destructive' : ''}
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">Ativo</SelectItem>
+                                            <SelectItem value="0">Inativo</SelectItem>
+                                            <SelectItem value="-1">Cancelado</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.status} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="slug">
+                                            Url{' '}
+                                            {!isSlugEditable && (
+                                                <span className="text-muted-foreground text-xs">
+                                                    (gerado automaticamente)
+                                                </span>
+                                            )}
+                                            {isSlugEditable && (
+                                                <span className="text-destructive text-xs">*</span>
+                                            )}
+                                        </Label>
+                                        {!isSlugEditable && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setIsSlugEditable(true)}
+                                                className="h-8"
+                                            >
+                                                <Pencil className="mr-2 size-3" />
+                                                Editar
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <Input
+                                        id="slug"
+                                        name="slug"
+                                        type="text"
+                                        value={data.slug}
+                                        onChange={(e) => {
+                                            if (isSlugEditable) {
+                                                // Permite edição livre quando está em modo de edição
+                                                setData('slug', e.target.value);
+                                            } else {
+                                                // Gera slug automaticamente quando não está editando
+                                                setData('slug', generateSlug(e.target.value));
+                                            }
+                                        }}
+                                        readOnly={!isSlugEditable}
+                                        required={isSlugEditable}
+                                        placeholder={
+                                            isSlugEditable
+                                                ? 'Digite o slug'
+                                                : 'O slug será gerado automaticamente'
+                                        }
+                                        className={
+                                            isSlugEditable
+                                                ? errors.slug
+                                                    ? 'border-destructive'
+                                                    : ''
+                                                : 'bg-muted cursor-not-allowed'
+                                        }
+                                    />
+                                    {!isSlugEditable && (
+                                        <p className="text-xs text-muted-foreground">
+                                            URL amigável gerada automaticamente a partir do nome
+                                        </p>
+                                    )}
+                                    {isSlugEditable && errors.slug && (
+                                        <p className="text-xs text-destructive">
+                                            Este slug já está em uso. Por favor, escolha outro.
+                                        </p>
+                                    )}
+                                    <InputError message={errors.slug} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Plano */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold">Plano</h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="plan_id">Plano</Label>
+                                    <Select
+                                        value={data.plan_id || undefined}
+                                        onValueChange={(value) => setData('plan_id', value)}
+                                    >
+                                        <SelectTrigger
+                                            id="plan_id"
+                                            className={errors.plan_id ? 'border-destructive' : ''}
+                                        >
+                                            <SelectValue placeholder="Selecione um plano (opcional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {plans.map((plan) => (
+                                                <SelectItem
+                                                    key={plan.id}
+                                                    value={String(plan.id)}
+                                                >
+                                                    {plan.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.plan_id} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Endereço */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold">Endereço</h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <Label htmlFor="zip_code">CEP</Label>
+                                    <Input
+                                        id="zip_code"
+                                        name="zip_code"
+                                        type="text"
+                                        value={data.zip_code}
+                                        onChange={(e) => setData('zip_code', e.target.value)}
+                                        placeholder="00000-000"
+                                        className={errors.zip_code ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.zip_code} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="address">Endereço</Label>
+                                    <Input
+                                        id="address"
+                                        name="address"
+                                        type="text"
+                                        value={data.address}
+                                        onChange={(e) => setData('address', e.target.value)}
+                                        placeholder="Rua, avenida, etc."
+                                        className={errors.address ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.address} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="number">Número</Label>
+                                    <Input
+                                        id="number"
+                                        name="number"
+                                        type="text"
+                                        value={data.number}
+                                        onChange={(e) => setData('number', e.target.value)}
+                                        placeholder="Número"
+                                        className={errors.number ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.number} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">Cidade</Label>
+                                    <Input
+                                        id="city"
+                                        name="city"
+                                        type="text"
+                                        value={data.city}
+                                        onChange={(e) => setData('city', e.target.value)}
+                                        placeholder="Nome da cidade"
+                                        className={errors.city ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.city} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="state">Estado</Label>
+                                    <Input
+                                        id="state"
+                                        name="state"
+                                        type="text"
+                                        value={data.state}
+                                        onChange={(e) => setData('state', e.target.value)}
+                                        placeholder="UF"
+                                        maxLength={2}
+                                        className={errors.state ? 'border-destructive' : ''}
+                                    />
+                                    <InputError message={errors.state} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Botões de Ação */}
+                        <div className="flex items-center justify-end gap-4 border-t border-sidebar-border/70 pt-6">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleCancel}
+                                disabled={processing}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button type="submit" disabled={processing}>
+                                {processing && <Spinner className="mr-2" />}
+                                Salvar Clínica
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import React from 'react';
 import { LogOut, Settings } from 'lucide-react';
 
 import {
@@ -22,7 +23,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
     const { currentUrl } = useActiveUrl();
 
-    // Obter a rota de logout correta baseado na área atual
+
     const getLogoutRoute = () => {
         if (currentUrl.startsWith('/admin')) {
             return admin.logout();
@@ -30,11 +31,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         if (currentUrl.startsWith('/clinic')) {
             return clinic.logout();
         }
-        // Fallback para clinic por padrão
         return clinic.logout();
     };
 
-    // Obter a rota de settings correta baseado na área atual
     const getSettingsRoute = () => {
         if (currentUrl.startsWith('/admin')) {
             return admin.settings.profile.edit();
@@ -42,16 +41,20 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         if (currentUrl.startsWith('/clinic')) {
             return clinic.settings.profile.edit();
         }
-        // Fallback para clinic por padrão
         return clinic.settings.profile.edit();
     };
 
     const logoutRoute = getLogoutRoute();
     const settingsRoute = getSettingsRoute();
 
-    const handleLogout = () => {
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
         cleanup();
-        router.flushAll();
+        router.post(logoutRoute.url, {}, {
+            onFinish: () => {
+                router.flushAll();
+            },
+        });
     };
 
     return (
@@ -77,16 +80,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full cursor-pointer"
-                    href={logoutRoute.url}
-                    as="button"
+                <button
+                    className="flex w-full items-center cursor-pointer"
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
                     Sair
-                </Link>
+                </button>
             </DropdownMenuItem>
         </>
     );

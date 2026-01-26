@@ -34,7 +34,7 @@ interface CreateClinicaProps {
 }
 
 export default function CreateClinica({ plans }: CreateClinicaProps) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
         document: '',
         type_person: '',
@@ -160,7 +160,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="name"
                                         type="text"
                                         value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('name', e.target.value);
+                                            if (errors.name) clearErrors('name');
+                                        }}
                                         required
                                         autoFocus
                                         placeholder="Digite o nome da clínica"
@@ -175,7 +178,13 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                     </Label>
                                     <Select
                                         value={data.type_person}
-                                        onValueChange={(value) => setData('type_person', value)}
+                                        onValueChange={(value) => {
+                                            setData('type_person', value);
+                                            if (errors.type_person) clearErrors('type_person');
+                                            // Limpar erro de documento quando tipo muda
+                                            if (errors.document) clearErrors('document');
+                                            setDocumentError('');
+                                        }}
                                         required
                                     >
                                         <SelectTrigger
@@ -220,6 +229,9 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                             } else {
                                                 setData('document', value);
                                             }
+                                            // Limpar erros quando o campo é alterado
+                                            if (errors.document) clearErrors('document');
+                                            setDocumentError('');
                                         }}
                                         required
                                         disabled={!data.type_person}
@@ -259,7 +271,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="email"
                                         type="email"
                                         value={data.email}
-                                        onChange={(e) => setData('email', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('email', e.target.value);
+                                            if (errors.email) clearErrors('email');
+                                        }}
                                         required
                                         placeholder="email@exemplo.com"
                                         className={errors.email ? 'border-destructive' : ''}
@@ -274,7 +289,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="phone"
                                         type="tel"
                                         value={data.phone}
-                                        onChange={(e) => setData('phone', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('phone', e.target.value);
+                                            if (errors.phone) clearErrors('phone');
+                                        }}
                                         placeholder="(00) 00000-0000"
                                         className={errors.phone ? 'border-destructive' : ''}
                                     />
@@ -287,7 +305,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                     </Label>
                                     <Select
                                         value={data.status}
-                                        onValueChange={(value) => setData('status', value)}
+                                        onValueChange={(value) => {
+                                            setData('status', value);
+                                            if (errors.status) clearErrors('status');
+                                        }}
                                         required
                                     >
                                         <SelectTrigger
@@ -344,6 +365,8 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                                 // Gera slug automaticamente quando não está editando
                                                 setData('slug', generateSlug(e.target.value));
                                             }
+                                            // Limpar erro quando o campo é alterado
+                                            if (errors.slug) clearErrors('slug');
                                         }}
                                         readOnly={!isSlugEditable}
                                         required={isSlugEditable}
@@ -383,7 +406,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                     <Label htmlFor="plan_id">Plano</Label>
                                     <Select
                                         value={data.plan_id || undefined}
-                                        onValueChange={(value) => setData('plan_id', value)}
+                                        onValueChange={(value) => {
+                                            setData('plan_id', value);
+                                            if (errors.plan_id) clearErrors('plan_id');
+                                        }}
                                     >
                                         <SelectTrigger
                                             id="plan_id"
@@ -418,7 +444,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="zip_code"
                                         type="text"
                                         value={data.zip_code}
-                                        onChange={(e) => setData('zip_code', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('zip_code', e.target.value);
+                                            if (errors.zip_code) clearErrors('zip_code');
+                                        }}
                                         placeholder="00000-000"
                                         className={errors.zip_code ? 'border-destructive' : ''}
                                     />
@@ -432,7 +461,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="address"
                                         type="text"
                                         value={data.address}
-                                        onChange={(e) => setData('address', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('address', e.target.value);
+                                            if (errors.address) clearErrors('address');
+                                        }}
                                         placeholder="Rua, avenida, etc."
                                         className={errors.address ? 'border-destructive' : ''}
                                     />
@@ -446,7 +478,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="number"
                                         type="text"
                                         value={data.number}
-                                        onChange={(e) => setData('number', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('number', e.target.value);
+                                            if (errors.number) clearErrors('number');
+                                        }}
                                         placeholder="Número"
                                         className={errors.number ? 'border-destructive' : ''}
                                     />
@@ -460,7 +495,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="city"
                                         type="text"
                                         value={data.city}
-                                        onChange={(e) => setData('city', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('city', e.target.value);
+                                            if (errors.city) clearErrors('city');
+                                        }}
                                         placeholder="Nome da cidade"
                                         className={errors.city ? 'border-destructive' : ''}
                                     />
@@ -474,7 +512,10 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="state"
                                         type="text"
                                         value={data.state}
-                                        onChange={(e) => setData('state', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('state', e.target.value);
+                                            if (errors.state) clearErrors('state');
+                                        }}
                                         placeholder="UF"
                                         maxLength={2}
                                         className={errors.state ? 'border-destructive' : ''}

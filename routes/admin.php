@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\ClinicasController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Rotas protegidas admin
 Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('clinicas', [ClinicasController::class, 'index'])->name('clinicas');
 
     // Settings
     Route::redirect('settings', '/admin/settings/profile');

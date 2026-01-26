@@ -40,3 +40,32 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Plan {
+    id: number;
+    name: string;
+    type_charge: string;
+    value_month: number;
+    value_year: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Clinic {
+    id: number;
+    name: string;
+    document: string;
+    type_person: string;
+    status: number;
+    email: string;
+    phone: string | null;
+    url: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    zip_code: string | null;
+    plan_id: number | null;
+    plan?: Plan | null;
+    created_at: string;
+    updated_at: string;
+}

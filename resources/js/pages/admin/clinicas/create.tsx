@@ -15,7 +15,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
-import { generateSlug, validateCnpj, validateCpf } from '@/lib/validators';
+import { generateSlug, maskCnpj, maskCpf, validateCnpj, validateCpf } from '@/lib/validators';
 import { type BreadcrumbItem, type Plan } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -210,7 +210,17 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                         name="document"
                                         type="text"
                                         value={data.document}
-                                        onChange={(e) => setData('document', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Aplica máscara baseada no tipo de pessoa
+                                            if (data.type_person === 'fisica') {
+                                                setData('document', maskCpf(value));
+                                            } else if (data.type_person === 'juridica') {
+                                                setData('document', maskCnpj(value));
+                                            } else {
+                                                setData('document', value);
+                                            }
+                                        }}
                                         required
                                         disabled={!data.type_person}
                                         placeholder={
@@ -221,6 +231,13 @@ export default function CreateClinica({ plans }: CreateClinicaProps) {
                                                     : data.type_person === 'juridica'
                                                         ? '00.000.000/0000-00'
                                                         : 'Digite o CPF ou CNPJ'
+                                        }
+                                        maxLength={
+                                            data.type_person === 'fisica'
+                                                ? 14 // 000.000.000-00
+                                                : data.type_person === 'juridica'
+                                                    ? 18 // 00.000.000/0000-00
+                                                    : undefined
                                         }
                                         className={
                                             errors.document || documentError

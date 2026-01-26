@@ -110,3 +110,53 @@ export function generateSlug(text: string): string {
         .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres não alfanuméricos por hífen
         .replace(/^-+|-+$/g, ''); // Remove hífens do início e fim
 }
+
+/**
+ * Aplica máscara de CPF (000.000.000-00)
+ * @param value - Valor a ser mascarado
+ * @returns Valor com máscara de CPF aplicada
+ */
+export function maskCpf(value: string): string {
+    // Remove tudo que não é dígito
+    const numbers = value.replace(/\D/g, '');
+
+    // Limita a 11 dígitos
+    const limitedNumbers = numbers.slice(0, 11);
+
+    // Aplica a máscara
+    if (limitedNumbers.length <= 3) {
+        return limitedNumbers;
+    } else if (limitedNumbers.length <= 6) {
+        return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3)}`;
+    } else if (limitedNumbers.length <= 9) {
+        return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6)}`;
+    } else {
+        return `${limitedNumbers.slice(0, 3)}.${limitedNumbers.slice(3, 6)}.${limitedNumbers.slice(6, 9)}-${limitedNumbers.slice(9, 11)}`;
+    }
+}
+
+/**
+ * Aplica máscara de CNPJ (00.000.000/0000-00)
+ * @param value - Valor a ser mascarado
+ * @returns Valor com máscara de CNPJ aplicada
+ */
+export function maskCnpj(value: string): string {
+    // Remove tudo que não é dígito
+    const numbers = value.replace(/\D/g, '');
+
+    // Limita a 14 dígitos
+    const limitedNumbers = numbers.slice(0, 14);
+
+    // Aplica a máscara
+    if (limitedNumbers.length <= 2) {
+        return limitedNumbers;
+    } else if (limitedNumbers.length <= 5) {
+        return `${limitedNumbers.slice(0, 2)}.${limitedNumbers.slice(2)}`;
+    } else if (limitedNumbers.length <= 8) {
+        return `${limitedNumbers.slice(0, 2)}.${limitedNumbers.slice(2, 5)}.${limitedNumbers.slice(5)}`;
+    } else if (limitedNumbers.length <= 12) {
+        return `${limitedNumbers.slice(0, 2)}.${limitedNumbers.slice(2, 5)}.${limitedNumbers.slice(5, 8)}/${limitedNumbers.slice(8)}`;
+    } else {
+        return `${limitedNumbers.slice(0, 2)}.${limitedNumbers.slice(2, 5)}.${limitedNumbers.slice(5, 8)}/${limitedNumbers.slice(8, 12)}-${limitedNumbers.slice(12, 14)}`;
+    }
+}

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Clinic;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\ClinicUser;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,9 +42,14 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = ClinicUser::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([Fortify::username() => [__('auth.failed')]]);
+        }
+
+        // Verificar se o usuário está ativo
+        if ($user->status !== ClinicUser::STATUS_ACTIVE) {
             throw ValidationException::withMessages([Fortify::username() => [__('auth.failed')]]);
         }
 
@@ -224,7 +229,7 @@ class AuthController extends Controller
      */
     public function twoFactorChallenge(Request $request): RedirectResponse
     {
-        $user = User::findOrFail($request->session()->get('login.id'));
+        $user = ClinicUser::findOrFail($request->session()->get('login.id'));
 
         if (!$user->two_factor_secret) {
             return redirect()->route('clinic.login');

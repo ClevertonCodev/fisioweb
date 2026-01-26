@@ -18,8 +18,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->alias([
-            'password.confirm' => \App\Http\Middleware\RequirePasswordConfirm::class,
+            'password.confirm' => App\Http\Middleware\RequirePasswordConfirm::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (Illuminate\Http\Request $request) {
+            if ($request->is('admin/*') || $request->is('admin/settings/*')) {
+                return route('admin.login');
+            }
+
+            if ($request->is('clinic/*') || $request->is('clinic/settings/*')) {
+                return route('clinic.login');
+            }
+
+            return route('clinic.login');
+        });
 
         $middleware->web(append: [
             HandleAppearance::class,

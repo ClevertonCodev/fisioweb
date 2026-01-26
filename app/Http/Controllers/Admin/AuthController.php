@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -46,16 +45,15 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                Fortify::username() => [__('auth.failed')],
-            ]);
+            throw ValidationException::withMessages([Fortify::username() => [__('auth.failed')]]);
         }
 
         // Verificar se o usuário tem autenticação de dois fatores
-        if (Features::enabled(Features::twoFactorAuthentication()) &&
-            $user->two_factor_secret &&
-            $user->two_factor_confirmed_at) {
+        if (Features::enabled(Features::twoFactorAuthentication())
+            && $user->two_factor_secret
+            && $user->two_factor_confirmed_at) {
             $request->session()->put('login.id', $user->id);
+
             return redirect()->route('admin.two-factor.login');
         }
 
@@ -109,9 +107,7 @@ class AuthController extends Controller
             return back()->with('status', __($status));
         }
 
-        throw ValidationException::withMessages([
-            Fortify::email() => [__($status)],
-        ]);
+        throw ValidationException::withMessages([Fortify::email() => [__($status)]]);
     }
 
     /**
@@ -154,9 +150,7 @@ class AuthController extends Controller
             return redirect()->route('admin.login')->with('status', __($status));
         }
 
-        throw ValidationException::withMessages([
-            Fortify::email() => [__($status)],
-        ]);
+        throw ValidationException::withMessages([Fortify::email() => [__($status)]]);
     }
 
     /**
@@ -203,9 +197,7 @@ class AuthController extends Controller
         ]);
 
         if (!Hash::check($request->password, $request->user()->password)) {
-            throw ValidationException::withMessages([
-                'password' => [__('auth.password')],
-            ]);
+            throw ValidationException::withMessages(['password' => [__('auth.password')]]);
         }
 
         $request->session()->passwordConfirmed();
@@ -243,17 +235,13 @@ class AuthController extends Controller
 
         if ($request->filled('code')) {
             if (!$user->verifyTwoFactorCode($request->code)) {
-                throw ValidationException::withMessages([
-                    'code' => [__('The provided two factor authentication code was invalid.')],
-                ]);
+                throw ValidationException::withMessages(['code' => [__('The provided two factor authentication code was invalid.')]]);
             }
         } elseif ($request->filled('recovery_code')) {
             $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
 
             if (!in_array($request->recovery_code, $recoveryCodes)) {
-                throw ValidationException::withMessages([
-                    'recovery_code' => [__('The provided two factor recovery code was invalid.')],
-                ]);
+                throw ValidationException::withMessages(['recovery_code' => [__('The provided two factor recovery code was invalid.')]]);
             }
 
             $recoveryCodes = array_values(array_diff($recoveryCodes, [$request->recovery_code]));
@@ -261,9 +249,7 @@ class AuthController extends Controller
                 'two_factor_recovery_codes' => encrypt(json_encode($recoveryCodes)),
             ])->save();
         } else {
-            throw ValidationException::withMessages([
-                'code' => [__('The two factor authentication code or recovery code is required.')],
-            ]);
+            throw ValidationException::withMessages(['code' => [__('The two factor authentication code or recovery code is required.')]]);
         }
 
         $request->session()->forget('login.id');
@@ -279,7 +265,6 @@ class AuthController extends Controller
     public function logout(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

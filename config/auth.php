@@ -70,7 +70,7 @@ return [
 
         'clinic_users' => [
             'driver' => 'eloquent',
-            'model' => env('CLINICA_AUTH_MODEL', App\Models\User::class),
+            'model' => env('CLINICA_AUTH_MODEL', App\Models\ClinicUser::class),
         ],
 
         // 'users' => [

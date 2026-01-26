@@ -42,17 +42,20 @@ class Clinic extends Model
         ];
     }
 
-    /**
-     * Get the plan that owns the clinic.
-     */
+    public function getCreatedAtAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        return \Carbon\Carbon::parse($value)->format('d/m/Y H:i');
+    }
+
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
     }
 
-    /**
-     * Get the users for the clinic.
-     */
     public function users(): HasMany
     {
         return $this->hasMany(ClinicUser::class);

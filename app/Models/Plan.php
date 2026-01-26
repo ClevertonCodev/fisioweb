@@ -36,4 +36,24 @@ class Plan extends Model
     {
         return $this->hasMany(Clinic::class);
     }
+
+    public function getNameAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        return $this->getLabelNames($value);
+    }
+
+    public function getLabelNames(string $name): string
+    {
+        $labels = [
+            'start' => 'Start',
+            'perform' => 'Perform',
+            'premium' => 'Premium',
+        ];
+
+        return $labels[$name] ?? $name;
+    }
 }

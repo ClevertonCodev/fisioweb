@@ -14,9 +14,10 @@ class ClinicSeeder extends Seeder
     public function run(): void
     {
         $plans = Plan::all();
-        
+
         if ($plans->isEmpty()) {
             $this->command->warn('Nenhum plano encontrado. Execute o PlanSeeder primeiro.');
+
             return;
         }
 

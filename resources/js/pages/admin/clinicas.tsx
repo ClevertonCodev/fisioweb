@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Table } from '@/components/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type Clinic, type Plan } from '@/types';
 
@@ -194,111 +195,58 @@ export default function Clinicas({ clinics, plans, filters }: ClinicasProps) {
                 </div>
 
                 {/* Corpo do Relatório - Tabela */}
-                <div className="flex-1 rounded-xl border border-sidebar-border/70 bg-card">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-sidebar-border/70">
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        ID
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Nome
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Documento
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Plano
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Status
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-semibold">
-                                        Data de Criação
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {clinics.data.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={6}
-                                            className="px-4 py-8 text-center text-muted-foreground"
-                                        >
-                                            Nenhuma clínica encontrada
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    clinics.data.map((clinic) => (
-                                        <tr
-                                            key={clinic.id}
-                                            className="border-b border-sidebar-border/70 transition-colors hover:bg-accent/50"
-                                        >
-                                            <td className="px-4 py-3 text-sm">
-                                                {clinic.id}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm font-medium">
-                                                {clinic.name}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                {clinic.document}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                {clinic.plan?.name || '-'}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span
-                                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[clinic.status] || STATUS_COLORS[0]}`}
-                                                >
-                                                    {STATUS_LABELS[clinic.status] || 'Desconhecido'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-muted-foreground">
-                                                {new Date(clinic.created_at).toLocaleDateString('pt-BR')}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="flex-1">
+                    <Table
+                        columns={[
+                            { title: 'ID', key: 'id' },
+                            { title: 'Nome', key: 'name' },
+                            { title: 'Documento', key: 'document' },
+                            { title: 'Plano', key: 'plan' },
+                            { title: 'Status', key: 'status' },
+                            { title: 'Data de Criação', key: 'created_at' },
+                        ]}
+                        data={clinics.data}
+                        emptyMessage="Nenhuma clínica encontrada"
+                        pagination={{
+                            links: clinics.links,
+                            total: clinics.total,
+                            currentCount: clinics.data.length,
+                            label: 'clínicas',
+                            lastPage: clinics.last_page,
+                            currentPage: clinics.current_page,
+                        }}
+                    >
+                        {(clinic) => (
+                            <tr
+                                key={clinic.id}
+                                className="border-b border-sidebar-border/70 transition-colors hover:bg-accent/50"
+                            >
+                                <td className="px-4 py-3 text-sm">
+                                    {clinic.id}
+                                </td>
+                                <td className="px-4 py-3 text-sm font-medium">
+                                    {clinic.name}
+                                </td>
+                                <td className="px-4 py-3 text-sm">
+                                    {clinic.document}
+                                </td>
+                                <td className="px-4 py-3 text-sm">
+                                    {clinic.plan?.name || '-'}
+                                </td>
+                                <td className="px-4 py-3">
+                                    <span
+                                        className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${STATUS_COLORS[clinic.status] || STATUS_COLORS[0]}`}
+                                    >
+                                        {STATUS_LABELS[clinic.status] || 'Desconhecido'}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 text-sm text-muted-foreground">
+                                    {clinic.created_at}
+                                </td>
+                            </tr>
+                        )}
+                    </Table>
                 </div>
-
-                {/* Paginação */}
-                {clinics.last_page > 1 && (
-                    <div className="flex items-center justify-between rounded-xl border border-sidebar-border/70 bg-card px-4 py-3">
-                        <div className="text-sm text-muted-foreground">
-                            Mostrando {clinics.data.length} de {clinics.total} clínicas
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {clinics.links.map((link, index) => {
-                                if (!link.url) {
-                                    return (
-                                        <span
-                                            key={index}
-                                            className="px-3 py-1 text-sm text-muted-foreground"
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    );
-                                }
-
-                                return (
-                                    <Link
-                                        key={index}
-                                        href={link.url}
-                                        className={`rounded-md px-3 py-1 text-sm transition-colors ${
-                                            link.active
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'bg-background text-foreground hover:bg-accent'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
             </div>
         </AppLayout>
     );

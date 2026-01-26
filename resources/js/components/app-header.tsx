@@ -39,7 +39,7 @@ import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
-// Função para obter o dashboard correto baseado na URL atual
+
 function getDashboardUrl(currentUrl: string) {
     if (currentUrl.startsWith('/admin')) {
         return adminDashboard();
@@ -47,7 +47,7 @@ function getDashboardUrl(currentUrl: string) {
     if (currentUrl.startsWith('/clinic')) {
         return clinicDashboard();
     }
-    // Fallback para clinic por padrão
+
     return clinicDashboard();
 }
 
@@ -76,10 +76,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { urlIsActive, currentUrl } = useActiveUrl();
-    
-    // Obter o dashboard correto baseado na área atual
     const dashboardRoute = getDashboardUrl(currentUrl);
-    
+
     const mainNavItems: NavItem[] = [
         {
             title: 'Dashboard',
@@ -87,7 +85,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             icon: LayoutGrid,
         },
     ];
-    
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">

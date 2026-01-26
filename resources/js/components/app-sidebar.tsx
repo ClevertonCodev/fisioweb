@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
-
+import { useActiveUrl } from '@/hooks/use-active-url';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,15 +13,28 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard as adminDashboard } from '@/routes/admin';
+import { dashboard as clinicDashboard } from '@/routes/clinic';
 import { type NavItem } from '@/types';
 
 import AppLogo from './app-logo';
 
+function getDashboardUrl(currentUrl: string) {
+    if (currentUrl.startsWith('/admin')) {
+        return adminDashboard();
+    }
+    if (currentUrl.startsWith('/clinic')) {
+        return clinicDashboard();
+    }
+
+    return clinicDashboard();
+}
+const { urlIsActive, currentUrl } = useActiveUrl();
+const dashboardRoute = getDashboardUrl(currentUrl);
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: dashboardRoute,
         icon: LayoutGrid,
     },
 ];
@@ -46,7 +59,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboardRoute} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

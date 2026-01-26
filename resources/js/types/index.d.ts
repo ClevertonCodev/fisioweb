@@ -59,11 +59,12 @@ export interface Clinic {
     status: number;
     email: string;
     phone: string | null;
-    url: string | null;
+    slug: string | null;
+    zip_code: string | null;
     address: string | null;
+    number: string | null;
     city: string | null;
     state: string | null;
-    zip_code: string | null;
     plan_id: number | null;
     plan?: Plan | null;
     created_at: string;

@@ -27,11 +27,12 @@ class Clinic extends Model
         'status',
         'email',
         'phone',
-        'url',
+        'slug',
+        'zip_code',
         'address',
+        'number',
         'city',
         'state',
-        'zip_code',
         'plan_id',
     ];
 

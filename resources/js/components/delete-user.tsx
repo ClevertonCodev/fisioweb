@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -14,11 +13,22 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import admin from '@/routes/admin';
+import clinic from '@/routes/clinic';
 
 export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
+    const { currentUrl } = useActiveUrl();
+
+    const profileRoute = useMemo(() => {
+        if (currentUrl.startsWith('/admin')) {
+            return admin.settings.profile;
+        }
+        return clinic.settings.profile;
+    }, [currentUrl]);
 
     return (
         <div className="space-y-6">
@@ -56,7 +66,7 @@ export default function DeleteUser() {
                         </DialogDescription>
 
                         <Form
-                            {...ProfileController.destroy.form()}
+                            {...profileRoute.destroy.form()}
                             options={{
                                 preserveScroll: true,
                             }}

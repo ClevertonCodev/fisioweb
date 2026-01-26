@@ -1,6 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import Heading from '@/components/heading';
@@ -8,19 +8,29 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/user-password';
+import admin from '@/routes/admin';
+import clinic from '@/routes/clinic';
 import { type BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Configurações de senha',
-        href: edit().url,
-    },
-];
-
 export default function Password() {
+    const { currentUrl } = useActiveUrl();
+
+    const passwordRoute = useMemo(() => {
+        if (currentUrl.startsWith('/admin')) {
+            return admin.settings.password;
+        }
+        return clinic.settings.password;
+    }, [currentUrl]);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Configurações de senha',
+            href: passwordRoute.edit().url,
+        },
+    ];
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
@@ -39,7 +49,7 @@ export default function Password() {
                     />
 
                     <Form
-                        {...PasswordController.update.form()}
+                        {...passwordRoute.update.form()}
                         options={{
                             preserveScroll: true,
                         }}

@@ -1,16 +1,18 @@
 import { Form, Head } from '@inertiajs/react';
 import { ShieldBan, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import Heading from '@/components/heading';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { disable, enable, show } from '@/routes/two-factor';
+import admin from '@/routes/admin';
+import clinic from '@/routes/clinic';
 import { type BreadcrumbItem } from '@/types';
 
 interface TwoFactorProps {
@@ -18,17 +20,26 @@ interface TwoFactorProps {
     twoFactorEnabled?: boolean;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Two-Factor Authentication',
-        href: show.url(),
-    },
-];
-
 export default function TwoFactor({
     requiresConfirmation = false,
     twoFactorEnabled = false,
 }: TwoFactorProps) {
+    const { currentUrl } = useActiveUrl();
+
+    const twoFactorRoute = useMemo(() => {
+        if (currentUrl.startsWith('/admin')) {
+            return admin.settings.twoFactor;
+        }
+        return clinic.settings.twoFactor;
+    }, [currentUrl]);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Two-Factor Authentication',
+            href: twoFactorRoute.show().url,
+        },
+    ];
+
     const {
         qrCodeSvg,
         hasSetupData,
@@ -71,7 +82,7 @@ export default function TwoFactor({
                             />
 
                             <div className="relative inline">
-                                <Form {...disable.form()}>
+                                <Form {...twoFactorRoute.disable.form()}>
                                     {({ processing }) => (
                                         <Button
                                             variant="destructive"
@@ -104,7 +115,7 @@ export default function TwoFactor({
                                     </Button>
                                 ) : (
                                     <Form
-                                        {...enable.form()}
+                                        {...twoFactorRoute.enable.form()}
                                         onSuccess={() =>
                                             setShowSetupModal(true)
                                         }

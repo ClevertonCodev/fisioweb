@@ -54,6 +54,24 @@ Route::prefix('clinic')->name('clinic.')->group(function () {
 // Rotas protegidas clinic
 Route::prefix('clinic')->name('clinic.')->middleware(['auth:clinic', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Settings
+    Route::redirect('settings', '/clinic/settings/profile');
+    Route::get('settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');
+    Route::patch('settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::delete('settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'destroy'])->name('settings.profile.destroy');
+    
+    Route::get('settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'edit'])->name('settings.password.edit');
+    Route::put('settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'update'])
+        ->middleware('throttle:6,1')
+        ->name('settings.password.update');
+    
+    Route::get('settings/appearance', function () {
+        return \Inertia\Inertia::render('settings/appearance');
+    })->name('settings.appearance.edit');
+    
+    Route::get('settings/two-factor', [\App\Http\Controllers\Settings\TwoFactorAuthenticationController::class, 'show'])
+        ->name('settings.two-factor.show');
 });
 
 // Logout clinic (pode ser acessado sem verified)

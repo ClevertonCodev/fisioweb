@@ -10,9 +10,8 @@ import {
 import { UserInfo } from '@/components/user-info';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout as adminLogout } from '@/routes/admin';
-import { logout as clinicLogout } from '@/routes/clinic';
-import { edit } from '@/routes/profile';
+import admin from '@/routes/admin';
+import clinic from '@/routes/clinic';
 import { type User } from '@/types';
 
 interface UserMenuContentProps {
@@ -26,16 +25,29 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     // Obter a rota de logout correta baseado na área atual
     const getLogoutRoute = () => {
         if (currentUrl.startsWith('/admin')) {
-            return adminLogout();
+            return admin.logout();
         }
         if (currentUrl.startsWith('/clinic')) {
-            return clinicLogout();
+            return clinic.logout();
         }
         // Fallback para clinic por padrão
-        return clinicLogout();
+        return clinic.logout();
+    };
+
+    // Obter a rota de settings correta baseado na área atual
+    const getSettingsRoute = () => {
+        if (currentUrl.startsWith('/admin')) {
+            return admin.settings.profile.edit();
+        }
+        if (currentUrl.startsWith('/clinic')) {
+            return clinic.settings.profile.edit();
+        }
+        // Fallback para clinic por padrão
+        return clinic.settings.profile.edit();
     };
 
     const logoutRoute = getLogoutRoute();
+    const settingsRoute = getSettingsRoute();
 
     const handleLogout = () => {
         cleanup();
@@ -54,7 +66,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full cursor-pointer"
-                        href={edit()}
+                        href={settingsRoute.url}
                         prefetch
                         onClick={cleanup}
                     >
@@ -67,7 +79,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link
                     className="block w-full cursor-pointer"
-                    href={logoutRoute}
+                    href={logoutRoute.url}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"

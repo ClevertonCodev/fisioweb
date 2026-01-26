@@ -16,7 +16,6 @@ Route::get('/', function () {
     return redirect()->route('clinic.login');
 })->name('home');
 
-require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/clinic.php';
 

@@ -1,42 +1,59 @@
 import { Link } from '@inertiajs/react';
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useActiveUrl } from '@/hooks/use-active-url';
 import { cn, toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
-import { edit } from '@/routes/profile';
-import { show } from '@/routes/two-factor';
-import { edit as editPassword } from '@/routes/user-password';
+import admin from '@/routes/admin';
+import clinic from '@/routes/clinic';
 import { type NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Perfil',
-        href: edit(),
-        icon: null,
-    },
-    {
-        title: 'Senha',
-        href: editPassword(),
-        icon: null,
-    },
-    {
-        title: 'Autenticação de Dois Fatores',
-        href: show(),
-        icon: null,
-    },
-    {
-        title: 'Aparência',
-        href: editAppearance(),
-        icon: null,
-    },
-];
-
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    const { urlIsActive } = useActiveUrl();
+    const { urlIsActive, currentUrl } = useActiveUrl();
+
+    // Detectar qual área está sendo usada e obter as rotas corretas
+    const routes = useMemo(() => {
+        if (currentUrl.startsWith('/admin')) {
+            return {
+                profile: admin.settings.profile.edit(),
+                password: admin.settings.password.edit(),
+                twoFactor: admin.settings.twoFactor.show(),
+                appearance: admin.settings.appearance.edit(),
+            };
+        }
+        // Default para clinic
+        return {
+            profile: clinic.settings.profile.edit(),
+            password: clinic.settings.password.edit(),
+            twoFactor: clinic.settings.twoFactor.show(),
+            appearance: clinic.settings.appearance.edit(),
+        };
+    }, [currentUrl]);
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Perfil',
+            href: routes.profile.url,
+            icon: null,
+        },
+        {
+            title: 'Senha',
+            href: routes.password.url,
+            icon: null,
+        },
+        {
+            title: 'Autenticação de Dois Fatores',
+            href: routes.twoFactor.url,
+            icon: null,
+        },
+        {
+            title: 'Aparência',
+            href: routes.appearance.url,
+            icon: null,
+        },
+    ];
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {

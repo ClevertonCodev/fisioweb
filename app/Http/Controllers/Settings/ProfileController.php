@@ -38,7 +38,15 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return to_route('profile.edit');
+        if (auth()->guard('clinic')->check()) {
+            return to_route('clinic.settings.profile.edit');
+        }
+
+        if (auth()->guard('web')->check()) {
+            return to_route('admin.settings.profile.edit');
+        }
+
+        return back();
     }
 
     /**

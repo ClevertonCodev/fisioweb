@@ -10,7 +10,6 @@ class Plan extends Model
 {
     use HasFactory;
 
-    // Constantes para type_charge
     public const TYPE_CHARGE_POR_USUARIO = 'por_usuario';
     public const TYPE_CHARGE_FIXO = 'fixo';
 
@@ -29,9 +28,6 @@ class Plan extends Model
         ];
     }
 
-    /**
-     * Get all clinics using this plan.
-     */
     public function clinics(): HasMany
     {
         return $this->hasMany(Clinic::class);

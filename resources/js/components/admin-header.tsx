@@ -1,5 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    Building2,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+    Settings,
+    Sparkles,
+} from 'lucide-react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,8 +20,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
     NavigationMenu,
+    NavigationMenuContent,
     NavigationMenuItem,
+    NavigationMenuLink,
     NavigationMenuList,
+    NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import {
@@ -118,6 +130,39 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                     <span>{item.title}</span>
                                                 </Link>
                                             ))}
+                                            {/* Dropdown Planos Mobile */}
+                                            <div className="flex flex-col space-y-2">
+                                                <div className="flex items-center space-x-2 font-medium">
+                                                    <Sparkles className="h-5 w-5" />
+                                                    <span>Planos</span>
+                                                </div>
+                                                <div className="ml-7 flex flex-col space-y-2">
+                                                    <Link
+                                                        href="/admin/planos/funcionalidades"
+                                                        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Sparkles className="h-4 w-4" />
+                                                        <span>Funcionalidades</span>
+                                                    </Link>
+                                                    <Link
+                                                        href="/admin/planos/planos"
+                                                        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <LayoutGrid className="h-4 w-4" />
+                                                        <span>Planos</span>
+                                                    </Link>
+                                                    <Link
+                                                        href="/admin/planos/configurar-funcionalidades"
+                                                        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Settings className="h-4 w-4" />
+                                                        <span>
+                                                            Configurar
+                                                            Funcionalidades
+                                                        </span>
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col space-y-4">
@@ -178,6 +223,111 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                         )}
                                     </NavigationMenuItem>
                                 ))}
+                                {/* Dropdown Planos */}
+                                <NavigationMenuItem className="relative flex h-full items-center">
+                                    <NavigationMenuTrigger
+                                        className={cn(
+                                            navigationMenuTriggerStyle(),
+                                            (urlIsActive('/admin/planos/funcionalidades') ||
+                                                urlIsActive('/admin/planos/planos') ||
+                                                urlIsActive(
+                                                    '/admin/planos/configurar-funcionalidades',
+                                                )) &&
+                                                activeItemStyles,
+                                            'h-9 cursor-pointer px-3',
+                                        )}
+                                    >
+                                        <Sparkles className="mr-2 h-4 w-4" />
+                                        Planos
+                                    </NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1">
+                                            <li>
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/admin/planos/funcionalidades"
+                                                        className={cn(
+                                                            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                                            urlIsActive(
+                                                                '/admin/planos/funcionalidades',
+                                                            ) && 'bg-accent',
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <Sparkles className="h-4 w-4" />
+                                                            <div className="text-sm font-medium leading-none">
+                                                                Funcionalidades
+                                                            </div>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                            Gerencie as
+                                                            funcionalidades
+                                                            disponíveis
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
+                                            <li>
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/admin/planos/planos"
+                                                        className={cn(
+                                                            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                                            urlIsActive(
+                                                                '/admin/planos/planos',
+                                                            ) && 'bg-accent',
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <LayoutGrid className="h-4 w-4" />
+                                                            <div className="text-sm font-medium leading-none">
+                                                                Planos
+                                                            </div>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                            Gerencie os planos
+                                                            disponíveis no
+                                                            sistema
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
+                                            <li>
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/admin/planos/configurar-funcionalidades"
+                                                        className={cn(
+                                                            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                                            urlIsActive(
+                                                                '/admin/planos/configurar-funcionalidades',
+                                                            ) && 'bg-accent',
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <Settings className="h-4 w-4" />
+                                                            <div className="text-sm font-medium leading-none">
+                                                                Configurar
+                                                                Funcionalidades
+                                                            </div>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                            Configure as
+                                                            funcionalidades para
+                                                            cada plano
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
+                                        </ul>
+                                    </NavigationMenuContent>
+                                    {(urlIsActive('/admin/planos/funcionalidades') ||
+                                        urlIsActive('/admin/planos/planos') ||
+                                        urlIsActive(
+                                            '/admin/planos/configurar-funcionalidades',
+                                        )) && (
+                                        <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
+                                    )}
+                                </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>
                     </div>

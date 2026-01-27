@@ -5,10 +5,7 @@ namespace App\Helpers;
 class ValidationHelper
 {
     /**
-     * Valida CPF
-     *
-     * @param string $cpf
-     * @return bool
+     * Valida CPF.
      */
     public static function validateCpf(string $cpf): bool
     {
@@ -18,9 +15,8 @@ class ValidationHelper
             return false;
         }
 
-        // Valida 1o digito
         $add = 0;
-        for ($i = 0; $i < 9; $i++) {
+        for ($i = 0; $i < 9; ++$i) {
             $add += (int) $cpf[$i] * (10 - $i);
         }
         $rev = 11 - ($add % 11);
@@ -32,9 +28,8 @@ class ValidationHelper
             return false;
         }
 
-        // Valida 2o digito
         $add = 0;
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 10; ++$i) {
             $add += (int) $cpf[$i] * (11 - $i);
         }
 
@@ -47,10 +42,7 @@ class ValidationHelper
     }
 
     /**
-     * Valida CNPJ
-     *
-     * @param string $cnpj
-     * @return bool
+     * Valida CNPJ.
      */
     public static function validateCnpj(string $cnpj): bool
     {
@@ -60,43 +52,33 @@ class ValidationHelper
             return false;
         }
 
-        // Calcular o primeiro dígito verificador
         $soma = 0;
-        for ($i = 0, $j = 5; $i < 12; $i++) {
+        for ($i = 0, $j = 5; $i < 12; ++$i) {
             $soma += (int) $cnpj[$i] * $j;
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
         $dv1 = $resto < 2 ? 0 : 11 - $resto;
 
-        // Calcular o segundo dígito verificador
         $soma = 0;
-        for ($i = 0, $j = 6; $i < 13; $i++) {
+        for ($i = 0, $j = 6; $i < 13; ++$i) {
             $soma += (int) $cnpj[$i] * $j;
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
         $dv2 = $resto < 2 ? 0 : 11 - $resto;
 
-        // Verificar se os dígitos verificadores estão corretos
         return $cnpj[12] == $dv1 && $cnpj[13] == $dv2;
     }
 
     /**
-     * Gera um slug a partir de uma string
-     *
-     * @param string $text
-     * @return string
+     * Gera um slug a partir de uma string.
      */
     public static function generateSlug(string $text): string
     {
-        // Remove acentos
         $text = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
-        // Converte para minúsculas
         $text = strtolower($text);
-        // Remove caracteres não alfanuméricos e substitui por hífen
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-        // Remove hífens do início e fim
         $text = trim($text, '-');
 
         return $text;

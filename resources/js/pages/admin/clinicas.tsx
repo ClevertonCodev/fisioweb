@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
+import FlashMessage from '@/components/flash-message';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -104,6 +105,9 @@ export default function Clinicas({ clinics, plans, filters }: ClinicasProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Clinicas" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {/* Mensagem de sucesso */}
+                <FlashMessage />
+
                 {/* Cabeçalho com botão de adicionar */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Clínicas</h1>

@@ -2,7 +2,11 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\ClinicasController;
+use App\Http\Controllers\Admin\ConfigurarFuncionalidadesController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FuncionalidadesController;
+use App\Http\Controllers\Admin\PlanosController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,6 +65,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->gr
     Route::get('clinicas/create', [ClinicasController::class, 'create'])->name('clinicas.create');
     Route::post('clinicas', [ClinicasController::class, 'store'])->name('clinicas.store');
 
+    // Planos
+    Route::get('planos/funcionalidades', [FuncionalidadesController::class, 'index'])->name('planos.funcionalidades');
+    Route::get('planos/planos', [PlanosController::class, 'index'])->name('planos.planos');
+    Route::get('planos/create', [PlanosController::class, 'create'])->name('planos.create');
+    Route::post('planos', [PlanosController::class, 'store'])->name('planos.store');
+    Route::get('planos/{plan}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
+    Route::put('planos/{plan}', [PlanosController::class, 'update'])->name('planos.update');
+    Route::get('planos/configurar-funcionalidades', [ConfigurarFuncionalidadesController::class, 'index'])->name('planos.configurar-funcionalidades');
+
     // Settings
     Route::redirect('settings', '/admin/settings/profile');
     Route::get('settings/profile', [App\Http\Controllers\Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');
@@ -83,4 +96,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->gr
 // Logout admin (pode ser acessado sem verified)
 Route::prefix('admin')->name('admin.')->middleware(['auth:web'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('clear-flash', function (Request $request) {
+        $type = $request->input('type', 'success');
+        if ($type === 'error') {
+            $request->session()->forget('error');
+        } else {
+            $request->session()->forget('success');
+        }
+        return back();
+    })->name('clear-flash');
 });

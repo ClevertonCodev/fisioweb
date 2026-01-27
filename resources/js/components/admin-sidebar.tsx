@@ -28,7 +28,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Clinicas',
-        href: '/admin/clinicas',
+        href: '/admin/clinics',
         icon: Building2,
     },
 ];

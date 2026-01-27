@@ -84,7 +84,7 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
         },
         {
             title: 'Clinicas',
-            href: '/admin/clinicas',
+            href: '/admin/clinics',
             icon: Building2,
         },
     ];
@@ -138,21 +138,21 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                 </div>
                                                 <div className="ml-7 flex flex-col space-y-2">
                                                     <Link
-                                                        href="/admin/planos/funcionalidades"
+                                                        href="/admin/plans/features"
                                                         className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
                                                     >
                                                         <Sparkles className="h-4 w-4" />
                                                         <span>Funcionalidades</span>
                                                     </Link>
                                                     <Link
-                                                        href="/admin/planos/planos"
+                                                        href="/admin/plans"
                                                         className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
                                                     >
                                                         <LayoutGrid className="h-4 w-4" />
                                                         <span>Planos</span>
                                                     </Link>
                                                     <Link
-                                                        href="/admin/planos/configurar-funcionalidades"
+                                                        href="/admin/plans/configure-features"
                                                         className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
                                                     >
                                                         <Settings className="h-4 w-4" />
@@ -209,7 +209,7 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
                                                 urlIsActive(item.href) &&
-                                                    activeItemStyles,
+                                                activeItemStyles,
                                                 'h-9 cursor-pointer px-3',
                                             )}
                                         >
@@ -228,12 +228,12 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                     <NavigationMenuTrigger
                                         className={cn(
                                             navigationMenuTriggerStyle(),
-                                            (urlIsActive('/admin/planos/funcionalidades') ||
-                                                urlIsActive('/admin/planos/planos') ||
+                                            (urlIsActive('/admin/plans/features') ||
+                                                urlIsActive('/admin/plans') ||
                                                 urlIsActive(
-                                                    '/admin/planos/configurar-funcionalidades',
+                                                    '/admin/plans/configure-features',
                                                 )) &&
-                                                activeItemStyles,
+                                            activeItemStyles,
                                             'h-9 cursor-pointer px-3',
                                         )}
                                     >
@@ -245,11 +245,11 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             <li>
                                                 <NavigationMenuLink asChild>
                                                     <Link
-                                                        href="/admin/planos/funcionalidades"
+                                                        href="/admin/plans/features"
                                                         className={cn(
                                                             'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                                             urlIsActive(
-                                                                '/admin/planos/funcionalidades',
+                                                                '/admin/plans/features',
                                                             ) && 'bg-accent',
                                                         )}
                                                     >
@@ -270,11 +270,11 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             <li>
                                                 <NavigationMenuLink asChild>
                                                     <Link
-                                                        href="/admin/planos/planos"
+                                                        href="/admin/plans"
                                                         className={cn(
                                                             'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                                             urlIsActive(
-                                                                '/admin/planos/planos',
+                                                                '/admin/plans',
                                                             ) && 'bg-accent',
                                                         )}
                                                     >
@@ -295,11 +295,11 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             <li>
                                                 <NavigationMenuLink asChild>
                                                     <Link
-                                                        href="/admin/planos/configurar-funcionalidades"
+                                                        href="/admin/plans/configure-features"
                                                         className={cn(
                                                             'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                                             urlIsActive(
-                                                                '/admin/planos/configurar-funcionalidades',
+                                                                '/admin/plans/configure-features',
                                                             ) && 'bg-accent',
                                                         )}
                                                     >
@@ -320,13 +320,13 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             </li>
                                         </ul>
                                     </NavigationMenuContent>
-                                    {(urlIsActive('/admin/planos/funcionalidades') ||
-                                        urlIsActive('/admin/planos/planos') ||
+                                    {(urlIsActive('/admin/plans/features') ||
+                                        urlIsActive('/admin/plans') ||
                                         urlIsActive(
-                                            '/admin/planos/configurar-funcionalidades',
+                                            '/admin/plans/configure-features',
                                         )) && (
-                                        <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
-                                    )}
+                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
+                                        )}
                                 </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>

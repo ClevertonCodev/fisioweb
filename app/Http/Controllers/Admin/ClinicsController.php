@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ClinicasController extends Controller
+class ClinicsController extends Controller
 {
     /**
      * Display the clinics page.
@@ -55,7 +55,7 @@ class ClinicasController extends Controller
 
         $plans = Plan::orderBy('name')->get();
 
-        return Inertia::render('admin/clinicas', [
+        return Inertia::render('admin/clinics/index', [
             'clinics' => $clinics,
             'plans' => $plans,
             'filters' => $request->only(['search', 'plan_id', 'date_from', 'date_to', 'status']),
@@ -69,7 +69,7 @@ class ClinicasController extends Controller
     {
         $plans = Plan::orderBy('name')->get();
 
-        return Inertia::render('admin/clinicas/create', [
+        return Inertia::render('admin/clinics/create', [
             'plans' => $plans,
         ]);
     }
@@ -131,8 +131,8 @@ class ClinicasController extends Controller
         $slug = $baseSlug;
         $counter = 1;
         while (Clinic::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
-            $counter++;
+            $slug = $baseSlug.'-'.$counter;
+            ++$counter;
         }
 
         $validated['slug'] = $slug;
@@ -158,7 +158,7 @@ class ClinicasController extends Controller
         Clinic::create($validated);
 
         return redirect()
-            ->route('admin.clinicas')
+            ->route('admin.clinics.index')
             ->with('success', 'Clínica criada com sucesso!');
     }
 }

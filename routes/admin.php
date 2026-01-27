@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Admin\ClinicasController;
-use App\Http\Controllers\Admin\ConfigurarFuncionalidadesController;
+use App\Http\Controllers\Admin\ClinicsController;
+use App\Http\Controllers\Admin\ConfigureFeaturesController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\FuncionalidadesController;
-use App\Http\Controllers\Admin\PlanosController;
+use App\Http\Controllers\Admin\FeaturesController;
+use App\Http\Controllers\Admin\PlansController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,19 +60,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // Clínicas
-    Route::get('clinicas', [ClinicasController::class, 'index'])->name('clinicas');
-    Route::get('clinicas/create', [ClinicasController::class, 'create'])->name('clinicas.create');
-    Route::post('clinicas', [ClinicasController::class, 'store'])->name('clinicas.store');
+    // Clinics
+    Route::get('clinics', [ClinicsController::class, 'index'])->name('clinics.index');
+    Route::get('clinics/create', [ClinicsController::class, 'create'])->name('clinics.create');
+    Route::post('clinics', [ClinicsController::class, 'store'])->name('clinics.store');
 
-    // Planos
-    Route::get('planos/funcionalidades', [FuncionalidadesController::class, 'index'])->name('planos.funcionalidades');
-    Route::get('planos/planos', [PlanosController::class, 'index'])->name('planos.planos');
-    Route::get('planos/create', [PlanosController::class, 'create'])->name('planos.create');
-    Route::post('planos', [PlanosController::class, 'store'])->name('planos.store');
-    Route::get('planos/{plan}/edit', [PlanosController::class, 'edit'])->name('planos.edit');
-    Route::put('planos/{plan}', [PlanosController::class, 'update'])->name('planos.update');
-    Route::get('planos/configurar-funcionalidades', [ConfigurarFuncionalidadesController::class, 'index'])->name('planos.configurar-funcionalidades');
+    // Plans
+    Route::get('plans/features', [FeaturesController::class, 'index'])->name('plans.features');
+    Route::get('plans', [PlansController::class, 'index'])->name('plans.index');
+    Route::get('plans/create', [PlansController::class, 'create'])->name('plans.create');
+    Route::post('plans', [PlansController::class, 'store'])->name('plans.store');
+    Route::get('plans/{plan}/edit', [PlansController::class, 'edit'])->name('plans.edit');
+    Route::put('plans/{plan}', [PlansController::class, 'update'])->name('plans.update');
+    Route::get('plans/configure-features', [ConfigureFeaturesController::class, 'index'])->name('plans.configure-features');
 
     // Settings
     Route::redirect('settings', '/admin/settings/profile');

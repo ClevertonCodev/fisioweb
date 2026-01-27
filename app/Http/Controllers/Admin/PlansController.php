@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class PlanosController extends Controller
+class PlansController extends Controller
 {
     public function index(Request $request): Response
     {
@@ -31,7 +31,7 @@ class PlanosController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('admin/planos/planos', [
+        return Inertia::render('admin/plans/index', [
             'plans' => $plans,
             'filters' => $request->only(['search']),
         ]);
@@ -39,7 +39,7 @@ class PlanosController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('admin/planos/create');
+        return Inertia::render('admin/plans/create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -54,13 +54,13 @@ class PlanosController extends Controller
         Plan::create($validated);
 
         return redirect()
-            ->route('admin.planos.planos')
+            ->route('admin.plans.index')
             ->with('success', 'Plano criado com sucesso!');
     }
 
     public function edit(Plan $plan): Response
     {
-        return Inertia::render('admin/planos/edit', [
+        return Inertia::render('admin/plans/edit', [
             'plan' => $plan,
         ]);
     }
@@ -77,7 +77,7 @@ class PlanosController extends Controller
         $plan->update($validated);
 
         return redirect()
-            ->route('admin.planos.planos')
+            ->route('admin.plans.index')
             ->with('success', 'Plano atualizado com sucesso!');
     }
 }

@@ -65,8 +65,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->gr
     Route::get('clinics/create', [ClinicsController::class, 'create'])->name('clinics.create');
     Route::post('clinics', [ClinicsController::class, 'store'])->name('clinics.store');
 
+    // Functionalities (Funcionalidades)
+    Route::redirect('plans/features', '/admin/functionalities')->name('plans.features');
+    Route::get('functionalities', [FeaturesController::class, 'index'])->name('functionalities.index');
+    Route::get('functionalities/create', [FeaturesController::class, 'create'])->name('functionalities.create');
+    Route::post('functionalities', [FeaturesController::class, 'store'])->name('functionalities.store');
+    Route::get('functionalities/{feature}/edit', [FeaturesController::class, 'edit'])->name('functionalities.edit');
+    Route::put('functionalities/{feature}', [FeaturesController::class, 'update'])->name('functionalities.update');
+
     // Plans
-    Route::get('plans/features', [FeaturesController::class, 'index'])->name('plans.features');
     Route::get('plans', [PlansController::class, 'index'])->name('plans.index');
     Route::get('plans/create', [PlansController::class, 'create'])->name('plans.create');
     Route::post('plans', [PlansController::class, 'store'])->name('plans.store');

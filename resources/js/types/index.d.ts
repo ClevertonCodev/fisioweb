@@ -55,6 +55,16 @@ export interface Plan {
     updated_at: string;
 }
 
+export interface Feature {
+    id: number;
+    key: string;
+    name: string;
+    value_isolated: number | null;
+    type: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Clinic {
     id: number;
     name: string;

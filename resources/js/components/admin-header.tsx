@@ -138,7 +138,7 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                 </div>
                                                 <div className="ml-7 flex flex-col space-y-2">
                                                     <Link
-                                                        href="/admin/plans/features"
+                                                        href="/admin/functionalities"
                                                         className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
                                                     >
                                                         <Sparkles className="h-4 w-4" />
@@ -228,7 +228,7 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                     <NavigationMenuTrigger
                                         className={cn(
                                             navigationMenuTriggerStyle(),
-                                            (urlIsActive('/admin/plans/features') ||
+                                            (urlIsActive('/admin/functionalities') ||
                                                 urlIsActive('/admin/plans') ||
                                                 urlIsActive(
                                                     '/admin/plans/configure-features',
@@ -245,11 +245,11 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             <li>
                                                 <NavigationMenuLink asChild>
                                                     <Link
-                                                        href="/admin/plans/features"
+                                                        href="/admin/functionalities"
                                                         className={cn(
                                                             'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
                                                             urlIsActive(
-                                                                '/admin/plans/features',
+                                                                '/admin/functionalities',
                                                             ) && 'bg-accent',
                                                         )}
                                                     >
@@ -320,7 +320,7 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             </li>
                                         </ul>
                                     </NavigationMenuContent>
-                                    {(urlIsActive('/admin/plans/features') ||
+                                    {(urlIsActive('/admin/functionalities') ||
                                         urlIsActive('/admin/plans') ||
                                         urlIsActive(
                                             '/admin/plans/configure-features',

@@ -41,7 +41,7 @@ export function Pagination({
                         <Link
                             key={index}
                             href={link.url}
-                            className={`rounded-md px-3 py-1 text-sm transition-colors ${link.active
+                            className={`cursor-pointer rounded-md px-3 py-1 text-sm transition-colors ${link.active
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-background text-foreground hover:bg-accent'
                                 }`}

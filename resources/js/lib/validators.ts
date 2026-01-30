@@ -63,7 +63,7 @@ export function validateCpf(cpf: string): boolean {
  */
 export function validateCnpj(cnpj: string): boolean {
     // Remover caracteres não numéricos
-    let cnpjClean = cnpj.replace(/[^\d]+/g, '');
+    const cnpjClean = cnpj.replace(/[^\d]+/g, '');
 
     // Verificar se tem 14 dígitos
     if (cnpjClean.length != 14) {
@@ -82,7 +82,7 @@ export function validateCnpj(cnpj: string): boolean {
         j = j == 2 ? 9 : j - 1;
     }
     let resto = soma % 11;
-    let dv1 = resto < 2 ? 0 : 11 - resto;
+    const dv1 = resto < 2 ? 0 : 11 - resto;
 
     // Calcular o segundo dígito verificador
     soma = 0;
@@ -91,7 +91,7 @@ export function validateCnpj(cnpj: string): boolean {
         j = j == 2 ? 9 : j - 1;
     }
     resto = soma % 11;
-    let dv2 = resto < 2 ? 0 : 11 - resto;
+    const dv2 = resto < 2 ? 0 : 11 - resto;
 
     // Verificar se os dígitos verificadores estão corretos
     return cnpjClean[12] == String(dv1) && cnpjClean[13] == String(dv2);

@@ -46,10 +46,10 @@ export function useAppearance() {
 
     const resolvedAppearance: ResolvedAppearance = useMemo(
         () => 'light',
-        [appearance],
+        [],
     );
 
-    const updateAppearance = useCallback((mode: Appearance): void => {
+    const updateAppearance = useCallback((): void => {
         currentAppearance = 'light';
 
         localStorage.setItem('appearance', 'light');

@@ -13,12 +13,7 @@ interface PaginationProps {
     label?: string;
 }
 
-export function Pagination({
-    links,
-    total,
-    currentCount,
-    label = 'itens',
-}: PaginationProps) {
+export function Pagination({ links }: PaginationProps) {
     if (links.length <= 3) {
         return null;
     }

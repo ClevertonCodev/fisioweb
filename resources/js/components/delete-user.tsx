@@ -13,9 +13,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { useActiveUrl } from '@/hooks/use-active-url';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import admin from '@/routes/admin';
 import clinic from '@/routes/clinic';
 

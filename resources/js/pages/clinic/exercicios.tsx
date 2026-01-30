@@ -1,18 +1,18 @@
 import { Head, Link } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
 import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-import ClinicLayout from '@/layouts/clinic-layout';
-import { dashboard } from '@/routes/clinic';
 import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
-import { mockExercises, filterCategories } from '@/data/mockExercises';
-import type { Exercise, ExerciseFilters as Filters } from '@/types/exercise';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { mockExercises, filterCategories } from '@/data/mockExercises';
+import ClinicLayout from '@/layouts/clinic-layout';
 import { cn } from '@/lib/utils';
+import { dashboard } from '@/routes/clinic';
+import type { Exercise, ExerciseFilters as Filters } from '@/types/exercise';
 
 const initialFilters: Filters = {
     search: '',

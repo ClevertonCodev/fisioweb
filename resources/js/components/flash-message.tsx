@@ -16,14 +16,14 @@ export default function FlashMessage() {
         if (currentMessage) {
             if (currentMessage !== lastMessageRef.current) {
                 if (!dismissedMessagesRef.current.has(currentMessage)) {
-                    setIsDismissed(false);
+                    queueMicrotask(() => setIsDismissed(false));
                     lastMessageRef.current = currentMessage;
                 } else {
-                    setIsDismissed(true);
+                    queueMicrotask(() => setIsDismissed(true));
                 }
             }
         } else {
-            setIsDismissed(false);
+            queueMicrotask(() => setIsDismissed(false));
             lastMessageRef.current = null;
         }
     }, [flash?.success, flash?.error]);

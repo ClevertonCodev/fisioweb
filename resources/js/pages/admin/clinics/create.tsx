@@ -1,10 +1,11 @@
-import { Form, Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { ArrowLeft, Pencil } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -12,7 +13,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
 import { generateSlug, maskCnpj, maskCpf, validateCnpj, validateCpf } from '@/lib/validators';
@@ -50,8 +50,18 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
         plan_id: '',
     });
 
-    const [documentError, setDocumentError] = useState<string>('');
-    const [isSlugEditable, setIsSlugEditable] = useState<boolean>(false);
+    const isSlugEditable = !!errors.slug;
+    const documentError = useMemo(() => {
+        if (!data.document || !data.type_person) return '';
+        const isValid =
+            data.type_person === 'fisica'
+                ? validateCpf(data.document)
+                : validateCnpj(data.document);
+        if (!isValid) {
+            return data.type_person === 'fisica' ? 'CPF inválido' : 'CNPJ inválido';
+        }
+        return '';
+    }, [data.document, data.type_person]);
 
     useEffect(() => {
         if (data.name && !isSlugEditable) {
@@ -59,34 +69,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
         } else if (!data.name && !isSlugEditable) {
             setData('slug', '');
         }
-    }, [data.name, isSlugEditable]);
-
-    useEffect(() => {
-        if (errors.slug) {
-            setIsSlugEditable(true);
-        }
-    }, [errors.slug]);
-
-    useEffect(() => {
-        if (data.document && data.type_person) {
-            const isValid =
-                data.type_person === 'fisica'
-                    ? validateCpf(data.document)
-                    : validateCnpj(data.document);
-
-            if (!isValid) {
-                setDocumentError(
-                    data.type_person === 'fisica'
-                        ? 'CPF inválido'
-                        : 'CNPJ inválido'
-                );
-            } else {
-                setDocumentError('');
-            }
-        } else {
-            setDocumentError('');
-        }
-    }, [data.document, data.type_person]);
+    }, [data.name, isSlugEditable, setData]);
 
     const handleCancel = useCallback(() => {
         router.visit('/admin/clinics');

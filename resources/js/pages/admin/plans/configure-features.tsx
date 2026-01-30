@@ -4,7 +4,9 @@ import { useCallback } from 'react';
 
 import FlashMessage from '@/components/flash-message';
 import InputError from '@/components/input-error';
+import { Table } from '@/components/table';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -12,9 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { Table } from '@/components/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type Feature, type FeaturePlan, type Plan } from '@/types';
 

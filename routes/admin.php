@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\ClinicsController;
 use App\Http\Controllers\Admin\ConfigureFeaturesController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FeaturePlansController;
 use App\Http\Controllers\Admin\FeaturesController;
 use App\Http\Controllers\Admin\PlansController;
 use Illuminate\Http\Request;
@@ -80,6 +81,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->gr
     Route::get('plans/{plan}/edit', [PlansController::class, 'edit'])->name('plans.edit');
     Route::put('plans/{plan}', [PlansController::class, 'update'])->name('plans.update');
     Route::get('plans/configure-features', [ConfigureFeaturesController::class, 'index'])->name('plans.configure-features');
+    Route::post('feature-plans', [FeaturePlansController::class, 'store'])->name('feature-plans.store');
+    Route::delete('feature-plans/{featurePlan}', [FeaturePlansController::class, 'destroy'])->name('feature-plans.destroy');
 
     // Settings
     Route::redirect('settings', '/admin/settings/profile');

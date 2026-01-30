@@ -65,6 +65,15 @@ export interface Feature {
     updated_at: string;
 }
 
+export interface FeaturePlan {
+    id: number;
+    plan_id: number;
+    feature_id: number;
+    value: boolean;
+    plan: { id: number; name: string };
+    feature: { id: number; name: string };
+}
+
 export interface Clinic {
     id: number;
     name: string;

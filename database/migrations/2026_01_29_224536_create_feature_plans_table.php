@@ -10,13 +10,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('features', function (Blueprint $table) {
+        Schema::create('feature_plans', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique();
-            $table->string('name');
-            $table->decimal('value_isolated', 10, 2)->nullable();
-            $table->string('type');
+            $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
+            $table->foreignId('feature_id')->constrained('features')->cascadeOnDelete();
+            $table->boolean('value')->default(true);
             $table->timestamps();
+
+            $table->unique(['plan_id', 'feature_id']);
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('features');
+        Schema::dropIfExists('feature_plans');
     }
 };

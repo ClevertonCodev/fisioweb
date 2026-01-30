@@ -4,12 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Feature extends Model
 {
     use HasFactory;
 
-    protected $table = 'functionalities';
+    protected $table = 'features';
+
+    public function featurePlans(): HasMany
+    {
+        return $this->hasMany(FeaturePlan::class, 'feature_id');
+    }
 
     public const KEY_VIDEO_CALL = 'video_call';
     public const ALLOWED_KEYS = [

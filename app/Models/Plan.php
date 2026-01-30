@@ -10,6 +10,11 @@ class Plan extends Model
 {
     use HasFactory;
 
+    public function featurePlans(): HasMany
+    {
+        return $this->hasMany(FeaturePlan::class);
+    }
+
     public const TYPE_CHARGE_POR_USUARIO = 'por_usuario';
     public const TYPE_CHARGE_FIXO = 'fixo';
 

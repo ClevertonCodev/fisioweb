@@ -2,6 +2,8 @@
 
 @import 'tw-animate-css';
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -61,25 +63,25 @@
 }
 
 :root {
-    --background: oklch(1 0 0); /* Branco */
-    --foreground: oklch(0.145 0 0); /* Preto para texto */
+    --background: oklch(1 0 0); 
+    --foreground: oklch(0.145 0 0); 
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0); /* Preto */
+    --card-foreground: oklch(0.145 0 0); 
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0); /* Preto */
-    --primary: oklch(0.6 0.15 165); /* Verde principal rgb(41, 163, 122) */
-    --primary-foreground: oklch(1 0 0); /* Branco */
+    --popover-foreground: oklch(0.145 0 0); 
+    --primary: oklch(0.6 0.15 165);  rgb(41, 163, 122)
+    --primary-foreground: oklch(1 0 0); /
     --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.145 0 0); /* Preto */
+    --secondary-foreground: oklch(0.145 0 0); 
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0); /* Cinza para texto secundário */
-    --accent: oklch(0.7 0.15 165); /* Verde mais claro */
-    --accent-foreground: oklch(0.145 0 0); /* Preto */
+    --muted-foreground: oklch(0.556 0 0); 
+    --accent: oklch(0.7 0.15 165); 
+    --accent-foreground: oklch(0.145 0 0); 
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.6 0.15 165); /* Verde para focus */
+    --ring: oklch(0.6 0.15 165); 
     --chart-1: oklch(0.6 0.15 165);
     --chart-2: oklch(0.7 0.15 165);
     --chart-3: oklch(0.5 0.12 165);
@@ -87,11 +89,11 @@
     --chart-5: oklch(0.55 0.14 165);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0); /* Preto */
-    --sidebar-primary: oklch(0.6 0.15 165); /* Verde */
+    --sidebar-foreground: oklch(0.145 0 0); 
+    --sidebar-primary: oklch(0.6 0.15 165); 
     --sidebar-primary-foreground: oklch(1 0 0);
     --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.145 0 0); /* Preto */
+    --sidebar-accent-foreground: oklch(0.145 0 0); 
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.6 0.15 165);
     
@@ -111,4 +113,174 @@
 .gradient-primary {
     background: var(--gradient-primary);
     background-image: linear-gradient(135deg, rgb(41, 163, 122), rgb(38, 217, 157));
+}
+
+/* Área da Clínica – */
+.clinic-area {
+    --background: hsl(180 20% 99%);
+    --foreground: hsl(200 25% 15%);
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(200 25% 15%);
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(200 25% 15%);
+    --primary: hsl(175 70% 35%);
+    --primary-foreground: hsl(0 0% 100%);
+    --secondary: hsl(180 15% 95%);
+    --secondary-foreground: hsl(200 25% 25%);
+    --muted: hsl(180 10% 96%);
+    --muted-foreground: hsl(200 15% 45%);
+    --accent: hsl(175 60% 92%);
+    --accent-foreground: hsl(175 70% 25%);
+    --destructive: hsl(0 70% 55%);
+    --destructive-foreground: hsl(0 0% 100%);
+    --border: hsl(180 15% 90%);
+    --input: hsl(180 15% 90%);
+    --ring: hsl(175 70% 35%);
+    /* Sidebar escura + turquesa (frontendclinica) */
+    --sidebar: hsl(200 25% 18%);
+    --sidebar-foreground: hsl(180 10% 95%);
+    --sidebar-primary: hsl(175 70% 45%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(200 20% 25%);
+    --sidebar-accent-foreground: hsl(180 10% 95%);
+    --sidebar-border: hsl(200 20% 25%);
+    --sidebar-ring: hsl(175 70% 45%);
+    --chart-1: hsl(175 70% 35%);
+    --chart-2: hsl(199 70% 50%);
+    --chart-3: hsl(160 60% 45%);
+    --chart-4: hsl(220 60% 55%);
+    --chart-5: hsl(280 50% 55%);
+    --success: hsl(150 60% 45%);
+    --warning: hsl(40 90% 50%);
+    --info: hsl(200 80% 50%);
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+.clinic-area body,
+.clinic-area {
+    font-family: var(--font-sans);
+}
+
+/* Navbar (sidebar) da clínica: fundo escuro + detalhes turquesa (força as cores) */
+.clinic-area [data-slot="sidebar-wrapper"] {
+    background-color: hsl(200 25% 18%) !important;
+}
+.clinic-area [data-sidebar="sidebar"],
+.clinic-area [data-slot="sidebar"] {
+    background-color: hsl(200 25% 18%) !important;
+    color: hsl(180 10% 95%) !important;
+    border-color: hsl(200 20% 25%) !important;
+}
+.clinic-area [data-sidebar="header"],
+.clinic-area [data-sidebar="content"],
+.clinic-area [data-sidebar="footer"],
+.clinic-area [data-sidebar="menu"],
+.clinic-area [data-sidebar="menu-item"],
+.clinic-area [data-sidebar="group"] {
+    color: hsl(180 10% 95%);
+}
+.clinic-area [data-sidebar="header"] {
+    border-color: hsl(200 20% 25%) !important;
+    min-height: 3rem;
+}
+.clinic-area [data-sidebar="footer"] {
+    border-color: hsl(200 20% 25%) !important;
+}
+.clinic-area [data-sidebar="menu-button"] {
+    color: hsl(180 10% 95%);
+}
+.clinic-area [data-sidebar="menu-button"]:hover {
+    background-color: hsl(200 20% 25%) !important;
+    color: hsl(180 10% 95%) !important;
+}
+
+.clinic-area [data-sidebar="menu-button"][data-active="true"] {
+    background-color: hsl(175 70% 45%) !important;
+    color: hsl(0 0% 100%) !important;
+}
+.clinic-area [data-sidebar="menu-button"][data-active="true"] svg,
+.clinic-area [data-sidebar="menu-button"][data-active="true"] span {
+    color: inherit;
+}
+.clinic-area [data-sidebar="separator"] {
+    background-color: hsl(200 20% 25%) !important;
+}
+.clinic-area [data-sidebar="trigger"] {
+    color: hsl(180 10% 95%);
+}
+.clinic-area [data-sidebar="trigger"]:hover {
+    background-color: hsl(200 20% 25%);
+    color: hsl(180 10% 95%);
+}
+
+.clinic-area .clinic-sidebar-logo {
+    background-color: hsl(175 70% 45%) !important;
+    color: hsl(0 0% 100%) !important;
+}
+.clinic-area .clinic-sidebar-brand {
+    color: hsl(0 0% 100%) !important;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Seta do toggle da sidebar: sempre branca */
+.clinic-area .clinic-sidebar-toggle,
+.clinic-area .clinic-sidebar-toggle svg {
+    color: hsl(0 0% 100%) !important;
+}
+.clinic-area .clinic-sidebar-toggle:hover,
+.clinic-area .clinic-sidebar-toggle:hover svg {
+    color: hsl(0 0% 100%) !important;
+}
+
+/* Navbar: alinhamento consistente dos ícones com a foto (mesmo padding) */
+.clinic-area .clinic-sidebar-content [data-sidebar="group"],
+.clinic-area .clinic-sidebar-footer [data-sidebar="group"] {
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+}
+.clinic-area [data-sidebar="menu-button"] {
+    justify-content: flex-start;
+    width: 100%;
+}
+/* .clinic-area [data-state="collapsed"] [data-sidebar="menu-button"] {
+    justify-content: center;
+} */
+
+/* Navbar fechada: alinhar itens ao centro */
+.clinic-area [data-state="collapsed"] [data-sidebar="header"],
+.clinic-area [data-state="collapsed"] [data-sidebar="content"],
+.clinic-area [data-state="collapsed"] .clinic-sidebar-footer {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.clinic-area [data-state="collapsed"] [data-sidebar="group"] {
+    align-items: center;
+    width: 100%;
+}
+.clinic-area [data-state="collapsed"] .clinic-sidebar-footer [data-sidebar="menu"],
+.clinic-area [data-state="collapsed"] .clinic-sidebar-footer [data-sidebar="menu-item"] {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Scrollbar fina para sidebar e painéis da clínica */
+.clinic-area .scrollbar-thin {
+    scrollbar-width: thin;
+}
+.clinic-area .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.clinic-area .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+.clinic-area .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(200 15% 45% / 0.3);
+    border-radius: 3px;
+}
+.clinic-area .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(200 15% 45% / 0.5);
 }

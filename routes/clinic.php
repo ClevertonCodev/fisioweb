@@ -54,6 +54,7 @@ Route::prefix('clinic')->name('clinic.')->group(function () {
 // Rotas protegidas clinic
 Route::prefix('clinic')->name('clinic.')->middleware(['auth:clinic', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('exercicios', [DashboardController::class, 'exercicios'])->name('exercicios');
     
     // Settings
     Route::redirect('settings', '/clinic/settings/profile');

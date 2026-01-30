@@ -15,4 +15,12 @@ class DashboardController extends Controller
     {
         return Inertia::render('clinic/dashboard');
     }
+
+    /**
+     * Display the exercises library.
+     */
+    public function exercicios(): Response
+    {
+        return Inertia::render('clinic/exercicios');
+    }
 }

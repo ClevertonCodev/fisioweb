@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Calendar, Dumbbell, FileText, Folder, LayoutGrid, Menu, Search, Users } from 'lucide-react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -65,11 +65,11 @@ export function ClinicHeader({ breadcrumbs = [] }: ClinicHeaderProps) {
     const dashboardRoute = clinicDashboard();
 
     const mainNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboardRoute,
-            icon: LayoutGrid,
-        },
+        { title: 'Dashboard', href: dashboardRoute, icon: LayoutGrid },
+        { title: 'Agenda', href: '/clinic/agenda', icon: Calendar },
+        { title: 'Pacientes', href: '/clinic/pacientes', icon: Users },
+        { title: 'Exercícios', href: '/clinic/exercicios', icon: Dumbbell },
+        { title: 'Programas', href: '/clinic/programas', icon: FileText },
     ];
 
     return (

@@ -1,0 +1,5 @@
+# CODEOWNERS - define quem é responsável pela revisão de alterações no repositório
+# Documentação: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Dono padrão de todo o repositório
+* @ClevertonCodev

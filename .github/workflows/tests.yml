@@ -1,52 +1,72 @@
+# Nome do workflow (aparece na aba Actions do GitHub)
 name: tests
 
+# Quando este workflow deve rodar
 on:
+  # Em todo push para as branches abaixo
   push:
     branches:
       - develop
       - main
+  # Em todo pull request que tem como destino essas branches
   pull_request:
     branches:
       - develop
       - main
 
+# Lista de jobs (tarefas) que o workflow executa
 jobs:
+  # Job chamado "ci" (Continuous Integration)
   ci:
+    # Roda em uma máquina Ubuntu atual fornecida pelo GitHub
     runs-on: ubuntu-latest
+
+    # Estratégia: permite rodar o mesmo job com várias configurações (matrix)
     strategy:
       matrix:
+        # Aqui só tem PHP 8.3; poderia ser ['8.2', '8.3'] para testar em ambos
         php-version: ['8.3']
 
+    # Passos executados em ordem (cada um em cima do anterior)
     steps:
+      # 1) Baixa o código do repositório para a máquina do GitHub
       - name: Checkout
         uses: actions/checkout@v5
 
+      # 2) Instala o PHP na versão definida na matrix (8.3)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:v2
-          coverage: xdebug
+          tools: composer:v2          # instala o Composer
+          coverage: xdebug            # instala Xdebug para relatórios de cobertura
 
+      # 3) Instala o Node.js (necessário para o frontend / Vite)
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
           node-version: '22'
 
+      # 4) Instala as dependências JavaScript (package.json)
       - name: Install Node Dependencies
         run: npm i
 
+      # 5) Instala as dependências PHP (composer.json)
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      # 6) Compila os assets (JS/CSS) com Vite para produção
       - name: Build Assets
         run: npm run build
 
+      # 7) Cria o .env a partir do .env.example (CI não tem .env real)
       - name: Copy Environment File
         run: cp .env.example .env
 
+      # 8) Gera a APP_KEY no .env (Laravel exige para rodar)
       - name: Generate Application Key
         run: php artisan key:generate
 
+      # 9) Roda os testes PHP com PHPUnit
       - name: Tests
         run: ./vendor/bin/phpunit

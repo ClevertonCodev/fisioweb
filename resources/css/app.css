@@ -211,6 +211,23 @@
     color: hsl(180 10% 95%);
 }
 
+/* Barra superior mobile: mesmo fundo escuro da sidebar */
+.clinic-area .clinic-mobile-header {
+    background-color: hsl(200 25% 18%) !important;
+    color: hsl(180 10% 95%) !important;
+    border-color: hsl(200 20% 25%) !important;
+}
+.clinic-area .clinic-mobile-trigger {
+    color: hsl(180 10% 95%) !important;
+}
+.clinic-area .clinic-mobile-trigger:hover {
+    background-color: hsl(200 20% 25%) !important;
+    color: hsl(180 10% 95%) !important;
+}
+.clinic-area .clinic-mobile-brand {
+    color: hsl(0 0% 100%) !important;
+}
+
 .clinic-area .clinic-sidebar-logo {
     background-color: hsl(175 70% 45%) !important;
     color: hsl(0 0% 100%) !important;
@@ -262,6 +279,70 @@
 .clinic-area [data-state="collapsed"] .clinic-sidebar-footer [data-sidebar="menu-item"] {
     width: 100%;
     justify-content: center;
+}
+
+/* Drawer do menu no mobile (Sheet é renderizado fora de .clinic-area): tema escuro */
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] > div {
+    background-color: hsl(200 25% 18%) !important;
+    color: hsl(180 10% 95%) !important;
+    border-color: hsl(200 20% 25%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="content"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="footer"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-item"],
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="group"] {
+    color: hsl(180 10% 95%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="header"] {
+    border-color: hsl(200 20% 25%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="footer"] {
+    border-color: hsl(200 20% 25%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"] {
+    color: hsl(180 10% 95%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"]:hover {
+    background-color: hsl(200 20% 25%) !important;
+    color: hsl(180 10% 95%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"] {
+    background-color: hsl(175 70% 45%) !important;
+    color: hsl(0 0% 100%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"] svg,
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="menu-button"][data-active="true"] span {
+    color: inherit !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] [data-sidebar="separator"] {
+    background-color: hsl(200 20% 25%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-logo {
+    background-color: hsl(175 70% 45%) !important;
+    color: hsl(0 0% 100%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-brand {
+    color: hsl(0 0% 100%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-toggle,
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-toggle svg {
+    color: hsl(0 0% 100%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-toggle:hover,
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-toggle:hover svg {
+    color: hsl(0 0% 100%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-close-drawer {
+    border-color: hsl(200 20% 30%) !important;
+    color: hsl(180 10% 95%) !important;
+}
+body[data-area="clinic"] [data-sidebar="sidebar"][data-mobile="true"] .clinic-sidebar-close-drawer:hover {
+    background-color: hsl(200 20% 25%) !important;
+    color: hsl(0 0% 100%) !important;
+    border-color: hsl(200 20% 35%) !important;
 }
 
 /* Scrollbar fina para sidebar e painéis da clínica */

@@ -5,6 +5,7 @@ namespace App\Providers;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Opcodes\LogViewer\Facades\LogViewer;
@@ -23,8 +24,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->registerRouteAdminMacro();
         $this->configureDefaults();
         $this->configureLogViewer();
+    }
+
+    protected function registerRouteAdminMacro(): void
+    {
+        Route::macro('admin', function (callable $callback, bool $protected = true): void {
+            $route = Route::prefix('admin')->name('admin.');
+
+            if ($protected) {
+                $route->middleware(['auth:web']);
+            }
+            $route->group($callback);
+        });
     }
 
     protected function configureDefaults(): void

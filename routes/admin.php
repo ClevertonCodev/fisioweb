@@ -60,7 +60,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Rotas protegidas admin
 Route::prefix('admin')->name('admin.')->middleware(['auth:web', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Clinics
     Route::get('clinics', [ClinicsController::class, 'index'])->name('clinics.index');
     Route::get('clinics/create', [ClinicsController::class, 'create'])->name('clinics.create');
@@ -113,6 +113,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web'])->group(function
         } else {
             $request->session()->forget('success');
         }
+
         return back();
     })->name('clear-flash');
 });

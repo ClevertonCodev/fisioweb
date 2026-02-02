@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\FeaturePlan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Modules\Admin\Models\FeaturePlan;
 
 class FeaturePlansController extends Controller
 {

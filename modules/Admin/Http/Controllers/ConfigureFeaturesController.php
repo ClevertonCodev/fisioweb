@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace Modules\Admin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Feature;
-use App\Models\FeaturePlan;
-use App\Models\Plan;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Admin\Models\Feature;
+use Modules\Admin\Models\FeaturePlan;
+use Modules\Admin\Models\Plan;
 
 class ConfigureFeaturesController extends Controller
 {

@@ -9,112 +9,170 @@ import {
     Dumbbell,
     FileText,
     Headphones,
-    LayoutGrid,
+    Home,
     User,
     Users,
 } from 'lucide-react';
+import { useState } from 'react';
 
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import { Button } from '@/components/ui/button';
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    useSidebar,
-} from '@/components/ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { useActiveUrl } from '@/hooks/use-active-url';
 import { dashboard as clinicDashboard } from '@/routes/clinic';
-import { type NavItem } from '@/types';
 
 const dashboardRoute = clinicDashboard();
 
-const mainNavItems: NavItem[] = [
-    { title: 'Dashboard', href: dashboardRoute, icon: LayoutGrid },
-    { title: 'Agenda', href: '/clinic/agenda', icon: Calendar },
-    { title: 'Pacientes', href: '/clinic/pacientes', icon: Users },
-    { title: 'Exercícios', href: '/clinic/exercicios', icon: Dumbbell },
-    { title: 'Programas', href: '/clinic/programas', icon: FileText },
+const mainNavItems = [
+    { icon: Home, label: 'Dashboard', path: dashboardRoute },
+    { icon: Calendar, label: 'Agenda', path: '/clinic/agenda' },
+    { icon: Users, label: 'Pacientes', path: '/clinic/pacientes' },
+    { icon: Dumbbell, label: 'Exercícios', path: '/clinic/exercicios' },
+    { icon: FileText, label: 'Programas', path: '/clinic/programas' },
 ];
 
-const footerNavItems: NavItem[] = [
-    { title: 'Notificações', href: '/clinic/notificacoes', icon: Bell },
-    { title: 'Tutoriais', href: '/clinic/tutoriais', icon: BookOpen },
-    { title: 'Suporte', href: '/clinic/suporte', icon: Headphones },
-    { title: 'Perfil', href: '/clinic/settings/profile', icon: User },
+const bottomNavItems = [
+    { icon: Bell, label: 'Notificações', path: '/clinic/notificacoes' },
+    { icon: BookOpen, label: 'Tutoriais', path: '/clinic/tutoriais' },
+    { icon: Headphones, label: 'Suporte', path: '/clinic/suporte' },
+    { icon: User, label: 'Perfil', path: '/clinic/settings/profile' },
 ];
 
-function ClinicSidebarHeader({ onToggle }: { onToggle: () => void }) {
-    const { state } = useSidebar();
-    const isCollapsed = state === 'collapsed';
+export function ClinicSidebar() {
+    const [collapsed, setCollapsed] = useState(false);
+    const { urlIsActive, urlIsActiveOrPrefix } = useActiveUrl();
 
-    return (
-        <SidebarHeader
-            className={cn(
-                '!flex !flex-row !gap-2 border-sidebar-border w-full items-center border-b py-3',
-                isCollapsed ? 'justify-center px-3' : 'justify-between px-3',
-            )}
-        >
+    const isActive = (path: typeof dashboardRoute | string) => {
+        if (path === dashboardRoute) {
+            return urlIsActive(path);
+        }
+        return urlIsActiveOrPrefix(path);
+    };
+
+    // Cores da sidebar Lovable (escura com turquesa)
+    const sidebarColors = {
+        '--sidebar-bg': 'hsl(200 25% 18%)',
+        '--sidebar-fg': 'hsl(180 10% 95%)',
+        '--sidebar-primary': 'hsl(175 70% 45%)',
+        '--sidebar-primary-fg': 'hsl(0 0% 100%)',
+        '--sidebar-accent': 'hsl(200 20% 25%)',
+        '--sidebar-accent-fg': 'hsl(180 10% 95%)',
+        '--sidebar-border': 'hsl(200 20% 25%)',
+    } as React.CSSProperties;
+
+    const NavItem = ({ item }: { item: (typeof mainNavItems)[0] }) => {
+        const active = isActive(item.path);
+        const Icon = item.icon;
+
+        const linkStyle = active
+            ? {
+                  backgroundColor: 'var(--sidebar-primary)',
+                  color: 'var(--sidebar-primary-fg)',
+              }
+            : {
+                  color: 'var(--sidebar-fg)',
+              };
+
+        const linkHoverClass = active ? '' : 'hover:bg-[var(--sidebar-accent)]';
+
+        const content = (
             <Link
-                href={dashboardRoute}
+                href={item.path}
                 prefetch
                 className={cn(
-                    'flex min-w-0 items-center gap-2 overflow-hidden',
-                    isCollapsed ? 'shrink-0' : 'flex-1',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                    linkHoverClass,
                 )}
+                style={linkStyle}
             >
-                <div className="clinic-sidebar-logo flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Activity className="size-5 shrink-0" />
-                </div>
-                {!isCollapsed && (
-                    <span className="clinic-sidebar-brand truncate font-semibold text-white">
-                        FisioElite
-                    </span>
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && (
+                    <span className="text-sm font-medium">{item.label}</span>
                 )}
             </Link>
-            {!isCollapsed && (
+        );
+
+        if (collapsed) {
+            return (
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>{content}</TooltipTrigger>
+                    <TooltipContent side="right" className="font-medium">
+                        {item.label}
+                    </TooltipContent>
+                </Tooltip>
+            );
+        }
+
+        return content;
+    };
+
+    return (
+        <aside
+            className={cn(
+                'flex flex-col h-screen border-r transition-all duration-300',
+                collapsed ? 'w-16' : 'w-60',
+            )}
+            style={{
+                ...sidebarColors,
+                backgroundColor: 'var(--sidebar-bg)',
+                borderColor: 'var(--sidebar-border)',
+            }}
+        >
+            {/* Logo */}
+            <div
+                className="flex items-center justify-between p-4 border-b"
+                style={{ borderColor: 'var(--sidebar-border)' }}
+            >
+                <div className="flex items-center gap-2">
+                    <div
+                        className="flex items-center justify-center w-8 h-8 rounded-lg"
+                        style={{
+                            backgroundColor: 'var(--sidebar-primary)',
+                            color: 'var(--sidebar-primary-fg)',
+                        }}
+                    >
+                        <Activity className="h-5 w-5" />
+                    </div>
+                    {!collapsed && (
+                        <span
+                            className="font-semibold"
+                            style={{ color: 'var(--sidebar-fg)' }}
+                        >
+                            FisioElite
+                        </span>
+                    )}
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={onToggle}
-                    className="clinic-sidebar-toggle h-8 w-8 shrink-0 text-white hover:bg-white/10 hover:text-white"
-                    aria-label="Fechar menu"
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="h-8 w-8 hover:bg-[var(--sidebar-accent)]"
+                    style={{ color: 'var(--sidebar-fg)' }}
                 >
-                    <ChevronLeft className="size-4" />
+                    {collapsed ? (
+                        <ChevronRight className="h-4 w-4" />
+                    ) : (
+                        <ChevronLeft className="h-4 w-4" />
+                    )}
                 </Button>
-            )}
-        </SidebarHeader>
-    );
-}
+            </div>
 
-export function ClinicSidebar() {
-    const { state, toggleSidebar } = useSidebar();
-    const isCollapsed = state === 'collapsed';
+            {/* Main Navigation */}
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin">
+                {mainNavItems.map((item) => (
+                    <NavItem key={item.label} item={item} />
+                ))}
+            </nav>
 
-    return (
-        <Sidebar collapsible="icon" variant="inset">
-            <ClinicSidebarHeader onToggle={toggleSidebar} />
-            <SidebarContent className="clinic-sidebar-content scrollbar-thin overflow-y-auto px-3 py-2">
-                <NavMain items={mainNavItems} groupLabel={null} />
-            </SidebarContent>
-            <SidebarFooter className="clinic-sidebar-footer border-sidebar-border flex flex-col border-t px-3 py-2">
-                <NavMain items={footerNavItems} groupLabel={null} />
-                <NavUser />
-                {isCollapsed && (
-                    <div className="mt-2 flex justify-center">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={toggleSidebar}
-                            className="clinic-sidebar-toggle h-8 w-8 text-white hover:bg-white/10 hover:text-white"
-                            aria-label="Abrir menu"
-                        >
-                            <ChevronRight className="size-4" />
-                        </Button>
-                    </div>
-                )}
-            </SidebarFooter>
-        </Sidebar>
+            {/* Bottom Navigation */}
+            <div
+                className="p-3 space-y-1 border-t"
+                style={{ borderColor: 'var(--sidebar-border)' }}
+            >
+                {bottomNavItems.map((item) => (
+                    <NavItem key={item.label} item={item} />
+                ))}
+            </div>
+        </aside>
     );
 }

@@ -1,16 +1,24 @@
 <?php
 
-namespace Database\Factories;
+namespace Modules\Admin\database\factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Admin\Models\User;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Modules\Admin\Models\User>
  */
 class UserFactory extends Factory
 {
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     */
+    protected $model = User::class;
+
     /**
      * The current password being used by the factory.
      */
@@ -46,7 +54,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model has two-factor authentication configured.
+     * Indicate that two-factor authentication is configured.
      */
     public function withTwoFactor(): static
     {

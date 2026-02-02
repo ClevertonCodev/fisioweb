@@ -4,13 +4,6 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {{-- Inline style to set the HTML background color --}}
-        <style>
-            html {
-                {{-- background-color: oklch(1 0 0);  --}}
-            }
-        </style>
-
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">

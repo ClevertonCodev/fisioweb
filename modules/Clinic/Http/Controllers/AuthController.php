@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Clinic;
+namespace Modules\Clinic\Http\Controllers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Controllers\Controller;
-use App\Models\ClinicUser;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +16,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Modules\Clinic\Models\ClinicUser;
 
 class AuthController extends Controller
 {

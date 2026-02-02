@@ -27,7 +27,7 @@ const mainNavItems = [
     { icon: Home, label: 'Dashboard', path: dashboardRoute },
     { icon: Calendar, label: 'Agenda', path: '/clinic/agenda' },
     { icon: Users, label: 'Pacientes', path: '/clinic/pacientes' },
-    { icon: Dumbbell, label: 'Exercícios', path: '/clinic/exercicios' },
+    { icon: Dumbbell, label: 'Exercícios', path: '/clinic/exercises' },
     { icon: FileText, label: 'Programas', path: '/clinic/programas' },
 ];
 
@@ -66,12 +66,12 @@ export function ClinicSidebar() {
 
         const linkStyle = active
             ? {
-                  backgroundColor: 'var(--sidebar-primary)',
-                  color: 'var(--sidebar-primary-fg)',
-              }
+                backgroundColor: 'var(--sidebar-primary)',
+                color: 'var(--sidebar-primary-fg)',
+            }
             : {
-                  color: 'var(--sidebar-fg)',
-              };
+                color: 'var(--sidebar-fg)',
+            };
 
         const linkHoverClass = active ? '' : 'hover:bg-[var(--sidebar-accent)]';
 

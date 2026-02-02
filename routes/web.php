@@ -17,5 +17,3 @@ Route::get('/', function () {
 Route::fallback(function () {
     return redirect()->route('home');
 });
-
-require __DIR__.'/clinic.php';

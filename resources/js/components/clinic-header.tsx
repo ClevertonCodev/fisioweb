@@ -68,7 +68,7 @@ export function ClinicHeader({ breadcrumbs = [] }: ClinicHeaderProps) {
         { title: 'Dashboard', href: dashboardRoute, icon: LayoutGrid },
         { title: 'Agenda', href: '/clinic/agenda', icon: Calendar },
         { title: 'Pacientes', href: '/clinic/pacientes', icon: Users },
-        { title: 'Exercícios', href: '/clinic/exercicios', icon: Dumbbell },
+        { title: 'Exercícios', href: '/clinic/exercises', icon: Dumbbell },
         { title: 'Programas', href: '/clinic/programas', icon: FileText },
     ];
 
@@ -159,7 +159,7 @@ export function ClinicHeader({ breadcrumbs = [] }: ClinicHeaderProps) {
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
                                                 urlIsActive(item.href) &&
-                                                    activeItemStyles,
+                                                activeItemStyles,
                                                 'h-9 cursor-pointer px-3',
                                             )}
                                         >

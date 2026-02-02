@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AuthController;
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::admin(function () {
     // Login
     Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('login', [AuthController::class, 'login'])->middleware(['throttle:login']);
@@ -33,7 +33,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('two-factor.login');
     Route::post('two-factor-challenge', [AuthController::class, 'twoFactorChallenge'])
         ->middleware(['throttle:two-factor']);
-});
+}, false);
 
 Route::admin(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');

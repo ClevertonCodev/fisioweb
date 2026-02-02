@@ -32,12 +32,13 @@ class AppServiceProvider extends ServiceProvider
     protected function registerRouteAdminMacro(): void
     {
         Route::macro('admin', function (callable $callback, bool $protected = true): void {
-            $route = Route::prefix('admin')->name('admin.');
-
-            if ($protected) {
-                $route->middleware(['auth:web']);
-            }
-            $route->group($callback);
+            Route::middleware('web')->group(function () use ($callback, $protected): void {
+                $route = Route::prefix('admin')->name('admin.');
+                if ($protected) {
+                    $route->middleware(['auth:web']);
+                }
+                $route->group($callback);
+            });
         });
     }
 

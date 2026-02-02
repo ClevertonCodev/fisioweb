@@ -25,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerRouteAdminMacro();
+        $this->registerRouteClinicMacro();
         $this->configureDefaults();
         $this->configureLogViewer();
     }
@@ -36,6 +37,19 @@ class AppServiceProvider extends ServiceProvider
                 $route = Route::prefix('admin')->name('admin.');
                 if ($protected) {
                     $route->middleware(['auth:web']);
+                }
+                $route->group($callback);
+            });
+        });
+    }
+
+    protected function registerRouteClinicMacro(): void
+    {
+        Route::macro('clinic', function (callable $callback, bool $protected = true): void {
+            Route::middleware('web')->group(function () use ($callback, $protected): void {
+                $route = Route::prefix('clinic')->name('clinic.');
+                if ($protected) {
+                    $route->middleware(['auth:clinic']);
                 }
                 $route->group($callback);
             });

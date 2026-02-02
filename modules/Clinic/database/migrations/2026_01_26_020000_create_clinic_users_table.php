@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'fisioterapeuta', 'comum'])->default('comum');
+            $table->enum('role', ['admin', 'physiotherapist', 'common'])->default('common');
             $table->string('document')->nullable();
             $table->tinyInteger('status')->default(1)->comment('1 para ativo, 0 desativo, -1 deletado');
             $table->rememberToken();

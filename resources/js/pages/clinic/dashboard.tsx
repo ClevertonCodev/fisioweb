@@ -69,7 +69,7 @@ const quickActions = [
     { title: 'Novo Paciente', description: 'Cadastrar um novo paciente', icon: Users, href: '#', comingSoon: true },
     { title: 'Agendar Consulta', description: 'Criar novo agendamento', icon: Calendar, href: '#', comingSoon: true },
     { title: 'Criar Programa', description: 'Montar programa de exercícios', icon: FileText, href: '#', comingSoon: true },
-    { title: 'Ver Exercícios', description: 'Explorar biblioteca de exercícios', icon: Dumbbell, href: '/clinic/exercicios', comingSoon: false },
+    { title: 'Ver Exercícios', description: 'Explorar biblioteca de exercícios', icon: Dumbbell, href: '/clinic/exercises', comingSoon: false },
 ];
 
 export default function Dashboard() {
@@ -107,11 +107,10 @@ export default function Dashboard() {
                                         <p className="text-sm text-muted-foreground">{stat.title}</p>
                                         <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                                         <p
-                                            className={`text-sm ${
-                                                stat.changeType === 'positive'
+                                            className={`text-sm ${stat.changeType === 'positive'
                                                     ? 'text-emerald-600 dark:text-emerald-400'
                                                     : 'text-muted-foreground'
-                                            }`}
+                                                }`}
                                         >
                                             {stat.changeType === 'positive' && (
                                                 <TrendingUp className="mr-1 inline h-3 w-3" />

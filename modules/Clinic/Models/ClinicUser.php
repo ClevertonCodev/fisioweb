@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Clinic\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +18,8 @@ class ClinicUser extends Authenticatable
     public const STATUS_INACTIVE = 0;
     public const STATUS_DELETED = -1;
     public const ROLE_ADMIN = 'admin';
-    public const ROLE_FISIOTERAPEUTA = 'fisioterapeuta';
-    public const ROLE_COMUM = 'comum';
+    public const ROLE_PHYSIOTHERAPIST = 'physiotherapist';
+    public const ROLE_COMMON = 'common';
 
     /**
      * The attributes that are mass assignable.
@@ -90,8 +90,8 @@ class ClinicUser extends Authenticatable
     /**
      * Check if user is fisioterapeuta.
      */
-    public function isFisioterapeuta(): bool
+    public function isPhysiotherapist(): bool
     {
-        return $this->role === self::ROLE_FISIOTERAPEUTA;
+        return $this->role === self::ROLE_PHYSIOTHERAPIST;
     }
 }

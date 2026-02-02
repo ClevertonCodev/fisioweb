@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Clinic;
+namespace Modules\Clinic\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -14,13 +14,5 @@ class DashboardController extends Controller
     public function index(): Response
     {
         return Inertia::render('clinic/dashboard');
-    }
-
-    /**
-     * Display the exercises library.
-     */
-    public function exercicios(): Response
-    {
-        return Inertia::render('clinic/exercicios');
     }
 }

@@ -108,8 +108,8 @@ export default function Dashboard() {
                                         <p className="text-3xl font-bold text-foreground">{stat.value}</p>
                                         <p
                                             className={`text-sm ${stat.changeType === 'positive'
-                                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                                    : 'text-muted-foreground'
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-muted-foreground'
                                                 }`}
                                         >
                                             {stat.changeType === 'positive' && (

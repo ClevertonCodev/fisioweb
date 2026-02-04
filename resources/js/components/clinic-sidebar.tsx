@@ -38,9 +38,17 @@ const bottomNavItems = [
     { icon: User, label: 'Perfil', path: '/clinic/settings/profile' },
 ];
 
-export function ClinicSidebar() {
+type ClinicSidebarVariant = 'sidebar' | 'drawer';
+
+interface ClinicSidebarProps {
+    variant?: ClinicSidebarVariant;
+    onNavigate?: () => void;
+}
+
+export function ClinicSidebar({ variant = 'sidebar', onNavigate }: ClinicSidebarProps) {
     const [collapsed, setCollapsed] = useState(false);
     const { urlIsActive, urlIsActiveOrPrefix } = useActiveUrl();
+    const isDrawer = variant === 'drawer';
 
     const isActive = (path: typeof dashboardRoute | string) => {
         if (path === dashboardRoute) {
@@ -75,10 +83,12 @@ export function ClinicSidebar() {
 
         const linkHoverClass = active ? '' : 'hover:bg-[var(--sidebar-accent)]';
 
+        const showLabel = isDrawer || !collapsed;
         const content = (
             <Link
                 href={item.path}
                 prefetch
+                onClick={isDrawer ? onNavigate : undefined}
                 className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                     linkHoverClass,
@@ -86,13 +96,13 @@ export function ClinicSidebar() {
                 style={linkStyle}
             >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && (
+                {showLabel && (
                     <span className="text-sm font-medium">{item.label}</span>
                 )}
             </Link>
         );
 
-        if (collapsed) {
+        if (!isDrawer && collapsed) {
             return (
                 <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>{content}</TooltipTrigger>
@@ -106,18 +116,8 @@ export function ClinicSidebar() {
         return content;
     };
 
-    return (
-        <aside
-            className={cn(
-                'flex flex-col h-screen border-r transition-all duration-300',
-                collapsed ? 'w-16' : 'w-60',
-            )}
-            style={{
-                ...sidebarColors,
-                backgroundColor: 'var(--sidebar-bg)',
-                borderColor: 'var(--sidebar-border)',
-            }}
-        >
+    const navContent = (
+        <>
             {/* Logo */}
             <div
                 className="flex items-center justify-between p-4 border-b"
@@ -133,7 +133,7 @@ export function ClinicSidebar() {
                     >
                         <Activity className="h-5 w-5" />
                     </div>
-                    {!collapsed && (
+                    {(isDrawer || !collapsed) && (
                         <span
                             className="font-semibold"
                             style={{ color: 'var(--sidebar-fg)' }}
@@ -142,19 +142,21 @@ export function ClinicSidebar() {
                         </span>
                     )}
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="h-8 w-8 hover:bg-[var(--sidebar-accent)]"
-                    style={{ color: 'var(--sidebar-fg)' }}
-                >
-                    {collapsed ? (
-                        <ChevronRight className="h-4 w-4" />
-                    ) : (
-                        <ChevronLeft className="h-4 w-4" />
-                    )}
-                </Button>
+                {!isDrawer && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="h-8 w-8 hover:bg-[var(--sidebar-accent)]"
+                        style={{ color: 'var(--sidebar-fg)' }}
+                    >
+                        {collapsed ? (
+                            <ChevronRight className="h-4 w-4" />
+                        ) : (
+                            <ChevronLeft className="h-4 w-4" />
+                        )}
+                    </Button>
+                )}
             </div>
 
             {/* Main Navigation */}
@@ -173,6 +175,37 @@ export function ClinicSidebar() {
                     <NavItem key={item.label} item={item} />
                 ))}
             </div>
+        </>
+    );
+
+    if (isDrawer) {
+        return (
+            <div
+                className="flex h-full flex-col w-64"
+                style={{
+                    ...sidebarColors,
+                    backgroundColor: 'var(--sidebar-bg)',
+                    borderColor: 'var(--sidebar-border)',
+                }}
+            >
+                {navContent}
+            </div>
+        );
+    }
+
+    return (
+        <aside
+            className={cn(
+                'hidden md:flex flex-col h-screen border-r transition-all duration-300',
+                collapsed ? 'w-16' : 'w-60',
+            )}
+            style={{
+                ...sidebarColors,
+                backgroundColor: 'var(--sidebar-bg)',
+                borderColor: 'var(--sidebar-border)',
+            }}
+        >
+            {navContent}
         </aside>
     );
 }

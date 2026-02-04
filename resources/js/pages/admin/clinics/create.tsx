@@ -34,7 +34,7 @@ interface CreateClinicProps {
 }
 
 export default function CreateClinic({ plans }: CreateClinicProps) {
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         name: '',
         document: '',
         type_person: '',
@@ -95,13 +95,22 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                 }
             }
 
+            const cleanedDocument = data.document.replace(/\D/g, '');
+
+            transform((form) => ({
+                ...form,
+                document: cleanedDocument,
+            }));
+
+            console.log('documento após alteração', cleanedDocument);
+
             post('/admin/clinics', {
                 onSuccess: () => {
                     reset();
                 },
             });
         },
-        [data.document, data.type_person, post, reset]
+        [data.document, data.type_person, post, reset, transform]
     );
 
     return (

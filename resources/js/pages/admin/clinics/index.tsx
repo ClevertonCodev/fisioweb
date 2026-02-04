@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type Clinic, type Plan } from '@/types';
+import { maskCpf, maskCnpj } from '@/lib/validators'; // Path:
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -239,7 +241,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                                     {clinic.name}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
-                                    {clinic.document}
+                                    {clinic.type_person === 'fisica'? maskCpf(clinic.document) : clinic.type_person === 'juridica' ? maskCnpj(clinic.document) : clinic.document}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                     {clinic.plan?.name || '-'}

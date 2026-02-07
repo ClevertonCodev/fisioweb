@@ -3,44 +3,29 @@
 namespace Modules\Cloudflare\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Modules\Cloudflare\Repositories\VideoRepository;
+use Modules\Cloudflare\Console\Commands\TestR2ConnectionCommand;
+use Modules\Cloudflare\Contracts\VideoServiceInterface;
 use Modules\Cloudflare\Services\CloudflareR2Service;
 
 class CloudflareServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        $configPath = base_path('config/cloudflare.php');
-        if (file_exists($configPath)) {
-            $this->mergeConfigFrom($configPath, 'cloudflare');
-        }
+        $this->mergeConfigFrom(base_path('config/cloudflare.php'), 'cloudflare');
 
-        $this->app->singleton(VideoRepository::class, function ($app) {
-            return new VideoRepository(new \Modules\Cloudflare\Models\Video());
-        });
-
-        $this->app->singleton(CloudflareR2Service::class, function ($app) {
-            return new CloudflareR2Service(
-                $app->make(VideoRepository::class)
-            );
-        });
-
-        $this->app->bind(
-            \Modules\Cloudflare\Contracts\VideoServiceInterface::class,
-            CloudflareR2Service::class
-        );
+        $this->app->bind(VideoServiceInterface::class, CloudflareR2Service::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'cloudflare');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                TestR2ConnectionCommand::class,
+            ]);
+        }
     }
 }

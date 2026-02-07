@@ -6,55 +6,43 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class VideoUploadRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true; // Adjust based on your authorization logic
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
-        $maxSize = config('cloudflare.max_video_size', 524288000); // in bytes
-        $maxSizeMB = $maxSize / 1024; // convert to KB for Laravel validation
+        $maxSizeKB = (int) (config('cloudflare.max_video_size', 524288000) / 1024);
+
+        if ($this->hasFile('videos')) {
+            return [
+                'videos' => ['required', 'array', 'min:1', 'max:10'],
+                'videos.*' => ['required', 'file', 'mimes:mp4,mpeg,mpg,mov,avi,webm,flv,mkv', "max:{$maxSizeKB}"],
+                'directory' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\/_-]+$/'],
+            ];
+        }
 
         return [
-            'video' => [
-                'required',
-                'file',
-                'mimes:mp4,mpeg,mpg,mov,avi,webm,flv,mkv',
-                "max:{$maxSizeMB}",
-            ],
-            'directory' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
+            'video' => ['required', 'file', 'mimes:mp4,mpeg,mpg,mov,avi,webm,flv,mkv', "max:{$maxSizeKB}"],
+            'directory' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9\/_-]+$/'],
         ];
     }
 
-    /**
-     * Get custom error messages for validation rules.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
-        $maxSizeMB = config('cloudflare.max_video_size', 524288000) / 1048576;
+        $maxSizeMB = (int) (config('cloudflare.max_video_size', 524288000) / 1048576);
 
         return [
-            'video.required' => 'Please select a video file to upload.',
-            'video.file' => 'The uploaded file must be a valid video file.',
-            'video.mimes' => 'The video must be one of the following formats: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.',
-            'video.max' => "The video file size must not exceed {$maxSizeMB}MB.",
-            'directory.string' => 'The directory must be a valid string.',
-            'directory.max' => 'The directory name is too long.',
+            'video.required' => 'Selecione um arquivo de vídeo para upload.',
+            'video.file' => 'O arquivo enviado deve ser um vídeo válido.',
+            'video.mimes' => 'O vídeo deve ser um dos formatos: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.',
+            'video.max' => "O tamanho do vídeo não pode exceder {$maxSizeMB}MB.",
+            'videos.required' => 'Selecione pelo menos um arquivo de vídeo.',
+            'videos.max' => 'O máximo de vídeos por upload é 10.',
+            'videos.*.mimes' => 'Cada vídeo deve ser um dos formatos: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.',
+            'videos.*.max' => "Cada vídeo não pode exceder {$maxSizeMB}MB.",
+            'directory.regex' => 'O diretório contém caracteres inválidos.',
         ];
     }
 }

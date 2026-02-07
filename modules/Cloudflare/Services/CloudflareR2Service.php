@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
-use Modules\Cloudflare\Contracts\ImageServiceInterface;
 
-class CloudflareR2Service implements FileServiceInterface, ImageServiceInterface
+class CloudflareR2Service implements FileServiceInterface
 {
     protected string $disk;
 
@@ -83,24 +82,6 @@ class CloudflareR2Service implements FileServiceInterface, ImageServiceInterface
             'success' => $uploaded,
             'errors' => $errors,
         ];
-    }
-
-    public function uploadImage(
-        UploadedFile $file,
-        ?string $directory = null,
-    ): array {
-        $directory = $directory ?? config('cloudflare.image_directory', 'images');
-
-        return $this->uploadFile($file, $directory);
-    }
-
-    public function uploadThumbnail(
-        UploadedFile $file,
-        ?string $directory = null,
-    ): array {
-        $directory = $directory ?? config('cloudflare.thumbnail_directory', 'thumbnails');
-
-        return $this->uploadFile($file, $directory);
     }
 
     public function deleteFile(string $path): bool

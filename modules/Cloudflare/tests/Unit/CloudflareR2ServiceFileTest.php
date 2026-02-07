@@ -145,58 +145,6 @@ class CloudflareR2ServiceFileTest extends TestCase
     }
 
     // ──────────────────────────────────────────────
-    // uploadImage
-    // ──────────────────────────────────────────────
-
-    #[Test]
-    public function upload_image_uses_default_image_directory(): void
-    {
-        $file = UploadedFile::fake()->create('avatar.jpg');
-
-        $result = $this->service->uploadImage($file);
-
-        $this->assertStringStartsWith('images/', $result['path']);
-        Storage::disk('r2')->assertExists($result['path']);
-    }
-
-    #[Test]
-    public function upload_image_accepts_custom_directory(): void
-    {
-        $file = UploadedFile::fake()->create('avatar.jpg');
-
-        $result = $this->service->uploadImage($file, 'profile-photos');
-
-        $this->assertStringStartsWith('profile-photos/', $result['path']);
-        Storage::disk('r2')->assertExists($result['path']);
-    }
-
-    // ──────────────────────────────────────────────
-    // uploadThumbnail
-    // ──────────────────────────────────────────────
-
-    #[Test]
-    public function upload_thumbnail_uses_default_thumbnail_directory(): void
-    {
-        $file = UploadedFile::fake()->create('thumb.jpg');
-
-        $result = $this->service->uploadThumbnail($file);
-
-        $this->assertStringStartsWith('thumbnails/', $result['path']);
-        Storage::disk('r2')->assertExists($result['path']);
-    }
-
-    #[Test]
-    public function upload_thumbnail_accepts_custom_directory(): void
-    {
-        $file = UploadedFile::fake()->create('thumb.jpg');
-
-        $result = $this->service->uploadThumbnail($file, 'video-thumbs');
-
-        $this->assertStringStartsWith('video-thumbs/', $result['path']);
-        Storage::disk('r2')->assertExists($result['path']);
-    }
-
-    // ──────────────────────────────────────────────
     // deleteFile
     // ──────────────────────────────────────────────
 

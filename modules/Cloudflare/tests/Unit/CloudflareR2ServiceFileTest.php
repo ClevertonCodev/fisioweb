@@ -5,7 +5,6 @@ namespace Modules\Cloudflare\Tests\Unit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Modules\Cloudflare\Repositories\VideoRepository;
 use Modules\Cloudflare\Services\CloudflareR2Service;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -26,8 +25,7 @@ class CloudflareR2ServiceFileTest extends TestCase
 
         Storage::fake('r2');
 
-        $repository = $this->mock(VideoRepository::class);
-        $this->service = new CloudflareR2Service($repository);
+        $this->service = new CloudflareR2Service();
     }
 
     // ──────────────────────────────────────────────

@@ -4,31 +4,31 @@ namespace Modules\Cloudflare\Tests\Unit;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Cloudflare\Models\Video;
 use Modules\Cloudflare\Repositories\VideoRepository;
-use Modules\Cloudflare\Services\CloudflareR2Service;
+use Modules\Cloudflare\Services\VideoService;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
 
-class CloudflareR2ServiceTest extends TestCase
+class VideoServiceTest extends TestCase
 {
     protected VideoRepository $repository;
 
-    protected CloudflareR2Service $service;
+    protected FileServiceInterface $fileService;
+
+    protected VideoService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        config(['cloudflare.r2_disk' => 'r2']);
-        config(['cloudflare.cdn_url' => 'https://cdn.example.com']);
-
-        Storage::fake('r2');
+        config(['cloudflare.video_directory' => 'videos']);
 
         $this->repository = $this->mock(VideoRepository::class);
-        $this->service = new CloudflareR2Service($this->repository);
+        $this->fileService = $this->mock(FileServiceInterface::class);
+        $this->service = new VideoService($this->fileService, $this->repository);
     }
 
     #[Test]
@@ -38,17 +38,17 @@ class CloudflareR2ServiceTest extends TestCase
 
         $pendingVideo = new Video([
             'id' => 1,
-            'filename' => 'test.mp4',
+            'filename' => 'video.mp4',
             'status' => Video::STATUS_PROCESSING,
         ]);
         $pendingVideo->id = 1;
 
         $completedVideo = new Video([
             'id' => 1,
-            'filename' => 'test.mp4',
+            'filename' => 'uuid_123.mp4',
             'status' => Video::STATUS_COMPLETED,
-            'url' => 'https://r2.example.com/videos/test.mp4',
-            'cdn_url' => 'https://cdn.example.com/videos/test.mp4',
+            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
         ]);
         $completedVideo->id = 1;
 
@@ -62,13 +62,26 @@ class CloudflareR2ServiceTest extends TestCase
             })
             ->andReturn($pendingVideo);
 
+        $this->fileService
+            ->shouldReceive('uploadFile')
+            ->once()
+            ->andReturn([
+                'filename' => 'uuid_123.mp4',
+                'original_filename' => 'video.mp4',
+                'path' => 'videos/uuid_123.mp4',
+                'url' => 'https://r2.example.com/videos/uuid_123.mp4',
+                'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
+                'mime_type' => 'video/mp4',
+                'size' => 5120000,
+            ]);
+
         $this->repository
             ->shouldReceive('update')
             ->once()
             ->withArgs(function ($id, $data) {
                 return $id === 1
                     && $data['status'] === Video::STATUS_COMPLETED
-                    && isset($data['cdn_url'])
+                    && $data['cdn_url'] === 'https://cdn.example.com/videos/uuid_123.mp4'
                     && isset($data['metadata']);
             })
             ->andReturn($completedVideo);
@@ -84,14 +97,11 @@ class CloudflareR2ServiceTest extends TestCase
     #[Test]
     public function upload_video_marks_as_failed_when_storage_fails(): void
     {
-        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
-        Storage::shouldReceive('putFileAs')->once()->andReturn(false);
-
         $file = UploadedFile::fake()->create('video.mp4', 5000, 'video/mp4');
 
         $pendingVideo = new Video([
             'id' => 1,
-            'filename' => 'test.mp4',
+            'filename' => 'video.mp4',
             'status' => Video::STATUS_PROCESSING,
         ]);
         $pendingVideo->id = 1;
@@ -106,6 +116,11 @@ class CloudflareR2ServiceTest extends TestCase
             ->shouldReceive('create')
             ->once()
             ->andReturn($pendingVideo);
+
+        $this->fileService
+            ->shouldReceive('uploadFile')
+            ->once()
+            ->andThrow(new RuntimeException('Failed to upload file to R2'));
 
         $this->repository
             ->shouldReceive('update')
@@ -136,6 +151,17 @@ class CloudflareR2ServiceTest extends TestCase
         $video2->id = 2;
 
         $this->repository->shouldReceive('create')->twice()->andReturn($video1, $video2);
+
+        $this->fileService->shouldReceive('uploadFile')->twice()->andReturn([
+            'filename' => 'uuid_123.mp4',
+            'original_filename' => 'video.mp4',
+            'path' => 'videos/uuid_123.mp4',
+            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
+            'mime_type' => 'video/mp4',
+            'size' => 5120000,
+        ]);
+
         $this->repository->shouldReceive('update')->twice()->andReturn($video1, $video2);
         Log::shouldReceive('info')->twice();
 
@@ -156,9 +182,10 @@ class CloudflareR2ServiceTest extends TestCase
 
         $this->repository->shouldReceive('find')->with(1)->andReturn($video);
 
-        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
-        Storage::shouldReceive('exists')->with('videos/test.mp4')->andReturn(true);
-        Storage::shouldReceive('delete')->with('videos/test.mp4')->once();
+        $this->fileService->shouldReceive('deleteFile')
+            ->with('videos/test.mp4')
+            ->once()
+            ->andReturn(true);
 
         $this->repository->shouldReceive('delete')->with(1)->once()->andReturn(true);
 
@@ -180,8 +207,10 @@ class CloudflareR2ServiceTest extends TestCase
 
         $this->repository->shouldReceive('find')->with(1)->andReturn($video);
 
-        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
-        Storage::shouldReceive('exists')->with('videos/test.mp4')->andReturn(false);
+        $this->fileService->shouldReceive('deleteFile')
+            ->with('videos/test.mp4')
+            ->once()
+            ->andReturn(false);
 
         $this->repository->shouldReceive('forceDelete')->with(1)->once()->andReturn(true);
 
@@ -214,11 +243,15 @@ class CloudflareR2ServiceTest extends TestCase
 
         $this->repository->shouldReceive('find')->with(1)->andReturn($video);
 
-        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
-        Storage::shouldReceive('exists')->with('videos/test.mp4')->andReturn(true);
-        Storage::shouldReceive('delete')->with('videos/test.mp4')->once();
-        Storage::shouldReceive('exists')->with('thumbnails/test.jpg')->andReturn(true);
-        Storage::shouldReceive('delete')->with('thumbnails/test.jpg')->once();
+        $this->fileService->shouldReceive('deleteFile')
+            ->with('videos/test.mp4')
+            ->once()
+            ->andReturn(true);
+
+        $this->fileService->shouldReceive('deleteFile')
+            ->with('thumbnails/test.jpg')
+            ->once()
+            ->andReturn(true);
 
         $this->repository->shouldReceive('delete')->with(1)->once()->andReturn(true);
 

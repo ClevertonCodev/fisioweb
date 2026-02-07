@@ -9,6 +9,7 @@ use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Cloudflare\Contracts\ImageServiceInterface;
 use Modules\Cloudflare\Contracts\VideoServiceInterface;
 use Modules\Cloudflare\Services\CloudflareR2Service;
+use Modules\Cloudflare\Services\VideoService;
 
 class CloudflareServiceProvider extends ServiceProvider
 {
@@ -18,7 +19,7 @@ class CloudflareServiceProvider extends ServiceProvider
 
         $this->app->bind(FileServiceInterface::class, CloudflareR2Service::class);
         $this->app->bind(ImageServiceInterface::class, CloudflareR2Service::class);
-        $this->app->bind(VideoServiceInterface::class, CloudflareR2Service::class);
+        $this->app->bind(VideoServiceInterface::class, VideoService::class);
     }
 
     public function boot(): void

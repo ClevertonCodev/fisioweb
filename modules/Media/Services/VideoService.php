@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cloudflare\Services;
+namespace Modules\Media\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -8,9 +8,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
-use Modules\Cloudflare\Contracts\VideoServiceInterface;
-use Modules\Cloudflare\Models\Video;
-use Modules\Cloudflare\Repositories\VideoRepository;
+use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Models\Video;
+use Modules\Media\Repositories\VideoRepository;
 
 class VideoService implements VideoServiceInterface
 {

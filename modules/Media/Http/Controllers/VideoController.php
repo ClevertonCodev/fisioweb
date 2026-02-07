@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Cloudflare\Http\Controllers;
+namespace Modules\Media\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Cloudflare\Contracts\VideoServiceInterface;
-use Modules\Cloudflare\Http\Requests\VideoUploadRequest;
-use Modules\Cloudflare\Models\Video;
+use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Http\Requests\VideoUploadRequest;
+use Modules\Media\Models\Video;
 
 class VideoController extends Controller
 {

@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Cloudflare\Contracts;
+namespace Modules\Media\Contracts;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Modules\Cloudflare\Models\Video;
+use Modules\Media\Models\Video;
 
 interface VideoServiceInterface
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Cloudflare\Repositories;
+namespace Modules\Media\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Modules\Cloudflare\Models\Video;
+use Modules\Media\Models\Video;
 
 class VideoRepository
 {

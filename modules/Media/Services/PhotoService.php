@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Cloudflare\Services;
+namespace Modules\Media\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
-use Modules\Cloudflare\Contracts\ImageServiceInterface;
+use Modules\Media\Contracts\ImageServiceInterface;
 
 class PhotoService implements ImageServiceInterface
 {

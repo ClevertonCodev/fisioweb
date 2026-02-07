@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cloudflare\Http\Requests;
+namespace Modules\Media\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

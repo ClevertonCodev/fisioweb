@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cloudflare\Models;
+namespace Modules\Media\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -109,8 +109,8 @@ class Video extends Model
         return sprintf('%02d:%02d', $minutes, $seconds);
     }
 
-    protected static function newFactory(): \Modules\Cloudflare\Database\Factories\VideoFactory
+    protected static function newFactory(): \Modules\Media\Database\Factories\VideoFactory
     {
-        return \Modules\Cloudflare\Database\Factories\VideoFactory::new();
+        return \Modules\Media\Database\Factories\VideoFactory::new();
     }
 }

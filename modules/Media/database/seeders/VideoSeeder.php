@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cloudflare\Database\Seeders;
+namespace Modules\Media\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 

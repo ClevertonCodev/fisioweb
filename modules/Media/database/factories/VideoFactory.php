@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Cloudflare\Database\Factories;
+namespace Modules\Media\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Cloudflare\Models\Video;
+use Modules\Media\Models\Video;
 
 /**
  * @extends Factory<Video>

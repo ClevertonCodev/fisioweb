@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Cloudflare\Contracts;
+namespace Modules\Media\Contracts;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;

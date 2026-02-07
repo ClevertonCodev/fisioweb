@@ -57,8 +57,31 @@ return [
     ],
 
     /*
-     * Video Processing Settings
+     * Image Upload Settings
      */
+    'max_image_size' => env('CLOUDFLARE_MAX_IMAGE_SIZE', 10485760), // 10MB default
+
+    'allowed_image_mimes' => [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'image/bmp',
+    ],
+
+    'allowed_image_extensions' => [
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'webp',
+        'svg',
+        'bmp',
+    ],
+
+    'image_directory' => env('CLOUDFLARE_IMAGE_DIRECTORY', 'images'),
+
     'video_directory' => env('CLOUDFLARE_VIDEO_DIRECTORY', 'videos'),
 
     'generate_thumbnails' => env('CLOUDFLARE_GENERATE_THUMBNAILS', false),

@@ -9,12 +9,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Cloudflare\Contracts\ImageServiceInterface;
 use Modules\Cloudflare\Contracts\VideoServiceInterface;
 use Modules\Cloudflare\Models\Video;
 use Modules\Cloudflare\Repositories\VideoRepository;
-use RuntimeException;
 
-class CloudflareR2Service implements VideoServiceInterface
+class CloudflareR2Service implements FileServiceInterface, ImageServiceInterface, VideoServiceInterface
 {
     protected string $disk;
 
@@ -55,8 +56,8 @@ class CloudflareR2Service implements VideoServiceInterface
                 'public'
             );
 
-            if (! $uploaded) {
-                throw new RuntimeException('Failed to upload video to R2');
+            if (!$uploaded) {
+                throw new \RuntimeException('Failed to upload video to R2');
             }
 
             $video = $this->videoRepository->update($video->id, [
@@ -83,7 +84,7 @@ class CloudflareR2Service implements VideoServiceInterface
                 'error' => $e->getMessage(),
             ]);
 
-            throw new RuntimeException('Failed to upload video: '.$e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to upload video: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -116,8 +117,8 @@ class CloudflareR2Service implements VideoServiceInterface
     {
         $video = $this->videoRepository->find($videoId);
 
-        if (! $video) {
-            throw new RuntimeException("Video with ID {$videoId} not found");
+        if (!$video) {
+            throw new \RuntimeException("Video with ID {$videoId} not found");
         }
 
         if (Storage::disk($this->disk)->exists($video->path)) {
@@ -154,8 +155,8 @@ class CloudflareR2Service implements VideoServiceInterface
     {
         $video = $this->videoRepository->find($videoId);
 
-        if (! $video) {
-            throw new RuntimeException("Video with ID {$videoId} not found");
+        if (!$video) {
+            throw new \RuntimeException("Video with ID {$videoId} not found");
         }
 
         return $this->videoRepository->update($videoId, [
@@ -171,6 +172,116 @@ class CloudflareR2Service implements VideoServiceInterface
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator
     {
         return $this->videoRepository->paginate($perPage);
+    }
+
+    public function uploadFile(
+        UploadedFile $file,
+        string $directory = 'files',
+    ): array {
+        $filename = $this->generateFilename($file);
+        $path = "{$directory}/{$filename}";
+
+        try {
+            $uploaded = Storage::disk($this->disk)->putFileAs(
+                $directory,
+                $file,
+                $filename,
+                'public'
+            );
+
+            if (!$uploaded) {
+                throw new \RuntimeException('Failed to upload file to R2');
+            }
+
+            Log::info('File uploaded successfully', ['path' => $path]);
+
+            return [
+                'filename' => $filename,
+                'original_filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'url' => Storage::disk($this->disk)->url($path),
+                'cdn_url' => $this->generateCdnUrl($path),
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('File upload failed', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Failed to upload file: '.$e->getMessage(), 0, $e);
+        }
+    }
+
+    public function uploadMultipleFiles(
+        array $files,
+        string $directory = 'files',
+    ): array {
+        $uploaded = [];
+        $errors = [];
+
+        foreach ($files as $file) {
+            try {
+                $uploaded[] = $this->uploadFile($file, $directory);
+            } catch (\Throwable $e) {
+                $errors[] = [
+                    'file' => $file->getClientOriginalName(),
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'success' => $uploaded,
+            'errors' => $errors,
+        ];
+    }
+
+    public function uploadThumbnail(
+        UploadedFile $file,
+        ?string $directory = null,
+    ): array {
+        $directory = $directory ?? config('cloudflare.thumbnail_directory', 'thumbnails');
+
+        return $this->uploadFile($file, $directory);
+    }
+
+    public function uploadImage(
+        UploadedFile $file,
+        ?string $directory = null,
+    ): array {
+        $directory = $directory ?? config('cloudflare.image_directory', 'images');
+
+        return $this->uploadFile($file, $directory);
+    }
+
+    public function deleteFile(string $path): bool
+    {
+        if (Storage::disk($this->disk)->exists($path)) {
+            Storage::disk($this->disk)->delete($path);
+
+            Log::info('File deleted successfully', ['path' => $path]);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function fileExists(string $path): bool
+    {
+        return Storage::disk($this->disk)->exists($path);
+    }
+
+    public function getFileUrl(string $path): string
+    {
+        return Storage::disk($this->disk)->url($path);
+    }
+
+    public function getFileCdnUrl(string $path): string
+    {
+        return $this->generateCdnUrl($path);
     }
 
     protected function generateFilename(UploadedFile $file): string

@@ -69,13 +69,13 @@ class MakeModuleModelCommand extends Command
             "{$modulePath}/Providers",
             "{$modulePath}/Http/Controllers",
             "{$modulePath}/Models",
-            "{$modulePath}/database/migrations",
-            "{$modulePath}/database/factories",
-            "{$modulePath}/database/seeders",
+            "{$modulePath}/Database/Migrations",
+            "{$modulePath}/Database/Factories",
+            "{$modulePath}/Database/Seeders",
             "{$modulePath}/routes",
             "{$modulePath}/resources/views",
-            "{$modulePath}/tests/Feature",
-            "{$modulePath}/tests/Unit",
+            "{$modulePath}/Tests/Feature",
+            "{$modulePath}/Tests/Unit",
         ];
 
         foreach ($directories as $directory) {
@@ -119,8 +119,8 @@ class {$providerName} extends ServiceProvider
      */
     public function boot(): void
     {
-        if (is_dir(__DIR__.'/../database/migrations')) {
-            \$this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        if (is_dir(__DIR__.'/../Database/Migrations')) {
+            \$this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         }
         if (file_exists(__DIR__.'/../routes/web.php')) {
             \$this->loadRoutesFrom(__DIR__.'/../routes/web.php');

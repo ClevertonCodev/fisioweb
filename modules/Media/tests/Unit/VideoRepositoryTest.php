@@ -1,12 +1,11 @@
 <?php
 
-namespace Modules\Cloudflare\Tests\Unit;
+namespace Modules\Media\Tests\Unit;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\Cloudflare\Models\Video;
-use Modules\Cloudflare\Repositories\VideoRepository;
-use PHPUnit\Framework\Attributes\Test;
+use Modules\Media\Models\Video;
+use Modules\Media\Repositories\VideoRepository;
 use Tests\TestCase;
 
 class VideoRepositoryTest extends TestCase
@@ -22,8 +21,7 @@ class VideoRepositoryTest extends TestCase
         $this->repository = new VideoRepository(new Video());
     }
 
-    #[Test]
-    public function create_persists_video_to_database(): void
+    public function test_should_persist_video_to_database_on_create(): void
     {
         $video = $this->repository->create([
             'filename' => 'test_video.mp4',
@@ -42,8 +40,7 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    #[Test]
-    public function find_returns_video_by_id(): void
+    public function test_should_return_video_by_id_on_find(): void
     {
         $created = $this->createVideo();
 
@@ -54,22 +51,19 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals($created->filename, $found->filename);
     }
 
-    #[Test]
-    public function find_returns_null_when_not_found(): void
+    public function test_should_return_null_when_find_not_found(): void
     {
         $this->assertNull($this->repository->find(999));
     }
 
-    #[Test]
-    public function find_or_fail_throws_exception_when_not_found(): void
+    public function test_should_throw_exception_when_find_or_fail_not_found(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->findOrFail(999);
     }
 
-    #[Test]
-    public function update_modifies_video_record(): void
+    public function test_should_modify_video_record_on_update(): void
     {
         $video = $this->createVideo();
 
@@ -86,16 +80,14 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    #[Test]
-    public function update_throws_exception_when_not_found(): void
+    public function test_should_throw_exception_when_update_not_found(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->update(999, ['status' => Video::STATUS_COMPLETED]);
     }
 
-    #[Test]
-    public function delete_soft_deletes_video(): void
+    public function test_should_soft_delete_video_on_delete(): void
     {
         $video = $this->createVideo();
 
@@ -105,16 +97,14 @@ class VideoRepositoryTest extends TestCase
         $this->assertSoftDeleted('videos', ['id' => $video->id]);
     }
 
-    #[Test]
-    public function delete_throws_exception_when_not_found(): void
+    public function test_should_throw_exception_when_delete_not_found(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->delete(999);
     }
 
-    #[Test]
-    public function force_delete_permanently_removes_video(): void
+    public function test_should_permanently_remove_video_on_force_delete(): void
     {
         $video = $this->createVideo();
         $this->repository->delete($video->id);
@@ -125,8 +115,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertDatabaseMissing('videos', ['id' => $video->id]);
     }
 
-    #[Test]
-    public function restore_recovers_soft_deleted_video(): void
+    public function test_should_recover_soft_deleted_video_on_restore(): void
     {
         $video = $this->createVideo();
         $this->repository->delete($video->id);
@@ -140,8 +129,7 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    #[Test]
-    public function paginate_returns_paginated_results(): void
+    public function test_should_return_paginated_results_on_paginate(): void
     {
         $this->createVideo(['filename' => 'video1.mp4']);
         $this->createVideo(['filename' => 'video2.mp4']);
@@ -153,8 +141,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(3, $result->total());
     }
 
-    #[Test]
-    public function find_by_status_returns_matching_videos(): void
+    public function test_should_return_matching_videos_by_status(): void
     {
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
@@ -167,8 +154,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertCount(1, $failed);
     }
 
-    #[Test]
-    public function count_returns_total_videos(): void
+    public function test_should_return_total_videos_count(): void
     {
         $this->createVideo();
         $this->createVideo();
@@ -176,8 +162,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(2, $this->repository->count());
     }
 
-    #[Test]
-    public function get_total_size_sums_all_video_sizes(): void
+    public function test_should_sum_all_video_sizes_on_get_total_size(): void
     {
         $this->createVideo(['size' => 1000]);
         $this->createVideo(['size' => 2000]);
@@ -186,8 +171,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(6000, $this->repository->getTotalSize());
     }
 
-    #[Test]
-    public function get_recent_returns_limited_results(): void
+    public function test_should_return_limited_results_on_get_recent(): void
     {
         $this->createVideo(['filename' => 'video1.mp4']);
         $this->createVideo(['filename' => 'video2.mp4']);
@@ -198,8 +182,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertCount(2, $recent);
     }
 
-    #[Test]
-    public function paginate_with_filters_filters_by_status(): void
+    public function test_should_filter_by_status_on_paginate_with_filters(): void
     {
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
@@ -210,8 +193,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(2, $result->total());
     }
 
-    #[Test]
-    public function paginate_with_filters_searches_by_filename(): void
+    public function test_should_search_by_filename_on_paginate_with_filters(): void
     {
         $this->createVideo(['original_filename' => 'aula_fisioterapia.mp4']);
         $this->createVideo(['original_filename' => 'exercicio_coluna.mp4']);

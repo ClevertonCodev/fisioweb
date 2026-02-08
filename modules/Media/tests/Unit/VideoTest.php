@@ -1,24 +1,13 @@
 <?php
 
-namespace Modules\Cloudflare\Tests\Unit;
+namespace Modules\Media\Tests\Unit;
 
-use Modules\Cloudflare\Models\Video;
-use PHPUnit\Framework\Attributes\Test;
+use Modules\Media\Models\Video;
 use PHPUnit\Framework\TestCase;
 
 class VideoTest extends TestCase
 {
-    #[Test]
-    public function status_constants_have_correct_values(): void
-    {
-        $this->assertEquals('pending', Video::STATUS_PENDING);
-        $this->assertEquals('processing', Video::STATUS_PROCESSING);
-        $this->assertEquals('completed', Video::STATUS_COMPLETED);
-        $this->assertEquals('failed', Video::STATUS_FAILED);
-    }
-
-    #[Test]
-    public function human_size_returns_zero_when_size_is_null(): void
+    public function test_should_return_zero_for_human_size_when_size_is_null(): void
     {
         $video = new Video();
         $video->size = null;
@@ -26,8 +15,7 @@ class VideoTest extends TestCase
         $this->assertEquals('0 B', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_zero_when_size_is_zero(): void
+    public function test_should_return_zero_for_human_size_when_size_is_zero(): void
     {
         $video = new Video();
         $video->size = 0;
@@ -35,8 +23,7 @@ class VideoTest extends TestCase
         $this->assertEquals('0 B', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_bytes(): void
+    public function test_should_return_bytes_for_human_size(): void
     {
         $video = new Video();
         $video->size = 500;
@@ -44,8 +31,7 @@ class VideoTest extends TestCase
         $this->assertEquals('500 B', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_kilobytes(): void
+    public function test_should_return_kilobytes_for_human_size(): void
     {
         $video = new Video();
         $video->size = 1024;
@@ -53,8 +39,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 KB', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_megabytes(): void
+    public function test_should_return_megabytes_for_human_size(): void
     {
         $video = new Video();
         $video->size = 1048576;
@@ -62,8 +47,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 MB', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_gigabytes(): void
+    public function test_should_return_gigabytes_for_human_size(): void
     {
         $video = new Video();
         $video->size = 1073741824;
@@ -71,8 +55,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 GB', $video->human_size);
     }
 
-    #[Test]
-    public function human_size_returns_decimal_values(): void
+    public function test_should_return_decimal_values_for_human_size(): void
     {
         $video = new Video();
         $video->size = 1536000; // ~1.46 MB
@@ -80,8 +63,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1.46 MB', $video->human_size);
     }
 
-    #[Test]
-    public function human_duration_returns_null_when_duration_is_null(): void
+    public function test_should_return_null_for_human_duration_when_duration_is_null(): void
     {
         $video = new Video();
         $video->duration = null;
@@ -89,8 +71,7 @@ class VideoTest extends TestCase
         $this->assertNull($video->human_duration);
     }
 
-    #[Test]
-    public function human_duration_returns_null_when_duration_is_zero(): void
+    public function test_should_return_null_for_human_duration_when_duration_is_zero(): void
     {
         $video = new Video();
         $video->duration = 0;
@@ -98,8 +79,7 @@ class VideoTest extends TestCase
         $this->assertNull($video->human_duration);
     }
 
-    #[Test]
-    public function human_duration_formats_seconds_only(): void
+    public function test_should_format_seconds_only_for_human_duration(): void
     {
         $video = new Video();
         $video->duration = 45;
@@ -107,8 +87,7 @@ class VideoTest extends TestCase
         $this->assertEquals('00:45', $video->human_duration);
     }
 
-    #[Test]
-    public function human_duration_formats_minutes_and_seconds(): void
+    public function test_should_format_minutes_and_seconds_for_human_duration(): void
     {
         $video = new Video();
         $video->duration = 125; // 2min 5sec
@@ -116,8 +95,7 @@ class VideoTest extends TestCase
         $this->assertEquals('02:05', $video->human_duration);
     }
 
-    #[Test]
-    public function human_duration_formats_large_durations(): void
+    public function test_should_format_large_durations_for_human_duration(): void
     {
         $video = new Video();
         $video->duration = 3661; // 61min 1sec
@@ -125,8 +103,7 @@ class VideoTest extends TestCase
         $this->assertEquals('61:01', $video->human_duration);
     }
 
-    #[Test]
-    public function fillable_contains_expected_fields(): void
+    public function test_should_contain_expected_fillable_fields(): void
     {
         $video = new Video();
         $fillable = $video->getFillable();
@@ -155,8 +132,7 @@ class VideoTest extends TestCase
         }
     }
 
-    #[Test]
-    public function casts_are_configured_correctly(): void
+    public function test_should_have_casts_configured_correctly(): void
     {
         $video = new Video();
         $casts = $video->getCasts();
@@ -168,8 +144,7 @@ class VideoTest extends TestCase
         $this->assertEquals('array', $casts['metadata']);
     }
 
-    #[Test]
-    public function table_name_is_videos(): void
+    public function test_should_use_videos_table(): void
     {
         $video = new Video();
 

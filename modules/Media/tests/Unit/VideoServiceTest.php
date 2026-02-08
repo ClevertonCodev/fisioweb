@@ -1,14 +1,13 @@
 <?php
 
-namespace Modules\Cloudflare\Tests\Unit;
+namespace Modules\Media\Tests\Unit;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
-use Modules\Cloudflare\Models\Video;
-use Modules\Cloudflare\Repositories\VideoRepository;
-use Modules\Cloudflare\Services\VideoService;
-use PHPUnit\Framework\Attributes\Test;
+use Modules\Media\Models\Video;
+use Modules\Media\Repositories\VideoRepository;
+use Modules\Media\Services\VideoService;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -31,8 +30,7 @@ class VideoServiceTest extends TestCase
         $this->service = new VideoService($this->fileService, $this->repository);
     }
 
-    #[Test]
-    public function upload_video_creates_record_and_uploads_to_storage(): void
+    public function test_should_create_record_and_upload_to_storage_on_upload_video(): void
     {
         $file = UploadedFile::fake()->create('video.mp4', 5000, 'video/mp4');
 
@@ -94,8 +92,7 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(Video::STATUS_COMPLETED, $result->status);
     }
 
-    #[Test]
-    public function upload_video_marks_as_failed_when_storage_fails(): void
+    public function test_should_mark_as_failed_when_storage_fails_on_upload_video(): void
     {
         $file = UploadedFile::fake()->create('video.mp4', 5000, 'video/mp4');
 
@@ -138,8 +135,7 @@ class VideoServiceTest extends TestCase
         $this->service->uploadVideo($file);
     }
 
-    #[Test]
-    public function upload_multiple_videos_returns_success_and_errors(): void
+    public function test_should_return_success_and_errors_on_upload_multiple_videos(): void
     {
         $file1 = UploadedFile::fake()->create('video1.mp4', 5000, 'video/mp4');
         $file2 = UploadedFile::fake()->create('video2.mp4', 5000, 'video/mp4');
@@ -171,8 +167,7 @@ class VideoServiceTest extends TestCase
         $this->assertCount(0, $result['errors']);
     }
 
-    #[Test]
-    public function delete_video_removes_from_storage_and_database(): void
+    public function test_should_remove_from_storage_and_database_on_delete_video(): void
     {
         $video = new Video([
             'path' => 'videos/test.mp4',
@@ -196,8 +191,7 @@ class VideoServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    #[Test]
-    public function delete_video_force_deletes_when_flag_is_true(): void
+    public function test_should_force_delete_when_flag_is_true_on_delete_video(): void
     {
         $video = new Video([
             'path' => 'videos/test.mp4',
@@ -221,8 +215,7 @@ class VideoServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    #[Test]
-    public function delete_video_throws_exception_when_not_found(): void
+    public function test_should_throw_exception_when_not_found_on_delete_video(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
@@ -232,8 +225,7 @@ class VideoServiceTest extends TestCase
         $this->service->deleteVideo(999);
     }
 
-    #[Test]
-    public function delete_video_also_deletes_thumbnail(): void
+    public function test_should_also_delete_thumbnail_on_delete_video(): void
     {
         $video = new Video([
             'path' => 'videos/test.mp4',
@@ -260,8 +252,7 @@ class VideoServiceTest extends TestCase
         $this->service->deleteVideo(1);
     }
 
-    #[Test]
-    public function get_video_returns_video_from_repository(): void
+    public function test_should_return_video_from_repository_on_get_video(): void
     {
         $video = new Video();
         $video->id = 1;
@@ -274,16 +265,14 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(1, $result->id);
     }
 
-    #[Test]
-    public function get_video_returns_null_when_not_found(): void
+    public function test_should_return_null_when_not_found_on_get_video(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
         $this->assertNull($this->service->getVideo(999));
     }
 
-    #[Test]
-    public function get_video_cdn_url_returns_cdn_url(): void
+    public function test_should_return_cdn_url_on_get_video_cdn_url(): void
     {
         $video = new Video(['cdn_url' => 'https://cdn.example.com/videos/test.mp4']);
         $video->id = 1;
@@ -295,16 +284,14 @@ class VideoServiceTest extends TestCase
         $this->assertEquals('https://cdn.example.com/videos/test.mp4', $result);
     }
 
-    #[Test]
-    public function get_video_cdn_url_returns_null_when_not_found(): void
+    public function test_should_return_null_when_not_found_on_get_video_cdn_url(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
         $this->assertNull($this->service->getVideoCdnUrl(999));
     }
 
-    #[Test]
-    public function update_metadata_merges_with_existing_metadata(): void
+    public function test_should_merge_with_existing_metadata_on_update_metadata(): void
     {
         $video = new Video(['metadata' => ['key1' => 'value1']]);
         $video->id = 1;
@@ -327,8 +314,7 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(['key1' => 'value1', 'key2' => 'value2'], $result->metadata);
     }
 
-    #[Test]
-    public function update_metadata_handles_null_existing_metadata(): void
+    public function test_should_handle_null_existing_metadata_on_update_metadata(): void
     {
         $video = new Video(['metadata' => null]);
         $video->id = 1;
@@ -350,8 +336,7 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(['key1' => 'value1'], $result->metadata);
     }
 
-    #[Test]
-    public function update_metadata_throws_exception_when_not_found(): void
+    public function test_should_throw_exception_when_not_found_on_update_metadata(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
@@ -361,8 +346,7 @@ class VideoServiceTest extends TestCase
         $this->service->updateMetadata(999, ['key' => 'value']);
     }
 
-    #[Test]
-    public function get_all_videos_delegates_to_repository(): void
+    public function test_should_delegate_to_repository_on_get_all_videos(): void
     {
         $paginator = $this->mock(\Illuminate\Contracts\Pagination\LengthAwarePaginator::class);
 

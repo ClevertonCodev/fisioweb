@@ -29,4 +29,13 @@ interface FileServiceInterface
     public function getFileUrl(string $path): string;
 
     public function getFileCdnUrl(string $path): string;
+
+    /**
+     * @return array{filename: string, original_filename: string, path: string, url: string, cdn_url: string, mime_type: string, size: int}
+     */
+    public function uploadFromPath(
+        string $localPath,
+        string $directory = 'files',
+        string $originalFilename = '',
+    ): array;
 }

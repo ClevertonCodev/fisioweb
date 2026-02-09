@@ -26,33 +26,31 @@ class VideoController extends Controller
 
     public function upload(VideoUploadRequest $request): JsonResponse
     {
-        $video = $this->videoService->uploadVideo(
+        $video = $this->videoService->dispatchUpload(
             $request->file('video'),
             $request->input('directory', 'videos'),
         );
 
         return response()->json([
-            'message' => 'Video uploaded successfully',
+            'message' => 'Video queued for processing',
             'data' => $this->formatVideo($video),
-        ], 201);
+        ], 202);
     }
 
     public function uploadMultiple(VideoUploadRequest $request): JsonResponse
     {
-        $result = $this->videoService->uploadMultipleVideos(
+        $videos = $this->videoService->dispatchMultipleUploads(
             $request->file('videos'),
             $request->input('directory', 'videos'),
         );
 
         return response()->json([
-            'message' => 'Videos upload completed',
+            'message' => 'Videos queued for processing',
             'data' => [
-                'uploaded' => count($result['success']),
-                'failed' => count($result['errors']),
-                'videos' => array_map(fn (Video $v) => $this->formatVideo($v), $result['success']),
-                'errors' => $result['errors'],
+                'queued' => count($videos),
+                'videos' => array_map(fn (Video $v) => $this->formatVideo($v), $videos),
             ],
-        ], 201);
+        ], 202);
     }
 
     public function show(Video $video): JsonResponse

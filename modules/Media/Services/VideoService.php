@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Jobs\ProcessVideoUpload;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
 
@@ -156,5 +157,55 @@ class VideoService implements VideoServiceInterface
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator
     {
         return $this->videoRepository->paginate($perPage);
+    }
+
+    public function dispatchUpload(
+        UploadedFile $file,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): Video {
+        $directory = $directory ?? config('cloudflare.video_directory', 'videos');
+
+        $tempPath = $file->store('temp/videos', 'local');
+        $fullTempPath = storage_path('app/private/'.$tempPath);
+
+        $video = $this->videoRepository->create([
+            'filename' => $file->getClientOriginalName(),
+            'original_filename' => $file->getClientOriginalName(),
+            'path' => '',
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'status' => Video::STATUS_PENDING,
+            'uploadable_type' => $uploadable?->getMorphClass(),
+            'uploadable_id' => $uploadable?->id,
+        ]);
+
+        ProcessVideoUpload::dispatch(
+            videoId: $video->id,
+            localPath: $fullTempPath,
+            directory: $directory,
+            originalFilename: $file->getClientOriginalName(),
+        );
+
+        Log::info('Video upload dispatched to queue', [
+            'video_id' => $video->id,
+            'temp_path' => $fullTempPath,
+        ]);
+
+        return $video;
+    }
+
+    public function dispatchMultipleUploads(
+        array $files,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): array {
+        $dispatched = [];
+
+        foreach ($files as $file) {
+            $dispatched[] = $this->dispatchUpload($file, $directory, $uploadable);
+        }
+
+        return $dispatched;
     }
 }

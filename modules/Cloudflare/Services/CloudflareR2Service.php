@@ -112,6 +112,53 @@ class CloudflareR2Service implements FileServiceInterface
         return $this->generateCdnUrl($path);
     }
 
+    public function uploadFromPath(
+        string $localPath,
+        string $directory = 'files',
+        string $originalFilename = '',
+    ): array {
+        if (! file_exists($localPath)) {
+            throw new \RuntimeException("File not found at path: {$localPath}");
+        }
+
+        $originalFilename = $originalFilename ?: basename($localPath);
+        $extension = pathinfo($localPath, PATHINFO_EXTENSION);
+        $filename = Str::uuid().'_'.now()->timestamp.'.'.$extension;
+        $path = "{$directory}/{$filename}";
+
+        try {
+            $uploaded = Storage::disk($this->disk)->put(
+                $path,
+                file_get_contents($localPath),
+                'public'
+            );
+
+            if (! $uploaded) {
+                throw new \RuntimeException('Failed to upload file to R2');
+            }
+
+            Log::info('File uploaded from path successfully', ['path' => $path]);
+
+            return [
+                'filename' => $filename,
+                'original_filename' => $originalFilename,
+                'path' => $path,
+                'url' => Storage::disk($this->disk)->url($path),
+                'cdn_url' => $this->generateCdnUrl($path),
+                'mime_type' => mime_content_type($localPath) ?: 'application/octet-stream',
+                'size' => filesize($localPath),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('File upload from path failed', [
+                'local_path' => $localPath,
+                'target_path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Failed to upload file: '.$e->getMessage(), 0, $e);
+        }
+    }
+
     protected function generateFilename(UploadedFile $file): string
     {
         return Str::uuid().'_'.now()->timestamp.'.'.$file->getClientOriginalExtension();

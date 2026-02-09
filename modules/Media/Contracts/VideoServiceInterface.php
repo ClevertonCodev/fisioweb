@@ -33,4 +33,16 @@ interface VideoServiceInterface
     public function getVideosByUploadable(Model $uploadable): Collection;
 
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator;
+
+    public function dispatchUpload(
+        UploadedFile $file,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): Video;
+
+    public function dispatchMultipleUploads(
+        array $files,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): array;
 }

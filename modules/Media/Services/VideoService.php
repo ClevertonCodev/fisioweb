@@ -6,7 +6,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Jobs\ProcessVideoUpload;
@@ -18,7 +17,8 @@ class VideoService implements VideoServiceInterface
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
-    ) {}
+    ) {
+    }
 
     public function uploadVideo(
         UploadedFile $file,
@@ -54,11 +54,6 @@ class VideoService implements VideoServiceInterface
                 ],
             ]);
 
-            Log::info('Video uploaded successfully', [
-                'video_id' => $video->id,
-                'path' => $fileData['path'],
-            ]);
-
             return $video;
         } catch (\Throwable $e) {
             $this->videoRepository->update($video->id, [
@@ -66,7 +61,7 @@ class VideoService implements VideoServiceInterface
                 'metadata' => ['error' => $e->getMessage()],
             ]);
 
-            Log::error('Video upload failed', [
+            logError('video upload falhou', [
                 'video_id' => $video->id,
                 'error' => $e->getMessage(),
             ]);
@@ -102,11 +97,7 @@ class VideoService implements VideoServiceInterface
 
     public function deleteVideo(int $videoId, bool $forceDelete = false): bool
     {
-        $video = $this->videoRepository->find($videoId);
-
-        if (! $video) {
-            throw new \RuntimeException("Video with ID {$videoId} not found");
-        }
+        $video = $this->videoRepository->findOrFail($videoId);
 
         $this->fileService->deleteFile($video->path);
 
@@ -118,7 +109,7 @@ class VideoService implements VideoServiceInterface
             ? $this->videoRepository->forceDelete($videoId)
             : $this->videoRepository->delete($videoId);
 
-        Log::info('Video deleted successfully', [
+        logInfo('video deletado com sucesso', [
             'video_id' => $videoId,
             'force_delete' => $forceDelete,
         ]);
@@ -138,11 +129,7 @@ class VideoService implements VideoServiceInterface
 
     public function updateMetadata(int $videoId, array $metadata): Video
     {
-        $video = $this->videoRepository->find($videoId);
-
-        if (! $video) {
-            throw new \RuntimeException("Video with ID {$videoId} not found");
-        }
+        $video = $this->videoRepository->findOrFail($videoId);
 
         return $this->videoRepository->update($videoId, [
             'metadata' => array_merge($video->metadata ?? [], $metadata),
@@ -163,8 +150,10 @@ class VideoService implements VideoServiceInterface
         UploadedFile $file,
         ?string $directory = 'videos',
         ?Model $uploadable = null
-    ): Video {
-        $directory = $directory ?? config('cloudflare.video_directory', 'videos');
+    ): array {
+        if (empty($directory)) {
+            throw new \InvalidArgumentException('Diretório não informado');
+        }
 
         $tempPath = $file->store('temp/videos', 'local');
         $fullTempPath = storage_path('app/private/'.$tempPath);
@@ -187,12 +176,12 @@ class VideoService implements VideoServiceInterface
             originalFilename: $file->getClientOriginalName(),
         );
 
-        Log::info('Video upload dispatched to queue', [
+        logInfo('video upload enviado para a fila', [
             'video_id' => $video->id,
             'temp_path' => $fullTempPath,
         ]);
 
-        return $video;
+        return $this->formatVideo($video);
     }
 
     public function dispatchMultipleUploads(
@@ -206,6 +195,28 @@ class VideoService implements VideoServiceInterface
             $dispatched[] = $this->dispatchUpload($file, $directory, $uploadable);
         }
 
-        return $dispatched;
+        if (empty($dispatched)) {
+            return [];
+        }
+
+        return [
+            'queued' => count($dispatched),
+            'videos' => $dispatched,
+        ];
+    }
+
+    protected function formatVideo(Video $video): array
+    {
+        return [
+            'id' => $video->id,
+            'filename' => $video->filename,
+            'original_filename' => $video->original_filename,
+            'url' => $video->url,
+            'cdn_url' => $video->cdn_url,
+            'size' => $video->size,
+            'human_size' => $video->human_size,
+            'status' => $video->status,
+            'mime_type' => $video->mime_type,
+        ];
     }
 }

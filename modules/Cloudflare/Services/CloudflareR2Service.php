@@ -3,7 +3,6 @@
 namespace Modules\Cloudflare\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
@@ -16,8 +15,8 @@ class CloudflareR2Service implements FileServiceInterface
 
     public function __construct()
     {
-        $this->disk = config('cloudflare.r2_disk') ?? 'r2';
-        $this->cdnUrl = config('cloudflare.cdn_url') ?? '';
+        $this->disk = config('cloudflare.r2_disk');
+        $this->cdnUrl = config('cloudflare.cdn_url');
     }
 
     public function uploadFile(
@@ -35,11 +34,11 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (! $uploaded) {
+            if (!$uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 
-            Log::info('File uploaded successfully', ['path' => $path]);
+            logInfo('Arquivo uploadado com sucesso', ['path' => $path]);
 
             return [
                 'filename' => $filename,
@@ -51,7 +50,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'size' => $file->getSize(),
             ];
         } catch (\Throwable $e) {
-            Log::error('File upload failed', [
+            logError('Erro ao uploadar arquivo', [
                 'path' => $path,
                 'error' => $e->getMessage(),
             ]);
@@ -89,7 +88,7 @@ class CloudflareR2Service implements FileServiceInterface
         if (Storage::disk($this->disk)->exists($path)) {
             Storage::disk($this->disk)->delete($path);
 
-            Log::info('File deleted successfully', ['path' => $path]);
+            logInfo('Arquivo deletado com sucesso', ['path' => $path]);
 
             return true;
         }
@@ -117,7 +116,7 @@ class CloudflareR2Service implements FileServiceInterface
         string $directory = 'files',
         string $originalFilename = '',
     ): array {
-        if (! file_exists($localPath)) {
+        if (!file_exists($localPath)) {
             throw new \RuntimeException("File not found at path: {$localPath}");
         }
 
@@ -133,11 +132,11 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (! $uploaded) {
+            if (!$uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 
-            Log::info('File uploaded from path successfully', ['path' => $path]);
+            logInfo('Arquivo uploadado com sucesso', ['path' => $path]);
 
             return [
                 'filename' => $filename,
@@ -149,7 +148,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'size' => filesize($localPath),
             ];
         } catch (\Throwable $e) {
-            Log::error('File upload from path failed', [
+            logError('Erro ao uploadar arquivo de path', [
                 'local_path' => $localPath,
                 'target_path' => $path,
                 'error' => $e->getMessage(),

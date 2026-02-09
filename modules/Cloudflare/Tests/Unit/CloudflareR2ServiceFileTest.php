@@ -72,6 +72,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
         Storage::shouldReceive('putFileAs')->once()->andReturn(false);
 
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('error')->once();
 
         $file = UploadedFile::fake()->create('photo.png');
@@ -84,10 +85,11 @@ class CloudflareR2ServiceFileTest extends TestCase
 
     public function testShouldLogSuccessOnUploadFile(): void
     {
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('info')
             ->once()
             ->withArgs(function ($message, $context) {
-                return $message === 'File uploaded successfully'
+                return $message === 'Arquivo uploadado com sucesso'
                     && isset($context['path']);
             });
 
@@ -118,6 +120,7 @@ class CloudflareR2ServiceFileTest extends TestCase
             ->once()
             ->andReturn(false);
 
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('error')->once();
 
         $result = $this->service->uploadMultipleFiles([$file1]);
@@ -172,5 +175,85 @@ class CloudflareR2ServiceFileTest extends TestCase
         $url = $this->service->getFileCdnUrl('/images/photo.png');
 
         $this->assertEquals('https://cdn.example.com/images/photo.png', $url);
+    }
+
+    public function testShouldUploadFromLocalPathAndReturnData(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_');
+        rename($tempFile, $tempFile.'.mp4');
+        $tempFile = $tempFile.'.mp4';
+        file_put_contents($tempFile, 'fake video content');
+
+        try {
+            $result = $this->service->uploadFromPath($tempFile, 'videos', 'original.mp4');
+
+            $this->assertArrayHasKey('filename', $result);
+            $this->assertArrayHasKey('original_filename', $result);
+            $this->assertArrayHasKey('path', $result);
+            $this->assertArrayHasKey('url', $result);
+            $this->assertArrayHasKey('cdn_url', $result);
+            $this->assertArrayHasKey('mime_type', $result);
+            $this->assertArrayHasKey('size', $result);
+
+            $this->assertEquals('original.mp4', $result['original_filename']);
+            $this->assertStringStartsWith('videos/', $result['path']);
+            $this->assertStringEndsWith('.mp4', $result['filename']);
+            $this->assertStringContainsString('cdn.example.com', $result['cdn_url']);
+
+            Storage::disk('r2')->assertExists($result['path']);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    public function testShouldUseBasenameWhenNoOriginalFilenameOnUploadFromPath(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_');
+        rename($tempFile, $tempFile.'.png');
+        $tempFile = $tempFile.'.png';
+        file_put_contents($tempFile, 'fake content');
+
+        try {
+            $result = $this->service->uploadFromPath($tempFile, 'files');
+
+            $this->assertEquals(basename($tempFile), $result['original_filename']);
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
+    }
+
+    public function testShouldThrowExceptionWhenFileNotFoundOnUploadFromPath(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('File not found at path');
+
+        $this->service->uploadFromPath('/non/existent/file.mp4', 'videos');
+    }
+
+    public function testShouldThrowExceptionOnStorageFailureOnUploadFromPath(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'test_');
+        file_put_contents($tempFile, 'fake content');
+
+        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
+        Storage::shouldReceive('put')->once()->andReturn(false);
+
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
+        Log::shouldReceive('error')->once();
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Failed to upload file');
+
+            $this->service->uploadFromPath($tempFile, 'videos');
+        } finally {
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+        }
     }
 }

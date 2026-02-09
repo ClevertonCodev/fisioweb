@@ -7,14 +7,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
 
 class ProcessVideoUpload implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public int $tries = 3;
 
@@ -27,13 +29,14 @@ class ProcessVideoUpload implements ShouldQueue
         public readonly string $localPath,
         public readonly string $directory,
         public readonly string $originalFilename,
-    ) {}
+    ) {
+    }
 
     public function handle(
         FileServiceInterface $fileService,
         VideoRepository $videoRepository,
     ): void {
-        Log::info('Processing video upload job', [
+        logInfo('processando video upload job', [
             'video_id' => $this->videoId,
             'local_path' => $this->localPath,
         ]);
@@ -64,12 +67,12 @@ class ProcessVideoUpload implements ShouldQueue
 
             $this->cleanupTempFile();
 
-            Log::info('Video upload job completed successfully', [
+            logInfo('video upload job completado com sucesso', [
                 'video_id' => $this->videoId,
                 'path' => $fileData['path'],
             ]);
         } catch (\Throwable $e) {
-            Log::error('Video upload job attempt failed', [
+            logError('video upload job tentativa falhou', [
                 'video_id' => $this->videoId,
                 'attempt' => $this->attempts(),
                 'max_tries' => $this->tries,
@@ -82,7 +85,7 @@ class ProcessVideoUpload implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('Video upload job permanently failed', [
+        logError('video upload job permanentemente falhou', [
             'video_id' => $this->videoId,
             'error' => $exception->getMessage(),
         ]);
@@ -102,7 +105,7 @@ class ProcessVideoUpload implements ShouldQueue
     {
         if (file_exists($this->localPath)) {
             unlink($this->localPath);
-            Log::info('Temp file cleaned up', ['path' => $this->localPath]);
+            logInfo('arquivo temporário removido', ['path' => $this->localPath]);
         }
     }
 }

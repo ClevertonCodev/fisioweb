@@ -38,7 +38,7 @@ interface VideoServiceInterface
         UploadedFile $file,
         ?string $directory = 'videos',
         ?Model $uploadable = null
-    ): Video;
+    ): array;
 
     public function dispatchMultipleUploads(
         array $files,

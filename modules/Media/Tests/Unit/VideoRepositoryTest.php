@@ -21,7 +21,7 @@ class VideoRepositoryTest extends TestCase
         $this->repository = new VideoRepository(new Video());
     }
 
-    public function test_should_persist_video_to_database_on_create(): void
+    public function testShouldPersistVideoToDatabaseOnCreate(): void
     {
         $video = $this->repository->create([
             'filename' => 'test_video.mp4',
@@ -40,7 +40,7 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    public function test_should_return_video_by_id_on_find(): void
+    public function testShouldReturnVideoByIdOnFind(): void
     {
         $created = $this->createVideo();
 
@@ -51,19 +51,19 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals($created->filename, $found->filename);
     }
 
-    public function test_should_return_null_when_find_not_found(): void
+    public function testShouldReturnNullWhenFindNotFound(): void
     {
         $this->assertNull($this->repository->find(999));
     }
 
-    public function test_should_throw_exception_when_find_or_fail_not_found(): void
+    public function testShouldThrowExceptionWhenFindOrFailNotFound(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->findOrFail(999);
     }
 
-    public function test_should_modify_video_record_on_update(): void
+    public function testShouldModifyVideoRecordOnUpdate(): void
     {
         $video = $this->createVideo();
 
@@ -80,14 +80,14 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    public function test_should_throw_exception_when_update_not_found(): void
+    public function testShouldThrowExceptionWhenUpdateNotFound(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->update(999, ['status' => Video::STATUS_COMPLETED]);
     }
 
-    public function test_should_soft_delete_video_on_delete(): void
+    public function testShouldSoftDeleteVideoOnDelete(): void
     {
         $video = $this->createVideo();
 
@@ -97,14 +97,14 @@ class VideoRepositoryTest extends TestCase
         $this->assertSoftDeleted('videos', ['id' => $video->id]);
     }
 
-    public function test_should_throw_exception_when_delete_not_found(): void
+    public function testShouldThrowExceptionWhenDeleteNotFound(): void
     {
         $this->expectException(ModelNotFoundException::class);
 
         $this->repository->delete(999);
     }
 
-    public function test_should_permanently_remove_video_on_force_delete(): void
+    public function testShouldPermanentlyRemoveVideoOnForceDelete(): void
     {
         $video = $this->createVideo();
         $this->repository->delete($video->id);
@@ -115,7 +115,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertDatabaseMissing('videos', ['id' => $video->id]);
     }
 
-    public function test_should_recover_soft_deleted_video_on_restore(): void
+    public function testShouldRecoverSoftDeletedVideoOnRestore(): void
     {
         $video = $this->createVideo();
         $this->repository->delete($video->id);
@@ -129,7 +129,7 @@ class VideoRepositoryTest extends TestCase
         ]);
     }
 
-    public function test_should_return_paginated_results_on_paginate(): void
+    public function testShouldReturnPaginatedResultsOnPaginate(): void
     {
         $this->createVideo(['filename' => 'video1.mp4']);
         $this->createVideo(['filename' => 'video2.mp4']);
@@ -141,7 +141,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(3, $result->total());
     }
 
-    public function test_should_return_matching_videos_by_status(): void
+    public function testShouldReturnMatchingVideosByStatus(): void
     {
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
@@ -154,7 +154,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertCount(1, $failed);
     }
 
-    public function test_should_return_total_videos_count(): void
+    public function testShouldReturnTotalVideosCount(): void
     {
         $this->createVideo();
         $this->createVideo();
@@ -162,7 +162,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(2, $this->repository->count());
     }
 
-    public function test_should_sum_all_video_sizes_on_get_total_size(): void
+    public function testShouldSumAllVideoSizesOnGetTotalSize(): void
     {
         $this->createVideo(['size' => 1000]);
         $this->createVideo(['size' => 2000]);
@@ -171,7 +171,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(6000, $this->repository->getTotalSize());
     }
 
-    public function test_should_return_limited_results_on_get_recent(): void
+    public function testShouldReturnLimitedResultsOnGetRecent(): void
     {
         $this->createVideo(['filename' => 'video1.mp4']);
         $this->createVideo(['filename' => 'video2.mp4']);
@@ -182,7 +182,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertCount(2, $recent);
     }
 
-    public function test_should_filter_by_status_on_paginate_with_filters(): void
+    public function testShouldFilterByStatusOnPaginateWithFilters(): void
     {
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
         $this->createVideo(['status' => Video::STATUS_COMPLETED]);
@@ -193,7 +193,7 @@ class VideoRepositoryTest extends TestCase
         $this->assertEquals(2, $result->total());
     }
 
-    public function test_should_search_by_filename_on_paginate_with_filters(): void
+    public function testShouldSearchByFilenameOnPaginateWithFilters(): void
     {
         $this->createVideo(['original_filename' => 'aula_fisioterapia.mp4']);
         $this->createVideo(['original_filename' => 'exercicio_coluna.mp4']);
@@ -207,7 +207,7 @@ class VideoRepositoryTest extends TestCase
     protected function createVideo(array $overrides = []): Video
     {
         static $counter = 0;
-        $counter++;
+        ++$counter;
 
         return $this->repository->create(array_merge([
             'filename' => "test_video_{$counter}.mp4",

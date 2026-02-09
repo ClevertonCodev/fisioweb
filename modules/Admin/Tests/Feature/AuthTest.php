@@ -10,28 +10,28 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered(): void
+    public function testRegistrationScreenCanBeRendered(): void
     {
         $response = $this->get(route('admin.register'));
 
         $response->assertOk();
     }
 
-    public function test_login_screen_can_be_rendered(): void
+    public function testLoginScreenCanBeRendered(): void
     {
         $response = $this->get(route('admin.login'));
 
         $response->assertOk();
     }
 
-    public function test_guests_are_redirected_to_login_when_visiting_dashboard(): void
+    public function testGuestsAreRedirectedToLoginWhenVisitingDashboard(): void
     {
         $response = $this->get(route('admin.dashboard'));
 
         $response->assertRedirect(route('admin.login'));
     }
 
-    public function test_authenticated_users_can_visit_dashboard(): void
+    public function testAuthenticatedUsersCanVisitDashboard(): void
     {
         $this->actingAs(User::factory()->create());
 
@@ -40,7 +40,7 @@ class AuthTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_new_users_can_register(): void
+    public function testNewUsersCanRegister(): void
     {
         $response = $this->post('/admin/register', [
             'name' => 'Test User',
@@ -58,7 +58,7 @@ class AuthTest extends TestCase
         ]);
     }
 
-    public function test_authenticated_users_can_logout(): void
+    public function testAuthenticatedUsersCanLogout(): void
     {
         $this->actingAs(User::factory()->create());
 

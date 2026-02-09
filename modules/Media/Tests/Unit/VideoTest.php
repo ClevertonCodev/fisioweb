@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class VideoTest extends TestCase
 {
-    public function test_should_return_zero_for_human_size_when_size_is_null(): void
+    public function testShouldReturnZeroForHumanSizeWhenSizeIsNull(): void
     {
         $video = new Video();
         $video->size = null;
@@ -15,7 +15,7 @@ class VideoTest extends TestCase
         $this->assertEquals('0 B', $video->human_size);
     }
 
-    public function test_should_return_zero_for_human_size_when_size_is_zero(): void
+    public function testShouldReturnZeroForHumanSizeWhenSizeIsZero(): void
     {
         $video = new Video();
         $video->size = 0;
@@ -23,7 +23,7 @@ class VideoTest extends TestCase
         $this->assertEquals('0 B', $video->human_size);
     }
 
-    public function test_should_return_bytes_for_human_size(): void
+    public function testShouldReturnBytesForHumanSize(): void
     {
         $video = new Video();
         $video->size = 500;
@@ -31,7 +31,7 @@ class VideoTest extends TestCase
         $this->assertEquals('500 B', $video->human_size);
     }
 
-    public function test_should_return_kilobytes_for_human_size(): void
+    public function testShouldReturnKilobytesForHumanSize(): void
     {
         $video = new Video();
         $video->size = 1024;
@@ -39,7 +39,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 KB', $video->human_size);
     }
 
-    public function test_should_return_megabytes_for_human_size(): void
+    public function testShouldReturnMegabytesForHumanSize(): void
     {
         $video = new Video();
         $video->size = 1048576;
@@ -47,7 +47,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 MB', $video->human_size);
     }
 
-    public function test_should_return_gigabytes_for_human_size(): void
+    public function testShouldReturnGigabytesForHumanSize(): void
     {
         $video = new Video();
         $video->size = 1073741824;
@@ -55,7 +55,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1 GB', $video->human_size);
     }
 
-    public function test_should_return_decimal_values_for_human_size(): void
+    public function testShouldReturnDecimalValuesForHumanSize(): void
     {
         $video = new Video();
         $video->size = 1536000; // ~1.46 MB
@@ -63,7 +63,7 @@ class VideoTest extends TestCase
         $this->assertEquals('1.46 MB', $video->human_size);
     }
 
-    public function test_should_return_null_for_human_duration_when_duration_is_null(): void
+    public function testShouldReturnNullForHumanDurationWhenDurationIsNull(): void
     {
         $video = new Video();
         $video->duration = null;
@@ -71,7 +71,7 @@ class VideoTest extends TestCase
         $this->assertNull($video->human_duration);
     }
 
-    public function test_should_return_null_for_human_duration_when_duration_is_zero(): void
+    public function testShouldReturnNullForHumanDurationWhenDurationIsZero(): void
     {
         $video = new Video();
         $video->duration = 0;
@@ -79,7 +79,7 @@ class VideoTest extends TestCase
         $this->assertNull($video->human_duration);
     }
 
-    public function test_should_format_seconds_only_for_human_duration(): void
+    public function testShouldFormatSecondsOnlyForHumanDuration(): void
     {
         $video = new Video();
         $video->duration = 45;
@@ -87,7 +87,7 @@ class VideoTest extends TestCase
         $this->assertEquals('00:45', $video->human_duration);
     }
 
-    public function test_should_format_minutes_and_seconds_for_human_duration(): void
+    public function testShouldFormatMinutesAndSecondsForHumanDuration(): void
     {
         $video = new Video();
         $video->duration = 125; // 2min 5sec
@@ -95,7 +95,7 @@ class VideoTest extends TestCase
         $this->assertEquals('02:05', $video->human_duration);
     }
 
-    public function test_should_format_large_durations_for_human_duration(): void
+    public function testShouldFormatLargeDurationsForHumanDuration(): void
     {
         $video = new Video();
         $video->duration = 3661; // 61min 1sec
@@ -103,7 +103,7 @@ class VideoTest extends TestCase
         $this->assertEquals('61:01', $video->human_duration);
     }
 
-    public function test_should_contain_expected_fillable_fields(): void
+    public function testShouldContainExpectedFillableFields(): void
     {
         $video = new Video();
         $fillable = $video->getFillable();
@@ -132,7 +132,7 @@ class VideoTest extends TestCase
         }
     }
 
-    public function test_should_have_casts_configured_correctly(): void
+    public function testShouldHaveCastsConfiguredCorrectly(): void
     {
         $video = new Video();
         $casts = $video->getCasts();
@@ -144,7 +144,7 @@ class VideoTest extends TestCase
         $this->assertEquals('array', $casts['metadata']);
     }
 
-    public function test_should_use_videos_table(): void
+    public function testShouldUseVideosTable(): void
     {
         $video = new Video();
 

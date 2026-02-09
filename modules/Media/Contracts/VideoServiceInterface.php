@@ -10,13 +10,13 @@ use Modules\Media\Models\Video;
 
 interface VideoServiceInterface
 {
-    public function uploadVideo(
+    public function dispatchUpload(
         UploadedFile $file,
         ?string $directory = 'videos',
         ?Model $uploadable = null
-    ): Video;
+    ): array;
 
-    public function uploadMultipleVideos(
+    public function dispatchMultipleUploads(
         array $files,
         ?string $directory = 'videos',
         ?Model $uploadable = null
@@ -33,16 +33,4 @@ interface VideoServiceInterface
     public function getVideosByUploadable(Model $uploadable): Collection;
 
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator;
-
-    public function dispatchUpload(
-        UploadedFile $file,
-        ?string $directory = 'videos',
-        ?Model $uploadable = null
-    ): array;
-
-    public function dispatchMultipleUploads(
-        array $files,
-        ?string $directory = 'videos',
-        ?Model $uploadable = null
-    ): array;
 }

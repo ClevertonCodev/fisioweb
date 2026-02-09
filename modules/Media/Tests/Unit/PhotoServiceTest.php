@@ -24,7 +24,7 @@ class PhotoServiceTest extends TestCase
         $this->service = new PhotoService($this->fileService);
     }
 
-    public function test_should_upload_image_delegate_to_file_service_with_default_directory(): void
+    public function testShouldUploadImageDelegateToFileServiceWithDefaultDirectory(): void
     {
         $file = UploadedFile::fake()->create('avatar.jpg', 100, 'image/jpeg');
 
@@ -49,7 +49,7 @@ class PhotoServiceTest extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    public function test_should_upload_image_accept_custom_directory(): void
+    public function testShouldUploadImageAcceptCustomDirectory(): void
     {
         $file = UploadedFile::fake()->create('avatar.jpg');
 
@@ -64,7 +64,7 @@ class PhotoServiceTest extends TestCase
         $this->assertEquals('profile-photos/uuid.jpg', $result['path']);
     }
 
-    public function test_should_upload_thumbnail_delegate_to_file_service_with_default_directory(): void
+    public function testShouldUploadThumbnailDelegateToFileServiceWithDefaultDirectory(): void
     {
         $file = UploadedFile::fake()->create('thumb.jpg');
 
@@ -79,7 +79,7 @@ class PhotoServiceTest extends TestCase
         $this->assertEquals('thumbnails/uuid.jpg', $result['path']);
     }
 
-    public function test_should_upload_thumbnail_accept_custom_directory(): void
+    public function testShouldUploadThumbnailAcceptCustomDirectory(): void
     {
         $file = UploadedFile::fake()->create('thumb.jpg');
 
@@ -94,7 +94,7 @@ class PhotoServiceTest extends TestCase
         $this->assertEquals('video-thumbs/uuid.jpg', $result['path']);
     }
 
-    public function test_should_upload_multiple_images_delegate_to_file_service(): void
+    public function testShouldUploadMultipleImagesDelegateToFileService(): void
     {
         $file1 = UploadedFile::fake()->create('photo1.png');
         $file2 = UploadedFile::fake()->create('photo2.jpg');
@@ -114,7 +114,7 @@ class PhotoServiceTest extends TestCase
         $this->assertCount(0, $result['errors']);
     }
 
-    public function test_should_throw_not_implemented_for_crud_methods(): void
+    public function testShouldThrowNotImplementedForCrudMethods(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('não implementado');
@@ -122,7 +122,7 @@ class PhotoServiceTest extends TestCase
         $this->service->deleteImage(1);
     }
 
-    public function test_should_throw_not_implemented_for_get_image(): void
+    public function testShouldThrowNotImplementedForGetImage(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('não implementado');
@@ -130,7 +130,7 @@ class PhotoServiceTest extends TestCase
         $this->service->getImage(1);
     }
 
-    public function test_should_throw_not_implemented_for_get_all_images(): void
+    public function testShouldThrowNotImplementedForGetAllImages(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('não implementado');

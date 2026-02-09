@@ -8,7 +8,6 @@ use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Jobs\ProcessVideoUpload;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
-use RuntimeException;
 use Tests\TestCase;
 
 class ProcessVideoUploadTest extends TestCase
@@ -27,7 +26,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->fileService = $this->mock(FileServiceInterface::class);
 
         $tempDir = storage_path('app/private/temp/videos');
-        if (! is_dir($tempDir)) {
+        if (!is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $this->tempFile = $tempDir.'/test_video.mp4';
@@ -43,7 +42,7 @@ class ProcessVideoUploadTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_should_upload_file_and_update_status_to_completed(): void
+    public function testShouldUploadFileAndUpdateStatusToCompleted(): void
     {
         $completedVideo = new Video(['status' => Video::STATUS_COMPLETED]);
         $completedVideo->id = 1;
@@ -89,7 +88,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertFileDoesNotExist($this->tempFile);
     }
 
-    public function test_should_rethrow_exception_for_retry_on_upload_failure(): void
+    public function testShouldRethrowExceptionForRetryOnUploadFailure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -100,7 +99,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->fileService
             ->shouldReceive('uploadFromPath')
             ->once()
-            ->andThrow(new RuntimeException('R2 connection failed'));
+            ->andThrow(new \RuntimeException('R2 connection failed'));
 
         Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('info')->once();
@@ -113,13 +112,13 @@ class ProcessVideoUploadTest extends TestCase
             originalFilename: 'original.mp4',
         );
 
-        $this->expectException(RuntimeException::class);
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('R2 connection failed');
 
         $job->handle($this->fileService, $this->repository);
     }
 
-    public function test_should_keep_temp_file_on_retryable_failure(): void
+    public function testShouldKeepTempFileOnRetryableFailure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -129,7 +128,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->fileService
             ->shouldReceive('uploadFromPath')
             ->once()
-            ->andThrow(new RuntimeException('Temporary failure'));
+            ->andThrow(new \RuntimeException('Temporary failure'));
 
         Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('info')->once();
@@ -144,14 +143,14 @@ class ProcessVideoUploadTest extends TestCase
 
         try {
             $job->handle($this->fileService, $this->repository);
-        } catch (RuntimeException) {
+        } catch (\RuntimeException) {
             // Expected
         }
 
         $this->assertFileExists($this->tempFile);
     }
 
-    public function test_should_update_status_to_failed_and_cleanup_on_permanent_failure(): void
+    public function testShouldUpdateStatusToFailedAndCleanupOnPermanentFailure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -170,12 +169,12 @@ class ProcessVideoUploadTest extends TestCase
             originalFilename: 'original.mp4',
         );
 
-        $job->failed(new RuntimeException('All retries exhausted'));
+        $job->failed(new \RuntimeException('All retries exhausted'));
 
         $this->assertFileDoesNotExist($this->tempFile);
     }
 
-    public function test_should_be_dispatched_to_queue(): void
+    public function testShouldBeDispatchedToQueue(): void
     {
         Queue::fake();
 
@@ -194,7 +193,7 @@ class ProcessVideoUploadTest extends TestCase
         });
     }
 
-    public function test_should_have_correct_retry_configuration(): void
+    public function testShouldHaveCorrectRetryConfiguration(): void
     {
         $job = new ProcessVideoUpload(
             videoId: 1,
@@ -208,7 +207,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertEquals(600, $job->timeout);
     }
 
-    public function test_should_be_serializable(): void
+    public function testShouldBeSerializable(): void
     {
         $job = new ProcessVideoUpload(
             videoId: 42,

@@ -10,12 +10,12 @@ export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
 
-export function documentCleaner(transform: any, document: string): void {
-  
-        transform((form: any) => ({
-                ...form,
-                document: document.replace(/\D/g, '')
-            }));
 
+export function documentCleaner<T extends { document?: string }>( transform: (callback: (data: T) => T) => void, document: string): void {
+
+    transform((form) => ({
+        ...form,
+        document: document.replace(/\D/g, ''),
+    }));
+    
 }
-

@@ -3,6 +3,10 @@
 namespace Modules\Admin\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Admin\Contracts\ExerciseRepositoryInterface;
+use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Repositories\ExerciseRepository;
+use Modules\Admin\Services\ExerciseService;
 
 class AdminServiceProvider extends ServiceProvider
 {
@@ -11,6 +15,8 @@ class AdminServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(ExerciseRepositoryInterface::class, ExerciseRepository::class);
+        $this->app->bind(ExerciseServiceInterface::class, ExerciseService::class);
     }
 
     /**

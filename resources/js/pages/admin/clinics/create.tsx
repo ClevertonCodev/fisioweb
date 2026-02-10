@@ -17,6 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
 import { generateSlug, maskCnpj, maskCpf, validateCnpj, validateCpf } from '@/lib/validators';
 import { type BreadcrumbItem, type Plan } from '@/types';
+import { documentCleaner } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -95,12 +96,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                 }
             }
 
-             const cleanedDocument = data.document.replace(/\D/g, '');
-
-            transform((form) => ({
-                ...form,
-                document: cleanedDocument,
-            }));
+            documentCleaner(transform, data.document);
 
 
             post('/admin/clinics', {

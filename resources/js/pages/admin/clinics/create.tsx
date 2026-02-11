@@ -17,6 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
 import { generateSlug, maskCnpj, maskCpf, validateCnpj, validateCpf } from '@/lib/validators';
 import { type BreadcrumbItem, type Plan } from '@/types';
+import { documentCleaner } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -34,7 +35,7 @@ interface CreateClinicProps {
 }
 
 export default function CreateClinic({ plans }: CreateClinicProps) {
-    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
         name: '',
         document: '',
         type_person: '',
@@ -95,13 +96,16 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                 }
             }
 
+            documentCleaner(transform, data.document);
+
+
             post('/admin/clinics', {
                 onSuccess: () => {
                     reset();
                 },
             });
         },
-        [data.document, data.type_person, post, reset]
+        [data.document, data.type_person, post, reset, transform]
     );
 
     return (

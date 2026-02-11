@@ -20,7 +20,6 @@ class TestUploadCommand extends Command
         $this->info('Testing image/thumbnail upload to R2...');
         $this->newLine();
 
-        // Test 1: Upload image (apple-touch-icon.png)
         $this->info('[1/4] Uploading image (apple-touch-icon.png)...');
         try {
             $imagePath = public_path('apple-touch-icon.png');
@@ -38,7 +37,6 @@ class TestUploadCommand extends Command
 
         $this->newLine();
 
-        // Test 2: Upload thumbnail (logo.svg)
         $this->info('[2/4] Uploading thumbnail (logo.svg)...');
         try {
             $thumbPath = public_path('logo.svg');
@@ -56,7 +54,6 @@ class TestUploadCommand extends Command
 
         $this->newLine();
 
-        // Test 3: Verify files exist via FileServiceInterface
         $this->info('[3/4] Verifying files exist on R2...');
         $imageExists = $fileService->fileExists($imageResult['path']);
         $thumbExists = $fileService->fileExists($thumbResult['path']);
@@ -72,7 +69,6 @@ class TestUploadCommand extends Command
 
         $this->newLine();
 
-        // Test 4: Cleanup - delete test files
         $this->info('[4/4] Cleaning up test files...');
         $fileService->deleteFile($imageResult['path']);
         $fileService->deleteFile($thumbResult['path']);

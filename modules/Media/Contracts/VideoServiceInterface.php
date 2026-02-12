@@ -33,4 +33,20 @@ interface VideoServiceInterface
     public function getVideosByUploadable(Model $uploadable): Collection;
 
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator;
+
+    /**
+     * @return array{video_id: int, upload_url: string, path: string, expires_at: string, video: array}
+     */
+    public function requestPresignedUpload(
+        string $filename,
+        string $mimeType,
+        int $size,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): array;
+
+    /**
+     * Fluxo presigned: confirma que o upload direto foi feito e atualiza o vídeo.
+     */
+    public function confirmPresignedUpload(int $videoId, ?int $size = null, ?string $mimeType = null): Video;
 }

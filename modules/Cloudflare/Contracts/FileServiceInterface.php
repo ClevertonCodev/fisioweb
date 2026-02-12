@@ -38,4 +38,15 @@ interface FileServiceInterface
         string $directory = 'files',
         string $originalFilename = '',
     ): array;
+
+    /**
+     * Gera URL pré-assinada para upload direto (browser/app → R2).
+     *
+     * @return array{upload_url: string, path: string, expires_at: string}
+     */
+    public function createPresignedUploadUrl(
+        string $path,
+        string $contentType,
+        int $expiresInSeconds = 900,
+    ): array;
 }

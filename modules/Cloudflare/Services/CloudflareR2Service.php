@@ -163,6 +163,39 @@ class CloudflareR2Service implements FileServiceInterface
         return Str::uuid().'_'.now()->timestamp.'.'.$file->getClientOriginalExtension();
     }
 
+    public function createPresignedUploadUrl(
+        string $path,
+        string $contentType,
+        int $expiresInSeconds = 900,
+    ): array {
+        $disk = Storage::disk($this->disk);
+
+        if (! method_exists($disk, 'getClient')) {
+            throw new \RuntimeException('Presigned upload requires S3/R2 disk');
+        }
+
+        $client = $disk->getClient();
+        $bucket = config('filesystems.disks.'.$this->disk.'.bucket');
+
+        $params = [
+            'Bucket' => $bucket,
+            'Key' => $path,
+            'ContentType' => $contentType,
+        ];
+
+        $command = $client->getCommand('PutObject', $params);
+        $expiry = sprintf('+%d seconds', $expiresInSeconds);
+        $request = $client->createPresignedRequest($command, $expiry);
+        $uploadUrl = (string) $request->getUri();
+        $expiresAt = now()->addSeconds($expiresInSeconds)->toIso8601String();
+
+        return [
+            'upload_url' => $uploadUrl,
+            'path' => $path,
+            'expires_at' => $expiresAt,
+        ];
+    }
+
     protected function generateCdnUrl(string $path): string
     {
         return rtrim($this->cdnUrl, '/').'/'.ltrim($path, '/');

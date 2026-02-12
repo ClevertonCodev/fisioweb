@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Jobs\ProcessVideoUpload;
@@ -128,6 +129,82 @@ class VideoService implements VideoServiceInterface
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator
     {
         return $this->videoRepository->paginate($perPage);
+    }
+
+    public function requestPresignedUpload(
+        string $filename,
+        string $mimeType,
+        int $size,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null
+    ): array {
+        $directory = $directory ?: 'videos';
+        $ext = pathinfo($filename, PATHINFO_EXTENSION) ?: 'mp4';
+        $path = $directory.'/'.Str::uuid().'_'.now()->timestamp.'.'.$ext;
+
+        $video = $this->videoRepository->create([
+            'filename' => basename($path),
+            'original_filename' => $filename,
+            'path' => $path,
+            'mime_type' => $mimeType,
+            'size' => $size,
+            'status' => Video::STATUS_PENDING,
+            'uploadable_type' => $uploadable?->getMorphClass(),
+            'uploadable_id' => $uploadable?->id,
+        ]);
+
+        $presigned = $this->fileService->createPresignedUploadUrl(
+            $path,
+            $mimeType,
+            900
+        );
+
+        logInfo('presigned upload URL gerada', [
+            'video_id' => $video->id,
+            'path' => $path,
+        ]);
+
+        return [
+            'video_id' => $video->id,
+            'upload_url' => $presigned['upload_url'],
+            'path' => $presigned['path'],
+            'expires_at' => $presigned['expires_at'],
+            'video' => $this->formatVideo($video),
+        ];
+    }
+
+    public function confirmPresignedUpload(int $videoId, ?int $size = null, ?string $mimeType = null): Video
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if ($video->status !== Video::STATUS_PENDING || empty($video->path)) {
+            throw new \InvalidArgumentException('Vídeo não está pendente de confirmação de upload.');
+        }
+
+        if (! $this->fileService->fileExists($video->path)) {
+            throw new \RuntimeException('Arquivo ainda não encontrado no storage. Aguarde o upload terminar.');
+        }
+
+        $update = [
+            'url' => $this->fileService->getFileUrl($video->path),
+            'cdn_url' => $this->fileService->getFileCdnUrl($video->path),
+            'status' => Video::STATUS_COMPLETED,
+            'metadata' => array_merge($video->metadata ?? [], [
+                'original_name' => $video->original_filename,
+                'mime_type' => $video->mime_type,
+                'size' => $video->size,
+                'upload_method' => 'presigned',
+            ]),
+        ];
+
+        if ($size !== null) {
+            $update['size'] = $size;
+        }
+        if ($mimeType !== null) {
+            $update['mime_type'] = $mimeType;
+        }
+
+        return $this->videoRepository->update($videoId, $update);
     }
 
     protected function formatVideo(Video $video): array

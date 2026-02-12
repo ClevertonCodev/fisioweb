@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class VideoUploadRequest extends FormRequest
 {
+    /** Limite de validação nos controllers: 10 MB */
+    private const VALIDATION_MAX_SIZE_BYTES = 10485760;
+
     public function authorize(): bool
     {
         return true;
@@ -13,7 +16,7 @@ class VideoUploadRequest extends FormRequest
 
     public function rules(): array
     {
-        $maxSizeKB = (int) (config('cloudflare.max_video_size', 524288000) / 1024);
+        $maxSizeKB = (int) (self::VALIDATION_MAX_SIZE_BYTES / 1024);
 
         if ($this->hasFile('videos')) {
             return [
@@ -31,7 +34,7 @@ class VideoUploadRequest extends FormRequest
 
     public function messages(): array
     {
-        $maxSizeMB = (int) (config('cloudflare.max_video_size', 524288000) / 1048576);
+        $maxSizeMB = (int) (self::VALIDATION_MAX_SIZE_BYTES / 1048576);
 
         return [
             'video.required' => 'Selecione um arquivo de vídeo para upload.',

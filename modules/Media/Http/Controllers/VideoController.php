@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
 use Modules\Media\Http\Requests\VideoUploadRequest;
 
 class VideoController extends Controller
@@ -23,6 +24,73 @@ class VideoController extends Controller
         return response()->json([
             'data' => $this->videoService->getAllVideos($perPage),
         ]);
+    }
+
+    /**
+     * Indica se o cliente deve usar upload via presigned URL (direto para R2).
+     * Em produção retorna use_presigned: true.
+     */
+    public function uploadMode(): JsonResponse
+    {
+        return response()->json([
+            'use_presigned' => config('cloudflare.use_presigned_video_upload', false),
+        ]);
+    }
+
+    /**
+     * Gera URL pré-assinada para o cliente enviar o vídeo direto ao R2.
+     */
+    public function requestPresignedUploadUrl(PresignedVideoUploadRequest $request): JsonResponse
+    {
+        try {
+            $data = $this->videoService->requestPresignedUpload(
+                $request->input('filename'),
+                $request->input('mime_type'),
+                (int) $request->input('size'),
+                config('cloudflare.video_directory', 'videos'),
+            );
+
+            return response()->json([
+                'message' => 'Use a URL para enviar o vídeo com PUT. Depois chame confirm-upload.',
+                'data' => $data,
+            ], 200);
+        } catch (\Throwable $e) {
+            logError('Falha ao gerar presigned URL', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'message' => 'Falha ao gerar URL de upload.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Confirma que o upload direto (presigned) foi concluído.
+     */
+    public function confirmUpload($id, Request $request): JsonResponse
+    {
+        $request->validate([
+            'size' => ['sometimes', 'integer', 'min:0'],
+            'mime_type' => ['sometimes', 'string', 'max:100'],
+        ]);
+
+        try {
+            $video = $this->videoService->confirmPresignedUpload(
+                (int) $id,
+                $request->has('size') ? (int) $request->input('size') : null,
+                $request->input('mime_type'),
+            );
+
+            return response()->json([
+                'message' => 'Upload confirmado com sucesso',
+                'data' => $video,
+            ], 200);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Vídeo não encontrado'], 404);
+        }
     }
 
     public function upload(VideoUploadRequest $request): JsonResponse

@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Modules\Admin\database\factories\UserFactory;
+use Modules\Admin\Database\Factories\UserFactory;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Modules\Admin\database\factories\UserFactory> */
+    /** @use HasFactory<\Modules\Admin\Database\Factories\UserFactory> */
     use HasFactory;
     use Notifiable;
     use TwoFactorAuthenticatable;

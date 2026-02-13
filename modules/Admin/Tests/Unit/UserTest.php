@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Admin\tests\Unit;
+namespace Modules\Admin\Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Admin\Models\User;
@@ -10,7 +10,7 @@ class UserTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_can_create_user_via_factory(): void
+    public function testCanCreateUserViaFactory(): void
     {
         $user = User::factory()->create([
             'name' => 'João Silva',
@@ -29,7 +29,7 @@ class UserTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('password', $user->password));
     }
 
-    public function test_can_create_user_directly(): void
+    public function testCanCreateUserDirectly(): void
     {
         $user = User::create([
             'name' => 'Maria Santos',
@@ -48,7 +48,7 @@ class UserTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('senha123', $user->password));
     }
 
-    public function test_user_has_expected_attributes(): void
+    public function testUserHasExpectedAttributes(): void
     {
         $user = User::factory()->create();
 

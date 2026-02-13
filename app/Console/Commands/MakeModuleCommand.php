@@ -89,13 +89,13 @@ class MakeModuleCommand extends Command
             "{$modulePath}/Providers",
             "{$modulePath}/Http/Controllers",
             "{$modulePath}/Models",
-            "{$modulePath}/database/migrations",
-            "{$modulePath}/database/factories",
-            "{$modulePath}/database/seeders",
+            "{$modulePath}/Database/Migrations",
+            "{$modulePath}/Database/Factories",
+            "{$modulePath}/Database/Seeders",
             "{$modulePath}/routes",
             "{$modulePath}/resources/views",
-            "{$modulePath}/tests/Feature",
-            "{$modulePath}/tests/Unit",
+            "{$modulePath}/Tests/Feature",
+            "{$modulePath}/Tests/Unit",
         ];
 
         foreach ($directories as $directory) {
@@ -135,7 +135,7 @@ class {$providerName} extends ServiceProvider
      */
     public function boot(): void
     {
-        \$this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        \$this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         \$this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         \$this->loadViewsFrom(__DIR__.'/../resources/views', '{$slug}');
     }
@@ -293,7 +293,7 @@ PHP;
         $modelName = Str::singular($moduleName);
         $tableName = Str::snake(Str::plural($modelName));
         $migrationName = date('Y_m_d_His').'_create_'.$tableName.'_table.php';
-        $migrationPath = "{$modulePath}/database/migrations/{$migrationName}";
+        $migrationPath = "{$modulePath}/Database/Migrations/{$migrationName}";
         $className = 'Create'.Str::studly($tableName).'Table';
 
         $content = <<<PHP
@@ -394,7 +394,7 @@ BLADE;
     {
         $modelName = Str::singular($moduleName);
         $factoryName = "{$modelName}Factory";
-        $factoryPath = "{$modulePath}/database/factories/{$factoryName}.php";
+        $factoryPath = "{$modulePath}/Database/Factories/{$factoryName}.php";
 
         $content = <<<PHP
 <?php
@@ -442,7 +442,7 @@ PHP;
     {
         $modelName = Str::singular($moduleName);
         $seederName = "{$modelName}Seeder";
-        $seederPath = "{$modulePath}/database/seeders/{$seederName}.php";
+        $seederPath = "{$modulePath}/Database/Seeders/{$seederName}.php";
 
         $content = <<<PHP
 <?php
@@ -479,7 +479,7 @@ PHP;
         $testName = "{$modelName}Test";
 
         // Feature Test
-        $featureTestPath = "{$modulePath}/tests/Feature/{$testName}.php";
+        $featureTestPath = "{$modulePath}/Tests/Feature/{$testName}.php";
         $featureTestContent = <<<PHP
 <?php
 
@@ -510,7 +510,7 @@ class {$testName} extends TestCase
 PHP;
 
         // Unit Test
-        $unitTestPath = "{$modulePath}/tests/Unit/{$testName}.php";
+        $unitTestPath = "{$modulePath}/Tests/Unit/{$testName}.php";
         $unitTestContent = <<<PHP
 <?php
 
@@ -534,8 +534,8 @@ PHP;
         file_put_contents($featureTestPath, $featureTestContent);
         file_put_contents($unitTestPath, $unitTestContent);
 
-        $this->info("Created: tests/Feature/{$testName}.php");
-        $this->info("Created: tests/Unit/{$testName}.php");
+        $this->info("Created: Tests/Feature/{$testName}.php");
+        $this->info("Created: Tests/Unit/{$testName}.php");
     }
 
     /**

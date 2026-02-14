@@ -6,6 +6,7 @@ use Modules\Media\Http\Controllers\VideoController;
 Route::admin(function () {
     Route::get('videos', [VideoController::class, 'page'])->name('media.videos.page');
     Route::post('videos/presigned-upload-request', [VideoController::class, 'requestPresignedUploadUrl'])->name('media.videos.presigned-upload-request');
+    Route::post('videos/{video}/presigned-thumbnail-request', [VideoController::class, 'requestPresignedThumbnailUrl'])->name('media.videos.presigned-thumbnail-request');
     Route::post('videos/{video}/confirm-upload', [VideoController::class, 'confirmUpload'])->name('media.videos.confirm-upload');
     Route::get('videos/api', [VideoController::class, 'index'])->name('media.videos.index');
     Route::post('videos/upload', [VideoController::class, 'upload'])->name('media.videos.upload');

@@ -88,6 +88,14 @@ return [
 
     'thumbnail_directory' => env('CLOUDFLARE_THUMBNAIL_DIRECTORY', 'thumbnails'),
 
+    'max_thumbnail_size' => env('CLOUDFLARE_MAX_THUMBNAIL_SIZE', 5242880), // 5MB
+
+    'allowed_thumbnail_mimes' => [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ],
+
     /*
      * CDN Settings
      */

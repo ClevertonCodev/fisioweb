@@ -27,8 +27,14 @@ export type UploadStatus =
     | 'completed'
     | 'error';
 
+export interface PresignedThumbnailResponse {
+    upload_url: string;
+    path: string;
+    expires_at: string;
+}
+
 export interface UsePresignedUploadReturn {
-    upload: (file: File) => Promise<VideoData | null>;
+    upload: (videoFile: File, thumbnailFile?: File | null) => Promise<VideoData | null>;
     abort: () => void;
     status: UploadStatus;
     progress: number;

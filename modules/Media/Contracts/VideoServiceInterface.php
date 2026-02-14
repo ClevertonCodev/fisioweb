@@ -42,5 +42,12 @@ interface VideoServiceInterface
         ?Model $uploadable = null,
     ): array;
 
-    public function confirmPresignedUpload(int $videoId): array;
+    public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null): array;
+
+    public function requestPresignedThumbnailUpload(
+        int $videoId,
+        string $filename,
+        string $mimeType,
+        int $size,
+    ): array;
 }

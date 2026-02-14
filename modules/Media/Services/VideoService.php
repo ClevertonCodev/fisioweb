@@ -18,7 +18,8 @@ class VideoService implements VideoServiceInterface
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
-    ) {}
+    ) {
+    }
 
     public function dispatchUpload(
         UploadedFile $file,
@@ -176,33 +177,89 @@ class VideoService implements VideoServiceInterface
         ];
     }
 
-    public function confirmPresignedUpload(int $videoId): array
+    public function requestPresignedThumbnailUpload(
+        int $videoId,
+        string $filename,
+        string $mimeType,
+        int $size,
+    ): array {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if ($video->status !== Video::STATUS_PENDING) {
+            throw new \InvalidArgumentException("Só é possível enviar thumbnail para vídeo pendente (status atual: {$video->status})");
+        }
+
+        $directory = config('cloudflare.thumbnail_directory', 'thumbnails').'/videos';
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $generatedFilename = Str::uuid().'_'.now()->timestamp.'.'.$extension;
+        $path = "{$directory}/{$generatedFilename}";
+
+        $presigned = $this->fileService->createPresignedUploadUrl($path, $mimeType);
+
+        $metadata = $video->metadata ?? [];
+        $metadata['pending_thumbnail_path'] = $path;
+
+        $this->videoRepository->update($videoId, [
+            'metadata' => $metadata,
+        ]);
+
+        logInfo('presigned thumbnail solicitado', [
+            'video_id' => $videoId,
+            'path' => $path,
+        ]);
+
+        return [
+            'upload_url' => $presigned['upload_url'],
+            'path' => $presigned['path'],
+            'expires_at' => $presigned['expires_at'],
+        ];
+    }
+
+    public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null): array
     {
         $video = $this->videoRepository->findOrFail($videoId);
 
         if ($video->status !== Video::STATUS_PENDING) {
-            throw new \InvalidArgumentException(
-                "Vídeo não está pendente de confirmação (status atual: {$video->status})"
-            );
+            throw new \InvalidArgumentException("Vídeo não está pendente de confirmação (status atual: {$video->status})");
         }
 
         if (empty($video->path)) {
             throw new \InvalidArgumentException('Vídeo não possui path definido');
         }
 
-        if (! $this->fileService->fileExists($video->path)) {
+        if (!$this->fileService->fileExists($video->path)) {
             throw new \RuntimeException('Arquivo não encontrado no storage. O upload pode ter falhado.');
         }
 
-        $video = $this->videoRepository->update($videoId, [
+        $metadata = $video->metadata ?? [];
+        unset($metadata['pending_thumbnail_path']);
+
+        $update = [
             'url' => $this->fileService->getFileUrl($video->path),
             'cdn_url' => $this->fileService->getFileCdnUrl($video->path),
             'status' => Video::STATUS_COMPLETED,
-        ]);
+            'metadata' => $metadata,
+        ];
+
+        if ($thumbnailPath !== null && $thumbnailPath !== '') {
+            $pendingPath = ($video->metadata ?? [])['pending_thumbnail_path'] ?? null;
+            if ($pendingPath !== $thumbnailPath) {
+                throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
+            }
+            if (!$this->fileService->fileExists($thumbnailPath)) {
+                throw new \RuntimeException('Thumbnail não encontrada no storage.');
+            }
+
+            $update['thumbnail_path'] = $thumbnailPath;
+            $update['thumbnail_url'] = $this->fileService->getFileCdnUrl($thumbnailPath);
+        }
+
+        $video = $this->videoRepository->update($videoId, $update);
 
         logInfo('presigned upload confirmado', [
             'video_id' => $videoId,
             'path' => $video->path,
+            'thumbnail' => $thumbnailPath,
         ]);
 
         return $this->formatVideo($video);
@@ -216,6 +273,7 @@ class VideoService implements VideoServiceInterface
             'original_filename' => $video->original_filename,
             'url' => $video->url,
             'cdn_url' => $video->cdn_url,
+            'thumbnail_url' => $video->thumbnail_url,
             'size' => $video->size,
             'human_size' => $video->human_size,
             'status' => $video->status,

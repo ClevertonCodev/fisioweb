@@ -25,7 +25,12 @@ class VideoServiceTest extends TestCase
     {
         parent::setUp();
 
-        config(['cloudflare.video_directory' => 'videos']);
+        config([
+            'cloudflare.video_directory' => 'videos',
+            'cloudflare.thumbnail_directory' => 'thumbnails',
+            'cloudflare.max_thumbnail_size' => 5242880,
+            'cloudflare.allowed_thumbnail_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
+        ]);
 
         $this->repository = $this->mock(VideoRepository::class);
         $this->fileService = $this->mock(FileServiceInterface::class);
@@ -314,5 +319,215 @@ class VideoServiceTest extends TestCase
         Log::shouldReceive('info')->once();
 
         $this->service->dispatchUpload($file);
+    }
+
+    // --- Thumbnail (presigned) ---
+
+    public function testShouldReturnPresignedUrlAndSavePendingThumbnailPathOnRequestPresignedThumbnailUpload(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'status' => Video::STATUS_PENDING,
+            'metadata' => null,
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+
+        $this->fileService
+            ->shouldReceive('createPresignedUploadUrl')
+            ->once()
+            ->withArgs(function ($path, $mimeType) {
+                return str_starts_with($path, 'thumbnails/videos/')
+                    && preg_match('/\.(jpg|jpeg|png|webp)$/', $path)
+                    && $mimeType === 'image/jpeg';
+            })
+            ->andReturnUsing(function ($path) {
+                return [
+                    'upload_url' => 'https://r2.example.com/presigned',
+                    'path' => $path,
+                    'expires_at' => now()->addMinutes(15)->toISOString(),
+                ];
+            });
+
+        $this->repository
+            ->shouldReceive('update')
+            ->once()
+            ->withArgs(function ($id, $data) {
+                return $id === 1
+                    && isset($data['metadata']['pending_thumbnail_path'])
+                    && str_starts_with($data['metadata']['pending_thumbnail_path'], 'thumbnails/videos/');
+            })
+            ->andReturn($video);
+
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
+        Log::shouldReceive('info')->once();
+
+        $result = $this->service->requestPresignedThumbnailUpload(
+            1,
+            'foto.jpg',
+            'image/jpeg',
+            1024,
+        );
+
+        $this->assertArrayHasKey('upload_url', $result);
+        $this->assertArrayHasKey('path', $result);
+        $this->assertArrayHasKey('expires_at', $result);
+        $this->assertEquals('https://r2.example.com/presigned', $result['upload_url']);
+        $this->assertStringStartsWith('thumbnails/videos/', $result['path']);
+        $this->assertMatchesRegularExpression('/\.jpg$/', $result['path']);
+    }
+
+    public function testShouldThrowWhenVideoIsNotPendingOnRequestPresignedThumbnailUpload(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'status' => Video::STATUS_COMPLETED,
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+        $this->fileService->shouldNotReceive('createPresignedUploadUrl');
+        $this->repository->shouldNotReceive('update');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Só é possível enviar thumbnail para vídeo pendente');
+
+        $this->service->requestPresignedThumbnailUpload(1, 'foto.jpg', 'image/jpeg', 1024);
+    }
+
+    public function testShouldSetThumbnailPathAndUrlOnConfirmPresignedUploadWithThumbnail(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'status' => Video::STATUS_PENDING,
+            'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/thumb_1.jpg'],
+        ]);
+
+        $updatedVideo = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'thumbnail_path' => 'thumbnails/videos/thumb_1.jpg',
+            'thumbnail_url' => 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg',
+            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
+            'status' => Video::STATUS_COMPLETED,
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+
+        $this->fileService->shouldReceive('fileExists')->with('videos/uuid_123.mp4')->once()->andReturn(true);
+        $this->fileService->shouldReceive('fileExists')->with('thumbnails/videos/thumb_1.jpg')->once()->andReturn(true);
+        $this->fileService->shouldReceive('getFileUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://r2.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('getFileCdnUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://cdn.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('getFileCdnUrl')->with('thumbnails/videos/thumb_1.jpg')->once()->andReturn('https://cdn.example.com/thumbnails/videos/thumb_1.jpg');
+
+        $this->repository
+            ->shouldReceive('update')
+            ->once()
+            ->withArgs(function ($id, $data) {
+                return $id === 1
+                    && $data['thumbnail_path'] === 'thumbnails/videos/thumb_1.jpg'
+                    && $data['thumbnail_url'] === 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg'
+                    && $data['status'] === Video::STATUS_COMPLETED
+                    && !isset($data['metadata']['pending_thumbnail_path']);
+            })
+            ->andReturn($updatedVideo);
+
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
+        Log::shouldReceive('info')->once();
+
+        $result = $this->service->confirmPresignedUpload(1, 'thumbnails/videos/thumb_1.jpg');
+
+        $this->assertIsArray($result);
+        $this->assertEquals(Video::STATUS_COMPLETED, $result['status']);
+        $this->assertEquals('https://cdn.example.com/thumbnails/videos/thumb_1.jpg', $result['thumbnail_url']);
+    }
+
+    public function testShouldThrowWhenThumbnailPathDoesNotMatchPendingOnConfirmPresignedUpload(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'status' => Video::STATUS_PENDING,
+            'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/authorized.jpg'],
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+        $this->fileService->shouldReceive('fileExists')->with('videos/uuid_123.mp4')->once()->andReturn(true);
+        $this->fileService->shouldReceive('getFileUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://r2.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('getFileCdnUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://cdn.example.com/videos/uuid_123.mp4');
+        $this->repository->shouldNotReceive('update');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Thumbnail não autorizada');
+
+        $this->service->confirmPresignedUpload(1, 'thumbnails/videos/other.jpg');
+    }
+
+    public function testShouldThrowWhenThumbnailFileDoesNotExistOnConfirmPresignedUpload(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'status' => Video::STATUS_PENDING,
+            'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/thumb_1.jpg'],
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+        $this->fileService->shouldReceive('fileExists')->with('videos/uuid_123.mp4')->once()->andReturn(true);
+        $this->fileService->shouldReceive('getFileUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://r2.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('getFileCdnUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://cdn.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('fileExists')->with('thumbnails/videos/thumb_1.jpg')->once()->andReturn(false);
+        $this->repository->shouldNotReceive('update');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Thumbnail não encontrada no storage');
+
+        $this->service->confirmPresignedUpload(1, 'thumbnails/videos/thumb_1.jpg');
+    }
+
+    public function testShouldConfirmWithoutThumbnailWhenThumbnailPathIsNull(): void
+    {
+        $video = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'status' => Video::STATUS_PENDING,
+            'metadata' => null,
+        ]);
+
+        $updatedVideo = new Video([
+            'id' => 1,
+            'path' => 'videos/uuid_123.mp4',
+            'thumbnail_path' => null,
+            'thumbnail_url' => null,
+            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
+            'status' => Video::STATUS_COMPLETED,
+        ]);
+
+        $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
+        $this->fileService->shouldReceive('fileExists')->with('videos/uuid_123.mp4')->once()->andReturn(true);
+        $this->fileService->shouldReceive('getFileUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://r2.example.com/videos/uuid_123.mp4');
+        $this->fileService->shouldReceive('getFileCdnUrl')->with('videos/uuid_123.mp4')->once()->andReturn('https://cdn.example.com/videos/uuid_123.mp4');
+
+        $this->repository
+            ->shouldReceive('update')
+            ->once()
+            ->withArgs(function ($id, $data) {
+                return $id === 1
+                    && $data['status'] === Video::STATUS_COMPLETED
+                    && !array_key_exists('thumbnail_path', $data)
+                    && !array_key_exists('thumbnail_url', $data);
+            })
+            ->andReturn($updatedVideo);
+
+        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
+        Log::shouldReceive('info')->once();
+
+        $result = $this->service->confirmPresignedUpload(1, null);
+
+        $this->assertIsArray($result);
+        $this->assertEquals(Video::STATUS_COMPLETED, $result['status']);
     }
 }

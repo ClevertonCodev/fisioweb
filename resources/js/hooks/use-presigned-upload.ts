@@ -19,6 +19,9 @@ const ALLOWED_VIDEO_MIMES = [
 
 const MAX_VIDEO_SIZE = 20971520; // 20MB
 
+const ALLOWED_THUMBNAIL_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_THUMBNAIL_SIZE = 5242880; // 5MB
+
 function getCsrfToken(): string {
     const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
     return match ? decodeURIComponent(match[1]) : '';
@@ -110,81 +113,129 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
         setProgress(0);
     }, []);
 
-    const upload = useCallback(async (file: File): Promise<VideoData | null> => {
-        if (!ALLOWED_VIDEO_MIMES.includes(file.type)) {
-            const msg = 'Formato de vídeo não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.';
-            setError(msg);
-            setStatus('error');
-            return null;
-        }
-
-        if (file.size > MAX_VIDEO_SIZE) {
-            const maxMB = Math.round(MAX_VIDEO_SIZE / 1048576);
-            const msg = `O vídeo excede o tamanho máximo de ${maxMB}MB.`;
-            setError(msg);
-            setStatus('error');
-            return null;
-        }
-
-        const abortController = new AbortController();
-        abortControllerRef.current = abortController;
-
-        try {
-            setError(null);
-            setProgress(0);
-            setVideo(null);
-
-            // 1. Solicitar presigned URL ao backend
-            setStatus('requesting');
-
-            const { data: presigned } = await apiRequest<{ data: PresignedUploadResponse }>(
-                '/admin/videos/presigned-upload-request',
-                {
-                    filename: file.name,
-                    mime_type: file.type,
-                    size: file.size,
-                },
-            );
-
-            if (abortController.signal.aborted) return null;
-
-            // 2. Upload direto para R2 via presigned URL
-            setStatus('uploading');
-
-            await uploadToR2(
-                presigned.upload_url,
-                file,
-                setProgress,
-                abortController.signal,
-            );
-
-            if (abortController.signal.aborted) return null;
-
-            // 3. Confirmar upload no backend
-            setStatus('confirming');
-
-            const { data: confirmedVideo } = await apiRequest<{ data: VideoData }>(
-                `/admin/videos/${presigned.video_id}/confirm-upload`,
-                {},
-            );
-
-            setVideo(confirmedVideo);
-            setStatus('completed');
-            abortControllerRef.current = null;
-
-            return confirmedVideo;
-        } catch (err) {
-            if (err instanceof DOMException && err.name === 'AbortError') {
-                setStatus('idle');
+    const upload = useCallback(
+        async (videoFile: File, thumbnailFile?: File | null): Promise<VideoData | null> => {
+            if (!ALLOWED_VIDEO_MIMES.includes(videoFile.type)) {
+                const msg =
+                    'Formato de vídeo não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.';
+                setError(msg);
+                setStatus('error');
                 return null;
             }
 
-            const message = err instanceof Error ? err.message : 'Erro desconhecido no upload';
-            setError(message);
-            setStatus('error');
-            return null;
-        }
-    }, []);
+            if (videoFile.size > MAX_VIDEO_SIZE) {
+                const maxMB = Math.round(MAX_VIDEO_SIZE / 1048576);
+                const msg = `O vídeo excede o tamanho máximo de ${maxMB}MB.`;
+                setError(msg);
+                setStatus('error');
+                return null;
+            }
+
+            if (thumbnailFile) {
+                if (!ALLOWED_THUMBNAIL_MIMES.includes(thumbnailFile.type)) {
+                    setError('Thumbnail deve ser JPEG, PNG ou WebP.');
+                    setStatus('error');
+                    return null;
+                }
+                if (thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
+                    setError('A thumbnail não pode exceder 5MB.');
+                    setStatus('error');
+                    return null;
+                }
+            }
+
+            const abortController = new AbortController();
+            abortControllerRef.current = abortController;
+
+            try {
+                setError(null);
+                setProgress(0);
+                setVideo(null);
+
+                // 1. Solicitar presigned URL do vídeo
+                setStatus('requesting');
+
+                const { data: presigned } =
+                    await apiRequest<{ data: PresignedUploadResponse }>(
+                        '/admin/videos/presigned-upload-request',
+                        {
+                            filename: videoFile.name,
+                            mime_type: videoFile.type,
+                            size: videoFile.size,
+                        },
+                    );
+
+                if (abortController.signal.aborted) return null;
+
+                // 2. Upload do vídeo para R2
+                setStatus('uploading');
+
+                await uploadToR2(
+                    presigned.upload_url,
+                    videoFile,
+                    setProgress,
+                    abortController.signal,
+                );
+
+                if (abortController.signal.aborted) return null;
+
+                let thumbnailPath: string | undefined;
+
+                if (thumbnailFile) {
+                    setProgress(0);
+
+                    const { data: thumbPresigned } =
+                        await apiRequest<{ data: import('@/types/video').PresignedThumbnailResponse }>(
+                            `/admin/videos/${presigned.video_id}/presigned-thumbnail-request`,
+                            {
+                                filename: thumbnailFile.name,
+                                mime_type: thumbnailFile.type,
+                                size: thumbnailFile.size,
+                            },
+                        );
+
+                    if (abortController.signal.aborted) return null;
+
+                    await uploadToR2(
+                        thumbPresigned.upload_url,
+                        thumbnailFile,
+                        setProgress,
+                        abortController.signal,
+                    );
+
+                    if (abortController.signal.aborted) return null;
+
+                    thumbnailPath = thumbPresigned.path;
+                }
+
+                // 3. Confirmar upload no backend (com ou sem thumbnail)
+                setStatus('confirming');
+
+                const { data: confirmedVideo } = await apiRequest<{ data: VideoData }>(
+                    `/admin/videos/${presigned.video_id}/confirm-upload`,
+                    thumbnailPath ? { thumbnail_path: thumbnailPath } : {},
+                );
+
+                setVideo(confirmedVideo);
+                setStatus('completed');
+                abortControllerRef.current = null;
+
+                return confirmedVideo;
+            } catch (err) {
+                if (err instanceof DOMException && err.name === 'AbortError') {
+                    setStatus('idle');
+                    return null;
+                }
+
+                const message =
+                    err instanceof Error ? err.message : 'Erro desconhecido no upload';
+                setError(message);
+                setStatus('error');
+                return null;
+            }
+        },
+        [],
+    );
 
     return { upload, abort, status, progress, error, video, reset };
 }

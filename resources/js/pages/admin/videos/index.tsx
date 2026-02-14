@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import {
     AlertCircle,
     CheckCircle2,
+    ImagePlus,
     Loader2,
     Search,
     SlidersHorizontal,
@@ -11,6 +12,7 @@ import {
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { VideoCard } from '@/components/admin/VideoCard';
+import { ImageCropModal } from '@/components/ImageCropModal';
 import { VideoPlayerModal } from '@/components/VideoPlayerModal';
 import FlashMessage from '@/components/flash-message';
 import { Pagination } from '@/components/pagination';
@@ -45,13 +47,20 @@ interface VideosProps {
     videos: PaginatedVideos;
 }
 
+const ALLOWED_THUMBNAIL_ACCEPT = 'image/jpeg,image/png,image/webp';
+
 export default function Videos({ videos }: VideosProps) {
     const { upload, abort, status, progress, error, reset } = usePresignedUpload();
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const [dragOver, setDragOver] = useState(false);
     const [search, setSearch] = useState('');
     const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
     const filteredVideos = useMemo(() => {
         if (!search.trim()) return videos.data;
@@ -63,27 +72,45 @@ export default function Videos({ videos }: VideosProps) {
         );
     }, [videos.data, search]);
 
-    const handleFile = useCallback(
-        async (file: File) => {
-            const result = await upload(file);
-            if (result) {
-                router.reload({ only: ['videos'] });
-            }
-        },
-        [upload],
-    );
+    const handleVideoSelect = useCallback((file: File | null) => {
+        setVideoFile(file);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }, []);
+
+    const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCropModalFile(file);
+            setCropModalOpen(true);
+        }
+        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+    }, []);
+
+    const handleCropConfirm = useCallback((croppedFile: File) => {
+        setThumbnailFile(croppedFile);
+        setCropModalFile(null);
+        setCropModalOpen(false);
+    }, []);
+
+    const handleCropOpenChange = useCallback((open: boolean) => {
+        if (!open) {
+            setCropModalFile(null);
+            if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+        }
+        setCropModalOpen(open);
+    }, []);
+
+    const clearThumbnail = useCallback(() => {
+        setThumbnailFile(null);
+        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+    }, []);
 
     const handleFileChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
-            if (file) {
-                handleFile(file);
-            }
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+            if (file) handleVideoSelect(file);
         },
-        [handleFile],
+        [handleVideoSelect],
     );
 
     const handleDrop = useCallback(
@@ -91,12 +118,27 @@ export default function Videos({ videos }: VideosProps) {
             e.preventDefault();
             setDragOver(false);
             const file = e.dataTransfer.files[0];
-            if (file) {
-                handleFile(file);
-            }
+            if (file) handleVideoSelect(file);
         },
-        [handleFile],
+        [handleVideoSelect],
     );
+
+    const handleSubmitUpload = useCallback(() => {
+        if (!videoFile) return;
+        upload(videoFile, thumbnailFile ?? undefined).then((result) => {
+            if (result) {
+                setVideoFile(null);
+                setThumbnailFile(null);
+                if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+                router.reload({ only: ['videos'] });
+            }
+        });
+    }, [upload, videoFile, thumbnailFile]);
+
+    const clearVideo = useCallback(() => {
+        setVideoFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }, []);
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -174,30 +216,14 @@ export default function Videos({ videos }: VideosProps) {
                 </header>
 
                 <div className="flex-1 overflow-auto p-6">
-                    {/* Upload Area compacta */}
-                    <div
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        className={`mb-6 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
-                            dragOver
-                                ? 'border-primary bg-primary/5'
-                                : 'border-sidebar-border/70 bg-card'
-                        } ${isUploading ? 'pointer-events-none opacity-60' : 'cursor-pointer hover:border-primary/50'}`}
-                        onClick={() =>
-                            !isUploading && fileInputRef.current?.click()
-                        }
-                    >
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/webm,video/x-flv,video/x-matroska"
-                            onChange={handleFileChange}
-                            className="hidden"
-                        />
+                    {/* Formulário único: Vídeo + Thumbnail */}
+                    <div className="mb-6 rounded-xl border border-sidebar-border/70 bg-card p-6">
+                        <h2 className="mb-4 text-lg font-semibold text-foreground">
+                            Enviar vídeo
+                        </h2>
 
                         {isUploading ? (
-                            <div className="flex flex-col items-center gap-3">
+                            <div className="flex flex-col items-center gap-3 py-4">
                                 <Loader2 className="size-10 animate-spin text-primary" />
                                 <p className="text-sm font-medium">
                                     {statusLabels[status]}
@@ -215,45 +241,142 @@ export default function Videos({ videos }: VideosProps) {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        abort();
-                                    }}
+                                    onClick={abort}
                                 >
                                     <X className="mr-1 size-3" />
                                     Cancelar
                                 </Button>
                             </div>
                         ) : status === 'completed' ? (
-                            <div className="flex flex-col items-center gap-3">
+                            <div className="flex flex-col items-center gap-3 py-4">
                                 <CheckCircle2 className="size-10 text-green-500" />
                                 <p className="text-sm font-medium text-green-600">
                                     Upload concluído!
                                 </p>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        reset();
-                                    }}
-                                >
+                                <Button variant="outline" size="sm" onClick={reset}>
                                     Enviar outro
                                 </Button>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center gap-3">
-                                <Upload className="size-10 text-muted-foreground" />
+                            <div className="flex flex-col gap-4">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/webm,video/x-flv,video/x-matroska"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <input
+                                    ref={thumbnailInputRef}
+                                    type="file"
+                                    accept={ALLOWED_THUMBNAIL_ACCEPT}
+                                    onChange={handleThumbnailChange}
+                                    className="hidden"
+                                />
+
+                                {/* Campo 1: Vídeo (obrigatório) */}
                                 <div>
-                                    <p className="text-sm font-medium">
-                                        Arraste um vídeo ou clique para
-                                        selecionar
-                                    </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        MP4, MPEG, MOV, AVI, WebM, FLV, MKV —
-                                        Máx. 20MB
-                                    </p>
+                                    <label className="mb-2 block text-sm font-medium text-foreground">
+                                        Vídeo (obrigatório)
+                                    </label>
+                                    <div
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-6 transition-colors ${
+                                            dragOver
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-sidebar-border/70 bg-muted/30 hover:border-primary/50'
+                                        }`}
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        {videoFile ? (
+                                            <div className="flex items-center gap-3">
+                                                <Upload className="size-5 text-muted-foreground" />
+                                                <span className="text-sm font-medium text-foreground">
+                                                    {videoFile.name}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 text-muted-foreground hover:text-destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        clearVideo();
+                                                    }}
+                                                >
+                                                    <X className="size-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Upload className="size-10 text-muted-foreground" />
+                                                <p className="mt-2 text-sm font-medium text-foreground">
+                                                    Arraste o vídeo ou clique para
+                                                    selecionar
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    MP4, MPEG, MOV, AVI, WebM, FLV,
+                                                    MKV — Máx. 20MB
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {/* Campo 2: Thumbnail (opcional) — mesmo form, salvo no model Video */}
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-foreground">
+                                        Thumbnail (opcional)
+                                    </label>
+                                    <div
+                                        className="flex min-h-[80px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-sidebar-border/70 bg-muted/30 py-4 transition-colors hover:border-primary/50"
+                                        onClick={() => thumbnailInputRef.current?.click()}
+                                    >
+                                        {thumbnailFile ? (
+                                            <div className="flex w-full items-center justify-between gap-2 px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <ImagePlus className="size-5 text-muted-foreground" />
+                                                </div>
+                                                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                                                    {thumbnailFile.name}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 shrink-0 text-muted-foreground hover:text-destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        clearThumbnail();
+                                                    }}
+                                                >
+                                                    <X className="size-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <ImagePlus className="size-8 text-muted-foreground" />
+                                                <p className="mt-2 text-sm font-medium text-foreground">
+                                                    Clique para escolher uma imagem
+                                                </p>
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    JPEG, PNG ou WebP — Máx. 5MB
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    onClick={handleSubmitUpload}
+                                    disabled={!videoFile}
+                                    className="w-full sm:w-auto"
+                                >
+                                    Enviar vídeo
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -327,6 +450,14 @@ export default function Videos({ videos }: VideosProps) {
                 open={isVideoModalOpen}
                 onOpenChange={setIsVideoModalOpen}
                 video={selectedVideo}
+            />
+
+            <ImageCropModal
+                open={cropModalOpen}
+                onOpenChange={handleCropOpenChange}
+                imageFile={cropModalFile}
+                onConfirm={handleCropConfirm}
+                title="Recortar thumbnail"
             />
         </AppLayout>
     );

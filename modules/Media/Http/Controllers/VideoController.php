@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Http\Requests\PresignedThumbnailUploadRequest;
 use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
 use Modules\Media\Http\Requests\VideoUploadRequest;
 
@@ -128,10 +129,41 @@ class VideoController extends Controller
         }
     }
 
-    public function confirmUpload(int $video): JsonResponse
+    public function requestPresignedThumbnailUrl(int $video, PresignedThumbnailUploadRequest $request): JsonResponse
     {
         try {
-            $result = $this->videoService->confirmPresignedUpload($video);
+            $result = $this->videoService->requestPresignedThumbnailUpload(
+                $video,
+                $request->validated('filename'),
+                $request->validated('mime_type'),
+                $request->validated('size'),
+            );
+
+            return response()->json([
+                'data' => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function confirmUpload(Request $request, int $video): JsonResponse
+    {
+        $request->validate([
+            'thumbnail_path' => ['nullable', 'string', 'max:512'],
+        ]);
+
+        try {
+            $result = $this->videoService->confirmPresignedUpload(
+                $video,
+                $request->input('thumbnail_path'),
+            );
 
             return response()->json([
                 'message' => 'Upload confirmado com sucesso',

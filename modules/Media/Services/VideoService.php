@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Jobs\ProcessVideoUpload;
@@ -17,8 +18,7 @@ class VideoService implements VideoServiceInterface
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
-    ) {
-    }
+    ) {}
 
     public function dispatchUpload(
         UploadedFile $file,
@@ -128,6 +128,84 @@ class VideoService implements VideoServiceInterface
     public function getAllVideos(int $perPage = 15): LengthAwarePaginator
     {
         return $this->videoRepository->paginate($perPage);
+    }
+
+    public function requestPresignedUpload(
+        string $filename,
+        string $mimeType,
+        int $size,
+        ?string $directory = 'videos',
+        ?Model $uploadable = null,
+    ): array {
+        if (empty($directory)) {
+            throw new \InvalidArgumentException('Diretório não informado');
+        }
+
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $generatedFilename = Str::uuid().'_'.now()->timestamp.'.'.$extension;
+        $path = "{$directory}/{$generatedFilename}";
+
+        $video = $this->videoRepository->create([
+            'filename' => $generatedFilename,
+            'original_filename' => $filename,
+            'path' => $path,
+            'mime_type' => $mimeType,
+            'size' => $size,
+            'status' => Video::STATUS_PENDING,
+            'uploadable_type' => $uploadable?->getMorphClass(),
+            'uploadable_id' => $uploadable?->id,
+            'metadata' => [
+                'original_name' => $filename,
+                'upload_method' => 'presigned',
+            ],
+        ]);
+
+        $presigned = $this->fileService->createPresignedUploadUrl($path, $mimeType);
+
+        logInfo('presigned upload solicitado', [
+            'video_id' => $video->id,
+            'path' => $path,
+        ]);
+
+        return [
+            'video_id' => $video->id,
+            'upload_url' => $presigned['upload_url'],
+            'path' => $presigned['path'],
+            'expires_at' => $presigned['expires_at'],
+            'video' => $this->formatVideo($video),
+        ];
+    }
+
+    public function confirmPresignedUpload(int $videoId): array
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if ($video->status !== Video::STATUS_PENDING) {
+            throw new \InvalidArgumentException(
+                "Vídeo não está pendente de confirmação (status atual: {$video->status})"
+            );
+        }
+
+        if (empty($video->path)) {
+            throw new \InvalidArgumentException('Vídeo não possui path definido');
+        }
+
+        if (! $this->fileService->fileExists($video->path)) {
+            throw new \RuntimeException('Arquivo não encontrado no storage. O upload pode ter falhado.');
+        }
+
+        $video = $this->videoRepository->update($videoId, [
+            'url' => $this->fileService->getFileUrl($video->path),
+            'cdn_url' => $this->fileService->getFileCdnUrl($video->path),
+            'status' => Video::STATUS_COMPLETED,
+        ]);
+
+        logInfo('presigned upload confirmado', [
+            'video_id' => $videoId,
+            'path' => $video->path,
+        ]);
+
+        return $this->formatVideo($video);
     }
 
     protected function formatVideo(Video $video): array

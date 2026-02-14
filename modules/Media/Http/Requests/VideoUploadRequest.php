@@ -13,7 +13,7 @@ class VideoUploadRequest extends FormRequest
 
     public function rules(): array
     {
-        $maxSizeKB = (int) (config('cloudflare.max_video_size', 524288000) / 1024);
+        $maxSizeKB = (int) (config('cloudflare.max_video_size', 20971520) / 1024);
 
         if ($this->hasFile('videos')) {
             return [
@@ -31,7 +31,7 @@ class VideoUploadRequest extends FormRequest
 
     public function messages(): array
     {
-        $maxSizeMB = (int) (config('cloudflare.max_video_size', 524288000) / 1048576);
+        $maxSizeMB = (int) (config('cloudflare.max_video_size', 20971520) / 1048576);
 
         return [
             'video.required' => 'Selecione um arquivo de vídeo para upload.',

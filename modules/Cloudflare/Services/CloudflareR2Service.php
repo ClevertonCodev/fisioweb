@@ -34,7 +34,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (!$uploaded) {
+            if (! $uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 
@@ -116,7 +116,7 @@ class CloudflareR2Service implements FileServiceInterface
         string $directory = 'files',
         string $originalFilename = '',
     ): array {
-        if (!file_exists($localPath)) {
+        if (! file_exists($localPath)) {
             throw new \RuntimeException("File not found at path: {$localPath}");
         }
 
@@ -132,7 +132,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (!$uploaded) {
+            if (! $uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 
@@ -155,6 +155,50 @@ class CloudflareR2Service implements FileServiceInterface
             ]);
 
             throw new \RuntimeException('Failed to upload file: '.$e->getMessage(), 0, $e);
+        }
+    }
+
+    public function createPresignedUploadUrl(
+        string $path,
+        string $contentType,
+        int $expiresInSeconds = 900,
+    ): array {
+        try {
+            /** @var \Illuminate\Filesystem\AwsS3V3Adapter $adapter */
+            $adapter = Storage::disk($this->disk);
+            $client = $adapter->getClient();
+            $bucket = config('cloudflare.r2.bucket');
+
+            $command = $client->getCommand('PutObject', [
+                'Bucket' => $bucket,
+                'Key' => $path,
+                'ContentType' => $contentType,
+            ]);
+
+            $presignedRequest = $client->createPresignedRequest(
+                $command,
+                "+{$expiresInSeconds} seconds"
+            );
+
+            $uploadUrl = (string) $presignedRequest->getUri();
+
+            logInfo('Presigned URL criada com sucesso', [
+                'path' => $path,
+                'expires_in' => $expiresInSeconds,
+            ]);
+
+            return [
+                'upload_url' => $uploadUrl,
+                'path' => $path,
+                'expires_at' => now()->addSeconds($expiresInSeconds)->toISOString(),
+            ];
+        } catch (\Throwable $e) {
+            logError('Erro ao criar presigned URL', [
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Failed to create presigned URL: '.$e->getMessage(), 0, $e);
         }
     }
 

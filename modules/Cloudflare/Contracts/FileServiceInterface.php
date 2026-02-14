@@ -38,4 +38,13 @@ interface FileServiceInterface
         string $directory = 'files',
         string $originalFilename = '',
     ): array;
+
+    /**
+     * @return array{upload_url: string, path: string, expires_at: string}
+     */
+    public function createPresignedUploadUrl(
+        string $path,
+        string $contentType,
+        int $expiresInSeconds = 900,
+    ): array;
 }

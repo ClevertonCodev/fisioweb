@@ -5,7 +5,7 @@ export const mockExercises: Exercise[] = [
         id: '1',
         title: 'Abaixamento do lábio inferior',
         thumbnailUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
-        videoUrl: 'https://example.com/video1.mp4',
+        videoUrl: 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev/videos/52336f07-d89b-4715-9875-c8d7f5884f4f_1771031303.mp4',
         specialty: 'Fonoaudiologia',
         bodyArea: 'Face',
         bodyRegion: 'Superior',

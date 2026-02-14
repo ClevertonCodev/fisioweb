@@ -6,14 +6,25 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
 use Modules\Media\Http\Requests\VideoUploadRequest;
 
 class VideoController extends Controller
 {
     public function __construct(
         protected VideoServiceInterface $videoService,
-    ) {
+    ) {}
+
+    public function page(Request $request): Response
+    {
+        $perPage = $request->integer('per_page', 15);
+
+        return Inertia::render('admin/videos/index', [
+            'videos' => $this->videoService->getAllVideos($perPage),
+        ]);
     }
 
     public function index(Request $request): JsonResponse
@@ -71,7 +82,7 @@ class VideoController extends Controller
     {
         $video = $this->videoService->getVideo($id);
 
-        if (!$video) {
+        if (! $video) {
             return response()->json([
                 'message' => 'Vídeo não encontrado',
             ], 404);
@@ -94,6 +105,50 @@ class VideoController extends Controller
             return response()->json([
                 'message' => 'Vídeo não encontrado',
             ], 404);
+        }
+    }
+
+    public function requestPresignedUploadUrl(PresignedVideoUploadRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->videoService->requestPresignedUpload(
+                $request->validated('filename'),
+                $request->validated('mime_type'),
+                $request->validated('size'),
+                config('cloudflare.video_directory', 'videos'),
+            );
+
+            return response()->json([
+                'data' => $result,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function confirmUpload(int $video): JsonResponse
+    {
+        try {
+            $result = $this->videoService->confirmPresignedUpload($video);
+
+            return response()->json([
+                'message' => 'Upload confirmado com sucesso',
+                'data' => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
         }
     }
 

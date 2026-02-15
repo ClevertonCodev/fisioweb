@@ -18,7 +18,6 @@ class PhotoServiceTest extends TestCase
         parent::setUp();
 
         config(['cloudflare.image_directory' => 'images']);
-        config(['cloudflare.thumbnail_directory' => 'thumbnails']);
 
         $this->fileService = $this->mock(FileServiceInterface::class);
         $this->service = new PhotoService($this->fileService);
@@ -62,36 +61,6 @@ class PhotoServiceTest extends TestCase
         $result = $this->service->uploadImage($file, 'profile-photos');
 
         $this->assertEquals('profile-photos/uuid.jpg', $result['path']);
-    }
-
-    public function testShouldUploadThumbnailDelegateToFileServiceWithDefaultDirectory(): void
-    {
-        $file = UploadedFile::fake()->create('thumb.jpg');
-
-        $this->fileService
-            ->shouldReceive('uploadFile')
-            ->once()
-            ->with($file, 'thumbnails')
-            ->andReturn(['path' => 'thumbnails/uuid.jpg']);
-
-        $result = $this->service->uploadThumbnail($file);
-
-        $this->assertEquals('thumbnails/uuid.jpg', $result['path']);
-    }
-
-    public function testShouldUploadThumbnailAcceptCustomDirectory(): void
-    {
-        $file = UploadedFile::fake()->create('thumb.jpg');
-
-        $this->fileService
-            ->shouldReceive('uploadFile')
-            ->once()
-            ->with($file, 'video-thumbs')
-            ->andReturn(['path' => 'video-thumbs/uuid.jpg']);
-
-        $result = $this->service->uploadThumbnail($file, 'video-thumbs');
-
-        $this->assertEquals('video-thumbs/uuid.jpg', $result['path']);
     }
 
     public function testShouldUploadMultipleImagesDelegateToFileService(): void

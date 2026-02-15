@@ -11,16 +11,16 @@ class TestUploadCommand extends Command
 {
     protected $signature = 'cloudflare:test-upload';
 
-    protected $description = 'Test image and thumbnail upload to Cloudflare R2';
+    protected $description = 'Test image upload to Cloudflare R2';
 
     public function handle(
         ImageServiceInterface $imageService,
         FileServiceInterface $fileService,
     ): int {
-        $this->info('Testing image/thumbnail upload to R2...');
+        $this->info('Testing image upload to R2...');
         $this->newLine();
 
-        $this->info('[1/4] Uploading image (apple-touch-icon.png)...');
+        $this->info('[1/3] Uploading image (apple-touch-icon.png)...');
         try {
             $imagePath = public_path('apple-touch-icon.png');
             $imageFile = new UploadedFile($imagePath, 'apple-touch-icon.png', 'image/png', null, true);
@@ -37,45 +37,25 @@ class TestUploadCommand extends Command
 
         $this->newLine();
 
-        $this->info('[2/4] Uploading thumbnail (logo.svg)...');
-        try {
-            $thumbPath = public_path('logo.svg');
-            $thumbFile = new UploadedFile($thumbPath, 'logo.svg', 'image/svg+xml', null, true);
-
-            $thumbResult = $imageService->uploadThumbnail($thumbFile);
-
-            $this->info('  OK Upload successful');
-            $this->table(['Key', 'Value'], collect($thumbResult)->map(fn ($v, $k) => [$k, $v])->values()->toArray());
-        } catch (\Throwable $e) {
-            $this->error('  FAIL Thumbnail upload failed: '.$e->getMessage());
-
-            return Command::FAILURE;
-        }
-
-        $this->newLine();
-
-        $this->info('[3/4] Verifying files exist on R2...');
+        $this->info('[2/3] Verifying file exists on R2...');
         $imageExists = $fileService->fileExists($imageResult['path']);
-        $thumbExists = $fileService->fileExists($thumbResult['path']);
 
         $this->info('  Image exists: '.($imageExists ? 'YES' : 'NO'));
-        $this->info('  Thumbnail exists: '.($thumbExists ? 'YES' : 'NO'));
 
-        if (!$imageExists || !$thumbExists) {
-            $this->error('  FAIL Files not found on R2');
+        if (!$imageExists) {
+            $this->error('  FAIL File not found on R2');
 
             return Command::FAILURE;
         }
 
         $this->newLine();
 
-        $this->info('[4/4] Cleaning up test files...');
+        $this->info('[3/3] Cleaning up test file...');
         $fileService->deleteFile($imageResult['path']);
-        $fileService->deleteFile($thumbResult['path']);
-        $this->info('  OK Files deleted');
+        $this->info('  OK File deleted');
 
         $this->newLine();
-        $this->info('All tests passed! Image and thumbnail upload working correctly.');
+        $this->info('All tests passed! Image upload working correctly.');
 
         return Command::SUCCESS;
     }

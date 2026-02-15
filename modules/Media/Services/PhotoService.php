@@ -25,15 +25,6 @@ class PhotoService implements ImageServiceInterface
         return $this->fileService->uploadFile($file, $directory);
     }
 
-    public function uploadThumbnail(
-        UploadedFile $file,
-        ?string $directory = null,
-    ): array {
-        $directory = $directory ?? config('cloudflare.thumbnail_directory', 'thumbnails');
-
-        return $this->fileService->uploadFile($file, $directory);
-    }
-
     public function uploadMultipleImages(
         array $files,
         ?string $directory = null,

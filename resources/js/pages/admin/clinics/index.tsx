@@ -15,8 +15,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem, type Clinic, type Plan } from '@/types';
 import { maskCpf, maskCnpj } from '@/lib/validators'; 
+import { type BreadcrumbItem, type Clinic, type Plan } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

@@ -28,6 +28,26 @@ class VideoController extends Controller
         ]);
     }
 
+    public function create(): Response
+    {
+        return Inertia::render('admin/videos/create');
+    }
+
+    public function edit(int $video): Response
+    {
+        $videoModel = $this->videoService->getVideo($video);
+
+        if (! $videoModel) {
+            throw new ModelNotFoundException;
+        }
+
+        $formatted = $this->videoService->getVideoFormatted($video);
+
+        return Inertia::render('admin/videos/edit', [
+            'video' => $formatted,
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $perPage = $request->integer('per_page', 15);
@@ -155,18 +175,83 @@ class VideoController extends Controller
 
     public function confirmUpload(Request $request, int $video): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'thumbnail_path' => ['nullable', 'string', 'max:512'],
+            'original_filename' => ['nullable', 'string', 'max:255'],
+            'duration' => ['nullable', 'integer', 'min:0'],
+            'metadata' => ['nullable', 'array'],
         ]);
+
+        $metadata = isset($validated['metadata']) ? $validated['metadata'] : null;
+        $duration = isset($validated['duration']) ? (int) $validated['duration'] : null;
+        $originalFilename = $validated['original_filename'] ?? null;
 
         try {
             $result = $this->videoService->confirmPresignedUpload(
                 $video,
-                $request->input('thumbnail_path'),
+                $validated['thumbnail_path'] ?? null,
+                $originalFilename,
+                $duration,
+                $metadata,
             );
 
             return response()->json([
                 'message' => 'Upload confirmado com sucesso',
+                'data' => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function requestPresignedThumbnailReplaceUrl(int $video, PresignedThumbnailUploadRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->videoService->requestPresignedThumbnailReplace(
+                $video,
+                $request->validated('filename'),
+                $request->validated('mime_type'),
+                $request->validated('size'),
+            );
+
+            return response()->json([
+                'data' => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    public function update(Request $request, int $video): JsonResponse
+    {
+        $validated = $request->validate([
+            'original_filename' => ['nullable', 'string', 'max:255'],
+            'duration' => ['nullable', 'integer', 'min:0'],
+            'metadata' => ['nullable', 'array'],
+            'thumbnail_path' => ['nullable', 'string', 'max:512'],
+        ]);
+
+        try {
+            $result = $this->videoService->updateVideo($video, $validated);
+
+            return response()->json([
+                'message' => 'Vídeo atualizado com sucesso',
                 'data' => $result,
             ]);
         } catch (ModelNotFoundException) {

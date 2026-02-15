@@ -7,6 +7,9 @@ export interface VideoData {
     thumbnail_url?: string | null;
     size: number | null;
     human_size: string;
+    duration?: number | null;
+    human_duration?: string | null;
+    metadata?: Record<string, unknown> | null;
     status: 'pending' | 'processing' | 'completed' | 'failed';
     mime_type: string | null;
 }
@@ -33,8 +36,18 @@ export interface PresignedThumbnailResponse {
     expires_at: string;
 }
 
+export interface PresignedUploadOptions {
+    original_filename?: string | null;
+    duration?: number | null;
+    metadata?: Record<string, unknown> | null;
+}
+
 export interface UsePresignedUploadReturn {
-    upload: (videoFile: File, thumbnailFile?: File | null) => Promise<VideoData | null>;
+    upload: (
+        videoFile: File,
+        thumbnailFile?: File | null,
+        options?: PresignedUploadOptions,
+    ) => Promise<VideoData | null>;
     abort: () => void;
     status: UploadStatus;
     progress: number;

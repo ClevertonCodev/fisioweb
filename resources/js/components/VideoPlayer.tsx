@@ -177,7 +177,7 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
                 ref={videoRef}
                 src={src}
                 poster={poster ?? undefined}
-                className="h-full w-full object-contain"
+                className="h-full w-full cursor-pointer object-contain"
                 onClick={togglePlay}
                 playsInline
                 preload="metadata"
@@ -188,7 +188,7 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
                 <button
                     type="button"
                     onClick={togglePlay}
-                    className="absolute inset-0 flex items-center justify-center bg-foreground/20"
+                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-foreground/20"
                 >
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-110">
                         <Play className="ml-1 h-10 w-10 text-primary-foreground" />

@@ -2,9 +2,11 @@
  * Header e menu hamburger para a área da clínica em viewports móveis.
  * Só é exibido em telas < md; no desktop o layout usa a sidebar fixa (ClinicSidebar).
  */
-import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { Activity, Menu } from 'lucide-react';
+import { useState } from 'react';
+
+import { ClinicSidebar } from '@/components/clinic-sidebar';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -12,7 +14,6 @@ import {
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
-import { ClinicSidebar } from '@/components/clinic-sidebar';
 import { dashboard as clinicDashboard } from '@/routes/clinic';
 
 /** Cores alinhadas à sidebar (tema escuro + turquesa) */

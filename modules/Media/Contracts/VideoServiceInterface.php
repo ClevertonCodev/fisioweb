@@ -26,6 +26,8 @@ interface VideoServiceInterface
 
     public function getVideo(int $id): ?Video;
 
+    public function getVideoFormatted(int $videoId): array;
+
     public function getVideoCdnUrl(int $videoId): ?string;
 
     public function updateMetadata(int $videoId, array $metadata): Video;
@@ -42,7 +44,16 @@ interface VideoServiceInterface
         ?Model $uploadable = null,
     ): array;
 
-    public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null): array;
+    public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null, ?array $metadata = null): array;
+
+    public function updateVideo(int $videoId, array $data): array;
+
+    public function requestPresignedThumbnailReplace(
+        int $videoId,
+        string $filename,
+        string $mimeType,
+        int $size,
+    ): array;
 
     public function requestPresignedThumbnailUpload(
         int $videoId,

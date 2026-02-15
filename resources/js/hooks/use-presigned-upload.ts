@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import type {
+    PresignedUploadOptions,
     PresignedUploadResponse,
     UploadStatus,
     UsePresignedUploadReturn,
@@ -17,10 +18,10 @@ const ALLOWED_VIDEO_MIMES = [
     'video/x-matroska',
 ];
 
-const MAX_VIDEO_SIZE = 20971520; // 20MB
+const MAX_VIDEO_SIZE = 20971520;
 
 const ALLOWED_THUMBNAIL_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_THUMBNAIL_SIZE = 5242880; // 5MB
+const MAX_THUMBNAIL_SIZE = 5242880;
 
 function getCsrfToken(): string {
     const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
@@ -114,7 +115,11 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
     }, []);
 
     const upload = useCallback(
-        async (videoFile: File, thumbnailFile?: File | null): Promise<VideoData | null> => {
+        async (
+            videoFile: File,
+            thumbnailFile?: File | null,
+            options?: PresignedUploadOptions,
+        ): Promise<VideoData | null> => {
             if (!ALLOWED_VIDEO_MIMES.includes(videoFile.type)) {
                 const msg =
                     'Formato de vídeo não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.';
@@ -152,7 +157,6 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
                 setProgress(0);
                 setVideo(null);
 
-                // 1. Solicitar presigned URL do vídeo
                 setStatus('requesting');
 
                 const { data: presigned } =
@@ -167,7 +171,6 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
 
                 if (abortController.signal.aborted) return null;
 
-                // 2. Upload do vídeo para R2
                 setStatus('uploading');
 
                 await uploadToR2(
@@ -208,12 +211,19 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
                     thumbnailPath = thumbPresigned.path;
                 }
 
-                // 3. Confirmar upload no backend (com ou sem thumbnail)
                 setStatus('confirming');
+
+                const confirmBody: Record<string, unknown> = {};
+                if (thumbnailPath) confirmBody.thumbnail_path = thumbnailPath;
+                if (options?.original_filename) confirmBody.original_filename = options.original_filename;
+                if (options?.duration != null) confirmBody.duration = options.duration;
+                if (options?.metadata && Object.keys(options.metadata).length > 0) {
+                    confirmBody.metadata = options.metadata;
+                }
 
                 const { data: confirmedVideo } = await apiRequest<{ data: VideoData }>(
                     `/admin/videos/${presigned.video_id}/confirm-upload`,
-                    thumbnailPath ? { thumbnail_path: thumbnailPath } : {},
+                    confirmBody,
                 );
 
                 setVideo(confirmedVideo);

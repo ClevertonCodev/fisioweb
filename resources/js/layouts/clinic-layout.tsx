@@ -1,7 +1,8 @@
 import type { PropsWithChildren } from 'react';
-import { TooltipProvider } from '@/components/ui/tooltip';
+
 import { ClinicMobileHeader } from '@/components/clinic-mobile-header';
 import { ClinicSidebar } from '@/components/clinic-sidebar';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export default function ClinicLayout({ children }: PropsWithChildren) {
     return (

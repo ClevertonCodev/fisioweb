@@ -17,8 +17,8 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { useActiveUrl } from '@/hooks/use-active-url';
+import { cn } from '@/lib/utils';
 import { dashboard as clinicDashboard } from '@/routes/clinic';
 
 const dashboardRoute = clinicDashboard();

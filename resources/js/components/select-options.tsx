@@ -43,7 +43,7 @@ function OptionDisplay({ option }: { option: SelectOption }) {
                 <img
                     src={option.img}
                     alt=""
-                    className="h-5 w-5 object-contain"
+                    className="h-9 w-14 rounded object-cover"
                 />
             )}
             <span>{option.label}</span>

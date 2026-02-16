@@ -3,6 +3,11 @@ import { ArrowLeft } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 
 import InputError from '@/components/input-error';
+import {
+    SelectOptions,
+    type SelectOption,
+} from '@/components/select-options';
+import { VideoPlayer } from '@/components/video-player';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +27,7 @@ import {
     type Exercise,
     type PhysioArea,
 } from '@/types';
+import { type VideoData } from '@/types/video';
 
 interface EditExerciseProps {
     exercise: Exercise;
@@ -29,6 +35,7 @@ interface EditExerciseProps {
     bodyRegions: BodyRegion[];
     difficulties: Record<string, string>;
     movementForms: Record<string, string>;
+    videos: VideoData[];
 }
 
 export default function Edit({
@@ -37,6 +44,7 @@ export default function Edit({
     bodyRegions,
     difficulties,
     movementForms,
+    videos,
 }: EditExerciseProps) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Admin', href: '/admin/dashboard' },
@@ -65,7 +73,28 @@ export default function Edit({
         repetitions: exercise.repetitions != null ? String(exercise.repetitions) : '',
         rest_time: exercise.rest_time != null ? String(exercise.rest_time) : '',
         clinical_notes: exercise.clinical_notes || '',
+        video_id: exercise.videos?.[0]?.id ? String(exercise.videos[0].id) : '',
     });
+
+    const videoOptions = useMemo<SelectOption[]>(
+        () =>
+            videos.map((v) => ({
+                value: String(v.id),
+                label: v.original_filename,
+                img: v.thumbnail_url ?? undefined,
+            })),
+        [videos],
+    );
+
+    const selectedVideo = useMemo<SelectOption | null>(
+        () => videoOptions.find((o) => o.value === data.video_id) ?? null,
+        [videoOptions, data.video_id],
+    );
+
+    const selectedVideoData = useMemo(
+        () => (data.video_id ? videos.find((v) => String(v.id) === data.video_id) : null),
+        [videos, data.video_id],
+    );
 
     const filteredSubareas = useMemo(() => {
         if (!data.physio_area_id) return [];
@@ -165,6 +194,38 @@ export default function Edit({
                                     rows={4}
                                 />
                             </div>
+                        </div>
+
+                        {/* Vídeo */}
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold">Vídeo</h2>
+                            <div className="space-y-2">
+                                <Label>Vídeo do Exercício</Label>
+                                <SelectOptions
+                                    name="video_id"
+                                    value={selectedVideo}
+                                    onChange={(option) => {
+                                        setField('video_id', option?.value ?? '');
+                                    }}
+                                    options={videoOptions}
+                                    placeHolder="Selecione um vídeo..."
+                                    searchable
+                                />
+                                <InputError message={errors.video_id} />
+                                <p className="text-xs text-muted-foreground">
+                                    Selecione um vídeo já cadastrado para associar a este exercício.
+                                </p>
+                            </div>
+
+                            {selectedVideoData?.cdn_url && (
+                                <div className="max-w-sm overflow-hidden rounded-lg border border-sidebar-border/70">
+                                    <VideoPlayer
+                                        src={selectedVideoData.cdn_url}
+                                        poster={selectedVideoData.thumbnail_url}
+                                        title={selectedVideoData.original_filename}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Classificação */}

@@ -81,6 +81,7 @@ export function MetadataFields({
     onValidationChange,
 }: MetadataFieldsProps) {
     const [nameInputs, setNameInputs] = React.useState<Record<string, string>>({});
+    const nextCustomIdRef = React.useRef(0);
     const fields = metadataToFields(value);
     const description = fields.descricao ?? '';
     const category = fields.categoria ?? '';
@@ -92,18 +93,12 @@ export function MetadataFields({
             !TECHNICAL_KEYS.includes(k),
     );
 
-    const displayNames = React.useMemo(() => {
-        const names: Record<string, string> = {};
-        for (const [key] of customEntries) {
-            names[key] = nameInputs[key] ?? (key.startsWith('new_') ? '' : keyToDisplay(key));
-        }
-        return names;
-    }, [customEntries, nameInputs]);
+    const displayNames: Record<string, string> = {};
+    for (const [key] of customEntries) {
+        displayNames[key] = nameInputs[key] ?? (key.startsWith('new_') ? '' : keyToDisplay(key));
+    }
 
-    const duplicatedKeys = React.useMemo(
-        () => getDuplicatedKeysFromDisplayNames(customEntries, displayNames),
-        [customEntries, displayNames],
-    );
+    const duplicatedKeys = getDuplicatedKeysFromDisplayNames(customEntries, displayNames);
     const hasDuplicateNames = duplicatedKeys.size > 0;
 
     React.useEffect(() => {
@@ -136,7 +131,7 @@ export function MetadataFields({
 
     const addCustom = () => {
         if (hasDuplicateNames) return;
-        const newKey = `new_${Date.now()}`;
+        const newKey = `new_${nextCustomIdRef.current++}`;
         const next = { ...fields, [newKey]: '' };
         setNameInputs((prev) => ({ ...prev, [newKey]: '' }));
         onChange(buildMetadata(next));

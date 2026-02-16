@@ -199,7 +199,7 @@ export default function EditVideo({ video }: EditVideoProps) {
         } finally {
             setSaving(false);
         }
-    }, [video.id, originalFilename, duration, metadata, thumbnailFile]);
+    }, [video.id, video.metadata, originalFilename, duration, metadata, thumbnailFile]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs(video)}>

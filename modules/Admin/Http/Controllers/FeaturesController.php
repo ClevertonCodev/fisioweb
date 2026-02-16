@@ -85,6 +85,7 @@ class FeaturesController extends Controller
         return Inertia::render('admin/functionalities/edit', [
             'functionality' => $feature,
             'allowedKeys'   => Feature::allowedKeys(),
+            'types'         => Feature::availableTypes(),
         ]);
     }
 

@@ -59,7 +59,7 @@ class ExercisesController extends Controller
     public function store(ExerciseStoreRequest $request): RedirectResponse
     {
         $data               = $request->validated();
-        $data['created_by'] = auth('admin')->id();
+        $data['created_by'] = auth('web')->id();
 
         $this->exerciseService->create($data);
 

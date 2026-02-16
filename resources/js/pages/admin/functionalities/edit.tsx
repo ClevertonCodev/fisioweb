@@ -178,7 +178,7 @@ export default function EditFunctionality({
                                         <SelectValue placeholder="Selecione o tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.entries(types).map(([key, label]) => (
+                                        {Object.entries(types ?? {}).map(([key, label]) => (
                                             <SelectItem key={key} value={key}>
                                                 {label}
                                             </SelectItem>

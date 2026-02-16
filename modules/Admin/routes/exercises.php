@@ -11,8 +11,4 @@ Route::admin(function () {
     Route::get('exercises/{exercise}/edit', [ExercisesController::class, 'edit'])->name('exercises.edit');
     Route::put('exercises/{exercise}', [ExercisesController::class, 'update'])->name('exercises.update');
     Route::delete('exercises/{exercise}', [ExercisesController::class, 'destroy'])->name('exercises.destroy');
-
-    // Media (imagens, gifs, áudio)
-    Route::post('exercises/{exercise}/media', [ExercisesController::class, 'uploadMedia'])->name('exercises.media.upload');
-    Route::delete('exercises/{exercise}/media/{media}', [ExercisesController::class, 'destroyMedia'])->name('exercises.media.destroy');
 });

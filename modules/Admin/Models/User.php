@@ -14,6 +14,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Modules\Admin\Database\Factories\UserFactory> */
     use HasFactory;
+
     use Notifiable;
     use TwoFactorAuthenticatable;
 

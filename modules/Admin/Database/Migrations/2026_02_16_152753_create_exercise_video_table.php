@@ -8,18 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('body_regions', function (Blueprint $table) {
+        Schema::create('exercise_video', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('parent_id')->nullable()->constrained('body_regions')->nullOnDelete();
+            $table->foreignId('exercise_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('video_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['parent_id', 'name']);
+            $table->unique(['exercise_id', 'video_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('body_regions');
+        Schema::dropIfExists('exercise_video');
     }
 };

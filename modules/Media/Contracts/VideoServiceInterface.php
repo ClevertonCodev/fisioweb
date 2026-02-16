@@ -62,5 +62,5 @@ interface VideoServiceInterface
         int $size,
     ): array;
 
-    public function getAvailableForExercise(?int $exerciseId = null): Collection;
+    public function getAvailableForExercise(): Collection;
 }

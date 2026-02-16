@@ -18,9 +18,11 @@ class Feature extends Model
     }
 
     public const KEY_VIDEO_CALL = 'video_call';
+
     public const ALLOWED_KEYS = [
         self::KEY_VIDEO_CALL => 'Vídeo',
     ];
+
     /** Tipos permitidos para funcionalidades */
     public const TYPES = [
         'bool' => 'Ativa/Inativa',

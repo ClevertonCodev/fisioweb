@@ -29,8 +29,7 @@ class ProcessVideoUpload implements ShouldQueue
         public readonly string $localPath,
         public readonly string $directory,
         public readonly string $originalFilename,
-    ) {
-    }
+    ) {}
 
     public function handle(
         FileServiceInterface $fileService,

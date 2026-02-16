@@ -371,9 +371,9 @@ class VideoService implements VideoServiceInterface
         return $this->formatVideo($video);
     }
 
-    public function getAvailableForExercise(?int $exerciseId = null): Collection
+    public function getAvailableForExercise(): Collection
     {
-        return $this->videoRepository->getAvailableForExercise($exerciseId)
+        return $this->videoRepository->getAvailableForExercise()
             ->map(fn (Video $video) => $this->formatVideo($video));
     }
 

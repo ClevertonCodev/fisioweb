@@ -231,34 +231,6 @@ export default function Show({ exercise }: ShowExerciseProps) {
                             </div>
                         )}
 
-                        {/* Mídias */}
-                        {exercise.media && exercise.media.length > 0 && (
-                            <div className="rounded-xl border border-sidebar-border/70 bg-card p-6">
-                                <h2 className="mb-4 text-lg font-semibold">Mídias</h2>
-                                <div className="space-y-2">
-                                    {exercise.media.map((media) => (
-                                        <div key={media.id} className="flex items-center justify-between rounded-lg border p-3">
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium">
-                                                    {media.original_filename || media.file_path}
-                                                </p>
-                                                <span className="text-xs text-muted-foreground uppercase">{media.type}</span>
-                                            </div>
-                                            {media.cdn_url && (
-                                                <a
-                                                    href={media.cdn_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="ml-2 text-xs text-primary hover:underline"
-                                                >
-                                                    Ver
-                                                </a>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

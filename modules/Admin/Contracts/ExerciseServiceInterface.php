@@ -17,9 +17,5 @@ interface ExerciseServiceInterface
 
     public function delete(int $id): bool;
 
-    public function uploadMedia(Exercise $exercise, array $files, string $type): array;
-
-    public function deleteMedia(int $mediaId): bool;
-
     public function associateVideo(Exercise $exercise, ?int $videoId): void;
 }

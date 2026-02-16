@@ -4,7 +4,6 @@ namespace Modules\Admin\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Admin\Models\PhysioArea;
-use Modules\Admin\Models\PhysioSubarea;
 
 class PhysioAreaSeeder extends Seeder
 {

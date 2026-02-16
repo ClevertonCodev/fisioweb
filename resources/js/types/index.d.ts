@@ -94,18 +94,6 @@ export interface BodyRegion {
     children?: BodyRegion[];
 }
 
-export interface ExerciseMedia {
-    id: number;
-    exercise_id: number;
-    type: 'image' | 'gif' | 'audio';
-    file_path: string;
-    cdn_url: string | null;
-    original_filename: string | null;
-    mime_type: string | null;
-    size: number | null;
-    sort_order: number;
-}
-
 export interface Video {
     id: number;
     filename: string;
@@ -151,7 +139,6 @@ export interface Exercise {
     physio_subarea?: PhysioSubarea | null;
     body_region?: BodyRegion;
     created_by_user?: User;
-    media?: ExerciseMedia[];
     videos?: Video[];
 }
 

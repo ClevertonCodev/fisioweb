@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
-use Modules\Admin\Http\Requests\ExerciseMediaUploadRequest;
 use Modules\Admin\Http\Requests\ExerciseStoreRequest;
 use Modules\Admin\Http\Requests\ExerciseUpdateRequest;
 use Modules\Admin\Models\BodyRegion;
@@ -21,8 +20,7 @@ class ExercisesController extends Controller
     public function __construct(
         protected ExerciseServiceInterface $exerciseService,
         protected VideoServiceInterface $videoService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -75,7 +73,7 @@ class ExercisesController extends Controller
         $exercise = $this->exerciseService->find($id);
         $exercise->load([
             'physioArea', 'physioSubarea', 'bodyRegion',
-            'createdBy', 'media', 'videos',
+            'createdBy', 'videos',
         ]);
 
         return Inertia::render('admin/exercises/show', [
@@ -86,7 +84,7 @@ class ExercisesController extends Controller
     public function edit(int $id): Response
     {
         $exercise = $this->exerciseService->find($id);
-        $exercise->load(['media', 'videos']);
+        $exercise->load(['videos']);
 
         return Inertia::render('admin/exercises/edit', [
             'exercise' => $exercise,
@@ -94,7 +92,7 @@ class ExercisesController extends Controller
             'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
             'difficulties' => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
-            'videos' => $this->videoService->getAvailableForExercise($id),
+            'videos' => $this->videoService->getAvailableForExercise(),
         ]);
     }
 
@@ -114,24 +112,5 @@ class ExercisesController extends Controller
         return redirect()
             ->route('admin.exercises.index')
             ->with('success', 'Exercício removido com sucesso!');
-    }
-
-    public function uploadMedia(ExerciseMediaUploadRequest $request, int $id): RedirectResponse
-    {
-        $exercise = $this->exerciseService->find($id);
-        $this->exerciseService->uploadMedia($exercise, $request->file('files'), $request->input('type'));
-
-        return redirect()
-            ->back()
-            ->with('success', 'Mídia enviada com sucesso!');
-    }
-
-    public function destroyMedia(int $id, int $mediaId): RedirectResponse
-    {
-        $this->exerciseService->deleteMedia($mediaId);
-
-        return redirect()
-            ->back()
-            ->with('success', 'Mídia removida com sucesso!');
     }
 }

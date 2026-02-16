@@ -5,8 +5,7 @@ namespace Modules\Admin\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Media\Models\Video;
 
@@ -16,7 +15,9 @@ class Exercise extends Model
     use SoftDeletes;
 
     public const DIFFICULTY_EASY = 'easy';
+
     public const DIFFICULTY_MEDIUM = 'medium';
+
     public const DIFFICULTY_HARD = 'hard';
 
     public const DIFFICULTIES = [
@@ -26,7 +27,9 @@ class Exercise extends Model
     ];
 
     public const MOVEMENT_FORM_ALTERNADO = 'alternado';
+
     public const MOVEMENT_FORM_BILATERAL = 'bilateral';
+
     public const MOVEMENT_FORM_UNILATERAL = 'unilateral';
 
     public const MOVEMENT_FORMS = [
@@ -73,7 +76,7 @@ class Exercise extends Model
 
     public function getCreatedAtAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 
@@ -102,14 +105,9 @@ class Exercise extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function media(): HasMany
+    public function videos(): BelongsToMany
     {
-        return $this->hasMany(ExerciseMedia::class)->orderBy('sort_order');
-    }
-
-    public function videos(): MorphMany
-    {
-        return $this->morphMany(Video::class, 'uploadable');
+        return $this->belongsToMany(Video::class, 'exercise_video')->withTimestamps();
     }
 
     // Scopes
@@ -117,20 +115,5 @@ class Exercise extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    public function scopeByArea($query, int $areaId)
-    {
-        return $query->where('physio_area_id', $areaId);
-    }
-
-    public function scopeByDifficulty($query, string $level)
-    {
-        return $query->where('difficulty_level', $level);
-    }
-
-    public function scopeByBodyRegion($query, int $regionId)
-    {
-        return $query->where('body_region_id', $regionId);
     }
 }

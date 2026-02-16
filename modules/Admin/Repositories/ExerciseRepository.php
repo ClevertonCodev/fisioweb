@@ -22,11 +22,6 @@ class ExerciseRepository implements ExerciseRepositoryInterface
         return $this->model->findOrFail($id);
     }
 
-    public function findWithRelations(int $id, array $relations = []): ?Exercise
-    {
-        return $this->model->with($relations)->find($id);
-    }
-
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->model->with(['physioArea', 'physioSubarea', 'bodyRegion', 'createdBy']);
@@ -85,12 +80,5 @@ class ExerciseRepository implements ExerciseRepositoryInterface
     public function delete(int $id): bool
     {
         return (bool) $this->findOrFail($id)->delete();
-    }
-
-    public function restore(int $id): bool
-    {
-        $exercise = $this->model->withTrashed()->findOrFail($id);
-
-        return (bool) $exercise->restore();
     }
 }

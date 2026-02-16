@@ -14,7 +14,6 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Modules\Admin\Database\Factories\UserFactory> */
     use HasFactory;
-
     use Notifiable;
     use TwoFactorAuthenticatable;
 
@@ -62,8 +61,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'email_verified_at'       => 'datetime',
+            'password'                => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

@@ -23,20 +23,20 @@ class TestR2ConnectionCommand extends Command
             ['Bucket', config('cloudflare.r2.bucket') ?: '(not set)'],
             ['Region', config('cloudflare.r2.region') ?: '(not set)'],
             ['Endpoint', config('cloudflare.r2.endpoint') ?: '(not set)'],
-            ['Access Key', config('cloudflare.r2.access_key_id') ? '********'.substr(config('cloudflare.r2.access_key_id'), -4) : '(not set)'],
+            ['Access Key', config('cloudflare.r2.access_key_id') ? '********' . substr(config('cloudflare.r2.access_key_id'), -4) : '(not set)'],
         ]);
 
         $this->newLine();
 
         $this->info('[1/3] Writing test file...');
         try {
-            $testPath = '_test/connection-test.txt';
-            $testContent = 'R2 connection test - '.now()->toISOString();
+            $testPath    = '_test/connection-test.txt';
+            $testContent = 'R2 connection test - ' . now()->toISOString();
 
             Storage::disk($disk)->put($testPath, $testContent);
             $this->info('  ✓ Write successful');
         } catch (\Throwable $e) {
-            $this->error('  ✗ Write failed: '.$e->getMessage());
+            $this->error('  ✗ Write failed: ' . $e->getMessage());
 
             return Command::FAILURE;
         }
@@ -50,7 +50,7 @@ class TestR2ConnectionCommand extends Command
                 $this->warn('  ⚠ Read successful but content mismatch');
             }
         } catch (\Throwable $e) {
-            $this->error('  ✗ Read failed: '.$e->getMessage());
+            $this->error('  ✗ Read failed: ' . $e->getMessage());
 
             return Command::FAILURE;
         }

@@ -11,10 +11,10 @@ class PasswordConfirmationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testConfirmPasswordScreenCanBeRendered()
+    public function test_confirm_password_screen_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        $user = User::factory()->create();
+        $user     = User::factory()->create();
         $response = $this->actingAs($user)->get(route('password.confirm'));
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
@@ -22,7 +22,7 @@ class PasswordConfirmationTest extends TestCase
         );
     }
 
-    public function testPasswordConfirmationRequiresAuthentication()
+    public function test_password_confirmation_requires_authentication()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $response = $this->get(route('password.confirm'));

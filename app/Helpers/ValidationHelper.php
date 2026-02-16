@@ -58,7 +58,7 @@ class ValidationHelper
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
-        $dv1 = $resto < 2 ? 0 : 11 - $resto;
+        $dv1   = $resto < 2 ? 0 : 11 - $resto;
 
         $soma = 0;
         for ($i = 0, $j = 6; $i < 13; $i++) {
@@ -66,7 +66,7 @@ class ValidationHelper
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
-        $dv2 = $resto < 2 ? 0 : 11 - $resto;
+        $dv2   = $resto < 2 ? 0 : 11 - $resto;
 
         return $cnpj[12] == $dv1 && $cnpj[13] == $dv2;
     }

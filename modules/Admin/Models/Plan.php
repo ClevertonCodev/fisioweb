@@ -30,7 +30,7 @@ class Plan extends Model
     {
         return [
             'value_month' => 'decimal:2',
-            'value_year' => 'decimal:2',
+            'value_year'  => 'decimal:2',
         ];
     }
 
@@ -51,7 +51,7 @@ class Plan extends Model
     public function getLabelNames(string $name): string
     {
         $labels = [
-            'start' => 'Start',
+            'start'   => 'Start',
             'perform' => 'Perform',
             'premium' => 'Premium',
         ];

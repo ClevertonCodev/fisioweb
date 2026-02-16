@@ -13,15 +13,15 @@ class EmailVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testEmailVerificationScreenCanBeRendered()
+    public function test_email_verification_screen_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        $user = User::factory()->unverified()->create();
+        $user     = User::factory()->unverified()->create();
         $response = $this->actingAs($user)->get(route('verification.notice'));
         $response->assertOk();
     }
 
-    public function testEmailCanBeVerified()
+    public function test_email_can_be_verified()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->unverified()->create();
@@ -38,10 +38,10 @@ class EmailVerificationTest extends TestCase
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+        $response->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
     }
 
-    public function testEmailIsNotVerifiedWithInvalidHash()
+    public function test_email_is_not_verified_with_invalid_hash()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->unverified()->create();
@@ -57,7 +57,7 @@ class EmailVerificationTest extends TestCase
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
 
-    public function testEmailIsNotVerifiedWithInvalidUserId(): void
+    public function test_email_is_not_verified_with_invalid_user_id(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create([
@@ -75,7 +75,7 @@ class EmailVerificationTest extends TestCase
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
     }
 
-    public function testVerifiedUserIsRedirectedToDashboardFromVerificationPrompt(): void
+    public function test_verified_user_is_redirected_to_dashboard_from_verification_prompt(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create([
@@ -87,7 +87,7 @@ class EmailVerificationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
-    public function testAlreadyVerifiedUserVisitingVerificationLinkIsRedirectedWithoutFiringEventAgain(): void
+    public function test_already_verified_user_visiting_verification_link_is_redirected_without_firing_event_again(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create([
@@ -103,7 +103,7 @@ class EmailVerificationTest extends TestCase
         );
 
         $this->actingAs($user)->get($verificationUrl)
-            ->assertRedirect(route('dashboard', absolute: false).'?verified=1');
+            ->assertRedirect(route('dashboard', absolute: false) . '?verified=1');
 
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
         Event::assertNotDispatched(Verified::class);

@@ -36,7 +36,7 @@ class ProcessVideoUpload implements ShouldQueue
         VideoRepository $videoRepository,
     ): void {
         logInfo('processando video upload job', [
-            'video_id' => $this->videoId,
+            'video_id'   => $this->videoId,
             'local_path' => $this->localPath,
         ]);
 
@@ -53,14 +53,14 @@ class ProcessVideoUpload implements ShouldQueue
 
             $videoRepository->update($this->videoId, [
                 'filename' => $fileData['filename'],
-                'path' => $fileData['path'],
-                'url' => $fileData['url'],
-                'cdn_url' => $fileData['cdn_url'],
-                'status' => Video::STATUS_COMPLETED,
+                'path'     => $fileData['path'],
+                'url'      => $fileData['url'],
+                'cdn_url'  => $fileData['cdn_url'],
+                'status'   => Video::STATUS_COMPLETED,
                 'metadata' => [
                     'original_name' => $fileData['original_filename'],
-                    'mime_type' => $fileData['mime_type'],
-                    'size' => $fileData['size'],
+                    'mime_type'     => $fileData['mime_type'],
+                    'size'          => $fileData['size'],
                 ],
             ]);
 
@@ -68,14 +68,14 @@ class ProcessVideoUpload implements ShouldQueue
 
             logInfo('video upload job completado com sucesso', [
                 'video_id' => $this->videoId,
-                'path' => $fileData['path'],
+                'path'     => $fileData['path'],
             ]);
         } catch (\Throwable $e) {
             logError('video upload job tentativa falhou', [
-                'video_id' => $this->videoId,
-                'attempt' => $this->attempts(),
+                'video_id'  => $this->videoId,
+                'attempt'   => $this->attempts(),
                 'max_tries' => $this->tries,
-                'error' => $e->getMessage(),
+                'error'     => $e->getMessage(),
             ]);
 
             throw $e;
@@ -86,13 +86,13 @@ class ProcessVideoUpload implements ShouldQueue
     {
         logError('video upload job permanentemente falhou', [
             'video_id' => $this->videoId,
-            'error' => $exception->getMessage(),
+            'error'    => $exception->getMessage(),
         ]);
 
         app(VideoRepository::class)->update($this->videoId, [
-            'status' => Video::STATUS_FAILED,
+            'status'   => Video::STATUS_FAILED,
             'metadata' => [
-                'error' => $exception->getMessage(),
+                'error'     => $exception->getMessage(),
                 'failed_at' => now()->toISOString(),
             ],
         ]);

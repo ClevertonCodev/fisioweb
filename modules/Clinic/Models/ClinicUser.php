@@ -61,9 +61,9 @@ class ClinicUser extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'status' => 'integer',
+            'email_verified_at'       => 'datetime',
+            'password'                => 'hashed',
+            'status'                  => 'integer',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

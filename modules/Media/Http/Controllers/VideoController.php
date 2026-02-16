@@ -67,7 +67,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Vídeo enviado para processamento',
-                'data' => $video,
+                'data'    => $video,
             ], 202);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
@@ -86,7 +86,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Vídeos enviados para processamento',
-                'data' => $videos,
+                'data'    => $videos,
             ], 202);
         } catch (\Throwable $e) {
             logError('Falha ao enviar vídeos para processamento', [
@@ -176,14 +176,14 @@ class VideoController extends Controller
     public function confirmUpload(Request $request, int $video): JsonResponse
     {
         $validated = $request->validate([
-            'thumbnail_path' => ['nullable', 'string', 'max:512'],
+            'thumbnail_path'    => ['nullable', 'string', 'max:512'],
             'original_filename' => ['nullable', 'string', 'max:255'],
-            'duration' => ['nullable', 'integer', 'min:0'],
-            'metadata' => ['nullable', 'array'],
+            'duration'          => ['nullable', 'integer', 'min:0'],
+            'metadata'          => ['nullable', 'array'],
         ]);
 
-        $metadata = isset($validated['metadata']) ? $validated['metadata'] : null;
-        $duration = isset($validated['duration']) ? (int) $validated['duration'] : null;
+        $metadata         = isset($validated['metadata']) ? $validated['metadata'] : null;
+        $duration         = isset($validated['duration']) ? (int) $validated['duration'] : null;
         $originalFilename = $validated['original_filename'] ?? null;
 
         try {
@@ -197,7 +197,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Upload confirmado com sucesso',
-                'data' => $result,
+                'data'    => $result,
             ]);
         } catch (ModelNotFoundException) {
             return response()->json([
@@ -242,9 +242,9 @@ class VideoController extends Controller
     {
         $validated = $request->validate([
             'original_filename' => ['nullable', 'string', 'max:255'],
-            'duration' => ['nullable', 'integer', 'min:0'],
-            'metadata' => ['nullable', 'array'],
-            'thumbnail_path' => ['nullable', 'string', 'max:512'],
+            'duration'          => ['nullable', 'integer', 'min:0'],
+            'metadata'          => ['nullable', 'array'],
+            'thumbnail_path'    => ['nullable', 'string', 'max:512'],
         ]);
 
         try {
@@ -252,7 +252,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Vídeo atualizado com sucesso',
-                'data' => $result,
+                'data'    => $result,
             ]);
         } catch (ModelNotFoundException) {
             return response()->json([
@@ -280,7 +280,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Metadados do vídeo atualizados com sucesso',
-                'data' => $video,
+                'data'    => $video,
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([

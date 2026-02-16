@@ -26,7 +26,7 @@ class Feature extends Model
     /** Tipos permitidos para funcionalidades */
     public const TYPES = [
         'bool' => 'Ativa/Inativa',
-        'int' => 'Quantidade',
+        'int'  => 'Quantidade',
     ];
 
     protected $fillable = [

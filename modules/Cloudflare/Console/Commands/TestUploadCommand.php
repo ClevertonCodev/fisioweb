@@ -30,7 +30,7 @@ class TestUploadCommand extends Command
             $this->info('  OK Upload successful');
             $this->table(['Key', 'Value'], collect($imageResult)->map(fn ($v, $k) => [$k, $v])->values()->toArray());
         } catch (\Throwable $e) {
-            $this->error('  FAIL Image upload failed: '.$e->getMessage());
+            $this->error('  FAIL Image upload failed: ' . $e->getMessage());
 
             return Command::FAILURE;
         }
@@ -40,9 +40,9 @@ class TestUploadCommand extends Command
         $this->info('[2/3] Verifying file exists on R2...');
         $imageExists = $fileService->fileExists($imageResult['path']);
 
-        $this->info('  Image exists: '.($imageExists ? 'YES' : 'NO'));
+        $this->info('  Image exists: ' . ($imageExists ? 'YES' : 'NO'));
 
-        if (!$imageExists) {
+        if (! $imageExists) {
             $this->error('  FAIL File not found on R2');
 
             return Command::FAILURE;

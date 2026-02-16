@@ -10,16 +10,16 @@ class UserTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testCanCreateUserViaFactory(): void
+    public function test_can_create_user_via_factory(): void
     {
         $user = User::factory()->create([
-            'name' => 'João Silva',
+            'name'  => 'João Silva',
             'email' => 'joao@exemplo.com',
         ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'joao@exemplo.com',
-            'name' => 'João Silva',
+            'name'  => 'João Silva',
         ]);
 
         $this->assertInstanceOf(User::class, $user);
@@ -29,17 +29,17 @@ class UserTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('password', $user->password));
     }
 
-    public function testCanCreateUserDirectly(): void
+    public function test_can_create_user_directly(): void
     {
         $user = User::create([
-            'name' => 'Maria Santos',
-            'email' => 'maria@exemplo.com',
+            'name'     => 'Maria Santos',
+            'email'    => 'maria@exemplo.com',
             'password' => 'senha123',
         ]);
 
         $this->assertDatabaseHas('users', [
             'email' => 'maria@exemplo.com',
-            'name' => 'Maria Santos',
+            'name'  => 'Maria Santos',
         ]);
 
         $this->assertInstanceOf(User::class, $user);
@@ -48,7 +48,7 @@ class UserTest extends TestCase
         $this->assertTrue(\Illuminate\Support\Facades\Hash::check('senha123', $user->password));
     }
 
-    public function testUserHasExpectedAttributes(): void
+    public function test_user_has_expected_attributes(): void
     {
         $user = User::factory()->create();
 

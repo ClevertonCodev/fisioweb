@@ -34,13 +34,13 @@ class ExercisesController extends Controller
 
         return Inertia::render('admin/exercises/index', [
             'exercises' => $exercises,
-            'filters' => $request->only([
+            'filters'   => $request->only([
                 'search', 'physio_area_id', 'physio_subarea_id',
                 'body_region_id', 'difficulty_level', 'movement_form', 'is_active',
             ]),
-            'physioAreas' => PhysioArea::orderBy('name')->get(['id', 'name']),
-            'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
-            'difficulties' => Exercise::DIFFICULTIES,
+            'physioAreas'   => PhysioArea::orderBy('name')->get(['id', 'name']),
+            'bodyRegions'   => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
+            'difficulties'  => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
         ]);
     }
@@ -48,17 +48,17 @@ class ExercisesController extends Controller
     public function create(): Response
     {
         return Inertia::render('admin/exercises/create', [
-            'physioAreas' => PhysioArea::with('subareas:id,physio_area_id,name')->orderBy('name')->get(['id', 'name']),
-            'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
-            'difficulties' => Exercise::DIFFICULTIES,
+            'physioAreas'   => PhysioArea::with('subareas:id,physio_area_id,name')->orderBy('name')->get(['id', 'name']),
+            'bodyRegions'   => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
+            'difficulties'  => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
-            'videos' => $this->videoService->getAvailableForExercise(),
+            'videos'        => $this->videoService->getAvailableForExercise(),
         ]);
     }
 
     public function store(ExerciseStoreRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data               = $request->validated();
         $data['created_by'] = auth('admin')->id();
 
         $this->exerciseService->create($data);
@@ -87,12 +87,12 @@ class ExercisesController extends Controller
         $exercise->load(['videos']);
 
         return Inertia::render('admin/exercises/edit', [
-            'exercise' => $exercise,
-            'physioAreas' => PhysioArea::with('subareas:id,physio_area_id,name')->orderBy('name')->get(['id', 'name']),
-            'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
-            'difficulties' => Exercise::DIFFICULTIES,
+            'exercise'      => $exercise,
+            'physioAreas'   => PhysioArea::with('subareas:id,physio_area_id,name')->orderBy('name')->get(['id', 'name']),
+            'bodyRegions'   => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
+            'difficulties'  => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
-            'videos' => $this->videoService->getAvailableForExercise(),
+            'videos'        => $this->videoService->getAvailableForExercise(),
         ]);
     }
 

@@ -11,7 +11,7 @@ class PasswordUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testPasswordUpdatePageIsDisplayed()
+    public function test_password_update_page_is_displayed()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
@@ -23,16 +23,16 @@ class PasswordUpdateTest extends TestCase
         $response->assertOk();
     }
 
-    public function testPasswordCanBeUpdated()
+    public function test_password_can_be_updated()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        $user = User::factory()->create();
+        $user     = User::factory()->create();
         $response = $this
             ->actingAs($user)
             ->from(route('user-password.edit'))
             ->put(route('user-password.update'), [
-                'current_password' => 'password',
-                'password' => 'new-password',
+                'current_password'      => 'password',
+                'password'              => 'new-password',
                 'password_confirmation' => 'new-password',
             ]);
 
@@ -43,7 +43,7 @@ class PasswordUpdateTest extends TestCase
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
     }
 
-    public function testCorrectPasswordMustBeProvidedToUpdatePassword()
+    public function test_correct_password_must_be_provided_to_update_password()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
@@ -52,8 +52,8 @@ class PasswordUpdateTest extends TestCase
             ->actingAs($user)
             ->from(route('user-password.edit'))
             ->put(route('user-password.update'), [
-                'current_password' => 'wrong-password',
-                'password' => 'new-password',
+                'current_password'      => 'wrong-password',
+                'password'              => 'new-password',
                 'password_confirmation' => 'new-password',
             ]);
 

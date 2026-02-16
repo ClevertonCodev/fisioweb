@@ -37,7 +37,7 @@ class HandleInertiaRequests extends Middleware
     {
         $success = null;
         $success = null;
-        $error = null;
+        $error   = null;
 
         if ($request->session()->has('success')) {
             $request->session()->keep(['success']);
@@ -55,10 +55,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'flash' => [
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash'       => [
                 'success' => $success,
-                'error' => $error,
+                'error'   => $error,
             ],
         ];
     }

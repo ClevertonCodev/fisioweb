@@ -57,7 +57,7 @@ class ClinicsController extends Controller
 
         return Inertia::render('admin/clinics/index', [
             'clinics' => $clinics,
-            'plans' => $plans,
+            'plans'   => $plans,
             'filters' => $request->only(['search', 'plan_id', 'date_from', 'date_to', 'status']),
         ]);
     }
@@ -80,7 +80,7 @@ class ClinicsController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name'     => ['required', 'string', 'max:255'],
             'document' => [
                 'required',
                 'string',
@@ -89,31 +89,31 @@ class ClinicsController extends Controller
                 function ($attribute, $value, $fail) use ($request) {
                     $typePerson = $request->input('type_person');
                     if ($typePerson === 'fisica') {
-                        if (!ValidationHelper::validateCpf($value)) {
+                        if (! ValidationHelper::validateCpf($value)) {
                             $fail('O CPF informado é inválido.');
                         }
                     } elseif ($typePerson === 'juridica') {
-                        if (!ValidationHelper::validateCnpj($value)) {
+                        if (! ValidationHelper::validateCnpj($value)) {
                             $fail('O CNPJ informado é inválido.');
                         }
                     }
                 },
             ],
             'type_person' => ['required', 'string', Rule::in(['fisica', 'juridica'])],
-            'status' => ['required', Rule::in(['1', '0', '-1', 1, 0, -1])],
-            'email' => ['required', 'email', 'max:255', 'unique:clinics,email'],
-            'phone' => ['required', 'string', 'max:20'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:clinics,slug'],
-            'zip_code' => ['required', 'string', 'max:10'],
-            'address' => ['required', 'string', 'max:255'],
-            'number' => ['required', 'string', 'max:20'],
-            'city' => ['required', 'string', 'max:100'],
-            'state' => ['required', 'string', 'max:2'],
-            'plan_id' => ['nullable', 'string'],
+            'status'      => ['required', Rule::in(['1', '0', '-1', 1, 0, -1])],
+            'email'       => ['required', 'email', 'max:255', 'unique:clinics,email'],
+            'phone'       => ['required', 'string', 'max:20'],
+            'slug'        => ['nullable', 'string', 'max:255', 'unique:clinics,slug'],
+            'zip_code'    => ['required', 'string', 'max:10'],
+            'address'     => ['required', 'string', 'max:255'],
+            'number'      => ['required', 'string', 'max:20'],
+            'city'        => ['required', 'string', 'max:100'],
+            'state'       => ['required', 'string', 'max:2'],
+            'plan_id'     => ['nullable', 'string'],
         ], [
             'plan_id' => [
                 function ($attribute, $value, $fail) {
-                    if (!empty($value) && !is_numeric($value)) {
+                    if (! empty($value) && ! is_numeric($value)) {
                         $fail('O plano selecionado é inválido.');
                     }
                 },
@@ -128,11 +128,11 @@ class ClinicsController extends Controller
         }
 
         // Garantir que o slug seja único
-        $slug = $baseSlug;
+        $slug    = $baseSlug;
         $counter = 1;
         while (Clinic::where('slug', $slug)->exists()) {
-            $slug = $baseSlug.'-'.$counter;
-            ++$counter;
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
         }
 
         $validated['slug'] = $slug;
@@ -146,7 +146,7 @@ class ClinicsController extends Controller
         } else {
             $planId = (int) $validated['plan_id'];
             // Verificar se o plano existe
-            if (!Plan::where('id', $planId)->exists()) {
+            if (! Plan::where('id', $planId)->exists()) {
                 return redirect()
                     ->back()
                     ->withErrors(['plan_id' => 'O plano selecionado não existe.'])

@@ -38,21 +38,21 @@ class FeaturesController extends Controller
 
         return Inertia::render('admin/functionalities/index', [
             'functionalities' => $functionalities,
-            'filters' => $request->only(['search', 'type']),
-            'types' => Feature::availableTypes(),
+            'filters'         => $request->only(['search', 'type']),
+            'types'           => Feature::availableTypes(),
         ]);
     }
 
     public function create(): Response
     {
-        $allowedKeys = Feature::allowedKeys();
+        $allowedKeys    = Feature::allowedKeys();
         $registeredKeys = Feature::query()->pluck('key')->all();
-        $availableKeys = array_diff_key($allowedKeys, array_flip($registeredKeys));
+        $availableKeys  = array_diff_key($allowedKeys, array_flip($registeredKeys));
 
         return Inertia::render('admin/functionalities/create', [
-            'allowedKeys' => $allowedKeys,
+            'allowedKeys'   => $allowedKeys,
             'availableKeys' => $availableKeys,
-            'types' => Feature::availableTypes(),
+            'types'         => Feature::availableTypes(),
         ]);
     }
 
@@ -66,9 +66,9 @@ class FeaturesController extends Controller
                 'unique:features,key',
                 Rule::in(array_keys(Feature::allowedKeys())),
             ],
-            'name' => ['required', 'string', 'max:255'],
+            'name'           => ['required', 'string', 'max:255'],
             'value_isolated' => ['nullable', 'numeric', 'min:0'],
-            'type' => ['required', 'string', Rule::in(array_keys(Feature::availableTypes()))],
+            'type'           => ['required', 'string', Rule::in(array_keys(Feature::availableTypes()))],
         ], [
             'key.in' => 'A chave informada não é permitida. Escolha uma das funcionalidades disponíveis.',
         ]);
@@ -84,7 +84,7 @@ class FeaturesController extends Controller
     {
         return Inertia::render('admin/functionalities/edit', [
             'functionality' => $feature,
-            'allowedKeys' => Feature::allowedKeys(),
+            'allowedKeys'   => Feature::allowedKeys(),
         ]);
     }
 
@@ -98,9 +98,9 @@ class FeaturesController extends Controller
                 Rule::unique('features')->ignore($feature->id),
                 Rule::in(array_keys(Feature::allowedKeys())),
             ],
-            'name' => ['required', 'string', 'max:255'],
+            'name'           => ['required', 'string', 'max:255'],
             'value_isolated' => ['nullable', 'numeric', 'min:0'],
-            'type' => ['required', 'string', Rule::in(array_keys(Feature::availableTypes()))],
+            'type'           => ['required', 'string', Rule::in(array_keys(Feature::availableTypes()))],
         ], [
             'key.in' => 'A chave informada não é permitida.',
         ]);

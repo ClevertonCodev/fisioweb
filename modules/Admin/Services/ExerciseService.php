@@ -39,7 +39,7 @@ class ExerciseService implements ExerciseServiceInterface
 
     public function update(int $id, array $data): Exercise
     {
-        $videoId = array_key_exists('video_id', $data) ? $data['video_id'] : null;
+        $videoId       = array_key_exists('video_id', $data) ? $data['video_id'] : null;
         $hasVideoField = array_key_exists('video_id', $data);
         unset($data['video_id']);
 

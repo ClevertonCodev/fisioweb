@@ -13,23 +13,23 @@ class MakeModuleControllerCommand extends Command
 
     public function handle(): int
     {
-        $name = $this->argument('name');
-        $controllerName = $this->argument('controller');
-        $moduleName = Str::studly($name);
-        $modulePath = base_path("modules/{$moduleName}");
+        $name            = $this->argument('name');
+        $controllerName  = $this->argument('controller');
+        $moduleName      = Str::studly($name);
+        $modulePath      = base_path("modules/{$moduleName}");
         $moduleNamespace = "Modules\\{$moduleName}";
-        $moduleSlug = Str::kebab($name);
+        $moduleSlug      = Str::kebab($name);
 
         $moduleExists = is_dir($modulePath);
 
-        if (!$moduleExists) {
+        if (! $moduleExists) {
             $this->info("Module {$moduleName} does not exist. Creating module...");
             $this->createModule($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
         }
 
         $this->createController($moduleName, $modulePath, $moduleNamespace, $controllerName);
 
-        $this->info("Controller created successfully!");
+        $this->info('Controller created successfully!');
         $this->info("Don't forget to run: composer dump-autoload");
 
         return Command::SUCCESS;
@@ -43,7 +43,7 @@ class MakeModuleControllerCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (!is_dir($directory)) {
+            if (! is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }
@@ -90,7 +90,7 @@ PHP;
     protected function createController(string $moduleName, string $modulePath, string $namespace, ?string $name): void
     {
         $controllerName = $name ? Str::studly($name) : Str::singular($moduleName) . 'Controller';
-        if (!str_ends_with($controllerName, 'Controller')) {
+        if (! str_ends_with($controllerName, 'Controller')) {
             $controllerName .= 'Controller';
         }
         $controllerPath = "{$modulePath}/Http/Controllers/{$controllerName}.php";
@@ -101,7 +101,7 @@ PHP;
             return;
         }
 
-        if (!is_dir("{$modulePath}/Http/Controllers")) {
+        if (! is_dir("{$modulePath}/Http/Controllers")) {
             mkdir("{$modulePath}/Http/Controllers", 0755, true);
         }
 
@@ -126,7 +126,7 @@ PHP;
 
     protected function registerProvider(string $namespace): void
     {
-        $moduleName = class_basename($namespace);
+        $moduleName    = class_basename($namespace);
         $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
         $providersPath = base_path('bootstrap/providers.php');
 

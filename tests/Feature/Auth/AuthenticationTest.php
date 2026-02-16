@@ -12,7 +12,7 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testLoginScreenCanBeRendered()
+    public function test_login_screen_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $response = $this->get(route('login'));
@@ -20,13 +20,13 @@ class AuthenticationTest extends TestCase
         $response->assertOk();
     }
 
-    public function testUsersCanAuthenticateUsingTheLoginScreen()
+    public function test_users_can_authenticate_using_the_login_screen()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 
@@ -34,28 +34,28 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
-    public function testUsersWithTwoFactorEnabledAreRedirectedToTwoFactorChallenge()
+    public function test_users_with_two_factor_enabled_are_redirected_to_two_factor_challenge()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (!Features::canManageTwoFactorAuthentication()) {
+        if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
         ]);
 
         $user = User::factory()->create();
 
         $user->forceFill([
-            'two_factor_secret' => encrypt('test-secret'),
+            'two_factor_secret'         => encrypt('test-secret'),
             'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-            'two_factor_confirmed_at' => now(),
+            'two_factor_confirmed_at'   => now(),
         ])->save();
 
         $response = $this->post(route('login'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 
@@ -64,20 +64,20 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function testUsersCanNotAuthenticateWithInvalidPassword()
+    public function test_users_can_not_authenticate_with_invalid_password()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
 
         $this->post(route('login.store'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'wrong-password',
         ]);
 
         $this->assertGuest();
     }
 
-    public function testUsersCanLogout()
+    public function test_users_can_logout()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
@@ -88,15 +88,15 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('home'));
     }
 
-    public function testUsersAreRateLimited()
+    public function test_users_are_rate_limited()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
 
-        RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+        RateLimiter::increment(md5('login' . implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
         $response = $this->post(route('login.store'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'wrong-password',
         ]);
 

@@ -22,14 +22,14 @@ class ProcessVideoUploadTest extends TestCase
     {
         parent::setUp();
 
-        $this->repository = $this->mock(VideoRepository::class);
+        $this->repository  = $this->mock(VideoRepository::class);
         $this->fileService = $this->mock(FileServiceInterface::class);
 
         $tempDir = storage_path('app/private/temp/videos');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
-        $this->tempFile = $tempDir.'/test_video.mp4';
+        $this->tempFile = $tempDir . '/test_video.mp4';
         file_put_contents($this->tempFile, 'fake video content');
     }
 
@@ -42,9 +42,9 @@ class ProcessVideoUploadTest extends TestCase
         parent::tearDown();
     }
 
-    public function testShouldUploadFileAndUpdateStatusToCompleted(): void
+    public function test_should_upload_file_and_update_status_to_completed(): void
     {
-        $completedVideo = new Video(['status' => Video::STATUS_COMPLETED]);
+        $completedVideo     = new Video(['status' => Video::STATUS_COMPLETED]);
         $completedVideo->id = 1;
 
         $this->repository
@@ -58,13 +58,13 @@ class ProcessVideoUploadTest extends TestCase
             ->once()
             ->with($this->tempFile, 'videos', 'original.mp4')
             ->andReturn([
-                'filename' => 'uuid_123.mp4',
+                'filename'          => 'uuid_123.mp4',
                 'original_filename' => 'original.mp4',
-                'path' => 'videos/uuid_123.mp4',
-                'url' => 'https://r2.example.com/videos/uuid_123.mp4',
-                'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
-                'mime_type' => 'video/mp4',
-                'size' => 5120000,
+                'path'              => 'videos/uuid_123.mp4',
+                'url'               => 'https://r2.example.com/videos/uuid_123.mp4',
+                'cdn_url'           => 'https://cdn.example.com/videos/uuid_123.mp4',
+                'mime_type'         => 'video/mp4',
+                'size'              => 5120000,
             ]);
 
         $this->repository
@@ -88,7 +88,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertFileDoesNotExist($this->tempFile);
     }
 
-    public function testShouldRethrowExceptionForRetryOnUploadFailure(): void
+    public function test_should_rethrow_exception_for_retry_on_upload_failure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -118,7 +118,7 @@ class ProcessVideoUploadTest extends TestCase
         $job->handle($this->fileService, $this->repository);
     }
 
-    public function testShouldKeepTempFileOnRetryableFailure(): void
+    public function test_should_keep_temp_file_on_retryable_failure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -150,7 +150,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertFileExists($this->tempFile);
     }
 
-    public function testShouldUpdateStatusToFailedAndCleanupOnPermanentFailure(): void
+    public function test_should_update_status_to_failed_and_cleanup_on_permanent_failure(): void
     {
         $this->repository
             ->shouldReceive('update')
@@ -174,7 +174,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertFileDoesNotExist($this->tempFile);
     }
 
-    public function testShouldBeDispatchedToQueue(): void
+    public function test_should_be_dispatched_to_queue(): void
     {
         Queue::fake();
 
@@ -193,7 +193,7 @@ class ProcessVideoUploadTest extends TestCase
         });
     }
 
-    public function testShouldHaveCorrectRetryConfiguration(): void
+    public function test_should_have_correct_retry_configuration(): void
     {
         $job = new ProcessVideoUpload(
             videoId: 1,
@@ -207,7 +207,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->assertEquals(600, $job->timeout);
     }
 
-    public function testShouldBeSerializable(): void
+    public function test_should_be_serializable(): void
     {
         $job = new ProcessVideoUpload(
             videoId: 42,
@@ -216,7 +216,7 @@ class ProcessVideoUploadTest extends TestCase
             originalFilename: 'my_video.mp4',
         );
 
-        $serialized = serialize($job);
+        $serialized   = serialize($job);
         $unserialized = unserialize($serialized);
 
         $this->assertEquals(42, $unserialized->videoId);

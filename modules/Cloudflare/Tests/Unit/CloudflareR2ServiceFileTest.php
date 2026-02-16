@@ -23,10 +23,10 @@ class CloudflareR2ServiceFileTest extends TestCase
 
         Storage::fake('r2');
 
-        $this->service = new CloudflareR2Service();
+        $this->service = new CloudflareR2Service;
     }
 
-    public function testShouldStoreFileAndReturnDataOnUploadFile(): void
+    public function test_should_store_file_and_return_data_on_upload_file(): void
     {
         $file = UploadedFile::fake()->create('photo.png', 100, 'image/png');
 
@@ -47,7 +47,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::disk('r2')->assertExists($result['path']);
     }
 
-    public function testShouldGenerateUniqueFilenameOnUploadFile(): void
+    public function test_should_generate_unique_filename_on_upload_file(): void
     {
         $file = UploadedFile::fake()->create('photo.png');
 
@@ -57,7 +57,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->assertStringEndsWith('.png', $result['filename']);
     }
 
-    public function testShouldUseCustomDirectoryOnUploadFile(): void
+    public function test_should_use_custom_directory_on_upload_file(): void
     {
         $file = UploadedFile::fake()->create('photo.jpg');
 
@@ -67,7 +67,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::disk('r2')->assertExists($result['path']);
     }
 
-    public function testShouldThrowExceptionOnStorageFailureOnUploadFile(): void
+    public function test_should_throw_exception_on_storage_failure_on_upload_file(): void
     {
         Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
         Storage::shouldReceive('putFileAs')->once()->andReturn(false);
@@ -83,7 +83,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->service->uploadFile($file);
     }
 
-    public function testShouldLogSuccessOnUploadFile(): void
+    public function test_should_log_success_on_upload_file(): void
     {
         Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('info')
@@ -98,7 +98,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->service->uploadFile($file);
     }
 
-    public function testShouldReturnSuccessAndErrorsOnUploadMultipleFiles(): void
+    public function test_should_return_success_and_errors_on_upload_multiple_files(): void
     {
         $file1 = UploadedFile::fake()->create('photo1.png');
         $file2 = UploadedFile::fake()->create('photo2.jpg');
@@ -111,7 +111,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->assertEquals('photo2.jpg', $result['success'][1]['original_filename']);
     }
 
-    public function testShouldCaptureIndividualErrorsOnUploadMultipleFiles(): void
+    public function test_should_capture_individual_errors_on_upload_multiple_files(): void
     {
         $file1 = UploadedFile::fake()->create('photo1.png');
 
@@ -130,9 +130,9 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->assertEquals('photo1.png', $result['errors'][0]['file']);
     }
 
-    public function testShouldRemoveExistingFileOnDeleteFile(): void
+    public function test_should_remove_existing_file_on_delete_file(): void
     {
-        $file = UploadedFile::fake()->create('photo.png');
+        $file   = UploadedFile::fake()->create('photo.png');
         $result = $this->service->uploadFile($file);
 
         Storage::disk('r2')->assertExists($result['path']);
@@ -143,45 +143,45 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::disk('r2')->assertMissing($result['path']);
     }
 
-    public function testShouldReturnFalseWhenFileNotFoundOnDeleteFile(): void
+    public function test_should_return_false_when_file_not_found_on_delete_file(): void
     {
         $result = $this->service->deleteFile('non-existent/file.png');
 
         $this->assertFalse($result);
     }
 
-    public function testShouldReturnTrueForExistingFileOnFileExists(): void
+    public function test_should_return_true_for_existing_file_on_file_exists(): void
     {
-        $file = UploadedFile::fake()->create('photo.png');
+        $file   = UploadedFile::fake()->create('photo.png');
         $result = $this->service->uploadFile($file);
 
         $this->assertTrue($this->service->fileExists($result['path']));
     }
 
-    public function testShouldReturnFalseForMissingFileOnFileExists(): void
+    public function test_should_return_false_for_missing_file_on_file_exists(): void
     {
         $this->assertFalse($this->service->fileExists('non-existent/file.png'));
     }
 
-    public function testShouldReturnCdnUrlForPathOnGetFileCdnUrl(): void
+    public function test_should_return_cdn_url_for_path_on_get_file_cdn_url(): void
     {
         $url = $this->service->getFileCdnUrl('images/photo.png');
 
         $this->assertEquals('https://cdn.example.com/images/photo.png', $url);
     }
 
-    public function testShouldHandleLeadingSlashOnGetFileCdnUrl(): void
+    public function test_should_handle_leading_slash_on_get_file_cdn_url(): void
     {
         $url = $this->service->getFileCdnUrl('/images/photo.png');
 
         $this->assertEquals('https://cdn.example.com/images/photo.png', $url);
     }
 
-    public function testShouldUploadFromLocalPathAndReturnData(): void
+    public function test_should_upload_from_local_path_and_return_data(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'test_');
-        rename($tempFile, $tempFile.'.mp4');
-        $tempFile = $tempFile.'.mp4';
+        rename($tempFile, $tempFile . '.mp4');
+        $tempFile = $tempFile . '.mp4';
         file_put_contents($tempFile, 'fake video content');
 
         try {
@@ -208,11 +208,11 @@ class CloudflareR2ServiceFileTest extends TestCase
         }
     }
 
-    public function testShouldUseBasenameWhenNoOriginalFilenameOnUploadFromPath(): void
+    public function test_should_use_basename_when_no_original_filename_on_upload_from_path(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'test_');
-        rename($tempFile, $tempFile.'.png');
-        $tempFile = $tempFile.'.png';
+        rename($tempFile, $tempFile . '.png');
+        $tempFile = $tempFile . '.png';
         file_put_contents($tempFile, 'fake content');
 
         try {
@@ -226,7 +226,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         }
     }
 
-    public function testShouldThrowExceptionWhenFileNotFoundOnUploadFromPath(): void
+    public function test_should_throw_exception_when_file_not_found_on_upload_from_path(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('File not found at path');
@@ -234,7 +234,7 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->service->uploadFromPath('/non/existent/file.mp4', 'videos');
     }
 
-    public function testShouldThrowExceptionOnStorageFailureOnUploadFromPath(): void
+    public function test_should_throw_exception_on_storage_failure_on_upload_from_path(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'test_');
         file_put_contents($tempFile, 'fake content');

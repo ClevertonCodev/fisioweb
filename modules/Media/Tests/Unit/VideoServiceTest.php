@@ -26,21 +26,21 @@ class VideoServiceTest extends TestCase
         parent::setUp();
 
         config([
-            'cloudflare.video_directory' => 'videos',
-            'cloudflare.thumbnail_directory' => 'thumbnails',
-            'cloudflare.max_thumbnail_size' => 5242880,
+            'cloudflare.video_directory'         => 'videos',
+            'cloudflare.thumbnail_directory'     => 'thumbnails',
+            'cloudflare.max_thumbnail_size'      => 5242880,
             'cloudflare.allowed_thumbnail_mimes' => ['image/jpeg', 'image/png', 'image/webp'],
         ]);
 
-        $this->repository = $this->mock(VideoRepository::class);
+        $this->repository  = $this->mock(VideoRepository::class);
         $this->fileService = $this->mock(FileServiceInterface::class);
-        $this->service = new VideoService($this->fileService, $this->repository);
+        $this->service     = new VideoService($this->fileService, $this->repository);
     }
 
-    public function testShouldRemoveFromStorageAndDatabaseOnDeleteVideo(): void
+    public function test_should_remove_from_storage_and_database_on_delete_video(): void
     {
         $video = new Video([
-            'path' => 'videos/test.mp4',
+            'path'           => 'videos/test.mp4',
             'thumbnail_path' => null,
         ]);
         $video->id = 1;
@@ -62,10 +62,10 @@ class VideoServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testShouldForceDeleteWhenFlagIsTrueOnDeleteVideo(): void
+    public function test_should_force_delete_when_flag_is_true_on_delete_video(): void
     {
         $video = new Video([
-            'path' => 'videos/test.mp4',
+            'path'           => 'videos/test.mp4',
             'thumbnail_path' => null,
         ]);
         $video->id = 1;
@@ -87,20 +87,20 @@ class VideoServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testShouldThrowExceptionWhenNotFoundOnDeleteVideo(): void
+    public function test_should_throw_exception_when_not_found_on_delete_video(): void
     {
         $this->repository->shouldReceive('findOrFail')->with(999)
-            ->andThrow(new \Illuminate\Database\Eloquent\ModelNotFoundException());
+            ->andThrow(new \Illuminate\Database\Eloquent\ModelNotFoundException);
 
         $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
         $this->service->deleteVideo(999);
     }
 
-    public function testShouldAlsoDeleteThumbnailOnDeleteVideo(): void
+    public function test_should_also_delete_thumbnail_on_delete_video(): void
     {
         $video = new Video([
-            'path' => 'videos/test.mp4',
+            'path'           => 'videos/test.mp4',
             'thumbnail_path' => 'thumbnails/test.jpg',
         ]);
         $video->id = 1;
@@ -125,9 +125,9 @@ class VideoServiceTest extends TestCase
         $this->service->deleteVideo(1);
     }
 
-    public function testShouldReturnVideoFromRepositoryOnGetVideo(): void
+    public function test_should_return_video_from_repository_on_get_video(): void
     {
-        $video = new Video();
+        $video     = new Video;
         $video->id = 1;
 
         $this->repository->shouldReceive('find')->with(1)->andReturn($video);
@@ -138,16 +138,16 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(1, $result->id);
     }
 
-    public function testShouldReturnNullWhenNotFoundOnGetVideo(): void
+    public function test_should_return_null_when_not_found_on_get_video(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
         $this->assertNull($this->service->getVideo(999));
     }
 
-    public function testShouldReturnCdnUrlOnGetVideoCdnUrl(): void
+    public function test_should_return_cdn_url_on_get_video_cdn_url(): void
     {
-        $video = new Video(['cdn_url' => 'https://cdn.example.com/videos/test.mp4']);
+        $video     = new Video(['cdn_url' => 'https://cdn.example.com/videos/test.mp4']);
         $video->id = 1;
 
         $this->repository->shouldReceive('find')->with(1)->andReturn($video);
@@ -157,19 +157,19 @@ class VideoServiceTest extends TestCase
         $this->assertEquals('https://cdn.example.com/videos/test.mp4', $result);
     }
 
-    public function testShouldReturnNullWhenNotFoundOnGetVideoCdnUrl(): void
+    public function test_should_return_null_when_not_found_on_get_video_cdn_url(): void
     {
         $this->repository->shouldReceive('find')->with(999)->andReturn(null);
 
         $this->assertNull($this->service->getVideoCdnUrl(999));
     }
 
-    public function testShouldMergeWithExistingMetadataOnUpdateMetadata(): void
+    public function test_should_merge_with_existing_metadata_on_update_metadata(): void
     {
-        $video = new Video(['metadata' => ['key1' => 'value1']]);
+        $video     = new Video(['metadata' => ['key1' => 'value1']]);
         $video->id = 1;
 
-        $updatedVideo = new Video(['metadata' => ['key1' => 'value1', 'key2' => 'value2']]);
+        $updatedVideo     = new Video(['metadata' => ['key1' => 'value1', 'key2' => 'value2']]);
         $updatedVideo->id = 1;
 
         $this->repository->shouldReceive('findOrFail')->with(1)->andReturn($video);
@@ -187,12 +187,12 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(['key1' => 'value1', 'key2' => 'value2'], $result->metadata);
     }
 
-    public function testShouldHandleNullExistingMetadataOnUpdateMetadata(): void
+    public function test_should_handle_null_existing_metadata_on_update_metadata(): void
     {
-        $video = new Video(['metadata' => null]);
+        $video     = new Video(['metadata' => null]);
         $video->id = 1;
 
-        $updatedVideo = new Video(['metadata' => ['key1' => 'value1']]);
+        $updatedVideo     = new Video(['metadata' => ['key1' => 'value1']]);
         $updatedVideo->id = 1;
 
         $this->repository->shouldReceive('findOrFail')->with(1)->andReturn($video);
@@ -209,17 +209,17 @@ class VideoServiceTest extends TestCase
         $this->assertEquals(['key1' => 'value1'], $result->metadata);
     }
 
-    public function testShouldThrowExceptionWhenNotFoundOnUpdateMetadata(): void
+    public function test_should_throw_exception_when_not_found_on_update_metadata(): void
     {
         $this->repository->shouldReceive('findOrFail')->with(999)
-            ->andThrow(new \Illuminate\Database\Eloquent\ModelNotFoundException());
+            ->andThrow(new \Illuminate\Database\Eloquent\ModelNotFoundException);
 
         $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
         $this->service->updateMetadata(999, ['key' => 'value']);
     }
 
-    public function testShouldDelegateToRepositoryOnGetAllVideos(): void
+    public function test_should_delegate_to_repository_on_get_all_videos(): void
     {
         $paginator = $this->mock(\Illuminate\Contracts\Pagination\LengthAwarePaginator::class);
 
@@ -230,7 +230,7 @@ class VideoServiceTest extends TestCase
         $this->assertSame($paginator, $result);
     }
 
-    public function testShouldStoreLocallyAndDispatchJobOnDispatchUpload(): void
+    public function test_should_store_locally_and_dispatch_job_on_dispatch_upload(): void
     {
         Queue::fake();
         Storage::fake('local');
@@ -239,7 +239,7 @@ class VideoServiceTest extends TestCase
 
         $pendingVideo = new Video([
             'filename' => 'video.mp4',
-            'status' => Video::STATUS_PENDING,
+            'status'   => Video::STATUS_PENDING,
         ]);
         $pendingVideo->id = 1;
 
@@ -268,7 +268,7 @@ class VideoServiceTest extends TestCase
         });
     }
 
-    public function testShouldDispatchMultipleJobsOnDispatchMultipleUploads(): void
+    public function test_should_dispatch_multiple_jobs_on_dispatch_multiple_uploads(): void
     {
         Queue::fake();
         Storage::fake('local');
@@ -276,10 +276,10 @@ class VideoServiceTest extends TestCase
         $file1 = UploadedFile::fake()->create('video1.mp4', 5000, 'video/mp4');
         $file2 = UploadedFile::fake()->create('video2.mp4', 5000, 'video/mp4');
 
-        $video1 = new Video(['status' => Video::STATUS_PENDING]);
+        $video1     = new Video(['status' => Video::STATUS_PENDING]);
         $video1->id = 1;
 
-        $video2 = new Video(['status' => Video::STATUS_PENDING]);
+        $video2     = new Video(['status' => Video::STATUS_PENDING]);
         $video2->id = 2;
 
         $this->repository->shouldReceive('create')->twice()->andReturn($video1, $video2);
@@ -295,14 +295,14 @@ class VideoServiceTest extends TestCase
         Queue::assertPushed(ProcessVideoUpload::class, 2);
     }
 
-    public function testShouldCreateVideoWithPendingStatusOnDispatchUpload(): void
+    public function test_should_create_video_with_pending_status_on_dispatch_upload(): void
     {
         Queue::fake();
         Storage::fake('local');
 
         $file = UploadedFile::fake()->create('video.mp4', 5000, 'video/mp4');
 
-        $pendingVideo = new Video(['status' => Video::STATUS_PENDING]);
+        $pendingVideo     = new Video(['status' => Video::STATUS_PENDING]);
         $pendingVideo->id = 1;
 
         $this->repository
@@ -323,12 +323,12 @@ class VideoServiceTest extends TestCase
 
     // --- Thumbnail (presigned) ---
 
-    public function testShouldReturnPresignedUrlAndSavePendingThumbnailPathOnRequestPresignedThumbnailUpload(): void
+    public function test_should_return_presigned_url_and_save_pending_thumbnail_path_on_request_presigned_thumbnail_upload(): void
     {
         $video = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
-            'status' => Video::STATUS_PENDING,
+            'id'       => 1,
+            'path'     => 'videos/uuid_123.mp4',
+            'status'   => Video::STATUS_PENDING,
             'metadata' => null,
         ]);
 
@@ -345,7 +345,7 @@ class VideoServiceTest extends TestCase
             ->andReturnUsing(function ($path) {
                 return [
                     'upload_url' => 'https://r2.example.com/presigned',
-                    'path' => $path,
+                    'path'       => $path,
                     'expires_at' => now()->addMinutes(15)->toISOString(),
                 ];
             });
@@ -378,10 +378,10 @@ class VideoServiceTest extends TestCase
         $this->assertMatchesRegularExpression('/\.jpg$/', $result['path']);
     }
 
-    public function testShouldThrowWhenVideoIsNotPendingOnRequestPresignedThumbnailUpload(): void
+    public function test_should_throw_when_video_is_not_pending_on_request_presigned_thumbnail_upload(): void
     {
         $video = new Video([
-            'id' => 1,
+            'id'     => 1,
             'status' => Video::STATUS_COMPLETED,
         ]);
 
@@ -395,23 +395,23 @@ class VideoServiceTest extends TestCase
         $this->service->requestPresignedThumbnailUpload(1, 'foto.jpg', 'image/jpeg', 1024);
     }
 
-    public function testShouldSetThumbnailPathAndUrlOnConfirmPresignedUploadWithThumbnail(): void
+    public function test_should_set_thumbnail_path_and_url_on_confirm_presigned_upload_with_thumbnail(): void
     {
         $video = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
-            'status' => Video::STATUS_PENDING,
+            'id'       => 1,
+            'path'     => 'videos/uuid_123.mp4',
+            'status'   => Video::STATUS_PENDING,
             'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/thumb_1.jpg'],
         ]);
 
         $updatedVideo = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
+            'id'             => 1,
+            'path'           => 'videos/uuid_123.mp4',
             'thumbnail_path' => 'thumbnails/videos/thumb_1.jpg',
-            'thumbnail_url' => 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg',
-            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
-            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
-            'status' => Video::STATUS_COMPLETED,
+            'thumbnail_url'  => 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg',
+            'url'            => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url'        => 'https://cdn.example.com/videos/uuid_123.mp4',
+            'status'         => Video::STATUS_COMPLETED,
         ]);
 
         $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
@@ -430,7 +430,7 @@ class VideoServiceTest extends TestCase
                     && $data['thumbnail_path'] === 'thumbnails/videos/thumb_1.jpg'
                     && $data['thumbnail_url'] === 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg'
                     && $data['status'] === Video::STATUS_COMPLETED
-                    && !isset($data['metadata']['pending_thumbnail_path']);
+                    && ! isset($data['metadata']['pending_thumbnail_path']);
             })
             ->andReturn($updatedVideo);
 
@@ -444,12 +444,12 @@ class VideoServiceTest extends TestCase
         $this->assertEquals('https://cdn.example.com/thumbnails/videos/thumb_1.jpg', $result['thumbnail_url']);
     }
 
-    public function testShouldThrowWhenThumbnailPathDoesNotMatchPendingOnConfirmPresignedUpload(): void
+    public function test_should_throw_when_thumbnail_path_does_not_match_pending_on_confirm_presigned_upload(): void
     {
         $video = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
-            'status' => Video::STATUS_PENDING,
+            'id'       => 1,
+            'path'     => 'videos/uuid_123.mp4',
+            'status'   => Video::STATUS_PENDING,
             'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/authorized.jpg'],
         ]);
 
@@ -465,12 +465,12 @@ class VideoServiceTest extends TestCase
         $this->service->confirmPresignedUpload(1, 'thumbnails/videos/other.jpg');
     }
 
-    public function testShouldThrowWhenThumbnailFileDoesNotExistOnConfirmPresignedUpload(): void
+    public function test_should_throw_when_thumbnail_file_does_not_exist_on_confirm_presigned_upload(): void
     {
         $video = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
-            'status' => Video::STATUS_PENDING,
+            'id'       => 1,
+            'path'     => 'videos/uuid_123.mp4',
+            'status'   => Video::STATUS_PENDING,
             'metadata' => ['pending_thumbnail_path' => 'thumbnails/videos/thumb_1.jpg'],
         ]);
 
@@ -487,23 +487,23 @@ class VideoServiceTest extends TestCase
         $this->service->confirmPresignedUpload(1, 'thumbnails/videos/thumb_1.jpg');
     }
 
-    public function testShouldConfirmWithoutThumbnailWhenThumbnailPathIsNull(): void
+    public function test_should_confirm_without_thumbnail_when_thumbnail_path_is_null(): void
     {
         $video = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
-            'status' => Video::STATUS_PENDING,
+            'id'       => 1,
+            'path'     => 'videos/uuid_123.mp4',
+            'status'   => Video::STATUS_PENDING,
             'metadata' => null,
         ]);
 
         $updatedVideo = new Video([
-            'id' => 1,
-            'path' => 'videos/uuid_123.mp4',
+            'id'             => 1,
+            'path'           => 'videos/uuid_123.mp4',
             'thumbnail_path' => null,
-            'thumbnail_url' => null,
-            'url' => 'https://r2.example.com/videos/uuid_123.mp4',
-            'cdn_url' => 'https://cdn.example.com/videos/uuid_123.mp4',
-            'status' => Video::STATUS_COMPLETED,
+            'thumbnail_url'  => null,
+            'url'            => 'https://r2.example.com/videos/uuid_123.mp4',
+            'cdn_url'        => 'https://cdn.example.com/videos/uuid_123.mp4',
+            'status'         => Video::STATUS_COMPLETED,
         ]);
 
         $this->repository->shouldReceive('findOrFail')->with(1)->once()->andReturn($video);
@@ -517,8 +517,8 @@ class VideoServiceTest extends TestCase
             ->withArgs(function ($id, $data) {
                 return $id === 1
                     && $data['status'] === Video::STATUS_COMPLETED
-                    && !array_key_exists('thumbnail_path', $data)
-                    && !array_key_exists('thumbnail_url', $data);
+                    && ! array_key_exists('thumbnail_path', $data)
+                    && ! array_key_exists('thumbnail_url', $data);
             })
             ->andReturn($updatedVideo);
 

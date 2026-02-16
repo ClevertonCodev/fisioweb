@@ -45,10 +45,10 @@ class Video extends Model
     protected function casts(): array
     {
         return [
-            'size' => 'integer',
+            'size'     => 'integer',
             'duration' => 'integer',
-            'width' => 'integer',
-            'height' => 'integer',
+            'width'    => 'integer',
+            'height'   => 'integer',
             'metadata' => 'array',
         ];
     }
@@ -92,9 +92,9 @@ class Video extends Model
         }
 
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = (int) floor(log($bytes, 1024));
+        $i     = (int) floor(log($bytes, 1024));
 
-        return round($bytes / (1024 ** $i), 2).' '.$units[$i];
+        return round($bytes / (1024 ** $i), 2) . ' ' . $units[$i];
     }
 
     public function getHumanDurationAttribute(): ?string

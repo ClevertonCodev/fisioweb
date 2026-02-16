@@ -1,3 +1,48 @@
 {
-    "preset": "laravel"
+    "preset": "laravel",
+    "rules": {
+        "no_spaces_inside_parenthesis": true,
+        "function_to_constant": false,
+        "concat_space": {
+            "spacing": "one"
+        },
+        "no_empty_statement": true,
+        "no_unused_imports": true,
+        "no_whitespace_in_blank_line": true,
+        "phpdoc_scalar": true,
+        "trailing_comma_in_multiline": {
+            "elements": ["arrays"]
+        },
+        "no_extra_blank_lines": {
+            "tokens": [
+                "break",
+                "case",
+                "continue",
+                "curly_brace_block",
+                "default",
+                "extra",
+                "parenthesis_brace_block",
+                "return",
+                "square_brace_block",
+                "switch",
+                "throw",
+                "use",
+                "use_trait"
+            ]
+        },
+        "array_indentation": true,
+        "no_multiline_whitespace_around_double_arrow": true,
+        "trim_array_spaces": true,
+        "binary_operator_spaces": {
+            "operators": {
+                "=>": "align",
+                "=": "align"
+            }
+        },
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "no_blank_lines_after_phpdoc": true,
+        "phpdoc_var_annotation_correct_order": true
+    }
 }

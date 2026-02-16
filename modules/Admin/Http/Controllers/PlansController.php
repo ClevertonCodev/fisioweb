@@ -32,7 +32,7 @@ class PlansController extends Controller
             ->withQueryString();
 
         return Inertia::render('admin/plans/index', [
-            'plans' => $plans,
+            'plans'   => $plans,
             'filters' => $request->only(['search']),
         ]);
     }
@@ -45,10 +45,10 @@ class PlansController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:plans,name'],
+            'name'        => ['required', 'string', 'max:255', 'unique:plans,name'],
             'type_charge' => ['required', 'string', Rule::in(['por_usuario', 'fixo'])],
             'value_month' => ['required', 'numeric', 'min:0'],
-            'value_year' => ['required', 'numeric', 'min:0'],
+            'value_year'  => ['required', 'numeric', 'min:0'],
         ]);
 
         Plan::create($validated);
@@ -68,10 +68,10 @@ class PlansController extends Controller
     public function update(Request $request, Plan $plan): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('plans')->ignore($plan->id)],
+            'name'        => ['required', 'string', 'max:255', Rule::unique('plans')->ignore($plan->id)],
             'type_charge' => ['required', 'string', Rule::in(['por_usuario', 'fixo'])],
             'value_month' => ['required', 'numeric', 'min:0'],
-            'value_year' => ['required', 'numeric', 'min:0'],
+            'value_year'  => ['required', 'numeric', 'min:0'],
         ]);
 
         $plan->update($validated);

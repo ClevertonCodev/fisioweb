@@ -21,9 +21,9 @@ class Exercise extends Model
     public const DIFFICULTY_HARD = 'hard';
 
     public const DIFFICULTIES = [
-        self::DIFFICULTY_EASY => 'Fácil',
+        self::DIFFICULTY_EASY   => 'Fácil',
         self::DIFFICULTY_MEDIUM => 'Médio',
-        self::DIFFICULTY_HARD => 'Difícil',
+        self::DIFFICULTY_HARD   => 'Difícil',
     ];
 
     public const MOVEMENT_FORM_ALTERNADO = 'alternado';
@@ -33,8 +33,8 @@ class Exercise extends Model
     public const MOVEMENT_FORM_UNILATERAL = 'unilateral';
 
     public const MOVEMENT_FORMS = [
-        self::MOVEMENT_FORM_ALTERNADO => 'Alternado',
-        self::MOVEMENT_FORM_BILATERAL => 'Bilateral',
+        self::MOVEMENT_FORM_ALTERNADO  => 'Alternado',
+        self::MOVEMENT_FORM_BILATERAL  => 'Bilateral',
         self::MOVEMENT_FORM_UNILATERAL => 'Unilateral',
     ];
 
@@ -66,11 +66,11 @@ class Exercise extends Model
     protected function casts(): array
     {
         return [
-            'sets' => 'integer',
+            'sets'        => 'integer',
             'repetitions' => 'integer',
-            'rest_time' => 'integer',
-            'is_active' => 'boolean',
-            'created_at' => 'datetime',
+            'rest_time'   => 'integer',
+            'is_active'   => 'boolean',
+            'created_at'  => 'datetime',
         ];
     }
 

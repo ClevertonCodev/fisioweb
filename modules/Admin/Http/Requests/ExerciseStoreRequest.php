@@ -36,6 +36,7 @@ class ExerciseStoreRequest extends FormRequest
             'repetitions' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'rest_time' => ['nullable', 'integer', 'min:0', 'max:600'],
             'clinical_notes' => ['nullable', 'string'],
+            'video_id' => ['nullable', 'integer', 'exists:videos,id'],
         ];
     }
 
@@ -55,6 +56,7 @@ class ExerciseStoreRequest extends FormRequest
             'repetitions.min' => 'O número de repetições deve ser pelo menos 1.',
             'rest_time.min' => 'O tempo de descanso não pode ser negativo.',
             'rest_time.max' => 'O tempo de descanso não pode exceder 600 segundos.',
+            'video_id.exists' => 'O vídeo selecionado não existe.',
         ];
     }
 }

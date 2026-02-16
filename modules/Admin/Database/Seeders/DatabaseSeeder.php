@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PhysioAreaSeeder::class,
+            PhysioSubareaSeeder::class,
             BodyRegionSeeder::class,
         ]);
     }

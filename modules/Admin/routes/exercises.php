@@ -15,7 +15,4 @@ Route::admin(function () {
     // Media (imagens, gifs, áudio)
     Route::post('exercises/{exercise}/media', [ExercisesController::class, 'uploadMedia'])->name('exercises.media.upload');
     Route::delete('exercises/{exercise}/media/{media}', [ExercisesController::class, 'destroyMedia'])->name('exercises.media.destroy');
-
-    // Vídeo (usa sistema polimórfico do Media module)
-    Route::post('exercises/{exercise}/video', [ExercisesController::class, 'uploadVideo'])->name('exercises.video.upload');
 });

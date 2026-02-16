@@ -20,7 +20,9 @@ class ExercisesController extends Controller
 {
     public function __construct(
         protected ExerciseServiceInterface $exerciseService,
-    ) {}
+        protected VideoServiceInterface $videoService,
+    ) {
+    }
 
     public function index(Request $request): Response
     {
@@ -52,13 +54,14 @@ class ExercisesController extends Controller
             'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
             'difficulties' => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
+            'videos' => $this->videoService->getAvailableForExercise(),
         ]);
     }
 
     public function store(ExerciseStoreRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['created_by'] = auth()->id();
+        $data['created_by'] = auth('admin')->id();
 
         $this->exerciseService->create($data);
 
@@ -91,6 +94,7 @@ class ExercisesController extends Controller
             'bodyRegions' => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
             'difficulties' => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
+            'videos' => $this->videoService->getAvailableForExercise($id),
         ]);
     }
 
@@ -129,23 +133,5 @@ class ExercisesController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Mídia removida com sucesso!');
-    }
-
-    public function uploadVideo(Request $request, int $id, VideoServiceInterface $videoService): RedirectResponse
-    {
-        $request->validate([
-            'video' => ['required', 'file', 'mimetypes:video/mp4,video/mpeg,video/quicktime,video/webm', 'max:10240'],
-        ], [
-            'video.required' => 'O vídeo é obrigatório.',
-            'video.mimetypes' => 'Formato de vídeo não suportado.',
-            'video.max' => 'O vídeo excede o tamanho máximo de 10MB.',
-        ]);
-
-        $exercise = $this->exerciseService->find($id);
-        $videoService->dispatchUpload($request->file('video'), 'exercises/videos', $exercise);
-
-        return redirect()
-            ->back()
-            ->with('success', 'Vídeo enviado! O processamento será feito em segundo plano.');
     }
 }

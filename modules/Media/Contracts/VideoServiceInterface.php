@@ -61,4 +61,6 @@ interface VideoServiceInterface
         string $mimeType,
         int $size,
     ): array;
+
+    public function getAvailableForExercise(?int $exerciseId = null): Collection;
 }

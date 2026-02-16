@@ -67,7 +67,17 @@ class Exercise extends Model
             'repetitions' => 'integer',
             'rest_time' => 'integer',
             'is_active' => 'boolean',
+            'created_at' => 'datetime',
         ];
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        return \Carbon\Carbon::parse($value)->format('d/m/Y H:i');
     }
 
     // Relacionamentos

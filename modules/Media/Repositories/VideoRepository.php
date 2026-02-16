@@ -141,4 +141,21 @@ class VideoRepository
     {
         return $this->model->latest()->limit($limit)->get();
     }
+
+    public function getAvailableForExercise(?int $exerciseId = null): Collection
+    {
+        return $this->model
+            ->completed()
+            ->where(function ($query) use ($exerciseId) {
+                $query->whereNull('uploadable_type');
+                if ($exerciseId) {
+                    $query->orWhere(function ($q) use ($exerciseId) {
+                        $q->where('uploadable_type', \Modules\Admin\Models\Exercise::class)
+                            ->where('uploadable_id', $exerciseId);
+                    });
+                }
+            })
+            ->orderBy('original_filename')
+            ->get();
+    }
 }

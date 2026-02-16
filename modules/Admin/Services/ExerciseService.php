@@ -8,6 +8,7 @@ use Modules\Admin\Contracts\ExerciseServiceInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Media\Models\Video;
 
 class ExerciseService implements ExerciseServiceInterface
 {
@@ -28,12 +29,47 @@ class ExerciseService implements ExerciseServiceInterface
 
     public function create(array $data): Exercise
     {
-        return $this->repository->create($data);
+        $videoId = $data['video_id'] ?? null;
+        unset($data['video_id']);
+
+        $exercise = $this->repository->create($data);
+
+        if ($videoId) {
+            $this->associateVideo($exercise, (int) $videoId);
+        }
+
+        return $exercise;
     }
 
     public function update(int $id, array $data): Exercise
     {
-        return $this->repository->update($id, $data);
+        $videoId = array_key_exists('video_id', $data) ? $data['video_id'] : null;
+        $hasVideoField = array_key_exists('video_id', $data);
+        unset($data['video_id']);
+
+        $exercise = $this->repository->update($id, $data);
+
+        if ($hasVideoField) {
+            $this->associateVideo($exercise, $videoId ? (int) $videoId : null);
+        }
+
+        return $exercise;
+    }
+
+    public function associateVideo(Exercise $exercise, ?int $videoId): void
+    {
+        // Dissociar vídeos anteriores
+        Video::where('uploadable_type', Exercise::class)
+            ->where('uploadable_id', $exercise->id)
+            ->update(['uploadable_type' => null, 'uploadable_id' => null]);
+
+        // Associar novo vídeo
+        if ($videoId) {
+            Video::where('id', $videoId)->update([
+                'uploadable_type' => Exercise::class,
+                'uploadable_id' => $exercise->id,
+            ]);
+        }
     }
 
     public function delete(int $id): bool

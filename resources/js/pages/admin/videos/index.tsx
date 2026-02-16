@@ -2,12 +2,12 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
-import { VideoCard } from '@/components/admin/VideoCard';
+import { VideoCard } from '@/components/admin/video-card';
 import FlashMessage from '@/components/flash-message';
 import { Pagination } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { VideoPlayerModal } from '@/components/VideoPlayerModal';
+import { VideoPlayerModal } from '@/components/video-player-modal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import type { VideoData } from '@/types/video';

@@ -10,6 +10,7 @@ import {
 import { useCallback, useRef, useState } from 'react';
 
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { MetadataFields } from '@/components/metadata-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,12 @@ import type { VideoData } from '@/types/video';
 const ALLOWED_THUMBNAIL_ACCEPT = 'image/jpeg,image/png,image/webp';
 const ALLOWED_THUMBNAIL_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_THUMBNAIL_SIZE = 5242880;
+
+const TECHNICAL_METADATA_KEYS = [
+    'original_name',
+    'upload_method',
+    'pending_thumbnail_path',
+];
 
 function getCsrfToken(): string {
     const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
@@ -42,14 +49,21 @@ export default function EditVideo({ video }: EditVideoProps) {
     const [duration, setDuration] = useState<string>(
         video.duration != null ? String(video.duration) : '',
     );
-    const [metadataJson, setMetadataJson] = useState(
-        JSON.stringify(video.metadata || {}, null, 2),
-    );
+    const [metadata, setMetadata] = useState<Record<string, string>>(() => {
+        const m = video.metadata;
+        if (!m || typeof m !== 'object') return {};
+        const r: Record<string, string> = {};
+        for (const [k, v] of Object.entries(m)) {
+            r[k] = typeof v === 'string' ? v : v != null ? String(v) : '';
+        }
+        return r;
+    });
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [metadataHasError, setMetadataHasError] = useState(false);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
     const handleThumbnailChange = useCallback(
@@ -85,14 +99,14 @@ export default function EditVideo({ video }: EditVideoProps) {
 
     const handleSubmit = useCallback(async () => {
         setError(null);
-        let metadata: Record<string, unknown> = {};
-        try {
-            if (metadataJson.trim()) {
-                metadata = JSON.parse(metadataJson) as Record<string, unknown>;
-            }
-        } catch {
-            setError('Metadados JSON inválidos.');
-            return;
+        const cleanMetadata: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(metadata)) {
+            if (key.startsWith('new_') || !value?.trim()) continue;
+            cleanMetadata[key] = value.trim();
+        }
+        const technical = (video.metadata || {}) as Record<string, unknown>;
+        for (const k of TECHNICAL_METADATA_KEYS) {
+            if (technical[k] !== undefined) cleanMetadata[k] = technical[k];
         }
 
         setSaving(true);
@@ -164,7 +178,10 @@ export default function EditVideo({ video }: EditVideoProps) {
                 body: JSON.stringify({
                     original_filename: originalFilename.trim() || undefined,
                     duration: duration.trim() ? parseInt(duration, 10) : null,
-                    metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+                    metadata:
+                        Object.keys(cleanMetadata).length > 0
+                            ? (cleanMetadata as Record<string, string>)
+                            : undefined,
                     thumbnail_path: thumbnailPath,
                 }),
             });
@@ -182,13 +199,7 @@ export default function EditVideo({ video }: EditVideoProps) {
         } finally {
             setSaving(false);
         }
-    }, [
-        video.id,
-        originalFilename,
-        duration,
-        metadataJson,
-        thumbnailFile,
-    ]);
+    }, [video.id, originalFilename, duration, metadata, thumbnailFile]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs(video)}>
@@ -296,17 +307,11 @@ export default function EditVideo({ video }: EditVideoProps) {
                                 </div>
                             </div>
 
-                            <div>
-                                <Label htmlFor="metadata">Metadados JSON</Label>
-                                <textarea
-                                    id="metadata"
-                                    value={metadataJson}
-                                    onChange={(e) => setMetadataJson(e.target.value)}
-                                    placeholder='{"chave": "valor"}'
-                                    rows={5}
-                                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                />
-                            </div>
+                            <MetadataFields
+                                value={metadata}
+                                onChange={setMetadata}
+                                onValidationChange={setMetadataHasError}
+                            />
 
                             {error && (
                                 <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">
@@ -328,7 +333,7 @@ export default function EditVideo({ video }: EditVideoProps) {
                                 <Button
                                     type="button"
                                     onClick={handleSubmit}
-                                    disabled={saving}
+                                    disabled={saving || metadataHasError}
                                 >
                                     {saving && (
                                         <Loader2 className="mr-2 size-4 animate-spin" />

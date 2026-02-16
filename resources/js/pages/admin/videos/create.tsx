@@ -11,6 +11,7 @@ import {
 import { useCallback, useRef, useState } from 'react';
 
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { MetadataFields } from '@/components/metadata-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,8 +38,9 @@ export default function CreateVideo() {
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState<string>('');
-    const [metadataJson, setMetadataJson] = useState('{}');
+    const [metadata, setMetadata] = useState<Record<string, string>>({});
     const [formError, setFormError] = useState<string | null>(null);
+    const [metadataHasError, setMetadataHasError] = useState(false);
     const [cropModalOpen, setCropModalOpen] = useState(false);
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const [dragOver, setDragOver] = useState(false);
@@ -103,27 +105,24 @@ export default function CreateVideo() {
 
     const handleSubmitUpload = useCallback(() => {
         if (!videoFile) return;
-        let metadata: Record<string, unknown> | null = null;
-        try {
-            if (metadataJson.trim()) {
-                metadata = JSON.parse(metadataJson) as Record<string, unknown>;
-            }
-        } catch {
-            setFormError('Metadados JSON inválidos.');
-            return;
-        }
         setFormError(null);
+        const cleanMetadata: Record<string, string> = {};
+        for (const [key, value] of Object.entries(metadata)) {
+            if (key.startsWith('new_') || !value?.trim()) continue;
+            cleanMetadata[key] = value.trim();
+        }
         const options = {
             original_filename: originalFilename.trim() || undefined,
             duration: duration.trim() ? parseInt(duration, 10) : undefined,
-            metadata: metadata && Object.keys(metadata).length > 0 ? metadata : undefined,
+            metadata:
+                Object.keys(cleanMetadata).length > 0 ? cleanMetadata : undefined,
         };
         upload(videoFile, thumbnailFile ?? undefined, options).then((result) => {
             if (result) {
                 router.visit('/admin/videos');
             }
         });
-    }, [upload, videoFile, thumbnailFile, originalFilename, duration, metadataJson]);
+    }, [upload, videoFile, thumbnailFile, originalFilename, duration, metadata]);
 
     const clearVideo = useCallback(() => {
         setVideoFile(null);
@@ -361,19 +360,11 @@ export default function CreateVideo() {
                                     />
                                 </div>
 
-                                <div>
-                                    <Label htmlFor="metadata">
-                                        Metadados JSON (opcional)
-                                    </Label>
-                                    <textarea
-                                        id="metadata"
-                                        value={metadataJson}
-                                        onChange={(e) => setMetadataJson(e.target.value)}
-                                        placeholder='{"chave": "valor"}'
-                                        rows={3}
-                                        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                    />
-                                </div>
+                                <MetadataFields
+                                    value={metadata}
+                                    onChange={setMetadata}
+                                    onValidationChange={setMetadataHasError}
+                                />
 
                                 {(error || formError) && (
                                     <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">
@@ -402,7 +393,7 @@ export default function CreateVideo() {
                                     <Button
                                         type="button"
                                         onClick={handleSubmitUpload}
-                                        disabled={!videoFile}
+                                        disabled={!videoFile || metadataHasError}
                                     >
                                         Enviar vídeo
                                     </Button>

@@ -29,17 +29,25 @@ class UpdateClinicRequest extends FormRequest
                 Rule::unique('clinics', 'document')->ignore($id),
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     $typePerson = $this->input('type_person');
-                    if ($typePerson === 'fisica' && !ValidationHelper::validateCpf($value)) {
+                    if ($typePerson === Clinic::TYPE_PERSON_FISICA && !ValidationHelper::validateCpf($value)) {
                         $fail('O CPF informado é inválido.');
                     }
-                    if ($typePerson === 'juridica' && !ValidationHelper::validateCnpj($value)) {
+                    if ($typePerson === Clinic::TYPE_PERSON_JURIDICA && !ValidationHelper::validateCnpj($value)) {
                         $fail('O CNPJ informado é inválido.');
                     }
                 },
             ],
-            'type_person' => ['required', 'string', Rule::in(['fisica', 'juridica'])],
+            'type_person' => ['required', 'string', Rule::in([Clinic::TYPE_PERSON_FISICA, Clinic::TYPE_PERSON_JURIDICA])],
             'status'      => ['required', Rule::in(['1', '0', '-1', 1, 0, -1])],
-            'email'       => ['required', 'email', 'max:255', Rule::unique('clinics', 'email')->ignore($id)],
+            'email'       => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('clinics', 'email')->ignore($id),
+                Rule::unique('clinic_users', 'email')->ignore(
+                    $clinic->users()->where('email', $clinic->email)->value('id')
+                ),
+            ],
             'phone'       => ['required', 'string', 'max:20'],
             'slug'        => ['nullable', 'string', 'max:255', Rule::unique('clinics', 'slug')->ignore($id)],
             'zip_code'    => ['required', 'string', 'max:10'],

@@ -3,6 +3,8 @@
 namespace Modules\Clinic\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Observers\ClinicObserver;
 
 class ClinicServiceProvider extends ServiceProvider
 {
@@ -18,5 +20,6 @@ class ClinicServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+        Clinic::observe(ClinicObserver::class);
     }
 }

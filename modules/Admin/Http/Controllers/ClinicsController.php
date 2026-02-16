@@ -214,7 +214,7 @@ class ClinicsController extends Controller
 
     private function resolvePlanId(mixed $planId): ?int
     {
-        if (!empty($planId)) {
+        if (empty($planId)) {
             return null;
         }
         $id = (int) $planId;

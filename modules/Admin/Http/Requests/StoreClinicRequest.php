@@ -5,11 +5,12 @@ namespace Modules\Admin\Http\Requests;
 use App\Helpers\ValidationHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Clinic\Models\Clinic;
 
 class StoreClinicRequest extends FormRequest
 {
     public function authorize(): bool
-    {
+    { 
         return true;
     }
 
@@ -24,9 +25,15 @@ class StoreClinicRequest extends FormRequest
                 'unique:clinics,document',
                 $this->documentRule(),
             ],
-            'type_person' => ['required', 'string', Rule::in(['fisica', 'juridica'])],
+            'type_person' => ['required', 'string', Rule::in([Clinic::TYPE_PERSON_FISICA, Clinic::TYPE_PERSON_JURIDICA])],
             'status'      => ['required', Rule::in(['1', '0', '-1', 1, 0, -1])],
-            'email'       => ['required', 'email', 'max:255', 'unique:clinics,email'],
+            'email'       => [
+                'required',
+                'email',
+                'max:255',
+                'unique:clinics,email',
+                'unique:clinic_users,email',
+            ],
             'phone'       => ['required', 'string', 'max:20'],
             'slug'        => ['nullable', 'string', 'max:255', 'unique:clinics,slug'],
             'zip_code'    => ['required', 'string', 'max:10'],
@@ -42,10 +49,10 @@ class StoreClinicRequest extends FormRequest
     {
         return function (string $attribute, mixed $value, \Closure $fail): void {
             $typePerson = $this->input('type_person');
-            if ($typePerson === 'fisica' && !ValidationHelper::validateCpf($value)) {
+            if ($typePerson === Clinic::TYPE_PERSON_FISICA && !ValidationHelper::validateCpf($value)) {
                 $fail('O CPF informado é inválido.');
             }
-            if ($typePerson === 'juridica' && !ValidationHelper::validateCnpj($value)) {
+            if ($typePerson === Clinic::TYPE_PERSON_JURIDICA && !ValidationHelper::validateCnpj($value)) {
                 $fail('O CNPJ informado é inválido.');
             }
         };

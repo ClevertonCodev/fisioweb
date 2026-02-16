@@ -15,7 +15,7 @@ class TwoFactorAuthenticationTest extends TestCase
     public function test_two_factor_settings_page_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (! Features::canManageTwoFactorAuthentication()) {
+        if (!Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
@@ -38,7 +38,7 @@ class TwoFactorAuthenticationTest extends TestCase
     public function test_two_factor_settings_page_requires_password_confirmation_when_enabled()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (! Features::canManageTwoFactorAuthentication()) {
+        if (!Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
@@ -58,7 +58,7 @@ class TwoFactorAuthenticationTest extends TestCase
     public function test_two_factor_settings_page_does_not_requires_password_confirmation_when_disabled()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (! Features::canManageTwoFactorAuthentication()) {
+        if (!Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
@@ -80,7 +80,7 @@ class TwoFactorAuthenticationTest extends TestCase
     public function test_two_factor_settings_page_returns_forbidden_response_when_two_factor_is_disabled()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (! Features::canManageTwoFactorAuthentication()) {
+        if (!Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 

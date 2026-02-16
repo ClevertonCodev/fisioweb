@@ -22,7 +22,7 @@ class MakeModuleServiceCommand extends Command
 
         $moduleExists = is_dir($modulePath);
 
-        if (! $moduleExists) {
+        if (!$moduleExists) {
             $this->info("Module {$moduleName} does not exist. Creating module...");
             $this->createModule($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
         }
@@ -43,7 +43,7 @@ class MakeModuleServiceCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (! is_dir($directory)) {
+            if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }
@@ -98,7 +98,7 @@ PHP;
             return;
         }
 
-        if (! is_dir("{$modulePath}/Services")) {
+        if (!is_dir("{$modulePath}/Services")) {
             mkdir("{$modulePath}/Services", 0755, true);
         }
 

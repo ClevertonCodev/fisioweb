@@ -37,7 +37,7 @@ class VideoController extends Controller
     {
         $videoModel = $this->videoService->getVideo($video);
 
-        if (! $videoModel) {
+        if (!$videoModel) {
             throw new ModelNotFoundException;
         }
 
@@ -103,7 +103,7 @@ class VideoController extends Controller
     {
         $video = $this->videoService->getVideo($id);
 
-        if (! $video) {
+        if (!$video) {
             return response()->json([
                 'message' => 'Vídeo não encontrado',
             ], 404);

@@ -26,7 +26,7 @@ class ProcessVideoUploadTest extends TestCase
         $this->fileService = $this->mock(FileServiceInterface::class);
 
         $tempDir = storage_path('app/private/temp/videos');
-        if (! is_dir($tempDir)) {
+        if (!is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
         $this->tempFile = $tempDir . '/test_video.mp4';

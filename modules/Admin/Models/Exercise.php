@@ -76,7 +76,7 @@ class Exercise extends Model
 
     public function getCreatedAtAttribute($value)
     {
-        if (! $value) {
+        if (!$value) {
             return null;
         }
 

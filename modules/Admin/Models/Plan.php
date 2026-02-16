@@ -41,7 +41,7 @@ class Plan extends Model
 
     public function getNameAttribute($value)
     {
-        if (! $value) {
+        if (!$value) {
             return null;
         }
 

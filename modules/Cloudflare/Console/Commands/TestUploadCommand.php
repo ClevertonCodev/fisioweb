@@ -42,7 +42,7 @@ class TestUploadCommand extends Command
 
         $this->info('  Image exists: ' . ($imageExists ? 'YES' : 'NO'));
 
-        if (! $imageExists) {
+        if (!$imageExists) {
             $this->error('  FAIL File not found on R2');
 
             return Command::FAILURE;

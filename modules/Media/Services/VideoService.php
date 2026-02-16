@@ -248,7 +248,7 @@ class VideoService implements VideoServiceInterface
             if ($pendingPath !== $data['thumbnail_path']) {
                 throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
             }
-            if (! $this->fileService->fileExists($data['thumbnail_path'])) {
+            if (!$this->fileService->fileExists($data['thumbnail_path'])) {
                 throw new \RuntimeException('Thumbnail não encontrada no storage.');
             }
 
@@ -264,7 +264,7 @@ class VideoService implements VideoServiceInterface
             $update['metadata'] = $metadata;
         }
 
-        if (! empty($update)) {
+        if (!empty($update)) {
             $this->videoRepository->update($videoId, $update);
         }
 
@@ -321,13 +321,13 @@ class VideoService implements VideoServiceInterface
             throw new \InvalidArgumentException('Vídeo não possui path definido');
         }
 
-        if (! $this->fileService->fileExists($video->path)) {
+        if (!$this->fileService->fileExists($video->path)) {
             throw new \RuntimeException('Arquivo não encontrado no storage. O upload pode ter falhado.');
         }
 
         $metadata = $video->metadata ?? [];
         unset($metadata['pending_thumbnail_path']);
-        if ($metadataMerge !== null && ! empty($metadataMerge)) {
+        if ($metadataMerge !== null && !empty($metadataMerge)) {
             $metadata = array_merge($metadata, $metadataMerge);
         }
 
@@ -351,7 +351,7 @@ class VideoService implements VideoServiceInterface
             if ($pendingPath !== $thumbnailPath) {
                 throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
             }
-            if (! $this->fileService->fileExists($thumbnailPath)) {
+            if (!$this->fileService->fileExists($thumbnailPath)) {
                 throw new \RuntimeException('Thumbnail não encontrada no storage.');
             }
 

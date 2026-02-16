@@ -6,9 +6,10 @@ use App\Helpers\ValidationHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Admin\Http\Requests\StoreClinicRequest;
+use Modules\Admin\Http\Requests\UpdateClinicRequest;
 use Modules\Admin\Models\Plan;
 use Modules\Clinic\Models\Clinic;
 
@@ -77,82 +78,20 @@ class ClinicsController extends Controller
     /**
      * Store a newly created clinic in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreClinicRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'document' => [
-                'required',
-                'string',
-                'max:255',
-                'unique:clinics,document',
-                function ($attribute, $value, $fail) use ($request) {
-                    $typePerson = $request->input('type_person');
-                    if ($typePerson === 'fisica') {
-                        if (! ValidationHelper::validateCpf($value)) {
-                            $fail('O CPF informado é inválido.');
-                        }
-                    } elseif ($typePerson === 'juridica') {
-                        if (! ValidationHelper::validateCnpj($value)) {
-                            $fail('O CNPJ informado é inválido.');
-                        }
-                    }
-                },
-            ],
-            'type_person' => ['required', 'string', Rule::in(['fisica', 'juridica'])],
-            'status'      => ['required', Rule::in(['1', '0', '-1', 1, 0, -1])],
-            'email'       => ['required', 'email', 'max:255', 'unique:clinics,email'],
-            'phone'       => ['required', 'string', 'max:20'],
-            'slug'        => ['nullable', 'string', 'max:255', 'unique:clinics,slug'],
-            'zip_code'    => ['required', 'string', 'max:10'],
-            'address'     => ['required', 'string', 'max:255'],
-            'number'      => ['required', 'string', 'max:20'],
-            'city'        => ['required', 'string', 'max:100'],
-            'state'       => ['required', 'string', 'max:2'],
-            'plan_id'     => ['nullable', 'string'],
-        ], [
-            'plan_id' => [
-                function ($attribute, $value, $fail) {
-                    if (! empty($value) && ! is_numeric($value)) {
-                        $fail('O plano selecionado é inválido.');
-                    }
-                },
-            ],
-        ]);
+        $validated = $request->validated();
 
-        // Gerar slug automaticamente se não foi fornecido, ou garantir que seja único
-        if (empty($validated['slug'])) {
-            $baseSlug = ValidationHelper::generateSlug($validated['name']);
-        } else {
-            $baseSlug = $validated['slug'];
-        }
+        $validated['slug']    = $this->resolveSlug($validated['name'], $validated['slug'] ?? null);
+        $validated['status']  = (int) $validated['status'];
+        $rawPlanId            = $request->input('plan_id');
+        $validated['plan_id'] = $this->resolvePlanId($rawPlanId);
 
-        // Garantir que o slug seja único
-        $slug    = $baseSlug;
-        $counter = 1;
-        while (Clinic::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
-            $counter++;
-        }
-
-        $validated['slug'] = $slug;
-
-        // Converter status para integer
-        $validated['status'] = (int) $validated['status'];
-
-        // Converter plan_id vazio para null, ou para integer se tiver valor
-        if (empty($validated['plan_id']) || $validated['plan_id'] === '') {
-            $validated['plan_id'] = null;
-        } else {
-            $planId = (int) $validated['plan_id'];
-            // Verificar se o plano existe
-            if (! Plan::where('id', $planId)->exists()) {
-                return redirect()
-                    ->back()
-                    ->withErrors(['plan_id' => 'O plano selecionado não existe.'])
-                    ->withInput();
-            }
-            $validated['plan_id'] = $planId;
+        if ($validated['plan_id'] === null && $rawPlanId !== null && $rawPlanId !== '') {
+            return redirect()
+                ->back()
+                ->withErrors(['plan_id' => 'O plano selecionado não existe.'])
+                ->withInput();
         }
 
         Clinic::create($validated);
@@ -160,5 +99,126 @@ class ClinicsController extends Controller
         return redirect()
             ->route('admin.clinics.index')
             ->with('success', 'Clínica criada com sucesso!');
+    }
+
+    /**
+     * Display the specified clinic.
+     */
+    public function show(Clinic $clinic): Response
+    {
+        $clinic->load('plan');
+
+        return Inertia::render('admin/clinics/show', [
+            'clinic' => $clinic,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified clinic.
+     */
+    public function edit(Clinic $clinic): Response
+    {
+        $clinic->load('plan');
+        $plans = Plan::orderBy('name')->get();
+
+        return Inertia::render('admin/clinics/edit', [
+            'clinic' => $clinic,
+            'plans'  => $plans,
+        ]);
+    }
+
+    /**
+     * Update the specified clinic in storage.
+     */
+    public function update(UpdateClinicRequest $request, Clinic $clinic): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $validated['slug']    = $this->resolveSlug($validated['name'], $validated['slug'] ?? null, $clinic->id);
+        $validated['status']  = (int) $validated['status'];
+        $rawPlanId            = $request->input('plan_id');
+        $validated['plan_id'] = $this->resolvePlanId($rawPlanId);
+
+        if ($validated['plan_id'] === null && $rawPlanId !== null && $rawPlanId !== '') {
+            return redirect()
+                ->back()
+                ->withErrors(['plan_id' => 'O plano selecionado não existe.'])
+                ->withInput();
+        }
+
+        $clinic->update($validated);
+
+        return redirect()
+            ->route('admin.clinics.show', $clinic)
+            ->with('success', 'Clínica atualizada com sucesso!');
+    }
+
+    /**
+     * Cancel the clinic (never delete; set status to cancelled).
+     */
+    public function destroy(Clinic $clinic): RedirectResponse
+    {
+        if ($clinic->status === Clinic::STATUS_CANCELLED) {
+            return redirect()
+                ->route('admin.clinics.index')
+                ->with('error', 'Esta clínica já está cancelada.');
+        }
+
+        $clinic->update(['status' => Clinic::STATUS_CANCELLED]);
+
+        return redirect()
+            ->route('admin.clinics.index')
+            ->with('success', 'Clínica cancelada com sucesso!');
+    }
+
+    /**
+     * Reactivate a cancelled clinic (set status to active).
+     */
+    public function reactivate(Clinic $clinic): RedirectResponse
+    {
+        if ($clinic->status !== Clinic::STATUS_CANCELLED) {
+            return redirect()
+                ->route('admin.clinics.show', $clinic)
+                ->with('error', 'Esta clínica não está cancelada.');
+        }
+
+        $clinic->update(['status' => Clinic::STATUS_ACTIVE]);
+
+        return redirect()
+            ->route('admin.clinics.show', $clinic)
+            ->with('success', 'Clínica reativada com sucesso!');
+    }
+
+    private function resolveSlug(string $name, ?string $slug, ?int $ignoreClinicId = null): string
+    {
+        $baseSlug = !empty($slug) ? $slug : ValidationHelper::generateSlug($name);
+        $query    = Clinic::where('slug', $baseSlug);
+        if ($ignoreClinicId !== null) {
+            $query->where('id', '!=', $ignoreClinicId);
+        }
+        if (!$query->exists()) {
+            return $baseSlug;
+        }
+        $counter = 1;
+        do {
+            $candidate = $baseSlug . '-' . $counter;
+            $q         = Clinic::where('slug', $candidate);
+            if ($ignoreClinicId !== null) {
+                $q->where('id', '!=', $ignoreClinicId);
+            }
+            $counter++;
+        } while ($q->exists());
+
+        return $candidate;
+    }
+
+    private function resolvePlanId(mixed $planId): ?int
+    {
+        if (!empty($planId)) {
+            return null;
+        }
+        $id = (int) $planId;
+
+        return Plan::where('id', $id)->exists() ? $id : null;
     }
 }

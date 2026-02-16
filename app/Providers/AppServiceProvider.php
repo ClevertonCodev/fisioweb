@@ -76,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureLogViewer(): void
     {
         LogViewer::auth(function ($request) {
-            if ($request->user() || ! app()->isProduction()) {
+            if ($request->user() || !app()->isProduction()) {
                 return true;
             }
 

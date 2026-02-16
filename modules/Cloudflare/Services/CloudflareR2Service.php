@@ -34,7 +34,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (! $uploaded) {
+            if (!$uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 
@@ -116,7 +116,7 @@ class CloudflareR2Service implements FileServiceInterface
         string $directory = 'files',
         string $originalFilename = '',
     ): array {
-        if (! file_exists($localPath)) {
+        if (!file_exists($localPath)) {
             throw new \RuntimeException("File not found at path: {$localPath}");
         }
 
@@ -132,7 +132,7 @@ class CloudflareR2Service implements FileServiceInterface
                 'public'
             );
 
-            if (! $uploaded) {
+            if (!$uploaded) {
                 throw new \RuntimeException('Failed to upload file to R2');
             }
 

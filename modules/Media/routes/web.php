@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Media\Http\Controllers\VideoController;
 
-if (! app()->isProduction()) {
+if (!app()->isProduction()) {
     Route::prefix('api/videos')->group(function () {
         Route::get('/', [VideoController::class, 'index'])->name('media.videos.index');
         Route::post('/upload', [VideoController::class, 'upload'])->name('media.videos.upload');

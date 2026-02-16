@@ -1,10 +1,19 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Search } from 'lucide-react';
+import { Eye, Pencil, Plus, RefreshCw, Search, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 import FlashMessage from '@/components/flash-message';
 import { Table } from '@/components/table';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -15,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { maskCpf, maskCnpj } from '@/lib/validators'; 
+import { maskCnpj, maskCpf } from '@/lib/validators';
 import { type BreadcrumbItem, type Clinic, type Plan } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -216,6 +225,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                             { title: 'Plano', key: 'plan' },
                             { title: 'Status', key: 'status' },
                             { title: 'Data de Criação', key: 'created_at' },
+                            { title: 'Ações', key: 'actions' },
                         ]}
                         data={clinics.data}
                         emptyMessage="Nenhuma clínica encontrada"
@@ -233,14 +243,21 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                                 key={clinic.id}
                                 className="border-b border-sidebar-border/70 transition-colors hover:bg-accent/50"
                             >
-                                <td className="px-4 py-3 text-sm">
-                                    {clinic.id}
-                                </td>
+                                <td className="px-4 py-3 text-sm">{clinic.id}</td>
                                 <td className="px-4 py-3 text-sm font-medium">
-                                    {clinic.name}
+                                    <Link
+                                        href={`/admin/clinics/${clinic.id}`}
+                                        className="font-medium text-primary hover:underline"
+                                    >
+                                        {clinic.name}
+                                    </Link>
                                 </td>
                                 <td className="px-4 py-3 text-sm">
-                                    {clinic.type_person === 'fisica'? maskCpf(clinic.document) : clinic.type_person === 'juridica' ? maskCnpj(clinic.document) : clinic.document}
+                                    {clinic.type_person === 'fisica'
+                                        ? maskCpf(clinic.document)
+                                        : clinic.type_person === 'juridica'
+                                          ? maskCnpj(clinic.document)
+                                          : clinic.document}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                     {clinic.plan?.name || '-'}
@@ -254,6 +271,70 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                                 </td>
                                 <td className="px-4 py-3 text-sm text-muted-foreground">
                                     {clinic.created_at}
+                                </td>
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <Link href={`/admin/clinics/${clinic.id}`}>
+                                            <Button variant="ghost" size="sm" title="Ver">
+                                                <Eye className="size-4" />
+                                            </Button>
+                                        </Link>
+                                        <Link href={`/admin/clinics/${clinic.id}/edit`}>
+                                            <Button variant="ghost" size="sm" title="Editar">
+                                                <Pencil className="size-4" />
+                                            </Button>
+                                        </Link>
+                                        {clinic.status === -1 ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                title="Reativar clínica"
+                                                className="text-green-600 hover:bg-green-500/10 hover:text-green-700"
+                                                onClick={() =>
+                                                    router.put(`/admin/clinics/${clinic.id}/reactivate`)
+                                                }
+                                            >
+                                                <RefreshCw className="size-4" />
+                                            </Button>
+                                        ) : (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        title="Cancelar clínica"
+                                                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                    >
+                                                        <XCircle className="size-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Cancelar clínica</DialogTitle>
+                                                        <DialogDescription>
+                                                            A clínica &quot;{clinic.name}&quot; será
+                                                            cancelada. Ela não será excluída; apenas o
+                                                            status passará a &quot;Cancelado&quot;. Deseja
+                                                            continuar?
+                                                        </DialogDescription>
+                                                    </DialogHeader>
+                                                    <DialogFooter>
+                                                        <Button variant="outline" asChild>
+                                                            <Link href="/admin/clinics">Voltar</Link>
+                                                        </Button>
+                                                        <Button
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                router.delete(`/admin/clinics/${clinic.id}`)
+                                                            }
+                                                        >
+                                                            Sim, cancelar clínica
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         )}

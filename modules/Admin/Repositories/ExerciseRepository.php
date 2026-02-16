@@ -26,7 +26,7 @@ class ExerciseRepository implements ExerciseRepositoryInterface
     {
         $query = $this->model->with(['physioArea', 'physioSubarea', 'bodyRegion', 'createdBy']);
 
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -35,23 +35,23 @@ class ExerciseRepository implements ExerciseRepositoryInterface
             });
         }
 
-        if (! empty($filters['physio_area_id'])) {
+        if (!empty($filters['physio_area_id'])) {
             $query->where('physio_area_id', $filters['physio_area_id']);
         }
 
-        if (! empty($filters['physio_subarea_id'])) {
+        if (!empty($filters['physio_subarea_id'])) {
             $query->where('physio_subarea_id', $filters['physio_subarea_id']);
         }
 
-        if (! empty($filters['body_region_id'])) {
+        if (!empty($filters['body_region_id'])) {
             $query->where('body_region_id', $filters['body_region_id']);
         }
 
-        if (! empty($filters['difficulty_level'])) {
+        if (!empty($filters['difficulty_level'])) {
             $query->where('difficulty_level', $filters['difficulty_level']);
         }
 
-        if (! empty($filters['movement_form'])) {
+        if (!empty($filters['movement_form'])) {
             $query->where('movement_form', $filters['movement_form']);
         }
 

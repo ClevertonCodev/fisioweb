@@ -12,7 +12,7 @@ class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testResetPasswordLinkScreenCanBeRendered()
+    public function test_reset_password_link_screen_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $response = $this->get(route('password.request'));
@@ -20,7 +20,7 @@ class PasswordResetTest extends TestCase
         $response->assertOk();
     }
 
-    public function testResetPasswordLinkCanBeRequested()
+    public function test_reset_password_link_can_be_requested()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         Notification::fake();
@@ -32,7 +32,7 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
-    public function testResetPasswordScreenCanBeRendered()
+    public function test_reset_password_screen_can_be_rendered()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         Notification::fake();
@@ -50,7 +50,7 @@ class PasswordResetTest extends TestCase
         });
     }
 
-    public function testPasswordCanBeResetWithValidToken()
+    public function test_password_can_be_reset_with_valid_token()
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         Notification::fake();
@@ -61,9 +61,9 @@ class PasswordResetTest extends TestCase
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
             $response = $this->post(route('password.update'), [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'password',
+                'token'                 => $notification->token,
+                'email'                 => $user->email,
+                'password'              => 'password',
                 'password_confirmation' => 'password',
             ]);
 
@@ -75,15 +75,15 @@ class PasswordResetTest extends TestCase
         });
     }
 
-    public function testPasswordCannotBeResetWithInvalidToken(): void
+    public function test_password_cannot_be_reset_with_invalid_token(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         $user = User::factory()->create();
 
         $response = $this->post(route('password.update'), [
-            'token' => 'invalid-token',
-            'email' => $user->email,
-            'password' => 'newpassword123',
+            'token'                 => 'invalid-token',
+            'email'                 => $user->email,
+            'password'              => 'newpassword123',
             'password_confirmation' => 'newpassword123',
         ]);
 

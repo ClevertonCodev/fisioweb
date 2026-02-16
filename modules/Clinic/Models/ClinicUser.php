@@ -15,10 +15,15 @@ class ClinicUser extends Authenticatable
     use TwoFactorAuthenticatable;
 
     public const STATUS_ACTIVE = 1;
+
     public const STATUS_INACTIVE = 0;
+
     public const STATUS_DELETED = -1;
+
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_PHYSIOTHERAPIST = 'physiotherapist';
+
     public const ROLE_COMMON = 'common';
 
     /**
@@ -56,9 +61,9 @@ class ClinicUser extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'status' => 'integer',
+            'email_verified_at'       => 'datetime',
+            'password'                => 'hashed',
+            'status'                  => 'integer',
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

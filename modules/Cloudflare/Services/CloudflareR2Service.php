@@ -15,7 +15,7 @@ class CloudflareR2Service implements FileServiceInterface
 
     public function __construct()
     {
-        $this->disk = config('cloudflare.r2_disk');
+        $this->disk   = config('cloudflare.r2_disk');
         $this->cdnUrl = config('cloudflare.cdn_url');
     }
 
@@ -24,7 +24,7 @@ class CloudflareR2Service implements FileServiceInterface
         string $directory = 'files',
     ): array {
         $filename = $this->generateFilename($file);
-        $path = "{$directory}/{$filename}";
+        $path     = "{$directory}/{$filename}";
 
         try {
             $uploaded = Storage::disk($this->disk)->putFileAs(
@@ -41,21 +41,21 @@ class CloudflareR2Service implements FileServiceInterface
             logInfo('Arquivo uploadado com sucesso', ['path' => $path]);
 
             return [
-                'filename' => $filename,
+                'filename'          => $filename,
                 'original_filename' => $file->getClientOriginalName(),
-                'path' => $path,
-                'url' => Storage::disk($this->disk)->url($path),
-                'cdn_url' => $this->generateCdnUrl($path),
-                'mime_type' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'path'              => $path,
+                'url'               => Storage::disk($this->disk)->url($path),
+                'cdn_url'           => $this->generateCdnUrl($path),
+                'mime_type'         => $file->getMimeType(),
+                'size'              => $file->getSize(),
             ];
         } catch (\Throwable $e) {
             logError('Erro ao uploadar arquivo', [
-                'path' => $path,
+                'path'  => $path,
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to upload file: '.$e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to upload file: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -64,14 +64,14 @@ class CloudflareR2Service implements FileServiceInterface
         string $directory = 'files',
     ): array {
         $uploaded = [];
-        $errors = [];
+        $errors   = [];
 
         foreach ($files as $file) {
             try {
                 $uploaded[] = $this->uploadFile($file, $directory);
             } catch (\Throwable $e) {
                 $errors[] = [
-                    'file' => $file->getClientOriginalName(),
+                    'file'  => $file->getClientOriginalName(),
                     'error' => $e->getMessage(),
                 ];
             }
@@ -79,7 +79,7 @@ class CloudflareR2Service implements FileServiceInterface
 
         return [
             'success' => $uploaded,
-            'errors' => $errors,
+            'errors'  => $errors,
         ];
     }
 
@@ -121,9 +121,9 @@ class CloudflareR2Service implements FileServiceInterface
         }
 
         $originalFilename = $originalFilename ?: basename($localPath);
-        $extension = pathinfo($localPath, PATHINFO_EXTENSION);
-        $filename = Str::uuid().'_'.now()->timestamp.'.'.$extension;
-        $path = "{$directory}/{$filename}";
+        $extension        = pathinfo($localPath, PATHINFO_EXTENSION);
+        $filename         = Str::uuid() . '_' . now()->timestamp . '.' . $extension;
+        $path             = "{$directory}/{$filename}";
 
         try {
             $uploaded = Storage::disk($this->disk)->put(
@@ -139,22 +139,22 @@ class CloudflareR2Service implements FileServiceInterface
             logInfo('Arquivo uploadado com sucesso', ['path' => $path]);
 
             return [
-                'filename' => $filename,
+                'filename'          => $filename,
                 'original_filename' => $originalFilename,
-                'path' => $path,
-                'url' => Storage::disk($this->disk)->url($path),
-                'cdn_url' => $this->generateCdnUrl($path),
-                'mime_type' => mime_content_type($localPath) ?: 'application/octet-stream',
-                'size' => filesize($localPath),
+                'path'              => $path,
+                'url'               => Storage::disk($this->disk)->url($path),
+                'cdn_url'           => $this->generateCdnUrl($path),
+                'mime_type'         => mime_content_type($localPath) ?: 'application/octet-stream',
+                'size'              => filesize($localPath),
             ];
         } catch (\Throwable $e) {
             logError('Erro ao uploadar arquivo de path', [
-                'local_path' => $localPath,
+                'local_path'  => $localPath,
                 'target_path' => $path,
-                'error' => $e->getMessage(),
+                'error'       => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to upload file: '.$e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to upload file: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -166,12 +166,12 @@ class CloudflareR2Service implements FileServiceInterface
         try {
             /** @var \Illuminate\Filesystem\AwsS3V3Adapter $adapter */
             $adapter = Storage::disk($this->disk);
-            $client = $adapter->getClient();
-            $bucket = config('cloudflare.r2.bucket');
+            $client  = $adapter->getClient();
+            $bucket  = config('cloudflare.r2.bucket');
 
             $command = $client->getCommand('PutObject', [
-                'Bucket' => $bucket,
-                'Key' => $path,
+                'Bucket'      => $bucket,
+                'Key'         => $path,
                 'ContentType' => $contentType,
             ]);
 
@@ -183,32 +183,32 @@ class CloudflareR2Service implements FileServiceInterface
             $uploadUrl = (string) $presignedRequest->getUri();
 
             logInfo('Presigned URL criada com sucesso', [
-                'path' => $path,
+                'path'       => $path,
                 'expires_in' => $expiresInSeconds,
             ]);
 
             return [
                 'upload_url' => $uploadUrl,
-                'path' => $path,
+                'path'       => $path,
                 'expires_at' => now()->addSeconds($expiresInSeconds)->toISOString(),
             ];
         } catch (\Throwable $e) {
             logError('Erro ao criar presigned URL', [
-                'path' => $path,
+                'path'  => $path,
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException('Failed to create presigned URL: '.$e->getMessage(), 0, $e);
+            throw new \RuntimeException('Failed to create presigned URL: ' . $e->getMessage(), 0, $e);
         }
     }
 
     protected function generateFilename(UploadedFile $file): string
     {
-        return Str::uuid().'_'.now()->timestamp.'.'.$file->getClientOriginalExtension();
+        return Str::uuid() . '_' . now()->timestamp . '.' . $file->getClientOriginalExtension();
     }
 
     protected function generateCdnUrl(string $path): string
     {
-        return rtrim($this->cdnUrl, '/').'/'.ltrim($path, '/');
+        return rtrim($this->cdnUrl, '/') . '/' . ltrim($path, '/');
     }
 }

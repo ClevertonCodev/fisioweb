@@ -26,16 +26,16 @@ class MakeModuleModelCommand extends Command
      */
     public function handle(): int
     {
-        $name = $this->argument('name');
-        $modelName = $this->argument('model');
-        $moduleName = Str::studly($name);
-        $modulePath = base_path("modules/{$moduleName}");
+        $name            = $this->argument('name');
+        $modelName       = $this->argument('model');
+        $moduleName      = Str::studly($name);
+        $modulePath      = base_path("modules/{$moduleName}");
         $moduleNamespace = "Modules\\{$moduleName}";
-        $moduleSlug = Str::kebab($name);
+        $moduleSlug      = Str::kebab($name);
 
         $moduleExists = is_dir($modulePath);
 
-        if (!$moduleExists) {
+        if (! $moduleExists) {
             $this->info("Module {$moduleName} does not exist. Creating module...");
             $this->createModule($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
         } else {
@@ -79,7 +79,7 @@ class MakeModuleModelCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (!is_dir($directory)) {
+            if (! is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }
@@ -182,7 +182,7 @@ PHP;
      */
     protected function registerProvider(string $namespace): void
     {
-        $moduleName = class_basename($namespace);
+        $moduleName    = class_basename($namespace);
         $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
         $providersPath = base_path('bootstrap/providers.php');
 

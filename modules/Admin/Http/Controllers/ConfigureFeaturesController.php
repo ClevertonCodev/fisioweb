@@ -13,8 +13,8 @@ class ConfigureFeaturesController extends Controller
 {
     public function index(): Response
     {
-        $plans = Plan::query()->orderBy('name')->get(['id', 'name']);
-        $features = Feature::query()->orderBy('name')->get(['id', 'name']);
+        $plans        = Plan::query()->orderBy('name')->get(['id', 'name']);
+        $features     = Feature::query()->orderBy('name')->get(['id', 'name']);
         $featurePlans = FeaturePlan::query()
             ->with(['plan:id,name', 'feature:id,name'])
             ->orderBy('plan_id')
@@ -22,8 +22,8 @@ class ConfigureFeaturesController extends Controller
             ->get();
 
         return Inertia::render('admin/plans/configure-features', [
-            'plans' => $plans,
-            'features' => $features,
+            'plans'        => $plans,
+            'features'     => $features,
             'featurePlans' => $featurePlans,
         ]);
     }

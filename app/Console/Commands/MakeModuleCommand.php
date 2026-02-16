@@ -26,11 +26,11 @@ class MakeModuleCommand extends Command
      */
     public function handle(): int
     {
-        $name = $this->argument('name');
-        $moduleName = Str::studly($name);
-        $modulePath = base_path("modules/{$moduleName}");
+        $name            = $this->argument('name');
+        $moduleName      = Str::studly($name);
+        $modulePath      = base_path("modules/{$moduleName}");
         $moduleNamespace = "Modules\\{$moduleName}";
-        $moduleSlug = Str::kebab($name);
+        $moduleSlug      = Str::kebab($name);
 
         // Verificar se o módulo já existe
         if (is_dir($modulePath)) {
@@ -99,7 +99,7 @@ class MakeModuleCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (!is_dir($directory)) {
+            if (! is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }
@@ -152,8 +152,8 @@ PHP;
      */
     protected function createController(string $moduleName, string $modulePath, string $namespace, string $slug): void
     {
-        $controllerName = Str::singular($moduleName).'Controller';
-        $modelName = Str::singular($moduleName);
+        $controllerName = Str::singular($moduleName) . 'Controller';
+        $modelName      = Str::singular($moduleName);
         $controllerPath = "{$modulePath}/Http/Controllers/{$controllerName}.php";
 
         $content = <<<PHP
@@ -290,11 +290,11 @@ PHP;
      */
     protected function createMigration(string $moduleName, string $modulePath, string $slug): void
     {
-        $modelName = Str::singular($moduleName);
-        $tableName = Str::snake(Str::plural($modelName));
-        $migrationName = date('Y_m_d_His').'_create_'.$tableName.'_table.php';
+        $modelName     = Str::singular($moduleName);
+        $tableName     = Str::snake(Str::plural($modelName));
+        $migrationName = date('Y_m_d_His') . '_create_' . $tableName . '_table.php';
         $migrationPath = "{$modulePath}/Database/Migrations/{$migrationName}";
-        $className = 'Create'.Str::studly($tableName).'Table';
+        $className     = 'Create' . Str::studly($tableName) . 'Table';
 
         $content = <<<PHP
 <?php
@@ -335,8 +335,8 @@ PHP;
      */
     protected function createRoutes(string $moduleName, string $modulePath, string $namespace, string $slug): void
     {
-        $controllerName = Str::singular($moduleName).'Controller';
-        $routesPath = "{$modulePath}/routes/web.php";
+        $controllerName = Str::singular($moduleName) . 'Controller';
+        $routesPath     = "{$modulePath}/routes/web.php";
 
         $content = <<<PHP
 <?php
@@ -392,7 +392,7 @@ BLADE;
      */
     protected function createFactory(string $moduleName, string $modulePath, string $namespace): void
     {
-        $modelName = Str::singular($moduleName);
+        $modelName   = Str::singular($moduleName);
         $factoryName = "{$modelName}Factory";
         $factoryPath = "{$modulePath}/Database/Factories/{$factoryName}.php";
 
@@ -440,7 +440,7 @@ PHP;
      */
     protected function createSeeder(string $moduleName, string $modulePath, string $namespace): void
     {
-        $modelName = Str::singular($moduleName);
+        $modelName  = Str::singular($moduleName);
         $seederName = "{$modelName}Seeder";
         $seederPath = "{$modulePath}/Database/Seeders/{$seederName}.php";
 
@@ -474,12 +474,12 @@ PHP;
      */
     protected function createTests(string $moduleName, string $modulePath, string $namespace, string $slug): void
     {
-        $modelName = Str::singular($moduleName);
+        $modelName      = Str::singular($moduleName);
         $controllerName = "{$modelName}Controller";
-        $testName = "{$modelName}Test";
+        $testName       = "{$modelName}Test";
 
         // Feature Test
-        $featureTestPath = "{$modulePath}/Tests/Feature/{$testName}.php";
+        $featureTestPath    = "{$modulePath}/Tests/Feature/{$testName}.php";
         $featureTestContent = <<<PHP
 <?php
 
@@ -510,7 +510,7 @@ class {$testName} extends TestCase
 PHP;
 
         // Unit Test
-        $unitTestPath = "{$modulePath}/Tests/Unit/{$testName}.php";
+        $unitTestPath    = "{$modulePath}/Tests/Unit/{$testName}.php";
         $unitTestContent = <<<PHP
 <?php
 
@@ -543,7 +543,7 @@ PHP;
      */
     protected function registerProvider(string $namespace): void
     {
-        $moduleName = class_basename($namespace);
+        $moduleName    = class_basename($namespace);
         $providerClass = "{$namespace}\\Providers\\{$moduleName}ServiceProvider";
         $providersPath = base_path('bootstrap/providers.php');
 

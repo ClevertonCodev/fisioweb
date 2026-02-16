@@ -14,11 +14,14 @@ class Clinic extends Model
 
     // Constantes para status
     public const STATUS_ACTIVE = 1;
+
     public const STATUS_INACTIVE = 0;
+
     public const STATUS_CANCELLED = -1;
 
     // Constantes para type_person
     public const TYPE_PERSON_FISICA = 'fisica';
+
     public const TYPE_PERSON_JURIDICA = 'juridica';
 
     protected $fillable = [
@@ -46,7 +49,7 @@ class Clinic extends Model
 
     public function getCreatedAtAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 

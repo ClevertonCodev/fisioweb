@@ -16,7 +16,7 @@ class ValidationHelper
         }
 
         $add = 0;
-        for ($i = 0; $i < 9; ++$i) {
+        for ($i = 0; $i < 9; $i++) {
             $add += (int) $cpf[$i] * (10 - $i);
         }
         $rev = 11 - ($add % 11);
@@ -29,7 +29,7 @@ class ValidationHelper
         }
 
         $add = 0;
-        for ($i = 0; $i < 10; ++$i) {
+        for ($i = 0; $i < 10; $i++) {
             $add += (int) $cpf[$i] * (11 - $i);
         }
 
@@ -53,20 +53,20 @@ class ValidationHelper
         }
 
         $soma = 0;
-        for ($i = 0, $j = 5; $i < 12; ++$i) {
+        for ($i = 0, $j = 5; $i < 12; $i++) {
             $soma += (int) $cnpj[$i] * $j;
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
-        $dv1 = $resto < 2 ? 0 : 11 - $resto;
+        $dv1   = $resto < 2 ? 0 : 11 - $resto;
 
         $soma = 0;
-        for ($i = 0, $j = 6; $i < 13; ++$i) {
+        for ($i = 0, $j = 6; $i < 13; $i++) {
             $soma += (int) $cnpj[$i] * $j;
             $j = $j == 2 ? 9 : $j - 1;
         }
         $resto = $soma % 11;
-        $dv2 = $resto < 2 ? 0 : 11 - $resto;
+        $dv2   = $resto < 2 ? 0 : 11 - $resto;
 
         return $cnpj[12] == $dv1 && $cnpj[13] == $dv2;
     }

@@ -12,7 +12,7 @@ class VerificationNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testSendsVerificationNotification(): void
+    public function test_sends_verification_notification(): void
     {
         Notification::fake();
 
@@ -27,7 +27,7 @@ class VerificationNotificationTest extends TestCase
         Notification::assertSentTo($user, VerifyEmail::class);
     }
 
-    public function testDoesNotSendVerificationNotificationIfEmailIsVerified(): void
+    public function test_does_not_send_verification_notification_if_email_is_verified(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
         Notification::fake();

@@ -12,10 +12,10 @@ class TwoFactorChallengeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function testTwoFactorChallengeRedirectsToLoginWhenNotAuthenticated(): void
+    public function test_two_factor_challenge_redirects_to_login_when_not_authenticated(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (!Features::canManageTwoFactorAuthentication()) {
+        if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
@@ -24,28 +24,28 @@ class TwoFactorChallengeTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function testTwoFactorChallengeCanBeRendered(): void
+    public function test_two_factor_challenge_can_be_rendered(): void
     {
         $this->markTestSkipped('Teste temporariamente desativado');
-        if (!Features::canManageTwoFactorAuthentication()) {
+        if (! Features::canManageTwoFactorAuthentication()) {
             $this->markTestSkipped('Two-factor authentication is not enabled.');
         }
 
         Features::twoFactorAuthentication([
-            'confirm' => true,
+            'confirm'         => true,
             'confirmPassword' => true,
         ]);
 
         $user = User::factory()->create();
 
         $user->forceFill([
-            'two_factor_secret' => encrypt('test-secret'),
+            'two_factor_secret'         => encrypt('test-secret'),
             'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-            'two_factor_confirmed_at' => now(),
+            'two_factor_confirmed_at'   => now(),
         ])->save();
 
         $this->post(route('login'), [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 

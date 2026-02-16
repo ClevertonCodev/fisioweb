@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
+    Dumbbell,
     Folder,
     LayoutGrid,
     Menu,
@@ -164,11 +165,11 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                     </Link>
                                                 </div>
                                             </div>
-                                            {/* Dropdown Vídeos Mobile */}
+                                            {/* Dropdown Exercícios Mobile */}
                                             <div className="flex flex-col space-y-2">
                                                 <div className="flex items-center space-x-2 font-medium">
-                                                    <Video className="h-5 w-5" />
-                                                    <span>Vídeos</span>
+                                                    <Dumbbell className="h-5 w-5" />
+                                                    <span>Exercícios</span>
                                                 </div>
                                                 <div className="ml-7 flex flex-col space-y-2">
                                                     <Link
@@ -177,6 +178,13 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                     >
                                                         <Video className="h-4 w-4" />
                                                         <span>Vídeos</span>
+                                                    </Link>
+                                                    <Link
+                                                        href="/admin/exercises"
+                                                        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Dumbbell className="h-4 w-4" />
+                                                        <span>Exercícios</span>
                                                     </Link>
                                                 </div>
                                             </div>
@@ -345,18 +353,20 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
                                         )}
                                 </NavigationMenuItem>
-                                {/* Dropdown Vídeos */}
+                                {/* Dropdown Exercícios */}
                                 <NavigationMenuItem className="relative flex h-full items-center">
                                     <NavigationMenuTrigger
                                         className={cn(
                                             navigationMenuTriggerStyle(),
-                                            urlIsActive('/admin/videos') &&
-                                                activeItemStyles,
+                                            (urlIsActive('/admin/videos') ||
+                                                urlIsActive(
+                                                    '/admin/exercises',
+                                                )) && activeItemStyles,
                                             'h-9 cursor-pointer px-3',
                                         )}
                                     >
-                                        <Video className="mr-2 h-4 w-4" />
-                                        Vídeos
+                                        <Dumbbell className="mr-2 h-4 w-4" />
+                                        Exercícios
                                     </NavigationMenuTrigger>
                                     <NavigationMenuContent>
                                         <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1">
@@ -384,9 +394,35 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                     </Link>
                                                 </NavigationMenuLink>
                                             </li>
+                                            <li>
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/admin/exercises"
+                                                        className={cn(
+                                                            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                                            urlIsActive(
+                                                                '/admin/exercises',
+                                                            ) && 'bg-accent',
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <Dumbbell className="h-4 w-4" />
+                                                            <div className="text-sm font-medium leading-none">
+                                                                Exercícios
+                                                            </div>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                            Gerencie os
+                                                            exercícios do
+                                                            sistema
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
                                         </ul>
                                     </NavigationMenuContent>
-                                    {urlIsActive('/admin/videos') && (
+                                    {(urlIsActive('/admin/videos') ||
+                                        urlIsActive('/admin/exercises')) && (
                                         <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
                                     )}
                                 </NavigationMenuItem>

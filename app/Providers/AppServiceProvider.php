@@ -15,9 +15,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-    }
+    public function register(): void {}
 
     /**
      * Bootstrap any application services.
@@ -78,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureLogViewer(): void
     {
         LogViewer::auth(function ($request) {
-            if ($request->user() || !app()->isProduction()) {
+            if ($request->user() || ! app()->isProduction()) {
                 return true;
             }
 

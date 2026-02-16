@@ -16,6 +16,7 @@ class Plan extends Model
     }
 
     public const TYPE_CHARGE_POR_USUARIO = 'por_usuario';
+
     public const TYPE_CHARGE_FIXO = 'fixo';
 
     protected $fillable = [
@@ -29,7 +30,7 @@ class Plan extends Model
     {
         return [
             'value_month' => 'decimal:2',
-            'value_year' => 'decimal:2',
+            'value_year'  => 'decimal:2',
         ];
     }
 
@@ -40,7 +41,7 @@ class Plan extends Model
 
     public function getNameAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 
@@ -50,7 +51,7 @@ class Plan extends Model
     public function getLabelNames(string $name): string
     {
         $labels = [
-            'start' => 'Start',
+            'start'   => 'Start',
             'perform' => 'Perform',
             'premium' => 'Premium',
         ];

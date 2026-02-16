@@ -13,11 +13,11 @@ class FeaturePlansController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'plan_id' => ['required', 'integer', 'exists:plans,id'],
+            'plan_id'    => ['required', 'integer', 'exists:plans,id'],
             'feature_id' => ['required', 'integer', 'exists:features,id'],
-            'value' => ['required', Rule::in([true, false, 'true', 'false', 1, 0, '1', '0'])],
+            'value'      => ['required', Rule::in([true, false, 'true', 'false', 1, 0, '1', '0'])],
         ], [
-            'plan_id.exists' => 'O plano selecionado não existe.',
+            'plan_id.exists'    => 'O plano selecionado não existe.',
             'feature_id.exists' => 'A funcionalidade selecionada não existe.',
         ]);
 
@@ -33,9 +33,9 @@ class FeaturePlansController extends Controller
         }
 
         FeaturePlan::create([
-            'plan_id' => $validated['plan_id'],
+            'plan_id'    => $validated['plan_id'],
             'feature_id' => $validated['feature_id'],
-            'value' => filter_var($validated['value'], FILTER_VALIDATE_BOOLEAN),
+            'value'      => filter_var($validated['value'], FILTER_VALIDATE_BOOLEAN),
         ]);
 
         return redirect()

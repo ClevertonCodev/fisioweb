@@ -27,8 +27,8 @@ class AuthController extends Controller
     {
         return Inertia::render('admin/auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
+            'canRegister'      => Features::enabled(Features::registration()),
+            'status'           => $request->session()->get('status'),
         ]);
     }
 
@@ -39,12 +39,12 @@ class AuthController extends Controller
     {
         $request->validate([
             Fortify::username() => 'required|string',
-            'password' => 'required|string',
+            'password'          => 'required|string',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([Fortify::username() => [__('auth.failed')]]);
         }
 
@@ -127,9 +127,9 @@ class AuthController extends Controller
     public function resetPassword(Request $request, ResetUserPassword $resetter): RedirectResponse
     {
         $request->validate([
-            'token' => 'required',
+            'token'          => 'required',
             Fortify::email() => 'required|email',
-            'password' => 'required|string|min:8|confirmed',
+            'password'       => 'required|string|min:8|confirmed',
         ]);
 
         $status = Password::reset(
@@ -196,7 +196,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Hash::check($request->password, $request->user()->password)) {
+        if (! Hash::check($request->password, $request->user()->password)) {
             throw ValidationException::withMessages(['password' => [__('auth.password')]]);
         }
 
@@ -210,7 +210,7 @@ class AuthController extends Controller
      */
     public function showTwoFactorChallengeForm(): Response|RedirectResponse
     {
-        if (!session()->has('login.id')) {
+        if (! session()->has('login.id')) {
             return redirect()->route('admin.login');
         }
 
@@ -224,23 +224,23 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($request->session()->get('login.id'));
 
-        if (!$user->two_factor_secret) {
+        if (! $user->two_factor_secret) {
             return redirect()->route('admin.login');
         }
 
         $request->validate([
-            'code' => 'required_without:recovery_code|string',
+            'code'          => 'required_without:recovery_code|string',
             'recovery_code' => 'required_without:code|string',
         ]);
 
         if ($request->filled('code')) {
-            if (!$user->verifyTwoFactorCode($request->code)) {
+            if (! $user->verifyTwoFactorCode($request->code)) {
                 throw ValidationException::withMessages(['code' => [__('The provided two factor authentication code was invalid.')]]);
             }
         } elseif ($request->filled('recovery_code')) {
             $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
 
-            if (!in_array($request->recovery_code, $recoveryCodes)) {
+            if (! in_array($request->recovery_code, $recoveryCodes)) {
                 throw ValidationException::withMessages(['recovery_code' => [__('The provided two factor recovery code was invalid.')]]);
             }
 

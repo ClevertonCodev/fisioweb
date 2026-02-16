@@ -11,9 +11,9 @@ class RequirePasswordConfirm extends RequirePassword
     /**
      * Handle an incoming request.
      *
-     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
-     * @param string|null                                                                      $redirectToRoute
-     * @param int|null                                                                         $passwordTimeoutSeconds
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  string|null  $redirectToRoute
+     * @param  int|null  $passwordTimeoutSeconds
      */
     public function handle($request, \Closure $next, $redirectToRoute = null, $passwordTimeoutSeconds = null): Response
     {

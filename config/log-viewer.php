@@ -5,7 +5,6 @@ use Opcodes\LogViewer\Enums\SortingOrder;
 use Opcodes\LogViewer\Enums\Theme;
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Log Viewer
@@ -277,7 +276,6 @@ return [
     */
 
     'defaults' => [
-
         // Whether to use browser's localStorage to store user preferences.
         // If true, user preferences saved in the browser will take precedence over the defaults below.
         'use_local_storage' => true,
@@ -302,7 +300,6 @@ return [
 
         // Whether to enable `Shorter Stack Traces` option by default
         'shorter_stack_traces' => false,
-
     ],
 
     /*

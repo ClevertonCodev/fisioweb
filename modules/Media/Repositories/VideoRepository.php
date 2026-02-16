@@ -141,4 +141,12 @@ class VideoRepository
     {
         return $this->model->latest()->limit($limit)->get();
     }
+
+    public function getAvailableForExercise(): Collection
+    {
+        return $this->model
+            ->completed()
+            ->orderBy('original_filename')
+            ->get();
+    }
 }

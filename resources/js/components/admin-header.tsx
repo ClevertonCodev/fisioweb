@@ -8,6 +8,7 @@ import {
     Search,
     Settings,
     Sparkles,
+    Video,
 } from 'lucide-react';
 
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -160,6 +161,22 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                                             Configurar
                                                             Funcionalidades
                                                         </span>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                            {/* Dropdown Vídeos Mobile */}
+                                            <div className="flex flex-col space-y-2">
+                                                <div className="flex items-center space-x-2 font-medium">
+                                                    <Video className="h-5 w-5" />
+                                                    <span>Vídeos</span>
+                                                </div>
+                                                <div className="ml-7 flex flex-col space-y-2">
+                                                    <Link
+                                                        href="/admin/videos"
+                                                        className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-foreground"
+                                                    >
+                                                        <Video className="h-4 w-4" />
+                                                        <span>Vídeos</span>
                                                     </Link>
                                                 </div>
                                             </div>
@@ -327,6 +344,51 @@ export function AdminHeader({ breadcrumbs = [] }: AdminHeaderProps) {
                                         )) && (
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
                                         )}
+                                </NavigationMenuItem>
+                                {/* Dropdown Vídeos */}
+                                <NavigationMenuItem className="relative flex h-full items-center">
+                                    <NavigationMenuTrigger
+                                        className={cn(
+                                            navigationMenuTriggerStyle(),
+                                            urlIsActive('/admin/videos') &&
+                                                activeItemStyles,
+                                            'h-9 cursor-pointer px-3',
+                                        )}
+                                    >
+                                        <Video className="mr-2 h-4 w-4" />
+                                        Vídeos
+                                    </NavigationMenuTrigger>
+                                    <NavigationMenuContent>
+                                        <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-1">
+                                            <li>
+                                                <NavigationMenuLink asChild>
+                                                    <Link
+                                                        href="/admin/videos"
+                                                        className={cn(
+                                                            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+                                                            urlIsActive(
+                                                                '/admin/videos',
+                                                            ) && 'bg-accent',
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center space-x-2">
+                                                            <Video className="h-4 w-4" />
+                                                            <div className="text-sm font-medium leading-none">
+                                                                Vídeos
+                                                            </div>
+                                                        </div>
+                                                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                                            Gerencie os vídeos
+                                                            do sistema
+                                                        </p>
+                                                    </Link>
+                                                </NavigationMenuLink>
+                                            </li>
+                                        </ul>
+                                    </NavigationMenuContent>
+                                    {urlIsActive('/admin/videos') && (
+                                        <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-primary"></div>
+                                    )}
                                 </NavigationMenuItem>
                             </NavigationMenuList>
                         </NavigationMenu>

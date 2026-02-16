@@ -15,9 +15,9 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
+import { documentCleaner } from '@/lib/utils';
 import { generateSlug, maskCnpj, maskCpf, validateCnpj, validateCpf } from '@/lib/validators';
 import { type BreadcrumbItem, type Plan } from '@/types';
-import { documentCleaner } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

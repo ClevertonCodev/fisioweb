@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
-import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
+import { VideoPlayerModal } from '@/components/clinic/video-player-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

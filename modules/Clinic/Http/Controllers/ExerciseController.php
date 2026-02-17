@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -52,6 +53,30 @@ class ExerciseController extends Controller
             'bodyRegions'   => BodyRegion::orderBy('name')->get(['id', 'name']),
             'difficulties'  => Exercise::DIFFICULTIES,
             'movementForms' => Exercise::MOVEMENT_FORMS,
+        ]);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $query = Exercise::query()
+            ->with(['physioArea', 'bodyRegion'])
+            ->active()
+            ->latest();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('muscle_group', 'like', "%{$search}%")
+                    ->orWhere('therapeutic_goal', 'like', "%{$search}%");
+            });
+        }
+
+        if ($areaId = $request->input('physio_area_id')) {
+            $query->where('physio_area_id', $areaId);
+        }
+
+        return response()->json([
+            'data' => $query->limit(20)->get(),
         ]);
     }
 }

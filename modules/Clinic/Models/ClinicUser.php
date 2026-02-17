@@ -4,6 +4,7 @@ namespace Modules\Clinic\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -98,5 +99,15 @@ class ClinicUser extends Authenticatable
     public function isPhysiotherapist(): bool
     {
         return $this->role === self::ROLE_PHYSIOTHERAPIST;
+    }
+
+    public function exerciseFavorites(): HasMany
+    {
+        return $this->hasMany(ExerciseFavorite::class);
+    }
+
+    public function treatmentPlans(): HasMany
+    {
+        return $this->hasMany(TreatmentPlan::class);
     }
 }

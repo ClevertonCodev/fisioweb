@@ -22,7 +22,7 @@ class MakeModuleControllerCommand extends Command
 
         $moduleExists = is_dir($modulePath);
 
-        if (! $moduleExists) {
+        if (!$moduleExists) {
             $this->info("Module {$moduleName} does not exist. Creating module...");
             $this->createModule($moduleName, $modulePath, $moduleNamespace, $moduleSlug);
         }
@@ -43,7 +43,7 @@ class MakeModuleControllerCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (! is_dir($directory)) {
+            if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }
@@ -90,7 +90,7 @@ PHP;
     protected function createController(string $moduleName, string $modulePath, string $namespace, ?string $name): void
     {
         $controllerName = $name ? Str::studly($name) : Str::singular($moduleName) . 'Controller';
-        if (! str_ends_with($controllerName, 'Controller')) {
+        if (!str_ends_with($controllerName, 'Controller')) {
             $controllerName .= 'Controller';
         }
         $controllerPath = "{$modulePath}/Http/Controllers/{$controllerName}.php";
@@ -101,7 +101,7 @@ PHP;
             return;
         }
 
-        if (! is_dir("{$modulePath}/Http/Controllers")) {
+        if (!is_dir("{$modulePath}/Http/Controllers")) {
             mkdir("{$modulePath}/Http/Controllers", 0755, true);
         }
 

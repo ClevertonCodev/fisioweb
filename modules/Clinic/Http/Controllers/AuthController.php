@@ -44,7 +44,7 @@ class AuthController extends Controller
 
         $user = ClinicUser::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([Fortify::username() => [__('auth.failed')]]);
         }
 
@@ -203,7 +203,7 @@ class AuthController extends Controller
 
         $user = $request->user('clinic');
 
-        if (! Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages(['password' => [__('auth.password')]]);
         }
 
@@ -217,7 +217,7 @@ class AuthController extends Controller
      */
     public function showTwoFactorChallengeForm(): Response|RedirectResponse
     {
-        if (! session()->has('login.id')) {
+        if (!session()->has('login.id')) {
             return redirect()->route('clinic.login');
         }
 
@@ -231,7 +231,7 @@ class AuthController extends Controller
     {
         $user = ClinicUser::findOrFail($request->session()->get('login.id'));
 
-        if (! $user->two_factor_secret) {
+        if (!$user->two_factor_secret) {
             return redirect()->route('clinic.login');
         }
 
@@ -241,13 +241,13 @@ class AuthController extends Controller
         ]);
 
         if ($request->filled('code')) {
-            if (! $user->verifyTwoFactorCode($request->code)) {
+            if (!$user->verifyTwoFactorCode($request->code)) {
                 throw ValidationException::withMessages(['code' => [__('The provided two factor authentication code was invalid.')]]);
             }
         } elseif ($request->filled('recovery_code')) {
             $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
 
-            if (! in_array($request->recovery_code, $recoveryCodes)) {
+            if (!in_array($request->recovery_code, $recoveryCodes)) {
                 throw ValidationException::withMessages(['recovery_code' => [__('The provided two factor recovery code was invalid.')]]);
             }
 

@@ -1,6 +1,13 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+    SlidersHorizontal,
+    X,
+} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
@@ -8,72 +15,126 @@ import { VideoPlayerModal } from '@/components/clinic/video-player-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockExercises, filterCategories } from '@/data/mockExercises';
 import ClinicLayout from '@/layouts/clinic-layout';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes/clinic';
-import type { Exercise, ExerciseFilters as Filters } from '@/types/exercise';
+import type {
+    BodyRegion,
+    Exercise,
+    PhysioArea,
+} from '@/types';
+import type {
+    ExerciseFilters as Filters,
+    FilterCategory,
+} from '@/types/exercise';
 
-const initialFilters: Filters = {
+interface PaginatedExercises {
+    data: Exercise[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+}
+
+interface ServerFilters {
+    search?: string;
+    physio_area_id?: string | string[];
+    body_region_id?: string | string[];
+    difficulty_level?: string | string[];
+    movement_form?: string | string[];
+}
+
+interface ExercisesPageProps {
+    exercises: PaginatedExercises;
+    filters: ServerFilters;
+    physioAreas: PhysioArea[];
+    bodyRegions: BodyRegion[];
+    difficulties: Record<string, string>;
+    movementForms: Record<string, string>;
+}
+
+function toArray(value: string | string[] | undefined): string[] {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+}
+
+const emptyFilters: Filters = {
     search: '',
-    specialty: [],
-    bodyArea: [],
-    bodyRegion: [],
-    objective: [],
-    difficulty: [],
-    muscleGroup: [],
-    equipment: [],
-    movementType: [],
-    movementPattern: [],
-    movementForm: [],
+    physio_area_id: [],
+    body_region_id: [],
+    difficulty_level: [],
+    movement_form: [],
 };
 
-export default function ExerciciosPage() {
+export default function ExerciciosPage({
+    exercises,
+    filters: serverFilters,
+    physioAreas,
+    bodyRegions,
+    difficulties,
+    movementForms,
+}: ExercisesPageProps) {
     const [showFilters, setShowFilters] = useState(true);
-    const [filters, setFilters] = useState<Filters>(initialFilters);
-    const [exercises, setExercises] = useState<Exercise[]>(mockExercises);
     const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
         null,
     );
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [searchInput, setSearchInput] = useState(
+        serverFilters.search ?? '',
+    );
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-    const filteredExercises = useMemo(() => {
-        return exercises.filter((exercise) => {
-            if (
-                filters.search &&
-                !exercise.title
-                    .toLowerCase()
-                    .includes(filters.search.toLowerCase())
-            ) {
-                return false;
-            }
-            const filterChecks: [string[], string][] = [
-                [filters.specialty, exercise.specialty],
-                [filters.bodyArea, exercise.bodyArea],
-                [filters.bodyRegion, exercise.bodyRegion],
-                [filters.objective, exercise.objective],
-                [filters.difficulty, exercise.difficulty],
-                [filters.muscleGroup, exercise.muscleGroup],
-                [filters.equipment, exercise.equipment],
-                [filters.movementType, exercise.movementType],
-                [filters.movementPattern, exercise.movementPattern],
-                [filters.movementForm, exercise.movementForm],
-            ];
-            for (const [filterValues, exerciseValue] of filterChecks) {
-                if (
-                    filterValues.length > 0 &&
-                    !filterValues.includes(exerciseValue)
-                ) {
-                    return false;
-                }
-            }
-            return true;
-        });
-    }, [exercises, filters]);
+    const localFilters: Filters = useMemo(
+        () => ({
+            search: serverFilters.search ?? '',
+            physio_area_id: toArray(serverFilters.physio_area_id),
+            body_region_id: toArray(serverFilters.body_region_id),
+            difficulty_level: toArray(serverFilters.difficulty_level),
+            movement_form: toArray(serverFilters.movement_form),
+        }),
+        [serverFilters],
+    );
+
+    const filterCategories: FilterCategory[] = useMemo(
+        () => [
+            {
+                id: 'physio_area_id',
+                label: 'Área de Fisioterapia',
+                options: physioAreas.map((a) => ({
+                    value: String(a.id),
+                    label: a.name,
+                })),
+            },
+            {
+                id: 'body_region_id',
+                label: 'Região do Corpo',
+                options: bodyRegions.map((r) => ({
+                    value: String(r.id),
+                    label: r.name,
+                })),
+            },
+            {
+                id: 'difficulty_level',
+                label: 'Dificuldade',
+                options: Object.entries(difficulties).map(
+                    ([value, label]) => ({ value, label }),
+                ),
+            },
+            {
+                id: 'movement_form',
+                label: 'Forma de Movimento',
+                options: Object.entries(movementForms).map(
+                    ([value, label]) => ({ value, label }),
+                ),
+            },
+        ],
+        [physioAreas, bodyRegions, difficulties, movementForms],
+    );
 
     const activeFiltersCount = useMemo(
         () =>
-            Object.entries(filters)
+            Object.entries(localFilters)
                 .filter(([key]) => key !== 'search')
                 .reduce(
                     (count, [, value]) =>
@@ -81,17 +142,45 @@ export default function ExerciciosPage() {
                         (Array.isArray(value) ? value.length : 0),
                     0,
                 ),
-        [filters],
+        [localFilters],
     );
 
-    const handleToggleFavorite = (exercise: Exercise) => {
-        setExercises((prev) =>
-            prev.map((ex) =>
-                ex.id === exercise.id
-                    ? { ...ex, isFavorite: !ex.isFavorite }
-                    : ex,
-            ),
-        );
+    const applyFilters = useCallback(
+        (newFilters: Filters) => {
+            const params: Record<string, string | string[]> = {};
+            if (newFilters.search) params.search = newFilters.search;
+            if (newFilters.physio_area_id.length)
+                params.physio_area_id = newFilters.physio_area_id;
+            if (newFilters.body_region_id.length)
+                params.body_region_id = newFilters.body_region_id;
+            if (newFilters.difficulty_level.length)
+                params.difficulty_level = newFilters.difficulty_level;
+            if (newFilters.movement_form.length)
+                params.movement_form = newFilters.movement_form;
+
+            router.get('/clinic/exercises', params, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        },
+        [],
+    );
+
+    useEffect(() => {
+        if (searchInput === (serverFilters.search ?? '')) return;
+
+        clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => {
+            applyFilters({ ...localFilters, search: searchInput });
+        }, 300);
+
+        return () => clearTimeout(searchTimerRef.current);
+    }, [searchInput, serverFilters.search, localFilters, applyFilters]);
+
+    const handleFiltersChange = (newFilters: Filters) => {
+        setSearchInput(newFilters.search);
+        applyFilters(newFilters);
     };
 
     const handlePlay = (exercise: Exercise) => {
@@ -100,12 +189,18 @@ export default function ExerciciosPage() {
     };
 
     const removeFilter = (categoryId: string, value: string) => {
-        setFilters((prev) => ({
-            ...prev,
+        const updated = {
+            ...localFilters,
             [categoryId]: (
-                prev[categoryId as keyof Filters] as string[]
+                localFilters[categoryId as keyof Filters] as string[]
             ).filter((v) => v !== value),
-        }));
+        };
+        applyFilters(updated);
+    };
+
+    const clearAllFilters = () => {
+        setSearchInput('');
+        applyFilters(emptyFilters);
     };
 
     const getFilterLabel = (categoryId: string, value: string) => {
@@ -145,20 +240,21 @@ export default function ExerciciosPage() {
                                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="Pesquisar"
-                                        value={filters.search}
+                                        value={searchInput}
                                         onChange={(e) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                search: e.target.value,
-                                            }))
+                                            setSearchInput(e.target.value)
                                         }
                                         className="pl-9"
                                     />
                                 </div>
                                 <Button
-                                    variant={showFilters ? 'secondary' : 'outline'}
+                                    variant={
+                                        showFilters ? 'secondary' : 'outline'
+                                    }
                                     size="sm"
-                                    onClick={() => setShowFilters(!showFilters)}
+                                    onClick={() =>
+                                        setShowFilters(!showFilters)
+                                    }
                                     className="gap-2"
                                 >
                                     <SlidersHorizontal className="h-4 w-4" />
@@ -176,7 +272,7 @@ export default function ExerciciosPage() {
                         </div>
                         {activeFiltersCount > 0 && (
                             <div className="mt-4 flex flex-wrap items-center gap-2">
-                                {Object.entries(filters)
+                                {Object.entries(localFilters)
                                     .filter(([key]) => key !== 'search')
                                     .map(([categoryId, values]) =>
                                         (values as string[]).map((value) => (
@@ -207,7 +303,7 @@ export default function ExerciciosPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setFilters(initialFilters)}
+                                    onClick={clearAllFilters}
                                     className="h-7 text-xs text-muted-foreground"
                                 >
                                     Limpar todos
@@ -218,24 +314,115 @@ export default function ExerciciosPage() {
                     <div className="flex-1 overflow-auto p-6">
                         <div className="mb-4">
                             <p className="text-sm text-muted-foreground">
-                                {filteredExercises.length} exercício
-                                {filteredExercises.length !== 1 ? 's' : ''}{' '}
+                                {exercises.total} exercício
+                                {exercises.total !== 1 ? 's' : ''}{' '}
                                 encontrado
-                                {filteredExercises.length !== 1 ? 's' : ''}
+                                {exercises.total !== 1 ? 's' : ''}
                             </p>
                         </div>
-                        {filteredExercises.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                                {filteredExercises.map((exercise) => (
-                                    <ExerciseCard
-                                        key={exercise.id}
-                                        exercise={exercise}
-                                        onPlay={handlePlay}
-                                        onToggleFavorite={handleToggleFavorite}
-                                        onInfo={() => {}}
-                                    />
-                                ))}
-                            </div>
+                        {exercises.data.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                                    {exercises.data.map((exercise) => (
+                                        <ExerciseCard
+                                            key={exercise.id}
+                                            exercise={exercise}
+                                            onPlay={handlePlay}
+                                            onInfo={() => {}}
+                                        />
+                                    ))}
+                                </div>
+                                {exercises.last_page > 1 && (
+                                    <div className="mt-8 flex items-center justify-center gap-2">
+                                        {exercises.links.map((link, index) => {
+                                            if (index === 0) {
+                                                return (
+                                                    <Button
+                                                        key="prev"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-9 w-9"
+                                                        disabled={!link.url}
+                                                        asChild={!!link.url}
+                                                    >
+                                                        {link.url ? (
+                                                            <Link
+                                                                href={link.url}
+                                                                preserveState
+                                                                preserveScroll
+                                                            >
+                                                                <ChevronLeft className="h-4 w-4" />
+                                                            </Link>
+                                                        ) : (
+                                                            <ChevronLeft className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                );
+                                            }
+                                            if (
+                                                index ===
+                                                exercises.links.length - 1
+                                            ) {
+                                                return (
+                                                    <Button
+                                                        key="next"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-9 w-9"
+                                                        disabled={!link.url}
+                                                        asChild={!!link.url}
+                                                    >
+                                                        {link.url ? (
+                                                            <Link
+                                                                href={link.url}
+                                                                preserveState
+                                                                preserveScroll
+                                                            >
+                                                                <ChevronRight className="h-4 w-4" />
+                                                            </Link>
+                                                        ) : (
+                                                            <ChevronRight className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                );
+                                            }
+                                            return (
+                                                <Button
+                                                    key={link.label}
+                                                    variant={
+                                                        link.active
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
+                                                    size="icon"
+                                                    className="h-9 w-9"
+                                                    disabled={!link.url}
+                                                    asChild={!!link.url}
+                                                >
+                                                    {link.url ? (
+                                                        <Link
+                                                            href={link.url}
+                                                            preserveState
+                                                            preserveScroll
+                                                            dangerouslySetInnerHTML={{
+                                                                __html:
+                                                                    link.label,
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <span
+                                                            dangerouslySetInnerHTML={{
+                                                                __html:
+                                                                    link.label,
+                                                            }}
+                                                        />
+                                                    )}
+                                                </Button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-16 text-center">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
@@ -251,9 +438,7 @@ export default function ExerciciosPage() {
                                 <Button
                                     variant="outline"
                                     className="mt-4"
-                                    onClick={() =>
-                                        setFilters(initialFilters)
-                                    }
+                                    onClick={clearAllFilters}
                                 >
                                     Limpar filtros
                                 </Button>
@@ -264,14 +449,16 @@ export default function ExerciciosPage() {
                 <div
                     className={cn(
                         'flex h-full w-80 flex-shrink-0 flex-col overflow-hidden transition-all duration-300',
-                        showFilters ? 'translate-x-0' : 'w-0 translate-x-full',
+                        showFilters
+                            ? 'translate-x-0'
+                            : 'w-0 translate-x-full',
                     )}
                 >
                     {showFilters && (
                         <ExerciseFilters
                             categories={filterCategories}
-                            filters={filters}
-                            onFiltersChange={setFilters}
+                            filters={localFilters}
+                            onFiltersChange={handleFiltersChange}
                             onClose={() => setShowFilters(false)}
                         />
                     )}

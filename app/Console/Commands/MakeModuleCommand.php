@@ -99,7 +99,7 @@ class MakeModuleCommand extends Command
         ];
 
         foreach ($directories as $directory) {
-            if (! is_dir($directory)) {
+            if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
         }

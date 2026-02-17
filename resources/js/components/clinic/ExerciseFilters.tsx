@@ -25,16 +25,10 @@ interface ExerciseFiltersProps {
 
 const initialFilters: Filters = {
     search: '',
-    specialty: [],
-    bodyArea: [],
-    bodyRegion: [],
-    objective: [],
-    difficulty: [],
-    muscleGroup: [],
-    equipment: [],
-    movementType: [],
-    movementPattern: [],
-    movementForm: [],
+    physio_area_id: [],
+    body_region_id: [],
+    difficulty_level: [],
+    movement_form: [],
 };
 
 export function ExerciseFilters({
@@ -193,15 +187,14 @@ export function ExerciseFilters({
                     })}
                 </div>
             </ScrollArea>
-            <div className="flex items-center justify-between gap-3 border-t border-border p-4">
+            <div className="border-t border-border p-4">
                 <Button
                     variant="ghost"
                     onClick={clearAllFilters}
-                    className="text-muted-foreground"
+                    className="w-full text-muted-foreground"
                 >
                     Limpar filtros
                 </Button>
-                <Button className="flex-1">Ver exercícios</Button>
             </div>
         </div>
     );

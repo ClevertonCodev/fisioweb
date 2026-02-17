@@ -99,7 +99,7 @@ class Video extends Model
 
     public function getHumanDurationAttribute(): ?string
     {
-        if (! $this->duration) {
+        if (!$this->duration) {
             return null;
         }
 

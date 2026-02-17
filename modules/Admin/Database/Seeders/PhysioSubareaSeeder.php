@@ -93,7 +93,7 @@ class PhysioSubareaSeeder extends Seeder
         foreach ($subareas as $areaName => $names) {
             $area = PhysioArea::where('name', $areaName)->first();
 
-            if (! $area) {
+            if (!$area) {
                 continue;
             }
 

@@ -105,6 +105,7 @@ export interface Video {
     size: number;
     duration: number | null;
     status: 'pending' | 'processing' | 'completed' | 'failed';
+    thumbnail_url?: string | null;
     human_size?: string;
     human_duration?: string | null;
 }

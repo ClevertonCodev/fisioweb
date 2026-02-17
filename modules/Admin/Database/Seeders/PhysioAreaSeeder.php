@@ -11,48 +11,52 @@ class PhysioAreaSeeder extends Seeder
     {
         $areas = [
             [
-                'name'        => 'Fisioterapia Aquática',
+                'name'        => 'Aquática',
                 'description' => 'Tratamento em meio aquático para reabilitação e condicionamento.',
             ],
             [
-                'name'        => 'Fisioterapia Cardiovascular',
+                'name'        => 'Cardiovascular',
                 'description' => 'Reabilitação cardíaca e vascular.',
             ],
             [
-                'name'        => 'Fisioterapia Dermatofuncional',
+                'name'        => 'Dermatofuncional',
                 'description' => 'Tratamento de disfunções dermatológicas e estéticas.',
             ],
             [
-                'name'        => 'Fisioterapia Esportiva',
+                'name'        => 'Esportiva',
                 'description' => 'Prevenção e reabilitação de lesões esportivas.',
             ],
             [
-                'name'        => 'Fisioterapia Neurofuncional',
+                'name'        => 'Neurofuncional',
                 'description' => 'Reabilitação de pacientes com disfunções neurológicas.',
             ],
             [
-                'name'        => 'Fisioterapia em Gerontologia',
+                'name'        => 'Gerontologia',
                 'description' => 'Cuidado e reabilitação de pacientes idosos.',
             ],
             [
-                'name'        => 'Fisioterapia Respiratória',
+                'name'        => 'Respiratória',
                 'description' => 'Tratamento de disfunções respiratórias e pulmonares.',
             ],
             [
-                'name'        => 'Fisioterapia Traumato-Ortopédica',
+                'name'        => 'Traumato-Ortopédica',
                 'description' => 'Reabilitação de lesões traumáticas e ortopédicas.',
             ],
             [
-                'name'        => 'Fisioterapia na Saúde da Mulher',
+                'name'        => 'Saúde da Mulher',
                 'description' => 'Saúde pélvica, gestação, pós-parto e disfunções uroginecológicas.',
             ],
             [
-                'name'        => 'Fisioterapia Reumatológica',
+                'name'        => 'Reumatológica',
                 'description' => 'Tratamento de doenças reumáticas e autoimunes.',
             ],
             [
-                'name'        => 'Fisioterapia Pediátrica',
+                'name'        => 'Pediátrica',
                 'description' => 'Reabilitação e desenvolvimento motor infantil.',
+            ],
+            [
+                'name'        => 'Pilates',
+                'description' => 'Método de exercícios para condicionamento físico e mental.',
             ],
         ];
 

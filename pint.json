@@ -9,6 +9,7 @@
         "no_empty_statement": true,
         "no_unused_imports": true,
         "no_whitespace_in_blank_line": true,
+        "not_operator_with_successor_space": false,
         "phpdoc_scalar": true,
         "trailing_comma_in_multiline": {
             "elements": ["arrays"]

@@ -430,7 +430,7 @@ class VideoServiceTest extends TestCase
                     && $data['thumbnail_path'] === 'thumbnails/videos/thumb_1.jpg'
                     && $data['thumbnail_url'] === 'https://cdn.example.com/thumbnails/videos/thumb_1.jpg'
                     && $data['status'] === Video::STATUS_COMPLETED
-                    && ! isset($data['metadata']['pending_thumbnail_path']);
+                    && !isset($data['metadata']['pending_thumbnail_path']);
             })
             ->andReturn($updatedVideo);
 
@@ -517,8 +517,8 @@ class VideoServiceTest extends TestCase
             ->withArgs(function ($id, $data) {
                 return $id === 1
                     && $data['status'] === Video::STATUS_COMPLETED
-                    && ! array_key_exists('thumbnail_path', $data)
-                    && ! array_key_exists('thumbnail_url', $data);
+                    && !array_key_exists('thumbnail_path', $data)
+                    && !array_key_exists('thumbnail_url', $data);
             })
             ->andReturn($updatedVideo);
 

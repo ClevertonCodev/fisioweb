@@ -10,7 +10,7 @@ use Modules\Clinic\Models\Clinic;
 class StoreClinicRequest extends FormRequest
 {
     public function authorize(): bool
-    { 
+    {
         return true;
     }
 

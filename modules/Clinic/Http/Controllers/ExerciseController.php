@@ -59,7 +59,7 @@ class ExerciseController extends Controller
     public function search(Request $request): JsonResponse
     {
         $query = Exercise::query()
-            ->with(['physioArea', 'bodyRegion'])
+            ->with(['physioArea', 'bodyRegion', 'videos'])
             ->active()
             ->latest();
 
@@ -75,8 +75,10 @@ class ExerciseController extends Controller
             $query->where('physio_area_id', $areaId);
         }
 
+        $perPage = min((int) $request->input('per_page', 48), 100);
+
         return response()->json([
-            'data' => $query->limit(20)->get(),
+            'data' => $query->paginate($perPage),
         ]);
     }
 }

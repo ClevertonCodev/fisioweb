@@ -37,6 +37,7 @@ export function ExerciseCard({
     isFavorite = false,
 }: ExerciseCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const fullscreenRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
 
     const video = exercise.videos?.[0];
@@ -64,12 +65,12 @@ export function ExerciseCard({
 
     const toggleFullscreen = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const el = videoRef.current;
-        if (!el || !hasVideo) return;
+        const container = fullscreenRef.current;
+        if (!container || !hasVideo) return;
         if (document.fullscreenElement) {
             document.exitFullscreen();
         } else {
-            el.requestFullscreen().catch(() => {});
+            container.requestFullscreen().catch(() => {});
         }
     };
 
@@ -78,14 +79,19 @@ export function ExerciseCard({
             {/* Área do vídeo 261x261 */}
             <div className="relative h-[261px] w-[261px] shrink-0 overflow-hidden rounded-t-lg bg-muted">
                 {hasVideo ? (
-                    <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        poster={thumbnailUrl ?? undefined}
-                        className="h-full w-full object-cover"
-                        onEnded={handleVideoEnded}
-                        playsInline
-                    />
+                    <div
+                        ref={fullscreenRef}
+                        className="relative h-full w-full [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black [&:fullscreen]:overflow-auto [&:fullscreen]:[&_video]:h-auto [&:fullscreen]:[&_video]:w-auto [&:fullscreen]:[&_video]:max-h-none [&:fullscreen]:[&_video]:max-w-none [&:fullscreen]:[&_video]:object-contain [&:-webkit-full-screen]:flex [&:-webkit-full-screen]:items-center [&:-webkit-full-screen]:justify-center [&:-webkit-full-screen]:bg-black [&:-webkit-full-screen]:overflow-auto [&:-webkit-full-screen]:[&_video]:h-auto [&:-webkit-full-screen]:[&_video]:w-auto [&:-webkit-full-screen]:[&_video]:max-h-none [&:-webkit-full-screen]:[&_video]:max-w-none [&:-webkit-full-screen]:[&_video]:object-contain"
+                    >
+                        <video
+                            ref={videoRef}
+                            src={videoUrl}
+                            poster={thumbnailUrl ?? undefined}
+                            className="h-full w-full object-cover"
+                            onEnded={handleVideoEnded}
+                            playsInline
+                        />
+                    </div>
                 ) : thumbnailUrl ? (
                     <img
                         src={thumbnailUrl}

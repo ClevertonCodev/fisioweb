@@ -111,11 +111,11 @@ export function ExerciseCard({
                             <button
                                 type="button"
                                 onClick={togglePlay}
-                                className="absolute inset-0 flex items-center justify-center transition-colors bg-foreground/0 group-hover:bg-foreground/20"
+                                className="group/play absolute inset-0 flex cursor-pointer items-center justify-center transition-colors bg-foreground/0 hover:bg-foreground/20"
                             >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/40 shadow-sm backdrop-blur-sm transition-colors group-hover:bg-foreground/60">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/40 shadow-sm backdrop-blur-sm transition-colors group-hover/play:bg-foreground/60">
                                     <Play
-                                        className="ml-0.5 h-5 w-5 text-background"
+                                        className="ml-0.5 h-5 w-5 text-background transition-colors group-hover/play:text-primary"
                                         fill="currentColor"
                                     />
                                 </div>
@@ -127,7 +127,7 @@ export function ExerciseCard({
                                 <button
                                     type="button"
                                     onClick={togglePlay}
-                                    className="absolute inset-0 flex items-center justify-center bg-transparent opacity-0 transition-opacity hover:opacity-100 hover:bg-foreground/20"
+                                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent opacity-0 transition-opacity hover:opacity-100 hover:bg-foreground/20"
                                 >
                                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/40 backdrop-blur-sm">
                                         <Pause
@@ -142,7 +142,7 @@ export function ExerciseCard({
                                         <button
                                             type="button"
                                             onClick={toggleFullscreen}
-                                            className="absolute bottom-2 right-2 z-10 flex h-5 w-5 items-center justify-center rounded-md bg-foreground/50 text-background backdrop-blur-sm transition-colors hover:bg-foreground/70"
+                                            className="absolute bottom-2 right-2 z-10 flex h-5 w-5 cursor-pointer items-center justify-center rounded-md bg-foreground/50 text-background backdrop-blur-sm transition-colors hover:bg-foreground/70"
                                             aria-label="Tela cheia"
                                         >
                                             <Maximize className="h-3 w-4" />

@@ -26,8 +26,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     const content = typeof children === 'string' ? children.trim() : children;
     if (content == null || content === '') return null;
     return (
-        <div>
-            <h3 className="mb-1.5 text-sm font-semibold text-foreground">{title}</h3>
+        <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-foreground">{title}</h3>
             <div className="text-sm text-muted-foreground leading-relaxed">{children}</div>
         </div>
     );
@@ -47,50 +47,47 @@ export function ExerciseDescriptionModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl overflow-hidden border-border bg-card p-0">
-                <div className="grid max-h-[85vh] grid-cols-1 md:grid-cols-[1fr,1fr]">
-                    {/* Vídeo à esquerda */}
-                    <div className="flex min-h-0 flex-col border-b border-border md:border-b-0 md:border-r md:border-border">
+                <div className="flex max-h-[85vh] flex-col overflow-y-auto">
+                    <div className="h-[320px] w-full shrink-0 overflow-hidden bg-black">
                         {src ? (
                             <VideoPlayer
                                 src={src}
                                 poster={poster}
                                 title={exercise.name}
-                                className="aspect-video w-full"
+                                className="h-full w-full"
                             />
                         ) : (
-                            <div className="flex aspect-video w-full items-center justify-center bg-muted text-muted-foreground">
+                            <div className="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
                                 Sem vídeo
                             </div>
                         )}
-                        <div className="border-t border-border p-3">
-                            <h2 className="text-base font-semibold text-foreground">{exercise.name}</h2>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                {exercise.physio_area && (
-                                    <span>{exercise.physio_area.name}</span>
+                    </div>
+                    <div className="shrink-0 border-b border-border bg-card p-4">
+                        <h2 className="text-base font-semibold text-foreground">{exercise.name}</h2>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            {exercise.physio_area && (
+                                <span>{exercise.physio_area.name}</span>
+                            )}
+                            {exercise.body_region && (
+                                <>
+                                    <span>•</span>
+                                    <span>{exercise.body_region.name}</span>
+                                </>
+                            )}
+                            <Badge
+                                variant="outline"
+                                className={cn(
+                                    'text-xs',
+                                    difficultyColors[exercise.difficulty_level],
                                 )}
-                                {exercise.body_region && (
-                                    <>
-                                        <span>•</span>
-                                        <span>{exercise.body_region.name}</span>
-                                    </>
-                                )}
-                                <Badge
-                                    variant="outline"
-                                    className={cn(
-                                        'text-xs',
-                                        difficultyColors[exercise.difficulty_level],
-                                    )}
-                                >
-                                    {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
-                                </Badge>
-                            </div>
+                            >
+                                {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
+                            </Badge>
                         </div>
                     </div>
-
-                    {/* Descrição à direita */}
-                    <div className="flex min-h-0 flex-col overflow-y-auto p-5">
-                        <h3 className="mb-4 text-lg font-semibold text-foreground">Descrição do exercício</h3>
-                        <div className="space-y-4">
+                    <div className="min-h-0 flex-1 p-5">
+                        <h3 className="mb-5 text-lg font-semibold text-foreground">Descrição do exercício</h3>
+                        <div className="space-y-6">
                             <Section title="Objetivo terapêutico">
                                 {exercise.therapeutic_goal}
                             </Section>

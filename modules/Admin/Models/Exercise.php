@@ -83,8 +83,6 @@ class Exercise extends Model
         return \Carbon\Carbon::parse($value)->format('d/m/Y H:i');
     }
 
-    // Relacionamentos
-
     public function physioArea(): BelongsTo
     {
         return $this->belongsTo(PhysioArea::class);
@@ -109,8 +107,6 @@ class Exercise extends Model
     {
         return $this->belongsToMany(Video::class, 'exercise_video')->withTimestamps();
     }
-
-    // Scopes
 
     public function scopeActive($query)
     {

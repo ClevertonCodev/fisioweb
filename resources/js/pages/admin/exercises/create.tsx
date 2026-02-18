@@ -7,7 +7,6 @@ import {
     SelectOptions,
     type SelectOption,
 } from '@/components/select-options';
-import { VideoPlayer } from '@/components/video-player';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { VideoPlayer } from '@/components/video-player';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type BodyRegion, type PhysioArea } from '@/types';
 import { type VideoData } from '@/types/video';

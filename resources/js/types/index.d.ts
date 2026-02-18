@@ -143,6 +143,66 @@ export interface Exercise {
     videos?: Video[];
 }
 
+export interface Patient {
+    id: number;
+    name: string;
+    cpf: string | null;
+    email: string | null;
+    phone: string | null;
+    is_active: boolean;
+}
+
+export interface TreatmentPlan {
+    id: number;
+    clinic_id: number;
+    patient_id: number | null;
+    clinic_user_id: number;
+    title: string;
+    message: string | null;
+    physio_area_id: number | null;
+    physio_subarea_id: number | null;
+    start_date: string | null;
+    end_date: string | null;
+    duration_minutes: number | null;
+    status: 'draft' | 'active' | 'completed' | 'cancelled';
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+    patient?: Patient | null;
+    clinic_user?: { id: number; name: string };
+    physio_area?: PhysioArea | null;
+    physio_subarea?: PhysioSubarea | null;
+    groups?: TreatmentPlanGroup[];
+    exercises?: TreatmentPlanExercise[];
+}
+
+export interface TreatmentPlanGroup {
+    id: number;
+    treatment_plan_id: number;
+    name: string;
+    sort_order: number;
+    exercises?: TreatmentPlanExercise[];
+}
+
+export interface TreatmentPlanExercise {
+    id: number;
+    treatment_plan_id: number;
+    treatment_plan_group_id: number | null;
+    exercise_id: number;
+    days_of_week: string[] | null;
+    period: 'morning' | 'afternoon' | 'night' | null;
+    sets_min: number | null;
+    sets_max: number | null;
+    repetitions_min: number | null;
+    repetitions_max: number | null;
+    load_min: number | null;
+    load_max: number | null;
+    rest_time: string | null;
+    notes: string | null;
+    sort_order: number;
+    exercise?: Exercise;
+}
+
 export interface Clinic {
     id: number;
     name: string;

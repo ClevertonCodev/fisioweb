@@ -146,16 +146,11 @@ export function ExerciseCard({
                                 )}
                             >
                                 <div className={cn(
-                                    'flex h-12 w-12 items-center justify-center rounded-full shadow-sm backdrop-blur-sm transition-colors',
-                                    onSelect
-                                        ? 'bg-foreground/40 hover:bg-foreground/60'
-                                        : 'bg-foreground/40 group-hover/play:bg-foreground/60',
+                                    'group/play flex h-12 w-12 items-center justify-center rounded-full shadow-sm backdrop-blur-sm transition-colors',
+                                    'bg-foreground/40 hover:bg-foreground/60',
                                 )}>
                                     <Play
-                                        className={cn(
-                                            'ml-0.5 h-5 w-5 text-background transition-colors',
-                                            !onSelect && 'group-hover/play:text-primary',
-                                        )}
+                                        className="ml-0.5 h-5 w-5 text-background transition-colors group-hover/play:text-primary"
                                         fill="currentColor"
                                     />
                                 </div>
@@ -195,17 +190,16 @@ export function ExerciseCard({
                     </>
                 )}
 
-                {!onSelect && (
-                    <Badge
-                        variant="outline"
-                        className={cn(
-                            'absolute left-2 top-2 pointer-events-none text-xs font-medium',
-                            difficultyColors[exercise.difficulty_level],
-                        )}
-                    >
-                        {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
-                    </Badge>
-                )}
+                <Badge
+                    variant="outline"
+                    className={cn(
+                        'absolute pointer-events-none z-10 text-xs font-medium',
+                        selected ? 'left-10 top-2' : 'left-2 top-2',
+                        difficultyColors[exercise.difficulty_level],
+                    )}
+                >
+                    {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
+                </Badge>
             </div>
 
             {/* Conteúdo: nome + favorito + info */}

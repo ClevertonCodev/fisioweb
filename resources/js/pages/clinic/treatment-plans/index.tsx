@@ -602,8 +602,8 @@ export default function Index({
                     <div className="flex h-full min-h-0 flex-1">
                         {/* Conteúdo principal */}
                         <div className="flex min-w-0 flex-1 flex-col overflow-auto">
-                            {/* Sub-header: busca + filtros */}
-                            <div className="sticky top-[var(--header-h,0px)] z-[5] border-b border-border bg-background/95 px-6 py-4">
+                            {/* Sub-header: busca + filtros (z-index acima dos cards para o badge de dificuldade não sobrepor) */}
+                            <div className="sticky top-[var(--header-h,0px)] z-20 border-b border-border bg-background/95 px-6 py-4">
                                 <div className="flex items-center gap-3">
                                     <div className="relative w-64">
                                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

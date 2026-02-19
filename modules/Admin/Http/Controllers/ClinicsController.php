@@ -53,7 +53,7 @@ class ClinicsController extends Controller
         }
 
         $clinics = $query->orderBy('created_at', 'desc')
-            ->paginate(3)
+            ->paginate($request->get('per_page', 5))
             ->withQueryString();
 
         $plans = Plan::orderBy('name')->get();

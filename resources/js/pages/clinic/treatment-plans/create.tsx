@@ -1,7 +1,9 @@
 import { Head, router } from '@inertiajs/react';
-import { Check, ChevronLeft, ChevronRight, ClipboardList, Copy, Dumbbell, Filter, GripVertical, Pencil, Play, Plus, Search, Settings2, Star, Trash2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ClipboardList, Copy, Dumbbell, Filter, GripVertical, Pencil, Play, Plus, Search, Settings2, Star, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ExerciseCard } from '@/components/clinic/ExerciseCard';
+import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -127,17 +129,20 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [loading, setLoading] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
-    const [panelOpen, setPanelOpen] = useState(true);
+    const [panelOpen, setPanelOpen] = useState(false);
+    const [descriptionExercise, setDescriptionExercise] = useState<Exercise | null>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const fetchExercises = useCallback(
-        (q: string, area: string, p: number) => {
+        (q: string, area: string, p: number, favOnly: boolean) => {
             setLoading(true);
             const params = new URLSearchParams();
             if (q) params.set('search', q);
             if (area) params.set('physio_area_id', area);
+            if (favOnly) params.set('favorites_only', '1');
             params.set('per_page', '24');
             params.set('page', String(p));
 
@@ -157,29 +162,69 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
     );
 
     useEffect(() => {
-        fetchExercises('', '', 1);
+        fetchExercises('', '', 1, false);
     }, [fetchExercises]);
 
     const handleSearchChange = (val: string) => {
         setSearch(val);
         setPage(1);
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => fetchExercises(val, areaId, 1), 400);
+        debounceRef.current = setTimeout(() => fetchExercises(val, areaId, 1, favoritesOnly), 400);
     };
 
     const handleAreaChange = (val: string) => {
         const next = areaId === val ? '' : val;
         setAreaId(next);
         setPage(1);
-        fetchExercises(search, next, 1);
+        fetchExercises(search, next, 1, favoritesOnly);
     };
 
     const handlePageChange = (p: number) => {
         setPage(p);
-        fetchExercises(search, areaId, p);
+        fetchExercises(search, areaId, p, favoritesOnly);
+    };
+
+    const handleToggleFavoritesFilter = () => {
+        const next = !favoritesOnly;
+        setFavoritesOnly(next);
+        setPage(1);
+        fetchExercises(search, areaId, 1, next);
+    };
+
+    const handleToggleFavorite = async (exercise: Exercise) => {
+        try {
+            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            const res = await fetch(`/clinic/exercises/${exercise.id}/toggle-favorite`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+                },
+            });
+            const data = await res.json();
+            setExercises((prev) =>
+                prev.map((ex) =>
+                    ex.id === exercise.id ? { ...ex, is_favorite: data.is_favorite } : ex,
+                ),
+            );
+        } catch {
+            // silently fail
+        }
     };
 
     const isSelected = (id: number) => selected.some((s) => s.exercise_id === id);
+    const hasSelected = selected.length > 0;
+
+    const handleExerciseSelect = (exercise: Exercise) => {
+        if (isSelected(exercise.id)) {
+            onRemove(exercise.id);
+        } else {
+            onSelect(exercise);
+            if (!panelOpen) setPanelOpen(true);
+        }
+    };
 
     return (
         <div className="flex h-full">
@@ -200,7 +245,7 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
 
                 {/* Search + filter bar */}
                 <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-                    <div className="relative flex-1 max-w-sm">
+                    <div className="relative max-w-sm flex-1">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar"
@@ -209,8 +254,13 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
                             className="pl-9"
                         />
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2">
-                        <Star className="h-4 w-4" />
+                    <Button
+                        variant={favoritesOnly ? 'default' : 'outline'}
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleToggleFavoritesFilter}
+                    >
+                        <Star className={cn('h-4 w-4', favoritesOnly && 'fill-current')} />
                         Favoritos
                     </Button>
                     <Button
@@ -246,7 +296,7 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
                 )}
 
                 {/* Grid */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-6">
                     {loading ? (
                         <div className="flex h-40 items-center justify-center">
                             <Spinner />
@@ -258,61 +308,18 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                                {exercises.map((ex) => {
-                                    const sel = isSelected(ex.id);
-                                    const thumb = getExerciseThumbnail(ex);
-                                    return (
-                                        <button
-                                            key={ex.id}
-                                            type="button"
-                                            onClick={() => (sel ? onRemove(ex.id) : onSelect(ex))}
-                                            className={cn(
-                                                'group relative flex flex-col overflow-hidden rounded-xl border-2 text-left transition-all',
-                                                sel
-                                                    ? 'border-teal-600 shadow-md'
-                                                    : 'border-transparent hover:border-teal-600/50',
-                                            )}
-                                        >
-                                            {/* Thumbnail */}
-                                            <div className="relative aspect-[4/5] w-full overflow-hidden bg-teal-700">
-                                                {thumb ? (
-                                                    <img src={thumb} alt={ex.name} className="h-full w-full object-cover" />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center">
-                                                        <Dumbbell className="h-10 w-10 text-white/40" />
-                                                    </div>
-                                                )}
-                                                {ex.videos?.[0]?.cdn_url && !sel && (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 transition-opacity group-hover:opacity-100">
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow">
-                                                            <Play className="ml-0.5 h-5 w-5 text-teal-700" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {sel && (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-teal-600/50">
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-600 shadow">
-                                                            <Check className="h-5 w-5 text-white" />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {/* Info bar */}
-                                            <div className="flex items-center justify-between bg-card px-2 py-1.5">
-                                                <p className="line-clamp-1 flex-1 text-xs font-medium text-card-foreground">
-                                                    {ex.name}
-                                                </p>
-                                                <div className="ml-1 flex items-center gap-1">
-                                                    <Star className="h-3.5 w-3.5 text-muted-foreground/60" />
-                                                    <div className="flex h-4 w-4 items-center justify-center rounded-full border border-muted-foreground/30">
-                                                        <span className="text-[9px] text-muted-foreground">i</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                                {exercises.map((ex) => (
+                                    <ExerciseCard
+                                        key={ex.id}
+                                        exercise={ex}
+                                        selected={isSelected(ex.id)}
+                                        onSelect={handleExerciseSelect}
+                                        onToggleFavorite={handleToggleFavorite}
+                                        isFavorite={!!ex.is_favorite}
+                                        onInfo={(exercise) => setDescriptionExercise(exercise)}
+                                    />
+                                ))}
                             </div>
                             {/* Pagination */}
                             {lastPage > 1 && (
@@ -343,71 +350,82 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
                 </div>
             </div>
 
-            {/* Right: selected panel (colapsável) */}
-            {panelOpen ? (
-                <div className="flex w-72 flex-shrink-0 flex-col border-l border-border">
-                    <div className="flex items-center justify-between border-b border-border p-4">
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
+            {/* Right: selected panel - só aparece quando tem exercícios selecionados */}
+            {hasSelected && (
+                <>
+                    {panelOpen ? (
+                        <div className="flex w-72 flex-shrink-0 flex-col border-l border-border">
+                            <div className="flex items-center justify-between border-b border-border p-4">
+                                <div className="flex min-w-0 flex-1 items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPanelOpen(false)}
+                                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-teal-600 transition-colors hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-teal-950"
+                                        title="Fechar painel"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </button>
+                                    <span className="min-w-0 truncate font-semibold">
+                                        {selected.length} {selected.length === 1 ? 'exercício selecionado' : 'exercícios selecionados'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 space-y-2 overflow-y-auto p-3">
+                                {selected.map((cfg) => (
+                                    <div key={cfg.exercise_id} className="flex items-center gap-2">
+                                        <ExerciseThumb exercise={cfg.exercise} size="sm" />
+                                        <p className="line-clamp-2 min-w-0 flex-1 text-xs font-medium">{cfg.exercise.name}</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemove(cfg.exercise_id)}
+                                            className="flex-shrink-0 text-muted-foreground hover:text-destructive"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="border-t border-border p-4">
+                                <Button
+                                    className="w-full bg-teal-600 text-white hover:bg-teal-700"
+                                    disabled={selected.length === 0}
+                                    onClick={onAdvance}
+                                >
+                                    Avançar
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Botão flutuante para reabrir o painel */
+                        <div className="flex flex-shrink-0 items-center pl-4">
                             <button
                                 type="button"
-                                onClick={() => setPanelOpen(false)}
-                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-teal-600 transition-colors hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-teal-950"
-                                title="Fechar painel"
+                                onClick={() => setPanelOpen(true)}
+                                className="flex items-center gap-3 rounded-xl border-0 bg-teal-600 px-4 py-3 text-left text-white shadow-md transition-colors hover:bg-teal-700"
                             >
-                                <ChevronRight className="h-4 w-4" />
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+                                    <ClipboardList className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Programa com</p>
+                                    <p className="text-base font-bold">
+                                        {selected.length} exercício{selected.length !== 1 ? 's' : ''}
+                                    </p>
+                                </div>
                             </button>
-                            <span className="min-w-0 truncate font-semibold">
-                                {selected.length} {selected.length === 1 ? 'exercício selecionado' : 'exercícios selecionados'}
-                            </span>
                         </div>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                        {selected.map((cfg) => (
-                            <div key={cfg.exercise_id} className="flex items-center gap-2">
-                                <ExerciseThumb exercise={cfg.exercise} size="sm" />
-                                <p className="min-w-0 flex-1 text-xs font-medium line-clamp-2">{cfg.exercise.name}</p>
-                                <button
-                                    type="button"
-                                    onClick={() => onRemove(cfg.exercise_id)}
-                                    className="flex-shrink-0 text-muted-foreground hover:text-destructive"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="border-t border-border p-4">
-                        <Button
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-                            disabled={selected.length === 0}
-                            onClick={onAdvance}
-                        >
-                            Avançar
-                        </Button>
-                    </div>
-                </div>
-            ) : (
-                /* Botão flutuante para reabrir o painel */
-                <div className="flex flex-shrink-0 items-center pl-4">
-                    <button
-                        type="button"
-                        onClick={() => setPanelOpen(true)}
-                        className="flex items-center gap-3 rounded-xl border-0 bg-teal-600 px-4 py-3 text-left text-white shadow-md transition-colors hover:bg-teal-700"
-                    >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
-                            <ClipboardList className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium">Programa com</p>
-                            <p className="text-base font-bold">
-                                {selected.length} exercício{selected.length !== 1 ? 's' : ''}
-                            </p>
-                        </div>
-                    </button>
-                </div>
+                    )}
+                </>
             )}
+
+            {/* Modal de descrição */}
+            <ExerciseDescriptionModal
+                exercise={descriptionExercise}
+                open={!!descriptionExercise}
+                onOpenChange={(open) => !open && setDescriptionExercise(null)}
+            />
         </div>
     );
 }
@@ -524,13 +542,13 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                         <span className="text-sm text-muted-foreground">
                             {editedCount} de {configs.length} editados
                         </span>
-                        <Button className="bg-teal-600 hover:bg-teal-700 text-white" onClick={onAdvance}>
+                        <Button className="bg-teal-600 text-white hover:bg-teal-700" onClick={onAdvance}>
                             Avançar
                         </Button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 space-y-4 overflow-y-auto p-4">
                     {/* Add group button */}
                     <div className="flex justify-start">
                         <Button variant="outline" size="sm" onClick={addGroup} className="gap-2">
@@ -542,7 +560,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                     {/* Group: "Novo grupo" with all exercises */}
                     {groups.length === 0 ? (
                         <div className="rounded-xl border border-border bg-card">
-                            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                            <div className="flex items-center justify-between border-b border-border px-4 py-3">
                                 <div className="flex items-center gap-2">
                                     <span className="font-medium">Novo grupo</span>
                                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">
@@ -583,7 +601,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                 const allInGroup = gi === 0 ? [...groupConfigs, ...ungrouped] : groupConfigs;
                                 return (
                                     <div key={gi} className="rounded-xl border border-border bg-card">
-                                        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                                        <div className="flex items-center justify-between border-b border-border px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 {editingGroupIndex === gi ? (
                                                     <Input
@@ -650,7 +668,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-5">
+                    <div className="flex-1 space-y-5 overflow-y-auto p-4">
                         {/* Dias da semana */}
                         <div>
                             <p className="mb-2 text-sm font-semibold">Dias da semana</p>
@@ -784,11 +802,11 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                         </div>
                     </div>
 
-                    <div className="border-t border-border p-4 flex gap-2">
+                    <div className="flex gap-2 border-t border-border p-4">
                         <Button variant="outline" className="flex-1" onClick={() => setEditingIndex(null)}>
                             Cancelar
                         </Button>
-                        <Button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => setEditingIndex(null)}>
+                        <Button className="flex-1 bg-teal-600 text-white hover:bg-teal-700" onClick={() => setEditingIndex(null)}>
                             Aplicar
                         </Button>
                     </div>
@@ -833,7 +851,7 @@ function ExerciseRow({
             <GripVertical className="h-4 w-4 flex-shrink-0 cursor-grab text-muted-foreground/50 active:cursor-grabbing" />
             <ExerciseThumb exercise={cfg.exercise} size="sm" />
             <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{cfg.exercise.name}</p>
+                <p className="truncate text-sm font-medium">{cfg.exercise.name}</p>
                 <p className="text-xs text-muted-foreground">{getExerciseSpecs(cfg)}</p>
             </div>
             <div className="flex items-center gap-1">
@@ -926,7 +944,7 @@ function Step4({ patients, configs, onBack, onSubmit, processing }: Step4Props) 
                     <h1 className="text-lg font-semibold">Detalhes do programa</h1>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-xl">
+                <div className="max-w-xl flex-1 space-y-4 overflow-y-auto p-6">
                     {/* Título */}
                     <div>
                         <Input
@@ -1027,16 +1045,16 @@ function Step4({ patients, configs, onBack, onSubmit, processing }: Step4Props) 
 
             {/* Right: summary */}
             <div className="flex w-72 flex-shrink-0 flex-col border-l border-border">
-                <div className="p-4 border-b border-border">
+                <div className="border-b border-border p-4">
                     <h2 className="font-semibold">Resumo do programa</h2>
                 </div>
-                <div className="flex-1 p-4 space-y-4">
+                <div className="flex-1 space-y-4 p-4">
                     {/* Thumbnails */}
                     <div className="flex items-center gap-1">
                         {thumbnails.map((t, i) => (
                             <div
                                 key={i}
-                                className="relative h-10 w-10 overflow-hidden rounded-md bg-teal-600 flex-shrink-0"
+                                className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md bg-teal-600"
                                 style={{ marginLeft: i > 0 ? '-8px' : '0' }}
                             >
                                 {t ? (
@@ -1091,7 +1109,7 @@ function Step4({ patients, configs, onBack, onSubmit, processing }: Step4Props) 
 
                 <div className="border-t border-border p-4">
                     <Button
-                        className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                        className="w-full bg-teal-600 text-white hover:bg-teal-700"
                         disabled={!data.title || processing}
                         onClick={() => onSubmit(data)}
                     >

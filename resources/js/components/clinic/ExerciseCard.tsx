@@ -1,4 +1,4 @@
-import { Dumbbell, Info, Maximize, Pause, Play, Star } from 'lucide-react';
+import { Check, Dumbbell, Info, Maximize, Pause, Play, Star } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,9 @@ interface ExerciseCardProps {
     onToggleFavorite?: (exercise: Exercise) => void;
     onInfo?: (exercise: Exercise) => void;
     isFavorite?: boolean;
+    /** Modo seleção: mostra overlay de check quando selecionado */
+    selected?: boolean;
+    onSelect?: (exercise: Exercise) => void;
 }
 
 export function ExerciseCard({
@@ -35,6 +38,8 @@ export function ExerciseCard({
     onToggleFavorite,
     onInfo,
     isFavorite = false,
+    selected = false,
+    onSelect,
 }: ExerciseCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const fullscreenRef = useRef<HTMLDivElement>(null);
@@ -74,10 +79,25 @@ export function ExerciseCard({
         }
     };
 
+    const handleCardClick = () => {
+        if (onSelect) {
+            onSelect(exercise);
+        }
+    };
+
     return (
-        <div className="group relative flex h-[343px] w-[261px] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
-            {/* Área do vídeo 261x261 */}
-            <div className="relative h-[261px] w-[261px] shrink-0 overflow-hidden rounded-t-lg bg-muted">
+        <div
+            onClick={onSelect ? handleCardClick : undefined}
+            className={cn(
+                'group relative flex w-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm transition-all duration-200 hover:shadow-md',
+                onSelect ? 'cursor-pointer' : '',
+                selected
+                    ? 'border-teal-600 shadow-md ring-1 ring-teal-600'
+                    : 'border-border hover:border-teal-600/50',
+            )}
+        >
+            {/* Área do vídeo */}
+            <div className="relative aspect-square w-full shrink-0 overflow-hidden rounded-t-lg bg-muted">
                 {hasVideo ? (
                     <div
                         ref={fullscreenRef}
@@ -104,18 +124,38 @@ export function ExerciseCard({
                     </div>
                 )}
 
-                {/* Play overlay (só quando tem vídeo) */}
+                {/* Check de seleção no canto superior esquerdo */}
+                {onSelect && selected && (
+                    <div className="absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-teal-600 shadow">
+                        <Check className="h-3.5 w-3.5 text-white" />
+                    </div>
+                )}
+
+                {/* Play overlay (sempre disponível quando tem vídeo) */}
                 {hasVideo && (
                     <>
                         {!isPlaying && (
                             <button
                                 type="button"
                                 onClick={togglePlay}
-                                className="group/play absolute inset-0 flex cursor-pointer items-center justify-center transition-colors bg-foreground/0 hover:bg-foreground/20"
+                                className={cn(
+                                    'absolute flex cursor-pointer items-center justify-center',
+                                    onSelect
+                                        ? 'inset-0 z-[5] pointer-events-none [&>div]:pointer-events-auto'
+                                        : 'group/play inset-0 transition-colors bg-foreground/0 hover:bg-foreground/20',
+                                )}
                             >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/40 shadow-sm backdrop-blur-sm transition-colors group-hover/play:bg-foreground/60">
+                                <div className={cn(
+                                    'flex h-12 w-12 items-center justify-center rounded-full shadow-sm backdrop-blur-sm transition-colors',
+                                    onSelect
+                                        ? 'bg-foreground/40 hover:bg-foreground/60'
+                                        : 'bg-foreground/40 group-hover/play:bg-foreground/60',
+                                )}>
                                     <Play
-                                        className="ml-0.5 h-5 w-5 text-background transition-colors group-hover/play:text-primary"
+                                        className={cn(
+                                            'ml-0.5 h-5 w-5 text-background transition-colors',
+                                            !onSelect && 'group-hover/play:text-primary',
+                                        )}
                                         fill="currentColor"
                                     />
                                 </div>
@@ -155,18 +195,20 @@ export function ExerciseCard({
                     </>
                 )}
 
-                <Badge
-                    variant="outline"
-                    className={cn(
-                        'absolute left-2 top-2 pointer-events-none text-xs font-medium',
-                        difficultyColors[exercise.difficulty_level],
-                    )}
-                >
-                    {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
-                </Badge>
+                {!onSelect && (
+                    <Badge
+                        variant="outline"
+                        className={cn(
+                            'absolute left-2 top-2 pointer-events-none text-xs font-medium',
+                            difficultyColors[exercise.difficulty_level],
+                        )}
+                    >
+                        {difficultyLabels[exercise.difficulty_level] ?? exercise.difficulty_level}
+                    </Badge>
+                )}
             </div>
 
-            {/* Conteúdo: nome + (i) na mesma linha */}
+            {/* Conteúdo: nome + favorito + info */}
             <div className="flex flex-1 items-center justify-between gap-2 px-3 py-3">
                 <div className="min-w-0 flex-1">
                     <h3 className="line-clamp-2 text-sm font-medium leading-snug text-card-foreground">
@@ -186,7 +228,10 @@ export function ExerciseCard({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                    onClick={() => onToggleFavorite(exercise)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onToggleFavorite(exercise);
+                                    }}
                                 >
                                     <Star
                                         className={cn(
@@ -207,7 +252,10 @@ export function ExerciseCard({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                onClick={() => onInfo?.(exercise)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onInfo?.(exercise);
+                                }}
                             >
                                 <Info className="h-4 w-4" />
                             </Button>

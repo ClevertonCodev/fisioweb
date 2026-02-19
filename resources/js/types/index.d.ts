@@ -141,6 +141,7 @@ export interface Exercise {
     body_region?: BodyRegion;
     created_by_user?: User;
     videos?: Video[];
+    is_favorite?: boolean;
 }
 
 export interface Patient {

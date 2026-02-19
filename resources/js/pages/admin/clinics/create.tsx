@@ -260,7 +260,9 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone">Telefone</Label>
+                                    <Label htmlFor="phone">
+                                        Telefone <span className="text-destructive">*</span>
+                                    </Label>
                                     <Input
                                         id="phone"
                                         name="phone"
@@ -270,6 +272,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('phone', e.target.value);
                                             if (errors.phone) clearErrors('phone');
                                         }}
+                                        required
                                         placeholder="(00) 00000-0000"
                                         className={errors.phone ? 'border-destructive' : ''}
                                     />
@@ -410,7 +413,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                             <h2 className="text-lg font-semibold">Endereço</h2>
                             <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <Label htmlFor="zip_code">CEP</Label>
+                                    <Label htmlFor="zip_code">CEP <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="zip_code"
                                         name="zip_code"
@@ -420,6 +423,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('zip_code', e.target.value);
                                             if (errors.zip_code) clearErrors('zip_code');
                                         }}
+                                        required
                                         placeholder="00000-000"
                                         className={errors.zip_code ? 'border-destructive' : ''}
                                     />
@@ -427,7 +431,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="address">Endereço</Label>
+                                    <Label htmlFor="address">Endereço <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="address"
                                         name="address"
@@ -437,6 +441,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('address', e.target.value);
                                             if (errors.address) clearErrors('address');
                                         }}
+                                        required
                                         placeholder="Rua, avenida, etc."
                                         className={errors.address ? 'border-destructive' : ''}
                                     />
@@ -444,7 +449,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="number">Número</Label>
+                                    <Label htmlFor="number">Número <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="number"
                                         name="number"
@@ -454,6 +459,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('number', e.target.value);
                                             if (errors.number) clearErrors('number');
                                         }}
+                                        required
                                         placeholder="Número"
                                         className={errors.number ? 'border-destructive' : ''}
                                     />
@@ -461,7 +467,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="city">Cidade</Label>
+                                    <Label htmlFor="city">Cidade <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="city"
                                         name="city"
@@ -471,6 +477,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('city', e.target.value);
                                             if (errors.city) clearErrors('city');
                                         }}
+                                        required
                                         placeholder="Nome da cidade"
                                         className={errors.city ? 'border-destructive' : ''}
                                     />
@@ -478,7 +485,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="state">Estado</Label>
+                                    <Label htmlFor="state">Estado <span className="text-destructive">*</span></Label>
                                     <Input
                                         id="state"
                                         name="state"
@@ -488,6 +495,7 @@ export default function CreateClinic({ plans }: CreateClinicProps) {
                                             setData('state', e.target.value);
                                             if (errors.state) clearErrors('state');
                                         }}
+                                        required
                                         placeholder="UF"
                                         maxLength={2}
                                         className={errors.state ? 'border-destructive' : ''}

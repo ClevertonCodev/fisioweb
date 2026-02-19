@@ -75,6 +75,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
     const [dateFrom, setDateFrom] = useState(filters.date_from || '');
     const [dateTo, setDateTo] = useState(filters.date_to || '');
     const [status, setStatus] = useState(filters.status || '');
+    const [itemsPerPage, setItemsPerPage] = useState<number>(clinics.per_page || 5);
 
     const applyFilters = useCallback(() => {
         router.get(
@@ -85,6 +86,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                 date_from: dateFrom || undefined,
                 date_to: dateTo || undefined,
                 status: status || undefined,
+                per_page: itemsPerPage || undefined,
             },
             {
                 preserveState: true,
@@ -92,7 +94,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                 replace: true,
             }
         );
-    }, [search, planId, dateFrom, dateTo, status]);
+    }, [search, planId, dateFrom, dateTo, status, itemsPerPage]);
 
     const handleSearch = useCallback(
         (e: React.FormEvent) => {
@@ -108,6 +110,7 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
         setDateFrom('');
         setDateTo('');
         setStatus('');
+        setItemsPerPage(5);
         router.get('/admin/clinics', {}, { preserveState: false });
     }, []);
 
@@ -217,6 +220,33 @@ export default function Clinics({ clinics, plans, filters }: ClinicsProps) {
                 </div>
 
                 <div className="flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className='ml-auto w-30 mr-5'>
+                                <Label htmlFor="items_per_page">Itens por página</Label>
+                                <Select
+                                    value={String(itemsPerPage)}
+                                    onValueChange={(value) => {
+                                        const per = Number(value);
+                                        setItemsPerPage(per);
+                                        router.get('/admin/clinics', {per_page: per}, {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                            replace: true,
+                                        })}}
+                                >
+                                    <SelectTrigger id="items_per_page">
+                                        <SelectValue placeholder="Itens por página" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5</SelectItem>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="25">25</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                        </div>
+                    </div>
                     <Table
                         columns={[
                             { title: 'ID', key: 'id' },

@@ -27,7 +27,7 @@ class ClinicsController extends Controller
             $searchDigits = preg_replace('/\D/', '', $search);
             $query->where(function ($q) use ($search, $searchDigits) {
                 $q->whereRaw('LOWER(name) like ?', ['%' . mb_strtolower($search) . '%']);
-                if (strlen($searchDigits) >= 4) {
+                if (strlen($searchDigits) >= 3) {
                     $q->orWhere('document', 'like', "%{$searchDigits}%");
                 }
                 if (ctype_digit($search) && (int) $search > 0) {

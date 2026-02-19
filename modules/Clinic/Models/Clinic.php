@@ -53,7 +53,9 @@ class Clinic extends Model
             return null;
         }
 
-        return \Carbon\Carbon::parse($value)->format('d/m/Y H:i');
+        return \Carbon\Carbon::parse($value, 'UTC')
+            ->setTimezone(config('app.timezone'))
+            ->format('d/m/Y H:i');
     }
 
     public function plan(): BelongsTo

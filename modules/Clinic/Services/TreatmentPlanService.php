@@ -34,16 +34,19 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         return DB::transaction(function () use ($data, $exercises, $groups) {
             $plan = $this->repository->create($data);
 
+            $groupMap = [];
             if (!empty($groups)) {
-                $this->syncGroups($plan, $groups);
+                $groupMap = $this->syncGroups($plan, $groups);
             }
 
             foreach ($exercises as $exerciseData) {
-                $this->addExercise(
-                    $plan,
-                    $exerciseData['exercise_id'],
-                    $exerciseData,
-                );
+                $groupIndex = $exerciseData['group_index'] ?? null;
+                $exerciseData['treatment_plan_group_id'] = ($groupIndex !== null && isset($groupMap[$groupIndex]))
+                    ? $groupMap[$groupIndex]
+                    : null;
+                unset($exerciseData['group_index']);
+
+                $this->addExercise($plan, $exerciseData['exercise_id'], $exerciseData);
             }
 
             return $plan->load(['groups.exercises.exercise', 'exercises.exercise', 'patient', 'clinicUser']);
@@ -59,19 +62,22 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         return DB::transaction(function () use ($id, $data, $exercises, $groups) {
             $plan = $this->repository->update($id, $data);
 
+            $groupMap = [];
             if ($groups !== null) {
-                $this->syncGroups($plan, $groups);
+                $groupMap = $this->syncGroups($plan, $groups);
             }
 
             if ($exercises !== null) {
                 $plan->exercises()->delete();
 
                 foreach ($exercises as $exerciseData) {
-                    $this->addExercise(
-                        $plan,
-                        $exerciseData['exercise_id'],
-                        $exerciseData,
-                    );
+                    $groupIndex = $exerciseData['group_index'] ?? null;
+                    $exerciseData['treatment_plan_group_id'] = ($groupIndex !== null && isset($groupMap[$groupIndex]))
+                        ? $groupMap[$groupIndex]
+                        : null;
+                    unset($exerciseData['group_index']);
+
+                    $this->addExercise($plan, $exerciseData['exercise_id'], $exerciseData);
                 }
             }
 
@@ -114,16 +120,20 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         $plan->exercises()->where('exercise_id', $exerciseId)->delete();
     }
 
-    public function syncGroups(TreatmentPlan $plan, array $groups): void
+    public function syncGroups(TreatmentPlan $plan, array $groups): array
     {
         $plan->groups()->delete();
 
+        $groupMap = [];
         foreach ($groups as $index => $group) {
-            $plan->groups()->create([
+            $created = $plan->groups()->create([
                 'name'       => $group['name'],
                 'sort_order' => $group['sort_order'] ?? $index,
             ]);
+            $groupMap[$index] = $created->id;
         }
+
+        return $groupMap;
     }
 
     /**

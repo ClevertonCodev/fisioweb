@@ -542,14 +542,12 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
         if (editingIndex === null) return;
         const cfg = configs[editingIndex];
         const days = cfg.days_of_week.includes(day) ? cfg.days_of_week.filter((d) => d !== day) : [...cfg.days_of_week, day];
-        updateConfig('days_of_week', days);
-        if (days.length === 7) updateConfig('all_days', true);
-        else updateConfig('all_days', false);
+        onUpdateConfigs(configs.map((c, i) => i === editingIndex ? { ...c, days_of_week: days, all_days: days.length === 7 } : c));
     };
 
     const toggleAllDays = (checked: boolean) => {
-        updateConfig('all_days', checked);
-        updateConfig('days_of_week', checked ? DAYS.map((d) => d.value) : []);
+        if (editingIndex === null) return;
+        onUpdateConfigs(configs.map((c, i) => i === editingIndex ? { ...c, all_days: checked, days_of_week: checked ? DAYS.map((d) => d.value) : [] } : c));
     };
 
     const editingCfg = editingIndex !== null ? configs[editingIndex] : null;
@@ -726,7 +724,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                 <div className="flex w-80 flex-shrink-0 flex-col border-l border-border">
                     <div className="flex items-center justify-between border-b border-border p-4">
                         <h2 className="font-semibold">Editar exercício</h2>
-                        <button type="button" onClick={() => setEditingIndex(null)} className="text-muted-foreground hover:text-foreground">
+                        <button type="button" onClick={() => setEditingIndex(null)} className="cursor-pointer text-muted-foreground hover:text-foreground">
                             <X className="h-4 w-4" />
                         </button>
                     </div>
@@ -742,7 +740,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                         type="button"
                                         onClick={() => toggleDay(day.value)}
                                         className={cn(
-                                            'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-semibold transition-colors',
+                                            'flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border text-xs font-semibold transition-colors',
                                             editingCfg.days_of_week.includes(day.value)
                                                 ? 'border-teal-600 bg-teal-600 text-white'
                                                 : 'border-border bg-background text-foreground hover:border-teal-600',
@@ -757,6 +755,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                     id="all-days"
                                     checked={editingCfg.all_days}
                                     onCheckedChange={(c) => toggleAllDays(!!c)}
+                                    className="cursor-pointer"
                                 />
                                 <label htmlFor="all-days" className="cursor-pointer text-sm">
                                     Todos os dias
@@ -778,7 +777,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                         type="button"
                                         onClick={() => updateConfig('period', editingCfg.period === p.value ? '' : p.value)}
                                         className={cn(
-                                            'flex-1 rounded-lg border py-2 text-sm font-medium transition-colors',
+                                            'flex-1 cursor-pointer rounded-lg border py-2 text-sm font-medium transition-colors',
                                             editingCfg.period === p.value
                                                 ? 'border-teal-600 bg-teal-600 text-white'
                                                 : 'border-border bg-background hover:border-teal-600',
@@ -798,7 +797,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                     <select
                                         value={editingCfg.sets_min}
                                         onChange={(e) => updateConfig('sets_min', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        className="w-full cursor-pointer rounded-lg border border-border bg-background px-3 py-2 text-sm"
                                     >
                                         <option value="">Mínima</option>
                                         {SETS_OPTIONS.slice(1).map((v) => (
@@ -810,7 +809,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                     <select
                                         value={editingCfg.sets_max}
                                         onChange={(e) => updateConfig('sets_max', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        className="w-full cursor-pointer rounded-lg border border-border bg-background px-3 py-2 text-sm"
                                     >
                                         <option value="">Máxima</option>
                                         {SETS_OPTIONS.slice(1).map((v) => (
@@ -829,7 +828,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                     <select
                                         value={editingCfg.repetitions_min}
                                         onChange={(e) => updateConfig('repetitions_min', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        className="w-full cursor-pointer rounded-lg border border-border bg-background px-3 py-2 text-sm"
                                     >
                                         <option value="">Mínima</option>
                                         {REPS_OPTIONS.slice(1).map((v) => (
@@ -841,7 +840,7 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                     <select
                                         value={editingCfg.repetitions_max}
                                         onChange={(e) => updateConfig('repetitions_max', e.target.value)}
-                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                                        className="w-full cursor-pointer rounded-lg border border-border bg-background px-3 py-2 text-sm"
                                     >
                                         <option value="">Máxima</option>
                                         {REPS_OPTIONS.slice(1).map((v) => (
@@ -1233,7 +1232,7 @@ export default function Create({ patients, physioAreas, physioSubareas, periods 
                 groups: groups.map((g, i) => ({ name: g.name, sort_order: i })),
                 exercises: configs.map((c, i) => ({
                     exercise_id: c.exercise_id,
-                    treatment_plan_group_id: null,
+                    group_index: c.group_index,
                     days_of_week: c.days_of_week.length > 0 ? c.days_of_week : null,
                     period: c.period || null,
                     sets_min: c.sets_min ? Number(c.sets_min) : null,

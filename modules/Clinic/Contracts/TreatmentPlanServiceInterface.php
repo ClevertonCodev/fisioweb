@@ -21,7 +21,7 @@ interface TreatmentPlanServiceInterface
 
     public function removeExercise(TreatmentPlan $plan, int $exerciseId): void;
 
-    public function syncGroups(TreatmentPlan $plan, array $groups): void;
+    public function syncGroups(TreatmentPlan $plan, array $groups): array;
 
     public function duplicate(int $id): TreatmentPlan;
 }

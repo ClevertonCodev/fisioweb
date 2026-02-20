@@ -34,7 +34,7 @@ class TreatmentPlanStoreRequest extends FormRequest
 
             'exercises'                           => ['nullable', 'array'],
             'exercises.*.exercise_id'             => ['required_with:exercises', 'exists:exercises,id'],
-            'exercises.*.treatment_plan_group_id' => ['nullable', 'integer'],
+            'exercises.*.group_index'             => ['nullable', 'integer', 'min:0'],
             'exercises.*.days_of_week'            => ['nullable', 'array'],
             'exercises.*.days_of_week.*'          => ['string', Rule::in(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'all'])],
             'exercises.*.period'                  => ['nullable', Rule::in(array_keys(TreatmentPlanExercise::PERIODS))],

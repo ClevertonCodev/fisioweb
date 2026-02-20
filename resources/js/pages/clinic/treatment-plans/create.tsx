@@ -193,14 +193,20 @@ function Step1({ physioAreas, selected, onSelect, onRemove, onAdvance }: Step1Pr
 
     const handleToggleFavorite = async (exercise: Exercise) => {
         try {
-            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            const rawCookie = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('XSRF-TOKEN='))
+                ?.split('=')
+                .slice(1)
+                .join('=');
+            const csrfToken = rawCookie ? decodeURIComponent(rawCookie) : undefined;
             const res = await fetch(`/clinic/exercises/${exercise.id}/toggle-favorite`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+                    ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
                 },
             });
             const data = await res.json();
@@ -447,6 +453,9 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
     const [groupNameDraft, setGroupNameDraft] = useState('');
     const [dragIndex, setDragIndex] = useState<number | null>(null);
     const [dragOver, setDragOver] = useState<number | null>(null);
+    const [defaultGroupName, setDefaultGroupName] = useState('Novo grupo');
+    const [editingDefaultGroup, setEditingDefaultGroup] = useState(false);
+    const [defaultGroupNameDraft, setDefaultGroupNameDraft] = useState('');
 
     const editedCount = configs.filter(hasConfig).length;
 
@@ -478,6 +487,30 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
     const duplicateExercise = (i: number) => {
         const copy = { ...configs[i], sort_order: configs.length };
         onUpdateConfigs([...configs, copy]);
+    };
+
+    const startRenameDefaultGroup = () => {
+        setEditingDefaultGroup(true);
+        setDefaultGroupNameDraft(defaultGroupName);
+    };
+
+    const commitRenameDefaultGroup = () => {
+        if (defaultGroupNameDraft.trim()) setDefaultGroupName(defaultGroupNameDraft.trim());
+        setEditingDefaultGroup(false);
+    };
+
+    const duplicateDefaultGroup = () => {
+        const copies = configs.map((c, i) => ({ ...c, sort_order: configs.length + i }));
+        onUpdateConfigs([...configs, ...copies]);
+    };
+
+    const duplicateGroup = (gi: number) => {
+        const groupConfigs = configs.filter((c) => c.group_index === gi || (gi === 0 && c.group_index === null));
+        const newGroupIndex = groups.length;
+        const newGroup = { name: `${groups[gi].name} (cópia)`, sort_order: newGroupIndex };
+        const copies = groupConfigs.map((c, i) => ({ ...c, group_index: newGroupIndex, sort_order: configs.length + i }));
+        onUpdateGroups([...groups, newGroup]);
+        onUpdateConfigs([...configs, ...copies]);
     };
 
     const addGroup = () => {
@@ -562,17 +595,39 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                         <div className="rounded-xl border border-border bg-card">
                             <div className="flex items-center justify-between border-b border-border px-4 py-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium">Novo grupo</span>
-                                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">
-                                        {configs.length}
-                                    </span>
-                                    <button type="button" className="text-muted-foreground hover:text-foreground">
-                                        <Pencil className="h-3.5 w-3.5" />
-                                    </button>
+                                    {editingDefaultGroup ? (
+                                        <input
+                                            value={defaultGroupNameDraft}
+                                            onChange={(e) => setDefaultGroupNameDraft(e.target.value)}
+                                            onBlur={commitRenameDefaultGroup}
+                                            onKeyDown={(e) => e.key === 'Enter' && commitRenameDefaultGroup()}
+                                            className="h-7 w-40 rounded-md border border-border bg-background px-2 text-sm"
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <>
+                                            <span className="font-medium">{defaultGroupName}</span>
+                                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600 text-xs font-bold text-white">
+                                                {configs.length}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={startRenameDefaultGroup}
+                                                className="cursor-pointer text-muted-foreground hover:text-foreground"
+                                            >
+                                                <Pencil className="h-3.5 w-3.5" />
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-1 text-muted-foreground">
+                                <button
+                                    type="button"
+                                    onClick={duplicateDefaultGroup}
+                                    title="Duplicar grupo"
+                                    className="cursor-pointer text-muted-foreground hover:text-foreground"
+                                >
                                     <Copy className="h-4 w-4" />
-                                </div>
+                                </button>
                             </div>
                             <div className="divide-y divide-border">
                                 {configs.map((cfg, i) => (
@@ -621,13 +676,21 @@ function Step2({ configs, groups, onUpdateConfigs, onUpdateGroups, onBack, onAdv
                                                         <button
                                                             type="button"
                                                             onClick={() => startRenameGroup(gi)}
-                                                            className="text-muted-foreground hover:text-foreground"
+                                                            className="cursor-pointer text-muted-foreground hover:text-foreground"
                                                         >
                                                             <Pencil className="h-3.5 w-3.5" />
                                                         </button>
                                                     </>
                                                 )}
                                             </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => duplicateGroup(gi)}
+                                                title="Duplicar grupo"
+                                                className="cursor-pointer text-muted-foreground hover:text-foreground"
+                                            >
+                                                <Copy className="h-4 w-4" />
+                                            </button>
                                         </div>
                                         <div className="divide-y divide-border">
                                             {allInGroup.map((cfg) => {
@@ -860,7 +923,7 @@ function ExerciseRow({
                     onClick={onEdit}
                     title="Editar exercício"
                     className={cn(
-                        'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+                        'flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg transition-colors',
                         isEditing
                             ? 'bg-teal-600 text-white'
                             : 'bg-teal-600/10 text-teal-600 hover:bg-teal-600 hover:text-white',
@@ -871,14 +934,14 @@ function ExerciseRow({
                 <button
                     type="button"
                     onClick={onRemove}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:text-destructive"
                 >
                     <Trash2 className="h-4 w-4" />
                 </button>
                 <button
                     type="button"
                     onClick={onDuplicate}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:text-foreground"
                 >
                     <Copy className="h-4 w-4" />
                 </button>

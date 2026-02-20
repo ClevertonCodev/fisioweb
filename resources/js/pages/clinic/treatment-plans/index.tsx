@@ -166,6 +166,11 @@ export default function Index({
 
     // ── Estado: aba Exercícios ─────────────────────────────────────────────
     const [showFilters, setShowFilters] = useState(true);
+    const [localExercises, setLocalExercises] = useState<Exercise[]>(exercises.data);
+
+    useEffect(() => {
+        setLocalExercises(exercises.data);
+    }, [exercises.data]);
     const [descriptionModalExercise, setDescriptionModalExercise] = useState<Exercise | null>(null);
     const [exerciseSearchInput, setExerciseSearchInput] = useState(serverExerciseFilters.search ?? '');
     const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -299,6 +304,41 @@ export default function Index({
         const category = filterCategories.find((c) => c.id === categoryId);
         return category?.options.find((o) => o.value === value)?.label ?? value;
     };
+
+    const handleToggleFavorite = useCallback(async (exercise: Exercise) => {
+        setLocalExercises((prev) =>
+            prev.map((ex) => (ex.id === exercise.id ? { ...ex, is_favorite: !ex.is_favorite } : ex)),
+        );
+
+        try {
+            const rawCookie = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('XSRF-TOKEN='))
+                ?.split('=')
+                .slice(1)
+                .join('=');
+            const csrfToken = rawCookie ? decodeURIComponent(rawCookie) : undefined;
+
+            const res = await fetch(`/clinic/exercises/${exercise.id}/toggle-favorite`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
+                },
+            });
+
+            const data = await res.json();
+            setLocalExercises((prev) =>
+                prev.map((ex) => (ex.id === exercise.id ? { ...ex, is_favorite: data.is_favorite } : ex)),
+            );
+        } catch {
+            setLocalExercises((prev) =>
+                prev.map((ex) => (ex.id === exercise.id ? { ...ex, is_favorite: !ex.is_favorite } : ex)),
+            );
+        }
+    }, []);
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -674,13 +714,15 @@ export default function Index({
                                     </p>
                                 </div>
 
-                                {exercises.data.length > 0 ? (
+                                {localExercises.length > 0 ? (
                                     <>
                                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                            {exercises.data.map((exercise) => (
+                                            {localExercises.map((exercise) => (
                                                 <ExerciseCard
                                                     key={exercise.id}
                                                     exercise={exercise}
+                                                    isFavorite={!!exercise.is_favorite}
+                                                    onToggleFavorite={handleToggleFavorite}
                                                     onInfo={(ex) => setDescriptionModalExercise(ex)}
                                                 />
                                             ))}

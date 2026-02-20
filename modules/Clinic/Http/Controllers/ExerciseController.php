@@ -2,7 +2,6 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,10 +10,19 @@ use Modules\Admin\Models\BodyRegion;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
 
-class ExerciseController extends Controller
+class ExerciseController extends BaseController
 {
+    public function __construct() {
+        parent::__construct();
+    }
+
     public function index(Request $request): Response
     {
+        $user = 
+        $favoriteIds = $this->user
+            ? $this->user->exerciseFavorites()->pluck('exercise_id')->toArray()
+            : [];
+
         $query = Exercise::query()
             ->with(['physioArea', 'bodyRegion', 'videos'])
             ->active()
@@ -45,6 +53,11 @@ class ExerciseController extends Controller
         }
 
         $exercises = $query->paginate(24)->withQueryString();
+        $exercises->getCollection()->transform(function ($exercise) use ($favoriteIds) {
+            $exercise->is_favorite = in_array($exercise->id, $favoriteIds);
+
+            return $exercise;
+        });
 
         return Inertia::render('clinic/exercises/index', [
             'exercises'     => $exercises,
@@ -58,6 +71,11 @@ class ExerciseController extends Controller
 
     public function search(Request $request): JsonResponse
     {
+        $user = $this->user;
+        $favoriteIds = $this->user
+            ? $this->user->exerciseFavorites()->pluck('exercise_id')->toArray()
+            : [];
+
         $query = Exercise::query()
             ->with(['physioArea', 'bodyRegion', 'videos'])
             ->active()
@@ -75,10 +93,22 @@ class ExerciseController extends Controller
             $query->where('physio_area_id', $areaId);
         }
 
+        if ($request->boolean('favorites_only') && count($favoriteIds) > 0) {
+            $query->whereIn('id', $favoriteIds);
+        }
+
         $perPage = min((int) $request->input('per_page', 48), 100);
 
+        $paginated = $query->paginate($perPage);
+
+        $paginated->getCollection()->transform(function ($exercise) use ($favoriteIds) {
+            $exercise->is_favorite = in_array($exercise->id, $favoriteIds);
+
+            return $exercise;
+        });
+
         return response()->json([
-            'data' => $query->paginate($perPage),
+            'data' => $paginated,
         ]);
     }
 }

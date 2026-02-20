@@ -2,6 +2,7 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,6 +36,8 @@ class TreatmentPlanController extends BaseController
         $physioAreas = PhysioArea::orderBy('name')->get(['id', 'name']);
 
         if ($tab === self::TAB_EXERCISES) {
+            $favoriteIds = $this->user->exerciseFavorites()->pluck('exercise_id')->toArray();
+
             $query = Exercise::query()
                 ->with(['physioArea', 'bodyRegion', 'videos'])
                 ->active()
@@ -64,9 +67,16 @@ class TreatmentPlanController extends BaseController
                 $query->whereIn('movement_form', (array) $forms);
             }
 
+            $exercisesPaginated = $query->paginate(24)->withQueryString();
+            $exercisesPaginated->getCollection()->transform(function ($exercise) use ($favoriteIds) {
+                $exercise->is_favorite = in_array($exercise->id, $favoriteIds);
+
+                return $exercise;
+            });
+
             return Inertia::render('clinic/treatment-plans/index', [
                 'tab'             => self::TAB_EXERCISES,
-                'exercises'       => $query->paginate(24)->withQueryString(),
+                'exercises'       => $exercisesPaginated,
                 'exerciseFilters' => $request->only(['search', 'physio_area_id', 'body_region_id', 'difficulty_level', 'movement_form']),
                 'physioAreas'     => $physioAreas,
                 'bodyRegions'     => BodyRegion::orderBy('name')->get(['id', 'name']),
@@ -195,20 +205,24 @@ class TreatmentPlanController extends BaseController
             ->with('success', 'Plano duplicado com sucesso. Edite os dados conforme necessário.');
     }
 
-    public function toggleFavorite(Request $request, int $exerciseId): RedirectResponse
+    public function toggleFavorite(Request $request, int $exerciseId): JsonResponse|RedirectResponse
     {
         $user   = $this->user;
         $exists = $user->exerciseFavorites()->where('exercise_id', $exerciseId)->exists();
 
         if ($exists) {
             $user->exerciseFavorites()->where('exercise_id', $exerciseId)->delete();
-            $message = 'Exercício removido dos favoritos.';
+            $isFavorite = false;
         } else {
             $user->exerciseFavorites()->create(['exercise_id' => $exerciseId]);
-            $message = 'Exercício adicionado aos favoritos.';
+            $isFavorite = true;
         }
 
-        return back()->with('success', $message);
+        if ($request->wantsJson()) {
+            return response()->json(['is_favorite' => $isFavorite]);
+        }
+
+        return back()->with('success', $isFavorite ? 'Exercício adicionado aos favoritos.' : 'Exercício removido dos favoritos.');
     }
 
     protected function authorizeClinic(TreatmentPlan $plan): void

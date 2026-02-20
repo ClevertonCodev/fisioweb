@@ -132,7 +132,7 @@ class TreatmentPlanController extends BaseController
         $this->service->create($data);
 
         return redirect()
-            ->route('treatment-plans.index')
+            ->route('clinic.treatment-plans.index')
             ->with('success', 'Plano de tratamento criado com sucesso.');
     }
 
@@ -177,7 +177,7 @@ class TreatmentPlanController extends BaseController
         $this->service->update($id, $request->validated());
 
         return redirect()
-            ->route('treatment-plans.show', $id)
+            ->route('clinic.treatment-plans.show', $id)
             ->with('success', 'Plano de tratamento atualizado com sucesso.');
     }
 
@@ -189,7 +189,7 @@ class TreatmentPlanController extends BaseController
         $this->service->delete($id);
 
         return redirect()
-            ->route('treatment-plans.index')
+            ->route('clinic.treatment-plans.index')
             ->with('success', 'Plano de tratamento excluído com sucesso.');
     }
 
@@ -201,7 +201,7 @@ class TreatmentPlanController extends BaseController
         $newPlan = $this->service->duplicate($id);
 
         return redirect()
-            ->route('treatment-plans.edit', $newPlan->id)
+            ->route('clinic.treatment-plans.edit', $newPlan->id)
             ->with('success', 'Plano duplicado com sucesso. Edite os dados conforme necessário.');
     }
 

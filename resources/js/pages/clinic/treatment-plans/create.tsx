@@ -1070,19 +1070,21 @@ function Step4({ patients, configs, onBack, onSubmit, processing }: Step4Props) 
                     {/* Datas */}
                     <div className="flex gap-3">
                         <div className="flex-1">
-                            <label className="mb-1 block text-xs text-muted-foreground">Início</label>
+                            <label className="mb-1 block cursor-pointer text-xs text-muted-foreground">Início</label>
                             <Input
                                 type="date"
                                 value={data.start_date}
                                 onChange={(e) => setData((d) => ({ ...d, start_date: e.target.value }))}
+                                className="cursor-pointer"
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="mb-1 block text-xs text-muted-foreground">Término</label>
+                            <label className="mb-1 block cursor-pointer text-xs text-muted-foreground">Término</label>
                             <Input
                                 type="date"
                                 value={data.end_date}
                                 onChange={(e) => setData((d) => ({ ...d, end_date: e.target.value }))}
+                                className="cursor-pointer"
                             />
                         </div>
                     </div>
@@ -1171,12 +1173,12 @@ function Step4({ patients, configs, onBack, onSubmit, processing }: Step4Props) 
 
                 <div className="border-t border-border p-4">
                     <Button
-                        className="w-full bg-teal-600 text-white hover:bg-teal-700"
+                        className="w-full cursor-pointer bg-teal-600 text-white hover:bg-teal-700"
                         disabled={!data.title || processing}
                         onClick={() => onSubmit(data)}
                     >
                         {processing && <Spinner className="mr-2" />}
-                        Salvar e enviar programa
+                        {data.patient_id ? 'Salvar e enviar programa' : 'Salvar como modelo'}
                     </Button>
                 </div>
             </div>

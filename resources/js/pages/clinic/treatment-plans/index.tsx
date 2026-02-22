@@ -87,11 +87,10 @@ interface IndexProps {
 // ─── Configurações de status ───────────────────────────────────────────────────
 
 const STATUS_BADGE_CLASS: Record<string, string> = {
-    draft: 'border-border text-muted-foreground',
-    active: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300',
-    completed:
-        'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-    cancelled: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300',
+    draft: 'border-border text-muted-foreground bg-gray-50',
+    active: 'border-transparent bg-blue-500 text-white',
+    completed: 'border-transparent bg-primary text-primary-foreground',
+    cancelled: 'border-transparent bg-destructive text-destructive-foreground',
 };
 
 const STATUS_PROGRESS_CLASS: Record<string, string> = {

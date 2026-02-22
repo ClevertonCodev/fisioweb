@@ -17,9 +17,9 @@ import type { TreatmentPlan, TreatmentPlanExercise } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
     draft: 'text-gray-600 border-gray-200 bg-gray-50',
-    active: 'text-emerald-600 border-emerald-200 bg-emerald-50',
-    completed: 'text-blue-600 border-blue-200 bg-blue-50',
-    cancelled: 'text-red-600 border-red-200 bg-red-50',
+    active: 'border-transparent bg-blue-500 text-white',
+    completed: 'border-transparent bg-primary text-primary-foreground',
+    cancelled: 'border-transparent bg-destructive text-destructive-foreground',
 };
 
 const PERIOD_LABELS: Record<string, string> = {

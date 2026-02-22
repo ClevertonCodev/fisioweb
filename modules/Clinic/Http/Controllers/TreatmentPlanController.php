@@ -155,7 +155,7 @@ class TreatmentPlanController extends BaseController
     public function edit(int $id): Response
     {
         $plan = $this->service->find($id);
-        $plan->load(['groups.exercises.exercise', 'exercises.exercise', 'patient']);
+        $plan->load(['groups.exercises.exercise.videos', 'exercises.exercise.videos', 'patient']);
 
         $this->authorizeClinic($plan);
 

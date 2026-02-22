@@ -10,8 +10,8 @@ class PdfService
     /**
      * Gera o PDF de uma Blade view e força o download no browser.
      *
-     * @param  string  $view      Nome da view Blade (ex: 'pdf.clinic.treatment-plan')
-     * @param  array   $data      Dados passados para a view
+     * @param  string  $view  Nome da view Blade (ex: 'pdf.clinic.treatment-plan')
+     * @param  array  $data  Dados passados para a view
      * @param  string  $filename  Nome do arquivo para download
      */
     public function download(string $view, array $data = [], string $filename = 'documento.pdf'): Response

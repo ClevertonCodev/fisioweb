@@ -2,7 +2,6 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use Modules\Pdf\Services\PdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,10 +18,12 @@ use Modules\Clinic\Http\Requests\TreatmentPlanUpdateRequest;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Models\TreatmentPlanExercise;
 use Modules\Patient\Models\Patient;
+use Modules\Pdf\Services\PdfService;
 
 class TreatmentPlanController extends BaseController
-{   
+{
     const TAB_EXERCISES = 'exercicios';
+
     const TAB_HISTORY = 'historico';
 
     public function __construct(
@@ -33,8 +34,8 @@ class TreatmentPlanController extends BaseController
 
     public function index(Request $request): Response
     {
-        $clinicId  = $this->clinic->id;
-        $tab       = $request->input('tab', self::TAB_HISTORY);
+        $clinicId    = $this->clinic->id;
+        $tab         = $request->input('tab', self::TAB_HISTORY);
         $physioAreas = PhysioArea::orderBy('name')->get(['id', 'name']);
 
         if ($tab === self::TAB_EXERCISES) {
@@ -84,10 +85,10 @@ class TreatmentPlanController extends BaseController
                 'bodyRegions'     => BodyRegion::orderBy('name')->get(['id', 'name']),
                 'difficulties'    => Exercise::DIFFICULTIES,
                 'movementForms'   => Exercise::MOVEMENT_FORMS,
-                'plans'    => ['data' => [], 'current_page' => 1, 'last_page' => 1, 'total' => 0, 'links' => []],
-                'filters'  => [],
-                'statuses' => TreatmentPlan::STATUSES,
-                'patients' => [],
+                'plans'           => ['data' => [], 'current_page' => 1, 'last_page' => 1, 'total' => 0, 'links' => []],
+                'filters'         => [],
+                'statuses'        => TreatmentPlan::STATUSES,
+                'patients'        => [],
             ]);
         }
 
@@ -97,12 +98,12 @@ class TreatmentPlanController extends BaseController
         );
 
         return Inertia::render('clinic/treatment-plans/index', [
-            'tab'      => self::TAB_HISTORY,
-            'plans'    => $plans,
-            'filters'  => $request->only(['search', 'status', 'patient_id', 'physio_area_id']),
-            'statuses' => TreatmentPlan::STATUSES,
-            'patients' => Patient::where('clinic_id', $clinicId)->orderBy('name')->get(['id', 'name']),
-            'physioAreas' => $physioAreas,
+            'tab'             => self::TAB_HISTORY,
+            'plans'           => $plans,
+            'filters'         => $request->only(['search', 'status', 'patient_id', 'physio_area_id']),
+            'statuses'        => TreatmentPlan::STATUSES,
+            'patients'        => Patient::where('clinic_id', $clinicId)->orderBy('name')->get(['id', 'name']),
+            'physioAreas'     => $physioAreas,
             'exercises'       => ['data' => [], 'current_page' => 1, 'last_page' => 1, 'total' => 0, 'links' => []],
             'exerciseFilters' => [],
             'bodyRegions'     => [],

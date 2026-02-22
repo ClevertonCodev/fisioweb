@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
+import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import FlashMessage from '@/components/flash-message';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -152,6 +152,7 @@ export default function Index({
     plans,
     filters,
     statuses,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- prop enviada pelo backend, reservada para uso futuro
     patients,
     exercises,
     exerciseFilters: serverExerciseFilters,
@@ -168,7 +169,8 @@ export default function Index({
     const [localExercises, setLocalExercises] = useState<Exercise[]>(exercises.data);
 
     useEffect(() => {
-        setLocalExercises(exercises.data);
+        const id = setTimeout(() => setLocalExercises(exercises.data), 0);
+        return () => clearTimeout(id);
     }, [exercises.data]);
     const [descriptionModalExercise, setDescriptionModalExercise] = useState<Exercise | null>(null);
     const [exerciseSearchInput, setExerciseSearchInput] = useState(serverExerciseFilters.search ?? '');

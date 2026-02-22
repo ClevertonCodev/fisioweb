@@ -13,7 +13,6 @@ class BaseController extends Controller
     /** @var \Modules\Clinic\Models\Clinic|null */
     protected $clinic;
 
-
     public function __construct()
     {
         $this->user = auth('clinic')->user();

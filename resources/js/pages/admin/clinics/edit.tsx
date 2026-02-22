@@ -86,7 +86,7 @@ export default function EditClinic({ clinic, plans }: EditClinicProps) {
             }));
             put(`/admin/clinics/${clinic.id}`);
         },
-        [clinic.id, data.document, documentError, put, transform]
+        [clinic.id, documentError, put, transform]
     );
 
     return (

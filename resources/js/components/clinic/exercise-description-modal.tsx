@@ -1,6 +1,6 @@
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { VideoPlayer } from '@/components/video-player';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { Exercise } from '@/types';
 

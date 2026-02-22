@@ -40,7 +40,7 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
             }
 
             foreach ($exercises as $exerciseData) {
-                $groupIndex = $exerciseData['group_index'] ?? null;
+                $groupIndex                              = $exerciseData['group_index'] ?? null;
                 $exerciseData['treatment_plan_group_id'] = ($groupIndex !== null && isset($groupMap[$groupIndex]))
                     ? $groupMap[$groupIndex]
                     : null;
@@ -71,7 +71,7 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
                 $plan->exercises()->delete();
 
                 foreach ($exercises as $exerciseData) {
-                    $groupIndex = $exerciseData['group_index'] ?? null;
+                    $groupIndex                              = $exerciseData['group_index'] ?? null;
                     $exerciseData['treatment_plan_group_id'] = ($groupIndex !== null && isset($groupMap[$groupIndex]))
                         ? $groupMap[$groupIndex]
                         : null;

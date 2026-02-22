@@ -9,8 +9,8 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
+import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

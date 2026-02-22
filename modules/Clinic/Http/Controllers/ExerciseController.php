@@ -12,13 +12,14 @@ use Modules\Admin\Models\PhysioArea;
 
 class ExerciseController extends BaseController
 {
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
     public function index(Request $request): Response
     {
-        $user = 
+        $user        =
         $favoriteIds = $this->user
             ? $this->user->exerciseFavorites()->pluck('exercise_id')->toArray()
             : [];
@@ -71,7 +72,7 @@ class ExerciseController extends BaseController
 
     public function search(Request $request): JsonResponse
     {
-        $user = $this->user;
+        $user        = $this->user;
         $favoriteIds = $this->user
             ? $this->user->exerciseFavorites()->pluck('exercise_id')->toArray()
             : [];

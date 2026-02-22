@@ -2,8 +2,8 @@ import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, ClipboardList, Dumbbell, Filter, Search, Star, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
+import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
@@ -59,7 +59,8 @@ export function Step1({ title = 'Novo programa', backUrl, physioAreas, selected,
     }, []);
 
     useEffect(() => {
-        fetchExercises('', '', 1, false);
+        const id = setTimeout(() => fetchExercises('', '', 1, false), 0);
+        return () => clearTimeout(id);
     }, [fetchExercises]);
 
     const handleSearchChange = (val: string) => {

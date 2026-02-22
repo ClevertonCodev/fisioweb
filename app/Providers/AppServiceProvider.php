@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\HandleClinicInertiaRequests;
+use App\Http\Middleware\HandlePatientInertiaRequests;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->registerRouteAdminMacro();
         $this->registerRouteClinicMacro();
+        $this->registerRoutePatientMacro();
         $this->configureDefaults();
         $this->configureLogViewer();
     }
@@ -49,6 +51,19 @@ class AppServiceProvider extends ServiceProvider
                 $route = Route::prefix('clinic')->name('clinic.');
                 if ($protected) {
                     $route->middleware(['auth:clinic']);
+                }
+                $route->group($callback);
+            });
+        });
+    }
+
+    protected function registerRoutePatientMacro(): void
+    {
+        Route::macro('patient', function (callable $callback, bool $protected = true): void {
+            Route::middleware(['web', HandlePatientInertiaRequests::class])->group(function () use ($callback, $protected): void {
+                $route = Route::prefix('patient')->name('patient.');
+                if ($protected) {
+                    $route->middleware(['auth:patient']);
                 }
                 $route->group($callback);
             });

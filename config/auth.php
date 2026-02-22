@@ -43,6 +43,10 @@ return [
             'driver'   => 'session',
             'provider' => 'clinic_users',
         ],
+        'patient' => [
+            'driver'   => 'session',
+            'provider' => 'patients',
+        ],
     ],
 
     /*
@@ -71,6 +75,11 @@ return [
         'clinic_users' => [
             'driver' => 'eloquent',
             'model'  => env('CLINICA_AUTH_MODEL', Modules\Clinic\Models\ClinicUser::class),
+        ],
+
+        'patients' => [
+            'driver' => 'eloquent',
+            'model'  => Modules\Patient\Models\Patient::class,
         ],
 
         // 'users' => [
@@ -108,6 +117,13 @@ return [
         'clinic_users' => [
             'provider' => 'clinic_users',
             'table'    => env('CLINICA_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire'   => 60,
+            'throttle' => 60,
+        ],
+
+        'patients' => [
+            'provider' => 'patients',
+            'table'    => 'password_reset_tokens',
             'expire'   => 60,
             'throttle' => 60,
         ],

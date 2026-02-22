@@ -32,6 +32,8 @@ type FormData = {
     city: string;
     state: string;
     referral_source: string;
+    status: string;
+    is_active: boolean;
 };
 
 const TABS = [
@@ -39,8 +41,7 @@ const TABS = [
     { value: 'contato', label: 'Contato' },
     { value: 'endereco', label: 'Endereço' },
     { value: 'convenio', label: 'Convênio' },
-    { value: 'como-conheceu', label: 'Como me conheceu?' },
-    { value: 'indicacao', label: 'Indicação de Profissional da Saúde' },
+    { value: 'indicacao', label: 'Indicação' },
 ] as const;
 
 type TabValue = (typeof TABS)[number]['value'];
@@ -74,6 +75,8 @@ export default function PatientsCreate() {
         city: '',
         state: '',
         referral_source: '',
+        status: 'em_tratamento',
+        is_active: true,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -108,7 +111,7 @@ export default function PatientsCreate() {
                                     <TabsTrigger
                                         key={tab.value}
                                         value={tab.value}
-                                        className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        className="cursor-pointer rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
                                         {tab.label}
                                     </TabsTrigger>
@@ -141,20 +144,36 @@ export default function PatientsCreate() {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap items-end gap-4">
+                                <div className="flex flex-wrap items-end gap-6">
                                     <div className="w-64">
                                         <Label className="text-xs text-muted-foreground">
                                             Status
                                         </Label>
-                                        <Select defaultValue="ativo">
+                                        <Select
+                                            value={data.status}
+                                            onValueChange={(v) => setData('status', v)}
+                                        >
                                             <SelectTrigger className="mt-1">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="ativo">Ativo</SelectItem>
+                                                <SelectItem value="em_tratamento">Em tratamento</SelectItem>
+                                                <SelectItem value="em_treinamento">Em treinamento</SelectItem>
+                                                <SelectItem value="em_prevencao">Em prevenção</SelectItem>
+                                                <SelectItem value="consulta_avulsa">Consulta avulsa</SelectItem>
                                                 <SelectItem value="inativo">Inativo</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                    </div>
+                                    <div className="flex items-center gap-2 pb-1">
+                                        <Switch
+                                            id="is_active"
+                                            checked={data.is_active}
+                                            onCheckedChange={(v) => setData('is_active', v)}
+                                        />
+                                        <Label htmlFor="is_active" className="text-sm">
+                                            Paciente ativo
+                                        </Label>
                                     </div>
                                 </div>
 
@@ -199,8 +218,10 @@ export default function PatientsCreate() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
+                                        <Label className="text-xs text-muted-foreground">CPF</Label>
                                         <Input
-                                            placeholder="CPF"
+                                            placeholder="000.000.000-00"
+                                            className="mt-1"
                                             value={data.cpf}
                                             onChange={(e) => setData('cpf', e.target.value)}
                                         />
@@ -238,8 +259,10 @@ export default function PatientsCreate() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
+                                        <Label className="text-xs text-muted-foreground">Profissão</Label>
                                         <Input
-                                            placeholder="Profissão"
+                                            placeholder="Ex: Fisioterapeuta"
+                                            className="mt-1"
                                             value={data.profession}
                                             onChange={(e) => setData('profession', e.target.value)}
                                         />
@@ -553,51 +576,50 @@ export default function PatientsCreate() {
                             </div>
                         )}
 
-                        {/* ── Como me conheceu ── */}
-                        {activeTab === 'como-conheceu' && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-foreground">
-                                    Como me conheceu?
-                                </h2>
-                                <div>
-                                    <Label className="text-xs text-muted-foreground">
-                                        Tipo de indicação
-                                    </Label>
-                                    <Select
-                                        value={data.referral_source}
-                                        onValueChange={(v) => setData('referral_source', v)}
-                                    >
-                                        <SelectTrigger className="mt-1">
-                                            <SelectValue placeholder="Selecione uma opção" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="google">Google</SelectItem>
-                                            <SelectItem value="instagram">Instagram</SelectItem>
-                                            <SelectItem value="indicacao_amigo">
-                                                Indicação de amigo
-                                            </SelectItem>
-                                            <SelectItem value="indicacao_profissional">
-                                                Indicação profissional
-                                            </SelectItem>
-                                            <SelectItem value="outro">Outro</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <InputError message={errors.referral_source} className="mt-1" />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Indicação de profissional ── */}
+                        {/* ── Indicação ── */}
                         {activeTab === 'indicacao' && (
-                            <div className="space-y-6">
-                                <h2 className="text-lg font-semibold text-foreground">
-                                    Indicação de Profissional da Saúde
-                                </h2>
-                                <Input placeholder="Escolha o profissional da saúde" />
-                                <Button variant="outline" type="button" className="gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    Adicionar profissional da saúde
-                                </Button>
+                            <div className="space-y-8">
+                                <div className="space-y-6">
+                                    <h2 className="text-lg font-semibold text-foreground">
+                                        Como me conheceu?
+                                    </h2>
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground">
+                                            Tipo de indicação
+                                        </Label>
+                                        <Select
+                                            value={data.referral_source}
+                                            onValueChange={(v) => setData('referral_source', v)}
+                                        >
+                                            <SelectTrigger className="mt-1">
+                                                <SelectValue placeholder="Selecione uma opção" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="google">Google</SelectItem>
+                                                <SelectItem value="instagram">Instagram</SelectItem>
+                                                <SelectItem value="indicacao_amigo">
+                                                    Indicação de amigo
+                                                </SelectItem>
+                                                <SelectItem value="indicacao_profissional">
+                                                    Indicação profissional
+                                                </SelectItem>
+                                                <SelectItem value="outro">Outro</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <InputError message={errors.referral_source} className="mt-1" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 border-t border-border pt-8">
+                                    <h2 className="text-lg font-semibold text-foreground">
+                                        Indicação de Profissional da Saúde
+                                    </h2>
+                                    <Input placeholder="Escolha o profissional da saúde" />
+                                    <Button variant="outline" type="button" className="gap-2">
+                                        <Plus className="h-4 w-4" />
+                                        Adicionar profissional da saúde
+                                    </Button>
+                                </div>
                             </div>
                         )}
 

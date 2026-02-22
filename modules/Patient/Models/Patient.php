@@ -39,6 +39,7 @@ class Patient extends Authenticatable
         'zip_code',
         'referral_source',
         'is_active',
+        'status',
     ];
 
     protected $hidden = [

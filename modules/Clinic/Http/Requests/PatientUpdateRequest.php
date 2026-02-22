@@ -34,6 +34,7 @@ class PatientUpdateRequest extends FormRequest
             'zip_code'          => ['nullable', 'string', 'max:10'],
             'referral_source'   => ['nullable', 'string', 'max:100'],
             'is_active'         => ['nullable', 'boolean'],
+            'status'            => ['nullable', 'string', 'in:em_tratamento,em_treinamento,em_prevencao,consulta_avulsa,inativo'],
         ];
     }
 

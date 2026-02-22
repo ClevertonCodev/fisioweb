@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('zip_code', 10)->nullable();
             $table->string('referral_source')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('status')->default('em_tratamento');
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
@@ -41,7 +42,7 @@ return new class extends Migration
             $table->foreignId('clinic_id')->constrained()->cascadeOnDelete();
             $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
             $table->foreignId('registered_by')->nullable()->constrained('clinic_users')->nullOnDelete();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
 
             $table->primary(['clinic_id', 'patient_id']);
         });

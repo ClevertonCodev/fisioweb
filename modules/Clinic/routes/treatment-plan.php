@@ -13,6 +13,7 @@ Route::clinic(function () {
         Route::put('/{id}', [TreatmentPlanController::class, 'update'])->name('update');
         Route::delete('/{id}', [TreatmentPlanController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/duplicate', [TreatmentPlanController::class, 'duplicate'])->name('duplicate');
+        Route::get('/{id}/pdf', [TreatmentPlanController::class, 'downloadPdf'])->name('pdf');
     });
 
     Route::post('exercises/{exerciseId}/toggle-favorite', [TreatmentPlanController::class, 'toggleFavorite'])

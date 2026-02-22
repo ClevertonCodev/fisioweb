@@ -2,9 +2,11 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
+use Modules\Pdf\Services\PdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Admin\Models\BodyRegion;
@@ -191,6 +193,26 @@ class TreatmentPlanController extends BaseController
         return redirect()
             ->route('clinic.treatment-plans.index')
             ->with('success', 'Plano de tratamento excluído com sucesso.');
+    }
+
+    public function downloadPdf(int $id, PdfService $pdf): HttpResponse
+    {
+        $plan = $this->service->find($id);
+        $plan->load([
+            'groups.exercises.exercise.videos',
+            'exercises.exercise.videos',
+            'patient',
+            'clinicUser',
+            'clinic',
+            'physioArea',
+            'physioSubarea',
+        ]);
+
+        $this->authorizeClinic($plan);
+
+        $filename = \Str::slug($plan->title ?: 'plano-de-tratamento') . '.pdf';
+
+        return $pdf->download('pdf.clinic.treatment.treatment-plan', compact('plan'), $filename);
     }
 
     public function duplicate(int $id): RedirectResponse

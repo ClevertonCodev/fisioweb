@@ -4,6 +4,7 @@ import {
     ChevronRight,
     ClipboardList,
     Copy,
+    Download,
     MoreVertical,
     Pencil,
     Plus,
@@ -25,7 +26,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -448,7 +448,11 @@ export default function Index({
                                                     const badgeClass = STATUS_BADGE_CLASS[plan.status] ?? '';
 
                                                     return (
-                                                        <tr key={plan.id} className="group transition-colors hover:bg-muted/30">
+                                                        <tr
+                                                            key={plan.id}
+                                                            className="group cursor-pointer transition-colors hover:bg-muted/30"
+                                                            onClick={() => router.visit(treatmentPlansRoute.show(plan.id).url)}
+                                                        >
                                                             {/* Paciente */}
                                                             <td className="px-4 py-3">
                                                                 <div className="flex items-center gap-3">
@@ -471,12 +475,9 @@ export default function Index({
 
                                                             {/* Programa */}
                                                             <td className="px-4 py-3">
-                                                                <Link
-                                                                    href={treatmentPlansRoute.show(plan.id).url}
-                                                                    className="text-sm font-medium text-foreground hover:text-primary hover:underline"
-                                                                >
+                                                                <span className="text-sm font-medium text-foreground">
                                                                     {plan.title}
-                                                                </Link>
+                                                                </span>
                                                                 <p className="mt-0.5 text-xs text-muted-foreground">
                                                                     {plan.exercises?.length ?? 0} exercício
                                                                     {(plan.exercises?.length ?? 0) !== 1 ? 's' : ''}
@@ -528,7 +529,7 @@ export default function Index({
                                                             </td>
 
                                                             {/* Ações */}
-                                                            <td className="px-4 py-3">
+                                                            <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                                                 <DropdownMenu>
                                                                     <DropdownMenuTrigger asChild>
                                                                         <Button
@@ -541,25 +542,25 @@ export default function Index({
                                                                         </Button>
                                                                     </DropdownMenuTrigger>
                                                                     <DropdownMenuContent align="end" className="w-44">
-                                                                        <DropdownMenuItem asChild>
-                                                                            <Link href={treatmentPlansRoute.show(plan.id).url}>
-                                                                                Ver detalhes
-                                                                            </Link>
+                                                                        <DropdownMenuItem asChild className="cursor-pointer">
+                                                                            <a href={treatmentPlansRoute.downloadPdf(plan.id).url} target="_blank" rel="noreferrer">
+                                                                                <Download className="mr-2 h-4 w-4" />
+                                                                                Baixar PDF
+                                                                            </a>
                                                                         </DropdownMenuItem>
-                                                                        <DropdownMenuItem asChild>
+                                                                        <DropdownMenuItem asChild className="cursor-pointer">
                                                                             <Link href={treatmentPlansRoute.edit(plan.id).url}>
                                                                                 <Pencil className="mr-2 h-4 w-4" />
                                                                                 Editar
                                                                             </Link>
                                                                         </DropdownMenuItem>
-                                                                        <DropdownMenuItem onClick={() => handleDuplicate(plan.id)}>
+                                                                        <DropdownMenuItem className="cursor-pointer" onClick={() => handleDuplicate(plan.id)}>
                                                                             <Copy className="mr-2 h-4 w-4" />
                                                                             Duplicar
                                                                         </DropdownMenuItem>
-                                                                        <DropdownMenuSeparator />
                                                                         <DropdownMenuItem
                                                                             onClick={() => handleDelete(plan.id, plan.title)}
-                                                                            className="text-destructive focus:text-destructive"
+                                                                            className="cursor-pointer text-destructive focus:text-destructive"
                                                                         >
                                                                             <Trash2 className="mr-2 h-4 w-4" />
                                                                             Excluir

@@ -35,8 +35,10 @@ export default function FlashMessage() {
             setIsDismissed(true);
 
             const messageType = flash?.error ? 'error' : 'success';
+            const isClinic = window.location.pathname.startsWith('/clinic');
+            const clearFlashUrl = isClinic ? '/clinic/clear-flash' : '/admin/clear-flash';
             router.post(
-                '/admin/clear-flash',
+                clearFlashUrl,
                 { type: messageType },
                 {
                     preserveState: true,

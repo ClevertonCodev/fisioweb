@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
 import { ExerciseCard } from '@/components/clinic/ExerciseCard';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
-import { VideoPlayerModal } from '@/components/clinic/video-player-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,10 +76,7 @@ export default function ExerciciosPage({
     movementForms,
 }: ExercisesPageProps) {
     const [showFilters, setShowFilters] = useState(true);
-    const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-        null,
-    );
-    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [descriptionModalExercise, setDescriptionModalExercise] = useState<Exercise | null>(null);
     const [searchInput, setSearchInput] = useState(
         serverFilters.search ?? '',
     );
@@ -183,10 +180,6 @@ export default function ExerciciosPage({
         applyFilters(newFilters);
     };
 
-    const handlePlay = (exercise: Exercise) => {
-        setSelectedExercise(exercise);
-        setIsVideoModalOpen(true);
-    };
 
     const removeFilter = (categoryId: string, value: string) => {
         const updated = {
@@ -209,8 +202,7 @@ export default function ExerciciosPage({
         return option?.label ?? value;
     };
 
-    const dashboardRoute =
-        (dashboard() as { url?: string })?.url ?? '/clinic/dashboard';
+    const dashboardRoute = (dashboard() as { url?: string })?.url ?? '/clinic/dashboard';
 
     return (
         <ClinicLayout>
@@ -327,8 +319,7 @@ export default function ExerciciosPage({
                                         <ExerciseCard
                                             key={exercise.id}
                                             exercise={exercise}
-                                            onPlay={handlePlay}
-                                            onInfo={() => {}}
+                                            onInfo={(ex) => setDescriptionModalExercise(ex)}
                                         />
                                     ))}
                                 </div>
@@ -446,28 +437,31 @@ export default function ExerciciosPage({
                         )}
                     </div>
                 </div>
-                <div
-                    className={cn(
-                        'flex h-full w-80 flex-shrink-0 flex-col overflow-hidden transition-all duration-300',
-                        showFilters
-                            ? 'translate-x-0'
-                            : 'w-0 translate-x-full',
-                    )}
-                >
-                    {showFilters && (
+            </div>
+
+            {/* Filtros em overlay (modal) – não empurra o conteúdo */}
+            {showFilters && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Fechar filtros"
+                        className="fixed inset-0 z-40 bg-black/50 transition-opacity"
+                        onClick={() => setShowFilters(false)}
+                    />
+                    <div className="fixed inset-y-0 right-0 z-50 flex w-80 max-w-[85vw] flex-col overflow-hidden border-l border-border bg-card shadow-xl animate-in slide-in-from-right duration-300">
                         <ExerciseFilters
                             categories={filterCategories}
                             filters={localFilters}
                             onFiltersChange={handleFiltersChange}
                             onClose={() => setShowFilters(false)}
                         />
-                    )}
-                </div>
-            </div>
-            <VideoPlayerModal
-                exercise={selectedExercise}
-                open={isVideoModalOpen}
-                onOpenChange={setIsVideoModalOpen}
+                    </div>
+                </>
+            )}
+            <ExerciseDescriptionModal
+                exercise={descriptionModalExercise}
+                open={!!descriptionModalExercise}
+                onOpenChange={(open) => !open && setDescriptionModalExercise(null)}
             />
         </ClinicLayout>
     );

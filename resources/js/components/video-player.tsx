@@ -1,12 +1,4 @@
-import {
-    Maximize,
-    Pause,
-    Play,
-    SkipBack,
-    SkipForward,
-    Volume2,
-    VolumeX,
-} from 'lucide-react';
+import { Maximize, Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -135,14 +127,6 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
         }
     }, [isMuted, volume]);
 
-    const skip = React.useCallback((seconds: number) => {
-        const video = videoRef.current;
-        if (!video) return;
-        const d = isValidDuration(video.duration) ? video.duration : duration;
-        video.currentTime = Math.max(0, Math.min(d, video.currentTime + seconds));
-        setCurrentTime(video.currentTime);
-    }, [duration]);
-
     const toggleFullscreen = React.useCallback(() => {
         const video = videoRef.current;
         if (!video) return;
@@ -188,10 +172,13 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
                 <button
                     type="button"
                     onClick={togglePlay}
-                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-foreground/20"
+                    className="group/btn absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent"
                 >
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-110">
-                        <Play className="ml-1 h-10 w-10 text-primary-foreground" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground/40 shadow-sm backdrop-blur-sm">
+                        <Play
+                            className="ml-0.5 h-5 w-5 text-background transition-colors group-hover/btn:text-primary"
+                            fill="currentColor"
+                        />
                     </div>
                 </button>
             )}
@@ -203,51 +190,44 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
                 )}
             >
                 <div className="mb-3">
-                    <Slider
-                        value={[currentTime]}
-                        max={sliderMax}
-                        step={0.1}
-                        onValueChange={handleSeek}
-                        onPointerDown={handleSeekStart}
-                        onPointerUp={handleSeekEnd}
-                        onKeyDown={(e) => {
-                            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                                setIsSeeking(true);
-                            }
-                        }}
-                        onKeyUp={() => setIsSeeking(false)}
-                        className="cursor-pointer [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:active:cursor-grabbing"
-                    />
+                    <div className="relative h-1 w-full rounded-full">
+                        <div className="absolute inset-0 rounded-full bg-white/30" />
+                        <div
+                            className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-75"
+                            style={{
+                                width: `${sliderMax > 0 ? (currentTime / sliderMax) * 100 : 0}%`,
+                            }}
+                        />
+                        <Slider
+                            value={[currentTime]}
+                            max={sliderMax}
+                            step={0.1}
+                            onValueChange={handleSeek}
+                            onPointerDown={handleSeekStart}
+                            onPointerUp={handleSeekEnd}
+                            onKeyDown={(e) => {
+                                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                                    setIsSeeking(true);
+                                }
+                            }}
+                            onKeyUp={() => setIsSeeking(false)}
+                            className="absolute inset-0 h-1 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:block [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:active:cursor-grabbing"
+                        />
+                    </div>
                 </div>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-white hover:bg-white/20"
-                            onClick={() => skip(-10)}
-                        >
-                            <SkipBack className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-10 w-10 text-white hover:bg-white/20"
+                            className="h-12 w-12 text-white hover:bg-white/20"
                             onClick={togglePlay}
                         >
                             {isPlaying ? (
-                                <Pause className="h-5 w-5" />
+                                <Pause className="h-5 w-5" fill="currentColor" />
                             ) : (
-                                <Play className="ml-0.5 h-5 w-5" />
+                                <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
                             )}
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-white hover:bg-white/20"
-                            onClick={() => skip(10)}
-                        >
-                            <SkipForward className="h-4 w-4" />
                         </Button>
                         <div className="ml-2 flex items-center gap-2">
                             <Button
@@ -262,13 +242,20 @@ export function VideoPlayer({ src, poster, title, className }: VideoPlayerProps)
                                     <Volume2 className="h-4 w-4" />
                                 )}
                             </Button>
-                            <div className="w-20">
+                            <div className="relative h-1 w-20 rounded-full">
+                                <div className="absolute inset-0 rounded-full bg-white/30" />
+                                <div
+                                    className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-75"
+                                    style={{
+                                        width: `${(isMuted ? 0 : volume) * 100}%`,
+                                    }}
+                                />
                                 <Slider
                                     value={[isMuted ? 0 : volume]}
                                     max={1}
                                     step={0.1}
                                     onValueChange={handleVolumeChange}
-                                    className="cursor-pointer"
+                                    className="absolute inset-0 h-1 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:block [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:active:cursor-grabbing"
                                 />
                             </div>
                         </div>

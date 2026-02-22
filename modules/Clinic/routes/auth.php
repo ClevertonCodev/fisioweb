@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\AuthController;
 
@@ -42,6 +43,16 @@ Route::clinic(function () {
 
 Route::clinic(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('clear-flash', function (Request $request) {
+        $type = $request->input('type', 'success');
+        if ($type === 'error') {
+            $request->session()->forget('error');
+        } else {
+            $request->session()->forget('success');
+        }
+
+        return back();
+    })->name('clear-flash');
 
     Route::redirect('settings', '/clinic/settings/profile');
     Route::get('settings/profile', [App\Http\Controllers\Settings\ProfileController::class, 'edit'])->name('settings.profile.edit');

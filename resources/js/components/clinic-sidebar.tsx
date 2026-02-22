@@ -28,7 +28,7 @@ const mainNavItems = [
     { icon: Calendar, label: 'Agenda', path: '/clinic/agenda' },
     { icon: Users, label: 'Pacientes', path: '/clinic/pacientes' },
     { icon: Dumbbell, label: 'Exercícios', path: '/clinic/exercises' },
-    { icon: FileText, label: 'Programas', path: '/clinic/programas' },
+    { icon: FileText, label: 'Programas', path: '/clinic/treatment-plans' },
 ];
 
 const bottomNavItems = [

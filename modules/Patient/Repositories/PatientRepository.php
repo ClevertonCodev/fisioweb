@@ -28,6 +28,7 @@ class PatientRepository implements PatientRepositoryInterface
     public function paginateByClinic(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return Patient::whereHas('clinics', fn ($q) => $q->where('clinics.id', $clinicId))
+            ->with(['clinics' => fn ($q) => $q->where('clinics.id', $clinicId)->withPivot('registered_by')])
             ->when(
                 isset($filters['search']) && $filters['search'],
                 fn ($q) => $q->where(function ($q) use ($filters) {

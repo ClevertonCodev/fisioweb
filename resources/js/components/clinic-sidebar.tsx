@@ -26,7 +26,7 @@ const dashboardRoute = clinicDashboard();
 const mainNavItems = [
     { icon: Home, label: 'Dashboard', path: dashboardRoute },
     { icon: Calendar, label: 'Agenda', path: '/clinic/agenda' },
-    { icon: Users, label: 'Pacientes', path: '/clinic/pacientes' },
+    { icon: Users, label: 'Pacientes', path: '/clinic/patients' },
     { icon: Dumbbell, label: 'Exercícios', path: '/clinic/exercises' },
     { icon: FileText, label: 'Programas', path: '/clinic/treatment-plans' },
 ];

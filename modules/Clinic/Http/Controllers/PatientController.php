@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Clinic\Http\Requests\PatientStoreRequest;
 use Modules\Clinic\Http\Requests\PatientUpdateRequest;
+use Modules\Clinic\Models\ClinicUser;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Models\Patient;
 
@@ -20,10 +21,28 @@ class PatientController extends BaseController
 
     public function index(): Response
     {
+        $clinicId = $this->clinic->id;
         $filters  = request()->only(['search', 'is_active']);
-        $patients = $this->service->list($this->clinic->id, $filters);
+        $patients = $this->service->list($clinicId, $filters);
 
-        return Inertia::render('Clinic/Patients/Index', [
+        // Resolve o nome de quem cadastrou o paciente nesta clínica (via pivot)
+        $registeredByIds = $patients->getCollection()
+            ->map(fn ($p) => $p->clinics->first()?->pivot->registered_by)
+            ->filter()
+            ->unique();
+
+        if ($registeredByIds->isNotEmpty()) {
+            $clinicUsers = ClinicUser::whereIn('id', $registeredByIds)->pluck('name', 'id');
+            $patients->getCollection()->each(function ($patient) use ($clinicUsers) {
+                $registeredBy                   = $patient->clinics->first()?->pivot->registered_by;
+                $patient->registered_by_name    = $registeredBy ? $clinicUsers->get($registeredBy) : null;
+                $patient->registered_by_initial = $registeredBy && $clinicUsers->get($registeredBy)
+                    ? mb_strtoupper(mb_substr($clinicUsers->get($registeredBy), 0, 1))
+                    : null;
+            });
+        }
+
+        return Inertia::render('clinic/patients/index', [
             'patients' => $patients,
             'filters'  => $filters,
         ]);
@@ -31,7 +50,7 @@ class PatientController extends BaseController
 
     public function create(): Response
     {
-        return Inertia::render('Clinic/Patients/Create');
+        return Inertia::render('clinic/patients/create');
     }
 
     public function store(PatientStoreRequest $request): RedirectResponse
@@ -53,7 +72,7 @@ class PatientController extends BaseController
 
         $patient->load(['treatmentPlans' => fn ($q) => $q->where('clinic_id', $this->clinic->id)->latest()]);
 
-        return Inertia::render('Clinic/Patients/Show', [
+        return Inertia::render('clinic/patients/show', [
             'patient' => $patient,
         ]);
     }
@@ -62,7 +81,7 @@ class PatientController extends BaseController
     {
         $patient = $this->findPatientForClinic($id);
 
-        return Inertia::render('Clinic/Patients/Edit', [
+        return Inertia::render('clinic/patients/edit', [
             'patient' => $patient,
         ]);
     }

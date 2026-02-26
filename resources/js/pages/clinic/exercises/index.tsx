@@ -16,7 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ClinicLayout from '@/layouts/clinic-layout';
-import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes/clinic';
 import type {
     BodyRegion,

@@ -102,7 +102,7 @@ class TreatmentPlanController extends BaseController
             'plans'           => $plans,
             'filters'         => $request->only(['search', 'status', 'patient_id', 'physio_area_id']),
             'statuses'        => TreatmentPlan::STATUSES,
-            'patients'        => Patient::where('clinic_id', $clinicId)->orderBy('name')->get(['id', 'name']),
+            'patients'        => Patient::whereHas('clinics', fn ($q) => $q->where('clinics.id', $clinicId))->orderBy('name')->get(['id', 'name']),
             'physioAreas'     => $physioAreas,
             'exercises'       => ['data' => [], 'current_page' => 1, 'last_page' => 1, 'total' => 0, 'links' => []],
             'exerciseFilters' => [],
@@ -117,7 +117,7 @@ class TreatmentPlanController extends BaseController
         $clinicId = $this->clinic->id;
 
         return Inertia::render('clinic/treatment-plans/create', [
-            'patients'       => Patient::where('clinic_id', $clinicId)->active()->orderBy('name')->get(['id', 'name']),
+            'patients'       => Patient::whereHas('clinics', fn ($q) => $q->where('clinics.id', $clinicId))->active()->orderBy('name')->get(['id', 'name']),
             'physioAreas'    => PhysioArea::orderBy('name')->get(['id', 'name']),
             'physioSubareas' => PhysioSubarea::orderBy('name')->get(['id', 'name', 'physio_area_id']),
             'statuses'       => TreatmentPlan::STATUSES,
@@ -164,7 +164,7 @@ class TreatmentPlanController extends BaseController
 
         return Inertia::render('clinic/treatment-plans/edit', [
             'plan'           => $plan,
-            'patients'       => Patient::where('clinic_id', $clinicId)->active()->orderBy('name')->get(['id', 'name']),
+            'patients'       => Patient::whereHas('clinics', fn ($q) => $q->where('clinics.id', $clinicId))->active()->orderBy('name')->get(['id', 'name']),
             'physioAreas'    => PhysioArea::orderBy('name')->get(['id', 'name']),
             'physioSubareas' => PhysioSubarea::orderBy('name')->get(['id', 'name', 'physio_area_id']),
             'statuses'       => TreatmentPlan::STATUSES,

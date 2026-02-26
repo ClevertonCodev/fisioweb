@@ -150,7 +150,27 @@ export interface Patient {
     cpf: string | null;
     email: string | null;
     phone: string | null;
+    gender: string | null;
+    biological_sex: string | null;
+    birth_date: string | null;
+    marital_status: string | null;
+    education: string | null;
+    profession: string | null;
+    emergency_contact: string | null;
+    caregiver_contact: string | null;
+    insurance: string | null;
+    insurance_number: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    zip_code: string | null;
+    referral_source: string | null;
     is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    registered_by_name?: string | null;
+    registered_by_initial?: string | null;
+    treatment_plans?: TreatmentPlan[];
 }
 
 export interface TreatmentPlan {

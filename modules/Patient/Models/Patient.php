@@ -3,12 +3,13 @@
 namespace Modules\Patient\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\TreatmentPlan;
 
 class Patient extends Authenticatable
 {
@@ -17,7 +18,6 @@ class Patient extends Authenticatable
     use SoftDeletes;
 
     protected $fillable = [
-        'clinic_id',
         'name',
         'cpf',
         'gender',
@@ -39,6 +39,7 @@ class Patient extends Authenticatable
         'zip_code',
         'referral_source',
         'is_active',
+        'status',
     ];
 
     protected $hidden = [
@@ -56,14 +57,30 @@ class Patient extends Authenticatable
         ];
     }
 
-    public function clinic(): BelongsTo
+    /**
+     * Clínicas onde o paciente é atendido (N:N).
+     */
+    public function clinics(): BelongsToMany
     {
-        return $this->belongsTo(Clinic::class);
+        return $this->belongsToMany(Clinic::class, 'clinic_patient')
+            ->withPivot('registered_by')
+            ->withTimestamps();
     }
 
+    /**
+     * Planos de tratamento do paciente.
+     */
     public function treatmentPlans(): HasMany
     {
-        return $this->hasMany(\Modules\Clinic\Models\TreatmentPlan::class);
+        return $this->hasMany(TreatmentPlan::class);
+    }
+
+    /**
+     * Planos de tratamento filtrados por clínica.
+     */
+    public function treatmentPlansByClinic(int $clinicId): HasMany
+    {
+        return $this->hasMany(TreatmentPlan::class)->where('clinic_id', $clinicId);
     }
 
     public function scopeActive($query)

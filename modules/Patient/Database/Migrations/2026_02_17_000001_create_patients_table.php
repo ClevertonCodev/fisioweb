@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('patients', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('clinic_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('cpf', 14)->unique()->nullable();
             $table->string('gender')->nullable();
@@ -32,17 +31,26 @@ return new class extends Migration
             $table->string('zip_code', 10)->nullable();
             $table->string('referral_source')->nullable();
             $table->boolean('is_active')->default(true);
+            $table->string('status')->default('em_tratamento');
             $table->rememberToken();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
+        });
 
-            $table->index(['clinic_id', 'is_active']);
+        Schema::create('clinic_patient', function (Blueprint $table) {
+            $table->foreignId('clinic_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('registered_by')->nullable()->constrained('clinic_users')->nullOnDelete();
+            $table->timestamps();
+
+            $table->primary(['clinic_id', 'patient_id']);
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('clinic_patient');
         Schema::dropIfExists('patients');
     }
 };

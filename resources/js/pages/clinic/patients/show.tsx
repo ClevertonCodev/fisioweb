@@ -24,7 +24,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ClinicLayout from '@/layouts/clinic-layout';
 import type { Patient, TreatmentPlan } from '@/types';
 
@@ -62,10 +61,18 @@ const PLAN_STATUS_COLORS: Record<string, string> = {
     cancelled: 'border-red-200 bg-red-50 text-red-700',
 };
 
+const TAB_OPTIONS: { value: Tab; label: string }[] = [
+    { value: 'prontuario', label: 'Prontuário' },
+    { value: 'programas', label: 'Programas' },
+    { value: 'monitoramento', label: 'Monitoramento' },
+    { value: 'registros', label: 'Registros' },
+];
+
 export default function PatientsShow({ patient }: ShowProps) {
     const [activeTab, setActiveTab] = useState<Tab>('prontuario');
 
     const treatmentPlans = patient.treatment_plans ?? [];
+    const activeTabLabel = TAB_OPTIONS.find((t) => t.value === activeTab)?.label ?? 'Prontuário';
 
     return (
         <ClinicLayout>
@@ -106,38 +113,14 @@ export default function PatientsShow({ patient }: ShowProps) {
                                 {patient.cpf ? `CPF: ${patient.cpf}` : patient.profession ?? '—'}
                             </p>
                         </div>
-
-                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-                            <TabsList className="h-auto gap-1 rounded-none bg-transparent p-0">
-                                {(
-                                    [
-                                        { value: 'prontuario', label: 'Prontuário' },
-                                        { value: 'programas', label: 'Programas' },
-                                        { value: 'monitoramento', label: 'Monitoramento' },
-                                        { value: 'registros', label: 'Registros' },
-                                    ] as const
-                                ).map((tab) => (
-                                    <TabsTrigger
-                                        key={tab.value}
-                                        value={tab.value}
-                                        className="rounded-full border border-border px-4 py-1.5 text-sm font-medium data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
-                                    >
-                                        {tab.label}
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </Tabs>
                     </div>
                 </header>
 
-                {/* Conteúdo */}
-                <div className="flex-1 overflow-auto">
-                    {activeTab === 'prontuario' && (
-                        <div className="p-6">
-                            <FlashMessage />
-
-                            {/* Toolbar */}
-                            <div className="mb-6 flex flex-wrap items-center gap-4">
+                {/* Toolbar: (na aba Prontuário) pesquisa, Filtros, Imprimir | dropdown do menu + Adicionar */}
+                <div className="border-b border-border bg-background px-6 py-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                        {activeTab === 'prontuario' && (
+                            <>
                                 <div className="relative w-64">
                                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input placeholder="Pesquisar" className="pl-9" />
@@ -150,35 +133,66 @@ export default function PatientsShow({ patient }: ShowProps) {
                                     <Printer className="h-4 w-4" />
                                     Imprimir
                                 </Button>
-                                <div className="ml-auto">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button className="gap-2">
-                                                Adicionar
-                                                <ChevronDown className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuItem className="gap-2">
-                                                <FileText className="h-4 w-4" />
-                                                Evolução
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="gap-2">
-                                                <ClipboardList className="h-4 w-4" />
-                                                Avaliação
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="gap-2">
-                                                <ClipboardList className="h-4 w-4" />
-                                                Questionário
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="gap-2">
-                                                <Upload className="h-4 w-4" />
-                                                Adicionar arquivos
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
+                            </>
+                        )}
+                        <div className={activeTab === 'prontuario' ? 'ml-auto flex items-center gap-2' : 'flex items-center gap-2'}>
+                            {/* Dropdown Prontuário / Programas / Monitoramento / Registros — ao lado do Adicionar */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button className="gap-2">
+                                        {activeTabLabel}
+                                        <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    {TAB_OPTIONS.map((tab) => (
+                                        <DropdownMenuItem
+                                            key={tab.value}
+                                            onClick={() => setActiveTab(tab.value)}
+                                            className={activeTab === tab.value ? 'bg-accent' : ''}
+                                        >
+                                            {tab.label}
+                                        </DropdownMenuItem>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            {activeTab === 'prontuario' && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button className="gap-2">
+                                            Adicionar
+                                            <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48">
+                                        <DropdownMenuItem className="gap-2">
+                                            <FileText className="h-4 w-4" />
+                                            Evolução
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="gap-2">
+                                            <ClipboardList className="h-4 w-4" />
+                                            Avaliação
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="gap-2">
+                                            <ClipboardList className="h-4 w-4" />
+                                            Questionário
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="gap-2">
+                                            <Upload className="h-4 w-4" />
+                                            Adicionar arquivos
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Conteúdo */}
+                <div className="flex-1 overflow-auto">
+                    {activeTab === 'prontuario' && (
+                        <div className="p-6">
+                            <FlashMessage />
 
                             {/* Programas de tratamento */}
                             <div>

@@ -544,7 +544,7 @@ export default function Index({
                                                                     </DropdownMenuTrigger>
                                                                     <DropdownMenuContent align="end" className="w-44">
                                                                         <DropdownMenuItem asChild className="cursor-pointer">
-                                                                            <a href={treatmentPlansRoute.downloadPdf(plan.id).url} target="_blank" rel="noreferrer">
+                                                                            <a href={treatmentPlansRoute.pdf(plan.id).url} target="_blank" rel="noreferrer">
                                                                                 <Download className="mr-2 h-4 w-4" />
                                                                                 Baixar PDF
                                                                             </a>

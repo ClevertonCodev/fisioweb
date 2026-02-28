@@ -1,9 +1,9 @@
 import { Head, router } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
 
-import { Step1 } from '@/components/clinic/treatment-plan-wizard/Step1';
-import { Step2 } from '@/components/clinic/treatment-plan-wizard/Step2';
-import { Step4 } from '@/components/clinic/treatment-plan-wizard/Step4';
+import { Step1 } from '@/components/clinic/treatment-plan-wizard/step-1';
+import { Step2 } from '@/components/clinic/treatment-plan-wizard/step-2';
+import { Step4 } from '@/components/clinic/treatment-plan-wizard/step-4';
 import type { ExerciseConfig, Group, Step4Data } from '@/components/clinic/treatment-plan-wizard/types';
 import ClinicLayout from '@/layouts/clinic-layout';
 import type { Exercise, Patient, PhysioArea } from '@/types';

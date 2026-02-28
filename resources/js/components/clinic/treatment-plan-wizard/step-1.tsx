@@ -2,15 +2,16 @@ import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, ClipboardList, Dumbbell, Filter, Search, Star, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
-import { ExerciseCard } from '@/components/clinic/ExerciseCard';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { ExerciseCard, ExerciseDescriptionModal } from '@/domains/clinic/exercises';
+import { http } from '@/lib/http';
 import { cn } from '@/lib/utils';
 import type { Exercise, PhysioArea } from '@/types';
 
-import { ExerciseThumb } from './ExerciseThumb';
+import { ExerciseThumb } from './exercise-thumb';
 import type { ExerciseConfig } from './types';
 
 interface Step1Props {
@@ -91,24 +92,12 @@ export function Step1({ title = 'Novo programa', backUrl, physioAreas, selected,
 
     const handleToggleFavorite = async (exercise: Exercise) => {
         try {
-            const rawCookie = document.cookie
-                .split('; ')
-                .find((row) => row.startsWith('XSRF-TOKEN='))
-                ?.split('=')
-                .slice(1)
-                .join('=');
-            const csrfToken = rawCookie ? decodeURIComponent(rawCookie) : undefined;
-            const res = await fetch(`/clinic/exercises/${exercise.id}/toggle-favorite`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
-                },
-            });
-            const data = await res.json();
-            setExercises((prev) => prev.map((ex) => (ex.id === exercise.id ? { ...ex, is_favorite: data.is_favorite } : ex)));
+            const { data } = await http.post<{ is_favorite: boolean }>(
+                `/clinic/exercises/${exercise.id}/toggle-favorite`,
+            );
+            setExercises((prev) =>
+                prev.map((ex) => (ex.id === exercise.id ? { ...ex, is_favorite: data.is_favorite } : ex)),
+            );
         } catch {
             // silently fail
         }

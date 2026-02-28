@@ -9,14 +9,13 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { ExerciseDescriptionModal } from '@/components/clinic/exercise-description-modal';
-import { ExerciseCard } from '@/components/clinic/ExerciseCard';
-import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ExerciseCard, ExerciseDescriptionModal, ExerciseFilters } from '@/domains/clinic/exercises';
 import ClinicLayout from '@/layouts/clinic-layout';
 import { dashboard } from '@/routes/clinic';
+import type { PaginatedResponse } from '@/types/pagination';
 import type {
     BodyRegion,
     Exercise,
@@ -27,15 +26,6 @@ import type {
     FilterCategory,
 } from '@/types/exercise';
 
-interface PaginatedExercises {
-    data: Exercise[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: Array<{ url: string | null; label: string; active: boolean }>;
-}
-
 interface ServerFilters {
     search?: string;
     physio_area_id?: string | string[];
@@ -45,7 +35,7 @@ interface ServerFilters {
 }
 
 interface ExercisesPageProps {
-    exercises: PaginatedExercises;
+    exercises: PaginatedResponse<Exercise>;
     filters: ServerFilters;
     physioAreas: PhysioArea[];
     bodyRegions: BodyRegion[];

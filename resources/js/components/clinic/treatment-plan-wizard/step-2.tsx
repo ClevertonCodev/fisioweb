@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 import { DAYS, REPS_OPTIONS, SETS_OPTIONS } from './constants';
-import { ExerciseRow } from './ExerciseRow';
+import { ExerciseRow } from './exercise-row';
 import { hasConfig } from './helpers';
 import type { ExerciseConfig, Group } from './types';
 

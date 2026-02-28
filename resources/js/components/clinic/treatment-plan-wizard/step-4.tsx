@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import type { Patient } from '@/types';
 
-import { ExerciseThumb } from './ExerciseThumb';
+import { ExerciseThumb } from './exercise-thumb';
 import { getExerciseThumbnail } from './helpers';
 import type { ExerciseConfig, Step4Data } from './types';
 

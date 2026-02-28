@@ -2,7 +2,7 @@ import { Copy, GripVertical, Settings2, Trash2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-import { ExerciseThumb } from './ExerciseThumb';
+import { ExerciseThumb } from './exercise-thumb';
 import { getExerciseSpecs } from './helpers';
 import type { ExerciseConfig } from './types';
 

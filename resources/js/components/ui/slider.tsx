@@ -1,35 +1,23 @@
+import * as SliderPrimitive from '@radix-ui/react-slider';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-interface SliderProps extends Omit<React.ComponentPropsWithoutRef<'input'>, 'value' | 'onChange'> {
-    value?: number[];
-    max?: number;
-    step?: number;
-    onValueChange?: (value: number[]) => void;
-}
-
-const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-    ({ className, value = [0], max = 100, step = 1, onValueChange, ...props }, ref) => {
-        const v = Array.isArray(value) ? value[0] : value;
-        return (
-            <input
-                ref={ref}
-                type="range"
-                min={0}
-                max={max}
-                step={step}
-                value={v}
-                onChange={(e) => onValueChange?.([Number(e.target.value)])}
-                className={cn(
-                    'relative h-2 w-full grow cursor-pointer appearance-none overflow-hidden rounded-full bg-secondary accent-primary',
-                    className,
-                )}
-                {...props}
-            />
-        );
-    },
-);
-Slider.displayName = 'Slider';
+const Slider = React.forwardRef<
+    React.ElementRef<typeof SliderPrimitive.Root>,
+    React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+    <SliderPrimitive.Root
+        ref={ref}
+        className={cn('relative flex w-full touch-none items-center select-none', className)}
+        {...props}
+    >
+        <SliderPrimitive.Track className="bg-secondary relative h-2 w-full grow overflow-hidden rounded-full">
+            <SliderPrimitive.Range className="bg-primary absolute h-full" />
+        </SliderPrimitive.Track>
+        <SliderPrimitive.Thumb className="border-primary bg-background ring-offset-background focus-visible:ring-ring block h-5 w-5 rounded-full border-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50" />
+    </SliderPrimitive.Root>
+));
+Slider.displayName = SliderPrimitive.Root.displayName;
 
 export { Slider };

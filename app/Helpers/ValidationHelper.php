@@ -72,6 +72,74 @@ class ValidationHelper
     }
 
     /**
+     * Registro no CREFITO (UF em letras + número), separadores opcionais.
+     */
+    public static function isCrefitoRegistrationFormat(string $document): bool
+    {
+        $s = trim($document);
+        if ($s === '' || strlen($s) > 30) {
+            return false;
+        }
+
+        if (! preg_match('/[A-Za-z]/', $s)) {
+            return false;
+        }
+
+        $compact = preg_replace('/\s+/', '', $s);
+
+        return (bool) preg_match(
+            '/^[A-Za-z]{2}[.\-\/]?\d{4,}(?:[.\-\/][A-Za-z0-9]+)*$/',
+            $compact
+        );
+    }
+
+    /**
+     * Documento obrigatório do usuário da clínica: CPF, CNPJ ou registro CREFITO.
+     *
+     * @return string|null Mensagem ou null quando válido
+     */
+    public static function validateClinicUserIdentification(string $document): ?string
+    {
+        $s = trim($document);
+        if ($s === '') {
+            return 'O campo documento é obrigatório.';
+        }
+        if (strlen($s) > 30) {
+            return 'O documento não pode exceder 30 caracteres.';
+        }
+
+        if (preg_match('/[A-Za-z]/', $s)) {
+            return self::isCrefitoRegistrationFormat($s)
+                ? null
+                : 'Informe um registro CREFITO válido (ex.: MG-123456 ou SP 123456-G).';
+        }
+
+        $digits = preg_replace('/\D/', '', $s);
+
+        if (strlen($digits) === 11) {
+            return self::validateCpf($s) ? null : 'Informe um CPF válido.';
+        }
+
+        if (strlen($digits) === 14) {
+            return self::validateCnpj($s) ? null : 'Informe um CNPJ válido.';
+        }
+
+        if (strlen($digits) > 0 && strlen($digits) < 11) {
+            return 'Informe um CPF válido com 11 dígitos.';
+        }
+
+        if (strlen($digits) > 11 && strlen($digits) < 14) {
+            return 'Informe um CNPJ válido com 14 dígitos.';
+        }
+
+        if (strlen($digits) > 14) {
+            return 'Informe um CPF, CNPJ válido ou registro no CREFITO.';
+        }
+
+        return 'Informe um CPF, CNPJ válido ou registro no CREFITO (com UF, ex.: SP-123456).';
+    }
+
+    /**
      * Gera um slug a partir de uma string.
      */
     public static function generateSlug(string $text): string

@@ -1,8 +1,8 @@
 <?php
 
-require __DIR__ . '/auth.php';
-require __DIR__ . '/dashboard.php';
-require __DIR__ . '/clinic.php';
-require __DIR__ . '/exercise.php';
-require __DIR__ . '/treatment-plan.php';
-require __DIR__ . '/patient.php';
+use Illuminate\Support\Facades\Route;
+use Modules\Clinic\Http\Controllers\ClinicController;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('clinics', ClinicController::class)->names('clinic');
+});

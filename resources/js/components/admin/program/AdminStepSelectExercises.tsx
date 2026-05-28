@@ -1,0 +1,251 @@
+import { Check, Pause, Play, Search, Trash2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+
+import type { AdminExercise } from '@/application/admin/ports';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+
+interface AdminStepSelectExercisesProps {
+    exercises: AdminExercise[];
+    isLoading?: boolean;
+    selectedIds: number[];
+    onToggleSelect: (exercise: AdminExercise) => void;
+    onRemove: (exerciseId: number) => void;
+    onNext: () => void;
+}
+
+export function AdminStepSelectExercises({
+    exercises,
+    isLoading,
+    selectedIds,
+    onToggleSelect,
+    onRemove,
+    onNext,
+}: AdminStepSelectExercisesProps) {
+    const [search, setSearch] = useState('');
+
+    const filtered = useMemo(() => {
+        if (!search) return exercises;
+        return exercises.filter((ex) => ex.name.toLowerCase().includes(search.toLowerCase()));
+    }, [exercises, search]);
+
+    const selectedExercises = exercises.filter((ex) => selectedIds.includes(ex.id));
+    const hasSelectedExercises = selectedExercises.length > 0;
+
+    return (
+        <div className="flex h-full">
+            {/* Main - exercise grid */}
+            <div className="flex min-w-0 flex-1 flex-col">
+                {/* Search */}
+                <div className="border-border flex items-center gap-3 border-b px-6 py-4">
+                    <div className="relative max-w-sm flex-1">
+                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Input
+                            placeholder="Pesquisar exercício"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-9"
+                        />
+                    </div>
+                </div>
+
+                {/* Grid */}
+                <ScrollArea className="flex-1 p-6">
+                    {isLoading ? (
+                        <div className="text-muted-foreground flex items-center justify-center py-20 text-sm">
+                            Carregando exercícios...
+                        </div>
+                    ) : filtered.length === 0 ? (
+                        <div className="text-muted-foreground flex items-center justify-center py-20 text-sm">
+                            Nenhum exercício encontrado.
+                        </div>
+                    ) : (
+                        <div
+                            className={cn(
+                                'grid gap-4',
+                                hasSelectedExercises
+                                    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
+                            )}
+                        >
+                            {filtered.map((exercise) => {
+                                const isSelected = selectedIds.includes(exercise.id);
+                                return (
+                                    <ExerciseSelectCard
+                                        key={exercise.id}
+                                        exercise={exercise}
+                                        isSelected={isSelected}
+                                        onToggleSelect={() => onToggleSelect(exercise)}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+                </ScrollArea>
+            </div>
+
+            {/* Right sidebar - selected exercises */}
+            {hasSelectedExercises && (
+                <div className="border-border bg-card flex w-80 flex-shrink-0 flex-col border-l">
+                    <div className="border-border flex items-center gap-2 border-b px-4 py-3">
+                        <span className="text-foreground text-sm font-medium">
+                            {selectedIds.length} exercício{selectedIds.length !== 1 ? 's' : ''}{' '}
+                            selecionado{selectedIds.length !== 1 ? 's' : ''}
+                        </span>
+                    </div>
+
+                    <ScrollArea className="flex-1">
+                        <div className="space-y-1 p-2">
+                            {selectedExercises.map((ex) => {
+                                const video = (
+                                    ex.videos as
+                                        | {
+                                              thumbnail_url?: string | null;
+                                              cdn_url?: string | null;
+                                              url?: string | null;
+                                          }[]
+                                        | undefined
+                                )?.[0];
+                                return (
+                                    <div
+                                        key={ex.id}
+                                        className="hover:bg-accent/50 flex items-center gap-3 rounded-md p-2"
+                                    >
+                                        <div className="bg-muted h-14 w-24 flex-shrink-0 overflow-hidden rounded">
+                                            <img
+                                                src={video?.thumbnail_url ?? undefined}
+                                                alt={ex.name}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                        <p className="text-foreground line-clamp-2 flex-1 text-xs font-medium">
+                                            {ex.name}
+                                        </p>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-muted-foreground hover:text-destructive h-7 w-7 flex-shrink-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onRemove(ex.id);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </ScrollArea>
+
+                    <div className="border-border border-t p-4">
+                        <Button className="w-full" onClick={onNext}>
+                            Avançar
+                        </Button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ExerciseSelectCard({
+    exercise,
+    isSelected,
+    onToggleSelect,
+}: {
+    exercise: AdminExercise;
+    isSelected: boolean;
+    onToggleSelect: () => void;
+}) {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const video = (
+        exercise.videos as
+            | { thumbnail_url?: string | null; cdn_url?: string | null; url?: string | null }[]
+            | undefined
+    )?.[0];
+    const videoUrl = video?.cdn_url ?? video?.url ?? undefined;
+    const thumbnailUrl = video?.thumbnail_url ?? undefined;
+
+    const togglePlay = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const v = videoRef.current;
+        if (!v) return;
+        if (isPlaying) {
+            v.pause();
+            setIsPlaying(false);
+        } else {
+            v.play();
+            setIsPlaying(true);
+        }
+    };
+
+    return (
+        <div
+            className={cn(
+                'group bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-all duration-200',
+                isSelected
+                    ? 'border-primary ring-primary/20 ring-2'
+                    : 'border-border hover:border-muted-foreground/30',
+            )}
+        >
+            {/* Thumbnail with play */}
+            <div className="bg-muted relative aspect-video overflow-hidden">
+                <video
+                    ref={videoRef}
+                    src={videoUrl}
+                    poster={thumbnailUrl}
+                    className="h-full w-full object-cover"
+                    onEnded={() => setIsPlaying(false)}
+                    controlsList="nodownload"
+                    playsInline
+                />
+
+                {/* Select overlay */}
+                <button
+                    onClick={onToggleSelect}
+                    className="absolute top-2 left-2 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 transition-colors"
+                    style={{
+                        backgroundColor: isSelected
+                            ? 'hsl(var(--primary))'
+                            : 'hsl(var(--background) / 0.6)',
+                        borderColor: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                    }}
+                >
+                    {isSelected && <Check className="text-primary-foreground h-4 w-4" />}
+                </button>
+
+                {/* Play button */}
+                <button
+                    onClick={togglePlay}
+                    className="absolute inset-0 flex cursor-pointer items-center justify-center"
+                >
+                    {!isPlaying && (
+                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+                            <Play className="text-foreground ml-0.5 h-4 w-4" />
+                        </div>
+                    )}
+                </button>
+                {isPlaying && (
+                    <button
+                        onClick={togglePlay}
+                        className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
+                    >
+                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
+                            <Pause className="text-foreground h-4 w-4" />
+                        </div>
+                    </button>
+                )}
+            </div>
+            <div className="p-2">
+                <p className="text-card-foreground line-clamp-2 text-xs font-medium">
+                    {exercise.name}
+                </p>
+            </div>
+        </div>
+    );
+}

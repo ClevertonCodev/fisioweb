@@ -1,0 +1,411 @@
+import { AlertCircle, Check, ChevronLeft, PenLine, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+
+import {
+    useAssessment,
+    useSignAssessment,
+    useUpdateAssessment,
+} from '@/application/clinic/use-assessments';
+import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
+import type { AssessmentField, AssessmentSection } from '@/domain/clinic';
+import { cn } from '@/lib/utils';
+
+interface TextFieldProps {
+    field: AssessmentField;
+    value: string;
+    onChange: (v: string) => void;
+    readonly: boolean;
+}
+
+function TextField({ field, value, onChange, readonly }: TextFieldProps) {
+    if (field.fieldType === 'textarea') {
+        return (
+            <Textarea
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                readOnly={readonly}
+                placeholder="Escreva sua resposta aqui"
+                className={cn('min-h-24 resize-none', readonly && 'cursor-default')}
+            />
+        );
+    }
+    return (
+        <Input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            readOnly={readonly}
+            placeholder="Resposta curta"
+            className={cn(readonly && 'cursor-default')}
+        />
+    );
+}
+
+interface NumberFieldProps {
+    field: AssessmentField;
+    value: string;
+    onChange: (v: string) => void;
+    readonly: boolean;
+}
+
+function NumberField({ field, value, onChange, readonly }: NumberFieldProps) {
+    const unit = field.config?.unit;
+    return (
+        <div className="flex items-center gap-2 max-w-56">
+            <Input
+                type="number"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                readOnly={readonly}
+                placeholder="—"
+                className={cn('text-right', readonly && 'cursor-default')}
+            />
+            {unit && (
+                <span className="text-sm text-muted-foreground shrink-0 min-w-10">{unit}</span>
+            )}
+        </div>
+    );
+}
+
+interface RangeFieldProps {
+    field: AssessmentField;
+    value: string;
+    onChange: (v: string) => void;
+    readonly: boolean;
+}
+
+function RangeField({ field, value, onChange, readonly }: RangeFieldProps) {
+    const min = field.config?.min ?? 0;
+    const max = field.config?.max ?? 10;
+    const current = value !== '' ? Number(value) : min;
+    return (
+        <div>
+            <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground w-20 text-right">
+                    {field.config?.minLabel ?? min}
+                </span>
+                <div className="flex-1">
+                    <Slider
+                        value={[current]}
+                        onValueChange={([v]) => !readonly && onChange(String(v))}
+                        min={min}
+                        max={max}
+                        step={1}
+                        disabled={readonly}
+                    />
+                </div>
+                <span className="text-xs text-muted-foreground w-20">
+                    {field.config?.maxLabel ?? max}
+                </span>
+                <span className="text-xs font-mono bg-primary/10 text-primary rounded px-2 py-0.5 min-w-8 text-center">
+                    {current}
+                </span>
+            </div>
+        </div>
+    );
+}
+
+interface CheckboxFieldProps {
+    field: AssessmentField;
+    selectedOptionIds: Set<number>;
+    onToggle: (optionId: number) => void;
+    readonly: boolean;
+}
+
+function CheckboxField({ field, selectedOptionIds, onToggle, readonly }: CheckboxFieldProps) {
+    return (
+        <div className="grid grid-cols-2 gap-2">
+            {field.options.map((opt) => {
+                const active = selectedOptionIds.has(opt.id);
+                return (
+                    <button
+                        key={opt.id}
+                        type="button"
+                        disabled={readonly}
+                        onClick={() => !readonly && onToggle(opt.id)}
+                        className={cn(
+                            'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors duration-150 text-left',
+                            active
+                                ? 'border-primary bg-primary/10 text-primary font-medium'
+                                : 'border-border bg-background text-foreground',
+                            !readonly && 'cursor-pointer hover:bg-accent/50',
+                            readonly && 'cursor-default',
+                        )}
+                    >
+                        <span className="flex-1">{opt.label}</span>
+                        {active && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+interface SectionCardProps {
+    section: AssessmentSection;
+    answers: Map<number, string>;
+    selectedOptions: Map<number, Set<number>>;
+    onAnswerChange: (fieldId: number, value: string) => void;
+    onOptionToggle: (fieldId: number, optionId: number) => void;
+    readonly: boolean;
+}
+
+function SectionCard({
+    section,
+    answers,
+    selectedOptions,
+    onAnswerChange,
+    onOptionToggle,
+    readonly,
+}: SectionCardProps) {
+    return (
+        <div className="rounded-xl border border-border shadow-sm overflow-hidden">
+            <div className="bg-muted px-5 py-3">
+                <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+                    {section.title}
+                </h3>
+            </div>
+            <div className="p-5 space-y-5">
+                {section.fields.map((field) => (
+                    <div key={field.id}>
+                        <label className="text-sm font-medium text-foreground block mb-1.5">
+                            {field.label}
+                            {field.required && <span className="text-destructive ml-1">*</span>}
+                        </label>
+                        {(field.fieldType === 'textarea' || field.fieldType === 'text') && (
+                            <TextField
+                                field={field}
+                                value={answers.get(field.id) ?? ''}
+                                onChange={(v) => onAnswerChange(field.id, v)}
+                                readonly={readonly}
+                            />
+                        )}
+                        {field.fieldType === 'range' && (
+                            <RangeField
+                                field={field}
+                                value={answers.get(field.id) ?? ''}
+                                onChange={(v) => onAnswerChange(field.id, v)}
+                                readonly={readonly}
+                            />
+                        )}
+                        {field.fieldType === 'number' && (
+                            <NumberField
+                                field={field}
+                                value={answers.get(field.id) ?? ''}
+                                onChange={(v) => onAnswerChange(field.id, v)}
+                                readonly={readonly}
+                            />
+                        )}
+                        {field.fieldType === 'checkbox' && (
+                            <CheckboxField
+                                field={field}
+                                selectedOptionIds={selectedOptions.get(field.id) ?? new Set()}
+                                onToggle={(optionId) => onOptionToggle(field.id, optionId)}
+                                readonly={readonly}
+                            />
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+export default function AssessmentEditPage() {
+    const { id: patientId, assessmentId } = useParams<{ id: string; assessmentId: string }>();
+    const navigate = useNavigate();
+
+    const { data: assessment, isLoading, isError } = useAssessment(assessmentId!);
+    const updateAssessment = useUpdateAssessment();
+    const signAssessment = useSignAssessment(patientId!);
+
+    const [answers, setAnswers] = useState<Map<number, string>>(new Map());
+    const [selectedOptions, setSelectedOptions] = useState<Map<number, Set<number>>>(new Map());
+
+    // Initialize form state from loaded assessment
+    useEffect(() => {
+        if (!assessment) return;
+        const newAnswers = new Map<number, string>();
+        for (const a of assessment.answers) {
+            if (a.value !== null) newAnswers.set(a.fieldId, a.value);
+        }
+        const newOptions = new Map<number, Set<number>>();
+        for (const o of assessment.answerOptions) {
+            const set = newOptions.get(o.fieldId) ?? new Set<number>();
+            set.add(o.optionId);
+            newOptions.set(o.fieldId, set);
+        }
+        setAnswers(newAnswers);
+        setSelectedOptions(newOptions);
+    }, [assessment]);
+
+    function handleAnswerChange(fieldId: number, value: string) {
+        setAnswers((prev) => new Map(prev).set(fieldId, value));
+    }
+
+    function handleOptionToggle(fieldId: number, optionId: number) {
+        setSelectedOptions((prev) => {
+            const next = new Map(prev);
+            const set = new Set(next.get(fieldId) ?? []);
+            set.has(optionId) ? set.delete(optionId) : set.add(optionId);
+            next.set(fieldId, set);
+            return next;
+        });
+    }
+
+    function buildPayload() {
+        const dtoAnswers = Array.from(answers.entries()).map(([fieldId, value]) => ({
+            fieldId,
+            value,
+        }));
+        const dtoOptions = Array.from(selectedOptions.entries()).flatMap(([fieldId, optionIds]) =>
+            Array.from(optionIds).map((optionId) => ({ fieldId, optionId })),
+        );
+        return { answers: dtoAnswers, answerOptions: dtoOptions };
+    }
+
+    function handleSave() {
+        updateAssessment.mutate(
+            { id: assessmentId!, dto: buildPayload() },
+            { onSuccess: () => toast.success('Avaliação salva com sucesso') },
+        );
+    }
+
+    function handleSign() {
+        signAssessment.mutate(assessmentId!, {
+            onSuccess: () => {
+                toast.success('Avaliação assinada com sucesso');
+                navigate(`/clinica/pacientes/${patientId}`);
+            },
+        });
+    }
+
+    const isDraft = assessment?.status === 'draft';
+
+    return (
+        <ClinicLayout>
+            <div className="flex flex-col h-[calc(100vh-64px)]">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-border flex items-start justify-between gap-4 bg-card">
+                    <div className="flex items-start gap-3">
+                        <button
+                            onClick={() => navigate(`/clinica/pacientes/${patientId}`)}
+                            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-0.5"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                            Voltar
+                        </button>
+                        <div>
+                            {isLoading ? (
+                                <Skeleton className="h-6 w-64" />
+                            ) : (
+                                <h2 className="text-lg font-semibold text-foreground">
+                                    {assessment?.template.name}
+                                </h2>
+                            )}
+                            <div className="mt-1">
+                                {assessment?.status === 'signed' && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Assinada
+                                    </Badge>
+                                )}
+                                {isDraft && (
+                                    <Badge variant="outline" className="text-xs">
+                                        Rascunho
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {isDraft && (
+                        <div className="flex gap-2 shrink-0">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2 cursor-pointer"
+                                onClick={handleSave}
+                                disabled={updateAssessment.isPending}
+                            >
+                                <Save className="h-4 w-4" />
+                                {updateAssessment.isPending ? 'Salvando...' : 'Salvar rascunho'}
+                            </Button>
+                            <Button
+                                size="sm"
+                                className="gap-2 cursor-pointer"
+                                onClick={handleSign}
+                                disabled={signAssessment.isPending}
+                            >
+                                <PenLine className="h-4 w-4" />
+                                {signAssessment.isPending ? 'Assinando...' : 'Assinar'}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Body */}
+                <ScrollArea className="flex-1">
+                    <div className="p-6 space-y-6 max-w-4xl">
+                        {isLoading && (
+                            <div className="space-y-4">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-48 w-full rounded-xl" />
+                                ))}
+                            </div>
+                        )}
+                        {isError && (
+                            <div className="flex items-center gap-2 text-sm text-destructive">
+                                <AlertCircle className="h-4 w-4 shrink-0" />
+                                Erro ao carregar a avaliação
+                            </div>
+                        )}
+                        {assessment &&
+                            assessment.template.sections.map((section) => (
+                                <SectionCard
+                                    key={section.id}
+                                    section={section}
+                                    answers={answers}
+                                    selectedOptions={selectedOptions}
+                                    onAnswerChange={handleAnswerChange}
+                                    onOptionToggle={handleOptionToggle}
+                                    readonly={!isDraft}
+                                />
+                            ))}
+                    </div>
+                </ScrollArea>
+
+                {/* Footer (only for draft) */}
+                {isDraft && (
+                    <div className="px-6 py-3 border-t border-border bg-card/80 backdrop-blur flex justify-end gap-2">
+                        <Button
+                            variant="outline"
+                            className="gap-2 cursor-pointer"
+                            onClick={handleSave}
+                            disabled={updateAssessment.isPending}
+                        >
+                            <Save className="h-4 w-4" />
+                            {updateAssessment.isPending ? 'Salvando...' : 'Salvar rascunho'}
+                        </Button>
+                        <Button
+                            className="gap-2 cursor-pointer"
+                            onClick={handleSign}
+                            disabled={signAssessment.isPending}
+                        >
+                            <PenLine className="h-4 w-4" />
+                            {signAssessment.isPending ? 'Assinando...' : 'Assinar avaliação'}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </ClinicLayout>
+    );
+}

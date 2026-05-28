@@ -37,11 +37,13 @@ class BodyRegionSeeder extends Seeder
 
         foreach ($regions as $parentName => $children) {
             $parent = BodyRegion::updateOrCreate(
+                ['name' => $parentName, 'parent_id' => null],
                 ['name' => $parentName, 'parent_id' => null]
             );
 
             foreach ($children as $childName) {
                 BodyRegion::updateOrCreate(
+                    ['name' => $childName, 'parent_id' => $parent->id],
                     ['name' => $childName, 'parent_id' => $parent->id]
                 );
             }

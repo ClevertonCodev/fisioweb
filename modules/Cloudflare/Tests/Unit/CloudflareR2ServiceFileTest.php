@@ -72,7 +72,6 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
         Storage::shouldReceive('putFileAs')->once()->andReturn(false);
 
-        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('error')->once();
 
         $file = UploadedFile::fake()->create('photo.png');
@@ -85,7 +84,6 @@ class CloudflareR2ServiceFileTest extends TestCase
 
     public function test_should_log_success_on_upload_file(): void
     {
-        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('info')
             ->once()
             ->withArgs(function ($message, $context) {
@@ -120,7 +118,6 @@ class CloudflareR2ServiceFileTest extends TestCase
             ->once()
             ->andReturn(false);
 
-        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('error')->once();
 
         $result = $this->service->uploadMultipleFiles([$file1]);
@@ -242,7 +239,6 @@ class CloudflareR2ServiceFileTest extends TestCase
         Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
         Storage::shouldReceive('put')->once()->andReturn(false);
 
-        Log::shouldReceive('channel')->with('dated')->andReturnSelf();
         Log::shouldReceive('error')->once();
 
         try {

@@ -1,0 +1,9 @@
+{
+    "Admin": true,
+    "Pdf": true,
+    "Media": true,
+    "Cloudflare": true,
+    "Clinic": true,
+    "Patient": true,
+    "WhatsApp": false
+}

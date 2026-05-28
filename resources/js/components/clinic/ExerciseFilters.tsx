@@ -1,20 +1,13 @@
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
-import * as React from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { FilterCategory, ExerciseFilters as Filters } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
-import type {
-    ExerciseFilters as Filters,
-    FilterCategory,
-} from '@/types/exercise';
 
 interface ExerciseFiltersProps {
     categories: FilterCategory[];
@@ -23,22 +16,14 @@ interface ExerciseFiltersProps {
     onClose?: () => void;
 }
 
-const initialFilters: Filters = {
-    search: '',
-    physio_area_id: [],
-    body_region_id: [],
-    difficulty_level: [],
-    movement_form: [],
-};
-
 export function ExerciseFilters({
     categories,
     filters,
     onFiltersChange,
     onClose,
 }: ExerciseFiltersProps) {
-    const [filterSearch, setFilterSearch] = React.useState('');
-    const [openCategories, setOpenCategories] = React.useState<string[]>([]);
+    const [filterSearch, setFilterSearch] = useState('');
+    const [openCategories, setOpenCategories] = useState<string[]>([]);
 
     const toggleCategory = (categoryId: string) => {
         setOpenCategories((prev) =>
@@ -49,49 +34,71 @@ export function ExerciseFilters({
     };
 
     const toggleFilter = (categoryId: string, value: string) => {
-        const currentValues =
-            (filters[categoryId as keyof Filters] as string[]) || [];
+        const currentValues = (filters[categoryId as keyof Filters] as string[]) || [];
         const newValues = currentValues.includes(value)
             ? currentValues.filter((v) => v !== value)
             : [...currentValues, value];
-        onFiltersChange({ ...filters, [categoryId]: newValues });
+
+        onFiltersChange({
+            ...filters,
+            [categoryId]: newValues,
+        });
     };
 
     const clearAllFilters = () => {
-        onFiltersChange(initialFilters);
+        onFiltersChange({
+            search: '',
+            specialty: [],
+            bodyArea: [],
+            bodyRegion: [],
+            objective: [],
+            difficulty: [],
+            muscleGroup: [],
+            equipment: [],
+            movementType: [],
+            movementPattern: [],
+            movementForm: [],
+        });
+    };
+
+    const getActiveFiltersCount = () => {
+        return Object.entries(filters)
+            .filter(([key]) => key !== 'search')
+            .reduce((count, [, value]) => count + (Array.isArray(value) ? value.length : 0), 0);
     };
 
     const filteredCategories = categories
         .map((category) => ({
             ...category,
             options: category.options.filter((option) =>
-                option.label
-                    .toLowerCase()
-                    .includes(filterSearch.toLowerCase()),
+                option.label.toLowerCase().includes(filterSearch.toLowerCase()),
             ),
         }))
         .filter((category) => category.options.length > 0);
 
+    const activeCount = getActiveFiltersCount();
+
     return (
-        <div className="flex h-full min-h-0 flex-col border-l border-border bg-card">
-            <div className="flex items-center justify-between border-b border-border p-4">
-                <h2 className="text-lg font-semibold text-card-foreground">
-                    Filtros
-                </h2>
+        <div className="bg-card border-border flex h-full flex-col border-l">
+            {/* Header */}
+            <div className="border-border flex items-center justify-between border-b p-4">
+                <h2 className="text-card-foreground text-lg font-semibold">Filtros</h2>
                 {onClose && (
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground h-8 w-8"
                     >
                         <X className="h-4 w-4" />
                     </Button>
                 )}
             </div>
-            <div className="border-b border-border p-4">
+
+            {/* Search */}
+            <div className="border-border border-b p-4">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                     <Input
                         placeholder="Pesquisar filtro"
                         value={filterSearch}
@@ -100,40 +107,36 @@ export function ExerciseFilters({
                     />
                 </div>
             </div>
-            <ScrollArea className="min-h-0 flex-1">
+
+            {/* Filter Categories */}
+            <ScrollArea className="flex-1">
                 <div className="space-y-2 p-4">
                     {filteredCategories.map((category) => {
                         const isOpen = openCategories.includes(category.id);
-                        const selectedValues =
-                            (filters[category.id as keyof Filters] as
-                                | string[]
-                                | undefined) ?? [];
-                        const selectedCount = selectedValues.length;
+                        const selectedCount = (
+                            (filters[category.id as keyof Filters] as string[]) || []
+                        ).length;
+
                         return (
                             <Collapsible
                                 key={category.id}
                                 open={isOpen}
-                                onOpenChange={() =>
-                                    toggleCategory(category.id)
-                                }
+                                onOpenChange={() => toggleCategory(category.id)}
                             >
                                 <CollapsibleTrigger asChild>
-                                    <button
-                                        type="button"
-                                        className="flex w-full items-center justify-between px-1 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:text-primary"
-                                    >
+                                    <button className="text-card-foreground hover:text-primary flex w-full items-center justify-between px-1 py-2.5 text-sm font-medium transition-colors">
                                         <span className="flex items-center gap-2">
                                             {category.label}
                                             {selectedCount > 0 && (
-                                                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                                                <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
                                                     {selectedCount}
                                                 </span>
                                             )}
                                         </span>
                                         {isOpen ? (
-                                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                                            <ChevronUp className="text-muted-foreground h-4 w-4" />
                                         ) : (
-                                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                            <ChevronDown className="text-muted-foreground h-4 w-4" />
                                         )}
                                     </button>
                                 </CollapsibleTrigger>
@@ -144,10 +147,8 @@ export function ExerciseFilters({
                                                 (filters[
                                                     category.id as keyof Filters
                                                 ] as string[]) || [];
-                                            const isChecked =
-                                                selectedValues.includes(
-                                                    option.value,
-                                                );
+                                            const isChecked = selectedValues.includes(option.value);
+
                                             return (
                                                 <label
                                                     key={option.value}
@@ -156,24 +157,21 @@ export function ExerciseFilters({
                                                     <Checkbox
                                                         checked={isChecked}
                                                         onCheckedChange={() =>
-                                                            toggleFilter(
-                                                                category.id,
-                                                                option.value,
-                                                            )
+                                                            toggleFilter(category.id, option.value)
                                                         }
                                                     />
                                                     <span
                                                         className={cn(
                                                             'text-sm transition-colors',
                                                             isChecked
-                                                                ? 'font-medium text-card-foreground'
+                                                                ? 'text-card-foreground font-medium'
                                                                 : 'text-muted-foreground group-hover:text-card-foreground',
                                                         )}
                                                     >
                                                         {option.label}
                                                     </span>
-                                                    {option.count != null && (
-                                                        <span className="ml-auto text-xs text-muted-foreground">
+                                                    {option.count !== undefined && (
+                                                        <span className="text-muted-foreground ml-auto text-xs">
                                                             {option.count}
                                                         </span>
                                                     )}
@@ -187,11 +185,14 @@ export function ExerciseFilters({
                     })}
                 </div>
             </ScrollArea>
-            <div className="border-t border-border p-4">
+
+            {/* Footer */}
+            <div className="border-border flex items-center justify-between gap-3 border-t p-4">
                 <Button
                     variant="ghost"
                     onClick={clearAllFilters}
-                    className="w-full text-muted-foreground"
+                    disabled={activeCount === 0}
+                    className="text-muted-foreground"
                 >
                     Limpar filtros
                 </Button>

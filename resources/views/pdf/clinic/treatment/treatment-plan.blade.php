@@ -15,7 +15,6 @@
             line-height: 1.5;
         }
 
-        /* ── Cabeçalho ─────────────────────────────────────── */
         .header {
             padding: 20px 30px 16px;
             border-bottom: 2px solid #0d9488;
@@ -38,14 +37,14 @@
             display: inline-block;
         }
 
-        .physio-name {
+        .clinic-name {
             font-size: 16px;
             font-weight: bold;
             color: #0f172a;
             margin-bottom: 3px;
         }
 
-        .physio-meta {
+        .clinic-meta {
             font-size: 9px;
             color: #475569;
             margin-bottom: 2px;
@@ -68,7 +67,6 @@
             display: block;
         }
 
-        /* ── Título do plano ────────────────────────────────── */
         .plan-header {
             padding: 20px 30px 0;
         }
@@ -86,7 +84,6 @@
             margin-bottom: 16px;
         }
 
-        /* ── Meta box (tempo / período) ─────────────────────── */
         .meta-box {
             margin: 0 30px 16px;
             border: 1px solid #e2e8f0;
@@ -129,7 +126,6 @@
             margin-top: 1px;
         }
 
-        /* ── Observações ────────────────────────────────────── */
         .notes-box {
             margin: 0 30px 20px;
             background: #fffbeb;
@@ -153,7 +149,6 @@
             line-height: 1.6;
         }
 
-        /* ── Seção de exercícios ────────────────────────────── */
         .section-title {
             margin: 8px 30px 12px;
             font-size: 12px;
@@ -165,7 +160,6 @@
             padding-bottom: 6px;
         }
 
-        /* ── Nome do grupo ──────────────────────────────────── */
         .group-name {
             margin: 16px 30px 8px;
             font-size: 12px;
@@ -177,7 +171,6 @@
             border-radius: 0 4px 4px 0;
         }
 
-        /* ── Card de exercício ──────────────────────────────── */
         .exercise-card {
             margin: 0 30px 12px;
             border: 1px solid #e2e8f0;
@@ -268,7 +261,6 @@
             padding-top: 6px;
         }
 
-        /* ── Rodapé ─────────────────────────────────────────── */
         .footer {
             margin-top: 24px;
             padding: 12px 30px;
@@ -282,7 +274,6 @@
 <body>
 
 @php
-    /** Helpers ─────────────────────────────────────────────── */
     $initials = fn(string $name): string => collect(explode(' ', $name))
         ->filter()
         ->take(2)
@@ -319,7 +310,6 @@
         ? (int) \Carbon\Carbon::parse($plan->start_date)->diffInDays($plan->end_date)
         : null;
 
-    /** Achata todos os exercícios (com grupos e sem grupos) */
     $allSections = collect();
 
     foreach ($plan->groups as $group) {
@@ -337,35 +327,29 @@
     $hasExercises = $allSections->where('type', 'exercise')->count() > 0;
 @endphp
 
-{{-- ── CABEÇALHO ───────────────────────────────────────────────── --}}
 <div class="header">
     <table class="header-table">
         <tr>
-            {{-- Avatar --}}
             <td style="width: 60px; vertical-align: middle;">
-                <div class="avatar-circle">{{ $initials($plan->clinicUser?->name ?? 'FT') }}</div>
+                <div class="avatar-circle">{{ $initials($plan->clinic?->name ?? 'Clínica') }}</div>
             </td>
-
-            {{-- Dados do fisioterapeuta --}}
             <td style="vertical-align: middle; padding-left: 12px;">
-                <div class="physio-name">{{ $plan->clinicUser?->name ?? '—' }}</div>
-                @if($plan->clinicUser?->document)
-                    <div class="physio-meta">Fisioterapeuta ({{ $plan->clinicUser->document }})</div>
+                <div class="clinic-name">{{ $plan->clinic?->name ?? config('app.name') }}</div>
+                @if($plan->clinic?->document)
+                    <div class="clinic-meta">{{ $plan->clinic->document }}</div>
                 @endif
-                @if($plan->clinicUser?->email)
-                    <div class="physio-meta">{{ $plan->clinicUser->email }}</div>
+                @if($plan->clinic?->email)
+                    <div class="clinic-meta">{{ $plan->clinic->email }}</div>
                 @endif
                 @if($plan->clinic?->phone)
-                    <div class="physio-meta">{{ $plan->clinic->phone }}</div>
+                    <div class="clinic-meta">{{ $plan->clinic->phone }}</div>
                 @endif
             </td>
-
-            {{-- Badge da clínica --}}
             <td style="width: 130px; vertical-align: middle; text-align: right;">
                 <div class="clinic-badge">
                     <span class="clinic-badge-name">{{ $plan->clinic?->name ?? config('app.name') }}</span>
                     @if($plan->clinic?->city)
-                        <span style="display:block; margin-top: 2px;">{{ $plan->clinic->city }}{{ $plan->clinic?->state ? ', ' . $plan->clinic->state : '' }}</span>
+                        <span style="display:block; margin-top: 2px;">{{ $plan->clinic->city }}{{ $plan->clinic->state ? ', ' . $plan->clinic->state : '' }}</span>
                     @endif
                 </div>
             </td>
@@ -373,7 +357,6 @@
     </table>
 </div>
 
-{{-- ── TÍTULO E PACIENTE ──────────────────────────────────────── --}}
 <div class="plan-header">
     <div class="plan-title">{{ $plan->title }}</div>
     <div class="plan-patient">
@@ -386,11 +369,9 @@
     </div>
 </div>
 
-{{-- ── META (TEMPO + PERÍODO) ─────────────────────────────────── --}}
 <div class="meta-box">
     <table class="meta-table">
         <tr>
-            {{-- Tempo estimado --}}
             <td class="meta-cell">
                 <div class="meta-label">Tempo estimado</div>
                 <div class="meta-value">
@@ -401,8 +382,6 @@
                     @endif
                 </div>
             </td>
-
-            {{-- Período de execução --}}
             <td class="meta-cell meta-cell-right">
                 <div class="meta-label">Período de execução</div>
                 <div class="meta-value">
@@ -419,20 +398,17 @@
     </table>
 </div>
 
-{{-- ── OBSERVAÇÕES ─────────────────────────────────────────────── --}}
-@if($plan->notes || $plan->message)
+@if($plan->notes || ($plan->message ?? null))
     <div class="notes-box">
         <div class="notes-label">Observações</div>
-        <div class="notes-text">{{ $plan->notes ?? $plan->message }}</div>
+        <div class="notes-text">{{ $plan->notes ?? $plan->message ?? '—' }}</div>
     </div>
 @endif
 
-{{-- ── EXERCÍCIOS ──────────────────────────────────────────────── --}}
 @if($hasExercises)
     <div class="section-title">Exercícios</div>
 
     @foreach($allSections as $section)
-
         @if($section['type'] === 'group')
             <div class="group-name">{{ $section['name'] }}</div>
 
@@ -447,7 +423,6 @@
             <div class="exercise-card">
                 <table class="exercise-table">
                     <tr>
-                        {{-- Thumbnail --}}
                         <td class="exercise-thumb-cell">
                             @if($thumbnail)
                                 <img
@@ -459,8 +434,6 @@
                                 <div class="exercise-thumb-placeholder">&#9654;</div>
                             @endif
                         </td>
-
-                        {{-- Conteúdo --}}
                         <td class="exercise-content-cell">
                             <div class="exercise-name">{{ $exercise?->name ?? '—' }}</div>
 
@@ -468,7 +441,6 @@
                                 <div class="exercise-description">{{ $exercise->description }}</div>
                             @endif
 
-                            {{-- Estatísticas --}}
                             <table class="exercise-stats">
                                 <tr>
                                     <td class="stat-cell">
@@ -500,11 +472,9 @@
                 </table>
             </div>
         @endif
-
     @endforeach
 @endif
 
-{{-- ── RODAPÉ ──────────────────────────────────────────────────── --}}
 <div class="footer">
     &copy; {{ date('Y') }} {{ $plan->clinic?->name ?? config('app.name') }}. Todos os direitos reservados
 </div>

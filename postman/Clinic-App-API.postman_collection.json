@@ -1,0 +1,928 @@
+{
+	"info": {
+		"_postman_id": "clinic-app-api-2025",
+		"name": "Clinic App - API",
+		"description": "Coleção para testar a API do Clinic App no Postman.\n\n**Como usar:**\n1. Ajuste a variável `base_url` (ex: `http://localhost:8000` ou `http://clinic-app.test`).\n2. Faça login (Admin, Clinic ou Patient) — o token é salvo automaticamente.\n3. As demais requisições usarão o token Bearer da pasta correspondente.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "admin_token",
+			"value": ""
+		},
+		{
+			"key": "clinic_token",
+			"value": ""
+		},
+		{
+			"key": "patient_token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const json = pm.response.json();",
+											"    if (json.access_token) {",
+											"        pm.collectionVariables.set('admin_token', json.access_token);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"cleverton94fla@gmail.com\",\n    \"password\": \"12345678\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/auth/login"
+							}
+						},
+						{
+							"name": "Me",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{admin_token}}"
+									}
+								],
+								"url": "{{base_url}}/api/admin/auth/me"
+							}
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{admin_token}}"
+									}
+								],
+								"url": "{{base_url}}/api/admin/auth/logout"
+							}
+						},
+						{
+							"name": "Refresh",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{admin_token}}"
+									}
+								],
+								"url": "{{base_url}}/api/admin/auth/refresh"
+							}
+						}
+					]
+				},
+				{
+					"name": "Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": "{{base_url}}/api/admin/dashboard"
+					}
+				},
+				{
+					"name": "Plans",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/plans?per_page=10"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/plans/1"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Plano Básico\",\n    \"description\": \"Descrição do plano\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/plans"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Plano Atualizado\",\n    \"description\": \"Nova descrição\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/plans/1"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/plans/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Features",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/features?per_page=10"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/features/1"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Nome da feature\",\n    \"type\": \"string\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/features"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Feature Atualizada\",\n    \"type\": \"string\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/features/1"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/features/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Feature-Plans",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/feature-plans"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"plan_id\": 1,\n    \"feature_id\": 1\n}"
+								},
+								"url": "{{base_url}}/api/admin/feature-plans"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/feature-plans/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Exercises",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/exercises?per_page=15"
+							}
+						},
+						{
+							"name": "Options",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/exercises/options"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/exercises/1"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Exercício exemplo\",\n    \"description\": \"Descrição\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/exercises"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Exercício atualizado\",\n    \"description\": \"Nova descrição\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/exercises/1"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/exercises/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Clinics",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/clinics"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/clinics/1"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Clínica Nova\",\n    \"email\": \"clinica@email.com\",\n    \"password\": \"12345678\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/clinics"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Clínica Atualizada\",\n    \"email\": \"clinica@email.com\"\n}"
+								},
+								"url": "{{base_url}}/api/admin/clinics/1"
+							}
+						},
+						{
+							"name": "Reativar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/clinics/1/reactivate"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/clinics/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Media",
+					"item": [
+						{
+							"name": "Listar vídeos",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/media/videos"
+							}
+						},
+						{
+							"name": "Ver vídeo",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{admin_token}}" }
+								],
+								"url": "{{base_url}}/api/admin/media/videos/1"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Clinic",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const json = pm.response.json();",
+											"    if (json.access_token) {",
+											"        pm.collectionVariables.set('clinic_token', json.access_token);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"clevertonsantoscodev@gmail.com\",\n    \"password\": \"12345678\"\n}"
+								},
+								"url": "{{base_url}}/api/clinic/auth/login"
+							}
+						},
+						{
+							"name": "Me",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/auth/me"
+							}
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/auth/logout"
+							}
+						},
+						{
+							"name": "Refresh",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/auth/refresh"
+							}
+						}
+					]
+				},
+				{
+					"name": "Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+						],
+						"url": "{{base_url}}/api/clinic/dashboard"
+					}
+				},
+				{
+					"name": "Patients",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/patients"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/patients/1"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Paciente Exemplo\",\n    \"email\": \"paciente@email.com\",\n    \"password\": \"12345678\"\n}"
+								},
+								"url": "{{base_url}}/api/clinic/patients"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Paciente Atualizado\",\n    \"email\": \"paciente@email.com\"\n}"
+								},
+								"url": "{{base_url}}/api/clinic/patients/1"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/patients/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Treatment Plans",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/treatment-plans"
+							}
+						},
+						{
+							"name": "Ver",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/treatment-plans/1"
+							}
+						},
+						{
+							"name": "PDF",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/treatment-plans/1/pdf"
+							}
+						},
+						{
+							"name": "Criar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"patient_id\": 1,\n    \"name\": \"Plano de tratamento\"\n}"
+								},
+								"url": "{{base_url}}/api/clinic/treatment-plans"
+							}
+						},
+						{
+							"name": "Atualizar",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Plano atualizado\"\n}"
+								},
+								"url": "{{base_url}}/api/clinic/treatment-plans/1"
+							}
+						},
+						{
+							"name": "Duplicar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/treatment-plans/1/duplicate"
+							}
+						},
+						{
+							"name": "Excluir",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/treatment-plans/1"
+							}
+						}
+					]
+				},
+				{
+					"name": "Exercises",
+					"item": [
+						{
+							"name": "Listar",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/exercises"
+							}
+						},
+						{
+							"name": "Favoritar",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/exercises/1/favorite"
+							}
+						}
+					]
+				},
+				{
+					"name": "Favorites",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+						],
+						"url": "{{base_url}}/api/clinic/favorites"
+					}
+				},
+				{
+					"name": "Media",
+					"item": [
+						{
+							"name": "Listar vídeos",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/media/videos"
+							}
+						},
+						{
+							"name": "Ver vídeo",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{clinic_token}}" }
+								],
+								"url": "{{base_url}}/api/clinic/media/videos/1"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Patient",
+			"item": [
+				{
+					"name": "Auth",
+					"item": [
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const json = pm.response.json();",
+											"    if (json.access_token) {",
+											"        pm.collectionVariables.set('patient_token', json.access_token);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Content-Type", "value": "application/json" }
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"cleverton@gmail.com\",\n    \"password\": \"12345678\"\n}"
+								},
+								"url": "{{base_url}}/api/patient/auth/login"
+							}
+						},
+						{
+							"name": "Me",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{patient_token}}" }
+								],
+								"url": "{{base_url}}/api/patient/auth/me"
+							}
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{patient_token}}" }
+								],
+								"url": "{{base_url}}/api/patient/auth/logout"
+							}
+						},
+						{
+							"name": "Refresh",
+							"request": {
+								"method": "POST",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{patient_token}}" }
+								],
+								"url": "{{base_url}}/api/patient/auth/refresh"
+							}
+						}
+					]
+				},
+				{
+					"name": "Media",
+					"item": [
+						{
+							"name": "Listar vídeos",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{patient_token}}" }
+								],
+								"url": "{{base_url}}/api/patient/media/videos"
+							}
+						},
+						{
+							"name": "Ver vídeo",
+							"request": {
+								"method": "GET",
+								"header": [
+									{ "key": "Accept", "value": "application/json" },
+									{ "key": "Authorization", "value": "Bearer {{patient_token}}" }
+								],
+								"url": "{{base_url}}/api/patient/media/videos/1"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

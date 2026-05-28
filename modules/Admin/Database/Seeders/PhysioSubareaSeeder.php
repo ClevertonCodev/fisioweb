@@ -11,34 +11,34 @@ class PhysioSubareaSeeder extends Seeder
     public function run(): void
     {
         $subareas = [
-            'Fisioterapia Aquática' => [
+            'Aquática' => [
                 'Hidroterapia',
                 'Hidrocinesioterapia',
                 'Watsu',
                 'Bad Ragaz',
                 'Halliwick',
             ],
-            'Fisioterapia Cardiovascular' => [
+            'Cardiovascular' => [
                 'Reabilitação Cardíaca',
                 'Reabilitação Vascular',
                 'Reabilitação Pós-Cirurgia Cardíaca',
                 'Tratamento de Linfedema',
             ],
-            'Fisioterapia Dermatofuncional' => [
+            'Dermatofuncional' => [
                 'Pré e Pós-Operatório de Cirurgia Plástica',
                 'Tratamento de Cicatrizes e Queimaduras',
                 'Drenagem Linfática',
                 'Eletroterapia Estética',
                 'Tratamento de Fibroses',
             ],
-            'Fisioterapia Esportiva' => [
+            'Esportiva' => [
                 'Reabilitação de Lesões Musculares',
                 'Reabilitação de Lesões Ligamentares',
                 'Prevenção de Lesões',
                 'Retorno ao Esporte',
                 'Avaliação Funcional do Atleta',
             ],
-            'Fisioterapia Neurofuncional' => [
+            'Neurofuncional' => [
                 'Reabilitação Pós-AVC',
                 'Tratamento de Parkinson',
                 'Esclerose Múltipla',
@@ -46,20 +46,20 @@ class PhysioSubareaSeeder extends Seeder
                 'Paralisia Cerebral',
                 'Neuropatias Periféricas',
             ],
-            'Fisioterapia em Gerontologia' => [
+            'Gerontologia' => [
                 'Prevenção de Quedas',
                 'Reabilitação Funcional do Idoso',
                 'Tratamento de Sarcopenia',
                 'Mobilidade e Equilíbrio',
             ],
-            'Fisioterapia Respiratória' => [
+            'Respiratória' => [
                 'Reabilitação Pulmonar',
                 'Ventilação Mecânica',
                 'Fisioterapia em UTI',
                 'Tratamento de Asma e DPOC',
                 'Pré e Pós-Operatório Torácico',
             ],
-            'Fisioterapia Traumato-Ortopédica' => [
+            'Traumato-Ortopédica' => [
                 'Reabilitação Pós-Fratura',
                 'Reabilitação Pós-Cirurgia Ortopédica',
                 'Tratamento de Coluna Vertebral',
@@ -67,21 +67,21 @@ class PhysioSubareaSeeder extends Seeder
                 'RPG (Reeducação Postural Global)',
                 'Pilates Clínico',
             ],
-            'Fisioterapia na Saúde da Mulher' => [
+            'Saúde da Mulher' => [
                 'Reabilitação do Assoalho Pélvico',
                 'Fisioterapia Obstétrica',
                 'Pós-Parto',
                 'Tratamento de Incontinência Urinária',
                 'Preparação para o Parto',
             ],
-            'Fisioterapia Reumatológica' => [
+            'Reumatológica' => [
                 'Artrite Reumatoide',
                 'Fibromialgia',
                 'Osteoartrose',
                 'Espondilite Anquilosante',
                 'Lúpus Eritematoso',
             ],
-            'Fisioterapia Pediátrica' => [
+            'Pediátrica' => [
                 'Estimulação Precoce',
                 'Desenvolvimento Motor',
                 'Reabilitação Neurológica Infantil',

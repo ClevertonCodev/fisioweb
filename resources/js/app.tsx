@@ -1,29 +1,39 @@
-import '../css/app.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 
-import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { adminRoutes } from '@/routes/admin-routes';
+import { clinicRoutes } from '@/routes/clinic-routes';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+import NotFound from './pages/NotFound';
 
-createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
-            import.meta.glob('./pages/**/*.tsx'),
-        ),
-    setup({ el, App, props }) {
-        const root = createRoot(el);
+const queryClient = new QueryClient();
 
-        root.render(
-            <StrictMode>
-                <App {...props} />
-            </StrictMode>,
-        );
+const router = createBrowserRouter(
+    [
+        { path: '/', element: <Navigate to="/clinica/login" replace /> },
+        ...clinicRoutes(queryClient),
+        adminRoutes,
+        { path: '*', element: <NotFound /> },
+    ],
+    {
+        future: {
+            v7_relativeSplatPath: true,
+        },
     },
-    progress: {
-        color: '#29a37a',
-    },
-});
+);
+
+const App = () => (
+    <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+            <TooltipProvider>
+                <Sonner />
+                <RouterProvider router={router} future={{ v7_startTransition: true }} />
+            </TooltipProvider>
+        </AuthProvider>
+    </QueryClientProvider>
+);
+
+export default App;

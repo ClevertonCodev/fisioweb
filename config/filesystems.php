@@ -39,7 +39,7 @@ return [
         'public' => [
             'driver'     => 'local',
             'root'       => storage_path('app/public'),
-            'url'        => rtrim(env('APP_URL', ''), '/') . '/storage',
+            'url'        => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
             'throw'      => false,
             'report'     => false,
@@ -60,7 +60,6 @@ return [
 
         /*
          * Cloudflare R2 Storage (S3-compatible)
-         * R2 provides S3-compatible API with zero egress fees
          */
         'r2' => [
             'driver'                  => 's3',

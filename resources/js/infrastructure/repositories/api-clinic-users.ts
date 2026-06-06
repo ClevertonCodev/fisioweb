@@ -8,6 +8,7 @@ interface ApiClinicUser {
     name: string;
     email: string;
     role: string;
+    mestre: number;
     status: number;
     document?: string;
 }
@@ -18,6 +19,7 @@ function toEntity(raw: ApiClinicUser): ClinicUserSummary {
         name: raw.name,
         email: raw.email,
         role: raw.role as ClinicRole,
+        mestre: raw.mestre === 1 ? 1 : 0,
         status: raw.status,
         document: raw.document,
     };

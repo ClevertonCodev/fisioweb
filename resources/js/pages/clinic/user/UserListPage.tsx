@@ -252,7 +252,14 @@ export function UserListPage() {
                                     <TableRow key={u.id}>
                                         <TableCell className="font-medium">{u.name}</TableCell>
                                         <TableCell>{u.email}</TableCell>
-                                        <TableCell>{ROLE_LABELS[u.role] ?? u.role}</TableCell>
+                                        <TableCell>
+                                            {ROLE_LABELS[u.role] ?? u.role}
+                                            {u.mestre === 1 && (
+                                                <span className="text-muted-foreground ml-1 text-xs">
+                                                    (Mestre)
+                                                </span>
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             <StatusBadge
                                                 variant={u.status ? 'active' : 'neutral'}
@@ -275,7 +282,7 @@ export function UserListPage() {
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    {can.delete(role) && (
+                                                    {can.delete(role) && u.mestre !== 1 && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"

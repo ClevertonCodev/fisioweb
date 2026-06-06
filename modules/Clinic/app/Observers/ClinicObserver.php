@@ -21,6 +21,7 @@ class ClinicObserver
             'password'  => Hash::make($clinic->document),
             'document'  => $clinic->document,
             'role'      => ClinicUser::ROLE_ADMIN,
+            'mestre'    => ClinicUser::MESTRE_YES,
             'status'    => ClinicUser::STATUS_ACTIVE,
         ]);
     }

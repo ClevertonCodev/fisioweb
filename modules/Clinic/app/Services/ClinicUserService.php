@@ -12,24 +12,29 @@ class ClinicUserService implements ClinicUserServiceInterface
     {
         return ClinicUser::where('clinic_id', $clinicId)
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role', 'status', 'document']);
+            ->get(['id', 'name', 'email', 'role', 'mestre', 'status', 'document']);
     }
 
     public function create(array $data, int $clinicId): ClinicUser
     {
-        return ClinicUser::create(array_merge($data, ['clinic_id' => $clinicId]));
+        unset($data['mestre']);
+
+        return ClinicUser::create(array_merge($data, [
+            'clinic_id' => $clinicId,
+            'mestre'    => ClinicUser::MESTRE_NO,
+        ]));
     }
 
     public function update(ClinicUser $clinicUser, array $data): ClinicUser
     {
-        $firstUserId = (int) ClinicUser::where('clinic_id', $clinicUser->clinic_id)->min('id');
+        unset($data['mestre']);
 
         if (
-            (int) $clinicUser->id === $firstUserId
+            $clinicUser->isMaster()
             && array_key_exists('role', $data)
             && $data['role'] !== ClinicUser::ROLE_ADMIN
         ) {
-            abort(422, 'O primeiro usuário cadastrado na clínica deve permanecer como administrador.');
+            abort(422, 'O usuário mestre da clínica deve permanecer como administrador.');
         }
 
         $clinicUser->update($data);
@@ -39,6 +44,10 @@ class ClinicUserService implements ClinicUserServiceInterface
 
     public function delete(ClinicUser $clinicUser): void
     {
+        if ($clinicUser->isMaster()) {
+            abort(422, 'Não é possível remover o usuário mestre da clínica.');
+        }
+
         $adminCount = ClinicUser::where('clinic_id', $clinicUser->clinic_id)
             ->where('role', ClinicUser::ROLE_ADMIN)
             ->count();

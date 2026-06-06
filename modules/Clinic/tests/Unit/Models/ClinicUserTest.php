@@ -8,6 +8,20 @@ use Tests\TestCase;
 
 class ClinicUserTest extends TestCase
 {
+    public function test_is_master_returns_true_when_mestre_is_one(): void
+    {
+        $user = (new ClinicUser)->forceFill(['mestre' => ClinicUser::MESTRE_YES]);
+
+        $this->assertTrue($user->isMaster());
+    }
+
+    public function test_is_master_returns_false_when_mestre_is_zero(): void
+    {
+        $user = (new ClinicUser)->forceFill(['mestre' => ClinicUser::MESTRE_NO]);
+
+        $this->assertFalse($user->isMaster());
+    }
+
     public function test_is_admin_returns_true_when_role_is_admin(): void
     {
         $user = (new ClinicUser)->forceFill(['role' => ClinicUser::ROLE_ADMIN]);

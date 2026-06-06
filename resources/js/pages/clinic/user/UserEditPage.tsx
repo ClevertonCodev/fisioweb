@@ -10,7 +10,7 @@ import {
     normalizeClinicUserRole,
 } from '@/application/clinic/clinic-user-form';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
-import { useClinicUser, useClinicUsers, useUpdateClinicUser } from '@/application/clinic/use-clinic-users';
+import { useClinicUser, useUpdateClinicUser } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
@@ -256,7 +256,7 @@ function UserEditForm({
                                 </Select>
                                 {roleChangeDisabled && (
                                     <FormDescription className="text-xs">
-                                        Este é o primeiro usuário cadastrado na clínica; a função permanece
+                                        Este é o usuário mestre da clínica; a função permanece
                                         administrador.
                                     </FormDescription>
                                 )}
@@ -355,14 +355,8 @@ export function UserEditPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { data: clinicUser, isLoading, isError } = useClinicUser(id!);
-    const { data: clinicUsers = [], isSuccess: clinicUserListLoaded } = useClinicUsers();
 
-    const firstUserRoleLocked = useMemo(() => {
-        if (!clinicUserListLoaded || clinicUsers.length === 0) return false;
-        const minId = Math.min(...clinicUsers.map((u) => Number(u.id)));
-
-        return clinicUser ? Number(clinicUser.id) === minId : false;
-    }, [clinicUserListLoaded, clinicUsers, clinicUser]);
+    const masterRoleLocked = clinicUser?.mestre === 1;
 
     if (isLoading) {
         return (
@@ -408,7 +402,7 @@ export function UserEditPage() {
                 key={clinicUser.id}
                 user={clinicUser}
                 role={resolvedRole}
-                roleChangeDisabled={firstUserRoleLocked}
+                roleChangeDisabled={masterRoleLocked}
             />
         </ClinicLayout>
     );

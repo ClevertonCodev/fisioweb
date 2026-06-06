@@ -38,12 +38,17 @@ class ClinicUser extends Authenticatable implements JWTSubject
 
     public const STATUS_INACTIVE = 0;
 
+    public const MESTRE_YES = 1;
+
+    public const MESTRE_NO = 0;
+
     protected $fillable = [
         'clinic_id',
         'name',
         'email',
         'password',
         'role',
+        'mestre',
         'document',
         'status',
     ];
@@ -62,6 +67,7 @@ class ClinicUser extends Authenticatable implements JWTSubject
             'two_factor_confirmed_at' => 'datetime',
             'password'                => 'hashed',
             'status'                  => 'integer',
+            'mestre'                  => 'integer',
         ];
     }
 
@@ -83,6 +89,11 @@ class ClinicUser extends Authenticatable implements JWTSubject
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isMaster(): bool
+    {
+        return (int) $this->mestre === self::MESTRE_YES;
     }
 
     public function isSecretary(): bool

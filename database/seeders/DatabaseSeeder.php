@@ -8,6 +8,7 @@ use Modules\Admin\Database\Seeders\PhysioAreaSeeder;
 use Modules\Admin\Database\Seeders\PhysioSubareaSeeder;
 use Modules\Admin\Models\User;
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\ClinicUser;
 use Modules\Patient\Models\Patient;
 use Modules\Admin\Database\Seeders\AssessmentTemplatesSeeder;
 use Modules\Admin\Database\Seeders\ExerciseSeeder;
@@ -31,6 +32,19 @@ class DatabaseSeeder extends Seeder
             [
                 'name'     => 'Clínica Cleverton',
                 'document' => '00000000000',
+            ]
+        );
+
+        ClinicUser::updateOrCreate(
+            ['email' => 'clevertonsantoscodev@gmail.com'],
+            [
+                'clinic_id' => $clinic->id,
+                'name'      => 'Cleverton',
+                'password'  => '12345678',
+                'document'  => '00000000000',
+                'role'      => ClinicUser::ROLE_ADMIN,
+                'mestre'    => ClinicUser::MESTRE_YES,
+                'status'    => ClinicUser::STATUS_ACTIVE,
             ]
         );
 

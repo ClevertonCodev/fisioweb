@@ -19,13 +19,21 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Patient, PatientStatus } from '@/domain/clinic/patient';
 
 const COLUMNS: DataTableColumn[] = [
@@ -37,7 +45,10 @@ const COLUMNS: DataTableColumn[] = [
     { title: '', key: 'actions', className: 'w-10' },
 ];
 
-const STATUS_VARIANTS: Record<PatientStatus, 'info' | 'warning' | 'success' | 'neutral' | 'danger'> = {
+const STATUS_VARIANTS: Record<
+    PatientStatus,
+    'info' | 'warning' | 'success' | 'neutral' | 'danger'
+> = {
     em_tratamento: 'info',
     em_treinamento: 'success',
     em_prevencao: 'warning',
@@ -108,8 +119,12 @@ export default function PatientListPage() {
 
     // Filter state
     const [statusFilters, setStatusFilters] = useState<PatientStatus[]>([]);
-    const [professionalFilters, setProfessionalFilters] = useState<string[]>([]);
-    const [activeFilter, setActiveFilter] = useState<boolean | undefined>(undefined); // undefined = todos
+    const [professionalFilters, setProfessionalFilters] = useState<string[]>(
+        [],
+    );
+    const [activeFilter, setActiveFilter] = useState<boolean | undefined>(
+        undefined,
+    ); // undefined = todos
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -128,7 +143,8 @@ export default function PatientListPage() {
         search: debouncedSearch || undefined,
         isActive: activeFilter,
         statuses: statusFilters.length > 0 ? statusFilters : undefined,
-        professionalIds: professionalFilters.length > 0 ? professionalFilters : undefined,
+        professionalIds:
+            professionalFilters.length > 0 ? professionalFilters : undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
     });
@@ -145,18 +161,23 @@ export default function PatientListPage() {
         (dateTo ? 1 : 0);
 
     const allProfessionalsSelected =
-        clinicUsers.length > 0 && professionalFilters.length === clinicUsers.length;
+        clinicUsers.length > 0 &&
+        professionalFilters.length === clinicUsers.length;
 
     const emptyMessage = isError
         ? 'Erro ao carregar pacientes. Tente novamente.'
         : 'Nenhum paciente encontrado.';
 
     const pagination =
-        totalPages > 1 ? { currentPage, totalPages, onPageChange: setCurrentPage } : undefined;
+        totalPages > 1
+            ? { currentPage, totalPages, onPageChange: setCurrentPage }
+            : undefined;
 
     const toggleStatus = useCallback((value: PatientStatus) => {
         setStatusFilters((prev) =>
-            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+            prev.includes(value)
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
         setCurrentPage(1);
     }, []);
@@ -191,23 +212,27 @@ export default function PatientListPage() {
         <ClinicLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-6">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-foreground text-2xl font-semibold">
+                            <h1 className="text-2xl font-semibold text-foreground">
                                 Pacientes e evoluções
                             </h1>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         className="gap-2"
-                                        onClick={() => navigate('/clinica/pacientes/novo')}
+                                        onClick={() =>
+                                            navigate('/clinica/pacientes/novo')
+                                        }
                                     >
                                         <Plus className="h-4 w-4" />
                                         Novo paciente
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Cadastrar novo paciente</TooltipContent>
+                                <TooltipContent>
+                                    Cadastrar novo paciente
+                                </TooltipContent>
                             </Tooltip>
                         </div>
                     </div>
@@ -218,7 +243,7 @@ export default function PatientListPage() {
                     {/* Search + Filters bar */}
                     <div className="mb-6 flex items-center gap-3">
                         <div className="relative max-w-md flex-1">
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Pesquisar por nome, CPF ou e-mail"
                                 value={search}
@@ -231,7 +256,9 @@ export default function PatientListPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm whitespace-nowrap">De</span>
+                            <span className="text-sm whitespace-nowrap text-muted-foreground">
+                                De
+                            </span>
                             <Input
                                 type="date"
                                 value={dateFrom}
@@ -241,7 +268,9 @@ export default function PatientListPage() {
                                 }}
                                 className="w-36"
                             />
-                            <span className="text-muted-foreground text-sm whitespace-nowrap">até</span>
+                            <span className="text-sm whitespace-nowrap text-muted-foreground">
+                                até
+                            </span>
                             <Input
                                 type="date"
                                 value={dateTo}
@@ -253,13 +282,20 @@ export default function PatientListPage() {
                             />
                         </div>
 
-                        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                        <Popover
+                            open={filtersOpen}
+                            onOpenChange={setFiltersOpen}
+                        >
                             <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                >
                                     <SlidersHorizontal className="h-4 w-4" />
                                     Filtros
                                     {activeFilterCount > 0 && (
-                                        <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
                                             {activeFilterCount}
                                         </span>
                                     )}
@@ -267,11 +303,13 @@ export default function PatientListPage() {
                             </PopoverTrigger>
                             <PopoverContent align="start" className="w-64 p-0">
                                 <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold">Filtros</span>
+                                    <span className="text-sm font-semibold">
+                                        Filtros
+                                    </span>
                                     {activeFilterCount > 0 && (
                                         <button
                                             onClick={clearFilters}
-                                            className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                                         >
                                             <X className="h-3 w-3" />
                                             Limpar
@@ -283,27 +321,31 @@ export default function PatientListPage() {
 
                                 {/* Situação */}
                                 <div className="py-1">
-                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Situação
                                     </p>
-                                    <label className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2">
+                                    <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
                                         <Checkbox
                                             checked={activeFilter === true}
                                             onCheckedChange={() => {
                                                 setActiveFilter((prev) =>
-                                                    prev === true ? undefined : true,
+                                                    prev === true
+                                                        ? undefined
+                                                        : true,
                                                 );
                                                 setCurrentPage(1);
                                             }}
                                         />
                                         <span className="text-sm">Ativo</span>
                                     </label>
-                                    <label className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2">
+                                    <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
                                         <Checkbox
                                             checked={activeFilter === false}
                                             onCheckedChange={() => {
                                                 setActiveFilter((prev) =>
-                                                    prev === false ? undefined : false,
+                                                    prev === false
+                                                        ? undefined
+                                                        : false,
                                                 );
                                                 setCurrentPage(1);
                                             }}
@@ -316,19 +358,25 @@ export default function PatientListPage() {
 
                                 {/* Status clínico */}
                                 <div className="py-1">
-                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Status
                                     </p>
                                     {STATUS_FILTER_OPTIONS.map((opt) => (
                                         <label
                                             key={opt.value}
-                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                         >
                                             <Checkbox
-                                                checked={statusFilters.includes(opt.value)}
-                                                onCheckedChange={() => toggleStatus(opt.value)}
+                                                checked={statusFilters.includes(
+                                                    opt.value,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleStatus(opt.value)
+                                                }
                                             />
-                                            <span className="text-sm">{opt.label}</span>
+                                            <span className="text-sm">
+                                                {opt.label}
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
@@ -338,13 +386,17 @@ export default function PatientListPage() {
                                     <>
                                         <Separator />
                                         <div className="py-1">
-                                            <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                            <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                                 Profissional
                                             </p>
-                                            <label className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2">
+                                            <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
                                                 <Checkbox
-                                                    checked={allProfessionalsSelected}
-                                                    onCheckedChange={toggleAllProfessionals}
+                                                    checked={
+                                                        allProfessionalsSelected
+                                                    }
+                                                    onCheckedChange={
+                                                        toggleAllProfessionals
+                                                    }
                                                 />
                                                 <span className="text-sm font-medium">
                                                     Selecionar Todos
@@ -355,19 +407,23 @@ export default function PatientListPage() {
                                                 {clinicUsers.map((user) => (
                                                     <label
                                                         key={user.id}
-                                                        className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                                        className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                                     >
                                                         <Checkbox
                                                             checked={professionalFilters.includes(
                                                                 user.id,
                                                             )}
                                                             onCheckedChange={() =>
-                                                                toggleProfessional(user.id)
+                                                                toggleProfessional(
+                                                                    user.id,
+                                                                )
                                                             }
                                                         />
                                                         <Avatar className="h-7 w-7 shrink-0">
-                                                            <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                                {firstLetter(user.name)}
+                                                            <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                                {firstLetter(
+                                                                    user.name,
+                                                                )}
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <span className="text-sm leading-tight">
@@ -385,7 +441,7 @@ export default function PatientListPage() {
                         {activeFilterCount > 0 && (
                             <button
                                 onClick={clearFilters}
-                                className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-3 w-3" />
                                 Limpar filtros
@@ -407,11 +463,13 @@ export default function PatientListPage() {
                                 }}
                             >
                                 Inativar {selectedIds.length}{' '}
-                                {selectedIds.length === 1 ? 'paciente' : 'pacientes'}
+                                {selectedIds.length === 1
+                                    ? 'paciente'
+                                    : 'pacientes'}
                             </Button>
                             <button
                                 onClick={() => setSelectedIds([])}
-                                className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-3 w-3" />
                                 Cancelar seleção
@@ -436,113 +494,153 @@ export default function PatientListPage() {
                                 setCurrentPage(1);
                             }}
                         >
-                        {(patient) => (
-                            <TableRow
-                                key={patient.id}
-                                className="cursor-pointer"
-                                onClick={() => navigate(`/clinica/pacientes/${patient.id}`)}
-                            >
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox
-                                        checked={selectedIds.includes(patient.id)}
-                                        onCheckedChange={(checked) => {
-                                            setSelectedIds((prev) =>
-                                                checked
-                                                    ? [...prev, patient.id]
-                                                    : prev.filter((id) => id !== patient.id),
-                                            );
-                                        }}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-9 w-9">
-                                            {patient.photoUrl && (
-                                                <AvatarImage
-                                                    src={patient.photoUrl}
-                                                    alt={patient.name}
-                                                />
+                            {(patient) => (
+                                <TableRow
+                                    key={patient.id}
+                                    className="cursor-pointer"
+                                    onClick={() =>
+                                        navigate(
+                                            `/clinica/pacientes/${patient.id}`,
+                                        )
+                                    }
+                                >
+                                    <TableCell
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <Checkbox
+                                            checked={selectedIds.includes(
+                                                patient.id,
                                             )}
-                                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                                {patient.initial}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span className="text-foreground font-medium">
-                                            {patient.name}
+                                            onCheckedChange={(checked) => {
+                                                setSelectedIds((prev) =>
+                                                    checked
+                                                        ? [...prev, patient.id]
+                                                        : prev.filter(
+                                                              (id) =>
+                                                                  id !==
+                                                                  patient.id,
+                                                          ),
+                                                );
+                                            }}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-9 w-9">
+                                                {patient.photoUrl && (
+                                                    <AvatarImage
+                                                        src={patient.photoUrl}
+                                                        alt={patient.name}
+                                                    />
+                                                )}
+                                                <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                                                    {patient.initial}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium text-foreground">
+                                                {patient.name}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-sm text-muted-foreground">
+                                            {patient.professional || '—'}
                                         </span>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <span className="text-muted-foreground text-sm">
-                                        {patient.professional || '—'}
-                                    </span>
-                                </TableCell>
-                                <TableCell>
-                                    <StatusBadge variant={STATUS_VARIANTS[patient.status] ?? 'neutral'}>
-                                        {STATUS_LABELS[patient.status] ?? patient.status}
-                                    </StatusBadge>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground text-sm">
-                                    {patient.diagnosis || '—'}
-                                </TableCell>
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    navigate(`/clinica/pacientes/${patient.id}`)
-                                                }
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge
+                                            variant={
+                                                STATUS_VARIANTS[
+                                                    patient.status
+                                                ] ?? 'neutral'
+                                            }
+                                        >
+                                            {STATUS_LABELS[patient.status] ??
+                                                patient.status}
+                                        </StatusBadge>
+                                    </TableCell>
+                                    <TableCell className="text-sm text-muted-foreground">
+                                        {patient.diagnosis || '—'}
+                                    </TableCell>
+                                    <TableCell
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8"
+                                                >
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent
+                                                align="end"
+                                                className="w-48"
                                             >
-                                                Editar perfil
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    navigate(`/clinica/pacientes/${patient.id}`)
-                                                }
-                                            >
-                                                Prontuário
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/clinica/pacientes/${patient.id}?tab=programas`,
-                                                    )
-                                                }
-                                            >
-                                                Programas
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/clinica/pacientes/${patient.id}?tab=monitoramento`,
-                                                    )
-                                                }
-                                            >
-                                                Monitoramento
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem>Agendamentos</DropdownMenuItem>
-                                            <DropdownMenuItem>Pagamentos</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                className="text-destructive"
-                                                disabled={bulkInactivate.isPending}
-                                                onClick={() => {
-                                                    bulkInactivate.mutate([patient.id]);
-                                                }}
-                                            >
-                                                Inativar paciente
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </DataTable>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/pacientes/${patient.id}`,
+                                                        )
+                                                    }
+                                                >
+                                                    Editar perfil
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/pacientes/${patient.id}`,
+                                                        )
+                                                    }
+                                                >
+                                                    Prontuário
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/pacientes/${patient.id}?tab=programas`,
+                                                        )
+                                                    }
+                                                >
+                                                    Programas
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/pacientes/${patient.id}?tab=monitoramento`,
+                                                        )
+                                                    }
+                                                >
+                                                    Monitoramento
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    Agendamentos
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    Pagamentos
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    className="text-destructive"
+                                                    disabled={
+                                                        bulkInactivate.isPending
+                                                    }
+                                                    onClick={() => {
+                                                        bulkInactivate.mutate([
+                                                            patient.id,
+                                                        ]);
+                                                    }}
+                                                >
+                                                    Inativar paciente
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </DataTable>
                     )}
                 </div>
             </div>

@@ -354,6 +354,229 @@ private function exerciseFor(ClinicUser $user, array $overrides = []): Exercise
 | Rodar filtrado | `./vendor/bin/phpunit --filter test_x` |
 | Rodar módulo | `./vendor/bin/phpunit modules/Clinic/tests/` |
 
+## Factory states — fixtures expressivas
+
+Use `state()` para variações nomeadas e `configure()` para callback pós-create. Padrão do projeto: factories ficam em `modules/<Module>/database/factories/`.
+
+```php
+<?php
+
+namespace Modules\Clinic\Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Clinic\Models\Patient;
+use Modules\Clinic\Models\TreatmentPlan;
+
+class TreatmentPlanFactory extends Factory
+{
+    protected $model = TreatmentPlan::class;
+
+    public function definition(): array
+    {
+        return [
+            'patient_id' => Patient::factory(),
+            'title'      => fake()->sentence(3),
+            'status'     => TreatmentPlan::STATUS_DRAFT,
+            'message'    => fake()->paragraph(),
+        ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn () => ['status' => TreatmentPlan::STATUS_ACTIVE]);
+    }
+
+    public function archived(): static
+    {
+        return $this->state(fn () => [
+            'status'      => TreatmentPlan::STATUS_ARCHIVED,
+            'archived_at' => now(),
+        ]);
+    }
+
+    public function forPatient(Patient $patient): static
+    {
+        return $this->state(fn () => ['patient_id' => $patient->id]);
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (TreatmentPlan $plan) {
+            // ex.: criar 3 sessões padrão
+            $plan->sessions()->createMany(
+                array_fill(0, 3, ['status' => 'pending'])
+            );
+        });
+    }
+}
+```
+
+Uso:
+
+```php
+TreatmentPlan::factory()->active()->forPatient($p)->create();
+TreatmentPlan::factory()->count(10)->archived()->create();
+TreatmentPlan::factory()->has(\Modules\Clinic\Models\Session::factory()->count(5))->create();
+```
+
+## Laravel fakes — isolamento de side effects
+
+Em qualquer teste que dispara Job, Event, Mail, Notification ou hit HTTP externo, use o fake correspondente. **Sem isso, o worker tenta processar de verdade ou a API externa é chamada.**
+
+### `Queue::fake()` — testar dispatch sem executar
+
+Já tem exemplo completo em [`laravel-queues/references/queues.md`](../../laravel-queues/references/queues.md#testes--queuefake). Resumo:
+
+```php
+use Illuminate\Support\Facades\Queue;
+
+Queue::fake();
+
+// ... ação que dispara job ...
+
+Queue::assertPushed(SendWhatsAppMessageJob::class);
+Queue::assertPushed(SendWhatsAppMessageJob::class, fn ($j) => $j->to === '11999');
+Queue::assertPushed(SendWhatsAppMessageJob::class, 2);          // exatamente 2
+Queue::assertNotPushed(SendOtherJob::class);
+Queue::assertNothingPushed();
+```
+
+### `Http::fake()` — mockar API externa
+
+Para Services que falam com Twilio, OpenAI, Cloudflare, etc.
+
+```php
+use Illuminate\Support\Facades\Http;
+
+public function test_whatsapp_service_sends_message(): void
+{
+    Http::fake([
+        'api.twilio.com/*' => Http::response([
+            'sid'    => 'SM123',
+            'status' => 'queued',
+        ], 201),
+    ]);
+
+    $service = app(\Modules\WhatsApp\Contracts\WhatsAppServiceInterface::class);
+    $result  = $service->send('11999', 'Olá');
+
+    $this->assertSame('SM123', $result['sid']);
+
+    Http::assertSent(fn ($req) =>
+        str_contains($req->url(), 'twilio.com')
+        && $req->hasHeader('Authorization')
+    );
+}
+```
+
+Para forçar erro:
+
+```php
+Http::fake(['api.twilio.com/*' => Http::response(['error' => 'down'], 503)]);
+```
+
+Sequência de respostas:
+
+```php
+Http::fake([
+    'api.twilio.com/*' => Http::sequence()
+        ->push(['error' => 'rate limit'], 429)
+        ->push(['sid' => 'SM123'], 201),
+]);
+```
+
+### `Event::fake()` — testar dispatch de Event
+
+```php
+use App\Events\PatientCreated;
+use Illuminate\Support\Facades\Event;
+
+Event::fake([PatientCreated::class]);
+
+// ... código que dispara ...
+
+Event::assertDispatched(PatientCreated::class);
+Event::assertDispatched(PatientCreated::class, fn ($e) => $e->patient->id === 1);
+Event::assertNotDispatched(SomeOtherEvent::class);
+```
+
+Cuidado: `Event::fake()` sem argumento bloqueia **todos** os Eventos, incluindo Observers do Eloquent. Para preservar Observers, passe a lista whitelist: `Event::fake([PatientCreated::class])`.
+
+### `Notification::fake()` — testar envio sem mandar
+
+```php
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\PasswordReset;
+
+Notification::fake();
+
+$user->notify(new PasswordReset($token));
+
+Notification::assertSentTo($user, PasswordReset::class);
+Notification::assertSentTo($user, PasswordReset::class, fn ($n) => $n->token === $token);
+```
+
+### `Storage::fake()` — testar upload de arquivo
+
+Crítico ao testar fluxos que sobem arquivo para Cloudflare R2 ou disco local.
+
+```php
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+
+public function test_uploads_patient_file(): void
+{
+    Storage::fake('r2');
+
+    $user = ClinicUser::factory()->create();
+    $file = UploadedFile::fake()->create('exame.pdf', 500, 'application/pdf');
+
+    $response = $this->actingAs($user, 'clinic')
+        ->postJson('/api/clinic/patients/1/files', [
+            'file' => $file,
+        ]);
+
+    $response->assertCreated();
+
+    Storage::disk('r2')->assertExists("patients/1/{$file->hashName()}");
+}
+```
+
+Imagem fake: `UploadedFile::fake()->image('foto.jpg', 800, 600)`.
+
+## Assertions extras — JSON structure / count
+
+Útil quando o payload é grande e você só quer confirmar o **shape**, não os valores:
+
+```php
+$response->assertJsonStructure([
+    'data' => [
+        'data' => [
+            '*' => ['id', 'name', 'is_active', 'physio_area' => ['id', 'name']],
+        ],
+        'meta'  => ['current_page', 'last_page', 'total'],
+        'links' => ['first', 'last', 'prev', 'next'],
+    ],
+]);
+
+$response->assertJsonCount(15, 'data.data');     // 15 items na página
+$response->assertJsonPath('data.data.0.name', 'Agachamento');
+$response->assertJsonFragment(['name' => 'Agachamento']);
+$response->assertJsonMissing(['name' => 'Removido']);
+```
+
+## Database assertions extras
+
+```php
+$this->assertDatabaseHas('exercises', ['name' => 'Prancha']);
+$this->assertDatabaseMissing('exercises', ['id' => 999]);
+$this->assertDatabaseCount('exercises', 5);
+$this->assertSoftDeleted($exercise);    // model com SoftDeletes
+$this->assertNotSoftDeleted($exercise);
+$this->assertModelExists($exercise);
+$this->assertModelMissing($exercise);   // após delete
+```
+
 ## O que **não** vem do template original (Jeffallan) e por quê
 
 - **Pest** — `composer.json` autoriza o plugin mas não há `tests/Pest.php` nem testes em sintaxe Pest. Mantenha PHPUnit puro.

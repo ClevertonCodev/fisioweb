@@ -66,9 +66,11 @@ modules/<Module>/tests/
 
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
-| Templates completos (Unit Service, Feature Controller, Data Provider, Mockery) | [`references/testing-quality.md`](references/testing-quality.md) | Implementar testes |
+| Templates completos (Unit Service, Feature Controller, Data Provider, Mockery, fakes do Laravel) | [`references/testing-quality.md`](references/testing-quality.md) | Implementar testes |
 | Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Entender estrutura do código sob teste |
 | Tipos modernos (Enum/DTO/VO) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Testar Enums e DTOs |
+| Eloquent (Factory, scopes, observers) | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Testar Model/Scope/Observer |
+| Queues (`Queue::fake`, `assertPushed`) | [`../laravel-queues/SKILL.md`](../laravel-queues/SKILL.md) | Testar dispatch de Job |
 
 ## Output esperado
 

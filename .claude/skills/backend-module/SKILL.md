@@ -1,11 +1,28 @@
 ---
 name: backend-module
 description: Criar um novo recurso CRUD no backend Laravel modular do fisioweb (Controller → FormRequest → Service → Repository → Contracts → Routes). Use sempre que precisar adicionar um endpoint REST novo em qualquer módulo (Admin, Clinic, Patient, Media, etc.), criar um recurso administrável, expor uma entidade Eloquent via API, ou refatorar um controller "gordo" para o padrão Service+Repository do projeto.
+metadata:
+  domain: framework
+  triggers: módulo, module, controller, service, repository, contract, FormRequest, CRUD, endpoint, rota, route, Laravel modular
+  scope: implementation
+  output-format: code
+  related-skills: laravel-eloquent, laravel-queues, php-modern, php-testing
 ---
 
 # Backend Module (Laravel modular fisioweb)
 
 Padrão obrigatório para qualquer recurso novo dentro de `modules/<Module>/`. Espelha o que está em `modules/Admin/` (Exercise, Feature, AdminProgram são as referências).
+
+## Skill Map — quando carregar outra skill
+
+Este skill cobre a **estrutura**. Para tópicos específicos, carregue a skill correspondente:
+
+| Estou fazendo | Carregue |
+|--------------|---------|
+| Modelar Model novo (relacionamentos, scopes, casts, observers) | [`laravel-eloquent`](../laravel-eloquent/SKILL.md) |
+| Adicionar Job async (WhatsApp, PDF, upload R2) | [`laravel-queues`](../laravel-queues/SKILL.md) |
+| Usar Enum / DTO readonly / Value Object / match | [`php-modern`](../php-modern/SKILL.md) |
+| Escrever teste Unit/Feature | [`php-testing`](../php-testing/SKILL.md) |
 
 ## Estrutura de pastas
 
@@ -348,8 +365,11 @@ $this->app->bind(<Entity>ServiceInterface::class, <Entity>Service::class);
 3. Controller injeta `ServiceInterface`, não a classe concreta.
 4. Store/Update FormRequests com `rules()` cobrindo todos os campos.
 5. Migration criada (e rodada localmente).
-6. Model com `$fillable`, `$casts`, relacionamentos.
+6. Model com `$fillable`, `casts()` método, relacionamentos tipados — ver [`laravel-eloquent`](../laravel-eloquent/SKILL.md).
 7. Bindings adicionados no `<Module>ServiceProvider::register()`.
-8. Rotas adicionadas no arquivo certo (`admin.php`/`clinic.php`) dentro do grupo `auth:<guard>`.
-9. `composer run test` passa.
-10. Resposta JSON segue o wrapper `data`/`message`.
+8. Observer registrado no `<Module>ServiceProvider::boot()` (se houver) — ver [`laravel-eloquent`](../laravel-eloquent/SKILL.md).
+9. Jobs criados em `app/Jobs/` com `$tries`, `$backoff`, `failed()` — ver [`laravel-queues`](../laravel-queues/SKILL.md).
+10. Rotas adicionadas no arquivo certo (`admin.php`/`clinic.php`) dentro do grupo `auth:<guard>`.
+11. Testes Unit (Service) + Feature (Controller) — ver [`php-testing`](../php-testing/SKILL.md).
+12. `composer run test` passa.
+13. Resposta JSON segue o wrapper `data`/`message`.

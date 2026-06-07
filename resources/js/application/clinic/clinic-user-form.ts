@@ -24,6 +24,12 @@ const roleEnum = z.enum(CLINIC_USER_ROLES, { required_error: 'Função obrigató
 
 export const CLINIC_USER_DOCUMENT_KINDS = ['cpf', 'cnpj', 'crefito'] as const;
 
+export const CLINIC_USER_STATUS_VALUES = ['1', '0'] as const;
+
+export type ClinicUserFormStatus = (typeof CLINIC_USER_STATUS_VALUES)[number];
+
+const statusEnum = z.enum(CLINIC_USER_STATUS_VALUES, { required_error: 'Status obrigatório' });
+
 const documentKindEnum = z.enum(CLINIC_USER_DOCUMENT_KINDS);
 
 function addClinicUserDocumentIssues(
@@ -95,6 +101,7 @@ export const clinicUserNewFormSchema = z
         password: z.string().min(8, 'Mínimo de 8 caracteres'),
         confirmPassword: z.string().min(1, 'Confirme a senha'),
         role: roleEnum.optional(),
+        status: statusEnum.default('1'),
         documentKind: documentKindEnum,
         document: z.string(),
     })
@@ -128,6 +135,7 @@ export function toClinicUserWriteDto(values: ClinicUserNewFormValues): ClinicUse
         email: values.email,
         password: values.password,
         role: values.role,
+        status: Number(values.status ?? '1'),
         document: serializeClinicUserDocument(values.documentKind, values.document),
     };
 }
@@ -139,6 +147,7 @@ export const clinicUserEditFormSchema = z
         password: z.string(),
         confirmPassword: z.string().optional(),
         role: roleEnum,
+        status: statusEnum.default('1'),
         documentKind: documentKindEnum,
         document: z.string(),
     })

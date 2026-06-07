@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
     clinicUserEditFormSchema,
     type ClinicUserEditFormValues,
+    type ClinicUserFormStatus,
     normalizeClinicUserRole,
 } from '@/application/clinic/clinic-user-form';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
@@ -79,10 +80,11 @@ function UserEditForm({
             password: '',
             confirmPassword: '',
             role,
+            status: (user.status ? '1' : '0') as ClinicUserFormStatus,
             documentKind: dk,
             document: documentStoredValueForForm(dk, user.document),
         };
-    }, [user.name, user.email, user.document, role]);
+    }, [user.name, user.email, user.document, user.status, role]);
 
     const form = useForm<ClinicUserEditFormValues>({
         resolver: zodResolver(clinicUserEditFormSchema),
@@ -96,6 +98,7 @@ function UserEditForm({
             name: values.name,
             email: values.email,
             role: values.role,
+            status: Number(values.status),
             document: serializeClinicUserDocument(values.documentKind, values.document),
         };
         if (values.password.trim()) payload.password = values.password;
@@ -266,8 +269,36 @@ function UserEditForm({
                     />
 
                     <FormField
-                        control={form.control}
-                        name="documentKind"
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className={cn(labelClass)}>
+                                        Status
+                                        <Req />
+                                    </FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? '1'}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione uma opção" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="1">Ativo</SelectItem>
+                                            <SelectItem value="0">Inativo</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="documentKind"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
                                 <FormLabel className={cn(labelClass)}>

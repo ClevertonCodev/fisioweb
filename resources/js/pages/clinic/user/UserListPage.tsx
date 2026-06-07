@@ -1,5 +1,5 @@
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { MoreVertical, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
@@ -15,28 +15,24 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Card } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { TableCell, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
@@ -47,12 +43,50 @@ const ROLE_LABELS: Record<ClinicRole, string> = {
     physiotherapist: 'Fisioterapeuta',
 };
 
+const ROLE_FILTER_OPTIONS: { value: ClinicRole; label: string }[] = [
+    { value: 'admin', label: 'Administrador' },
+    { value: 'secretary', label: 'Secretário(a)' },
+    { value: 'physiotherapist', label: 'Fisioterapeuta' },
+];
+
 const BASE_COLUMNS: DataTableColumn[] = [
-    { title: 'Nome', key: 'name' },
+    { title: 'Usuário', key: 'name' },
     { title: 'E-mail', key: 'email' },
     { title: 'Função', key: 'role' },
+    { title: 'Mestre', key: 'mestre' },
     { title: 'Status', key: 'status' },
 ];
+
+function firstLetter(name: string): string {
+    return name.trim()[0]?.toUpperCase() ?? '?';
+}
+
+function UserTableSkeleton({ rows = 6 }: { rows?: number }) {
+    return (
+        <Card className="mt-4 overflow-hidden">
+            <div className="grid grid-cols-[1.2fr_1.4fr_1fr_0.8fr_0.8fr_40px] gap-4 border-b p-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={`header-${i}`} className="h-4 w-24" />
+                ))}
+            </div>
+            <div className="space-y-0">
+                {Array.from({ length: rows }).map((_, row) => (
+                    <div
+                        key={`row-${row}`}
+                        className="grid grid-cols-[1.2fr_1.4fr_1fr_0.8fr_0.8fr_40px] items-center gap-4 border-b p-4 last:border-b-0"
+                    >
+                        <Skeleton className="h-9 w-40" />
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-6 w-28 rounded-full" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+}
 
 export function UserListPage() {
     const navigate = useNavigate();
@@ -61,20 +95,18 @@ export function UserListPage() {
 
     const { data: users = [], isLoading, isError } = useClinicUsers();
     const deleteUser = useDeleteClinicUser();
-    const [targetDelete, setTargetDelete] = useState<ClinicUserSummary | null>(null);
+
     const [search, setSearch] = useState('');
-    const [roleFilter, setRoleFilter] = useState<'all' | ClinicRole>('all');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+    const [roleFilters, setRoleFilters] = useState<ClinicRole[]>([]);
+    const [statusFilters, setStatusFilters] = useState<Array<'active' | 'inactive'>>([]);
+    const [masterFilters, setMasterFilters] = useState<Array<'yes' | 'no'>>([]);
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
+    const [targetDelete, setTargetDelete] = useState<ClinicUserSummary | null>(null);
 
-    const columns = useMemo<DataTableColumn[]>(() => {
-        const cols = [...BASE_COLUMNS];
-        if (can.manageUsers(role)) {
-            cols.push({ title: '', key: 'actions', className: 'w-[1%] text-right whitespace-nowrap' });
-        }
-        return cols;
-    }, [role]);
+    const activeFilterCount =
+        roleFilters.length + statusFilters.length + masterFilters.length;
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
@@ -84,19 +116,28 @@ export function UserListPage() {
                 const mail = u.email.toLowerCase();
                 if (!name.includes(q) && !mail.includes(q)) return false;
             }
-            if (roleFilter !== 'all' && u.role !== roleFilter) return false;
-            const active = Boolean(u.status);
-            if (statusFilter === 'active' && !active) return false;
-            if (statusFilter === 'inactive' && active) return false;
+            if (roleFilters.length > 0 && !roleFilters.includes(u.role)) return false;
+            const isActive = Boolean(u.status);
+            if (statusFilters.length > 0) {
+                const matchesActive = statusFilters.includes('active') && isActive;
+                const matchesInactive = statusFilters.includes('inactive') && !isActive;
+                if (!matchesActive && !matchesInactive) return false;
+            }
+            if (masterFilters.length > 0) {
+                const isMaster = u.mestre === 1;
+                const matchesYes = masterFilters.includes('yes') && isMaster;
+                const matchesNo = masterFilters.includes('no') && !isMaster;
+                if (!matchesYes && !matchesNo) return false;
+            }
             return true;
         });
-    }, [users, search, roleFilter, statusFilter]);
+    }, [users, search, roleFilters, statusFilters, masterFilters]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
 
     useEffect(() => {
         setPage(1);
-    }, [search, roleFilter, statusFilter]);
+    }, [search, roleFilters, statusFilters, masterFilters]);
 
     useEffect(() => {
         if (page > totalPages) setPage(totalPages);
@@ -107,200 +148,295 @@ export function UserListPage() {
         return filtered.slice(start, start + perPage);
     }, [filtered, page, perPage]);
 
-    const filtersActive = !!search.trim() || roleFilter !== 'all' || statusFilter !== 'all';
-    const showActionsCol = can.manageUsers(role);
+    const pagination = totalPages > 1 ? { currentPage: page, totalPages, onPageChange: setPage } : undefined;
 
-    const tableSkeleton = (
-        <div role="status" aria-live="polite" className="space-y-3">
-            <span className="sr-only">Carregando usuários</span>
-            <div className="flex flex-wrap gap-4">
-                <Skeleton className="h-10 min-w-[160px] flex-1 basis-52" />
-                <Skeleton className="h-10 w-40" />
-                <Skeleton className="h-10 w-36" />
-            </div>
-            <Card className="mt-4 overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {columns.map((col, i) => (
-                                <TableHead key={col.key ?? i}>{col.title || '\u00a0'}</TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <TableRow key={i}>
-                                <TableCell colSpan={columns.length}>
-                                    <Skeleton className="h-8 w-full" />
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </Card>
-        </div>
-    );
+    const filtersActive = !!search.trim() || activeFilterCount > 0;
 
-    const emptyFilteredMessage =
-        users.length > 0 && filtered.length === 0
-            ? `Nenhum usuário corresponde aos filtros.${filtersActive ? ' Ajuste a busca ou os filtros.' : ''}`
-            : 'Nenhum item encontrado';
+    const emptyMessage = isLoading
+        ? 'Carregando usuários...'
+        : isError
+          ? 'Erro ao carregar usuários. Tente novamente.'
+          : users.length === 0
+            ? 'Nenhum usuário encontrado.'
+            : filtersActive
+              ? 'Nenhum usuário corresponde aos filtros aplicados.'
+              : 'Nenhum usuário encontrado.';
+
+    const toggleRole = useCallback((value: ClinicRole) => {
+        setRoleFilters((prev) =>
+            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+        );
+    }, []);
+
+    const toggleStatus = useCallback((value: 'active' | 'inactive') => {
+        setStatusFilters((prev) =>
+            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+        );
+    }, []);
+
+    const toggleMaster = useCallback((value: 'yes' | 'no') => {
+        setMasterFilters((prev) =>
+            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+        );
+    }, []);
+
+    const clearFilters = useCallback(() => {
+        setRoleFilters([]);
+        setStatusFilters([]);
+        setMasterFilters([]);
+        setPage(1);
+    }, []);
+
+    const showActions = can.manageUsers(role);
+    const canDeleteUsers = can.delete(role);
+
+    const columns = useMemo(() => {
+        const cols = [...BASE_COLUMNS];
+        if (showActions) {
+            cols.push({ title: '', key: 'actions', className: 'w-10' });
+        }
+        return cols;
+    }, [showActions]);
 
     return (
         <ClinicLayout>
-            <div className="space-y-6 p-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Usuários</h1>
-                    {can.manageUsers(role) && (
-                        <Button onClick={() => navigate('/clinica/usuarios/novo')}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Novo usuário
-                        </Button>
-                    )}
-                </div>
-
-                {isLoading && tableSkeleton}
-
-                {isError && (
-                    <p className="text-destructive text-sm" role="alert">
-                        Erro ao carregar usuários.
-                    </p>
-                )}
-
-                {!isLoading && !isError && (
-                    <>
-                        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
-                            <div className="relative min-w-[200px] flex-1 basis-52">
-                                <Label htmlFor="user-search" className="sr-only">
-                                    Buscar por nome ou e-mail
-                                </Label>
-                                <Search className="text-muted-foreground pointer-events-none absolute top-2.5 left-3 h-4 w-4" />
-                                <Input
-                                    id="user-search"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Buscar nome ou e-mail…"
-                                    className="pl-9"
-                                    autoComplete="off"
-                                />
-                            </div>
-                            <div className="flex min-w-[180px] flex-col gap-1.5">
-                                <Label htmlFor="role-filter">Função</Label>
-                                <Select
-                                    value={roleFilter}
-                                    onValueChange={(v: 'all' | ClinicRole) => setRoleFilter(v)}
+            <div className="flex h-full flex-col">
+                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                    <div className="px-6 py-6">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-foreground text-2xl font-semibold">Usuários</h1>
+                            {showActions && (
+                                <Button
+                                    className="gap-2"
+                                    onClick={() => navigate('/clinica/usuarios/novo')}
                                 >
-                                    <SelectTrigger id="role-filter">
-                                        <SelectValue placeholder="Filtrar função" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todas</SelectItem>
-                                        <SelectItem value="admin">Administrador</SelectItem>
-                                        <SelectItem value="secretary">Secretário(a)</SelectItem>
-                                        <SelectItem value="physiotherapist">Fisioterapeuta</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex min-w-[160px] flex-col gap-1.5">
-                                <Label htmlFor="status-filter">Status</Label>
-                                <Select
-                                    value={statusFilter}
-                                    onValueChange={(v: 'all' | 'active' | 'inactive') =>
-                                        setStatusFilter(v)
-                                    }
-                                >
-                                    <SelectTrigger id="status-filter">
-                                        <SelectValue placeholder="Filtrar status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos</SelectItem>
-                                        <SelectItem value="active">Ativo</SelectItem>
-                                        <SelectItem value="inactive">Inativo</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                    <Plus className="h-4 w-4" />
+                                    Novo usuário
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </header>
+
+                <div className="flex-1 overflow-auto p-6">
+                    <div className="mb-6 flex items-center gap-4">
+                        <div className="relative w-64">
+                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                placeholder="Pesquisar"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="pl-9"
+                                autoComplete="off"
+                            />
                         </div>
 
-                        {users.length === 0 && (
-                            <p className="text-muted-foreground text-sm">Nenhum usuário encontrado.</p>
-                        )}
+                        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <SlidersHorizontal className="h-4 w-4" />
+                                    Filtros
+                                    {activeFilterCount > 0 && (
+                                        <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-64 p-0">
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm font-semibold">Filtros</span>
+                                    {activeFilterCount > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={clearFilters}
+                                            className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                        >
+                                            <X className="h-3 w-3" />
+                                            Limpar
+                                        </button>
+                                    )}
+                                </div>
+                                <Separator />
+                                <div className="py-1">
+                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                        Função
+                                    </p>
+                                    {ROLE_FILTER_OPTIONS.map((opt) => (
+                                        <label
+                                            key={opt.value}
+                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                        >
+                                            <Checkbox
+                                                checked={roleFilters.includes(opt.value)}
+                                                onCheckedChange={() => toggleRole(opt.value)}
+                                            />
+                                            <span className="text-sm">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <Separator />
+                                <div className="py-1">
+                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                        Status
+                                    </p>
+                                    {[
+                                        { value: 'active' as const, label: 'Ativo' },
+                                        { value: 'inactive' as const, label: 'Inativo' },
+                                    ].map((opt) => (
+                                        <label
+                                            key={opt.value}
+                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                        >
+                                            <Checkbox
+                                                checked={statusFilters.includes(opt.value)}
+                                                onCheckedChange={() => toggleStatus(opt.value)}
+                                            />
+                                            <span className="text-sm">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <Separator />
+                                <div className="py-1">
+                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                        Mestre
+                                    </p>
+                                    {[
+                                        { value: 'yes' as const, label: 'Sim' },
+                                        { value: 'no' as const, label: 'Não' },
+                                    ].map((opt) => (
+                                        <label
+                                            key={opt.value}
+                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                        >
+                                            <Checkbox
+                                                checked={masterFilters.includes(opt.value)}
+                                                onCheckedChange={() => toggleMaster(opt.value)}
+                                            />
+                                            <span className="text-sm">{opt.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
 
-                        {users.length > 0 && filtered.length === 0 && (
-                            <p className="text-muted-foreground text-sm">{emptyFilteredMessage}</p>
-                        )}
-
-                        {filtered.length > 0 && (
-                            <DataTable<ClinicUserSummary>
-                                columns={columns}
-                                data={paginated}
-                                emptyMessage={emptyFilteredMessage}
-                                totalLabel="usuários"
-                                totalCount={filtered.length}
-                                pagination={{
-                                    currentPage: page,
-                                    totalPages,
-                                    onPageChange: setPage,
-                                }}
-                                pageSize={perPage}
-                                pageSizeOptions={[5, 10, 25, 50]}
-                                onPageSizeChange={(size) => {
-                                    setPerPage(size);
-                                    setPage(1);
-                                }}
+                        {activeFilterCount > 0 && (
+                            <button
+                                type="button"
+                                onClick={clearFilters}
+                                className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
                             >
-                                {(u) => (
-                                    <TableRow key={u.id}>
-                                        <TableCell className="font-medium">{u.name}</TableCell>
-                                        <TableCell>{u.email}</TableCell>
-                                        <TableCell>
+                                <X className="h-3 w-3" />
+                                Limpar filtros
+                            </button>
+                        )}
+                    </div>
+
+                    {isLoading ? (
+                        <UserTableSkeleton rows={Math.min(perPage, 6)} />
+                    ) : (
+                        <DataTable<ClinicUserSummary>
+                            columns={columns}
+                            data={isError ? [] : paginated}
+                            emptyMessage={emptyMessage}
+                            totalLabel="usuários"
+                            totalCount={filtered.length}
+                            pagination={pagination}
+                            pageSize={perPage}
+                            pageSizeOptions={[10, 25, 50]}
+                            onPageSizeChange={(size) => {
+                                setPerPage(size);
+                                setPage(1);
+                            }}
+                        >
+                            {(u) => (
+                                <TableRow
+                                    key={u.id}
+                                    className={showActions ? 'cursor-pointer' : undefined}
+                                    onClick={
+                                        showActions
+                                            ? () => navigate(`/clinica/usuarios/${u.id}/editar`)
+                                            : undefined
+                                    }
+                                >
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-9 w-9">
+                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                                    {firstLetter(u.name)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-foreground font-medium">{u.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-muted-foreground text-sm">{u.email}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
+                                        >
                                             {ROLE_LABELS[u.role] ?? u.role}
-                                            {u.mestre === 1 && (
-                                                <span className="text-muted-foreground ml-1 text-xs">
-                                                    (Mestre)
-                                                </span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <StatusBadge
-                                                variant={u.status ? 'active' : 'neutral'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {u.mestre === 1 ? (
+                                            <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-primary/30 bg-primary/10 text-xs whitespace-nowrap text-primary"
                                             >
-                                                {u.status ? 'Ativo' : 'Inativo'}
-                                            </StatusBadge>
-                                        </TableCell>
-                                        {showActionsCol && (
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        aria-label={`Editar usuário ${u.name}`}
+                                                Sim
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                variant="outline"
+                                                className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
+                                            >
+                                                Não
+                                            </Badge>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge variant={u.status ? 'active' : 'neutral'}>
+                                            {u.status ? 'Ativo' : 'Inativo'}
+                                        </StatusBadge>
+                                    </TableCell>
+                                    {showActions && (
+                                        <TableCell onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-44">
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer"
                                                         onClick={() =>
-                                                            navigate(
-                                                                `/clinica/usuarios/${u.id}/editar`,
-                                                            )
+                                                            navigate(`/clinica/usuarios/${u.id}/editar`)
                                                         }
                                                     >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    {can.delete(role) && u.mestre !== 1 && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            aria-label={`Excluir usuário ${u.name}`}
+                                                        Editar usuário
+                                                    </DropdownMenuItem>
+                                                    {canDeleteUsers && u.mestre !== 1 && (
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive cursor-pointer gap-2"
                                                             onClick={() => setTargetDelete(u)}
                                                         >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </Button>
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Excluir
+                                                        </DropdownMenuItem>
                                                     )}
-                                                </div>
-                                            </TableCell>
-                                        )}
-                                    </TableRow>
-                                )}
-                            </DataTable>
-                        )}
-                    </>
-                )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            )}
+                        </DataTable>
+                    )}
+                </div>
             </div>
 
             <AlertDialog

@@ -22,6 +22,7 @@ class ClinicUserService implements ClinicUserServiceInterface
         return ClinicUser::create(array_merge($data, [
             'clinic_id' => $clinicId,
             'mestre'    => ClinicUser::MESTRE_NO,
+            'status'    => $data['status'] ?? ClinicUser::STATUS_ACTIVE,
         ]));
     }
 

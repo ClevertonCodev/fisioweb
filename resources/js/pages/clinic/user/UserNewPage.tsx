@@ -48,6 +48,8 @@ export function UserNewPage() {
             email: '',
             password: '',
             confirmPassword: '',
+            role: undefined,
+            status: '1',
             documentKind: 'cpf',
             document: '',
         },
@@ -212,6 +214,34 @@ export function UserNewPage() {
                                             <SelectItem value="physiotherapist">
                                                 Fisioterapeuta
                                             </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className={cn(labelClass)}>
+                                        Status
+                                        <Req />
+                                    </FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value ?? '1'}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione uma opção" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="1">Ativo</SelectItem>
+                                            <SelectItem value="0">Inativo</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

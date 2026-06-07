@@ -14,6 +14,14 @@ export function useClinicUsers() {
     });
 }
 
+export function useClinicProfessionals() {
+    return useQuery({
+        queryKey: [...QUERY_KEY, 'professionals'] as const,
+        queryFn: () => apiClinicUsersRepository.listProfessionals(),
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
 export function useClinicUser(id: string) {
     return useQuery({
         queryKey: [...QUERY_KEY, id],

@@ -8,38 +8,26 @@ class ClinicUserPolicy
 {
     public function viewAny(ClinicUser $user): bool
     {
-        return true;
+        return false;
     }
 
     public function view(ClinicUser $user, ClinicUser $target): bool
     {
-        if ($user->isPhysiotherapist()) {
-            return $user->id === $target->id;
-        }
-
-        return $user->isSecretary();
+        return (int) $user->id === (int) $target->id;
     }
 
     public function create(ClinicUser $user): bool
     {
-        return $user->isSecretary();
+        return false;
     }
 
     public function update(ClinicUser $user, ClinicUser $target): bool
     {
-        return $user->isSecretary();
+        return (int) $user->id === (int) $target->id;
     }
 
     public function delete(ClinicUser $user, ClinicUser $target): bool
     {
-        if ($user->id === $target->id) {
-            return false;
-        }
-
-        if ($user->isSecretary() && $target->isAdmin()) {
-            return false;
-        }
-
-        return $user->isSecretary();
+        return false;
     }
 }

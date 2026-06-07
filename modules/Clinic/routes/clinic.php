@@ -20,6 +20,7 @@ use Modules\Clinic\Http\Controllers\TreatmentPlanController;
 Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('clinic.dashboard');
 
+    Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
     Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {

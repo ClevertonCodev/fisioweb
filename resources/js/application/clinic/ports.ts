@@ -346,6 +346,7 @@ export interface ClinicUserUpdateDto {
 
 export interface ClinicUsersRepository {
     list(): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary[]>;
+    listProfessionals(): Promise<{ id: string; name: string }[]>;
     getById(id: string): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
     create(dto: ClinicUserWriteDto): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
     update(id: string, dto: ClinicUserUpdateDto): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;

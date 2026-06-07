@@ -30,6 +30,16 @@ class ClinicUserService implements ClinicUserServiceInterface
     {
         unset($data['mestre']);
 
+        $authUser = auth('clinic')->user();
+
+        if ($authUser instanceof ClinicUser && ! $authUser->isAdmin()) {
+            unset($data['role'], $data['status']);
+
+            if ((int) $clinicUser->id !== (int) $authUser->id) {
+                abort(403, 'Você só pode editar o seu próprio perfil.');
+            }
+        }
+
         if (
             $clinicUser->isMaster()
             && array_key_exists('role', $data)

@@ -33,9 +33,9 @@ describe('can.deleteOwn', () => {
 });
 
 describe('can.manageUsers', () => {
-    it('permite admin e secretary', () => {
+    it('permite apenas admin', () => {
         expect(can.manageUsers('admin')).toBe(true);
-        expect(can.manageUsers('secretary')).toBe(true);
+        expect(can.manageUsers('secretary')).toBe(false);
     });
 
     it('nega physiotherapist', () => {

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { usePatients } from '@/application/clinic';
-import { useClinicUsers } from '@/application/clinic/use-clinic-users';
+import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
 import { useBulkInactivatePatients } from '@/application/clinic/use-patients';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -87,7 +87,7 @@ export default function PatientListPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data: clinicUsers = [] } = useClinicUsers();
+    const { data: clinicUsers = [] } = useClinicProfessionals();
     const bulkInactivate = useBulkInactivatePatients();
 
     const { data, isLoading, isError } = usePatients({

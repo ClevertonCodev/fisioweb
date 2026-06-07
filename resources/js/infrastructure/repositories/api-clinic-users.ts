@@ -51,6 +51,14 @@ export const apiClinicUsersRepository: ClinicUsersRepository = {
         return items.map(toEntity);
     },
 
+    async listProfessionals(): Promise<{ id: string; name: string }[]> {
+        const { data } = await apiClient.get<{ data: Array<{ id: number; name: string }> }>(
+            '/clinic/users/professionals',
+        );
+        const items = Array.isArray(data?.data) ? data.data : [];
+        return items.map((item) => ({ id: String(item.id), name: item.name }));
+    },
+
     async getById(id: string): Promise<ClinicUserSummary> {
         const { data } = await apiClient.get<{ data: ApiClinicUser }>(`/clinic/users/${id}`);
         return toEntity(data.data);

@@ -11,6 +11,7 @@ import {
     normalizeClinicUserRole,
 } from '@/application/clinic/clinic-user-form';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
+import { can } from '@/application/clinic/permissions';
 import { useClinicUser, useUpdateClinicUser } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Req } from '@/components/clinic/patient/form/shared';
@@ -35,12 +36,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import type { ClinicRole } from '@/domain/auth/session';
 import {
     documentStoredValueForForm,
     inferClinicUserDocumentKind,
     serializeClinicUserDocument,
 } from '@/lib/br-document-validation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
 
@@ -61,10 +64,12 @@ function UserEditForm({
     user,
     role,
     roleChangeDisabled,
+    canManageUsers,
 }: {
     user: ClinicUserSummary;
     role: ClinicUserEditFormValues['role'];
     roleChangeDisabled: boolean;
+    canManageUsers: boolean;
 }) {
     const navigate = useNavigate();
     const updateUser = useUpdateClinicUser(user.id);
@@ -97,19 +102,21 @@ function UserEditForm({
         const payload: ClinicUserUpdateDto = {
             name: values.name,
             email: values.email,
-            role: values.role,
-            status: Number(values.status),
             document: serializeClinicUserDocument(values.documentKind, values.document),
         };
+        if (canManageUsers) {
+            payload.role = values.role;
+            payload.status = Number(values.status ?? '1');
+        }
         if (values.password.trim()) payload.password = values.password;
         updateUser.mutate(payload, {
-            onSuccess: () => navigate('/clinica/usuarios'),
+            onSuccess: () => navigate(canManageUsers ? '/clinica/usuarios' : '/clinica'),
         });
     }
 
     return (
         <div className="mx-auto max-w-3xl space-y-6 p-6">
-            <h1 className="text-2xl font-bold">Editar usuário</h1>
+            <h1 className="text-2xl font-bold">{canManageUsers ? 'Editar usuário' : 'Meu perfil'}</h1>
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -232,43 +239,46 @@ function UserEditForm({
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="role"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1.5">
-                                <FormLabel className={cn(labelClass)}>
-                                    Função
-                                    <Req />
-                                </FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    disabled={roleChangeDisabled}
-                                >
-                                    <FormControl>
-                                        <SelectTrigger aria-disabled={roleChangeDisabled}>
-                                            <SelectValue placeholder="Selecione uma opção" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="admin">Administrador</SelectItem>
-                                        <SelectItem value="secretary">Secretário(a)</SelectItem>
-                                        <SelectItem value="physiotherapist">Fisioterapeuta</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {roleChangeDisabled && (
-                                    <FormDescription className="text-xs">
-                                        Este é o usuário mestre da clínica; a função permanece
-                                        administrador.
-                                    </FormDescription>
-                                )}
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {canManageUsers && (
+                        <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className={cn(labelClass)}>
+                                        Função
+                                        <Req />
+                                    </FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={roleChangeDisabled}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger aria-disabled={roleChangeDisabled}>
+                                                <SelectValue placeholder="Selecione uma opção" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="admin">Administrador</SelectItem>
+                                            <SelectItem value="secretary">Secretário(a)</SelectItem>
+                                            <SelectItem value="physiotherapist">Fisioterapeuta</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {roleChangeDisabled && (
+                                        <FormDescription className="text-xs">
+                                            Este é o usuário mestre da clínica; a função permanece
+                                            administrador.
+                                        </FormDescription>
+                                    )}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
-                    <FormField
+                    {canManageUsers && (
+                        <FormField
                             control={form.control}
                             name="status"
                             render={({ field }) => (
@@ -295,10 +305,11 @@ function UserEditForm({
                                 </FormItem>
                             )}
                         />
+                    )}
 
-                        <FormField
-                            control={form.control}
-                            name="documentKind"
+                    <FormField
+                        control={form.control}
+                        name="documentKind"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
                                 <FormLabel className={cn(labelClass)}>
@@ -369,7 +380,11 @@ function UserEditForm({
                     />
 
                     <div className="flex gap-3 pt-2">
-                        <Button type="button" variant="outline" onClick={() => navigate('/clinica/usuarios')}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => navigate(canManageUsers ? '/clinica/usuarios' : '/clinica')}
+                        >
                             Cancelar
                         </Button>
                         <Button type="submit" disabled={updateUser.isPending}>
@@ -385,7 +400,10 @@ function UserEditForm({
 export function UserEditPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user: authUser } = useAuth();
     const { data: clinicUser, isLoading, isError } = useClinicUser(id!);
+    const authRole = authUser?.role as ClinicRole | undefined;
+    const canManageUsers = can.manageUsers(authRole);
 
     const masterRoleLocked = clinicUser?.mestre === 1;
 
@@ -434,6 +452,7 @@ export function UserEditPage() {
                 user={clinicUser}
                 role={resolvedRole}
                 roleChangeDisabled={masterRoleLocked}
+                canManageUsers={canManageUsers}
             />
         </ClinicLayout>
     );

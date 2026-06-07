@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useClinicUsers } from '@/application/clinic/use-clinic-users';
+import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
 import {
     useClinicPrograms,
     useConvertToModelClinicProgram,
@@ -308,7 +308,7 @@ export default function ProgramHistoryTab() {
         }
     }, [currentPage, isFetching]);
 
-    const { data: clinicUsers = [] } = useClinicUsers();
+    const { data: clinicUsers = [] } = useClinicProfessionals();
 
     const visiblePrograms = useMemo(() => {
         let items = result?.items ?? [];

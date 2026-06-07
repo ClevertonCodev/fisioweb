@@ -27,11 +27,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 
-const bottomNavItems = [
+const bottomNavItems = (profilePath: string) => [
     { icon: Bell, label: 'Notificações', path: '/clinica/notificacoes' },
     { icon: BookOpen, label: 'Tutoriais', path: '/clinica/tutoriais' },
     { icon: Headphones, label: 'Suporte', path: '/clinica/suporte' },
-    { icon: User, label: 'Perfil', path: '/clinica/perfil' },
+    { icon: User, label: 'Perfil', path: profilePath },
 ];
 
 function SidebarContent({
@@ -47,6 +47,7 @@ function SidebarContent({
     const navigate = useNavigate();
     const { logout, user } = useAuth();
     const role = user?.role as ClinicRole | undefined;
+    const profilePath = user?.id ? `/clinica/usuarios/${user.id}/editar` : '/clinica';
 
     const allNavItems = [
         { icon: Home, label: 'Dashboard', path: '/clinica' },
@@ -150,7 +151,7 @@ function SidebarContent({
             </nav>
 
             <div className="border-sidebar-border space-y-1 border-t p-3">
-                {bottomNavItems.map((item) => (
+                {bottomNavItems(profilePath).map((item) => (
                     <NavItem key={item.path} item={item} />
                 ))}
 

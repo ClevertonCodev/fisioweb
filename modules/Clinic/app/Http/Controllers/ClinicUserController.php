@@ -18,6 +18,18 @@ class ClinicUserController extends Controller
         $this->authorizeResource(ClinicUser::class, 'user');
     }
 
+    public function professionals(): JsonResponse
+    {
+        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $users    = ClinicUser::query()
+            ->where('clinic_id', $clinicId)
+            ->where('status', ClinicUser::STATUS_ACTIVE)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json(['data' => $users]);
+    }
+
     public function index(): JsonResponse
     {
         $clinicId = Auth::guard('clinic')->user()->clinic_id;

@@ -8,6 +8,7 @@ import { useBulkInactivatePatients } from '@/application/clinic/use-patients';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
@@ -21,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -64,6 +66,36 @@ const STATUS_FILTER_OPTIONS: { value: PatientStatus; label: string }[] = [
 
 function firstLetter(name: string): string {
     return name.trim()[0]?.toUpperCase() ?? '?';
+}
+
+function PatientListTableSkeleton({ rows = 8 }: { rows?: number }) {
+    return (
+        <Card className="overflow-hidden">
+            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.5fr_40px] gap-4 border-b p-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={`header-${i}`} className="h-4 w-20" />
+                ))}
+            </div>
+            <div>
+                {Array.from({ length: rows }).map((_, row) => (
+                    <div
+                        key={`row-${row}`}
+                        className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.5fr_40px] items-center gap-4 border-b p-4 last:border-b-0"
+                    >
+                        <Skeleton className="h-4 w-4 rounded" />
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="h-9 w-9 rounded-full" />
+                            <Skeleton className="h-4 w-40" />
+                        </div>
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-7 w-24 rounded-full" />
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-8 w-8 rounded-md" />
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
 }
 
 export default function PatientListPage() {
@@ -115,11 +147,9 @@ export default function PatientListPage() {
     const allProfessionalsSelected =
         clinicUsers.length > 0 && professionalFilters.length === clinicUsers.length;
 
-    const emptyMessage = isLoading
-        ? 'Carregando pacientes...'
-        : isError
-          ? 'Erro ao carregar pacientes. Tente novamente.'
-          : 'Nenhum paciente encontrado.';
+    const emptyMessage = isError
+        ? 'Erro ao carregar pacientes. Tente novamente.'
+        : 'Nenhum paciente encontrado.';
 
     const pagination =
         totalPages > 1 ? { currentPage, totalPages, onPageChange: setCurrentPage } : undefined;
@@ -389,20 +419,23 @@ export default function PatientListPage() {
                         </div>
                     )}
 
-                    <DataTable<Patient>
-                        columns={COLUMNS}
-                        data={patients}
-                        emptyMessage={emptyMessage}
-                        totalLabel="pacientes"
-                        totalCount={total}
-                        pagination={pagination}
-                        pageSize={perPage}
-                        pageSizeOptions={[10, 25, 50]}
-                        onPageSizeChange={(size) => {
-                            setPerPage(size);
-                            setCurrentPage(1);
-                        }}
-                    >
+                    {isLoading ? (
+                        <PatientListTableSkeleton rows={Math.min(perPage, 8)} />
+                    ) : (
+                        <DataTable<Patient>
+                            columns={COLUMNS}
+                            data={patients}
+                            emptyMessage={emptyMessage}
+                            totalLabel="pacientes"
+                            totalCount={total}
+                            pagination={pagination}
+                            pageSize={perPage}
+                            pageSizeOptions={[10, 25, 50]}
+                            onPageSizeChange={(size) => {
+                                setPerPage(size);
+                                setCurrentPage(1);
+                            }}
+                        >
                         {(patient) => (
                             <TableRow
                                 key={patient.id}
@@ -510,6 +543,7 @@ export default function PatientListPage() {
                             </TableRow>
                         )}
                     </DataTable>
+                    )}
                 </div>
             </div>
         </ClinicLayout>

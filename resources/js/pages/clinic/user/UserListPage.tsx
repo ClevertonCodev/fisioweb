@@ -16,7 +16,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
@@ -41,6 +40,15 @@ const ROLE_LABELS: Record<ClinicRole, string> = {
     admin: 'Administrador',
     secretary: 'Secretário(a)',
     physiotherapist: 'Fisioterapeuta',
+};
+
+const ROLE_BADGE_VARIANT: Record<
+    ClinicRole,
+    'success' | 'info' | 'warning'
+> = {
+    admin: 'success',
+    physiotherapist: 'info',
+    secretary: 'warning',
 };
 
 const ROLE_FILTER_OPTIONS: { value: ClinicRole; label: string }[] = [
@@ -373,32 +381,26 @@ export function UserListPage() {
                                         <span className="text-muted-foreground text-sm">{u.email}</span>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant="outline"
-                                            className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
+                                        <StatusBadge
+                                            variant={ROLE_BADGE_VARIANT[u.role] ?? 'neutral'}
+                                            className="shrink-0 whitespace-nowrap"
                                         >
                                             {ROLE_LABELS[u.role] ?? u.role}
-                                        </Badge>
+                                        </StatusBadge>
                                     </TableCell>
                                     <TableCell>
-                                        {u.mestre === 1 ? (
-                                            <Badge
-                                                variant="outline"
-                                                className="shrink-0 border-primary/30 bg-primary/10 text-xs whitespace-nowrap text-primary"
-                                            >
-                                                Sim
-                                            </Badge>
-                                        ) : (
-                                            <Badge
-                                                variant="outline"
-                                                className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
-                                            >
-                                                Não
-                                            </Badge>
-                                        )}
+                                        <StatusBadge
+                                            variant={u.mestre === 1 ? 'success' : 'danger'}
+                                            className="shrink-0 whitespace-nowrap"
+                                        >
+                                            {u.mestre === 1 ? 'Sim' : 'Não'}
+                                        </StatusBadge>
                                     </TableCell>
                                     <TableCell>
-                                        <StatusBadge variant={u.status ? 'active' : 'neutral'}>
+                                        <StatusBadge
+                                            variant={u.status ? 'success' : 'danger'}
+                                            className="shrink-0 whitespace-nowrap"
+                                        >
                                             {u.status ? 'Ativo' : 'Inativo'}
                                         </StatusBadge>
                                     </TableCell>

@@ -13,6 +13,7 @@ import { useCreateClinicUser } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
+import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
     Form,
     FormControl,
@@ -22,7 +23,6 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import { Input } from '@/components/ui/input';
 import {
     Select,

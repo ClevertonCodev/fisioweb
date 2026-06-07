@@ -1,6 +1,7 @@
 import { Plus, Search } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { VIDEO_STATUS_LABELS, VIDEO_STATUS_VARIANTS } from '@/application/admin/exercise-constants';
 import type { AdminVideo } from '@/application/admin/ports';
@@ -25,7 +26,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { toast } from 'sonner';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 25, 50];
 

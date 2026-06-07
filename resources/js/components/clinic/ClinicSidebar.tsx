@@ -17,10 +17,10 @@ import {
 import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
+import { can } from '@/application/clinic/permissions';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { can } from '@/application/clinic/permissions';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import { useIsMobile } from '@/hooks/use-mobile';

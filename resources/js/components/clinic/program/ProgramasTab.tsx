@@ -522,7 +522,13 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
             </div>
 
             <div className="bg-background flex-1 overflow-auto">
-                {isLibrary ? (
+                {isLoading ? (
+                    <div className="space-y-4 p-6">
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-40 w-full" />
+                    </div>
+                ) : isLibrary ? (
                     effectiveLibraryId ? (
                         <ProgramDetail id={effectiveLibraryId} />
                     ) : (

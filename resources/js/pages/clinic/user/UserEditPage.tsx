@@ -10,12 +10,13 @@ import {
     type ClinicUserFormStatus,
     normalizeClinicUserRole,
 } from '@/application/clinic/clinic-user-form';
-import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
 import { can } from '@/application/clinic/permissions';
+import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
 import { useClinicUser, useUpdateClinicUser } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
+import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
     Form,
     FormControl,
@@ -25,9 +26,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/form';
-import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
     Select,
     SelectContent,
@@ -35,15 +34,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
+import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import {
     documentStoredValueForForm,
     inferClinicUserDocumentKind,
     serializeClinicUserDocument,
 } from '@/lib/br-document-validation';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
 

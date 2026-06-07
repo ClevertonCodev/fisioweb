@@ -286,7 +286,7 @@ export default function ProgramHistoryTab() {
         return backendStatuses.length === 1 ? (backendStatuses[0] as string) : undefined;
     }, [statusFilters]);
 
-    const { data: result, isFetching } = useClinicPrograms({
+    const { data: result, isFetching, isLoading } = useClinicPrograms({
         page: currentPage,
         perPage,
         search: searchPrograms || undefined,
@@ -294,6 +294,7 @@ export default function ProgramHistoryTab() {
     });
     const previousPageRef = useRef(currentPage);
     const [isPaginationLoading, setIsPaginationLoading] = useState(false);
+    const showSkeleton = isLoading || isPaginationLoading;
 
     useEffect(() => {
         if (currentPage !== previousPageRef.current) {
@@ -484,7 +485,7 @@ export default function ProgramHistoryTab() {
 
                 {/* Tabela — desktop */}
                 <div className="hidden md:block">
-                    {isPaginationLoading ? (
+                    {showSkeleton ? (
                         <ProgramHistoryTableSkeleton rows={Math.min(perPage, 8)} />
                     ) : (
                         <DataTable<Program>
@@ -612,7 +613,7 @@ export default function ProgramHistoryTab() {
 
                 {/* Cards — mobile */}
                 <div className="md:hidden">
-                    {isPaginationLoading ? (
+                    {showSkeleton ? (
                         <ProgramHistoryCardSkeleton rows={Math.min(perPage, 4)} />
                     ) : (
                         <CardList<Program>
@@ -736,7 +737,7 @@ export default function ProgramHistoryTab() {
                 {totalCount === 0 &&
                     !searchPrograms &&
                     activeFilterCount === 0 &&
-                    !isPaginationLoading && (
+                    !showSkeleton && (
                     <div className="mt-6 flex justify-center">
                         <Button
                             onClick={() => navigate('/clinica/programas/novo')}

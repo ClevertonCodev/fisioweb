@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowLeft, ImagePlus, Loader2, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { useAdminVideo, useUpdateAdminVideo } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -8,7 +9,6 @@ import { ImageCropModal } from '@/components/ImageCropModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 import { apiAdminVideosRepository } from '@/infrastructure/repositories';
 
 const ACCEPT_THUMB = 'image/jpeg,image/png,image/webp';

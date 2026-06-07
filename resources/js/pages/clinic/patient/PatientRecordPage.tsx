@@ -30,6 +30,10 @@ import { usePatient } from '@/application/clinic/use-patients';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDrawer';
 import { EvolutionViewDrawer } from '@/components/clinic/patient/EvolutionViewDrawer';
+import { PatientAllTab } from '@/components/clinic/patient/PatientAllTab';
+import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileUploadModal';
+import { QuestionnaireFormSheet } from '@/components/clinic/patient/QuestionnaireFormSheet';
+import { QuestionnaireViewSheet } from '@/components/clinic/patient/QuestionnaireViewSheet';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -40,13 +44,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { PatientAllTab } from '@/components/clinic/patient/PatientAllTab';
-import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileUploadModal';
-import { QuestionnaireFormSheet } from '@/components/clinic/patient/QuestionnaireFormSheet';
-import { QuestionnaireViewSheet } from '@/components/clinic/patient/QuestionnaireViewSheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
@@ -57,6 +56,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';

@@ -3,6 +3,7 @@
 namespace Modules\Patient\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Models\Patient;
 
@@ -18,10 +19,29 @@ class PatientRepository implements PatientRepositoryInterface
         return Patient::findOrFail($id);
     }
 
+    /** Labels dos campos de avaliação que alimentam o resumo do diagnóstico */
+    private const DIAGNOSIS_FIELD_LABELS = ['Diagnóstico clínico', 'Diagnóstico(s)'];
+
     public function paginateByClinic(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
+        // Resposta de "Diagnóstico clínico" da última avaliação assinada do paciente
+        $assessmentDiagnosis = DB::table('clinic_assessment_answers as caa')
+            ->join('clinic_assessments as ca', 'ca.id', '=', 'caa.assessment_id')
+            ->join('admin_assessment_fields as f', 'f.id', '=', 'caa.admin_assessment_field_id')
+            ->whereColumn('ca.patient_id', 'patients.id')
+            ->where('ca.status', 'signed')
+            ->whereNull('ca.deleted_at')
+            ->whereIn('f.label', self::DIAGNOSIS_FIELD_LABELS)
+            ->whereNotNull('caa.value')
+            ->where('caa.value', '!=', '')
+            ->orderByDesc('ca.signed_at')
+            ->limit(1)
+            ->select('caa.value');
+
         $query = Patient::where('clinic_id', $clinicId)
-            ->with('clinicUser:id,name');
+            ->with('clinicUser:id,name')
+            ->select('patients.*')
+            ->selectSub($assessmentDiagnosis, 'assessment_diagnosis');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -54,10 +74,21 @@ class PatientRepository implements PatientRepositoryInterface
 
         $page = $filters['page'] ?? null;
 
-        return $query
+        $paginator = $query
             ->orderBy('created_at', 'desc')
             ->orderBy('name', 'asc')
             ->paginate($perPage, ['*'], 'page', $page);
+
+        // Avaliação assinada tem prioridade sobre o campo manual do cadastro
+        $paginator->getCollection()->transform(function (Patient $patient) {
+            if ($patient->assessment_diagnosis) {
+                $patient->diagnosis = $patient->assessment_diagnosis;
+            }
+
+            return $patient->makeHidden('assessment_diagnosis');
+        });
+
+        return $paginator;
     }
 
     public function bulkInactivate(int $clinicId, array $ids): int

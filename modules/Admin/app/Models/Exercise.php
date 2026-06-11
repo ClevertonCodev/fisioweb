@@ -13,6 +13,8 @@ class Exercise extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'admin_exercises';
+
     public const DIFFICULTY_EASY = 'easy';
 
     public const DIFFICULTY_MEDIUM = 'medium';
@@ -100,7 +102,7 @@ class Exercise extends Model
 
     public function videos(): BelongsToMany
     {
-        return $this->belongsToMany(Video::class, 'exercise_video')->withTimestamps();
+        return $this->belongsToMany(Video::class, 'admin_exercise_video')->withTimestamps();
     }
 
     public function scopeActive($query)

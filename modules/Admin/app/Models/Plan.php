@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Plan extends Model
 {
+    protected $table = 'admin_plans';
+
     public const TYPE_CHARGE_POR_USUARIO = 'por_usuario';
 
     public const TYPE_CHARGE_FIXO = 'fixo';

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('admin_program_id')->constrained('admin_programs')->cascadeOnDelete();
             $table->foreignId('admin_program_group_id')->nullable()->constrained('admin_program_groups')->nullOnDelete();
-            $table->foreignId('exercise_id')->constrained('exercises')->restrictOnDelete();
+            $table->foreignId('exercise_id')->constrained('admin_exercises')->restrictOnDelete();
             $table->json('days_of_week')->nullable();
             $table->string('period')->nullable();
             $table->unsignedTinyInteger('sets_min')->nullable();

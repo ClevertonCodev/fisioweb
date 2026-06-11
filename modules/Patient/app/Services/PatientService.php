@@ -28,13 +28,15 @@ class PatientService implements PatientServiceInterface
     {
         $cpf = isset($data['cpf']) ? preg_replace('/\D/', '', $data['cpf']) : null;
 
-        return $this->repository->create(array_merge($data, [
+        $patient = $this->repository->create(array_merge($data, [
             'clinic_id'      => $clinicId,
             'clinic_user_id' => Auth::guard('clinic')->id(),
             'cpf'            => $cpf,
             // CPF é a senha padrão; estrangeiros sem CPF usam o e-mail
             'password'       => $cpf ?: $data['email'],
         ]));
+
+        return $patient->load('clinicUser:id,name');
     }
 
     public function update(int $id, array $data): Patient

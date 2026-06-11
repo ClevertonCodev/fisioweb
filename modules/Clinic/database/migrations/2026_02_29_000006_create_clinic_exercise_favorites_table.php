@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('exercise_favorites', function (Blueprint $table) {
+        Schema::create('clinic_exercise_favorites', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_user_id')->constrained('clinic_users')->cascadeOnDelete();
-            $table->foreignId('exercise_id')->constrained('exercises')->cascadeOnDelete();
+            $table->foreignId('exercise_id')->constrained('admin_exercises')->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['clinic_user_id', 'exercise_id']);
@@ -20,6 +20,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('exercise_favorites');
+        Schema::dropIfExists('clinic_exercise_favorites');
     }
 };

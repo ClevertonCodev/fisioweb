@@ -5,7 +5,6 @@ namespace Modules\Clinic\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admin\Models\Plan;
@@ -64,9 +63,9 @@ class Clinic extends Model
         return $this->hasMany(ClinicUser::class);
     }
 
-    public function patients(): BelongsToMany
+    public function patients(): HasMany
     {
-        return $this->belongsToMany(Patient::class, 'clinic_patient')->withPivot('registered_by')->withTimestamps();
+        return $this->hasMany(Patient::class);
     }
 
     public function treatmentPlans(): HasMany

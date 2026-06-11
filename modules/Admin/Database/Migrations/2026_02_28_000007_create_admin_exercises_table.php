@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('exercises', function (Blueprint $table) {
+        Schema::create('admin_exercises', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('physio_area_id')->constrained('physio_areas')->restrictOnDelete();
-            $table->foreignId('physio_subarea_id')->nullable()->constrained('physio_subareas')->nullOnDelete();
-            $table->foreignId('body_region_id')->constrained('body_regions')->restrictOnDelete();
+            $table->foreignId('physio_area_id')->constrained('admin_physio_areas')->restrictOnDelete();
+            $table->foreignId('physio_subarea_id')->nullable()->constrained('admin_physio_subareas')->nullOnDelete();
+            $table->foreignId('body_region_id')->constrained('admin_body_regions')->restrictOnDelete();
             $table->string('therapeutic_goal')->nullable();
             $table->text('description')->nullable();
             $table->text('audio_description')->nullable();
@@ -44,6 +44,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('exercises');
+        Schema::dropIfExists('admin_exercises');
     }
 };

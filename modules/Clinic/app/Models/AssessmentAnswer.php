@@ -8,6 +8,8 @@ use Modules\Admin\Models\AdminAssessmentField;
 
 class AssessmentAnswer extends Model
 {
+    protected $table = 'clinic_assessment_answers';
+
     protected $fillable = [
         'assessment_id',
         'admin_assessment_field_id',

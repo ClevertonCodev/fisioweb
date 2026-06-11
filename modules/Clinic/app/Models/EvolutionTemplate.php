@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EvolutionTemplate extends Model
 {
+    protected $table = 'clinic_evolution_templates';
+
     protected $fillable = [
         'clinic_id',
         'name',

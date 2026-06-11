@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('videos', function (Blueprint $table) {
+        Schema::create('media_videos', function (Blueprint $table) {
             $table->id();
             $table->string('filename')->unique();
             $table->string('original_filename');
@@ -32,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('videos');
+        Schema::dropIfExists('media_videos');
     }
 };

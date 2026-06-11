@@ -8,10 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('body_regions', function (Blueprint $table) {
+        Schema::create('admin_body_regions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('parent_id')->nullable()->constrained('body_regions')->nullOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('admin_body_regions')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['parent_id', 'name']);
@@ -20,6 +20,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('body_regions');
+        Schema::dropIfExists('admin_body_regions');
     }
 };

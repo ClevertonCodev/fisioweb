@@ -31,8 +31,8 @@ class FeaturePlanController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'plan_id'    => ['required', 'integer', 'exists:plans,id'],
-            'feature_id' => ['required', 'integer', 'exists:features,id'],
+            'plan_id'    => ['required', 'integer', 'exists:admin_plans,id'],
+            'feature_id' => ['required', 'integer', 'exists:admin_features,id'],
             'value'      => ['required', Rule::in([true, false, 'true', 'false', 1, 0, '1', '0'])],
         ], [
             'plan_id.exists'    => 'O plano selecionado não existe.',

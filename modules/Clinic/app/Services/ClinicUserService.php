@@ -12,7 +12,7 @@ class ClinicUserService implements ClinicUserServiceInterface
     {
         return ClinicUser::where('clinic_id', $clinicId)
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role', 'mestre', 'status', 'document']);
+            ->get(['id', 'name', 'email', 'role', 'mestre', 'status', 'document', 'photo_url']);
     }
 
     public function create(array $data, int $clinicId): ClinicUser
@@ -32,7 +32,7 @@ class ClinicUserService implements ClinicUserServiceInterface
 
         $authUser = auth('clinic')->user();
 
-        if ($authUser instanceof ClinicUser && ! $authUser->isAdmin()) {
+        if ($authUser instanceof ClinicUser && !$authUser->isAdmin()) {
             unset($data['role'], $data['status']);
 
             if ((int) $clinicUser->id !== (int) $authUser->id) {

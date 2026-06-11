@@ -121,6 +121,20 @@ describe('apiClinicPatientsRepository — mapper', () => {
         expect(patient.professionalInitial).toBe('D');
     });
 
+    it('mapeia diagnosis da API para a entidade', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: { data: makeApiPatient({ diagnosis: 'Lombalgia crônica' }) },
+        });
+        const patient = await apiClinicPatientsRepository.getById('1');
+        expect(patient.diagnosis).toBe('Lombalgia crônica');
+    });
+
+    it('retorna diagnosis vazio quando ausente na API', async () => {
+        mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
+        const patient = await apiClinicPatientsRepository.getById('1');
+        expect(patient.diagnosis).toBe('');
+    });
+
     it('retorna professional vazio quando clinic_user ausente', async () => {
         mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
 

@@ -3,16 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\AssessmentController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
+use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\EvolutionController;
 use Modules\Clinic\Http\Controllers\EvolutionTemplateController;
-use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
 use Modules\Clinic\Http\Controllers\PatientFileController;
 use Modules\Clinic\Http\Controllers\PatientQuestionnaireController;
+use Modules\Clinic\Http\Controllers\ProgramDraftController;
 use Modules\Clinic\Http\Controllers\QuestionnaireAnswerController;
 use Modules\Clinic\Http\Controllers\QuestionnaireTemplateController;
-use Modules\Clinic\Http\Controllers\ProgramDraftController;
 use Modules\Clinic\Http\Controllers\SharedAssessmentTemplateController;
 use Modules\Clinic\Http\Controllers\SharedProgramController;
 use Modules\Clinic\Http\Controllers\TreatmentPlanController;
@@ -21,6 +21,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::get('dashboard', [DashboardController::class, 'index'])->name('clinic.dashboard');
 
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
+    Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');
     Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {

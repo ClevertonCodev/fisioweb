@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('treatment_plan_groups', function (Blueprint $table) {
+        Schema::create('clinic_treatment_plan_groups', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('treatment_plan_id')->constrained('treatment_plans')->cascadeOnDelete();
+            $table->foreignId('treatment_plan_id')->constrained('clinic_treatment_plans')->cascadeOnDelete();
             $table->string('name');
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('treatment_plan_groups');
+        Schema::dropIfExists('clinic_treatment_plan_groups');
     }
 };

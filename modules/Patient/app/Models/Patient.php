@@ -54,6 +54,7 @@ class Patient extends Authenticatable implements JWTSubject
         'is_foreign',
         'is_active',
         'status',
+        'diagnosis',
         'photo_url',
     ];
 

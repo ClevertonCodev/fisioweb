@@ -19,7 +19,7 @@ class StoreFeatureRequest extends FormRequest
         $types       = array_keys(Feature::TYPES);
 
         return [
-            'key'            => ['required', 'string', 'max:255', 'unique:features,key', Rule::in($allowedKeys)],
+            'key'            => ['required', 'string', 'max:255', 'unique:admin_features,key', Rule::in($allowedKeys)],
             'name'           => ['required', 'string', 'max:255'],
             'value_isolated' => ['nullable', 'numeric', 'min:0'],
             'type'           => ['required', 'string', Rule::in($types)],

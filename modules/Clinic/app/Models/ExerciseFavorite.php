@@ -8,6 +8,8 @@ use Modules\Admin\Models\Exercise;
 
 class ExerciseFavorite extends Model
 {
+    protected $table = 'clinic_exercise_favorites';
+
     protected $fillable = [
         'clinic_user_id',
         'exercise_id',

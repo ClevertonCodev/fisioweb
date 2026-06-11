@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 import { FieldError, Req } from './shared';
 
@@ -236,6 +237,21 @@ export function PatientFormPersonal({ form }: Props) {
                     />
                     <FieldError message={errors.birth_date?.message} />
                 </div>
+            </div>
+
+            <div>
+                <Label className="text-muted-foreground text-xs" htmlFor="diagnosis">
+                    Resumo do diagnóstico
+                </Label>
+                <Textarea
+                    id="diagnosis"
+                    className="mt-1.5"
+                    placeholder="Ex.: Lombalgia crônica pós-cirúrgica"
+                    rows={3}
+                    maxLength={500}
+                    {...register('diagnosis')}
+                />
+                <FieldError message={errors.diagnosis?.message} />
             </div>
         </div>
     );

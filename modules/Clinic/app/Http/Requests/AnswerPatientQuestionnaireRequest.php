@@ -15,7 +15,7 @@ class AnswerPatientQuestionnaireRequest extends FormRequest
     {
         return [
             'answers'                   => ['required', 'array', 'min:1'],
-            'answers.*.question_id'     => ['required', 'integer', 'exists:questionnaire_questions,id'],
+            'answers.*.question_id'     => ['required', 'integer', 'exists:clinic_questionnaire_questions,id'],
             'answers.*.answer'          => ['required'],
         ];
     }

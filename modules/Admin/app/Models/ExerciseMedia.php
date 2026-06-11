@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExerciseMedia extends Model
 {
+    protected $table = 'admin_exercise_media';
+
     public const TYPE_IMAGE = 'image';
 
     public const TYPE_AUDIO = 'audio';

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('role', 50)->default('physiotherapist');
             $table->tinyInteger('mestre')->default(0);
             $table->string('document', 30)->nullable();
+            $table->string('photo_url')->nullable();
             $table->tinyInteger('status')->default(1);
             $table->rememberToken();
             $table->string('two_factor_secret')->nullable();

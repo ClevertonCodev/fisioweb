@@ -11,6 +11,8 @@ use Modules\Clinic\Database\Factories\PatientQuestionnaireFactory;
 
 class PatientQuestionnaire extends Model
 {
+    protected $table = 'clinic_patient_questionnaires';
+
     use HasFactory, SoftDeletes;
 
     protected static function newFactory(): PatientQuestionnaireFactory
@@ -19,10 +21,13 @@ class PatientQuestionnaire extends Model
     }
 
     const STATUS_PENDING  = 'pending';
+
     const STATUS_ANSWERED = 'answered';
+
     const STATUS_EXPIRED  = 'expired';
 
     const MODALITY_PRESENCIAL = 'presencial';
+
     const MODALITY_REMOTO     = 'remoto';
 
     protected $fillable = [

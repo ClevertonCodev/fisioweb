@@ -12,19 +12,26 @@ interface PatientPhotoSectionProps {
     value: File | null;
     onChange: (file: File | null) => void;
     currentPhotoUrl?: string;
+    cropTitle?: string;
+    cropAspect?: number;
 }
 
 export function PatientPhotoSection({
     value,
     onChange,
     currentPhotoUrl,
+    cropTitle = 'Recortar foto do paciente',
+    cropAspect = 16 / 9,
 }: PatientPhotoSectionProps) {
     const [photoError, setPhotoError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const localPreviewUrl = useMemo(() => (value ? URL.createObjectURL(value) : null), [value]);
+    const localPreviewUrl = useMemo(
+        () => (value ? URL.createObjectURL(value) : null),
+        [value],
+    );
 
     useEffect(() => {
         return () => {
@@ -40,27 +47,32 @@ export function PatientPhotoSection({
         if (inputRef.current) inputRef.current.value = '';
     }, [onChange]);
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setPhotoError(null);
-        const file = e.target.files?.[0];
-        if (inputRef.current) inputRef.current.value = '';
-        if (!file) return;
-        if (!MIMES.includes(file.type)) {
-            setPhotoError('Use JPEG, PNG ou WebP.');
-            return;
-        }
-        if (file.size > MAX_BYTES) {
-            setPhotoError('A foto não pode exceder 2MB.');
-            return;
-        }
-        setCropModalFile(file);
-        setCropModalOpen(true);
-    }, []);
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setPhotoError(null);
+            const file = e.target.files?.[0];
+            if (inputRef.current) inputRef.current.value = '';
+            if (!file) return;
+            if (!MIMES.includes(file.type)) {
+                setPhotoError('Use JPEG, PNG ou WebP.');
+                return;
+            }
+            if (file.size > MAX_BYTES) {
+                setPhotoError('A foto não pode exceder 2MB.');
+                return;
+            }
+            setCropModalFile(file);
+            setCropModalOpen(true);
+        },
+        [],
+    );
 
     const handleCropConfirm = useCallback(
         (croppedFile: File) => {
             if (croppedFile.size > MAX_BYTES) {
-                setPhotoError('A foto recortada ainda excede 2MB. Tente uma imagem menor.');
+                setPhotoError(
+                    'A foto recortada ainda excede 2MB. Tente uma imagem menor.',
+                );
                 return;
             }
             setPhotoError(null);
@@ -92,20 +104,29 @@ export function PatientPhotoSection({
                 <button
                     type="button"
                     onClick={openPicker}
-                    className="bg-primary/10 focus-visible:ring-ring ring-offset-background relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full transition hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none"
+                    className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 ring-offset-background transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                     {previewUrl ? (
-                        <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+                        <img
+                            src={previewUrl}
+                            alt=""
+                            className="h-full w-full object-cover"
+                        />
                     ) : (
-                        <Smile className="text-primary/40 h-10 w-10" />
+                        <Smile className="h-10 w-10 text-primary/40" />
                     )}
                 </button>
                 <div className="min-w-0 flex-1">
-                    <p className="text-muted-foreground mb-2 text-sm">
+                    <p className="mb-2 text-sm text-muted-foreground">
                         JPEG, PNG ou WebP — Máx. 2MB
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={openPicker}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={openPicker}
+                        >
                             Escolher uma foto
                         </Button>
                         {(value || currentPhotoUrl) && (
@@ -122,12 +143,17 @@ export function PatientPhotoSection({
                         )}
                     </div>
                     {photoError && (
-                        <p className="text-destructive mt-2 text-sm" role="alert">
+                        <p
+                            className="mt-2 text-sm text-destructive"
+                            role="alert"
+                        >
                             {photoError}
                         </p>
                     )}
                     {value && (
-                        <p className="text-muted-foreground mt-1 truncate text-xs">{value.name}</p>
+                        <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {value.name}
+                        </p>
                     )}
                 </div>
             </div>
@@ -136,8 +162,8 @@ export function PatientPhotoSection({
                 onOpenChange={handleCropOpenChange}
                 imageFile={cropModalFile}
                 onConfirm={handleCropConfirm}
-                title="Recortar foto do paciente"
-                aspect={16 / 9}
+                title={cropTitle}
+                aspect={cropAspect}
                 hintText="Arraste a área para posicionar o recorte. Use + e − para zoom."
             />
         </>

@@ -12,6 +12,8 @@ class PatientEvolution extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'clinic_patient_evolutions';
+
     public const STATUS_DRAFT = 'draft';
 
     public const STATUS_SIGNED = 'signed';

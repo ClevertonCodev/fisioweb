@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('evolution_template_sections', function (Blueprint $table) {
+        Schema::create('clinic_evolution_template_sections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('evolution_template_id')->constrained('evolution_templates')->cascadeOnDelete();
+            $table->foreignId('evolution_template_id')->constrained('clinic_evolution_templates')->cascadeOnDelete();
             $table->string('title');
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
@@ -19,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('evolution_template_sections');
+        Schema::dropIfExists('clinic_evolution_template_sections');
     }
 };

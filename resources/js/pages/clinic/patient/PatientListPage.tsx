@@ -76,6 +76,30 @@ const STATUS_FILTER_OPTIONS: { value: PatientStatus; label: string }[] = [
     { value: 'alta', label: 'Alta' },
 ];
 
+const DIAGNOSIS_PREVIEW_LENGTH = 20;
+
+/** Mostra os primeiros 20 caracteres do diagnóstico; o texto completo fica no tooltip */
+function DiagnosisSummary({ diagnosis }: { diagnosis: string }) {
+    if (!diagnosis) return <>—</>;
+
+    if (diagnosis.length <= DIAGNOSIS_PREVIEW_LENGTH) {
+        return <>{diagnosis}</>;
+    }
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span className="cursor-default">
+                    {diagnosis.slice(0, DIAGNOSIS_PREVIEW_LENGTH)}…
+                </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                {diagnosis}
+            </TooltipContent>
+        </Tooltip>
+    );
+}
+
 function firstLetter(name: string): string {
     return name.trim()[0]?.toUpperCase() ?? '?';
 }
@@ -661,7 +685,9 @@ export default function PatientListPage() {
                                             </StatusBadge>
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground">
-                                            {patient.diagnosis || '—'}
+                                            <DiagnosisSummary
+                                                diagnosis={patient.diagnosis}
+                                            />
                                         </TableCell>
                                         <TableCell
                                             onClick={(e) => e.stopPropagation()}
@@ -806,7 +832,11 @@ export default function PatientListPage() {
                                             {/* Linha 2: diagnóstico */}
                                             {patient.diagnosis && (
                                                 <p className="mt-2 ml-12 text-sm text-muted-foreground">
-                                                    {patient.diagnosis}
+                                                    <DiagnosisSummary
+                                                        diagnosis={
+                                                            patient.diagnosis
+                                                        }
+                                                    />
                                                 </p>
                                             )}
 

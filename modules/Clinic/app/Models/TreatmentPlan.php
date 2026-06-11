@@ -11,6 +11,8 @@ use Modules\Patient\Models\Patient;
 
 class TreatmentPlan extends Model
 {
+    protected $table = 'clinic_treatment_plans';
+
     public const STATUS_DRAFT = 'draft';
 
     public const STATUS_ACTIVE = 'active';

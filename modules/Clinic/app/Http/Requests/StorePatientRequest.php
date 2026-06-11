@@ -51,6 +51,7 @@ class StorePatientRequest extends FormRequest
             'use_apelido'       => ['nullable', 'boolean'],
             'is_active'         => ['nullable', 'boolean'],
             'status'            => ['nullable', 'string', 'max:50'],
+            'diagnosis'         => ['nullable', 'string', 'max:500'],
         ];
     }
 

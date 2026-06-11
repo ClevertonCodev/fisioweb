@@ -3,14 +3,19 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import {
     clinicUserNewFormSchema,
     type ClinicUserNewFormValues,
     toClinicUserWriteDto,
 } from '@/application/clinic/clinic-user-form';
-import { useCreateClinicUser } from '@/application/clinic/use-clinic-users';
+import {
+    useCreateClinicUser,
+    useUploadClinicUserPhoto,
+} from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
@@ -38,8 +43,11 @@ const labelClass = 'text-muted-foreground text-xs font-medium';
 export function UserNewPage() {
     const navigate = useNavigate();
     const createUser = useCreateClinicUser();
+    const { mutateAsync: uploadPhoto, isPending: isUploading } =
+        useUploadClinicUserPhoto();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
 
     const form = useForm<ClinicUserNewFormValues>({
         resolver: zodResolver(clinicUserNewFormSchema),
@@ -57,10 +65,26 @@ export function UserNewPage() {
 
     const documentKind = form.watch('documentKind');
 
-    function onSubmit(values: ClinicUserNewFormValues) {
-        createUser.mutate(toClinicUserWriteDto(values), {
-            onSuccess: () => navigate('/clinica/usuarios'),
-        });
+    async function onSubmit(values: ClinicUserNewFormValues) {
+        try {
+            const user = await createUser.mutateAsync(
+                toClinicUserWriteDto(values),
+            );
+
+            if (photoFile) {
+                try {
+                    await uploadPhoto({ id: user.id, file: photoFile });
+                } catch {
+                    toast.warning(
+                        'Usuário criado, mas falha ao enviar a foto. Você pode tentar novamente na edição.',
+                    );
+                }
+            }
+
+            navigate('/clinica/usuarios');
+        } catch {
+            // erro de criação já tratado pelo hook (toast)
+        }
     }
 
     return (
@@ -69,7 +93,17 @@ export function UserNewPage() {
                 <h1 className="text-2xl font-bold">Novo usuário</h1>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="space-y-6"
+                    >
+                        <PatientPhotoSection
+                            value={photoFile}
+                            onChange={setPhotoFile}
+                            cropTitle="Recortar foto do usuário"
+                            cropAspect={1}
+                        />
+
                         <FormField
                             control={form.control}
                             name="name"
@@ -125,7 +159,11 @@ export function UserNewPage() {
                                     <FormControl>
                                         <div className="relative">
                                             <Input
-                                                type={showPassword ? 'text' : 'password'}
+                                                type={
+                                                    showPassword
+                                                        ? 'text'
+                                                        : 'password'
+                                                }
                                                 {...field}
                                                 autoComplete="new-password"
                                                 className="pr-10"
@@ -133,10 +171,16 @@ export function UserNewPage() {
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                                onClick={() =>
+                                                    setShowPassword(
+                                                        !showPassword,
+                                                    )
+                                                }
+                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                                 aria-label={
-                                                    showPassword ? 'Ocultar senha' : 'Mostrar senha'
+                                                    showPassword
+                                                        ? 'Ocultar senha'
+                                                        : 'Mostrar senha'
                                                 }
                                             >
                                                 {showPassword ? (
@@ -164,7 +208,11 @@ export function UserNewPage() {
                                     <FormControl>
                                         <div className="relative">
                                             <Input
-                                                type={showConfirm ? 'text' : 'password'}
+                                                type={
+                                                    showConfirm
+                                                        ? 'text'
+                                                        : 'password'
+                                                }
                                                 {...field}
                                                 autoComplete="new-password"
                                                 className="pr-10"
@@ -172,8 +220,10 @@ export function UserNewPage() {
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() => setShowConfirm(!showConfirm)}
-                                                className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                                onClick={() =>
+                                                    setShowConfirm(!showConfirm)
+                                                }
+                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                                 aria-label={
                                                     showConfirm
                                                         ? 'Ocultar confirmação de senha'
@@ -202,15 +252,22 @@ export function UserNewPage() {
                                         Função
                                         <Req />
                                     </FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                    >
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Selecione uma opção" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="admin">Administrador</SelectItem>
-                                            <SelectItem value="secretary">Secretário(a)</SelectItem>
+                                            <SelectItem value="admin">
+                                                Administrador
+                                            </SelectItem>
+                                            <SelectItem value="secretary">
+                                                Secretário(a)
+                                            </SelectItem>
                                             <SelectItem value="physiotherapist">
                                                 Fisioterapeuta
                                             </SelectItem>
@@ -240,8 +297,12 @@ export function UserNewPage() {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="1">Ativo</SelectItem>
-                                            <SelectItem value="0">Inativo</SelectItem>
+                                            <SelectItem value="1">
+                                                Ativo
+                                            </SelectItem>
+                                            <SelectItem value="0">
+                                                Inativo
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -271,8 +332,12 @@ export function UserNewPage() {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="cpf">CPF</SelectItem>
-                                            <SelectItem value="cnpj">CNPJ</SelectItem>
+                                            <SelectItem value="cpf">
+                                                CPF
+                                            </SelectItem>
+                                            <SelectItem value="cnpj">
+                                                CNPJ
+                                            </SelectItem>
                                             <SelectItem value="crefito">
                                                 CREFITO (registro profissional)
                                             </SelectItem>
@@ -310,7 +375,8 @@ export function UserNewPage() {
                                         </FormControl>
                                     )}
                                     <FormDescription className="text-xs">
-                                        {documentKind === 'cpf' && 'Informe um CPF válido (11 dígitos).'}
+                                        {documentKind === 'cpf' &&
+                                            'Informe um CPF válido (11 dígitos).'}
                                         {documentKind === 'cnpj' &&
                                             'Informe um CNPJ válido (14 dígitos).'}
                                         {documentKind === 'crefito' &&
@@ -329,8 +395,13 @@ export function UserNewPage() {
                             >
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={createUser.isPending}>
-                                {createUser.isPending ? 'Salvando...' : 'Criar usuário'}
+                            <Button
+                                type="submit"
+                                disabled={createUser.isPending || isUploading}
+                            >
+                                {createUser.isPending || isUploading
+                                    ? 'Salvando...'
+                                    : 'Criar usuário'}
                             </Button>
                         </div>
                     </form>

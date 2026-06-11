@@ -50,6 +50,7 @@ class ClinicUser extends Authenticatable implements JWTSubject
         'role',
         'mestre',
         'document',
+        'photo_url',
         'status',
     ];
 

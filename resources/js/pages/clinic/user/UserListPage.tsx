@@ -1,9 +1,19 @@
-import { MoreVertical, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import {
+    MoreVertical,
+    Plus,
+    Search,
+    SlidersHorizontal,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
-import { useClinicUsers, useDeleteClinicUser } from '@/application/clinic/use-clinic-users';
+import {
+    useClinicUsers,
+    useDeleteClinicUser,
+} from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
     AlertDialog,
@@ -15,7 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,7 +37,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -42,10 +56,7 @@ const ROLE_LABELS: Record<ClinicRole, string> = {
     physiotherapist: 'Fisioterapeuta',
 };
 
-const ROLE_BADGE_VARIANT: Record<
-    ClinicRole,
-    'success' | 'info' | 'warning'
-> = {
+const ROLE_BADGE_VARIANT: Record<ClinicRole, 'success' | 'info' | 'warning'> = {
     admin: 'success',
     physiotherapist: 'info',
     secretary: 'warning',
@@ -106,12 +117,16 @@ export function UserListPage() {
 
     const [search, setSearch] = useState('');
     const [roleFilters, setRoleFilters] = useState<ClinicRole[]>([]);
-    const [statusFilters, setStatusFilters] = useState<Array<'active' | 'inactive'>>([]);
+    const [statusFilters, setStatusFilters] = useState<
+        Array<'active' | 'inactive'>
+    >([]);
     const [masterFilters, setMasterFilters] = useState<Array<'yes' | 'no'>>([]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-    const [targetDelete, setTargetDelete] = useState<ClinicUserSummary | null>(null);
+    const [targetDelete, setTargetDelete] = useState<ClinicUserSummary | null>(
+        null,
+    );
 
     const activeFilterCount =
         roleFilters.length + statusFilters.length + masterFilters.length;
@@ -124,11 +139,14 @@ export function UserListPage() {
                 const mail = u.email.toLowerCase();
                 if (!name.includes(q) && !mail.includes(q)) return false;
             }
-            if (roleFilters.length > 0 && !roleFilters.includes(u.role)) return false;
+            if (roleFilters.length > 0 && !roleFilters.includes(u.role))
+                return false;
             const isActive = Boolean(u.status);
             if (statusFilters.length > 0) {
-                const matchesActive = statusFilters.includes('active') && isActive;
-                const matchesInactive = statusFilters.includes('inactive') && !isActive;
+                const matchesActive =
+                    statusFilters.includes('active') && isActive;
+                const matchesInactive =
+                    statusFilters.includes('inactive') && !isActive;
                 if (!matchesActive && !matchesInactive) return false;
             }
             if (masterFilters.length > 0) {
@@ -156,7 +174,10 @@ export function UserListPage() {
         return filtered.slice(start, start + perPage);
     }, [filtered, page, perPage]);
 
-    const pagination = totalPages > 1 ? { currentPage: page, totalPages, onPageChange: setPage } : undefined;
+    const pagination =
+        totalPages > 1
+            ? { currentPage: page, totalPages, onPageChange: setPage }
+            : undefined;
 
     const filtersActive = !!search.trim() || activeFilterCount > 0;
 
@@ -172,19 +193,25 @@ export function UserListPage() {
 
     const toggleRole = useCallback((value: ClinicRole) => {
         setRoleFilters((prev) =>
-            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+            prev.includes(value)
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
     }, []);
 
     const toggleStatus = useCallback((value: 'active' | 'inactive') => {
         setStatusFilters((prev) =>
-            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+            prev.includes(value)
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
     }, []);
 
     const toggleMaster = useCallback((value: 'yes' | 'no') => {
         setMasterFilters((prev) =>
-            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+            prev.includes(value)
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
     }, []);
 
@@ -209,14 +236,18 @@ export function UserListPage() {
     return (
         <ClinicLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-6">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-foreground text-2xl font-semibold">Usuários</h1>
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                Usuários
+                            </h1>
                             {showActions && (
                                 <Button
                                     className="gap-2"
-                                    onClick={() => navigate('/clinica/usuarios/novo')}
+                                    onClick={() =>
+                                        navigate('/clinica/usuarios/novo')
+                                    }
                                 >
                                     <Plus className="h-4 w-4" />
                                     Novo usuário
@@ -229,7 +260,7 @@ export function UserListPage() {
                 <div className="flex-1 overflow-auto p-6">
                     <div className="mb-6 flex items-center gap-4">
                         <div className="relative w-64">
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Pesquisar"
                                 value={search}
@@ -239,13 +270,20 @@ export function UserListPage() {
                             />
                         </div>
 
-                        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                        <Popover
+                            open={filtersOpen}
+                            onOpenChange={setFiltersOpen}
+                        >
                             <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2"
+                                >
                                     <SlidersHorizontal className="h-4 w-4" />
                                     Filtros
                                     {activeFilterCount > 0 && (
-                                        <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
                                             {activeFilterCount}
                                         </span>
                                     )}
@@ -253,12 +291,14 @@ export function UserListPage() {
                             </PopoverTrigger>
                             <PopoverContent align="start" className="w-64 p-0">
                                 <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold">Filtros</span>
+                                    <span className="text-sm font-semibold">
+                                        Filtros
+                                    </span>
                                     {activeFilterCount > 0 && (
                                         <button
                                             type="button"
                                             onClick={clearFilters}
-                                            className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                                         >
                                             <X className="h-3 w-3" />
                                             Limpar
@@ -267,46 +307,64 @@ export function UserListPage() {
                                 </div>
                                 <Separator />
                                 <div className="py-1">
-                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Função
                                     </p>
                                     {ROLE_FILTER_OPTIONS.map((opt) => (
                                         <label
                                             key={opt.value}
-                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                         >
                                             <Checkbox
-                                                checked={roleFilters.includes(opt.value)}
-                                                onCheckedChange={() => toggleRole(opt.value)}
+                                                checked={roleFilters.includes(
+                                                    opt.value,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleRole(opt.value)
+                                                }
                                             />
-                                            <span className="text-sm">{opt.label}</span>
+                                            <span className="text-sm">
+                                                {opt.label}
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
                                 <Separator />
                                 <div className="py-1">
-                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Status
                                     </p>
                                     {[
-                                        { value: 'active' as const, label: 'Ativo' },
-                                        { value: 'inactive' as const, label: 'Inativo' },
+                                        {
+                                            value: 'active' as const,
+                                            label: 'Ativo',
+                                        },
+                                        {
+                                            value: 'inactive' as const,
+                                            label: 'Inativo',
+                                        },
                                     ].map((opt) => (
                                         <label
                                             key={opt.value}
-                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                         >
                                             <Checkbox
-                                                checked={statusFilters.includes(opt.value)}
-                                                onCheckedChange={() => toggleStatus(opt.value)}
+                                                checked={statusFilters.includes(
+                                                    opt.value,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleStatus(opt.value)
+                                                }
                                             />
-                                            <span className="text-sm">{opt.label}</span>
+                                            <span className="text-sm">
+                                                {opt.label}
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
                                 <Separator />
                                 <div className="py-1">
-                                    <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                         Mestre
                                     </p>
                                     {[
@@ -315,13 +373,19 @@ export function UserListPage() {
                                     ].map((opt) => (
                                         <label
                                             key={opt.value}
-                                            className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                         >
                                             <Checkbox
-                                                checked={masterFilters.includes(opt.value)}
-                                                onCheckedChange={() => toggleMaster(opt.value)}
+                                                checked={masterFilters.includes(
+                                                    opt.value,
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleMaster(opt.value)
+                                                }
                                             />
-                                            <span className="text-sm">{opt.label}</span>
+                                            <span className="text-sm">
+                                                {opt.label}
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
@@ -332,7 +396,7 @@ export function UserListPage() {
                             <button
                                 type="button"
                                 onClick={clearFilters}
-                                className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-3 w-3" />
                                 Limpar filtros
@@ -360,29 +424,50 @@ export function UserListPage() {
                             {(u) => (
                                 <TableRow
                                     key={u.id}
-                                    className={showActions ? 'cursor-pointer' : undefined}
+                                    className={
+                                        showActions
+                                            ? 'cursor-pointer'
+                                            : undefined
+                                    }
                                     onClick={
                                         showActions
-                                            ? () => navigate(`/clinica/usuarios/${u.id}/editar`)
+                                            ? () =>
+                                                  navigate(
+                                                      `/clinica/usuarios/${u.id}/editar`,
+                                                  )
                                             : undefined
                                     }
                                 >
                                     <TableCell>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-9 w-9">
-                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                                                {u.photoUrl && (
+                                                    <AvatarImage
+                                                        src={u.photoUrl}
+                                                        alt=""
+                                                        className="object-cover"
+                                                    />
+                                                )}
+                                                <AvatarFallback className="bg-primary/10 text-xs text-primary">
                                                     {firstLetter(u.name)}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-foreground font-medium">{u.name}</span>
+                                            <span className="font-medium text-foreground">
+                                                {u.name}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="text-muted-foreground text-sm">{u.email}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            {u.email}
+                                        </span>
                                     </TableCell>
                                     <TableCell>
                                         <StatusBadge
-                                            variant={ROLE_BADGE_VARIANT[u.role] ?? 'neutral'}
+                                            variant={
+                                                ROLE_BADGE_VARIANT[u.role] ??
+                                                'neutral'
+                                            }
                                             className="shrink-0 whitespace-nowrap"
                                         >
                                             {ROLE_LABELS[u.role] ?? u.role}
@@ -390,7 +475,11 @@ export function UserListPage() {
                                     </TableCell>
                                     <TableCell>
                                         <StatusBadge
-                                            variant={u.mestre === 1 ? 'success' : 'danger'}
+                                            variant={
+                                                u.mestre === 1
+                                                    ? 'success'
+                                                    : 'danger'
+                                            }
                                             className="shrink-0 whitespace-nowrap"
                                         >
                                             {u.mestre === 1 ? 'Sim' : 'Não'}
@@ -398,38 +487,56 @@ export function UserListPage() {
                                     </TableCell>
                                     <TableCell>
                                         <StatusBadge
-                                            variant={u.status ? 'success' : 'danger'}
+                                            variant={
+                                                u.status ? 'success' : 'danger'
+                                            }
                                             className="shrink-0 whitespace-nowrap"
                                         >
                                             {u.status ? 'Ativo' : 'Inativo'}
                                         </StatusBadge>
                                     </TableCell>
                                     {showActions && (
-                                        <TableCell onClick={(e) => e.stopPropagation()}>
+                                        <TableCell
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8"
+                                                    >
                                                         <MoreVertical className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-44">
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    className="w-44"
+                                                >
                                                     <DropdownMenuItem
                                                         className="cursor-pointer"
                                                         onClick={() =>
-                                                            navigate(`/clinica/usuarios/${u.id}/editar`)
+                                                            navigate(
+                                                                `/clinica/usuarios/${u.id}/editar`,
+                                                            )
                                                         }
                                                     >
                                                         Editar usuário
                                                     </DropdownMenuItem>
-                                                    {canDeleteUsers && u.mestre !== 1 && (
-                                                        <DropdownMenuItem
-                                                            className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                                                            onClick={() => setTargetDelete(u)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                            Excluir
-                                                        </DropdownMenuItem>
-                                                    )}
+                                                    {canDeleteUsers &&
+                                                        u.mestre !== 1 && (
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                                                                onClick={() =>
+                                                                    setTargetDelete(
+                                                                        u,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                                Excluir
+                                                            </DropdownMenuItem>
+                                                        )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -450,7 +557,8 @@ export function UserListPage() {
                         <AlertDialogTitle>Remover usuário</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja remover{' '}
-                            <strong>{targetDelete?.name}</strong>? Esta ação não pode ser desfeita.
+                            <strong>{targetDelete?.name}</strong>? Esta ação não
+                            pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

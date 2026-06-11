@@ -8,18 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('features', function (Blueprint $table) {
+        Schema::create('admin_plans', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique();
             $table->string('name');
-            $table->decimal('value_isolated', 10, 2)->nullable();
-            $table->string('type');
+            $table->string('type_charge');
+            $table->decimal('value_month', 10, 2);
+            $table->decimal('value_year', 10, 2);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('features');
+        Schema::dropIfExists('admin_plans');
     }
 };

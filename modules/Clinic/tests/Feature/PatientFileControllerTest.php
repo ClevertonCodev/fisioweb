@@ -18,6 +18,7 @@ class PatientFileControllerTest extends TestCase
     use RefreshDatabase;
 
     private ClinicUser $clinicUser;
+
     private Patient $patient;
 
     protected function setUp(): void
@@ -128,7 +129,7 @@ class PatientFileControllerTest extends TestCase
             ->assertJsonPath('data.cdn_url', $cdnUrl)
             ->assertJsonPath('data.original_name', 'meu-arquivo.pdf');
 
-        $this->assertDatabaseHas('patient_files', [
+        $this->assertDatabaseHas('clinic_patient_files', [
             'patient_id' => $this->patient->id,
             'clinic_id'  => $this->clinicUser->clinic_id,
             'cdn_url'    => $cdnUrl,
@@ -183,7 +184,7 @@ class PatientFileControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Arquivo removido com sucesso.');
 
-        $this->assertSoftDeleted('patient_files', ['id' => $file->id]);
+        $this->assertSoftDeleted('clinic_patient_files', ['id' => $file->id]);
     }
 
     public function test_cannot_destroy_file_of_another_clinic(): void

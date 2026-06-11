@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('treatment_plans', function (Blueprint $table) {
+        Schema::create('clinic_treatment_plans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_id')->constrained('clinics')->cascadeOnDelete();
             $table->foreignId('patient_id')->nullable()->constrained('patients')->nullOnDelete();
             $table->foreignId('clinic_user_id')->nullable()->constrained('clinic_users')->nullOnDelete();
             $table->string('title');
             $table->text('message')->nullable();
-            $table->foreignId('physio_area_id')->nullable()->constrained('physio_areas')->nullOnDelete();
-            $table->foreignId('physio_subarea_id')->nullable()->constrained('physio_subareas')->nullOnDelete();
+            $table->foreignId('physio_area_id')->nullable()->constrained('admin_physio_areas')->nullOnDelete();
+            $table->foreignId('physio_subarea_id')->nullable()->constrained('admin_physio_subareas')->nullOnDelete();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->unsignedSmallInteger('duration_minutes')->nullable();
@@ -31,6 +31,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('treatment_plans');
+        Schema::dropIfExists('clinic_treatment_plans');
     }
 };

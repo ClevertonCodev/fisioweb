@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuestionnaireSection extends Model
 {
+    protected $table = 'clinic_questionnaire_sections';
+
     protected $fillable = [
         'questionnaire_template_id',
         'title',

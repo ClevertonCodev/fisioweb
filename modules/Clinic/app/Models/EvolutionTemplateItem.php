@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EvolutionTemplateItem extends Model
 {
+    protected $table = 'clinic_evolution_template_items';
+
     protected $fillable = [
         'evolution_template_section_id',
         'label',

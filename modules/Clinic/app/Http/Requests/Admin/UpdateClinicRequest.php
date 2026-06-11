@@ -48,7 +48,7 @@ class UpdateClinicRequest extends FormRequest
             'city'          => ['nullable', 'string', 'max:100'],
             'state'         => ['nullable', 'string', 'size:2'],
             'phone'         => ['nullable', 'string', 'max:30'],
-            'plan_id'       => ['nullable', 'integer', 'exists:plans,id'],
+            'plan_id'       => ['nullable', 'integer', 'exists:admin_plans,id'],
         ];
     }
 }

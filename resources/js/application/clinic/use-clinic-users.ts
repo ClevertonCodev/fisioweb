@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { ClinicUserUpdateDto, ClinicUserWriteDto } from '@/application/clinic/ports';
+import type {
+    ClinicUserUpdateDto,
+    ClinicUserWriteDto,
+} from '@/application/clinic/ports';
 import { apiClinicUsersRepository } from '@/infrastructure/repositories/api-clinic-users';
 
 const QUERY_KEY = ['clinic-users'] as const;
@@ -41,13 +44,16 @@ export async function findClinicUserById(id: string) {
 export function useCreateClinicUser() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: ClinicUserWriteDto) => apiClinicUsersRepository.create(dto),
+        mutationFn: (dto: ClinicUserWriteDto) =>
+            apiClinicUsersRepository.create(dto),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Usuário criado com sucesso.');
         },
         onError: (error: { response?: { data?: { message?: string } } }) => {
-            toast.error(error?.response?.data?.message ?? 'Erro ao criar usuário.');
+            toast.error(
+                error?.response?.data?.message ?? 'Erro ao criar usuário.',
+            );
         },
     });
 }
@@ -55,13 +61,33 @@ export function useCreateClinicUser() {
 export function useUpdateClinicUser(id: string) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: ClinicUserUpdateDto) => apiClinicUsersRepository.update(id, dto),
+        mutationFn: (dto: ClinicUserUpdateDto) =>
+            apiClinicUsersRepository.update(id, dto),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Usuário atualizado com sucesso.');
         },
         onError: (error: { response?: { data?: { message?: string } } }) => {
-            toast.error(error?.response?.data?.message ?? 'Erro ao atualizar usuário.');
+            toast.error(
+                error?.response?.data?.message ?? 'Erro ao atualizar usuário.',
+            );
+        },
+    });
+}
+
+export function useUploadClinicUserPhoto() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, file }: { id: string; file: File }) =>
+            apiClinicUsersRepository.uploadPhoto(id, file),
+        onSuccess: (user) => {
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            queryClient.setQueryData([...QUERY_KEY, user.id], user);
+        },
+        onError: (error: { response?: { data?: { message?: string } } }) => {
+            toast.error(
+                error?.response?.data?.message ?? 'Erro ao enviar a foto.',
+            );
         },
     });
 }
@@ -75,7 +101,9 @@ export function useDeleteClinicUser() {
             toast.success('Usuário removido com sucesso.');
         },
         onError: (error: { response?: { data?: { message?: string } } }) => {
-            toast.error(error?.response?.data?.message ?? 'Erro ao remover usuário.');
+            toast.error(
+                error?.response?.data?.message ?? 'Erro ao remover usuário.',
+            );
         },
     });
 }

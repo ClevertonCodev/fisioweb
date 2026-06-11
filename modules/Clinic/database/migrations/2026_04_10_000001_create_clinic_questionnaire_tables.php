@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // Templates de questionário criados pelo fisioterapeuta
-        Schema::create('questionnaire_templates', function (Blueprint $table) {
+        Schema::create('clinic_questionnaire_templates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_id')->constrained('clinics')->cascadeOnDelete();
             $table->string('title');
@@ -22,18 +22,18 @@ return new class extends Migration
         });
 
         // Seções do template (ex.: "Exame Físico", "Anamnese")
-        Schema::create('questionnaire_sections', function (Blueprint $table) {
+        Schema::create('clinic_questionnaire_sections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('questionnaire_template_id')->constrained('questionnaire_templates')->cascadeOnDelete();
+            $table->foreignId('questionnaire_template_id')->constrained('clinic_questionnaire_templates')->cascadeOnDelete();
             $table->string('title');
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
         });
 
         // Perguntas dentro de cada seção
-        Schema::create('questionnaire_questions', function (Blueprint $table) {
+        Schema::create('clinic_questionnaire_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('questionnaire_section_id')->constrained('questionnaire_sections')->cascadeOnDelete();
+            $table->foreignId('questionnaire_section_id')->constrained('clinic_questionnaire_sections')->cascadeOnDelete();
             $table->string('label');
             $table->enum('type', ['multiple_choice', 'checkbox', 'scale', 'text']);
             $table->json('options')->nullable();   // para multiple_choice e checkbox
@@ -45,12 +45,12 @@ return new class extends Migration
         });
 
         // Envio do questionário ao paciente
-        Schema::create('patient_questionnaires', function (Blueprint $table) {
+        Schema::create('clinic_patient_questionnaires', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_id')->constrained('clinics')->cascadeOnDelete();
             $table->foreignId('patient_id')->constrained('patients')->cascadeOnDelete();
             $table->foreignId('clinic_user_id')->nullable()->constrained('clinic_users')->nullOnDelete();
-            $table->foreignId('questionnaire_template_id')->constrained('questionnaire_templates')->cascadeOnDelete();
+            $table->foreignId('questionnaire_template_id')->constrained('clinic_questionnaire_templates')->cascadeOnDelete();
             $table->enum('modality', ['presencial', 'remoto']);
             $table->enum('status', ['pending', 'answered', 'expired'])->default('pending');
             $table->timestamp('answered_at')->nullable();
@@ -62,10 +62,10 @@ return new class extends Migration
         });
 
         // Respostas do paciente por pergunta
-        Schema::create('patient_questionnaire_answers', function (Blueprint $table) {
+        Schema::create('clinic_patient_questionnaire_answers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_questionnaire_id')->constrained('patient_questionnaires')->cascadeOnDelete();
-            $table->foreignId('questionnaire_question_id')->constrained('questionnaire_questions')->cascadeOnDelete();
+            $table->foreignId('patient_questionnaire_id')->constrained('clinic_patient_questionnaires')->cascadeOnDelete();
+            $table->foreignId('questionnaire_question_id')->constrained('clinic_questionnaire_questions')->cascadeOnDelete();
             $table->json('answer'); // string, number, array de opções — flexível por tipo
             $table->timestamps();
 
@@ -75,10 +75,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('patient_questionnaire_answers');
-        Schema::dropIfExists('patient_questionnaires');
-        Schema::dropIfExists('questionnaire_questions');
-        Schema::dropIfExists('questionnaire_sections');
-        Schema::dropIfExists('questionnaire_templates');
+        Schema::dropIfExists('clinic_patient_questionnaire_answers');
+        Schema::dropIfExists('clinic_patient_questionnaires');
+        Schema::dropIfExists('clinic_questionnaire_questions');
+        Schema::dropIfExists('clinic_questionnaire_sections');
+        Schema::dropIfExists('clinic_questionnaire_templates');
     }
 };

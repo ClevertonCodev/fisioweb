@@ -13,6 +13,8 @@ class Assessment extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'clinic_assessments';
+
     public const STATUS_DRAFT = 'draft';
 
     public const STATUS_SIGNED = 'signed';

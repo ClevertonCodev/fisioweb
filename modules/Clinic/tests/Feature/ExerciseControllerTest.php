@@ -97,7 +97,7 @@ class ExerciseControllerTest extends TestCase
         $response->assertOk()
             ->assertJson(['data' => ['exercise_id' => $exercise->id, 'is_favorite' => true]]);
 
-        $this->assertDatabaseHas('exercise_favorites', [
+        $this->assertDatabaseHas('clinic_exercise_favorites', [
             'clinic_user_id' => $this->clinicUser->id,
             'exercise_id'    => $exercise->id,
         ]);
@@ -118,7 +118,7 @@ class ExerciseControllerTest extends TestCase
         $response->assertOk()
             ->assertJson(['data' => ['exercise_id' => $exercise->id, 'is_favorite' => false]]);
 
-        $this->assertDatabaseMissing('exercise_favorites', [
+        $this->assertDatabaseMissing('clinic_exercise_favorites', [
             'clinic_user_id' => $this->clinicUser->id,
             'exercise_id'    => $exercise->id,
         ]);
@@ -146,7 +146,7 @@ class ExerciseControllerTest extends TestCase
         $this->actingAs($this->clinicUser, 'clinic')
             ->postJson("/api/clinic/exercises/{$exercise->id}/favorite");
 
-        $this->assertDatabaseHas('exercise_favorites', [
+        $this->assertDatabaseHas('clinic_exercise_favorites', [
             'clinic_user_id' => $otherUser->id,
             'exercise_id'    => $exercise->id,
         ]);

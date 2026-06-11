@@ -13,8 +13,8 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->foreignId('physio_area_id')->nullable()->constrained('physio_areas')->nullOnDelete();
-            $table->foreignId('physio_subarea_id')->nullable()->constrained('physio_subareas')->nullOnDelete();
+            $table->foreignId('physio_area_id')->nullable()->constrained('admin_physio_areas')->nullOnDelete();
+            $table->foreignId('physio_subarea_id')->nullable()->constrained('admin_physio_subareas')->nullOnDelete();
             $table->unsignedSmallInteger('duration_minutes')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

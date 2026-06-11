@@ -17,6 +17,7 @@ interface ApiPatientDto {
     id: number;
     name: string;
     status?: string;
+    diagnosis?: string | null;
     photo_url?: string;
     clinic_user?: ApiClinicUserDto;
     cpf?: string;
@@ -59,7 +60,7 @@ function toEntity(raw: ApiPatientDto): Patient {
         professional: professionalName,
         professionalInitial: professionalName.charAt(0).toUpperCase(),
         status: (raw.status as PatientStatus) ?? 'em_tratamento',
-        diagnosis: '',
+        diagnosis: raw.diagnosis ?? '',
         photoUrl: raw.photo_url ?? undefined,
     };
 }
@@ -106,6 +107,7 @@ function toApiUpdatePayload(dto: PatientUpdateDto): Record<string, unknown> {
         gender: dto.gender,
         education: dto.education,
         status: dto.status,
+        diagnosis: dto.diagnosis,
         address: dto.address,
         neighborhood: dto.neighborhood,
         city: dto.city,
@@ -135,6 +137,7 @@ function toApiPayload(dto: PatientWriteDto): Record<string, unknown> {
         gender: dto.gender,
         education: dto.education,
         status: dto.status,
+        diagnosis: dto.diagnosis,
         address: dto.address,
         neighborhood: dto.neighborhood,
         city: dto.city,

@@ -8,6 +8,8 @@ use Modules\Admin\Models\Exercise;
 
 class TreatmentPlanExercise extends Model
 {
+    protected $table = 'clinic_treatment_plan_exercises';
+
     public const PERIOD_MORNING = 'morning';
 
     public const PERIOD_AFTERNOON = 'afternoon';

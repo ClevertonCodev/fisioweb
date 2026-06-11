@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('exercise_media', function (Blueprint $table) {
+        Schema::create('admin_exercise_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exercise_id')->constrained('exercises')->cascadeOnDelete();
+            $table->foreignId('exercise_id')->constrained('admin_exercises')->cascadeOnDelete();
             $table->string('type', 50);
             $table->string('file_path');
             $table->string('cdn_url')->nullable();
@@ -26,6 +26,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('exercise_media');
+        Schema::dropIfExists('admin_exercise_media');
     }
 };

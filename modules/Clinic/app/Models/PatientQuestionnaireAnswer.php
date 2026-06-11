@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PatientQuestionnaireAnswer extends Model
 {
+    protected $table = 'clinic_patient_questionnaire_answers';
+
     protected $fillable = [
         'patient_questionnaire_id',
         'questionnaire_question_id',

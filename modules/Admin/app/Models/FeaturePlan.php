@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FeaturePlan extends Model
 {
-    protected $table = 'feature_plans';
+    protected $table = 'admin_feature_plans';
 
     protected $fillable = [
         'plan_id',

@@ -9,6 +9,8 @@ use Modules\Admin\Models\AdminAssessmentFieldOption;
 
 class AssessmentAnswerOption extends Model
 {
+    protected $table = 'clinic_assessment_answer_options';
+
     protected $fillable = [
         'assessment_id',
         'admin_assessment_field_id',

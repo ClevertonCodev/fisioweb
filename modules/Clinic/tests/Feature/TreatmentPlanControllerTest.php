@@ -226,12 +226,12 @@ class TreatmentPlanControllerTest extends TestCase
         $newId = $response->json('data.id');
         $this->assertNotEquals($plan->id, $newId);
 
-        $this->assertDatabaseHas('treatment_plan_groups', [
+        $this->assertDatabaseHas('clinic_treatment_plan_groups', [
             'treatment_plan_id' => $newId,
             'name'              => 'Principal',
         ]);
 
-        $this->assertDatabaseHas('treatment_plan_exercises', [
+        $this->assertDatabaseHas('clinic_treatment_plan_exercises', [
             'treatment_plan_id' => $newId,
             'exercise_id'       => $exercise->id,
             'sets_min'          => 3,
@@ -295,7 +295,7 @@ class TreatmentPlanControllerTest extends TestCase
 
         $newId = $response->json('data.id');
         $this->assertNotEquals($plan->id, $newId);
-        $this->assertDatabaseHas('treatment_plans', [
+        $this->assertDatabaseHas('clinic_treatment_plans', [
             'id'      => $newId,
             'message' => 'Realize com atenção.',
         ]);
@@ -341,12 +341,12 @@ class TreatmentPlanControllerTest extends TestCase
 
         $newId = $response->json('data.id');
 
-        $this->assertDatabaseHas('treatment_plan_groups', [
+        $this->assertDatabaseHas('clinic_treatment_plan_groups', [
             'treatment_plan_id' => $newId,
             'name'              => 'Aquecimento',
         ]);
 
-        $this->assertDatabaseHas('treatment_plan_exercises', [
+        $this->assertDatabaseHas('clinic_treatment_plan_exercises', [
             'treatment_plan_id' => $newId,
             'exercise_id'       => $exercise->id,
             'sets_min'          => 2,

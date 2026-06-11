@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('evolution_templates', function (Blueprint $table) {
+        Schema::create('clinic_evolution_templates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_id')->nullable()->constrained('clinics')->nullOnDelete();
             $table->string('name');
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('evolution_templates');
+        Schema::dropIfExists('clinic_evolution_templates');
     }
 };

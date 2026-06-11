@@ -28,7 +28,7 @@ class SendPatientQuestionnaireRequest extends FormRequest
                         ->where('id', $value)
                         ->exists();
 
-                    if (! $exists) {
+                    if (!$exists) {
                         $fail('Template de questionário não encontrado.');
                     }
                 },

@@ -21,7 +21,7 @@ class Video extends Model
 
     public const STATUS_FAILED = 'failed';
 
-    protected $table = 'videos';
+    protected $table = 'media_videos';
 
     protected $fillable = [
         'filename',

@@ -15,9 +15,9 @@ class StoreEvolutionRequest extends FormRequest
     {
         return [
             'title'                         => ['required', 'string', 'max:255'],
-            'evolution_template_id'         => ['nullable', 'integer', 'exists:evolution_templates,id'],
+            'evolution_template_id'         => ['nullable', 'integer', 'exists:clinic_evolution_templates,id'],
             'checked_item_ids'              => ['nullable', 'array'],
-            'checked_item_ids.*'            => ['integer', 'exists:evolution_template_items,id'],
+            'checked_item_ids.*'            => ['integer', 'exists:clinic_evolution_template_items,id'],
             'free_text_values'              => ['nullable', 'array'],
             'free_text_values.*.item_id'    => ['required_with:free_text_values', 'integer'],
             'free_text_values.*.value'      => ['required_with:free_text_values', 'string', 'max:1000'],

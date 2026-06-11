@@ -14,6 +14,8 @@ class PatientFile extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $table = 'clinic_patient_files';
+
     protected static function newFactory(): PatientFileFactory
     {
         return PatientFileFactory::new();

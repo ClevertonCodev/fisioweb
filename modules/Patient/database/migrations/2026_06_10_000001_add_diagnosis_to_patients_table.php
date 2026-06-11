@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('patient_files', function (Blueprint $table) {
-            $table->string('name')->nullable()->after('original_name');
+        Schema::table('patients', function (Blueprint $table) {
+            $table->string('diagnosis', 500)->nullable()->after('status');
         });
     }
 
     public function down(): void
     {
-        Schema::table('patient_files', function (Blueprint $table) {
-            $table->dropColumn('name');
+        Schema::table('patients', function (Blueprint $table) {
+            $table->dropColumn('diagnosis');
         });
     }
 };

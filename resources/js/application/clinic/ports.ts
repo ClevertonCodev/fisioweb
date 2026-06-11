@@ -32,6 +32,7 @@ export interface PatientWriteDto {
     gender?: string;
     education?: string;
     status?: string;
+    diagnosis?: string;
     address?: string;
     neighborhood?: string;
     city?: string;
@@ -59,6 +60,7 @@ export interface PatientUpdateDto {
     gender?: string;
     education?: string;
     status?: string;
+    diagnosis?: string;
     address?: string;
     neighborhood?: string;
     city?: string;
@@ -92,7 +94,9 @@ export interface PatientListResult {
 export interface PatientsRepository {
     list(params?: PatientListParams): Promise<PatientListResult>;
     getById(id: string): Promise<Patient | null>;
-    getDetailById(id: string): Promise<import('@/domain/clinic/patient').PatientDetail | null>;
+    getDetailById(
+        id: string,
+    ): Promise<import('@/domain/clinic/patient').PatientDetail | null>;
     create(dto: PatientWriteDto): Promise<Patient>;
     update(id: string, dto: PatientUpdateDto): Promise<Patient>;
     uploadPhoto(id: string, file: File): Promise<Patient>;
@@ -257,9 +261,15 @@ export interface EvolutionsRepository {
     listTemplates(): Promise<EvolutionTemplate[]>;
     findTemplate(id: string): Promise<EvolutionTemplate>;
     createTemplate(dto: EvolutionTemplateWriteDto): Promise<EvolutionTemplate>;
-    updateTemplate(id: string, dto: EvolutionTemplateWriteDto): Promise<EvolutionTemplate>;
+    updateTemplate(
+        id: string,
+        dto: EvolutionTemplateWriteDto,
+    ): Promise<EvolutionTemplate>;
     destroyTemplate(id: string): Promise<void>;
-    create(patientId: string, dto: EvolutionWriteDto): Promise<PatientEvolution>;
+    create(
+        patientId: string,
+        dto: EvolutionWriteDto,
+    ): Promise<PatientEvolution>;
     update(id: string, dto: EvolutionWriteDto): Promise<PatientEvolution>;
     sign(id: string): Promise<PatientEvolution>;
     destroy(id: string): Promise<void>;
@@ -279,7 +289,11 @@ export interface PatientFileStoreOptions {
 
 export interface PatientFilesRepository {
     listByPatient(patientId: string): Promise<PatientFile[]>;
-    store(patientId: string, file: File, options?: PatientFileStoreOptions): Promise<PatientFile>;
+    store(
+        patientId: string,
+        file: File,
+        options?: PatientFileStoreOptions,
+    ): Promise<PatientFile>;
     destroy(patientId: string, fileId: string): Promise<void>;
 }
 
@@ -293,8 +307,14 @@ export interface PatientQuestionnaireWriteDto {
 
 export interface PatientQuestionnairesRepository {
     listByPatient(patientId: string): Promise<PatientQuestionnaire[]>;
-    findById(patientId: string, questionnaireId: string): Promise<import('@/domain/clinic').PatientQuestionnaireDetail>;
-    store(patientId: string, dto: PatientQuestionnaireWriteDto): Promise<PatientQuestionnaire>;
+    findById(
+        patientId: string,
+        questionnaireId: string,
+    ): Promise<import('@/domain/clinic').PatientQuestionnaireDetail>;
+    store(
+        patientId: string,
+        dto: PatientQuestionnaireWriteDto,
+    ): Promise<PatientQuestionnaire>;
     destroy(patientId: string, questionnaireId: string): Promise<void>;
 }
 
@@ -320,9 +340,16 @@ export interface QuestionnaireTemplateWriteDto {
 
 export interface QuestionnaireTemplatesRepository {
     list(): Promise<import('@/domain/clinic').QuestionnaireTemplate[]>;
-    findById(id: string): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
-    create(dto: QuestionnaireTemplateWriteDto): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
-    update(id: string, dto: QuestionnaireTemplateWriteDto): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
+    findById(
+        id: string,
+    ): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
+    create(
+        dto: QuestionnaireTemplateWriteDto,
+    ): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
+    update(
+        id: string,
+        dto: QuestionnaireTemplateWriteDto,
+    ): Promise<import('@/domain/clinic').QuestionnaireTemplate>;
     destroy(id: string): Promise<void>;
 }
 
@@ -347,8 +374,19 @@ export interface ClinicUserUpdateDto {
 export interface ClinicUsersRepository {
     list(): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary[]>;
     listProfessionals(): Promise<{ id: string; name: string }[]>;
-    getById(id: string): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
-    create(dto: ClinicUserWriteDto): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
-    update(id: string, dto: ClinicUserUpdateDto): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
+    getById(
+        id: string,
+    ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
+    create(
+        dto: ClinicUserWriteDto,
+    ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
+    update(
+        id: string,
+        dto: ClinicUserUpdateDto,
+    ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
+    uploadPhoto(
+        id: string,
+        file: File,
+    ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
     destroy(id: string): Promise<void>;
 }

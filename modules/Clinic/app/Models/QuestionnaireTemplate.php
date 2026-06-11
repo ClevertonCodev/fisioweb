@@ -11,6 +11,8 @@ use Modules\Clinic\Database\Factories\QuestionnaireTemplateFactory;
 
 class QuestionnaireTemplate extends Model
 {
+    protected $table = 'clinic_questionnaire_templates';
+
     use HasFactory, SoftDeletes;
 
     protected static function newFactory(): QuestionnaireTemplateFactory

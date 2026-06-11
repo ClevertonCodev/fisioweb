@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BodyRegion extends Model
 {
+    protected $table = 'admin_body_regions';
+
     protected $fillable = [
         'name',
         'parent_id',

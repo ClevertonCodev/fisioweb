@@ -8,4 +8,5 @@ export interface ClinicUserSummary {
     status: number;
     email: string;
     document?: string;
+    photoUrl?: string;
 }

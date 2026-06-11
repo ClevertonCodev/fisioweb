@@ -3,17 +3,20 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Admin\Database\Seeders\AdminProgramSeeder;
+use Modules\Admin\Database\Seeders\AssessmentTemplatesSeeder;
 use Modules\Admin\Database\Seeders\BodyRegionSeeder;
+use Modules\Admin\Database\Seeders\ExerciseSeeder;
 use Modules\Admin\Database\Seeders\PhysioAreaSeeder;
 use Modules\Admin\Database\Seeders\PhysioSubareaSeeder;
 use Modules\Admin\Models\User;
+use Modules\Clinic\Database\Seeders\ClinicDatabaseSeeder;
+use Modules\Clinic\Database\Seeders\ClinicUserSeeder;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Patient\Models\Patient;
-use Modules\Admin\Database\Seeders\AssessmentTemplatesSeeder;
-use Modules\Admin\Database\Seeders\ExerciseSeeder;
+use Modules\Media\Database\Seeders\MediaDatabaseSeeder;
 use Modules\Patient\Database\Seeders\PatientDatabaseSeeder;
-use Modules\Clinic\Database\Seeders\ClinicDatabaseSeeder;
+use Modules\Patient\Models\Patient;
 
 class DatabaseSeeder extends Seeder
 {
@@ -64,7 +67,10 @@ class DatabaseSeeder extends Seeder
             PhysioSubareaSeeder::class,
             BodyRegionSeeder::class,
             AssessmentTemplatesSeeder::class,
+            MediaDatabaseSeeder::class, // vídeos antes dos exercícios (ids 1 e 2)
             ExerciseSeeder::class,
+            AdminProgramSeeder::class,
+            ClinicUserSeeder::class, // fisios antes dos pacientes ("criado por")
             PatientDatabaseSeeder::class,
             ClinicDatabaseSeeder::class,
         ]);

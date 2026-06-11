@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PhysioSubarea extends Model
 {
+    protected $table = 'admin_physio_subareas';
+
     protected $fillable = [
         'physio_area_id',
         'name',

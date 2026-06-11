@@ -8,11 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('treatment_plan_exercises', function (Blueprint $table) {
+        Schema::create('clinic_treatment_plan_exercises', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('treatment_plan_id')->constrained('treatment_plans')->cascadeOnDelete();
-            $table->foreignId('treatment_plan_group_id')->nullable()->constrained('treatment_plan_groups')->nullOnDelete();
-            $table->foreignId('exercise_id')->constrained('exercises')->cascadeOnDelete();
+            $table->foreignId('treatment_plan_id')->constrained('clinic_treatment_plans')->cascadeOnDelete();
+            $table->foreignId('treatment_plan_group_id')->nullable()->constrained('clinic_treatment_plan_groups')->nullOnDelete();
+            $table->foreignId('exercise_id')->constrained('admin_exercises')->cascadeOnDelete();
             $table->json('days_of_week')->nullable();
             $table->string('period', 20)->nullable();
             $table->unsignedTinyInteger('sets_min')->nullable();
@@ -33,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('treatment_plan_exercises');
+        Schema::dropIfExists('clinic_treatment_plan_exercises');
     }
 };

@@ -8,18 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('plans', function (Blueprint $table) {
+        Schema::create('admin_physio_areas', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('type_charge');
-            $table->decimal('value_month', 10, 2);
-            $table->decimal('value_year', 10, 2);
+            $table->string('name')->unique();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('plans');
+        Schema::dropIfExists('admin_physio_areas');
     }
 };

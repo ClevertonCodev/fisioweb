@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('assessment_answers', function (Blueprint $table) {
+        Schema::create('clinic_assessment_answers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('assessment_id')->constrained('assessments')->cascadeOnDelete();
+            $table->foreignId('assessment_id')->constrained('clinic_assessments')->cascadeOnDelete();
             $table->foreignId('admin_assessment_field_id')->constrained('admin_assessment_fields')->cascadeOnDelete();
             $table->text('value')->nullable();
             $table->timestamps();
@@ -21,6 +21,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('assessment_answers');
+        Schema::dropIfExists('clinic_assessment_answers');
     }
 };

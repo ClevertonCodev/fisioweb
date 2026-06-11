@@ -9,11 +9,11 @@ class EvolutionTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        if (DB::table('evolution_templates')->where('is_system', true)->exists()) {
+        if (DB::table('clinic_evolution_templates')->where('is_system', true)->exists()) {
             return;
         }
 
-        $templateId = DB::table('evolution_templates')->insertGetId([
+        $templateId = DB::table('clinic_evolution_templates')->insertGetId([
             'clinic_id'   => null,
             'name'        => 'Template Geral de Fisioterapia',
             'description' => 'Template padrão do sistema com os procedimentos mais comuns na prática clínica de fisioterapia.',
@@ -87,7 +87,7 @@ class EvolutionTemplateSeeder extends Seeder
 
     private function section(int $templateId, string $title, int $sortOrder): int
     {
-        return DB::table('evolution_template_sections')->insertGetId([
+        return DB::table('clinic_evolution_template_sections')->insertGetId([
             'evolution_template_id' => $templateId,
             'title'                 => $title,
             'sort_order'            => $sortOrder,
@@ -104,7 +104,7 @@ class EvolutionTemplateSeeder extends Seeder
         bool $hasFreeText = false,
         ?string $placeholder = null,
     ): void {
-        DB::table('evolution_template_items')->insert([
+        DB::table('clinic_evolution_template_items')->insert([
             'evolution_template_section_id' => $sectionId,
             'label'                         => $label,
             'print_text'                    => $printText,

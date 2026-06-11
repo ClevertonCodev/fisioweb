@@ -17,9 +17,9 @@ class UpdateExerciseRequest extends FormRequest
     {
         return [
             'name'               => ['sometimes', 'required', 'string', 'max:255'],
-            'physio_area_id'     => ['sometimes', 'required', 'exists:physio_areas,id'],
-            'physio_subarea_id'  => ['nullable', 'exists:physio_subareas,id'],
-            'body_region_id'     => ['sometimes', 'required', 'exists:body_regions,id'],
+            'physio_area_id'     => ['sometimes', 'required', 'exists:admin_physio_areas,id'],
+            'physio_subarea_id'  => ['nullable', 'exists:admin_physio_subareas,id'],
+            'body_region_id'     => ['sometimes', 'required', 'exists:admin_body_regions,id'],
             'therapeutic_goal'   => ['nullable', 'string', 'max:255'],
             'description'        => ['nullable', 'string'],
             'audio_description'  => ['nullable', 'string'],
@@ -36,7 +36,7 @@ class UpdateExerciseRequest extends FormRequest
             'repetitions'        => ['nullable', 'integer', 'min:1', 'max:1000'],
             'rest_time'          => ['nullable', 'integer', 'min:0', 'max:600'],
             'clinical_notes'     => ['nullable', 'string'],
-            'video_id'           => ['nullable', 'integer', 'exists:videos,id'],
+            'video_id'           => ['nullable', 'integer', 'exists:media_videos,id'],
             'is_active'          => ['nullable', 'boolean'],
         ];
     }

@@ -1,0 +1,35 @@
+# PostgreSQL standalone — use quando rodar o Laravel fora do Sail (php artisan serve).
+# Subir: docker compose -f compose_pgsql.yaml up -d
+# Parar:  docker compose -f compose_pgsql.yaml down
+#
+# Com este arquivo, ajuste no .env: DB_HOST=127.0.0.1
+# (DB_HOST=pgsql só funciona dentro da rede Docker do Sail)
+
+services:
+    pgsql:
+        image: postgres:18-alpine
+        container_name: fisioweb-pgsql
+        restart: unless-stopped
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            POSTGRES_DB: '${DB_DATABASE:-laravel}'
+            POSTGRES_USER: '${DB_USERNAME:-sail}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-password}'
+        volumes:
+            - fisioweb-pgsql-data:/var/lib/postgresql
+        healthcheck:
+            test:
+                - CMD
+                - pg_isready
+                - '-q'
+                - '-d'
+                - '${DB_DATABASE:-laravel}'
+                - '-U'
+                - '${DB_USERNAME:-sail}'
+            retries: 3
+            timeout: 5s
+
+volumes:
+    fisioweb-pgsql-data:
+        driver: local

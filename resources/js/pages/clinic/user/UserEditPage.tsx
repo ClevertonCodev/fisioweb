@@ -12,8 +12,13 @@ import {
 } from '@/application/clinic/clinic-user-form';
 import { can } from '@/application/clinic/permissions';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
-import { useClinicUser, useUpdateClinicUser } from '@/application/clinic/use-clinic-users';
+import {
+    useClinicUser,
+    useUpdateClinicUser,
+    useUploadClinicUserPhoto,
+} from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
@@ -73,8 +78,11 @@ function UserEditForm({
 }) {
     const navigate = useNavigate();
     const updateUser = useUpdateClinicUser(user.id);
+    const { mutateAsync: uploadPhoto, isPending: isUploading } =
+        useUploadClinicUserPhoto();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
 
     const defaultValues = useMemo(() => {
         const dk = inferClinicUserDocumentKind(user.document);
@@ -98,28 +106,53 @@ function UserEditForm({
 
     const documentKind = form.watch('documentKind');
 
-    function onSubmit(values: ClinicUserEditFormValues) {
+    async function onSubmit(values: ClinicUserEditFormValues) {
         const payload: ClinicUserUpdateDto = {
             name: values.name,
             email: values.email,
-            document: serializeClinicUserDocument(values.documentKind, values.document),
+            document: serializeClinicUserDocument(
+                values.documentKind,
+                values.document,
+            ),
         };
         if (canManageUsers) {
             payload.role = values.role;
             payload.status = Number(values.status ?? '1');
         }
         if (values.password.trim()) payload.password = values.password;
-        updateUser.mutate(payload, {
-            onSuccess: () => navigate(canManageUsers ? '/clinica/usuarios' : '/clinica'),
-        });
+
+        try {
+            await updateUser.mutateAsync(payload);
+
+            if (photoFile) {
+                await uploadPhoto({ id: user.id, file: photoFile });
+            }
+
+            navigate(canManageUsers ? '/clinica/usuarios' : '/clinica');
+        } catch {
+            // erros já tratados pelos hooks (toast)
+        }
     }
 
     return (
         <div className="mx-auto max-w-3xl space-y-6 p-6">
-            <h1 className="text-2xl font-bold">{canManageUsers ? 'Editar usuário' : 'Meu perfil'}</h1>
+            <h1 className="text-2xl font-bold">
+                {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
+            </h1>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-6"
+                >
+                    <PatientPhotoSection
+                        value={photoFile}
+                        onChange={setPhotoFile}
+                        currentPhotoUrl={user.photoUrl}
+                        cropTitle="Recortar foto do usuário"
+                        cropAspect={1}
+                    />
+
                     <FormField
                         control={form.control}
                         name="name"
@@ -168,11 +201,17 @@ function UserEditForm({
                         name="password"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className={cn(labelClass)}>Nova senha</FormLabel>
+                                <FormLabel className={cn(labelClass)}>
+                                    Nova senha
+                                </FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <Input
-                                            type={showPassword ? 'text' : 'password'}
+                                            type={
+                                                showPassword
+                                                    ? 'text'
+                                                    : 'password'
+                                            }
                                             {...field}
                                             autoComplete="new-password"
                                             className="pr-10"
@@ -180,9 +219,15 @@ function UserEditForm({
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-                                            aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                            aria-label={
+                                                showPassword
+                                                    ? 'Ocultar senha'
+                                                    : 'Mostrar senha'
+                                            }
                                         >
                                             {showPassword ? (
                                                 <EyeOff className="h-4 w-4" />
@@ -193,7 +238,8 @@ function UserEditForm({
                                     </div>
                                 </FormControl>
                                 <FormDescription className="text-xs">
-                                    Opcional. Deixe em branco para não alterar a senha atual.
+                                    Opcional. Deixe em branco para não alterar a
+                                    senha atual.
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>
@@ -205,11 +251,17 @@ function UserEditForm({
                         name="confirmPassword"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className={cn(labelClass)}>Confirmar nova senha</FormLabel>
+                                <FormLabel className={cn(labelClass)}>
+                                    Confirmar nova senha
+                                </FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <Input
-                                            type={showConfirm ? 'text' : 'password'}
+                                            type={
+                                                showConfirm
+                                                    ? 'text'
+                                                    : 'password'
+                                            }
                                             {...field}
                                             autoComplete="new-password"
                                             className="pr-10"
@@ -217,10 +269,14 @@ function UserEditForm({
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setShowConfirm(!showConfirm)}
-                                            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+                                            onClick={() =>
+                                                setShowConfirm(!showConfirm)
+                                            }
+                                            className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                                             aria-label={
-                                                showConfirm ? 'Ocultar confirmação' : 'Mostrar confirmação'
+                                                showConfirm
+                                                    ? 'Ocultar confirmação'
+                                                    : 'Mostrar confirmação'
                                             }
                                         >
                                             {showConfirm ? (
@@ -255,20 +311,30 @@ function UserEditForm({
                                         disabled={roleChangeDisabled}
                                     >
                                         <FormControl>
-                                            <SelectTrigger aria-disabled={roleChangeDisabled}>
+                                            <SelectTrigger
+                                                aria-disabled={
+                                                    roleChangeDisabled
+                                                }
+                                            >
                                                 <SelectValue placeholder="Selecione uma opção" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="admin">Administrador</SelectItem>
-                                            <SelectItem value="secretary">Secretário(a)</SelectItem>
-                                            <SelectItem value="physiotherapist">Fisioterapeuta</SelectItem>
+                                            <SelectItem value="admin">
+                                                Administrador
+                                            </SelectItem>
+                                            <SelectItem value="secretary">
+                                                Secretário(a)
+                                            </SelectItem>
+                                            <SelectItem value="physiotherapist">
+                                                Fisioterapeuta
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {roleChangeDisabled && (
                                         <FormDescription className="text-xs">
-                                            Este é o usuário mestre da clínica; a função permanece
-                                            administrador.
+                                            Este é o usuário mestre da clínica;
+                                            a função permanece administrador.
                                         </FormDescription>
                                     )}
                                     <FormMessage />
@@ -297,8 +363,12 @@ function UserEditForm({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="1">Ativo</SelectItem>
-                                            <SelectItem value="0">Inativo</SelectItem>
+                                            <SelectItem value="1">
+                                                Ativo
+                                            </SelectItem>
+                                            <SelectItem value="0">
+                                                Inativo
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -330,7 +400,9 @@ function UserEditForm({
                                     </FormControl>
                                     <SelectContent>
                                         <SelectItem value="cpf">CPF</SelectItem>
-                                        <SelectItem value="cnpj">CNPJ</SelectItem>
+                                        <SelectItem value="cnpj">
+                                            CNPJ
+                                        </SelectItem>
                                         <SelectItem value="crefito">
                                             CREFITO (registro profissional)
                                         </SelectItem>
@@ -368,7 +440,8 @@ function UserEditForm({
                                     </FormControl>
                                 )}
                                 <FormDescription className="text-xs">
-                                    {documentKind === 'cpf' && 'Informe um CPF válido (11 dígitos).'}
+                                    {documentKind === 'cpf' &&
+                                        'Informe um CPF válido (11 dígitos).'}
                                     {documentKind === 'cnpj' &&
                                         'Informe um CNPJ válido (14 dígitos).'}
                                     {documentKind === 'crefito' &&
@@ -383,12 +456,23 @@ function UserEditForm({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => navigate(canManageUsers ? '/clinica/usuarios' : '/clinica')}
+                            onClick={() =>
+                                navigate(
+                                    canManageUsers
+                                        ? '/clinica/usuarios'
+                                        : '/clinica',
+                                )
+                            }
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={updateUser.isPending}>
-                            {updateUser.isPending ? 'Salvando...' : 'Salvar alterações'}
+                        <Button
+                            type="submit"
+                            disabled={updateUser.isPending || isUploading}
+                        >
+                            {updateUser.isPending || isUploading
+                                ? 'Salvando...'
+                                : 'Salvar alterações'}
                         </Button>
                     </div>
                 </form>
@@ -422,8 +506,14 @@ export function UserEditPage() {
         return (
             <ClinicLayout>
                 <div className="mx-auto max-w-3xl space-y-4 p-6">
-                    <p className="text-destructive text-sm">Não foi possível carregar o usuário.</p>
-                    <Button type="button" variant="outline" onClick={() => navigate('/clinica/usuarios')}>
+                    <p className="text-sm text-destructive">
+                        Não foi possível carregar o usuário.
+                    </p>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate('/clinica/usuarios')}
+                    >
                         Voltar para lista
                     </Button>
                 </div>
@@ -436,8 +526,14 @@ export function UserEditPage() {
         return (
             <ClinicLayout>
                 <div className="mx-auto max-w-3xl space-y-4 p-6">
-                    <p className="text-destructive text-sm">Função do usuário inválida neste formulário.</p>
-                    <Button type="button" variant="outline" onClick={() => navigate('/clinica/usuarios')}>
+                    <p className="text-sm text-destructive">
+                        Função do usuário inválida neste formulário.
+                    </p>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate('/clinica/usuarios')}
+                    >
                         Voltar para lista
                     </Button>
                 </div>

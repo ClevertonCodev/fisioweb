@@ -8,9 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuestionnaireQuestion extends Model
 {
+    protected $table = 'clinic_questionnaire_questions';
+
     const TYPE_MULTIPLE_CHOICE = 'multiple_choice';
+
     const TYPE_CHECKBOX = 'checkbox';
+
     const TYPE_SCALE = 'scale';
+
     const TYPE_TEXT = 'text';
 
     protected $fillable = [

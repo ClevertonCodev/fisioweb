@@ -15,8 +15,11 @@ class PatientQuestionnaireControllerTest extends TestCase
     use RefreshDatabase;
 
     private ClinicUser $clinicUser;
+
     private Clinic $clinic;
+
     private Patient $patient;
+
     private QuestionnaireTemplate $template;
 
     protected function setUp(): void
@@ -122,7 +125,7 @@ class PatientQuestionnaireControllerTest extends TestCase
             ->assertJsonPath('data.modality', 'remoto')
             ->assertJsonPath('data.questionnaire_template_id', $this->template->id);
 
-        $this->assertDatabaseHas('patient_questionnaires', [
+        $this->assertDatabaseHas('clinic_patient_questionnaires', [
             'patient_id'                => $this->patient->id,
             'clinic_id'                 => $this->clinicUser->clinic_id,
             'questionnaire_template_id' => $this->template->id,
@@ -160,7 +163,7 @@ class PatientQuestionnaireControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Questionário removido com sucesso.');
 
-        $this->assertSoftDeleted('patient_questionnaires', ['id' => $questionnaire->id]);
+        $this->assertSoftDeleted('clinic_patient_questionnaires', ['id' => $questionnaire->id]);
     }
 
     public function test_cannot_destroy_questionnaire_of_another_clinic(): void

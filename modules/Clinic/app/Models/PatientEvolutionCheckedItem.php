@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PatientEvolutionCheckedItem extends Model
 {
+    protected $table = 'clinic_patient_evolution_checked_items';
+
     protected $fillable = [
         'patient_evolution_id',
         'evolution_template_item_id',

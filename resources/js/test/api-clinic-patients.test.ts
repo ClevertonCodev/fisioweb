@@ -105,6 +105,30 @@ describe('apiClinicPatientsRepository — mapper', () => {
         const patient = await apiClinicPatientsRepository.getById('1');
         expect(patient.status).toBe('em_tratamento');
     });
+
+    it('mapeia clinic_user.name para professional', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiPatient({
+                    clinic_user: { id: 7, name: 'Dr. Ricardo Silva' },
+                }),
+            },
+        });
+
+        const patient = await apiClinicPatientsRepository.getById('1');
+
+        expect(patient.professional).toBe('Dr. Ricardo Silva');
+        expect(patient.professionalInitial).toBe('D');
+    });
+
+    it('retorna professional vazio quando clinic_user ausente', async () => {
+        mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
+
+        const patient = await apiClinicPatientsRepository.getById('1');
+
+        expect(patient.professional).toBe('');
+        expect(patient.professionalInitial).toBe('');
+    });
 });
 
 // ─── create ───────────────────────────────────────────────────────────────────

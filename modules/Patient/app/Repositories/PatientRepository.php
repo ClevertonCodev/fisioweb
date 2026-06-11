@@ -10,7 +10,7 @@ class PatientRepository implements PatientRepositoryInterface
 {
     public function find(int $id): ?Patient
     {
-        return Patient::find($id);
+        return Patient::with('clinicUser:id,name')->find($id);
     }
 
     public function findOrFail(int $id): Patient
@@ -20,7 +20,8 @@ class PatientRepository implements PatientRepositoryInterface
 
     public function paginateByClinic(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Patient::where('clinic_id', $clinicId);
+        $query = Patient::where('clinic_id', $clinicId)
+            ->with('clinicUser:id,name');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -45,6 +46,10 @@ class PatientRepository implements PatientRepositoryInterface
 
         if (!empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        if (!empty($filters['professional_ids'])) {
+            $query->whereIn('clinic_user_id', $filters['professional_ids']);
         }
 
         $page = $filters['page'] ?? null;

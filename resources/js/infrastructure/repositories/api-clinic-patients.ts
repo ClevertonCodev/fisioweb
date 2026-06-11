@@ -8,11 +8,17 @@ import type {
 import type { Patient, PatientDetail, PatientStatus } from '@/domain/clinic/patient';
 import { apiClient } from '@/infrastructure/api/client';
 
+interface ApiClinicUserDto {
+    id: number;
+    name: string;
+}
+
 interface ApiPatientDto {
     id: number;
     name: string;
     status?: string;
     photo_url?: string;
+    clinic_user?: ApiClinicUserDto;
     cpf?: string;
     is_foreign?: boolean;
     apelido?: string;
@@ -44,12 +50,14 @@ interface ApiPatientPage {
 }
 
 function toEntity(raw: ApiPatientDto): Patient {
+    const professionalName = raw.clinic_user?.name ?? '';
+
     return {
         id: String(raw.id),
         name: raw.name,
         initial: raw.name.charAt(0).toUpperCase(),
-        professional: '',
-        professionalInitial: '',
+        professional: professionalName,
+        professionalInitial: professionalName.charAt(0).toUpperCase(),
         status: (raw.status as PatientStatus) ?? 'em_tratamento',
         diagnosis: '',
         photoUrl: raw.photo_url ?? undefined,

@@ -2,6 +2,7 @@
 
 namespace Modules\Patient\Tests\Unit;
 
+use Illuminate\Support\Facades\Auth;
 use Mockery\MockInterface;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Models\Patient;
@@ -91,6 +92,25 @@ class PatientServiceTest extends TestCase
             });
 
         $this->service->create($data, 1);
+    }
+
+    public function test_create_sets_clinic_user_id_from_authenticated_clinic_guard(): void
+    {
+        $clinicUserId = 42;
+        $guard        = \Mockery::mock(\Illuminate\Contracts\Auth\Guard::class);
+        $guard->shouldReceive('id')->andReturn($clinicUserId);
+        Auth::shouldReceive('guard')->with('clinic')->andReturn($guard);
+
+        $this->repository
+            ->shouldReceive('create')
+            ->once()
+            ->andReturnUsing(function (array $arg) use ($clinicUserId) {
+                $this->assertEquals($clinicUserId, $arg['clinic_user_id']);
+
+                return new Patient($arg);
+            });
+
+        $this->service->create($this->validData(), 1);
     }
 
     public function test_create_returns_patient_from_repository(): void

@@ -40,9 +40,72 @@ class PatientControllerTest extends TestCase
             ->assertJsonPath('data.name', $payload['name']);
 
         $this->assertDatabaseHas('patients', [
-            'email'     => $payload['email'],
+            'email'          => $payload['email'],
+            'clinic_id'      => $this->clinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+        ]);
+    }
+
+    public function test_created_patient_response_includes_clinic_user(): void
+    {
+        $payload = $this->validPayload();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson('/api/clinic/patients', $payload)
+            ->assertCreated()
+            ->assertJsonPath('data.clinic_user.id', $this->clinicUser->id)
+            ->assertJsonPath('data.clinic_user.name', $this->clinicUser->name);
+    }
+
+    public function test_index_includes_clinic_user_on_each_patient(): void
+    {
+        $patient = Patient::factory()->forClinic(
+            \Modules\Clinic\Models\Clinic::find($this->clinicUser->clinic_id)
+        )->create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'name'           => 'Paciente Listagem',
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/patients?search=Paciente Listagem')
+            ->assertOk()
+            ->assertJsonPath('data.data.0.id', $patient->id)
+            ->assertJsonPath('data.data.0.clinic_user.id', $this->clinicUser->id)
+            ->assertJsonPath('data.data.0.clinic_user.name', $this->clinicUser->name);
+    }
+
+    public function test_index_filters_by_professional_ids(): void
+    {
+        $otherProfessional = ClinicUser::factory()->create([
             'clinic_id' => $this->clinicUser->clinic_id,
         ]);
+
+        $mine = Patient::factory()->forClinic(
+            \Modules\Clinic\Models\Clinic::find($this->clinicUser->clinic_id)
+        )->create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'name'           => 'Paciente Meu Profissional',
+        ]);
+
+        Patient::factory()->forClinic(
+            \Modules\Clinic\Models\Clinic::find($this->clinicUser->clinic_id)
+        )->create([
+            'clinic_user_id' => $otherProfessional->id,
+            'name'           => 'Paciente Outro Profissional',
+        ]);
+
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/patients?professional_ids=' . $this->clinicUser->id);
+
+        $response->assertOk();
+
+        $ids = collect($response->json('data.data'))->pluck('id')->all();
+
+        $this->assertContains($mine->id, $ids);
+        $this->assertNotContains(
+            Patient::where('name', 'Paciente Outro Profissional')->value('id'),
+            $ids
+        );
     }
 
     public function test_created_patient_has_clinic_id_set(): void

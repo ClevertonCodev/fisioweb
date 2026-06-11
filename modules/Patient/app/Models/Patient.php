@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\ClinicUser;
 use Modules\Patient\Database\Factories\PatientFactory;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
@@ -26,6 +27,7 @@ class Patient extends Authenticatable implements JWTSubject
 
     protected $fillable = [
         'clinic_id',
+        'clinic_user_id',
         'name',
         'email',
         'password',
@@ -73,5 +75,10 @@ class Patient extends Authenticatable implements JWTSubject
     public function clinic(): BelongsTo
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    public function clinicUser(): BelongsTo
+    {
+        return $this->belongsTo(ClinicUser::class);
     }
 }

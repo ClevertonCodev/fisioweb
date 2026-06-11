@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Http\Requests\StorePatientRequest;
 use Modules\Clinic\Http\Requests\UpdatePatientRequest;
-use Modules\Patient\Models\Patient;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
+use Modules\Patient\Models\Patient;
 
 class PatientController extends Controller
 {
@@ -29,9 +29,15 @@ class PatientController extends Controller
             'statuses'  => $request->filled('statuses')
                 ? array_filter(explode(',', $request->string('statuses')->toString()))
                 : null,
-            'date_from' => $request->string('date_from')->toString() ?: null,
-            'date_to'   => $request->string('date_to')->toString() ?: null,
-            'page'      => $request->integer('page') ?: null,
+            'date_from'        => $request->string('date_from')->toString() ?: null,
+            'date_to'          => $request->string('date_to')->toString() ?: null,
+            'professional_ids' => $request->filled('professional_ids')
+                ? array_values(array_filter(array_map(
+                    'intval',
+                    explode(',', $request->string('professional_ids')->toString())
+                )))
+                : null,
+            'page'             => $request->integer('page') ?: null,
         ], fn ($v) => $v !== null);
 
         $perPage = $request->integer('per_page', 15);

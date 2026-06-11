@@ -3,6 +3,7 @@
 namespace Modules\Patient\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Models\Patient;
@@ -28,10 +29,11 @@ class PatientService implements PatientServiceInterface
         $cpf = isset($data['cpf']) ? preg_replace('/\D/', '', $data['cpf']) : null;
 
         return $this->repository->create(array_merge($data, [
-            'clinic_id' => $clinicId,
-            'cpf'       => $cpf,
+            'clinic_id'      => $clinicId,
+            'clinic_user_id' => Auth::guard('clinic')->id(),
+            'cpf'            => $cpf,
             // CPF é a senha padrão; estrangeiros sem CPF usam o e-mail
-            'password'  => $cpf ?: $data['email'],
+            'password'       => $cpf ?: $data['email'],
         ]));
     }
 

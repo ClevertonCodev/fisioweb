@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
+    PATIENT_STATUS_OPTIONS,
     patientFormSchema,
     patientFormTabFields,
     toPatientFormValues,
@@ -15,6 +16,7 @@ import {
     useUploadPatientPhoto,
     type PatientFormValues,
 } from '@/application/clinic';
+import type { PatientDetail } from '@/domain/clinic/patient';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientFormAddress } from '@/components/clinic/patient/form/PatientFormAddress';
 import { PatientFormContact } from '@/components/clinic/patient/form/PatientFormContact';
@@ -31,6 +33,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TABS = [
@@ -42,32 +45,87 @@ const TABS = [
     { value: 'como-conheceu', label: 'Como me conheceu?' },
 ];
 
+function PatientEditSkeleton() {
+    return (
+        <ClinicLayout>
+            <div className="flex h-full flex-col">
+                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                    <div className="px-6 py-4">
+                        <Skeleton className="mb-4 h-5 w-16" />
+                        <Skeleton className="mb-1 h-8 w-56" />
+                        <Skeleton className="mb-4 h-4 w-80" />
+                        <div className="flex flex-wrap gap-6 pb-2">
+                            {TABS.map((tab) => (
+                                <Skeleton key={tab.value} className="h-5 w-32" />
+                            ))}
+                        </div>
+                    </div>
+                </header>
+
+                <div className="flex-1 overflow-auto p-6">
+                    <div className="max-w-3xl space-y-6">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-20 w-20 rounded-full" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-48" />
+                                <Skeleton className="h-9 w-40" />
+                            </div>
+                        </div>
+                        <Skeleton className="h-10 w-64" />
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="space-y-2">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-10 w-full" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ClinicLayout>
+    );
+}
+
 export default function PatientEditPage() {
     const { id } = useParams();
+    const { data: detail, isLoading } = usePatientDetail(id);
+
+    if (isLoading) {
+        return <PatientEditSkeleton />;
+    }
+
+    if (!id || !detail) {
+        return (
+            <ClinicLayout>
+                <div className="text-muted-foreground flex h-full items-center justify-center">
+                    Paciente não encontrado.
+                </div>
+            </ClinicLayout>
+        );
+    }
+
+    return <PatientEditForm id={id} detail={detail} />;
+}
+
+function PatientEditForm({ id, detail }: { id: string; detail: PatientDetail }) {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dados-pessoais');
     const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-    const { data: detail, isLoading } = usePatientDetail(id);
     const { mutateAsync: updatePatient, isPending: isUpdating } = useUpdatePatient();
     const { mutateAsync: uploadPhoto, isPending: isUploading } = useUploadPatientPhoto();
     const isPending = isUpdating || isUploading;
 
     const form = useForm<PatientFormValues>({
         resolver: zodResolver(patientFormSchema),
+        defaultValues: toPatientFormValues(detail),
     });
 
     const {
         handleSubmit,
-        reset,
         formState: { errors },
     } = form;
-
-    useEffect(() => {
-        if (detail) {
-            reset(toPatientFormValues(detail));
-        }
-    }, [detail, reset]);
 
     const tabsWithErrors = useMemo(() => {
         return Object.entries(patientFormTabFields)
@@ -78,7 +136,6 @@ export default function PatientEditPage() {
     }, [errors]);
 
     const onSubmit = async (data: PatientFormValues) => {
-        if (!id) return;
         try {
             await updatePatient({ id, dto: toPatientUpdateDto(data) });
 
@@ -100,16 +157,6 @@ export default function PatientEditPage() {
             toast.error('Erro ao atualizar paciente. Verifique os dados e tente novamente.');
         }
     };
-
-    if (isLoading) {
-        return (
-            <ClinicLayout>
-                <div className="text-muted-foreground flex h-full items-center justify-center">
-                    Carregando...
-                </div>
-            </ClinicLayout>
-        );
-    }
 
     return (
         <ClinicLayout>
@@ -155,7 +202,7 @@ export default function PatientEditPage() {
                             <PatientPhotoSection
                                 value={photoFile}
                                 onChange={setPhotoFile}
-                                currentPhotoUrl={detail?.photoUrl}
+                                currentPhotoUrl={detail.photoUrl}
                             />
                             <div className="mb-6 flex flex-wrap items-center gap-4">
                                 <div className="w-64">
@@ -168,16 +215,17 @@ export default function PatientEditPage() {
                                                 onValueChange={field.onChange}
                                             >
                                                 <SelectTrigger className="mt-1.5">
-                                                    <SelectValue />
+                                                    <SelectValue placeholder="Selecione o status" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="em_tratamento">
-                                                        Em tratamento
-                                                    </SelectItem>
-                                                    <SelectItem value="em_prevencao">
-                                                        Em prevenção
-                                                    </SelectItem>
-                                                    <SelectItem value="alta">Alta</SelectItem>
+                                                    {PATIENT_STATUS_OPTIONS.map((opt) => (
+                                                        <SelectItem
+                                                            key={opt.value}
+                                                            value={opt.value}
+                                                        >
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         )}

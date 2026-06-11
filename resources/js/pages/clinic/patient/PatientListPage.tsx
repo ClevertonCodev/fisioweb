@@ -9,6 +9,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CardList } from '@/components/ui/card-list';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
@@ -106,6 +107,96 @@ function PatientListTableSkeleton({ rows = 8 }: { rows?: number }) {
                 ))}
             </div>
         </Card>
+    );
+}
+
+function PatientListCardSkeleton({ rows = 4 }: { rows?: number }) {
+    return (
+        <div className="space-y-2">
+            {Array.from({ length: rows }).map((_, row) => (
+                <Card key={`card-${row}`} className="p-4">
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-9 w-9 rounded-full" />
+                                <Skeleton className="h-5 w-36" />
+                            </div>
+                            <Skeleton className="h-7 w-24 rounded-full" />
+                        </div>
+                        <Skeleton className="ml-12 h-4 w-48" />
+                        <Skeleton className="ml-12 h-4 w-32" />
+                    </div>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
+type PatientActionsProps = {
+    patient: Patient;
+    onNavigate: (path: string) => void;
+    onInactivate: (id: string) => void;
+    inactivateDisabled: boolean;
+};
+
+function PatientActions({
+    patient,
+    onNavigate,
+    onInactivate,
+    inactivateDisabled,
+}: PatientActionsProps) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                    onClick={() =>
+                        onNavigate(`/clinica/pacientes/${patient.id}`)
+                    }
+                >
+                    Editar perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() =>
+                        onNavigate(`/clinica/pacientes/${patient.id}`)
+                    }
+                >
+                    Prontuário
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() =>
+                        onNavigate(
+                            `/clinica/pacientes/${patient.id}?tab=programas`,
+                        )
+                    }
+                >
+                    Programas
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={() =>
+                        onNavigate(
+                            `/clinica/pacientes/${patient.id}?tab=monitoramento`,
+                        )
+                    }
+                >
+                    Monitoramento
+                </DropdownMenuItem>
+                <DropdownMenuItem>Agendamentos</DropdownMenuItem>
+                <DropdownMenuItem>Pagamentos</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    className="text-destructive"
+                    disabled={inactivateDisabled}
+                    onClick={() => onInactivate(patient.id)}
+                >
+                    Inativar paciente
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 
@@ -241,8 +332,8 @@ export default function PatientListPage() {
                 {/* Content */}
                 <div className="flex-1 overflow-auto p-6">
                     {/* Search + Filters bar */}
-                    <div className="mb-6 flex items-center gap-3">
-                        <div className="relative max-w-md flex-1">
+                    <div className="mb-6 flex flex-wrap items-center gap-3">
+                        <div className="relative w-full sm:max-w-md sm:flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Pesquisar por nome, CPF ou e-mail"
@@ -477,171 +568,259 @@ export default function PatientListPage() {
                         </div>
                     )}
 
-                    {isLoading ? (
-                        <PatientListTableSkeleton rows={Math.min(perPage, 8)} />
-                    ) : (
-                        <DataTable<Patient>
-                            columns={COLUMNS}
-                            data={patients}
-                            emptyMessage={emptyMessage}
-                            totalLabel="pacientes"
-                            totalCount={total}
-                            pagination={pagination}
-                            pageSize={perPage}
-                            pageSizeOptions={[10, 25, 50]}
-                            onPageSizeChange={(size) => {
-                                setPerPage(size);
-                                setCurrentPage(1);
-                            }}
-                        >
-                            {(patient) => (
-                                <TableRow
-                                    key={patient.id}
-                                    className="cursor-pointer"
-                                    onClick={() =>
-                                        navigate(
-                                            `/clinica/pacientes/${patient.id}`,
-                                        )
-                                    }
-                                >
-                                    <TableCell
-                                        onClick={(e) => e.stopPropagation()}
+                    {/* Tabela — desktop */}
+                    <div className="hidden md:block">
+                        {isLoading ? (
+                            <PatientListTableSkeleton
+                                rows={Math.min(perPage, 8)}
+                            />
+                        ) : (
+                            <DataTable<Patient>
+                                columns={COLUMNS}
+                                data={patients}
+                                emptyMessage={emptyMessage}
+                                totalLabel="pacientes"
+                                totalCount={total}
+                                pagination={pagination}
+                                pageSize={perPage}
+                                pageSizeOptions={[10, 25, 50]}
+                                onPageSizeChange={(size) => {
+                                    setPerPage(size);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                {(patient) => (
+                                    <TableRow
+                                        key={patient.id}
+                                        className="cursor-pointer"
+                                        onClick={() =>
+                                            navigate(
+                                                `/clinica/pacientes/${patient.id}`,
+                                            )
+                                        }
                                     >
-                                        <Checkbox
-                                            checked={selectedIds.includes(
-                                                patient.id,
-                                            )}
-                                            onCheckedChange={(checked) => {
-                                                setSelectedIds((prev) =>
-                                                    checked
-                                                        ? [...prev, patient.id]
-                                                        : prev.filter(
-                                                              (id) =>
-                                                                  id !==
-                                                                  patient.id,
-                                                          ),
-                                                );
-                                            }}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9">
-                                                {patient.photoUrl && (
-                                                    <AvatarImage
-                                                        src={patient.photoUrl}
-                                                        alt={patient.name}
-                                                    />
-                                                )}
-                                                <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                    {patient.initial}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-foreground">
-                                                {patient.name}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="text-sm text-muted-foreground">
-                                            {patient.professional || '—'}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <StatusBadge
-                                            variant={
-                                                STATUS_VARIANTS[
-                                                    patient.status
-                                                ] ?? 'neutral'
-                                            }
+                                        <TableCell
+                                            onClick={(e) => e.stopPropagation()}
                                         >
-                                            {STATUS_LABELS[patient.status] ??
-                                                patient.status}
-                                        </StatusBadge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {patient.diagnosis || '—'}
-                                    </TableCell>
-                                    <TableCell
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8"
-                                                >
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="end"
-                                                className="w-48"
+                                            <Checkbox
+                                                checked={selectedIds.includes(
+                                                    patient.id,
+                                                )}
+                                                onCheckedChange={(checked) => {
+                                                    setSelectedIds((prev) =>
+                                                        checked
+                                                            ? [
+                                                                  ...prev,
+                                                                  patient.id,
+                                                              ]
+                                                            : prev.filter(
+                                                                  (id) =>
+                                                                      id !==
+                                                                      patient.id,
+                                                              ),
+                                                    );
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9">
+                                                    {patient.photoUrl && (
+                                                        <AvatarImage
+                                                            src={
+                                                                patient.photoUrl
+                                                            }
+                                                            alt={patient.name}
+                                                        />
+                                                    )}
+                                                    <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                                                        {patient.initial}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium text-foreground">
+                                                    {patient.name}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-sm text-muted-foreground">
+                                                {patient.professional || '—'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <StatusBadge
+                                                variant={
+                                                    STATUS_VARIANTS[
+                                                        patient.status
+                                                    ] ?? 'neutral'
+                                                }
                                             >
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/clinica/pacientes/${patient.id}`,
-                                                        )
-                                                    }
-                                                >
-                                                    Editar perfil
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/clinica/pacientes/${patient.id}`,
-                                                        )
-                                                    }
-                                                >
-                                                    Prontuário
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/clinica/pacientes/${patient.id}?tab=programas`,
-                                                        )
-                                                    }
-                                                >
-                                                    Programas
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/clinica/pacientes/${patient.id}?tab=monitoramento`,
-                                                        )
-                                                    }
-                                                >
-                                                    Monitoramento
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    Agendamentos
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>
-                                                    Pagamentos
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="text-destructive"
-                                                    disabled={
-                                                        bulkInactivate.isPending
-                                                    }
-                                                    onClick={() => {
-                                                        bulkInactivate.mutate([
-                                                            patient.id,
-                                                        ]);
-                                                    }}
-                                                >
-                                                    Inativar paciente
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </DataTable>
-                    )}
+                                                {STATUS_LABELS[
+                                                    patient.status
+                                                ] ?? patient.status}
+                                            </StatusBadge>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {patient.diagnosis || '—'}
+                                        </TableCell>
+                                        <TableCell
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <PatientActions
+                                                patient={patient}
+                                                onNavigate={navigate}
+                                                onInactivate={(id) =>
+                                                    bulkInactivate.mutate([id])
+                                                }
+                                                inactivateDisabled={
+                                                    bulkInactivate.isPending
+                                                }
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </DataTable>
+                        )}
+                    </div>
+
+                    {/* Cards — mobile */}
+                    <div className="md:hidden">
+                        {isLoading ? (
+                            <PatientListCardSkeleton
+                                rows={Math.min(perPage, 4)}
+                            />
+                        ) : (
+                            <CardList<Patient>
+                                data={patients}
+                                emptyMessage={emptyMessage}
+                                totalLabel="pacientes"
+                                totalCount={total}
+                                pagination={pagination}
+                                pageSize={perPage}
+                                pageSizeOptions={[10, 25, 50]}
+                                onPageSizeChange={(size) => {
+                                    setPerPage(size);
+                                    setCurrentPage(1);
+                                }}
+                            >
+                                {(patient) => (
+                                    <Card
+                                        key={patient.id}
+                                        className="cursor-pointer transition-colors hover:bg-accent/40"
+                                        onClick={() =>
+                                            navigate(
+                                                `/clinica/pacientes/${patient.id}`,
+                                            )
+                                        }
+                                    >
+                                        <div className="p-4">
+                                            {/* Linha 1: paciente + status + ações */}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <div
+                                                        onClick={(e) =>
+                                                            e.stopPropagation()
+                                                        }
+                                                    >
+                                                        <Checkbox
+                                                            checked={selectedIds.includes(
+                                                                patient.id,
+                                                            )}
+                                                            onCheckedChange={(
+                                                                checked,
+                                                            ) => {
+                                                                setSelectedIds(
+                                                                    (prev) =>
+                                                                        checked
+                                                                            ? [
+                                                                                  ...prev,
+                                                                                  patient.id,
+                                                                              ]
+                                                                            : prev.filter(
+                                                                                  (
+                                                                                      id,
+                                                                                  ) =>
+                                                                                      id !==
+                                                                                      patient.id,
+                                                                              ),
+                                                                );
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <Avatar className="h-9 w-9 shrink-0">
+                                                        {patient.photoUrl && (
+                                                            <AvatarImage
+                                                                src={
+                                                                    patient.photoUrl
+                                                                }
+                                                                alt={
+                                                                    patient.name
+                                                                }
+                                                            />
+                                                        )}
+                                                        <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                                                            {patient.initial}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="truncate font-medium text-foreground">
+                                                        {patient.name}
+                                                    </span>
+                                                </div>
+                                                <div className="flex shrink-0 items-center gap-1">
+                                                    <StatusBadge
+                                                        variant={
+                                                            STATUS_VARIANTS[
+                                                                patient.status
+                                                            ] ?? 'neutral'
+                                                        }
+                                                    >
+                                                        {STATUS_LABELS[
+                                                            patient.status
+                                                        ] ?? patient.status}
+                                                    </StatusBadge>
+                                                    <div
+                                                        onClick={(e) =>
+                                                            e.stopPropagation()
+                                                        }
+                                                    >
+                                                        <PatientActions
+                                                            patient={patient}
+                                                            onNavigate={
+                                                                navigate
+                                                            }
+                                                            onInactivate={(
+                                                                id,
+                                                            ) =>
+                                                                bulkInactivate.mutate(
+                                                                    [id],
+                                                                )
+                                                            }
+                                                            inactivateDisabled={
+                                                                bulkInactivate.isPending
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Linha 2: diagnóstico */}
+                                            {patient.diagnosis && (
+                                                <p className="mt-2 ml-12 text-sm text-muted-foreground">
+                                                    {patient.diagnosis}
+                                                </p>
+                                            )}
+
+                                            {/* Linha 3: criado por */}
+                                            <p className="mt-2 ml-12 text-xs text-muted-foreground">
+                                                Criado por{' '}
+                                                {patient.professional || '—'}
+                                            </p>
+                                        </div>
+                                    </Card>
+                                )}
+                            </CardList>
+                        )}
+                    </div>
                 </div>
             </div>
         </ClinicLayout>

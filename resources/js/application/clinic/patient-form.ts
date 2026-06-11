@@ -1,5 +1,34 @@
 import { z } from 'zod';
 
+import type { PatientStatus } from '@/domain/clinic/patient';
+
+// ─── Labels e variants de status (fonte única) ───────────────────────────────
+
+export const PATIENT_STATUS_LABELS: Record<PatientStatus, string> = {
+    em_tratamento: 'Em tratamento',
+    em_treinamento: 'Em treinamento',
+    em_prevencao: 'Em prevenção',
+    cancelado: 'Cancelado',
+    obito: 'Óbito',
+    alta: 'Alta',
+};
+
+export const PATIENT_STATUS_VARIANTS: Record<
+    PatientStatus,
+    'info' | 'warning' | 'success' | 'neutral' | 'danger'
+> = {
+    em_tratamento: 'info',
+    em_treinamento: 'success',
+    em_prevencao: 'warning',
+    cancelado: 'neutral',
+    obito: 'danger',
+    alta: 'success',
+};
+
+export const PATIENT_STATUS_OPTIONS: { value: PatientStatus; label: string }[] = (
+    Object.keys(PATIENT_STATUS_LABELS) as PatientStatus[]
+).map((value) => ({ value, label: PATIENT_STATUS_LABELS[value] }));
+
 function isValidCpf(cpf: string): boolean {
     const digits = cpf.replace(/\D/g, '');
     if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
@@ -36,7 +65,14 @@ export const patientFormSchema = z
         biological_sex: z.string(),
         gender: z.string(),
         education: z.string(),
-        status: z.enum(['em_tratamento', 'em_prevencao', 'alta']),
+        status: z.enum([
+            'em_tratamento',
+            'em_treinamento',
+            'em_prevencao',
+            'cancelado',
+            'obito',
+            'alta',
+        ]),
         phone: z.string().min(1, 'Telefone obrigatório'),
         email: z.string().min(1, 'E-mail obrigatório'),
         zip_code: z.string(),

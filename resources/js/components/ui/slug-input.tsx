@@ -19,17 +19,19 @@ type Props = {
     onChange: (slug: string) => void;
     baseName?: string;
     required?: boolean;
+    readOnly?: boolean;
 };
 
-export function SlugInput({ value, onChange, baseName, required }: Props) {
+export function SlugInput({ value, onChange, baseName, required, readOnly }: Props) {
     const [editable, setEditable] = useState(false);
     const manuallyEdited = useRef(false);
 
     useEffect(() => {
-        if (!manuallyEdited.current && baseName !== undefined) {
-            onChange(toSlug(baseName));
+        if (readOnly || manuallyEdited.current || baseName === undefined) {
+            return;
         }
-    }, [baseName]);
+        onChange(toSlug(baseName));
+    }, [baseName, onChange, readOnly]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         manuallyEdited.current = true;
@@ -48,24 +50,26 @@ export function SlugInput({ value, onChange, baseName, required }: Props) {
                 <Label>
                     URL da Clínica{required && <span className="text-destructive"> *</span>}
                 </Label>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={handleToggleEdit}
-                >
-                    <Pencil className="h-3 w-3" />
-                    {editable ? 'Bloquear' : 'Editar'}
-                </Button>
+                {!readOnly && (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1.5 text-xs"
+                        onClick={handleToggleEdit}
+                    >
+                        <Pencil className="h-3 w-3" />
+                        {editable ? 'Bloquear' : 'Editar'}
+                    </Button>
+                )}
             </div>
             <Input
                 value={value}
                 onChange={handleChange}
-                disabled={!editable}
+                disabled={readOnly || !editable}
                 required={required}
                 placeholder="url-da-clinica"
-                className={!editable ? 'bg-muted/50' : ''}
+                className={readOnly || !editable ? 'bg-muted/50' : ''}
             />
             {preview && <p className="text-muted-foreground truncate text-xs">{preview}</p>}
         </div>

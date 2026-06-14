@@ -1,5 +1,6 @@
 export * from './patient-file-upload-rules';
 export * from './patient-form';
+export * from './clinic-profile-form';
 export * from './ports';
 export * from './use-appointments';
 export * from './use-assessments';

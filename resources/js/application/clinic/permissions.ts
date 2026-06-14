@@ -4,6 +4,8 @@ export const can = {
     delete: (role?: ClinicRole) => role === 'admin',
     deleteOwn: (role?: ClinicRole) => role === 'admin' || role === 'physiotherapist',
     manageUsers: (role?: ClinicRole) => role === 'admin',
+    manageClinicData: (role?: ClinicRole) => role === 'admin',
+    editClinicData: (mestre?: 0 | 1) => mestre === 1,
     sign: (role?: ClinicRole) => role === 'admin' || role === 'physiotherapist',
     bulkInactivate: (role?: ClinicRole) => role === 'admin' || role === 'secretary',
     manageClinicalRecords: (role?: ClinicRole) => role === 'admin' || role === 'physiotherapist',

@@ -39,12 +39,23 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function normalizeUser(raw: { id: number; name: string; email: string; role?: string }): User {
+function normalizeUser(raw: {
+    id: number;
+    name: string;
+    email: string;
+    role?: string;
+    photo_url?: string | null;
+    clinic_id?: number;
+    mestre?: number;
+}): User {
     return {
         id: raw.id,
         name: raw.name,
         email: raw.email,
         role: raw.role as User['role'],
+        photoUrl: raw.photo_url ?? undefined,
+        clinicId: raw.clinic_id,
+        mestre: raw.mestre === 1 ? 1 : 0,
     };
 }
 
@@ -155,7 +166,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
         apiClient
-            .get<{ id: number; name: string; email: string; role?: string }>(`/${auth.guard}/auth/me`)
+            .get<{
+                id: number;
+                name: string;
+                email: string;
+                role?: string;
+                photo_url?: string | null;
+                clinic_id?: number;
+                mestre?: number;
+            }>(`/${auth.guard}/auth/me`)
             .then(({ data }) => {
                 setState({
                     user: normalizeUser(data),

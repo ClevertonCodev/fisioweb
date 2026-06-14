@@ -25,6 +25,7 @@ Padrões de UI específicos do projeto. Stack: **shadcn/ui (Radix)** + **Tailwin
 
 | Estou fazendo | Carregue |
 |--------------|----------|
+| Componentes, cores, sidebar, popover, cursor | [`frontend-ui-patterns`](../frontend-ui-patterns/SKILL.md) |
 | Estrutura DDD (domain/application/infra/pages) | [`frontend-ddd`](../frontend-ddd/SKILL.md) |
 | Hooks, memo, performance | [`frontend-react`](../frontend-react/SKILL.md) |
 | Forms com RHF + Zod (skill DDD tem essa reference) | [`frontend-ddd/references/forms.md`](../frontend-ddd/references/forms.md) |

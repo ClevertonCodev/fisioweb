@@ -7,3 +7,4 @@ export * from './evolution';
 export * from './patient-file';
 export * from './patient-questionnaire';
 export * from './questionnaire-template';
+export * from './clinic-profile';

@@ -16,7 +16,6 @@ import {
     useUploadPatientPhoto,
     type PatientFormValues,
 } from '@/application/clinic';
-import type { PatientDetail } from '@/domain/clinic/patient';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientFormAddress } from '@/components/clinic/patient/form/PatientFormAddress';
 import { PatientFormContact } from '@/components/clinic/patient/form/PatientFormContact';
@@ -35,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { PatientDetail } from '@/domain/clinic/patient';
 
 const TABS = [
     { value: 'dados-pessoais', label: 'Dados pessoais' },

@@ -1,23 +1,20 @@
 import {
     Activity,
-    Bell,
-    BookOpen,
     Calendar,
     ChevronLeft,
     ChevronRight,
     Dumbbell,
-    Headphones,
     Home,
-    LogOut,
     Menu,
     Play,
     User,
     Users,
 } from 'lucide-react';
 import { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
+import { ClinicUserDropdown } from '@/components/clinic/ClinicUserDropdown';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -25,14 +22,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-
-
-const bottomNavItems = (profilePath: string) => [
-    { icon: Bell, label: 'Notificações', path: '/clinica/notificacoes' },
-    { icon: BookOpen, label: 'Tutoriais', path: '/clinica/tutoriais' },
-    { icon: Headphones, label: 'Suporte', path: '/clinica/suporte' },
-    { icon: User, label: 'Perfil', path: profilePath },
-];
 
 function SidebarContent({
     collapsed,
@@ -44,10 +33,8 @@ function SidebarContent({
     onNavClick?: () => void;
 }) {
     const location = useLocation();
-    const navigate = useNavigate();
-    const { logout, user } = useAuth();
+    const { user } = useAuth();
     const role = user?.role as ClinicRole | undefined;
-    const profilePath = user?.id ? `/clinica/usuarios/${user.id}/editar` : '/clinica';
 
     const allNavItems = [
         { icon: Home, label: 'Dashboard', path: '/clinica' },
@@ -64,13 +51,6 @@ function SidebarContent({
             ? [{ icon: User, label: 'Usuários', path: '/clinica/usuarios' }]
             : []),
     ];
-
-    const handleLogout = () => {
-        logout('clinic').then(() => {
-            onNavClick?.();
-            navigate('/clinica/login', { replace: true });
-        });
-    };
 
     const isActive = (path: string) => {
         if (path === '/clinica') return location.pathname === '/clinica';
@@ -118,7 +98,6 @@ function SidebarContent({
 
     return (
         <>
-            {/* Logo */}
             <div className="border-sidebar-border flex items-center justify-between border-b p-4">
                 <div className="flex items-center gap-2">
                     <div className="bg-sidebar-primary flex h-8 w-8 items-center justify-center rounded-lg">
@@ -150,34 +129,8 @@ function SidebarContent({
                 ))}
             </nav>
 
-            <div className="border-sidebar-border space-y-1 border-t p-3">
-                {bottomNavItems(profilePath).map((item) => (
-                    <NavItem key={item.path} item={item} />
-                ))}
-
-                {collapsed ? (
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger asChild>
-                            <button
-                                onClick={handleLogout}
-                                className="text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200"
-                            >
-                                <LogOut className="h-5 w-5 flex-shrink-0" />
-                            </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="font-medium">
-                            Sair
-                        </TooltipContent>
-                    </Tooltip>
-                ) : (
-                    <button
-                        onClick={handleLogout}
-                        className="text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200"
-                    >
-                        <LogOut className="h-5 w-5 flex-shrink-0" />
-                        <span className="text-sm font-medium">Sair</span>
-                    </button>
-                )}
+            <div className="border-sidebar-border border-t p-3">
+                <ClinicUserDropdown collapsed={collapsed} placement="sidebar" />
             </div>
         </>
     );
@@ -191,7 +144,6 @@ export function ClinicSidebar() {
     if (isMobile) {
         return (
             <>
-                {/* Mobile top bar */}
                 <div className="bg-sidebar border-sidebar-border fixed top-0 right-0 left-0 z-50 flex h-14 items-center gap-3 border-b px-4">
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\AssessmentController;
+use Modules\Clinic\Http\Controllers\ClinicProfileController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
 use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\EvolutionController;
@@ -19,6 +20,9 @@ use Modules\Clinic\Http\Controllers\TreatmentPlanController;
 
 Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('clinic.dashboard');
+
+    Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
+    Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
 
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
     Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');

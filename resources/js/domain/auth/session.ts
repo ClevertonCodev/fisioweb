@@ -6,6 +6,9 @@ export interface User {
     name: string;
     email: string;
     role?: ClinicRole;
+    photoUrl?: string;
+    clinicId?: string | number;
+    mestre?: 0 | 1;
 }
 
 export interface Session {

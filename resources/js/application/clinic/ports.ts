@@ -390,3 +390,24 @@ export interface ClinicUsersRepository {
     ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
     destroy(id: string): Promise<void>;
 }
+
+export interface ClinicProfileUpdateDto {
+    name: string;
+    typePerson: 'PF' | 'PJ';
+    document: string;
+    email: string;
+    phone?: string | null;
+    status: number;
+    zipCode?: string | null;
+    address?: string | null;
+    number?: string | null;
+    city?: string | null;
+    state?: string | null;
+}
+
+export interface ClinicProfileRepository {
+    get(): Promise<import('@/domain/clinic/clinic-profile').ClinicProfile>;
+    update(
+        dto: ClinicProfileUpdateDto,
+    ): Promise<import('@/domain/clinic/clinic-profile').ClinicProfile>;
+}

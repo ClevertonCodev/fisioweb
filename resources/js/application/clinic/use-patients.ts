@@ -70,3 +70,15 @@ export function useUploadPatientPhoto() {
         },
     });
 }
+
+export function useDeletePatientPhoto() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) =>
+            apiClinicPatientsRepository.deletePhoto(id),
+        onSuccess: (patient) => {
+            queryClient.invalidateQueries({ queryKey: ['patients'] });
+            queryClient.setQueryData(['patients', patient.id], patient);
+        },
+    });
+}

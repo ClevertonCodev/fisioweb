@@ -109,6 +109,13 @@ export const apiClinicUsersRepository: ClinicUsersRepository = {
         return toEntity(data.data);
     },
 
+    async deletePhoto(id: string): Promise<ClinicUserSummary> {
+        const { data } = await apiClient.delete<{ data: ApiClinicUser }>(
+            `/clinic/users/${id}/photo`,
+        );
+        return toEntity(data.data);
+    },
+
     async destroy(id: string): Promise<void> {
         await apiClient.delete(`/clinic/users/${id}`);
     },

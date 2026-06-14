@@ -26,6 +26,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
 
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
     Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');
+    Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo');
     Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
@@ -46,6 +47,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::post('/', [PatientController::class, 'store'])->name('store');
         Route::put('{id}', [PatientController::class, 'update'])->name('update');
         Route::post('{id}/photo', [PatientController::class, 'uploadPhoto'])->name('upload-photo');
+        Route::delete('{id}/photo', [PatientController::class, 'deletePhoto'])->name('delete-photo');
         Route::delete('{id}', [PatientController::class, 'destroy'])->name('destroy');
     });
 

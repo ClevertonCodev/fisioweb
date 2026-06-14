@@ -12,6 +12,12 @@ interface PatientPhotoSectionProps {
     value: File | null;
     onChange: (file: File | null) => void;
     currentPhotoUrl?: string;
+    /**
+     * Chamado quando o usuário remove a foto já salva no servidor.
+     * Recebe `true` ao marcar para remoção e `false` se a remoção é desfeita
+     * (ex.: ao escolher uma nova foto). O pai decide quando persistir.
+     */
+    onRemoveCurrent?: (removed: boolean) => void;
     cropTitle?: string;
     cropAspect?: number;
 }
@@ -20,12 +26,14 @@ export function PatientPhotoSection({
     value,
     onChange,
     currentPhotoUrl,
+    onRemoveCurrent,
     cropTitle = 'Recortar foto do paciente',
     cropAspect = 16 / 9,
 }: PatientPhotoSectionProps) {
     const [photoError, setPhotoError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
+    const [currentRemoved, setCurrentRemoved] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const localPreviewUrl = useMemo(
@@ -39,13 +47,20 @@ export function PatientPhotoSection({
         };
     }, [localPreviewUrl]);
 
-    const previewUrl = localPreviewUrl ?? currentPhotoUrl ?? null;
+    const effectiveCurrentUrl = currentRemoved ? undefined : currentPhotoUrl;
+    const previewUrl = localPreviewUrl ?? effectiveCurrentUrl ?? null;
 
     const clearPhoto = useCallback(() => {
+        // Se há foto já salva no servidor (e nenhuma nova escolhida ainda),
+        // marca para remoção; senão apenas descarta o arquivo local.
+        if (!value && currentPhotoUrl && !currentRemoved) {
+            setCurrentRemoved(true);
+            onRemoveCurrent?.(true);
+        }
         onChange(null);
         setPhotoError(null);
         if (inputRef.current) inputRef.current.value = '';
-    }, [onChange]);
+    }, [onChange, value, currentPhotoUrl, currentRemoved, onRemoveCurrent]);
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,9 +91,13 @@ export function PatientPhotoSection({
                 return;
             }
             setPhotoError(null);
+            if (currentRemoved) {
+                setCurrentRemoved(false);
+                onRemoveCurrent?.(false);
+            }
             onChange(croppedFile);
         },
-        [onChange],
+        [onChange, currentRemoved, onRemoveCurrent],
     );
 
     const handleCropOpenChange = useCallback((open: boolean) => {
@@ -129,7 +148,7 @@ export function PatientPhotoSection({
                         >
                             Escolher uma foto
                         </Button>
-                        {(value || currentPhotoUrl) && (
+                        {(value || effectiveCurrentUrl) && (
                             <Button
                                 type="button"
                                 variant="ghost"

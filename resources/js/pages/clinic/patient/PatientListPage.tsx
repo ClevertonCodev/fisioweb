@@ -648,7 +648,13 @@ export default function PatientListPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <Avatar className="h-9 w-9">
+                                                <Avatar
+                                                    key={
+                                                        patient.photoUrl ??
+                                                        'no-photo'
+                                                    }
+                                                    className="h-9 w-9"
+                                                >
                                                     {patient.photoUrl && (
                                                         <AvatarImage
                                                             src={
@@ -773,7 +779,13 @@ export default function PatientListPage() {
                                                             }}
                                                         />
                                                     </div>
-                                                    <Avatar className="h-9 w-9 shrink-0">
+                                                    <Avatar
+                                                        key={
+                                                            patient.photoUrl ??
+                                                            'no-photo'
+                                                        }
+                                                        className="h-9 w-9 shrink-0"
+                                                    >
                                                         {patient.photoUrl && (
                                                             <AvatarImage
                                                                 src={

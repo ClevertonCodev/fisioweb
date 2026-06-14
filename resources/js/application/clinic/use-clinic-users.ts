@@ -92,6 +92,22 @@ export function useUploadClinicUserPhoto() {
     });
 }
 
+export function useDeleteClinicUserPhoto() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => apiClinicUsersRepository.deletePhoto(id),
+        onSuccess: (user) => {
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            queryClient.setQueryData([...QUERY_KEY, user.id], user);
+        },
+        onError: (error: { response?: { data?: { message?: string } } }) => {
+            toast.error(
+                error?.response?.data?.message ?? 'Erro ao remover a foto.',
+            );
+        },
+    });
+}
+
 export function useDeleteClinicUser() {
     const queryClient = useQueryClient();
     return useMutation({

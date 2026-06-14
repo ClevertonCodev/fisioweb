@@ -216,4 +216,11 @@ export const apiClinicPatientsRepository: PatientsRepository = {
         );
         return toEntity(res.data.data);
     },
+
+    async deletePhoto(id: string) {
+        const res = await apiClient.delete<{ data: ApiPatientDto }>(
+            `/clinic/patients/${id}/photo`,
+        );
+        return toEntity(res.data.data);
+    },
 };

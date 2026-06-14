@@ -117,6 +117,22 @@ class PatientController extends Controller
         return response()->json(['data' => $patient]);
     }
 
+    public function deletePhoto(int $id): JsonResponse
+    {
+        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $patient  = $this->patientService->find($id);
+
+        if (!$patient || $patient->clinic_id !== $clinicId) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        $this->authorize('update', $patient);
+
+        $patient = $this->patientService->update($id, ['photo_url' => null]);
+
+        return response()->json(['data' => $patient]);
+    }
+
     public function destroy(int $id): JsonResponse
     {
         $clinicId = Auth::guard('clinic')->user()->clinic_id;

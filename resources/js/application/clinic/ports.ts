@@ -100,6 +100,7 @@ export interface PatientsRepository {
     create(dto: PatientWriteDto): Promise<Patient>;
     update(id: string, dto: PatientUpdateDto): Promise<Patient>;
     uploadPhoto(id: string, file: File): Promise<Patient>;
+    deletePhoto(id: string): Promise<Patient>;
     bulkInactivate(ids: string[]): Promise<void>;
 }
 
@@ -387,6 +388,9 @@ export interface ClinicUsersRepository {
     uploadPhoto(
         id: string,
         file: File,
+    ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
+    deletePhoto(
+        id: string,
     ): Promise<import('@/domain/clinic/clinic-user').ClinicUserSummary>;
     destroy(id: string): Promise<void>;
 }

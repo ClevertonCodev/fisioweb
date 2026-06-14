@@ -173,7 +173,10 @@ export function ClinicUserDropdown({
             )}
             aria-label="Menu da conta"
         >
-            <Avatar className="h-8 w-8 shrink-0">
+            <Avatar
+                key={user.photoUrl ?? 'no-photo'}
+                className="h-8 w-8 shrink-0"
+            >
                 {user.photoUrl ? (
                     <AvatarImage src={user.photoUrl} alt={user.name} />
                 ) : null}

@@ -440,7 +440,10 @@ export function UserListPage() {
                                 >
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9">
+                                            <Avatar
+                                                key={u.photoUrl ?? 'no-photo'}
+                                                className="h-9 w-9"
+                                            >
                                                 {u.photoUrl && (
                                                     <AvatarImage
                                                         src={u.photoUrl}

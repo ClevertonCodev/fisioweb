@@ -11,6 +11,7 @@ import {
     patientFormTabFields,
     toPatientFormValues,
     toPatientUpdateDto,
+    useDeletePatientPhoto,
     usePatientDetail,
     useUpdatePatient,
     useUploadPatientPhoto,
@@ -112,10 +113,13 @@ function PatientEditForm({ id, detail }: { id: string; detail: PatientDetail }) 
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dados-pessoais');
     const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [removePhoto, setRemovePhoto] = useState(false);
 
     const { mutateAsync: updatePatient, isPending: isUpdating } = useUpdatePatient();
     const { mutateAsync: uploadPhoto, isPending: isUploading } = useUploadPatientPhoto();
-    const isPending = isUpdating || isUploading;
+    const { mutateAsync: deletePhoto, isPending: isDeletingPhoto } =
+        useDeletePatientPhoto();
+    const isPending = isUpdating || isUploading || isDeletingPhoto;
 
     const form = useForm<PatientFormValues>({
         resolver: zodResolver(patientFormSchema),
@@ -145,6 +149,16 @@ function PatientEditForm({ id, detail }: { id: string; detail: PatientDetail }) 
                 } catch {
                     toast.warning(
                         'Paciente atualizado, mas falha ao enviar a foto. Tente novamente.',
+                    );
+                    navigate(`/clinica/pacientes/${id}`);
+                    return;
+                }
+            } else if (removePhoto && detail.photoUrl) {
+                try {
+                    await deletePhoto(id);
+                } catch {
+                    toast.warning(
+                        'Paciente atualizado, mas falha ao remover a foto. Tente novamente.',
                     );
                     navigate(`/clinica/pacientes/${id}`);
                     return;
@@ -203,6 +217,7 @@ function PatientEditForm({ id, detail }: { id: string; detail: PatientDetail }) 
                                 value={photoFile}
                                 onChange={setPhotoFile}
                                 currentPhotoUrl={detail.photoUrl}
+                                onRemoveCurrent={setRemovePhoto}
                             />
                             <div className="mb-6 flex flex-wrap items-center gap-4">
                                 <div className="w-64">

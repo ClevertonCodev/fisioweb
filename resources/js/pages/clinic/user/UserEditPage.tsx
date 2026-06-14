@@ -14,6 +14,7 @@ import { can } from '@/application/clinic/permissions';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
 import {
     useClinicUser,
+    useDeleteClinicUserPhoto,
     useUpdateClinicUser,
     useUploadClinicUserPhoto,
 } from '@/application/clinic/use-clinic-users';
@@ -80,9 +81,12 @@ function UserEditForm({
     const updateUser = useUpdateClinicUser(user.id);
     const { mutateAsync: uploadPhoto, isPending: isUploading } =
         useUploadClinicUserPhoto();
+    const { mutateAsync: deletePhoto, isPending: isDeletingPhoto } =
+        useDeleteClinicUserPhoto();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [removePhoto, setRemovePhoto] = useState(false);
 
     const defaultValues = useMemo(() => {
         const dk = inferClinicUserDocumentKind(user.document);
@@ -126,6 +130,8 @@ function UserEditForm({
 
             if (photoFile) {
                 await uploadPhoto({ id: user.id, file: photoFile });
+            } else if (removePhoto && user.photoUrl) {
+                await deletePhoto(user.id);
             }
 
             navigate(canManageUsers ? '/clinica/usuarios' : '/clinica');
@@ -149,6 +155,7 @@ function UserEditForm({
                         value={photoFile}
                         onChange={setPhotoFile}
                         currentPhotoUrl={user.photoUrl}
+                        onRemoveCurrent={setRemovePhoto}
                         cropTitle="Recortar foto do usuário"
                         cropAspect={1}
                     />
@@ -468,9 +475,15 @@ function UserEditForm({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={updateUser.isPending || isUploading}
+                            disabled={
+                                updateUser.isPending ||
+                                isUploading ||
+                                isDeletingPhoto
+                            }
                         >
-                            {updateUser.isPending || isUploading
+                            {updateUser.isPending ||
+                            isUploading ||
+                            isDeletingPhoto
                                 ? 'Salvando...'
                                 : 'Salvar alterações'}
                         </Button>

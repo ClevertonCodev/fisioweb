@@ -81,6 +81,21 @@ class ClinicUserController extends Controller
         return response()->json(['data' => $user]);
     }
 
+    public function deletePhoto(ClinicUser $user): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+
+        if ((int) $user->clinic_id !== (int) $clinicId) {
+            return response()->json(['message' => 'Usuário não encontrado.'], 404);
+        }
+
+        $user = $this->clinicUserService->update($user, ['photo_url' => null]);
+
+        return response()->json(['data' => $user]);
+    }
+
     public function destroy(ClinicUser $user): JsonResponse
     {
         $this->clinicUserService->delete($user);

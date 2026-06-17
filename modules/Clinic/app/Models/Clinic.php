@@ -43,6 +43,7 @@ class Clinic extends Model
         'city',
         'state',
         'phone',
+        'timezone',
         'plan_id',
     ];
 

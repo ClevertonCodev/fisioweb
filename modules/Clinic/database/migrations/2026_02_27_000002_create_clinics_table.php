@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('number', 20)->nullable();
             $table->string('city', 100)->nullable();
             $table->string('state', 2)->nullable();
+            $table->string('timezone', 64)->default('America/Sao_Paulo');
             $table->foreignId('plan_id')->nullable()->constrained('admin_plans')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();

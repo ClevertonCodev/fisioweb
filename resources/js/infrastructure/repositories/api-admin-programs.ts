@@ -1,11 +1,22 @@
-import type { AdminProgramsRepository, AdminProgramWriteDto } from '@/application/admin/ports';
-import type { AdminProgram, AdminProgramExercise, AdminProgramGroup } from '@/domain/admin';
+import type {
+    AdminProgramsRepository,
+    AdminProgramWriteDto,
+} from '@/application/admin/ports';
+import type {
+    AdminProgram,
+    AdminProgramExercise,
+    AdminProgramGroup,
+} from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiExercise {
     id: number;
     name: string;
-    videos?: { thumbnail_url?: string | null; cdn_url?: string | null; url?: string | null }[];
+    videos?: {
+        thumbnail_url?: string | null;
+        cdn_url?: string | null;
+        url?: string | null;
+    }[];
 }
 
 interface ApiProgramExercise {
@@ -101,7 +112,9 @@ function mapProgram(raw: ApiProgram): AdminProgram {
     };
 }
 
-function toApiPayload(dto: AdminProgramWriteDto | Partial<AdminProgramWriteDto>) {
+function toApiPayload(
+    dto: AdminProgramWriteDto | Partial<AdminProgramWriteDto>,
+) {
     return {
         title: dto.title,
         description: dto.description,
@@ -109,7 +122,10 @@ function toApiPayload(dto: AdminProgramWriteDto | Partial<AdminProgramWriteDto>)
         physio_subarea_id: dto.physioSubareaId,
         duration_minutes: dto.durationMinutes,
         is_active: dto.isActive,
-        groups: dto.groups?.map((g, i) => ({ name: g.name, sort_order: g.sortOrder ?? i })),
+        groups: dto.groups?.map((g, i) => ({
+            name: g.name,
+            sort_order: g.sortOrder ?? i,
+        })),
         exercises: dto.exercises?.map((e, i) => ({
             exercise_id: e.exerciseId,
             group_index: e.groupIndex,
@@ -155,12 +171,16 @@ export const apiAdminProgramsRepository: AdminProgramsRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: ApiProgram }>(`/admin/programs/${id}`);
+        const { data } = await apiClient.get<{ data: ApiProgram }>(
+            `/admin/programs/${id}`,
+        );
         return mapProgram(data.data);
     },
 
     async getDetail(id) {
-        const { data } = await apiClient.get<{ data: ApiProgram }>(`/admin/programs/${id}/detail`);
+        const { data } = await apiClient.get<{ data: ApiProgram }>(
+            `/admin/programs/${id}/detail`,
+        );
         return mapProgram(data.data);
     },
 

@@ -26,8 +26,8 @@ export default function AdminLoginPage() {
         } catch (err: unknown) {
             const message =
                 err && typeof err === 'object' && 'response' in err
-                    ? (err as { response?: { data?: { message?: string } } }).response?.data
-                          ?.message
+                    ? (err as { response?: { data?: { message?: string } } })
+                          .response?.data?.message
                     : null;
             setError(message || 'Erro ao entrar. Tente novamente.');
         } finally {
@@ -37,58 +37,62 @@ export default function AdminLoginPage() {
 
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-            <img src={loginBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            <div className="bg-background/30 absolute inset-0 backdrop-blur-[2px]" />
+            <img
+                src={loginBg}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-background/30 backdrop-blur-[2px]" />
 
-            <div className="bg-card/70 border-border/40 relative z-10 flex w-[90%] max-w-[420px] flex-col items-center rounded-3xl border p-10 shadow-2xl backdrop-blur-xl">
-                <div className="bg-primary/10 border-primary/20 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border">
-                    <Shield className="text-primary h-8 w-8" />
+            <div className="relative z-10 flex w-[90%] max-w-[420px] flex-col items-center rounded-3xl border border-border/40 bg-card/70 p-10 shadow-2xl backdrop-blur-xl">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+                    <Shield className="h-8 w-8 text-primary" />
                 </div>
 
-                <h1 className="text-foreground mb-1 text-2xl font-bold tracking-tight">
+                <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground">
                     FisioClinic
                 </h1>
-                <h2 className="text-foreground mt-4 mb-2 font-serif text-2xl font-bold italic">
+                <h2 className="mt-4 mb-2 font-serif text-2xl font-bold text-foreground italic">
                     Painel Administrativo
                 </h2>
-                <p className="text-muted-foreground mb-8 text-sm">
+                <p className="mb-8 text-sm text-muted-foreground">
                     Acesso restrito a administradores
                 </p>
 
                 <form onSubmit={handleLogin} className="w-full space-y-4">
                     {error && (
-                        <div className="bg-destructive/10 border-destructive/20 text-destructive rounded-lg border px-4 py-3 text-sm">
+                        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                             {error}
                         </div>
                     )}
                     <div className="relative">
-                        <Mail className="text-primary/60 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
+                        <Mail className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-primary/60" />
                         <Input
                             id="email"
                             type="email"
                             placeholder="E-mail"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="bg-background/50 border-border/50 placeholder:text-muted-foreground/60 focus:bg-background/80 h-12 rounded-2xl pl-11 text-base transition-colors"
+                            className="h-12 rounded-2xl border-border/50 bg-background/50 pl-11 text-base transition-colors placeholder:text-muted-foreground/60 focus:bg-background/80"
                             required
                         />
                     </div>
 
                     <div className="relative">
-                        <Lock className="text-primary/60 absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2" />
+                        <Lock className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-primary/60" />
                         <Input
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="Senha"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="bg-background/50 border-border/50 placeholder:text-muted-foreground/60 focus:bg-background/80 h-12 rounded-2xl pr-12 pl-11 text-base transition-colors"
+                            className="h-12 rounded-2xl border-border/50 bg-background/50 pr-12 pl-11 text-base transition-colors placeholder:text-muted-foreground/60 focus:bg-background/80"
                             required
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transition-colors"
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             {showPassword ? (
                                 <EyeOff className="h-4 w-4" />
@@ -100,12 +104,12 @@ export default function AdminLoginPage() {
 
                     <Button
                         type="submit"
-                        className="shadow-primary/25 h-12 w-full rounded-2xl text-base font-semibold shadow-lg transition-all duration-300"
+                        className="h-12 w-full rounded-2xl text-base font-semibold shadow-lg shadow-primary/25 transition-all duration-300"
                         disabled={isLoading}
                     >
                         {isLoading ? (
                             <div className="flex items-center gap-2">
-                                <div className="border-primary-foreground/30 border-t-primary-foreground h-4 w-4 animate-spin rounded-full border-2" />
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                                 Entrando...
                             </div>
                         ) : (
@@ -117,7 +121,7 @@ export default function AdminLoginPage() {
                         <button
                             type="button"
                             onClick={() => navigate('/admin/recuperar-senha')}
-                            className="text-muted-foreground hover:text-primary text-sm font-medium transition-colors"
+                            className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                         >
                             Esqueci minha senha
                         </button>
@@ -128,7 +132,7 @@ export default function AdminLoginPage() {
                     <button
                         type="button"
                         onClick={() => navigate('/clinica/login')}
-                        className="text-muted-foreground hover:text-primary text-sm font-medium transition-colors"
+                        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                     >
                         Área da Clínica
                     </button>

@@ -7,7 +7,6 @@ import {
     Download,
     Edit2,
     FileText,
-    Image as ImageIcon,
     LayoutList,
     MoreVertical,
     Paperclip,
@@ -23,9 +22,15 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
-import { useDeleteEvolution, usePatientEvolutions } from '@/application/clinic/use-evolutions';
+import {
+    useDeleteEvolution,
+    usePatientEvolutions,
+} from '@/application/clinic/use-evolutions';
 import { usePatientFiles } from '@/application/clinic/use-patient-files';
-import { useDeleteQuestionnaire, usePatientQuestionnaires } from '@/application/clinic/use-patient-questionnaires';
+import {
+    useDeleteQuestionnaire,
+    usePatientQuestionnaires,
+} from '@/application/clinic/use-patient-questionnaires';
 import { usePatient } from '@/application/clinic/use-patients';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDrawer';
@@ -58,7 +63,11 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
@@ -68,7 +77,13 @@ interface RecordCardProps {
     title: string;
     date: string;
     badge?: string;
-    badgeVariant?: 'active' | 'warning' | 'danger' | 'neutral' | 'success' | 'info';
+    badgeVariant?:
+        | 'active'
+        | 'warning'
+        | 'danger'
+        | 'neutral'
+        | 'success'
+        | 'info';
     children?: React.ReactNode;
     onDelete?: () => void;
 }
@@ -86,19 +101,21 @@ function RecordCard({
         <Card className="group transition-shadow hover:shadow-md">
             <CardHeader className="pb-2">
                 <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Icon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-foreground text-sm font-semibold">{title}</h3>
+                            <h3 className="text-sm font-semibold text-foreground">
+                                {title}
+                            </h3>
                             {badge && (
                                 <StatusBadge variant={badgeVariant}>
                                     {badge}
                                 </StatusBadge>
                             )}
                         </div>
-                        <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             <span>{date}</span>
                         </div>
@@ -116,7 +133,7 @@ function RecordCard({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem
-                                    className="text-destructive cursor-pointer gap-2"
+                                    className="cursor-pointer gap-2 text-destructive"
                                     onClick={onDelete}
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -147,19 +164,30 @@ export default function PatientRecordPage() {
         all: 'all',
     };
     const tabFromUrl = searchParams.get('tab');
-    const resolvedTab = tabFromUrl ? (TAB_MAP[tabFromUrl] ?? tabFromUrl) : 'all';
+    const resolvedTab = tabFromUrl
+        ? (TAB_MAP[tabFromUrl] ?? tabFromUrl)
+        : 'all';
     const [activeTab, setActiveTab] = useState(resolvedTab);
     const [evolutionDrawerOpen, setEvolutionDrawerOpen] = useState(false);
-    const [evolutionToEdit, setEvolutionToEdit] = useState<PatientEvolution | undefined>(undefined);
+    const [evolutionToEdit, setEvolutionToEdit] = useState<
+        PatientEvolution | undefined
+    >(undefined);
     const [evolutionDrawerKey, setEvolutionDrawerKey] = useState(0);
     const [evolutionViewOpen, setEvolutionViewOpen] = useState(false);
-    const [evolutionToView, setEvolutionToView] = useState<PatientEvolution | undefined>(undefined);
+    const [evolutionToView, setEvolutionToView] = useState<
+        PatientEvolution | undefined
+    >(undefined);
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-    const [sendQuestionnaireModalOpen, setSendQuestionnaireModalOpen] = useState(false);
-    const [evolutionToDelete, setEvolutionToDelete] = useState<PatientEvolution | undefined>(undefined);
+    const [sendQuestionnaireModalOpen, setSendQuestionnaireModalOpen] =
+        useState(false);
+    const [evolutionToDelete, setEvolutionToDelete] = useState<
+        PatientEvolution | undefined
+    >(undefined);
     const [questionnaireViewOpen, setQuestionnaireViewOpen] = useState(false);
-    const [questionnaireToView, setQuestionnaireToView] = useState<PatientQuestionnaire | null>(null);
-    const [questionnaireToDelete, setQuestionnaireToDelete] = useState<PatientQuestionnaire | null>(null);
+    const [questionnaireToView, setQuestionnaireToView] =
+        useState<PatientQuestionnaire | null>(null);
+    const [questionnaireToDelete, setQuestionnaireToDelete] =
+        useState<PatientQuestionnaire | null>(null);
 
     const openEvolutionDrawer = (evolution?: PatientEvolution) => {
         setEvolutionToEdit(evolution);
@@ -179,7 +207,11 @@ export default function PatientRecordPage() {
         if (ev) openEvolutionDrawer(ev);
     };
 
-    const { data: patient, isLoading: loadingPatient, isError: errorPatient } = usePatient(id);
+    const {
+        data: patient,
+        isLoading: loadingPatient,
+        isError: errorPatient,
+    } = usePatient(id);
 
     const {
         data: assessments,
@@ -196,7 +228,11 @@ export default function PatientRecordPage() {
     const { mutate: deleteEvolution } = useDeleteEvolution(id ?? '');
     const { mutate: deleteQuestionnaire } = useDeleteQuestionnaire(id ?? '');
 
-    const { data: files, isLoading: loadingFiles, isError: errorFiles } = usePatientFiles(id ?? '');
+    const {
+        data: files,
+        isLoading: loadingFiles,
+        isError: errorFiles,
+    } = usePatientFiles(id ?? '');
 
     const {
         data: questionnaires,
@@ -241,15 +277,15 @@ export default function PatientRecordPage() {
         return (
             <ClinicLayout>
                 <div className="flex h-full flex-col items-center justify-center space-y-4 py-16">
-                    <div className="bg-destructive/10 text-destructive flex h-14 w-14 items-center justify-center rounded-full">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                         <User className="h-7 w-7" />
                     </div>
-                    <h2 className="text-foreground text-lg font-semibold">
+                    <h2 className="text-lg font-semibold text-foreground">
                         Paciente não encontrado
                     </h2>
-                    <p className="text-muted-foreground text-sm">
-                        O paciente que você está tentando acessar não existe ou ocorreu um erro de
-                        conexão.
+                    <p className="text-sm text-muted-foreground">
+                        O paciente que você está tentando acessar não existe ou
+                        ocorreu um erro de conexão.
                     </p>
                     <Button
                         variant="outline"
@@ -268,39 +304,43 @@ export default function PatientRecordPage() {
         <ClinicLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center gap-4 px-6 py-4">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => navigate('/clinica/pacientes')}
+                                    onClick={() =>
+                                        navigate('/clinica/pacientes')
+                                    }
                                     className="h-9 w-9 cursor-pointer"
                                 >
                                     <ArrowLeft className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom">Voltar</TooltipContent>
+                            <TooltipContent side="bottom">
+                                Voltar
+                            </TooltipContent>
                         </Tooltip>
                         <Avatar className="h-10 w-10">
                             {loadingPatient ? (
                                 <Skeleton className="h-full w-full rounded-full" />
                             ) : (
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                <AvatarFallback className="bg-primary/10 font-medium text-primary">
                                     {patient?.name.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             )}
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-foreground truncate text-lg font-semibold">
+                            <h1 className="truncate text-lg font-semibold text-foreground">
                                 Prontuário
                             </h1>
                             <div className="flex items-center gap-1">
                                 {loadingPatient ? (
                                     <Skeleton className="h-4 w-48" />
                                 ) : (
-                                    <p className="text-muted-foreground truncate text-sm">
+                                    <p className="truncate text-sm text-muted-foreground">
                                         {patient?.name}
                                     </p>
                                 )}
@@ -310,14 +350,18 @@ export default function PatientRecordPage() {
                                             variant="ghost"
                                             size="icon"
                                             onClick={() =>
-                                                navigate(`/clinica/pacientes/${id}/editar`)
+                                                navigate(
+                                                    `/clinica/pacientes/${id}/editar`,
+                                                )
                                             }
                                             className="h-6 w-6 cursor-pointer"
                                         >
                                             <Pencil className="h-3 w-3" />
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom">Editar paciente</TooltipContent>
+                                    <TooltipContent side="bottom">
+                                        Editar paciente
+                                    </TooltipContent>
                                 </Tooltip>
                             </div>
                         </div>
@@ -333,7 +377,9 @@ export default function PatientRecordPage() {
                                 <DropdownMenuItem
                                     className="cursor-pointer gap-2"
                                     onClick={() =>
-                                        navigate(`/clinica/pacientes/${id}/avaliacoes/nova`)
+                                        navigate(
+                                            `/clinica/pacientes/${id}/avaliacoes/nova`,
+                                        )
                                     }
                                 >
                                     <Activity className="h-4 w-4" />
@@ -348,14 +394,19 @@ export default function PatientRecordPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="cursor-pointer gap-2"
-                                    onClick={() => id && setSendQuestionnaireModalOpen(true)}
+                                    onClick={() =>
+                                        id &&
+                                        setSendQuestionnaireModalOpen(true)
+                                    }
                                 >
                                     <ClipboardList className="h-4 w-4" />
                                     Questionário
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="cursor-pointer gap-2"
-                                    onClick={() => id && setFileUploadModalOpen(true)}
+                                    onClick={() =>
+                                        id && setFileUploadModalOpen(true)
+                                    }
                                 >
                                     <Upload className="h-4 w-4" />
                                     Adicionar arquivos
@@ -366,9 +417,9 @@ export default function PatientRecordPage() {
                 </header>
 
                 {/* Search bar */}
-                <div className="border-border flex flex-wrap items-center gap-3 border-b px-6 py-3">
+                <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-3">
                     <div className="relative max-w-sm min-w-[200px] flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar registros..."
                             value={searchTerm}
@@ -376,7 +427,11 @@ export default function PatientRecordPage() {
                             className="pl-9"
                         />
                     </div>
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer gap-2"
+                    >
                         <SlidersHorizontal className="h-4 w-4" />
                         Filtros
                     </Button>
@@ -390,41 +445,51 @@ export default function PatientRecordPage() {
                         className="flex h-full flex-col"
                     >
                         <div className="px-6 pt-4">
-                            <TabsList className="bg-muted/50 flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg p-1">
+                            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-lg bg-muted/50 p-1">
                                 <TabsTrigger
                                     value="all"
-                                    className="data-[state=active]:bg-background cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:shadow-sm"
+                                    className="cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
                                 >
                                     <LayoutList className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Todos</span>
+                                    <span className="hidden sm:inline">
+                                        Todos
+                                    </span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="evolution"
-                                    className="data-[state=active]:bg-background cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:shadow-sm"
+                                    className="cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
                                 >
                                     <FileText className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Evoluções</span>
+                                    <span className="hidden sm:inline">
+                                        Evoluções
+                                    </span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="assessment"
-                                    className="data-[state=active]:bg-background cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:shadow-sm"
+                                    className="cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
                                 >
                                     <Activity className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Avaliações</span>
+                                    <span className="hidden sm:inline">
+                                        Avaliações
+                                    </span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="questionnaire"
-                                    className="data-[state=active]:bg-background cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:shadow-sm"
+                                    className="cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
                                 >
                                     <ClipboardList className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Questionários</span>
+                                    <span className="hidden sm:inline">
+                                        Questionários
+                                    </span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="files"
-                                    className="data-[state=active]:bg-background cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:shadow-sm"
+                                    className="cursor-pointer gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
                                 >
                                     <Paperclip className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Arquivos</span>
+                                    <span className="hidden sm:inline">
+                                        Arquivos
+                                    </span>
                                     <Badge
                                         variant="secondary"
                                         className="ml-1 px-1.5 py-0 text-[10px]"
@@ -448,7 +513,10 @@ export default function PatientRecordPage() {
                         </TabsContent>
 
                         {/* Evoluções */}
-                        <TabsContent value="evolution" className="flex-1 px-6 py-4">
+                        <TabsContent
+                            value="evolution"
+                            className="flex-1 px-6 py-4"
+                        >
                             <div className="max-w-3xl space-y-4">
                                 {loadingEvolutions && (
                                     <>
@@ -457,33 +525,44 @@ export default function PatientRecordPage() {
                                     </>
                                 )}
                                 {errorEvolutions && (
-                                    <p className="text-destructive text-sm">
+                                    <p className="text-sm text-destructive">
                                         Erro ao carregar evoluções.
                                     </p>
                                 )}
-                                {!loadingEvolutions && filteredEvolutions.length === 0 && (
-                                    <p className="text-muted-foreground text-sm">
-                                        Nenhuma evolução registrada.
-                                    </p>
-                                )}
+                                {!loadingEvolutions &&
+                                    filteredEvolutions.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhuma evolução registrada.
+                                        </p>
+                                    )}
                                 {filteredEvolutions.map((ev) => (
                                     <RecordCard
                                         key={ev.id}
                                         icon={FileText}
-                                        title={ev.title || 'Sessão de Fisioterapia'}
-                                        date={new Date(ev.createdAt).toLocaleDateString('pt-BR')}
-                                        badge={ev.status === 'signed' ? 'Assinada' : 'Rascunho'}
+                                        title={
+                                            ev.title || 'Sessão de Fisioterapia'
+                                        }
+                                        date={new Date(
+                                            ev.createdAt,
+                                        ).toLocaleDateString('pt-BR')}
+                                        badge={
+                                            ev.status === 'signed'
+                                                ? 'Assinada'
+                                                : 'Rascunho'
+                                        }
                                         badgeVariant={
-                                            ev.status === 'signed' ? 'active' : 'neutral'
+                                            ev.status === 'signed'
+                                                ? 'active'
+                                                : 'neutral'
                                         }
                                     >
-                                        <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
+                                        <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
                                             {ev.generatedText ||
                                                 ev.notes ||
                                                 'Sem texto preenchido.'}
                                         </p>
                                         {ev.clinicUser && (
-                                            <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                                 <Avatar className="h-5 w-5">
                                                     <AvatarFallback className="bg-muted text-[9px]">
                                                         {ev.clinicUser.name[0]}
@@ -491,7 +570,7 @@ export default function PatientRecordPage() {
                                                 </Avatar>
                                                 <span>
                                                     Criado por{' '}
-                                                    <span className="text-foreground font-medium">
+                                                    <span className="font-medium text-foreground">
                                                         {ev.clinicUser.name}
                                                     </span>
                                                 </span>
@@ -504,8 +583,12 @@ export default function PatientRecordPage() {
                                                 className="cursor-pointer gap-1.5"
                                                 onClick={() =>
                                                     ev.status === 'signed'
-                                                        ? openEvolutionViewDrawer(ev)
-                                                        : openEvolutionDrawer(ev)
+                                                        ? openEvolutionViewDrawer(
+                                                              ev,
+                                                          )
+                                                        : openEvolutionDrawer(
+                                                              ev,
+                                                          )
                                                 }
                                             >
                                                 {ev.status === 'signed' ? (
@@ -523,7 +606,11 @@ export default function PatientRecordPage() {
                                                         variant="outline"
                                                         size="sm"
                                                         className="cursor-pointer gap-1.5"
-                                                        onClick={() => openEvolutionViewDrawer(ev)}
+                                                        onClick={() =>
+                                                            openEvolutionViewDrawer(
+                                                                ev,
+                                                            )
+                                                        }
                                                     >
                                                         <FileText className="h-3.5 w-3.5" />
                                                         Visualizar texto
@@ -531,8 +618,12 @@ export default function PatientRecordPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-destructive hover:text-destructive cursor-pointer gap-1.5"
-                                                        onClick={() => setEvolutionToDelete(ev)}
+                                                        className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
+                                                        onClick={() =>
+                                                            setEvolutionToDelete(
+                                                                ev,
+                                                            )
+                                                        }
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
                                                         Excluir rascunho
@@ -546,7 +637,10 @@ export default function PatientRecordPage() {
                         </TabsContent>
 
                         {/* Avaliações */}
-                        <TabsContent value="assessment" className="flex-1 px-6 py-4">
+                        <TabsContent
+                            value="assessment"
+                            className="flex-1 px-6 py-4"
+                        >
                             <div className="max-w-3xl space-y-4">
                                 {loadingAssessments && (
                                     <>
@@ -555,15 +649,16 @@ export default function PatientRecordPage() {
                                     </>
                                 )}
                                 {errorAssessments && (
-                                    <p className="text-destructive text-sm">
+                                    <p className="text-sm text-destructive">
                                         Erro ao carregar avaliações.
                                     </p>
                                 )}
-                                {!loadingAssessments && filteredAssessments.length === 0 && (
-                                    <p className="text-muted-foreground text-sm">
-                                        Nenhuma avaliação registrada.
-                                    </p>
-                                )}
+                                {!loadingAssessments &&
+                                    filteredAssessments.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhuma avaliação registrada.
+                                        </p>
+                                    )}
                                 {filteredAssessments.map((a) => (
                                     <RecordCard
                                         key={a.id}
@@ -571,14 +666,24 @@ export default function PatientRecordPage() {
                                         title={a.template.name}
                                         date={
                                             a.signedAt
-                                                ? new Date(a.signedAt).toLocaleDateString('pt-BR')
+                                                ? new Date(
+                                                      a.signedAt,
+                                                  ).toLocaleDateString('pt-BR')
                                                 : '—'
                                         }
-                                        badge={a.status === 'signed' ? 'Assinada' : 'Rascunho'}
-                                        badgeVariant={a.status === 'signed' ? 'active' : 'neutral'}
+                                        badge={
+                                            a.status === 'signed'
+                                                ? 'Assinada'
+                                                : 'Rascunho'
+                                        }
+                                        badgeVariant={
+                                            a.status === 'signed'
+                                                ? 'active'
+                                                : 'neutral'
+                                        }
                                     >
                                         {a.clinicUser && (
-                                            <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                                 <Avatar className="h-5 w-5">
                                                     <AvatarFallback className="bg-muted text-[9px]">
                                                         {a.clinicUser.name[0]}
@@ -586,7 +691,7 @@ export default function PatientRecordPage() {
                                                 </Avatar>
                                                 <span>
                                                     Por{' '}
-                                                    <span className="text-foreground font-medium">
+                                                    <span className="font-medium text-foreground">
                                                         {a.clinicUser.name}
                                                     </span>
                                                 </span>
@@ -615,7 +720,10 @@ export default function PatientRecordPage() {
                         </TabsContent>
 
                         {/* Questionários */}
-                        <TabsContent value="questionnaire" className="flex-1 px-6 py-4">
+                        <TabsContent
+                            value="questionnaire"
+                            className="flex-1 px-6 py-4"
+                        >
                             <div className="max-w-3xl space-y-4">
                                 {loadingQuestionnaires && (
                                     <>
@@ -624,90 +732,118 @@ export default function PatientRecordPage() {
                                     </>
                                 )}
                                 {errorQuestionnaires && (
-                                    <p className="text-destructive text-sm">
+                                    <p className="text-sm text-destructive">
                                         Erro ao carregar questionários.
                                     </p>
                                 )}
-                                {!loadingQuestionnaires && filteredQuestionnaires.length === 0 && (
-                                    <p className="text-muted-foreground text-sm">
-                                        Nenhum questionário registrado.
-                                    </p>
-                                )}
+                                {!loadingQuestionnaires &&
+                                    filteredQuestionnaires.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhum questionário registrado.
+                                        </p>
+                                    )}
                                 {filteredQuestionnaires.map((q) => {
-                                    const templateTitle = q.template?.title ?? null;
+                                    const templateTitle =
+                                        q.template?.title ?? null;
                                     const returnTo = encodeURIComponent(
                                         `/clinica/pacientes/${id}?tab=questionnaires`,
                                     );
                                     return (
-                                    <RecordCard
-                                        key={q.id}
-                                        icon={ClipboardList}
-                                        title={templateTitle ?? '[Template excluído]'}
-                                        date={new Date(q.createdAt).toLocaleDateString('pt-BR')}
-                                        badge={
-                                            q.status === 'answered'
-                                                ? 'Respondido'
-                                                : q.status === 'expired'
-                                                  ? 'Expirado'
-                                                  : 'Pendente'
-                                        }
-                                        badgeVariant={
-                                            q.status === 'answered'
-                                                ? 'active'
-                                                : q.status === 'expired'
-                                                  ? 'danger'
-                                                  : 'neutral'
-                                        }
-                                        onDelete={q.status !== 'answered' ? () => setQuestionnaireToDelete(q) : undefined}
-                                    >
-                                        <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
-                                            {q.clinicUser && (
-                                                <>
-                                                    <Avatar className="h-5 w-5">
-                                                        <AvatarFallback className="bg-muted text-[9px]">
-                                                            {q.clinicUser.name[0]}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span>
-                                                        Por{' '}
-                                                        <span className="text-foreground font-medium">
-                                                            {q.clinicUser.name}
+                                        <RecordCard
+                                            key={q.id}
+                                            icon={ClipboardList}
+                                            title={
+                                                templateTitle ??
+                                                '[Template excluído]'
+                                            }
+                                            date={new Date(
+                                                q.createdAt,
+                                            ).toLocaleDateString('pt-BR')}
+                                            badge={
+                                                q.status === 'answered'
+                                                    ? 'Respondido'
+                                                    : q.status === 'expired'
+                                                      ? 'Expirado'
+                                                      : 'Pendente'
+                                            }
+                                            badgeVariant={
+                                                q.status === 'answered'
+                                                    ? 'active'
+                                                    : q.status === 'expired'
+                                                      ? 'danger'
+                                                      : 'neutral'
+                                            }
+                                            onDelete={
+                                                q.status !== 'answered'
+                                                    ? () =>
+                                                          setQuestionnaireToDelete(
+                                                              q,
+                                                          )
+                                                    : undefined
+                                            }
+                                        >
+                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                                {q.clinicUser && (
+                                                    <>
+                                                        <Avatar className="h-5 w-5">
+                                                            <AvatarFallback className="bg-muted text-[9px]">
+                                                                {
+                                                                    q.clinicUser
+                                                                        .name[0]
+                                                                }
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span>
+                                                            Por{' '}
+                                                            <span className="font-medium text-foreground">
+                                                                {
+                                                                    q.clinicUser
+                                                                        .name
+                                                                }
+                                                            </span>
                                                         </span>
-                                                    </span>
-                                                    <span className="mx-1">•</span>
-                                                </>
-                                            )}
-                                            <span>Modalidade: {q.modality}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer"
-                                                onClick={() => {
-                                                    setQuestionnaireToView(q);
-                                                    setQuestionnaireViewOpen(true);
-                                                }}
-                                            >
-                                                Ver questionário
-                                            </Button>
-                                            {templateTitle && (
+                                                        <span className="mx-1">
+                                                            •
+                                                        </span>
+                                                    </>
+                                                )}
+                                                <span>
+                                                    Modalidade: {q.modality}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    className="cursor-pointer gap-1.5"
-                                                    onClick={() =>
-                                                        navigate(
-                                                            `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
-                                                        )
-                                                    }
+                                                    className="cursor-pointer"
+                                                    onClick={() => {
+                                                        setQuestionnaireToView(
+                                                            q,
+                                                        );
+                                                        setQuestionnaireViewOpen(
+                                                            true,
+                                                        );
+                                                    }}
                                                 >
-                                                    <Edit2 className="h-3.5 w-3.5" />
-                                                    Editar
+                                                    Ver questionário
                                                 </Button>
-                                            )}
-                                        </div>
-                                    </RecordCard>
+                                                {templateTitle && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="cursor-pointer gap-1.5"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                        Editar
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </RecordCard>
                                     );
                                 })}
                             </div>
@@ -723,15 +859,16 @@ export default function PatientRecordPage() {
                                     </>
                                 )}
                                 {errorFiles && (
-                                    <p className="text-destructive text-sm">
+                                    <p className="text-sm text-destructive">
                                         Erro ao carregar arquivos.
                                     </p>
                                 )}
-                                {!loadingFiles && filteredFiles.length === 0 && (
-                                    <p className="text-muted-foreground text-sm">
-                                        Nenhum arquivo registrado.
-                                    </p>
-                                )}
+                                {!loadingFiles &&
+                                    filteredFiles.length === 0 && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhum arquivo registrado.
+                                        </p>
+                                    )}
                                 {filteredFiles.map((file) => (
                                     <Card
                                         key={file.id}
@@ -739,11 +876,16 @@ export default function PatientRecordPage() {
                                     >
                                         <CardHeader className="pb-2">
                                             <div className="flex items-start gap-3">
-                                                <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
-                                                    {file.mimeType?.startsWith('image/') ? (
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-primary">
+                                                    {file.mimeType?.startsWith(
+                                                        'image/',
+                                                    ) ? (
                                                         <img
                                                             src={file.cdnUrl}
-                                                            alt={file.name ?? file.originalName}
+                                                            alt={
+                                                                file.name ??
+                                                                file.originalName
+                                                            }
                                                             className="h-10 w-10 object-cover"
                                                         />
                                                     ) : (
@@ -751,29 +893,43 @@ export default function PatientRecordPage() {
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <h3 className="text-foreground truncate text-sm font-semibold">
-                                                        {file.name ?? file.originalName}
+                                                    <h3 className="truncate text-sm font-semibold text-foreground">
+                                                        {file.name ??
+                                                            file.originalName}
                                                     </h3>
-                                                    <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                                                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                                                         <span>
-                                                            {(file.size / 1024).toFixed(1)} kb
+                                                            {(
+                                                                file.size / 1024
+                                                            ).toFixed(1)}{' '}
+                                                            kb
                                                         </span>
                                                         <span>•</span>
                                                         <span>
                                                             {new Date(
                                                                 file.createdAt,
-                                                            ).toLocaleDateString('pt-BR')}
+                                                            ).toLocaleDateString(
+                                                                'pt-BR',
+                                                            )}
                                                         </span>
                                                     </div>
                                                     {file.clinicUser && (
-                                                        <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+                                                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                                             <User className="h-3 w-3" />
-                                                            <span>{file.clinicUser.name}</span>
+                                                            <span>
+                                                                {
+                                                                    file
+                                                                        .clinicUser
+                                                                        .name
+                                                                }
+                                                            </span>
                                                         </div>
                                                     )}
                                                 </div>
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                    >
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -786,7 +942,10 @@ export default function PatientRecordPage() {
                                                         <DropdownMenuItem
                                                             className="cursor-pointer gap-2"
                                                             onClick={() =>
-                                                                window.open(file.cdnUrl, '_blank')
+                                                                window.open(
+                                                                    file.cdnUrl,
+                                                                    '_blank',
+                                                                )
                                                             }
                                                         >
                                                             <Download className="h-4 w-4" />
@@ -852,10 +1011,12 @@ export default function PatientRecordPage() {
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir questionário</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Excluir questionário
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tem certeza que deseja excluir este questionário do paciente? Esta ação
-                            não pode ser desfeita.
+                            Tem certeza que deseja excluir este questionário do
+                            paciente? Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -864,7 +1025,9 @@ export default function PatientRecordPage() {
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
                                 if (questionnaireToDelete)
-                                    deleteQuestionnaire(String(questionnaireToDelete.id));
+                                    deleteQuestionnaire(
+                                        String(questionnaireToDelete.id),
+                                    );
                                 setQuestionnaireToDelete(null);
                             }}
                         >
@@ -876,15 +1039,22 @@ export default function PatientRecordPage() {
 
             <AlertDialog
                 open={!!evolutionToDelete}
-                onOpenChange={(open) => !open && setEvolutionToDelete(undefined)}
+                onOpenChange={(open) =>
+                    !open && setEvolutionToDelete(undefined)
+                }
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Excluir rascunho</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>"{evolutionToDelete?.title || 'Sessão de Fisioterapia'}"</strong>?
-                            Esta ação não pode ser desfeita.
+                            <strong>
+                                "
+                                {evolutionToDelete?.title ||
+                                    'Sessão de Fisioterapia'}
+                                "
+                            </strong>
+                            ? Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -892,7 +1062,10 @@ export default function PatientRecordPage() {
                         <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
-                                if (evolutionToDelete) deleteEvolution(String(evolutionToDelete.id));
+                                if (evolutionToDelete)
+                                    deleteEvolution(
+                                        String(evolutionToDelete.id),
+                                    );
                                 setEvolutionToDelete(undefined);
                             }}
                         >

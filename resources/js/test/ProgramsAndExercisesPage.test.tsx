@@ -86,7 +86,10 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
             isPending: false,
         } as any);
 
-        vi.spyOn(useProgramsHook, 'useConvertToModelClinicProgram').mockReturnValue({
+        vi.spyOn(
+            useProgramsHook,
+            'useConvertToModelClinicProgram',
+        ).mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
         } as any);
@@ -97,7 +100,13 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
         } as any);
 
         vi.spyOn(useProgramsHook, 'useClinicPrograms').mockReturnValue({
-            data: { items: [], total: 0, lastPage: 1, perPage: 10, currentPage: 1 },
+            data: {
+                items: [],
+                total: 0,
+                lastPage: 1,
+                perPage: 10,
+                currentPage: 1,
+            },
         } as unknown as ReturnType<typeof useProgramsHook.useClinicPrograms>);
     });
 
@@ -151,7 +160,9 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
 
         renderPage();
 
-        expect(screen.getAllByText('Não visualizado').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Não visualizado').length).toBeGreaterThan(
+            0,
+        );
         expect(screen.getAllByText('Visualizado').length).toBeGreaterThan(0);
         expect(screen.getAllByText(/Completou • 6x/).length).toBeGreaterThan(0);
         expect(screen.getAllByText('Rascunho').length).toBeGreaterThan(0);
@@ -160,7 +171,13 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
     it('exibe contagem de exercícios na tabela', () => {
         vi.spyOn(useProgramsHook, 'useClinicPrograms').mockReturnValue({
             data: {
-                items: [baseProgram({ id: '1', title: 'Com exercícios', exerciseCount: 12 })],
+                items: [
+                    baseProgram({
+                        id: '1',
+                        title: 'Com exercícios',
+                        exerciseCount: 12,
+                    }),
+                ],
                 total: 1,
                 lastPage: 1,
                 perPage: 10,

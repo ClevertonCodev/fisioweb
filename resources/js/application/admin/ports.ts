@@ -1,5 +1,11 @@
 /** Portas (interfaces) do contexto admin */
-import type { AdminProgram, Clinic, Feature, FeaturePlan, Plan } from '@/domain/admin';
+import type {
+    AdminProgram,
+    Clinic,
+    Feature,
+    FeaturePlan,
+    Plan,
+} from '@/domain/admin';
 
 export interface LoginAsClinicResponse {
     access_token: string;
@@ -58,7 +64,11 @@ export interface FeaturePlanWriteDto {
 }
 
 export interface PlansRepository {
-    list(params?: { search?: string; per_page?: number; page?: number }): Promise<Plan[]>;
+    list(params?: {
+        search?: string;
+        per_page?: number;
+        page?: number;
+    }): Promise<Plan[]>;
     getById(id: number): Promise<Plan | null>;
     getFeaturePlans(params?: { plan_id?: number }): Promise<FeaturePlan[]>;
     create(data: PlanWriteDto): Promise<Plan>;
@@ -129,8 +139,16 @@ export interface AdminExercise {
 }
 
 export interface AdminExerciseOptions {
-    physio_areas: { id: number; name: string; subareas?: { id: number; name: string }[] }[];
-    body_regions: { id: number; name: string; children?: { id: number; name: string }[] }[];
+    physio_areas: {
+        id: number;
+        name: string;
+        subareas?: { id: number; name: string }[];
+    }[];
+    body_regions: {
+        id: number;
+        name: string;
+        children?: { id: number; name: string }[];
+    }[];
     difficulties: Record<string, string>;
     movement_forms: Record<string, string>;
     videos: unknown[];
@@ -188,7 +206,11 @@ export interface AdminVideosRepository {
         meta: AdminVideosListMeta;
     }>;
     getById(id: number): Promise<AdminVideo | null>;
-    requestPresignedUpload(params: { filename: string; mime_type: string; size: number }): Promise<{
+    requestPresignedUpload(params: {
+        filename: string;
+        mime_type: string;
+        size: number;
+    }): Promise<{
         video_id: number;
         upload_url: string;
         path: string;
@@ -280,6 +302,9 @@ export interface AdminProgramsRepository {
     getById(id: number): Promise<AdminProgram>;
     getDetail(id: number): Promise<AdminProgram>;
     create(dto: AdminProgramWriteDto): Promise<AdminProgram>;
-    update(id: number, dto: Partial<AdminProgramWriteDto>): Promise<AdminProgram>;
+    update(
+        id: number,
+        dto: Partial<AdminProgramWriteDto>,
+    ): Promise<AdminProgram>;
     destroy(id: number): Promise<void>;
 }

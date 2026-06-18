@@ -23,12 +23,19 @@ class ClinicUserController extends Controller
 
     public function professionals(): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $users    = ClinicUser::query()
-            ->where('clinic_id', $clinicId)
+        $authUser = Auth::guard('clinic')->user();
+
+        $query = ClinicUser::query()
+            ->where('clinic_id', $authUser->clinic_id)
             ->where('status', ClinicUser::STATUS_ACTIVE)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+            ->where('role', ClinicUser::ROLE_PHYSIOTHERAPIST);
+
+        // Fisioterapeuta só enxerga (e marca para) ele mesmo (FR-012).
+        if ($authUser->isPhysiotherapist()) {
+            $query->where('id', $authUser->id);
+        }
+
+        $users = $query->orderBy('name')->get(['id', 'name']);
 
         return response()->json(['data' => $users]);
     }

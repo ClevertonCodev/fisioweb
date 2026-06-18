@@ -23,7 +23,10 @@ export async function login(
     guard: AuthGuard,
     credentials: LoginCredentials,
 ): Promise<LoginResponse> {
-    const { data } = await apiClient.post<LoginResponse>(`/${guard}/auth/login`, credentials);
+    const { data } = await apiClient.post<LoginResponse>(
+        `/${guard}/auth/login`,
+        credentials,
+    );
     setStoredAuth(data.access_token, guard);
     return data;
 }
@@ -44,7 +47,9 @@ export interface RefreshResponse {
 }
 
 export async function refresh(guard: AuthGuard): Promise<RefreshResponse> {
-    const { data } = await apiClient.post<RefreshResponse>(`/${guard}/auth/refresh`);
+    const { data } = await apiClient.post<RefreshResponse>(
+        `/${guard}/auth/refresh`,
+    );
     setStoredAuth(data.access_token, guard);
     return data;
 }
@@ -63,7 +68,10 @@ export function decodeJwtExp(token: string): number | null {
     }
 }
 
-export async function forgotPassword(guard: AuthGuard, email: string): Promise<void> {
+export async function forgotPassword(
+    guard: AuthGuard,
+    email: string,
+): Promise<void> {
     await apiClient.post(`/${guard}/auth/forgot-password`, { email });
 }
 

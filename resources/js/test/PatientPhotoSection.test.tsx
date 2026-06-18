@@ -18,7 +18,9 @@ vi.mock('@/components/ImageCropModal', () => ({
     }) =>
         open && imageFile ? (
             <div data-testid="crop-modal">
-                <button onClick={() => onConfirm(imageFile)}>Confirmar recorte</button>
+                <button onClick={() => onConfirm(imageFile)}>
+                    Confirmar recorte
+                </button>
             </div>
         ) : null,
 }));
@@ -30,7 +32,9 @@ function makeFile(name = 'photo.jpg', type = 'image/jpeg', sizeBytes = 512) {
 describe('PatientPhotoSection', () => {
     it('renderiza botão de escolha e placeholder de ícone sem foto', () => {
         render(<PatientPhotoSection value={null} onChange={() => {}} />);
-        expect(screen.getByRole('button', { name: /escolher uma foto/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /escolher uma foto/i }),
+        ).toBeInTheDocument();
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
     });
 
@@ -45,7 +49,9 @@ describe('PatientPhotoSection', () => {
         // img com alt="" tem role "presentation" no accessible tree
         const img = document.querySelector('img');
         expect(img).toHaveAttribute('src', 'https://cdn.example.com/photo.jpg');
-        expect(screen.getByRole('button', { name: /remover/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /remover/i }),
+        ).toBeInTheDocument();
     });
 
     it('abre crop modal ao selecionar imagem válida e chama onChange após confirmar', async () => {
@@ -53,7 +59,9 @@ describe('PatientPhotoSection', () => {
         const onChange = vi.fn();
         render(<PatientPhotoSection value={null} onChange={onChange} />);
 
-        const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const input = document.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
         const file = makeFile('foto.jpg', 'image/jpeg');
         await user.upload(input, file);
 
@@ -61,7 +69,9 @@ describe('PatientPhotoSection', () => {
         expect(await screen.findByTestId('crop-modal')).toBeInTheDocument();
 
         // Confirma o recorte
-        await user.click(screen.getByRole('button', { name: /confirmar recorte/i }));
+        await user.click(
+            screen.getByRole('button', { name: /confirmar recorte/i }),
+        );
 
         expect(onChange).toHaveBeenCalledOnce();
         expect(onChange).toHaveBeenCalledWith(file);
@@ -70,14 +80,21 @@ describe('PatientPhotoSection', () => {
     it('exibe erro para tipo de arquivo inválido', async () => {
         render(<PatientPhotoSection value={null} onChange={() => {}} />);
 
-        const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const input = document.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
         const pdfFile = makeFile('doc.pdf', 'application/pdf');
 
         // fireEvent bypassa o filtro `accept` do browser — necessário para testar a validação interna
-        Object.defineProperty(input, 'files', { value: [pdfFile], configurable: true });
+        Object.defineProperty(input, 'files', {
+            value: [pdfFile],
+            configurable: true,
+        });
         fireEvent.change(input);
 
-        expect(await screen.findByRole('alert')).toHaveTextContent(/jpeg, png ou webp/i);
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+            /jpeg, png ou webp/i,
+        );
         expect(screen.queryByTestId('crop-modal')).not.toBeInTheDocument();
     });
 
@@ -85,7 +102,9 @@ describe('PatientPhotoSection', () => {
         const user = userEvent.setup();
         render(<PatientPhotoSection value={null} onChange={() => {}} />);
 
-        const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const input = document.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
         const bigFile = makeFile('big.jpg', 'image/jpeg', 2 * 1024 * 1024 + 1);
         await user.upload(input, bigFile);
 
@@ -105,7 +124,9 @@ describe('PatientPhotoSection', () => {
 
     it('oculta botão Remover quando não há arquivo nem foto atual', () => {
         render(<PatientPhotoSection value={null} onChange={() => {}} />);
-        expect(screen.queryByRole('button', { name: /remover/i })).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /remover/i }),
+        ).not.toBeInTheDocument();
     });
 
     it('exibe nome do arquivo selecionado', () => {

@@ -42,11 +42,19 @@ function freeTextValuesPayload(
     freeTexts: Record<number, string>,
 ): { itemId: number; value: string }[] {
     return Object.entries(freeTexts)
-        .filter(([idStr, value]) => checkedIds.has(Number(idStr)) && value.trim() !== '')
+        .filter(
+            ([idStr, value]) =>
+                checkedIds.has(Number(idStr)) && value.trim() !== '',
+        )
         .map(([idStr, value]) => ({ itemId: Number(idStr), value }));
 }
 
-export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionToEdit }: EvolutionFormDrawerProps) {
+export function EvolutionFormDrawer({
+    open,
+    onOpenChange,
+    patientId,
+    evolutionToEdit,
+}: EvolutionFormDrawerProps) {
     const isEditing = !!evolutionToEdit;
     const isReadOnly = evolutionToEdit?.status === 'signed';
 
@@ -55,10 +63,12 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
         evolutionToEdit?.evolutionTemplateId != null ? 'template' : 'free',
     );
     /** Template escolhido no fluxo de criação; em edição usa `templateFromEdit`. */
-    const [pickedTemplate, setPickedTemplate] = useState<EvolutionTemplate | null>(null);
+    const [pickedTemplate, setPickedTemplate] =
+        useState<EvolutionTemplate | null>(null);
     const [title, setTitle] = useState(() => evolutionToEdit?.title ?? '');
     const [checkedIds, setCheckedIds] = useState(
-        () => new Set(evolutionToEdit?.checkedItems.map((ci) => ci.itemId) ?? []),
+        () =>
+            new Set(evolutionToEdit?.checkedItems.map((ci) => ci.itemId) ?? []),
     );
     const [freeTexts, setFreeTexts] = useState<Record<number, string>>(() => {
         const texts: Record<number, string> = {};
@@ -67,20 +77,30 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
         });
         return texts;
     });
-    const [generatedText, setGeneratedText] = useState(() => evolutionToEdit?.generatedText ?? '');
+    const [generatedText, setGeneratedText] = useState(
+        () => evolutionToEdit?.generatedText ?? '',
+    );
     const [notes, setNotes] = useState(() => evolutionToEdit?.notes ?? '');
     /** Rascunho criado ao usar "Gerar texto" antes de "Salvar rascunho" (create só na primeira vez). */
-    const [draftEvolutionId, setDraftEvolutionId] = useState<string | null>(null);
+    const [draftEvolutionId, setDraftEvolutionId] = useState<string | null>(
+        null,
+    );
 
-    const { data: templates, isLoading: loadingTemplates } = useEvolutionTemplates();
+    const { data: templates, isLoading: loadingTemplates } =
+        useEvolutionTemplates();
     const createEvolution = useCreateEvolution(patientId);
     const updateEvolution = useUpdateEvolution(patientId);
     const signEvolution = useSignEvolution(patientId);
     const generateTextMutation = useGenerateEvolutionText();
 
     const templateFromEdit = useMemo(() => {
-        if (!evolutionToEdit?.evolutionTemplateId || !templates?.length) return null;
-        return templates.find((t) => t.id === evolutionToEdit.evolutionTemplateId) ?? null;
+        if (!evolutionToEdit?.evolutionTemplateId || !templates?.length)
+            return null;
+        return (
+            templates.find(
+                (t) => t.id === evolutionToEdit.evolutionTemplateId,
+            ) ?? null
+        );
     }, [evolutionToEdit, templates]);
 
     const activeTemplate = pickedTemplate ?? templateFromEdit;
@@ -93,7 +113,8 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
 
     const buildDto = () => ({
         title,
-        evolutionTemplateId: activeTemplate?.id ?? evolutionToEdit?.evolutionTemplateId ?? null,
+        evolutionTemplateId:
+            activeTemplate?.id ?? evolutionToEdit?.evolutionTemplateId ?? null,
         checkedItemIds: Array.from(checkedIds),
         freeTextValues: freeTextValuesPayload(checkedIds, freeTexts),
         generatedText: generatedText || null,
@@ -126,10 +147,16 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
             let evolutionId: string;
             if (evolutionToEdit) {
                 evolutionId = String(evolutionToEdit.id);
-                await updateEvolution.mutateAsync({ id: evolutionId, dto: buildDto() });
+                await updateEvolution.mutateAsync({
+                    id: evolutionId,
+                    dto: buildDto(),
+                });
             } else if (draftEvolutionId) {
                 evolutionId = draftEvolutionId;
-                await updateEvolution.mutateAsync({ id: evolutionId, dto: buildDto() });
+                await updateEvolution.mutateAsync({
+                    id: evolutionId,
+                    dto: buildDto(),
+                });
             } else {
                 const created = await createEvolution.mutateAsync(buildDto());
                 evolutionId = String(created.id);
@@ -159,10 +186,16 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
         try {
             let evolutionId: string;
             if (isEditing && evolutionToEdit) {
-                const updated = await updateEvolution.mutateAsync({ id: String(evolutionToEdit.id), dto });
+                const updated = await updateEvolution.mutateAsync({
+                    id: String(evolutionToEdit.id),
+                    dto,
+                });
                 evolutionId = String(updated.id);
             } else if (draftEvolutionId) {
-                const updated = await updateEvolution.mutateAsync({ id: draftEvolutionId, dto });
+                const updated = await updateEvolution.mutateAsync({
+                    id: draftEvolutionId,
+                    dto,
+                });
                 evolutionId = String(updated.id);
             } else {
                 const created = await createEvolution.mutateAsync(dto);
@@ -182,7 +215,11 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
 
     const sortedSections = useMemo(
         () =>
-            activeTemplate ? [...activeTemplate.sections].sort((a, b) => a.sortOrder - b.sortOrder) : [],
+            activeTemplate
+                ? [...activeTemplate.sections].sort(
+                      (a, b) => a.sortOrder - b.sortOrder,
+                  )
+                : [],
         [activeTemplate],
     );
 
@@ -200,7 +237,10 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+            <SheetContent
+                side="right"
+                className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl"
+            >
                 <SheetHeader className="border-b px-6 py-4">
                     <div className="flex items-center gap-2">
                         {step === 2 && !isEditing && !isReadOnly && (
@@ -225,21 +265,26 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                       : 'Evolução em texto livre'}
                         </SheetTitle>
                     </div>
-                    <SheetDescription className="sr-only">Formulário de evolução</SheetDescription>
+                    <SheetDescription className="sr-only">
+                        Formulário de evolução
+                    </SheetDescription>
                 </SheetHeader>
 
                 {step === 1 && (
                     <ScrollArea className="flex-1">
                         <div className="space-y-4 px-6 py-4">
-                            <p className="text-muted-foreground text-sm">Escolha como deseja registrar esta sessão:</p>
+                            <p className="text-sm text-muted-foreground">
+                                Escolha como deseja registrar esta sessão:
+                            </p>
 
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-sm font-semibold">
-                                    <LayoutTemplate className="text-primary h-4 w-4" />
+                                    <LayoutTemplate className="h-4 w-4 text-primary" />
                                     Usar template
                                 </div>
-                                <p className="text-muted-foreground text-xs">
-                                    Selecione um modelo e marque os itens realizados na sessão.
+                                <p className="text-xs text-muted-foreground">
+                                    Selecione um modelo e marque os itens
+                                    realizados na sessão.
                                 </p>
                                 {loadingTemplates && (
                                     <div className="space-y-2 pt-2">
@@ -247,24 +292,38 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                         <Skeleton className="h-10 w-full" />
                                     </div>
                                 )}
-                                {!loadingTemplates && templates && templates.length === 0 && (
-                                    <p className="text-muted-foreground text-xs">Nenhum template disponível.</p>
-                                )}
+                                {!loadingTemplates &&
+                                    templates &&
+                                    templates.length === 0 && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Nenhum template disponível.
+                                        </p>
+                                    )}
                                 {templates && templates.length > 0 && (
                                     <div className="space-y-2 pt-1">
                                         {templates.map((t) => (
                                             <button
                                                 key={t.id}
                                                 type="button"
-                                                className="border-border hover:bg-accent flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors"
-                                                onClick={() => selectTemplateAndGo(t)}
+                                                className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:bg-accent"
+                                                onClick={() =>
+                                                    selectTemplateAndGo(t)
+                                                }
                                             >
-                                                <span className="text-sm font-medium">{t.name}</span>
+                                                <span className="text-sm font-medium">
+                                                    {t.name}
+                                                </span>
                                                 <Badge
-                                                    variant={t.isSystem ? 'secondary' : 'outline'}
+                                                    variant={
+                                                        t.isSystem
+                                                            ? 'secondary'
+                                                            : 'outline'
+                                                    }
                                                     className="shrink-0 text-[10px]"
                                                 >
-                                                    {t.isSystem ? 'Sistema' : 'Personalizado'}
+                                                    {t.isSystem
+                                                        ? 'Sistema'
+                                                        : 'Personalizado'}
                                                 </Badge>
                                             </button>
                                         ))}
@@ -276,17 +335,20 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
 
                             <button
                                 type="button"
-                                className="border-border hover:bg-accent w-full cursor-pointer rounded-lg border p-4 text-left transition-colors"
+                                className="w-full cursor-pointer rounded-lg border border-border p-4 text-left transition-colors hover:bg-accent"
                                 onClick={goFreeText}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                         <FileText className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold">Texto livre</p>
-                                        <p className="text-muted-foreground text-xs">
-                                            Escreva a evolução diretamente em formato livre
+                                        <p className="text-sm font-semibold">
+                                            Texto livre
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Escreva a evolução diretamente em
+                                            formato livre
                                         </p>
                                     </div>
                                 </div>
@@ -299,14 +361,16 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                     <ScrollArea className="flex-1">
                         <div className="space-y-5 px-6 py-4">
                             {isReadOnly && (
-                                <p className="text-muted-foreground text-sm">
-                                    Esta evolução está assinada e não pode ser alterada.
+                                <p className="text-sm text-muted-foreground">
+                                    Esta evolução está assinada e não pode ser
+                                    alterada.
                                 </p>
                             )}
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="ev-title">
-                                    Título da sessão <span className="text-destructive">*</span>
+                                    Título da sessão{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     id="ev-title"
@@ -321,33 +385,49 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                 <>
                                     {!activeTemplate && !isReadOnly && (
                                         <>
-                                            {evolutionToEdit?.evolutionTemplateId && loadingTemplates ? (
+                                            {evolutionToEdit?.evolutionTemplateId &&
+                                            loadingTemplates ? (
                                                 <div className="space-y-2">
                                                     <Skeleton className="h-10 w-full" />
                                                     <Skeleton className="h-10 w-full" />
                                                 </div>
-                                            ) : templates && templates.length > 0 ? (
+                                            ) : templates &&
+                                              templates.length > 0 ? (
                                                 <div className="space-y-2">
-                                                    <Label>Selecionar template</Label>
+                                                    <Label>
+                                                        Selecionar template
+                                                    </Label>
                                                     {templates.map((t) => (
                                                         <button
                                                             key={t.id}
                                                             type="button"
-                                                            className="border-border hover:bg-accent flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors"
-                                                            onClick={() => setPickedTemplate(t)}
+                                                            className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:bg-accent"
+                                                            onClick={() =>
+                                                                setPickedTemplate(
+                                                                    t,
+                                                                )
+                                                            }
                                                         >
-                                                            <span className="text-sm">{t.name}</span>
+                                                            <span className="text-sm">
+                                                                {t.name}
+                                                            </span>
                                                             <Badge
-                                                                variant={t.isSystem ? 'secondary' : 'outline'}
+                                                                variant={
+                                                                    t.isSystem
+                                                                        ? 'secondary'
+                                                                        : 'outline'
+                                                                }
                                                                 className="text-[10px]"
                                                             >
-                                                                {t.isSystem ? 'Sistema' : 'Personalizado'}
+                                                                {t.isSystem
+                                                                    ? 'Sistema'
+                                                                    : 'Personalizado'}
                                                             </Badge>
                                                         </button>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <p className="text-muted-foreground text-xs">
+                                                <p className="text-xs text-muted-foreground">
                                                     {evolutionToEdit?.evolutionTemplateId
                                                         ? 'O template desta evolução não está mais disponível.'
                                                         : 'Nenhum template disponível.'}
@@ -359,63 +439,123 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                     {activeTemplate && (
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between gap-2">
-                                                <p className="text-sm font-medium">{activeTemplate.name}</p>
+                                                <p className="text-sm font-medium">
+                                                    {activeTemplate.name}
+                                                </p>
                                                 {!isEditing && !isReadOnly && (
                                                     <button
                                                         type="button"
-                                                        className="text-muted-foreground hover:text-foreground cursor-pointer text-xs underline-offset-2 hover:underline"
-                                                        onClick={() => setPickedTemplate(null)}
+                                                        className="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                                                        onClick={() =>
+                                                            setPickedTemplate(
+                                                                null,
+                                                            )
+                                                        }
                                                     >
                                                         Trocar template
                                                     </button>
                                                 )}
                                             </div>
                                             {sortedSections.map((section) => (
-                                                <div key={section.id} className="space-y-2">
-                                                    <p className="text-foreground border-b pb-1 text-sm font-semibold">
+                                                <div
+                                                    key={section.id}
+                                                    className="space-y-2"
+                                                >
+                                                    <p className="border-b pb-1 text-sm font-semibold text-foreground">
                                                         {section.title}
                                                     </p>
                                                     {section.items
-                                                        .sort((a, b) => a.sortOrder - b.sortOrder)
+                                                        .sort(
+                                                            (a, b) =>
+                                                                a.sortOrder -
+                                                                b.sortOrder,
+                                                        )
                                                         .map((item) => {
-                                                            const checked = checkedIds.has(item.id);
+                                                            const checked =
+                                                                checkedIds.has(
+                                                                    item.id,
+                                                                );
                                                             return (
-                                                                <div key={item.id} className="space-y-1.5">
+                                                                <div
+                                                                    key={
+                                                                        item.id
+                                                                    }
+                                                                    className="space-y-1.5"
+                                                                >
                                                                     <div className="flex items-start gap-2">
                                                                         <Checkbox
                                                                             id={`item-${item.id}`}
-                                                                            checked={checked}
-                                                                            onCheckedChange={() => toggleItem(item.id)}
-                                                                            disabled={isReadOnly}
+                                                                            checked={
+                                                                                checked
+                                                                            }
+                                                                            onCheckedChange={() =>
+                                                                                toggleItem(
+                                                                                    item.id,
+                                                                                )
+                                                                            }
+                                                                            disabled={
+                                                                                isReadOnly
+                                                                            }
                                                                             className="mt-0.5 cursor-pointer"
                                                                         />
                                                                         <Label
                                                                             htmlFor={`item-${item.id}`}
-                                                                            className="cursor-pointer text-sm font-normal leading-snug"
+                                                                            className="cursor-pointer text-sm leading-snug font-normal"
                                                                         >
-                                                                            {item.label}
+                                                                            {
+                                                                                item.label
+                                                                            }
                                                                         </Label>
                                                                     </div>
-                                                                    {item.hasFreeText && checked && !isReadOnly && (
-                                                                        <Input
-                                                                            placeholder={
-                                                                                item.freeTextPlaceholder ?? 'Detalhes...'
-                                                                            }
-                                                                            value={freeTexts[item.id] ?? ''}
-                                                                            onChange={(e) =>
-                                                                                setFreeTexts((prev) => ({
-                                                                                    ...prev,
-                                                                                    [item.id]: e.target.value,
-                                                                                }))
-                                                                            }
-                                                                            className="ml-6 h-8 text-sm"
-                                                                        />
-                                                                    )}
-                                                                    {item.hasFreeText && checked && isReadOnly && freeTexts[item.id] && (
-                                                                        <p className="text-muted-foreground ml-6 text-xs">
-                                                                            {freeTexts[item.id]}
-                                                                        </p>
-                                                                    )}
+                                                                    {item.hasFreeText &&
+                                                                        checked &&
+                                                                        !isReadOnly && (
+                                                                            <Input
+                                                                                placeholder={
+                                                                                    item.freeTextPlaceholder ??
+                                                                                    'Detalhes...'
+                                                                                }
+                                                                                value={
+                                                                                    freeTexts[
+                                                                                        item
+                                                                                            .id
+                                                                                    ] ??
+                                                                                    ''
+                                                                                }
+                                                                                onChange={(
+                                                                                    e,
+                                                                                ) =>
+                                                                                    setFreeTexts(
+                                                                                        (
+                                                                                            prev,
+                                                                                        ) => ({
+                                                                                            ...prev,
+                                                                                            [item.id]:
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value,
+                                                                                        }),
+                                                                                    )
+                                                                                }
+                                                                                className="ml-6 h-8 text-sm"
+                                                                            />
+                                                                        )}
+                                                                    {item.hasFreeText &&
+                                                                        checked &&
+                                                                        isReadOnly &&
+                                                                        freeTexts[
+                                                                            item
+                                                                                .id
+                                                                        ] && (
+                                                                            <p className="ml-6 text-xs text-muted-foreground">
+                                                                                {
+                                                                                    freeTexts[
+                                                                                        item
+                                                                                            .id
+                                                                                    ]
+                                                                                }
+                                                                            </p>
+                                                                        )}
                                                                 </div>
                                                             );
                                                         })}
@@ -429,10 +569,14 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                                     size="sm"
                                                     className="cursor-pointer gap-2"
                                                     disabled={isPending}
-                                                    onClick={() => void handleGenerateText()}
+                                                    onClick={() =>
+                                                        void handleGenerateText()
+                                                    }
                                                 >
                                                     <Wand2 className="h-4 w-4" />
-                                                    {generateTextMutation.isPending ? 'Gerando…' : 'Gerar texto'}
+                                                    {generateTextMutation.isPending
+                                                        ? 'Gerando…'
+                                                        : 'Gerar texto'}
                                                 </Button>
                                             )}
                                         </div>
@@ -441,12 +585,16 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                     <div className="space-y-1.5">
                                         <Label htmlFor="ev-generated">
                                             Texto gerado{' '}
-                                            <span className="text-muted-foreground text-xs font-normal">(editável)</span>
+                                            <span className="text-xs font-normal text-muted-foreground">
+                                                (editável)
+                                            </span>
                                         </Label>
                                         <Textarea
                                             id="ev-generated"
                                             value={generatedText}
-                                            onChange={(e) => setGeneratedText(e.target.value)}
+                                            onChange={(e) =>
+                                                setGeneratedText(e.target.value)
+                                            }
                                             rows={6}
                                             className="resize-none text-sm"
                                             placeholder='Use "Gerar texto" a partir do checklist ou digite aqui.'
@@ -458,12 +606,16 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
 
                             {mode === 'free' && (
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="ev-free">Texto da evolução</Label>
+                                    <Label htmlFor="ev-free">
+                                        Texto da evolução
+                                    </Label>
                                     <Textarea
                                         id="ev-free"
                                         placeholder="Descreva a sessão..."
                                         value={generatedText}
-                                        onChange={(e) => setGeneratedText(e.target.value)}
+                                        onChange={(e) =>
+                                            setGeneratedText(e.target.value)
+                                        }
                                         rows={10}
                                         className="resize-none text-sm"
                                         disabled={isReadOnly}
@@ -472,7 +624,9 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                             )}
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="ev-notes">Notas adicionais</Label>
+                                <Label htmlFor="ev-notes">
+                                    Notas adicionais
+                                </Label>
                                 <Textarea
                                     id="ev-notes"
                                     placeholder="Observações complementares..."
@@ -508,7 +662,8 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                         disabled={isPending}
                                         onClick={() => void handleSubmit(false)}
                                     >
-                                        {updateEvolution.isPending || createEvolution.isPending
+                                        {updateEvolution.isPending ||
+                                        createEvolution.isPending
                                             ? 'Salvando…'
                                             : 'Salvar rascunho'}
                                     </Button>
@@ -518,7 +673,9 @@ export function EvolutionFormDrawer({ open, onOpenChange, patientId, evolutionTo
                                         disabled={isPending}
                                         onClick={() => void handleSubmit(true)}
                                     >
-                                        {signEvolution.isPending ? 'Assinando…' : 'Assinar e salvar'}
+                                        {signEvolution.isPending
+                                            ? 'Assinando…'
+                                            : 'Assinar e salvar'}
                                     </Button>
                                 </>
                             )}

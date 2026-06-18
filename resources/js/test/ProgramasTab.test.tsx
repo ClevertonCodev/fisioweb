@@ -20,13 +20,24 @@ describe('ProgramasTab', () => {
     beforeEach(() => {
         vi.clearAllMocks();
 
-        vi.spyOn(useProgramsLibraryHook, 'useInfiniteClinicProgramsLibrary').mockReturnValue({
+        vi.spyOn(
+            useProgramsLibraryHook,
+            'useInfiniteClinicProgramsLibrary',
+        ).mockReturnValue({
             data: {
                 pages: [
                     {
                         data: [
-                            { id: 1, title: 'Modelo Vedius 1', exercisesCount: 5 },
-                            { id: 2, title: 'Modelo Vedius 2', exercisesCount: 3 },
+                            {
+                                id: 1,
+                                title: 'Modelo Vedius 1',
+                                exercisesCount: 5,
+                            },
+                            {
+                                id: 2,
+                                title: 'Modelo Vedius 2',
+                                exercisesCount: 3,
+                            },
                         ],
                         meta: { currentPage: 1, lastPage: 1, total: 2 },
                     },
@@ -39,7 +50,10 @@ describe('ProgramasTab', () => {
             isFetchingNextPage: false,
         } as any);
 
-        vi.spyOn(useProgramsLibraryHook, 'useClinicProgramLibraryDetail').mockReturnValue({
+        vi.spyOn(
+            useProgramsLibraryHook,
+            'useClinicProgramLibraryDetail',
+        ).mockReturnValue({
             data: {
                 id: 1,
                 title: 'Modelo Vedius 1',
@@ -56,8 +70,18 @@ describe('ProgramasTab', () => {
                 pages: [
                     {
                         items: [
-                            { id: '10', title: 'Meu Modelo 1', patientId: null, groups: [] },
-                            { id: '11', title: 'Meu Modelo 2', patientId: null, groups: [] },
+                            {
+                                id: '10',
+                                title: 'Meu Modelo 1',
+                                patientId: null,
+                                groups: [],
+                            },
+                            {
+                                id: '11',
+                                title: 'Meu Modelo 2',
+                                patientId: null,
+                                groups: [],
+                            },
                         ],
                         total: 2,
                         lastPage: 1,
@@ -109,14 +133,22 @@ describe('ProgramasTab', () => {
 
     it('exibe as abas Nossos modelos e Meus modelos', () => {
         renderComponent();
-        expect(screen.getByRole('tab', { name: /nossos modelos/i })).toBeInTheDocument();
-        expect(screen.getByRole('tab', { name: /meus modelos/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('tab', { name: /nossos modelos/i }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('tab', { name: /meus modelos/i }),
+        ).toBeInTheDocument();
     });
 
     it('exibe os modelos da biblioteca por padrão', () => {
         renderComponent();
-        expect(screen.getAllByText('Modelo Vedius 1').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('Modelo Vedius 2').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Modelo Vedius 1').length).toBeGreaterThan(
+            0,
+        );
+        expect(screen.getAllByText('Modelo Vedius 2').length).toBeGreaterThan(
+            0,
+        );
         expect(screen.queryByText('Meu Modelo 1')).not.toBeInTheDocument();
     });
 
@@ -129,7 +161,9 @@ describe('ProgramasTab', () => {
 
         expect(screen.getAllByText('Meu Modelo 1').length).toBeGreaterThan(0);
         expect(screen.getAllByText('Meu Modelo 2').length).toBeGreaterThan(0);
-        expect(screen.queryByText('Programa de Paciente')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Programa de Paciente'),
+        ).not.toBeInTheDocument();
     });
 
     it('renderiza o detalhe do meu modelo corretamente após clicar', async () => {
@@ -149,7 +183,9 @@ describe('ProgramasTab', () => {
         const user = userEvent.setup();
         renderComponent();
 
-        const createButton = await screen.findByRole('button', { name: /criar programa/i });
+        const createButton = await screen.findByRole('button', {
+            name: /criar programa/i,
+        });
         await user.click(createButton);
 
         expect(mockNavigate).toHaveBeenCalledWith('/clinica/programas/novo', {
@@ -176,7 +212,13 @@ describe('ProgramasTab', () => {
 
         const videoElement = container.querySelector('video');
         expect(videoElement).toBeInTheDocument();
-        expect(videoElement).toHaveAttribute('src', 'http://example.com/video.mp4');
-        expect(videoElement).toHaveAttribute('poster', 'http://example.com/thumb.jpg');
+        expect(videoElement).toHaveAttribute(
+            'src',
+            'http://example.com/video.mp4',
+        );
+        expect(videoElement).toHaveAttribute(
+            'poster',
+            'http://example.com/thumb.jpg',
+        );
     });
 });

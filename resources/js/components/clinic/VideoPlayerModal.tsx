@@ -1,5 +1,14 @@
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
-import { Maximize, Pause, Play, SkipBack, SkipForward, Star, Volume2, VolumeX } from 'lucide-react';
+import {
+    Maximize,
+    Pause,
+    Play,
+    SkipBack,
+    SkipForward,
+    Star,
+    Volume2,
+    VolumeX,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -41,7 +50,9 @@ export function VideoPlayerModal({
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null,
+    );
 
     useEffect(() => {
         if (!open) {
@@ -93,7 +104,10 @@ export function VideoPlayerModal({
     const skip = (seconds: number) => {
         const video = videoRef.current;
         if (!video) return;
-        video.currentTime = Math.max(0, Math.min(duration, video.currentTime + seconds));
+        video.currentTime = Math.max(
+            0,
+            Math.min(duration, video.currentTime + seconds),
+        );
     };
 
     const toggleFullscreen = () => {
@@ -114,7 +128,8 @@ export function VideoPlayerModal({
 
     const handleMouseMove = () => {
         setShowControls(true);
-        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        if (controlsTimeoutRef.current)
+            clearTimeout(controlsTimeoutRef.current);
         controlsTimeoutRef.current = setTimeout(() => {
             if (isPlaying) setShowControls(false);
         }, 3000);
@@ -150,8 +165,12 @@ export function VideoPlayerModal({
                             poster={exercise.thumbnailUrl}
                             className="absolute inset-0 h-full w-full object-contain"
                             onClick={togglePlay}
-                            onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                            onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                            onTimeUpdate={(e) =>
+                                setCurrentTime(e.currentTarget.currentTime)
+                            }
+                            onLoadedMetadata={(e) =>
+                                setDuration(e.currentTarget.duration)
+                            }
                             onEnded={() => setIsPlaying(false)}
                         />
 
@@ -160,8 +179,8 @@ export function VideoPlayerModal({
                                 onClick={togglePlay}
                                 className="absolute inset-0 flex cursor-pointer items-center justify-center"
                             >
-                                <div className="bg-background/80 border-border/30 flex h-16 w-16 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
-                                    <Play className="text-foreground ml-0.5 h-8 w-8" />
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
+                                    <Play className="ml-0.5 h-8 w-8 text-foreground" />
                                 </div>
                             </button>
                         )}
@@ -232,7 +251,8 @@ export function VideoPlayerModal({
                                         />
                                     </div>
                                     <span className="ml-1 text-xs whitespace-nowrap text-white">
-                                        {formatTime(currentTime)} / {formatTime(duration)}
+                                        {formatTime(currentTime)} /{' '}
+                                        {formatTime(duration)}
                                     </span>
                                 </div>
                                 <Button
@@ -250,7 +270,7 @@ export function VideoPlayerModal({
                     {/* Right — Details */}
                     <div className="flex min-w-0 flex-1 flex-col overflow-hidden p-5 pr-12">
                         <div className="mb-3 flex items-start gap-3">
-                            <h2 className="text-card-foreground min-w-0 flex-1 text-lg leading-snug font-semibold">
+                            <h2 className="min-w-0 flex-1 text-lg leading-snug font-semibold text-card-foreground">
                                 {exercise.title}
                             </h2>
                             <Badge
@@ -265,16 +285,23 @@ export function VideoPlayerModal({
                         </div>
 
                         {exercise.objective && (
-                            <p className="text-foreground mb-4 text-sm leading-relaxed">
+                            <p className="mb-4 text-sm leading-relaxed text-foreground">
                                 {exercise.objective}
                             </p>
                         )}
 
                         {metaItems.length > 0 && (
-                            <div className="text-foreground flex flex-wrap gap-x-1 gap-y-1 text-sm">
+                            <div className="flex flex-wrap gap-x-1 gap-y-1 text-sm text-foreground">
                                 {metaItems.map((item, i) => (
-                                    <span key={i} className="flex items-center gap-1">
-                                        {i > 0 && <span className="text-border">•</span>}
+                                    <span
+                                        key={i}
+                                        className="flex items-center gap-1"
+                                    >
+                                        {i > 0 && (
+                                            <span className="text-border">
+                                                •
+                                            </span>
+                                        )}
                                         {item}
                                     </span>
                                 ))}

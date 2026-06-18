@@ -24,7 +24,11 @@ function loadFromStorage(): ProgramDraft | null {
     }
 }
 
-export function useProgramDraft(step: ProgramStep, selectedIds: string[], groups: ProgramGroup[]) {
+export function useProgramDraft(
+    step: ProgramStep,
+    selectedIds: string[],
+    groups: ProgramGroup[],
+) {
     const [draft, setDraft] = useState<ProgramDraft | null>(loadFromStorage);
     const localTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,9 +43,13 @@ export function useProgramDraft(step: ProgramStep, selectedIds: string[], groups
             if (!backendDraft) return;
             setDraft((current) => {
                 // Prefere o rascunho com savedAt mais recente
-                if (current && current.savedAt >= backendDraft.savedAt) return current;
+                if (current && current.savedAt >= backendDraft.savedAt)
+                    return current;
                 try {
-                    localStorage.setItem(DRAFT_KEY, JSON.stringify(backendDraft));
+                    localStorage.setItem(
+                        DRAFT_KEY,
+                        JSON.stringify(backendDraft),
+                    );
                 } catch {
                     // quota exceeded — silencioso
                 }
@@ -58,7 +66,12 @@ export function useProgramDraft(step: ProgramStep, selectedIds: string[], groups
             try {
                 localStorage.setItem(
                     DRAFT_KEY,
-                    JSON.stringify({ step, selectedIds, groups, savedAt: Date.now() }),
+                    JSON.stringify({
+                        step,
+                        selectedIds,
+                        groups,
+                        savedAt: Date.now(),
+                    }),
                 );
             } catch {
                 // quota exceeded — silencioso
@@ -69,7 +82,12 @@ export function useProgramDraft(step: ProgramStep, selectedIds: string[], groups
         if (backendTimerRef.current) clearTimeout(backendTimerRef.current);
         backendTimerRef.current = setTimeout(() => {
             if (selectedIds.length === 0 && groups.length === 0) return;
-            const payload: ProgramDraft = { step, selectedIds, groups, savedAt: Date.now() };
+            const payload: ProgramDraft = {
+                step,
+                selectedIds,
+                groups,
+                savedAt: Date.now(),
+            };
             programDraftRepository.save(payload).catch(() => {
                 // falha silenciosa — localStorage já garantiu o rascunho local
             });
@@ -92,5 +110,11 @@ export function useProgramDraft(step: ProgramStep, selectedIds: string[], groups
         return d;
     }, [draft]);
 
-    return { draft, hasDraft: draft !== null, scheduleSave, clearDraft, restoreDraft };
+    return {
+        draft,
+        hasDraft: draft !== null,
+        scheduleSave,
+        clearDraft,
+        restoreDraft,
+    };
 }

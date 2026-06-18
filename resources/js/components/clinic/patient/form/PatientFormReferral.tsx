@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 export function PatientFormReferral() {
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-foreground">
                 Indicação de Profissional da Saúde
             </h2>
             <Input placeholder="Escolha o profissional da saúde" />

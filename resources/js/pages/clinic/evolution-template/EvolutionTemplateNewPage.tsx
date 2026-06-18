@@ -35,10 +35,12 @@ function validate(name: string, sections: DraftSection[]): string | null {
 
     for (const section of sections) {
         if (!section.title.trim()) return 'Todas as seções precisam de título.';
-        if (section.items.length === 0) return 'Cada seção precisa ter ao menos um item.';
+        if (section.items.length === 0)
+            return 'Cada seção precisa ter ao menos um item.';
         for (const item of section.items) {
             if (!item.label.trim()) return 'Todos os itens precisam de rótulo.';
-            if (!item.printText.trim()) return 'Todos os itens precisam de texto para impressão.';
+            if (!item.printText.trim())
+                return 'Todos os itens precisam de texto para impressão.';
         }
     }
 
@@ -51,7 +53,9 @@ export default function EvolutionTemplateNewPage() {
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [sections, setSections] = useState<DraftSection[]>(createInitialSections);
+    const [sections, setSections] = useState<DraftSection[]>(
+        createInitialSections,
+    );
     const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit() {
@@ -98,9 +102,12 @@ export default function EvolutionTemplateNewPage() {
                         Voltar
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-semibold">Novo template de evolução</h1>
-                        <p className="text-muted-foreground text-sm">
-                            Crie um template com seções e itens para reutilizar nas evoluções.
+                        <h1 className="text-2xl font-semibold">
+                            Novo template de evolução
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Crie um template com seções e itens para reutilizar
+                            nas evoluções.
                         </p>
                     </div>
                 </div>
@@ -125,13 +132,21 @@ export default function EvolutionTemplateNewPage() {
                     </div>
                 </div>
 
-                {error && <p className="text-destructive text-sm">{error}</p>}
+                {error && <p className="text-sm text-destructive">{error}</p>}
 
-                <TemplateSectionBuilder sections={sections} onChange={setSections} />
+                <TemplateSectionBuilder
+                    sections={sections}
+                    onChange={setSections}
+                />
                 <TemplatePreview sections={sections} />
 
-                <Button onClick={handleSubmit} disabled={createTemplate.isPending}>
-                    {createTemplate.isPending ? 'Salvando...' : 'Salvar template'}
+                <Button
+                    onClick={handleSubmit}
+                    disabled={createTemplate.isPending}
+                >
+                    {createTemplate.isPending
+                        ? 'Salvando...'
+                        : 'Salvar template'}
                 </Button>
             </div>
         </ClinicLayout>

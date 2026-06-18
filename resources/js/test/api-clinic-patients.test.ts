@@ -35,10 +35,14 @@ function makeApiPatient(overrides = {}) {
 
 describe('apiClinicPatientsRepository.uploadPhoto', () => {
     it('envia FormData com o arquivo para a rota correta', async () => {
-        const apiPatient = makeApiPatient({ photo_url: 'https://cdn.example.com/photo.jpg' });
+        const apiPatient = makeApiPatient({
+            photo_url: 'https://cdn.example.com/photo.jpg',
+        });
         mockPost.mockResolvedValueOnce({ data: { data: apiPatient } });
 
-        const file = new File(['conteudo'], 'photo.jpg', { type: 'image/jpeg' });
+        const file = new File(['conteudo'], 'photo.jpg', {
+            type: 'image/jpeg',
+        });
         await apiClinicPatientsRepository.uploadPhoto('42', file);
 
         expect(mockPost).toHaveBeenCalledOnce();
@@ -47,7 +51,9 @@ describe('apiClinicPatientsRepository.uploadPhoto', () => {
         expect(url).toBe('/clinic/patients/42/photo');
         expect(body).toBeInstanceOf(FormData);
         expect((body as FormData).get('photo')).toBe(file);
-        expect(config).toMatchObject({ headers: { 'Content-Type': 'multipart/form-data' } });
+        expect(config).toMatchObject({
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
     });
 
     it('mapeia photo_url da API para photoUrl na entidade', async () => {
@@ -57,7 +63,10 @@ describe('apiClinicPatientsRepository.uploadPhoto', () => {
         });
 
         const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
-        const patient = await apiClinicPatientsRepository.uploadPhoto('1', file);
+        const patient = await apiClinicPatientsRepository.uploadPhoto(
+            '1',
+            file,
+        );
 
         expect(patient.photoUrl).toBe(cdnUrl);
     });
@@ -68,7 +77,10 @@ describe('apiClinicPatientsRepository.uploadPhoto', () => {
         });
 
         const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
-        const patient = await apiClinicPatientsRepository.uploadPhoto('1', file);
+        const patient = await apiClinicPatientsRepository.uploadPhoto(
+            '1',
+            file,
+        );
 
         expect(patient.photoUrl).toBeUndefined();
     });
@@ -77,9 +89,9 @@ describe('apiClinicPatientsRepository.uploadPhoto', () => {
         mockPost.mockRejectedValueOnce(new Error('Network Error'));
 
         const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
-        await expect(apiClinicPatientsRepository.uploadPhoto('1', file)).rejects.toThrow(
-            'Network Error',
-        );
+        await expect(
+            apiClinicPatientsRepository.uploadPhoto('1', file),
+        ).rejects.toThrow('Network Error');
     });
 });
 
@@ -87,13 +99,17 @@ describe('apiClinicPatientsRepository.uploadPhoto', () => {
 
 describe('apiClinicPatientsRepository — mapper', () => {
     it('mapeia id para string', async () => {
-        mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient({ id: 99 }) } });
+        mockGet.mockResolvedValueOnce({
+            data: { data: makeApiPatient({ id: 99 }) },
+        });
         const patient = await apiClinicPatientsRepository.getById('99');
         expect(patient.id).toBe('99');
     });
 
     it('gera initial com a primeira letra do nome em maiúsculo', async () => {
-        mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient({ name: 'ana souza' }) } });
+        mockGet.mockResolvedValueOnce({
+            data: { data: makeApiPatient({ name: 'ana souza' }) },
+        });
         const patient = await apiClinicPatientsRepository.getById('1');
         expect(patient.initial).toBe('A');
     });

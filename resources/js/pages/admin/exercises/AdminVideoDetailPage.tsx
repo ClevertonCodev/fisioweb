@@ -1,4 +1,12 @@
-import { ArrowLeft, Clock, FileText, Film, HardDrive, Pencil, Video } from 'lucide-react';
+import {
+    ArrowLeft,
+    Clock,
+    FileText,
+    Film,
+    HardDrive,
+    Pencil,
+    Video,
+} from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import { VIDEO_STATUS_LABELS } from '@/application/admin/exercise-constants';
@@ -27,7 +35,9 @@ export default function AdminVideoDetailPage() {
         return (
             <AdminLayout>
                 <div className="flex flex-col items-center gap-4 p-6 text-center">
-                    <p className="text-muted-foreground text-sm">Vídeo não encontrado.</p>
+                    <p className="text-sm text-muted-foreground">
+                        Vídeo não encontrado.
+                    </p>
                     <Button asChild variant="outline">
                         <Link to="/admin/videos">Voltar</Link>
                     </Button>
@@ -37,20 +47,26 @@ export default function AdminVideoDetailPage() {
     }
 
     const statusLabel = VIDEO_STATUS_LABELS[video.status] ?? video.status;
-    const canPlay = video.status === 'completed' && (video.cdn_url || video.url);
+    const canPlay =
+        video.status === 'completed' && (video.cdn_url || video.url);
 
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" asChild className="shrink-0">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                asChild
+                                className="shrink-0"
+                            >
                                 <Link to="/admin/videos">
                                     <ArrowLeft className="size-4" />
                                 </Link>
                             </Button>
-                            <h1 className="text-foreground text-2xl font-semibold">
+                            <h1 className="text-2xl font-semibold text-foreground">
                                 Detalhes do vídeo
                             </h1>
                         </div>
@@ -66,26 +82,33 @@ export default function AdminVideoDetailPage() {
                 <div className="flex-1 overflow-auto p-6">
                     <div className="mx-auto max-w-4xl space-y-6">
                         {/* Preview / Thumbnail + Player */}
-                        <div className="border-border bg-card overflow-hidden rounded-xl border">
-                            <div className="bg-muted relative aspect-video">
+                        <div className="overflow-hidden rounded-xl border border-border bg-card">
+                            <div className="relative aspect-video bg-muted">
                                 {video.thumbnail_url ? (
                                     <img
                                         src={video.thumbnail_url}
-                                        alt={video.original_filename ?? video.filename}
+                                        alt={
+                                            video.original_filename ??
+                                            video.filename
+                                        }
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
-                                    <div className="bg-muted flex h-full w-full items-center justify-center">
-                                        <Video className="text-muted-foreground h-16 w-16" />
+                                    <div className="flex h-full w-full items-center justify-center bg-muted">
+                                        <Video className="h-16 w-16 text-muted-foreground" />
                                     </div>
                                 )}
                                 {canPlay && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                                         <a
-                                            href={video.cdn_url ?? video.url ?? '#'}
+                                            href={
+                                                video.cdn_url ??
+                                                video.url ??
+                                                '#'
+                                            }
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="bg-primary text-primary-foreground flex h-16 w-16 items-center justify-center rounded-full shadow-lg hover:opacity-90"
+                                            className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90"
                                         >
                                             <Film className="ml-1 h-8 w-8" />
                                         </a>
@@ -94,10 +117,14 @@ export default function AdminVideoDetailPage() {
                                 <Badge
                                     className={cn(
                                         'absolute top-3 right-3',
-                                        video.status === 'completed' && 'bg-green-600',
-                                        video.status === 'pending' && 'bg-amber-600',
-                                        video.status === 'processing' && 'bg-blue-600',
-                                        video.status === 'failed' && 'bg-destructive',
+                                        video.status === 'completed' &&
+                                            'bg-green-600',
+                                        video.status === 'pending' &&
+                                            'bg-amber-600',
+                                        video.status === 'processing' &&
+                                            'bg-blue-600',
+                                        video.status === 'failed' &&
+                                            'bg-destructive',
                                     )}
                                 >
                                     {statusLabel}
@@ -107,26 +134,33 @@ export default function AdminVideoDetailPage() {
 
                         {/* Informações */}
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="border-border bg-card rounded-xl border p-6">
-                                <h2 className="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
+                            <div className="rounded-xl border border-border bg-card p-6">
+                                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                                     <FileText className="h-5 w-5" />
                                     Informações
                                 </h2>
                                 <dl className="space-y-3 text-sm">
                                     <div>
-                                        <dt className="text-muted-foreground">Nome do arquivo</dt>
-                                        <dd className="text-foreground font-medium">
-                                            {video.original_filename || video.filename}
+                                        <dt className="text-muted-foreground">
+                                            Nome do arquivo
+                                        </dt>
+                                        <dd className="font-medium text-foreground">
+                                            {video.original_filename ||
+                                                video.filename}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-muted-foreground">Arquivo interno</dt>
-                                        <dd className="text-foreground font-mono text-xs break-all">
+                                        <dt className="text-muted-foreground">
+                                            Arquivo interno
+                                        </dt>
+                                        <dd className="font-mono text-xs break-all text-foreground">
                                             {video.filename}
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-muted-foreground">Tipo MIME</dt>
+                                        <dt className="text-muted-foreground">
+                                            Tipo MIME
+                                        </dt>
                                         <dd className="text-foreground">
                                             {video.mime_type ?? '—'}
                                         </dd>
@@ -134,18 +168,22 @@ export default function AdminVideoDetailPage() {
                                 </dl>
                             </div>
 
-                            <div className="border-border bg-card rounded-xl border p-6">
-                                <h2 className="text-foreground mb-4 flex items-center gap-2 text-lg font-semibold">
+                            <div className="rounded-xl border border-border bg-card p-6">
+                                <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
                                     <HardDrive className="h-5 w-5" />
                                     Tamanho e duração
                                 </h2>
                                 <dl className="space-y-3 text-sm">
                                     <div>
-                                        <dt className="text-muted-foreground">Tamanho</dt>
-                                        <dd className="text-foreground">{video.human_size}</dd>
+                                        <dt className="text-muted-foreground">
+                                            Tamanho
+                                        </dt>
+                                        <dd className="text-foreground">
+                                            {video.human_size}
+                                        </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-muted-foreground flex items-center gap-1">
+                                        <dt className="flex items-center gap-1 text-muted-foreground">
                                             <Clock className="h-4 w-4" />
                                             Duração
                                         </dt>
@@ -158,16 +196,21 @@ export default function AdminVideoDetailPage() {
                         </div>
 
                         {/* Metadados */}
-                        {video.metadata && Object.keys(video.metadata).length > 0 && (
-                            <div className="border-border bg-card rounded-xl border p-6">
-                                <h2 className="text-foreground mb-4 text-lg font-semibold">
-                                    Metadados
-                                </h2>
-                                <pre className="text-muted-foreground bg-muted max-h-48 overflow-auto rounded p-4 text-xs">
-                                    {JSON.stringify(video.metadata, null, 2)}
-                                </pre>
-                            </div>
-                        )}
+                        {video.metadata &&
+                            Object.keys(video.metadata).length > 0 && (
+                                <div className="rounded-xl border border-border bg-card p-6">
+                                    <h2 className="mb-4 text-lg font-semibold text-foreground">
+                                        Metadados
+                                    </h2>
+                                    <pre className="max-h-48 overflow-auto rounded bg-muted p-4 text-xs text-muted-foreground">
+                                        {JSON.stringify(
+                                            video.metadata,
+                                            null,
+                                            2,
+                                        )}
+                                    </pre>
+                                </div>
+                            )}
 
                         <div className="flex gap-2">
                             <Button asChild variant="outline">

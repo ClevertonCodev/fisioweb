@@ -78,9 +78,9 @@ export function ClinicDataForm() {
     const requiredDocLen = watchedType === 'PJ' ? 14 : 11;
     const isFormReady = Boolean(
         watchedName?.trim() &&
-            watchedType &&
-            watchedDoc?.length === requiredDocLen &&
-            watchedEmail?.trim(),
+        watchedType &&
+        watchedDoc?.length === requiredDocLen &&
+        watchedEmail?.trim(),
     );
 
     const onSubmit = (values: ClinicProfileFormValues) => {
@@ -111,7 +111,7 @@ export function ClinicDataForm() {
 
     if (isError || !profile) {
         return (
-            <div className="text-destructive p-6">
+            <div className="p-6 text-destructive">
                 Não foi possível carregar os dados da clínica.
             </div>
         );
@@ -119,17 +119,17 @@ export function ClinicDataForm() {
 
     return (
         <div className="flex h-full flex-col">
-            <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+            <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                 <div className="space-y-1 px-6 py-4">
-                    <h1 className="text-foreground text-2xl font-semibold">
+                    <h1 className="text-2xl font-semibold text-foreground">
                         Dados da clínica
                     </h1>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         ID da clínica: {profile.id}
                         {!canEdit && (
-                            <span className="text-muted-foreground ml-2">
-                                · Somente visualização (apenas o usuário mestre pode
-                                editar)
+                            <span className="ml-2 text-muted-foreground">
+                                · Somente visualização (apenas o usuário mestre
+                                pode editar)
                             </span>
                         )}
                     </p>
@@ -142,7 +142,7 @@ export function ClinicDataForm() {
                         <Card className="mx-auto max-w-4xl">
                             <CardContent className="space-y-8 p-6">
                                 <section className="space-y-4">
-                                    <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                         Informações Básicas
                                     </h2>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -228,15 +228,20 @@ export function ClinicDataForm() {
                                                     <FormControl>
                                                         <CpfCnpjInput
                                                             type={
-                                                                watchedType === 'PJ'
+                                                                watchedType ===
+                                                                'PJ'
                                                                     ? 'cnpj'
                                                                     : 'cpf'
                                                             }
                                                             value={field.value}
                                                             onChange={(raw) =>
-                                                                field.onChange(raw)
+                                                                field.onChange(
+                                                                    raw,
+                                                                )
                                                             }
-                                                            onBlur={field.onBlur}
+                                                            onBlur={
+                                                                field.onBlur
+                                                            }
                                                             disabled={!canEdit}
                                                         />
                                                     </FormControl>
@@ -278,11 +283,18 @@ export function ClinicDataForm() {
                                                     </Label>
                                                     <FormControl>
                                                         <PhoneInput
-                                                            value={field.value ?? ''}
-                                                            onChange={(raw) =>
-                                                                field.onChange(raw)
+                                                            value={
+                                                                field.value ??
+                                                                ''
                                                             }
-                                                            onBlur={field.onBlur}
+                                                            onChange={(raw) =>
+                                                                field.onChange(
+                                                                    raw,
+                                                                )
+                                                            }
+                                                            onBlur={
+                                                                field.onBlur
+                                                            }
                                                             disabled={!canEdit}
                                                         />
                                                     </FormControl>
@@ -304,7 +316,9 @@ export function ClinicDataForm() {
                                                     </Label>
                                                     <Select
                                                         value={field.value}
-                                                        onValueChange={field.onChange}
+                                                        onValueChange={
+                                                            field.onChange
+                                                        }
                                                         disabled={!canEdit}
                                                     >
                                                         <FormControl>
@@ -341,20 +355,22 @@ export function ClinicDataForm() {
                                             required
                                             readOnly
                                         />
-                                        <p className="text-muted-foreground mt-1 text-xs">
-                                            A URL da clínica só pode ser alterada pelo suporte
-                                            do sistema.
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            A URL da clínica só pode ser
+                                            alterada pelo suporte do sistema.
                                         </p>
                                     </div>
                                 </section>
 
                                 <section className="space-y-4">
-                                    <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                         Plano
                                     </h2>
                                     <div className="max-w-md">
                                         <div className="space-y-1.5">
-                                            <Label className="text-foreground">Plano</Label>
+                                            <Label className="text-foreground">
+                                                Plano
+                                            </Label>
                                             <Input
                                                 value={
                                                     profile.planName ??
@@ -364,21 +380,23 @@ export function ClinicDataForm() {
                                                 readOnly
                                                 className="bg-muted/50"
                                             />
-                                            <p className="text-muted-foreground text-xs">
-                                                O plano só pode ser alterado pelo suporte do
-                                                sistema.
+                                            <p className="text-xs text-muted-foreground">
+                                                O plano só pode ser alterado
+                                                pelo suporte do sistema.
                                             </p>
                                         </div>
                                     </div>
                                 </section>
 
                                 <section className="space-y-4">
-                                    <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                         Endereço
                                     </h2>
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                         <div className="space-y-1.5">
-                                            <Label className="text-foreground">CEP</Label>
+                                            <Label className="text-foreground">
+                                                CEP
+                                            </Label>
                                             <Input
                                                 placeholder="00000-000"
                                                 disabled={!canEdit}
@@ -430,7 +448,7 @@ export function ClinicDataForm() {
                                 </section>
 
                                 {canEdit && (
-                                    <div className="border-border flex justify-end gap-3 border-t pt-4">
+                                    <div className="flex justify-end gap-3 border-t border-border pt-4">
                                         <Button
                                             type="button"
                                             variant="outline"
@@ -441,7 +459,8 @@ export function ClinicDataForm() {
                                         <Button
                                             type="submit"
                                             disabled={
-                                                !isFormReady || updateProfile.isPending
+                                                !isFormReady ||
+                                                updateProfile.isPending
                                             }
                                         >
                                             {updateProfile.isPending

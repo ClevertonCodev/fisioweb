@@ -4,13 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useAdminExercises, useCreateAdminProgram } from '@/application/admin';
-import type { AdminExercise, AdminProgramWriteDto } from '@/application/admin/ports';
+import type {
+    AdminExercise,
+    AdminProgramWriteDto,
+} from '@/application/admin/ports';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminEditExercisePanel } from '@/components/admin/program/AdminEditExercisePanel';
 import { AdminStepConfigureExercises } from '@/components/admin/program/AdminStepConfigureExercises';
 import { AdminStepProgramDetails } from '@/components/admin/program/AdminStepProgramDetails';
 import { AdminStepSelectExercises } from '@/components/admin/program/AdminStepSelectExercises';
-import type { AdminWizardExercise, AdminWizardGroup } from '@/components/admin/program/types';
+import type {
+    AdminWizardExercise,
+    AdminWizardGroup,
+} from '@/components/admin/program/types';
 import { Button } from '@/components/ui/button';
 
 type WizardStep = 1 | 2 | 3;
@@ -31,12 +37,14 @@ export default function ProgramNewPage() {
         exerciseId: number;
     } | null>(null);
 
-    const { data: exercisesResult, isLoading: isLoadingExercises } = useAdminExercises({
-        per_page: 200,
-    });
+    const { data: exercisesResult, isLoading: isLoadingExercises } =
+        useAdminExercises({
+            per_page: 200,
+        });
     const exercises = Array.isArray(exercisesResult)
         ? exercisesResult
-        : ((exercisesResult as { data?: AdminExercise[] } | undefined)?.data ?? []);
+        : ((exercisesResult as { data?: AdminExercise[] } | undefined)?.data ??
+          []);
 
     const createMutation = useCreateAdminProgram({
         onSuccess: (id) => {
@@ -92,7 +100,13 @@ export default function ProgramNewPage() {
             });
 
         if (groups.length === 0) {
-            setGroups([{ id: Date.now(), name: 'Novo grupo', exercises: wizardExercises }]);
+            setGroups([
+                {
+                    id: Date.now(),
+                    name: 'Novo grupo',
+                    exercises: wizardExercises,
+                },
+            ]);
         }
         setStep(2);
     };
@@ -107,7 +121,9 @@ export default function ProgramNewPage() {
                 g.id === editingExercise?.groupId
                     ? {
                           ...g,
-                          exercises: g.exercises.map((e) => (e.id === updated.id ? updated : e)),
+                          exercises: g.exercises.map((e) =>
+                              e.id === updated.id ? updated : e,
+                          ),
                       }
                     : g,
             ),
@@ -131,7 +147,7 @@ export default function ProgramNewPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
                         <div className="flex items-center gap-4">
                             <Button
@@ -152,13 +168,13 @@ export default function ProgramNewPage() {
                                     }
                                     setStep(2);
                                 }}
-                                className="text-muted-foreground hover:text-foreground gap-1"
+                                className="gap-1 text-muted-foreground hover:text-foreground"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Voltar
                             </Button>
                         </div>
-                        <h1 className="text-foreground mt-2 text-xl font-semibold">
+                        <h1 className="mt-2 text-xl font-semibold text-foreground">
                             {STEP_LABELS[step]}
                         </h1>
                     </div>

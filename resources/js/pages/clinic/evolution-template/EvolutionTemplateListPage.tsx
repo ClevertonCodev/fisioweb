@@ -45,11 +45,17 @@ function sectionCountLabel(template: EvolutionTemplate): string {
 
 function itemCountLabel(template: EvolutionTemplate): string {
     if (!template.sections?.length) return '—';
-    const total = template.sections.reduce((sum, section) => sum + section.items.length, 0);
+    const total = template.sections.reduce(
+        (sum, section) => sum + section.items.length,
+        0,
+    );
     return String(total);
 }
 
-function toTemplateWriteDto(template: EvolutionTemplate, nextIsActive: boolean) {
+function toTemplateWriteDto(
+    template: EvolutionTemplate,
+    nextIsActive: boolean,
+) {
     return {
         name: template.name,
         description: template.description,
@@ -76,12 +82,15 @@ export default function EvolutionTemplateListPage() {
 
     const [activeFilter, setActiveFilter] = useState<Filter>('all');
     const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
-    const [templateToDelete, setTemplateToDelete] = useState<EvolutionTemplate | null>(null);
+    const [templateToDelete, setTemplateToDelete] =
+        useState<EvolutionTemplate | null>(null);
 
     const filteredTemplates = useMemo(() => {
         const allTemplates = templates ?? [];
-        if (activeFilter === 'system') return allTemplates.filter((template) => template.isSystem);
-        if (activeFilter === 'custom') return allTemplates.filter((template) => !template.isSystem);
+        if (activeFilter === 'system')
+            return allTemplates.filter((template) => template.isSystem);
+        if (activeFilter === 'custom')
+            return allTemplates.filter((template) => !template.isSystem);
         return allTemplates;
     }, [activeFilter, templates]);
 
@@ -89,7 +98,8 @@ export default function EvolutionTemplateListPage() {
         const templateId = String(template.id);
         setDeactivatingId(templateId);
         try {
-            const full = await apiClinicEvolutionsRepository.findTemplate(templateId);
+            const full =
+                await apiClinicEvolutionsRepository.findTemplate(templateId);
             await updateTemplate.mutateAsync({
                 id: templateId,
                 dto: toTemplateWriteDto(full, !full.isActive),
@@ -104,12 +114,19 @@ export default function EvolutionTemplateListPage() {
             <div className="space-y-6 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl font-semibold">Templates de evolução</h1>
-                        <p className="text-muted-foreground text-sm">
-                            Gerencie templates do sistema e personalizados da clínica.
+                        <h1 className="text-2xl font-semibold">
+                            Templates de evolução
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Gerencie templates do sistema e personalizados da
+                            clínica.
                         </p>
                     </div>
-                    <Button onClick={() => navigate('/clinica/templates/evolucoes/novo')}>
+                    <Button
+                        onClick={() =>
+                            navigate('/clinica/templates/evolucoes/novo')
+                        }
+                    >
                         <Plus className="mr-2 h-4 w-4" />
                         Novo template
                     </Button>
@@ -119,7 +136,11 @@ export default function EvolutionTemplateListPage() {
                     {FILTERS.map((filter) => (
                         <Button
                             key={filter.key}
-                            variant={activeFilter === filter.key ? 'default' : 'outline'}
+                            variant={
+                                activeFilter === filter.key
+                                    ? 'default'
+                                    : 'outline'
+                            }
                             size="sm"
                             onClick={() => setActiveFilter(filter.key)}
                         >
@@ -137,7 +158,9 @@ export default function EvolutionTemplateListPage() {
                                 <TableHead>Seções</TableHead>
                                 <TableHead>Itens</TableHead>
                                 <TableHead>Ativo</TableHead>
-                                <TableHead className="text-right">Ações</TableHead>
+                                <TableHead className="text-right">
+                                    Ações
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -145,7 +168,7 @@ export default function EvolutionTemplateListPage() {
                                 <TableRow>
                                     <TableCell
                                         colSpan={6}
-                                        className="text-muted-foreground py-10 text-center"
+                                        className="py-10 text-center text-muted-foreground"
                                     >
                                         Nenhum template encontrado.
                                     </TableCell>
@@ -154,7 +177,8 @@ export default function EvolutionTemplateListPage() {
                             {filteredTemplates.map((template) => {
                                 const templateId = String(template.id);
                                 const isToggling =
-                                    deactivatingId === templateId || updateTemplate.isPending;
+                                    deactivatingId === templateId ||
+                                    updateTemplate.isPending;
                                 return (
                                     <TableRow key={template.id}>
                                         <TableCell className="font-medium">
@@ -163,15 +187,25 @@ export default function EvolutionTemplateListPage() {
                                         <TableCell>
                                             <Badge
                                                 variant={
-                                                    template.isSystem ? 'secondary' : 'outline'
+                                                    template.isSystem
+                                                        ? 'secondary'
+                                                        : 'outline'
                                                 }
                                             >
-                                                {template.isSystem ? 'Sistema' : 'Personalizado'}
+                                                {template.isSystem
+                                                    ? 'Sistema'
+                                                    : 'Personalizado'}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>{sectionCountLabel(template)}</TableCell>
-                                        <TableCell>{itemCountLabel(template)}</TableCell>
-                                        <TableCell>{template.isActive ? 'Sim' : 'Não'}</TableCell>
+                                        <TableCell>
+                                            {sectionCountLabel(template)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {itemCountLabel(template)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {template.isActive ? 'Sim' : 'Não'}
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex justify-end gap-2">
                                                 {template.isSystem ? (
@@ -204,9 +238,13 @@ export default function EvolutionTemplateListPage() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            disabled={isToggling}
+                                                            disabled={
+                                                                isToggling
+                                                            }
                                                             onClick={() =>
-                                                                handleToggleActive(template)
+                                                                handleToggleActive(
+                                                                    template,
+                                                                )
                                                             }
                                                         >
                                                             <ArrowUpDown className="mr-1 h-4 w-4" />
@@ -217,9 +255,13 @@ export default function EvolutionTemplateListPage() {
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
-                                                            disabled={deleteTemplate.isPending}
+                                                            disabled={
+                                                                deleteTemplate.isPending
+                                                            }
                                                             onClick={() =>
-                                                                setTemplateToDelete(template)
+                                                                setTemplateToDelete(
+                                                                    template,
+                                                                )
                                                             }
                                                         >
                                                             <Trash2 className="mr-1 h-4 w-4" />
@@ -247,8 +289,8 @@ export default function EvolutionTemplateListPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Excluir template</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. O template será removido
-                            permanentemente.
+                            Esta ação não pode ser desfeita. O template será
+                            removido permanentemente.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -258,7 +300,9 @@ export default function EvolutionTemplateListPage() {
                             onClick={async (event) => {
                                 event.preventDefault();
                                 if (!templateToDelete) return;
-                                await deleteTemplate.mutateAsync(String(templateToDelete.id));
+                                await deleteTemplate.mutateAsync(
+                                    String(templateToDelete.id),
+                                );
                                 setTemplateToDelete(null);
                             }}
                         >

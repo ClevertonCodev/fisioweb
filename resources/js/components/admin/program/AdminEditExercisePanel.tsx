@@ -44,21 +44,33 @@ const REST_OPTIONS = [
     { value: 180, label: '3min' },
 ];
 
-export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditExercisePanelProps) {
+export function AdminEditExercisePanel({
+    exercise,
+    onSave,
+    onClose,
+}: AdminEditExercisePanelProps) {
     const [days, setDays] = useState<number[]>(exercise.days);
     const [allDays, setAllDays] = useState(days.length === 7);
-    const [period, setPeriod] = useState<'morning' | 'afternoon' | 'night' | null>(exercise.period);
+    const [period, setPeriod] = useState<
+        'morning' | 'afternoon' | 'night' | null
+    >(exercise.period);
     const [setsMin, setSetsMin] = useState<number | null>(exercise.setsMin);
     const [setsMax, setSetsMax] = useState<number | null>(exercise.setsMax);
-    const [repetitionsMin, setRepetitionsMin] = useState<number | null>(exercise.repetitionsMin);
-    const [repetitionsMax, setRepetitionsMax] = useState<number | null>(exercise.repetitionsMax);
+    const [repetitionsMin, setRepetitionsMin] = useState<number | null>(
+        exercise.repetitionsMin,
+    );
+    const [repetitionsMax, setRepetitionsMax] = useState<number | null>(
+        exercise.repetitionsMax,
+    );
     const [loadMin, setLoadMin] = useState<number | null>(exercise.loadMin);
     const [loadMax, setLoadMax] = useState<number | null>(exercise.loadMax);
     const [restTime, setRestTime] = useState<number | null>(exercise.restTime);
     const [notes, setNotes] = useState(exercise.notes);
 
     const toggleDay = (day: number) => {
-        setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+        setDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+        );
         setAllDays(false);
     };
 
@@ -86,10 +98,17 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
     };
 
     return (
-        <div className="border-border bg-card flex h-full w-80 flex-col border-l">
-            <div className="border-border flex items-center justify-between border-b px-4 py-3">
-                <h3 className="text-foreground text-sm font-semibold">Editar exercício</h3>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+        <div className="flex h-full w-80 flex-col border-l border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                    Editar exercício
+                </h3>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={onClose}
+                >
                     <X className="h-4 w-4" />
                 </Button>
             </div>
@@ -97,7 +116,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
             <div className="flex-1 space-y-6 overflow-auto p-4">
                 {/* Days */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Dias da semana</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Dias da semana
+                    </label>
                     <div className="flex gap-1.5">
                         {DAYS.map((day) => (
                             <button
@@ -106,8 +127,8 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                                 className={cn(
                                     'h-9 w-9 rounded-md border text-sm font-medium transition-colors',
                                     days.includes(day.value)
-                                        ? 'bg-primary text-primary-foreground border-primary'
-                                        : 'bg-background text-foreground border-border hover:border-muted-foreground',
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border bg-background text-foreground hover:border-muted-foreground',
                                 )}
                             >
                                 {day.label}
@@ -122,7 +143,7 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         />
                         <label
                             htmlFor="all-days-admin"
-                            className="text-foreground cursor-pointer text-sm"
+                            className="cursor-pointer text-sm text-foreground"
                         >
                             Todos os dias
                         </label>
@@ -131,7 +152,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Period */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Período</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Período
+                    </label>
                     <div className="flex gap-2">
                         {(
                             [
@@ -142,12 +165,16 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         ).map((p) => (
                             <button
                                 key={p.value}
-                                onClick={() => setPeriod(period === p.value ? null : p.value)}
+                                onClick={() =>
+                                    setPeriod(
+                                        period === p.value ? null : p.value,
+                                    )
+                                }
                                 className={cn(
                                     'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                                     period === p.value
-                                        ? 'bg-primary text-primary-foreground border-primary'
-                                        : 'bg-background text-foreground border-border hover:border-muted-foreground',
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border bg-background text-foreground hover:border-muted-foreground',
                                 )}
                             >
                                 {p.label}
@@ -158,11 +185,15 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Séries */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Séries</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Séries
+                    </label>
                     <div className="flex gap-3">
                         <Select
                             value={setsMin?.toString() ?? ''}
-                            onValueChange={(v) => setSetsMin(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setSetsMin(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Mínima" />
@@ -177,7 +208,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         </Select>
                         <Select
                             value={setsMax?.toString() ?? ''}
-                            onValueChange={(v) => setSetsMax(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setSetsMax(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Máxima" />
@@ -195,11 +228,15 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Repetições */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Repetições</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Repetições
+                    </label>
                     <div className="flex gap-3">
                         <Select
                             value={repetitionsMin?.toString() ?? ''}
-                            onValueChange={(v) => setRepetitionsMin(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setRepetitionsMin(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Mínima" />
@@ -214,7 +251,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         </Select>
                         <Select
                             value={repetitionsMax?.toString() ?? ''}
-                            onValueChange={(v) => setRepetitionsMax(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setRepetitionsMax(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Máxima" />
@@ -232,11 +271,15 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Carga */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Carga (kg)</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Carga (kg)
+                    </label>
                     <div className="flex gap-3">
                         <Select
                             value={loadMin?.toString() ?? ''}
-                            onValueChange={(v) => setLoadMin(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setLoadMin(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Mínima" />
@@ -251,7 +294,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         </Select>
                         <Select
                             value={loadMax?.toString() ?? ''}
-                            onValueChange={(v) => setLoadMax(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setLoadMax(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Máxima" />
@@ -269,7 +314,9 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Repouso */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Repouso</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Repouso
+                    </label>
                     <Select
                         value={restTime?.toString() ?? ''}
                         onValueChange={(v) => setRestTime(v ? Number(v) : null)}
@@ -279,7 +326,10 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                         </SelectTrigger>
                         <SelectContent>
                             {REST_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value.toString()}>
+                                <SelectItem
+                                    key={opt.value}
+                                    value={opt.value.toString()}
+                                >
                                     {opt.label}
                                 </SelectItem>
                             ))}
@@ -289,7 +339,7 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
 
                 {/* Orientações */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">
+                    <label className="text-sm font-medium text-foreground">
                         Orientações adicionais
                     </label>
                     <Textarea
@@ -301,7 +351,7 @@ export function AdminEditExercisePanel({ exercise, onSave, onClose }: AdminEditE
                 </div>
             </div>
 
-            <div className="border-border flex gap-3 border-t p-4">
+            <div className="flex gap-3 border-t border-border p-4">
                 <Button variant="outline" className="flex-1" onClick={onClose}>
                     Cancelar
                 </Button>

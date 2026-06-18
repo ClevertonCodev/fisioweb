@@ -37,7 +37,8 @@ function toFeature(raw: ApiFeatureDto): Feature {
         id: raw.id,
         key: raw.key,
         name: raw.name,
-        valueIsolated: raw.value_isolated != null ? Number(raw.value_isolated) : null,
+        valueIsolated:
+            raw.value_isolated != null ? Number(raw.value_isolated) : null,
         type: raw.type as FeatureType,
     };
 }
@@ -57,24 +58,31 @@ export const apiFeaturesRepository: FeaturesRepository = {
         const { data } = await apiClient.get<{ data: FeatureCreateOptions }>(
             '/admin/features/create-options',
         );
-        return data?.data ?? { allowed_keys: {}, available_keys: {}, types: {} };
+        return (
+            data?.data ?? { allowed_keys: {}, available_keys: {}, types: {} }
+        );
     },
 
     async list(params = {}) {
-        const { data } = await apiClient.get<ApiFeatureListResponseDto>('/admin/features', {
-            params: {
-                per_page: params.per_page ?? 500,
-                page: params.page ?? 1,
-                search: params.search,
-                type: params.type,
+        const { data } = await apiClient.get<ApiFeatureListResponseDto>(
+            '/admin/features',
+            {
+                params: {
+                    per_page: params.per_page ?? 500,
+                    page: params.page ?? 1,
+                    search: params.search,
+                    type: params.type,
+                },
             },
-        });
+        );
         const items = data?.data?.data ?? [];
         return items.map(toFeature);
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<ApiFeatureResponseDto>(`/admin/features/${id}`);
+        const { data } = await apiClient.get<ApiFeatureResponseDto>(
+            `/admin/features/${id}`,
+        );
         if (!data?.data) return null;
         return toFeature(data.data);
     },

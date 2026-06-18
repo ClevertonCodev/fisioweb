@@ -1,4 +1,9 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from '@tanstack/react-query';
 
 import { apiClinicExercisesRepository } from '@/infrastructure/repositories';
 
@@ -21,7 +26,9 @@ export function useInfiniteExercises() {
         queryFn: ({ pageParam }) =>
             listExercisesPaginated({ page: pageParam as number, perPage: 20 }),
         getNextPageParam: (lastPage) =>
-            lastPage.currentPage < lastPage.lastPage ? lastPage.currentPage + 1 : undefined,
+            lastPage.currentPage < lastPage.lastPage
+                ? lastPage.currentPage + 1
+                : undefined,
         initialPageParam: 1,
         staleTime: Infinity,
     });
@@ -30,7 +37,10 @@ export function useInfiniteExercises() {
 export function useExercise(id: string | undefined) {
     return useQuery({
         queryKey: ['exercises', id],
-        queryFn: () => (id ? apiClinicExercisesRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id
+                ? apiClinicExercisesRepository.getById(id)
+                : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -45,7 +55,8 @@ export function useExerciseFilterCategories() {
 export function useToggleExerciseFavorite() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => apiClinicExercisesRepository.toggleFavorite(id),
+        mutationFn: (id: string) =>
+            apiClinicExercisesRepository.toggleFavorite(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises'] });
         },

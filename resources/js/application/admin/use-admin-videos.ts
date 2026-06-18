@@ -14,7 +14,8 @@ export function useAdminVideos(params?: { per_page?: number; page?: number }) {
 export function useAdminVideo(id: number | undefined) {
     return useQuery({
         queryKey: ['admin', 'video', id],
-        queryFn: () => (id ? apiAdminVideosRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id ? apiAdminVideosRepository.getById(id) : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -22,8 +23,9 @@ export function useAdminVideo(id: number | undefined) {
 export function useUpdateAdminVideo(id: number) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: Parameters<typeof apiAdminVideosRepository.update>[1]) =>
-            apiAdminVideosRepository.update(id, data),
+        mutationFn: (
+            data: Parameters<typeof apiAdminVideosRepository.update>[1],
+        ) => apiAdminVideosRepository.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'video', id] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'videos'] });
@@ -67,7 +69,8 @@ function uploadToPresignedUrl(
             reject(new DOMException('Upload cancelado', 'AbortError'));
         });
         xhr.upload.addEventListener('progress', (e) => {
-            if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+            if (e.lengthComputable)
+                onProgress(Math.round((e.loaded / e.total) * 100));
         });
         xhr.addEventListener('load', () => {
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -75,7 +78,9 @@ function uploadToPresignedUrl(
                 resolve();
             } else reject(new Error(`Falha no upload (${xhr.status})`));
         });
-        xhr.addEventListener('error', () => reject(new Error('Erro de rede durante o upload')));
+        xhr.addEventListener('error', () =>
+            reject(new Error('Erro de rede durante o upload')),
+        );
         xhr.open('PUT', url);
         xhr.setRequestHeader('Content-Type', file.type);
         xhr.send(file);
@@ -143,12 +148,16 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
             },
         ): Promise<AdminVideo | null> => {
             if (!ALLOWED_VIDEO_MIMES.includes(videoFile.type)) {
-                setError('Formato não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.');
+                setError(
+                    'Formato não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.',
+                );
                 setStatus('error');
                 return null;
             }
             if (videoFile.size > MAX_VIDEO_SIZE) {
-                setError(`O vídeo excede o tamanho máximo de ${MAX_VIDEO_SIZE / 1024 / 1024}MB.`);
+                setError(
+                    `O vídeo excede o tamanho máximo de ${MAX_VIDEO_SIZE / 1024 / 1024}MB.`,
+                );
                 setStatus('error');
                 return null;
             }
@@ -173,28 +182,35 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
 
             try {
                 setStatus('requesting');
-                const presigned = await apiAdminVideosRepository.requestPresignedUpload({
-                    filename: videoFile.name,
-                    mime_type: videoFile.type,
-                    size: videoFile.size,
-                });
+                const presigned =
+                    await apiAdminVideosRepository.requestPresignedUpload({
+                        filename: videoFile.name,
+                        mime_type: videoFile.type,
+                        size: videoFile.size,
+                    });
                 if (ac.signal.aborted) return null;
 
                 setStatus('uploading');
-                await uploadToPresignedUrl(presigned.upload_url, videoFile, setProgress, ac.signal);
+                await uploadToPresignedUrl(
+                    presigned.upload_url,
+                    videoFile,
+                    setProgress,
+                    ac.signal,
+                );
                 if (ac.signal.aborted) return null;
 
                 let thumbnailPath: string | undefined;
                 if (thumbnailFile) {
                     setProgress(0);
-                    const thumb = await apiAdminVideosRepository.requestPresignedThumbnail(
-                        presigned.video_id,
-                        {
-                            filename: thumbnailFile.name,
-                            mime_type: thumbnailFile.type,
-                            size: thumbnailFile.size,
-                        },
-                    );
+                    const thumb =
+                        await apiAdminVideosRepository.requestPresignedThumbnail(
+                            presigned.video_id,
+                            {
+                                filename: thumbnailFile.name,
+                                mime_type: thumbnailFile.type,
+                                size: thumbnailFile.size,
+                            },
+                        );
                     if (ac.signal.aborted) return null;
                     await uploadToPresignedUrl(
                         thumb.upload_url,
@@ -207,23 +223,32 @@ export function usePresignedUpload(): UsePresignedUploadReturn {
                 }
 
                 setStatus('confirming');
-                const confirmed = await apiAdminVideosRepository.confirmUpload(presigned.video_id, {
-                    thumbnail_path: thumbnailPath,
-                    original_filename: options?.original_filename,
-                    duration: options?.duration,
-                    metadata: options?.metadata,
-                });
+                const confirmed = await apiAdminVideosRepository.confirmUpload(
+                    presigned.video_id,
+                    {
+                        thumbnail_path: thumbnailPath,
+                        original_filename: options?.original_filename,
+                        duration: options?.duration,
+                        metadata: options?.metadata,
+                    },
+                );
                 setVideo(confirmed);
                 setStatus('completed');
                 abortRef.current = null;
-                queryClient.invalidateQueries({ queryKey: ['admin', 'videos'] });
+                queryClient.invalidateQueries({
+                    queryKey: ['admin', 'videos'],
+                });
                 return confirmed;
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     setStatus('idle');
                     return null;
                 }
-                setError(err instanceof Error ? err.message : 'Erro desconhecido no upload');
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Erro desconhecido no upload',
+                );
                 setStatus('error');
                 return null;
             }

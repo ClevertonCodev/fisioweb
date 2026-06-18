@@ -110,7 +110,9 @@ interface ApiAssessmentSummaryDto {
 
 // ─── Mappers ─────────────────────────────────────────────────────────────────
 
-function toFieldOption(raw: ApiAssessmentFieldOptionDto): AssessmentFieldOption {
+function toFieldOption(
+    raw: ApiAssessmentFieldOptionDto,
+): AssessmentFieldOption {
     return { id: raw.id, label: raw.label, sortOrder: raw.sort_order };
 }
 
@@ -154,7 +156,9 @@ function toTemplate(raw: ApiAssessmentTemplateFullDto): AssessmentTemplate {
     };
 }
 
-function toTemplateSummary(raw: ApiAssessmentTemplateSummaryDto): AssessmentTemplateSummary {
+function toTemplateSummary(
+    raw: ApiAssessmentTemplateSummaryDto,
+): AssessmentTemplateSummary {
     return {
         id: raw.id,
         name: raw.name,
@@ -174,10 +178,16 @@ function toAssessmentSummary(raw: ApiAssessmentSummaryDto): AssessmentSummary {
 }
 
 function toAnswer(raw: ApiAssessmentAnswerDto): AssessmentAnswer {
-    return { id: raw.id, fieldId: raw.admin_assessment_field_id, value: raw.value };
+    return {
+        id: raw.id,
+        fieldId: raw.admin_assessment_field_id,
+        value: raw.value,
+    };
 }
 
-function toAnswerOption(raw: ApiAssessmentAnswerOptionDto): AssessmentAnswerOptionRecord {
+function toAnswerOption(
+    raw: ApiAssessmentAnswerOptionDto,
+): AssessmentAnswerOptionRecord {
     return {
         id: raw.id,
         fieldId: raw.admin_assessment_field_id,
@@ -202,7 +212,9 @@ function toWritePayload(dto: AssessmentWriteDto | AssessmentUpdateDto) {
         field_id: a.fieldId,
         value: a.value,
     }));
-    const answerOptions = (dto.answerOptions as AssessmentAnswerOptionWriteDto[]).map((o) => ({
+    const answerOptions = (
+        dto.answerOptions as AssessmentAnswerOptionWriteDto[]
+    ).map((o) => ({
         field_id: o.fieldId,
         option_id: o.optionId,
     }));
@@ -220,7 +232,9 @@ export const apiClinicAssessmentsRepository: AssessmentsRepository = {
     },
 
     async find(id) {
-        const res = await apiClient.get<{ data: ApiAssessmentFullDto }>(`/clinic/assessments/${id}`);
+        const res = await apiClient.get<{ data: ApiAssessmentFullDto }>(
+            `/clinic/assessments/${id}`,
+        );
         return toAssessment(res.data.data);
     },
 

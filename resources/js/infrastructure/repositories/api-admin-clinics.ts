@@ -1,4 +1,7 @@
-import type { ClinicWriteDto, ClinicsRepository } from '@/application/admin/ports';
+import type {
+    ClinicWriteDto,
+    ClinicsRepository,
+} from '@/application/admin/ports';
 import type { Clinic } from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
@@ -65,40 +68,58 @@ function toApiPayload(
         number: dto.number ?? null,
         city: dto.city ?? null,
         state: dto.state ?? null,
-        ...('password' in dto && dto.password ? { password: dto.password } : {}),
+        ...('password' in dto && dto.password
+            ? { password: dto.password }
+            : {}),
     };
 }
 
 export const apiClinicsRepository: ClinicsRepository = {
     async list(params = {}) {
-        const { data } = await apiClient.get<{ data: unknown }>('/admin/clinics', {
-            params: { per_page: params.per_page ?? 500, page: params.page ?? 1, ...params },
-        });
+        const { data } = await apiClient.get<{ data: unknown }>(
+            '/admin/clinics',
+            {
+                params: {
+                    per_page: params.per_page ?? 500,
+                    page: params.page ?? 1,
+                    ...params,
+                },
+            },
+        );
         const body = data as { data?: unknown[] | { data?: unknown[] } };
         const raw = body?.data;
         const items = Array.isArray(raw)
             ? raw
-            : raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown[] }).data)
+            : raw &&
+                typeof raw === 'object' &&
+                Array.isArray((raw as { data?: unknown[] }).data)
               ? (raw as { data: unknown[] }).data
               : [];
         return items.map((c) => toClinic(c as Record<string, unknown>));
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: unknown }>(`/admin/clinics/${id}`);
+        const { data } = await apiClient.get<{ data: unknown }>(
+            `/admin/clinics/${id}`,
+        );
         if (!data?.data) return null;
         return toClinic((data as { data: Record<string, unknown> }).data);
     },
 
     async getPlansOptions() {
-        const { data } = await apiClient.get<{ data: unknown }>('/admin/plans', {
-            params: { per_page: 100 },
-        });
+        const { data } = await apiClient.get<{ data: unknown }>(
+            '/admin/plans',
+            {
+                params: { per_page: 100 },
+            },
+        );
         const body = data as { data?: unknown[] | { data?: unknown[] } };
         const raw = body?.data;
         const items = Array.isArray(raw)
             ? raw
-            : raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown[] }).data)
+            : raw &&
+                typeof raw === 'object' &&
+                Array.isArray((raw as { data?: unknown[] }).data)
               ? (raw as { data: unknown[] }).data
               : [];
         return items.map((p: Record<string, unknown>) => ({
@@ -128,7 +149,9 @@ export const apiClinicsRepository: ClinicsRepository = {
     },
 
     async reactivate(id) {
-        const { data } = await apiClient.put<{ data: unknown }>(`/admin/clinics/${id}/reactivate`);
+        const { data } = await apiClient.put<{ data: unknown }>(
+            `/admin/clinics/${id}/reactivate`,
+        );
         return toClinic((data as { data: Record<string, unknown> }).data);
     },
 

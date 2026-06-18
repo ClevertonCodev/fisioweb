@@ -2,8 +2,20 @@ import type { FeaturesRepository } from '@/application/admin/ports';
 import type { Feature } from '@/domain/admin';
 
 export const mockFeatures: Feature[] = [
-    { id: 1, key: 'video_call', name: 'Vídeo', valueIsolated: 10.0, type: 'bool' },
-    { id: 2, key: 'ai_assistant', name: 'Assistente IA', valueIsolated: 25.0, type: 'bool' },
+    {
+        id: 1,
+        key: 'video_call',
+        name: 'Vídeo',
+        valueIsolated: 10.0,
+        type: 'bool',
+    },
+    {
+        id: 2,
+        key: 'ai_assistant',
+        name: 'Assistente IA',
+        valueIsolated: 25.0,
+        type: 'bool',
+    },
     {
         id: 3,
         key: 'custom_exercises',

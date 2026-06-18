@@ -19,7 +19,8 @@ import {
 
 export default function FeatureNewPage() {
     const navigate = useNavigate();
-    const { data: options, isLoading: optionsLoading } = useFeatureCreateOptions();
+    const { data: options, isLoading: optionsLoading } =
+        useFeatureCreateOptions();
 
     const availableKeys = options?.available_keys ?? {};
     const allowedKeys = options?.allowed_keys ?? {};
@@ -57,7 +58,7 @@ export default function FeatureNewPage() {
     return (
         <AdminLayout>
             <div className="space-y-6 p-4 md:p-6">
-                <div className="text-muted-foreground text-sm">
+                <div className="text-sm text-muted-foreground">
                     <span
                         className="cursor-pointer hover:underline"
                         onClick={() => navigate('/admin/funcionalidades')}
@@ -76,26 +77,33 @@ export default function FeatureNewPage() {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-foreground text-2xl font-semibold">Nova Funcionalidade</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Nova Funcionalidade
+                    </h1>
                 </div>
 
                 <Card>
                     <CardContent className="p-6">
                         {optionsLoading ? (
-                            <p className="text-muted-foreground">Carregando opções...</p>
+                            <p className="text-muted-foreground">
+                                Carregando opções...
+                            </p>
                         ) : noKeysAvailable ? (
                             <div className="space-y-4">
-                                <div className="text-muted-foreground flex items-start gap-3">
+                                <div className="flex items-start gap-3 text-muted-foreground">
                                     <Info className="mt-0.5 h-5 w-5 flex-shrink-0" />
                                     <p>
-                                        Todas as funcionalidades permitidas já foram cadastradas. No
-                                        momento só é possível cadastrar funcionalidades definidas no
-                                        sistema (constantes).
+                                        Todas as funcionalidades permitidas já
+                                        foram cadastradas. No momento só é
+                                        possível cadastrar funcionalidades
+                                        definidas no sistema (constantes).
                                     </p>
                                 </div>
                                 <Button
                                     variant="outline"
-                                    onClick={() => navigate('/admin/funcionalidades')}
+                                    onClick={() =>
+                                        navigate('/admin/funcionalidades')
+                                    }
                                 >
                                     Voltar à lista
                                 </Button>
@@ -106,31 +114,42 @@ export default function FeatureNewPage() {
                                     <div className="space-y-1.5">
                                         <Label>
                                             Funcionalidade{' '}
-                                            <span className="text-destructive">*</span>
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         </Label>
-                                        <Select value={form.key} onValueChange={handleKeySelect}>
+                                        <Select
+                                            value={form.key}
+                                            onValueChange={handleKeySelect}
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Selecione a funcionalidade" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(availableKeys).map(
-                                                    ([key, label]) => (
-                                                        <SelectItem key={key} value={key}>
-                                                            {String(label)}
-                                                        </SelectItem>
-                                                    ),
-                                                )}
+                                                {Object.entries(
+                                                    availableKeys,
+                                                ).map(([key, label]) => (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
+                                                        {String(label)}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
-                                        <p className="text-muted-foreground text-xs">
-                                            Apenas funcionalidades definidas no sistema podem ser
-                                            cadastradas.
+                                        <p className="text-xs text-muted-foreground">
+                                            Apenas funcionalidades definidas no
+                                            sistema podem ser cadastradas.
                                         </p>
                                     </div>
 
                                     <div className="space-y-1.5">
                                         <Label>
-                                            Nome <span className="text-destructive">*</span>
+                                            Nome{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         </Label>
                                         <Input
                                             placeholder="Nome da funcionalidade"
@@ -149,7 +168,10 @@ export default function FeatureNewPage() {
                                         <MoneyInput
                                             value={form.valueIsolated}
                                             onChange={(v) =>
-                                                setForm((prev) => ({ ...prev, valueIsolated: v }))
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    valueIsolated: v,
+                                                }))
                                             }
                                             name="valueIsolated"
                                             placeholder="0,00"
@@ -158,23 +180,34 @@ export default function FeatureNewPage() {
 
                                     <div className="space-y-1.5">
                                         <Label>
-                                            Tipo <span className="text-destructive">*</span>
+                                            Tipo{' '}
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         </Label>
                                         <Select
                                             value={form.type}
                                             onValueChange={(v) =>
-                                                setForm((prev) => ({ ...prev, type: v }))
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    type: v,
+                                                }))
                                             }
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Selecione o tipo" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.entries(types).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key}>
-                                                        {String(label)}
-                                                    </SelectItem>
-                                                ))}
+                                                {Object.entries(types).map(
+                                                    ([key, label]) => (
+                                                        <SelectItem
+                                                            key={key}
+                                                            value={key}
+                                                        >
+                                                            {String(label)}
+                                                        </SelectItem>
+                                                    ),
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -185,7 +218,9 @@ export default function FeatureNewPage() {
                                 <div className="flex justify-end gap-3">
                                     <Button
                                         variant="outline"
-                                        onClick={() => navigate('/admin/funcionalidades')}
+                                        onClick={() =>
+                                            navigate('/admin/funcionalidades')
+                                        }
                                     >
                                         Cancelar
                                     </Button>

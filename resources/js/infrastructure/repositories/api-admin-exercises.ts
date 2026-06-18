@@ -31,9 +31,16 @@ function mapApiExercise(raw: Record<string, unknown>): AdminExercise {
         is_active: Boolean(raw.is_active ?? true),
         created_at: raw.created_at as string,
         updated_at: raw.updated_at as string,
-        physio_area: raw.physio_area as { id: number; name: string } | undefined,
-        physio_subarea: raw.physio_subarea as { id: number; name: string } | null | undefined,
-        body_region: raw.body_region as { id: number; name: string } | undefined,
+        physio_area: raw.physio_area as
+            | { id: number; name: string }
+            | undefined,
+        physio_subarea: raw.physio_subarea as
+            | { id: number; name: string }
+            | null
+            | undefined,
+        body_region: raw.body_region as
+            | { id: number; name: string }
+            | undefined,
         videos: (raw.videos as unknown[]) ?? [],
     };
 }
@@ -69,7 +76,9 @@ export const apiAdminExercisesRepository: AdminExercisesRepository = {
         };
         const items = Array.isArray(paginator?.data) ? paginator.data : [];
         return {
-            data: items.map((e) => mapApiExercise(e as Record<string, unknown>)),
+            data: items.map((e) =>
+                mapApiExercise(e as Record<string, unknown>),
+            ),
             meta: {
                 currentPage: paginator?.current_page ?? 1,
                 lastPage: paginator?.last_page ?? 1,
@@ -79,7 +88,9 @@ export const apiAdminExercisesRepository: AdminExercisesRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: unknown }>(`/admin/exercises/${id}`);
+        const { data } = await apiClient.get<{ data: unknown }>(
+            `/admin/exercises/${id}`,
+        );
         if (!data?.data) return null;
         return mapApiExercise((data as { data: Record<string, unknown> }).data);
     },
@@ -90,8 +101,10 @@ export const apiAdminExercisesRepository: AdminExercisesRepository = {
         );
         const d = (data as { data?: Record<string, unknown> })?.data ?? {};
         return {
-            physio_areas: (d.physio_areas as AdminExerciseOptions['physio_areas']) ?? [],
-            body_regions: (d.body_regions as AdminExerciseOptions['body_regions']) ?? [],
+            physio_areas:
+                (d.physio_areas as AdminExerciseOptions['physio_areas']) ?? [],
+            body_regions:
+                (d.body_regions as AdminExerciseOptions['body_regions']) ?? [],
             difficulties: (d.difficulties as Record<string, string>) ?? {},
             movement_forms: (d.movement_forms as Record<string, string>) ?? {},
             videos: (d.videos as unknown[]) ?? [],
@@ -99,12 +112,18 @@ export const apiAdminExercisesRepository: AdminExercisesRepository = {
     },
 
     async create(payload) {
-        const { data } = await apiClient.post<{ data: unknown }>('/admin/exercises', payload);
+        const { data } = await apiClient.post<{ data: unknown }>(
+            '/admin/exercises',
+            payload,
+        );
         return mapApiExercise((data as { data: Record<string, unknown> }).data);
     },
 
     async update(id, payload) {
-        const { data } = await apiClient.put<{ data: unknown }>(`/admin/exercises/${id}`, payload);
+        const { data } = await apiClient.put<{ data: unknown }>(
+            `/admin/exercises/${id}`,
+            payload,
+        );
         return mapApiExercise((data as { data: Record<string, unknown> }).data);
     },
 

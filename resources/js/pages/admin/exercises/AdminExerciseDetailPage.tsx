@@ -25,14 +25,21 @@ export default function AdminExerciseDetailPage() {
 
     const handleDelete = () => {
         if (!exercise) return;
-        if (!window.confirm(`Tem certeza que deseja remover "${exercise.name}"?`)) return;
+        if (
+            !window.confirm(
+                `Tem certeza que deseja remover "${exercise.name}"?`,
+            )
+        )
+            return;
         deleteMutation.mutate(exercise.id, {
             onSuccess: () => {
                 toast.success('Exercício removido.');
                 navigate('/admin/exercicios');
             },
             onError: (err: unknown) => {
-                const res = (err as { response?: { data?: { message?: string } } })?.response?.data;
+                const res = (
+                    err as { response?: { data?: { message?: string } } }
+                )?.response?.data;
                 toast.error(res?.message ?? 'Erro ao excluir.');
             },
         });
@@ -57,18 +64,22 @@ export default function AdminExerciseDetailPage() {
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="space-y-3 px-6 py-4">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
                                     <BreadcrumbLink asChild>
-                                        <Link to="/admin/exercicios">Exercícios</Link>
+                                        <Link to="/admin/exercicios">
+                                            Exercícios
+                                        </Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>{exercise.name}</BreadcrumbPage>
+                                    <BreadcrumbPage>
+                                        {exercise.name}
+                                    </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
@@ -83,21 +94,30 @@ export default function AdminExerciseDetailPage() {
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                                 <div>
-                                    <h1 className="text-foreground text-2xl font-semibold">
+                                    <h1 className="text-2xl font-semibold text-foreground">
                                         {exercise.name}
                                     </h1>
-                                    <p className="text-muted-foreground text-sm">
-                                        ID: {exercise.id} | Criado em: {exercise.created_at}
+                                    <p className="text-sm text-muted-foreground">
+                                        ID: {exercise.id} | Criado em:{' '}
+                                        {exercise.created_at}
                                     </p>
                                 </div>
-                                <Badge variant={exercise.is_active ? 'default' : 'secondary'}>
+                                <Badge
+                                    variant={
+                                        exercise.is_active
+                                            ? 'default'
+                                            : 'secondary'
+                                    }
+                                >
                                     {exercise.is_active ? 'Ativo' : 'Inativo'}
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Button
                                     onClick={() =>
-                                        navigate(`/admin/exercicios/${exercise.id}/editar`)
+                                        navigate(
+                                            `/admin/exercicios/${exercise.id}/editar`,
+                                        )
                                     }
                                     variant="outline"
                                     className="gap-2"

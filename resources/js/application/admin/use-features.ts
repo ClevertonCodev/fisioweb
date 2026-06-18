@@ -55,7 +55,8 @@ export function useFeatures(params?: {
 export function useFeature(id: number | undefined) {
     return useQuery({
         queryKey: ['admin', 'feature', id],
-        queryFn: () => (id ? apiFeaturesRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id ? apiFeaturesRepository.getById(id) : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -63,31 +64,45 @@ export function useFeature(id: number | undefined) {
 export function useCreateFeature(options?: { onSuccess?: () => void }) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: FeatureWriteDto) => apiFeaturesRepository.create(payload),
+        mutationFn: (payload: FeatureWriteDto) =>
+            apiFeaturesRepository.create(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'features'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'featureCreateOptions'] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'featureCreateOptions'],
+            });
             toast.success('Funcionalidade criada com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao criar funcionalidade.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao criar funcionalidade.',
+            );
         },
     });
 }
 
-export function useUpdateFeature(featureId: number, options?: { onSuccess?: () => void }) {
+export function useUpdateFeature(
+    featureId: number,
+    options?: { onSuccess?: () => void },
+) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: FeatureWriteDto) => apiFeaturesRepository.update(featureId, payload),
+        mutationFn: (payload: FeatureWriteDto) =>
+            apiFeaturesRepository.update(featureId, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'features'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'feature', featureId] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'feature', featureId],
+            });
             toast.success('Funcionalidade atualizada com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao atualizar funcionalidade.');
+            toast.error(
+                err?.response?.data?.message ??
+                    'Erro ao atualizar funcionalidade.',
+            );
         },
     });
 }
@@ -98,12 +113,17 @@ export function useDeleteFeature(options?: { onSuccess?: () => void }) {
         mutationFn: (id: number) => apiFeaturesRepository.destroy(id),
         onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'features'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'feature', id] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'feature', id],
+            });
             toast.success('Funcionalidade removida com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao excluir funcionalidade.');
+            toast.error(
+                err?.response?.data?.message ??
+                    'Erro ao excluir funcionalidade.',
+            );
         },
     });
 }

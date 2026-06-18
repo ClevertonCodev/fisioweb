@@ -1,6 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeAll, describe, expect, it, vi, type Mock } from 'vitest';
+import {
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+    type Mock,
+} from 'vitest';
 
 import { StepConfigureExercises } from '@/components/clinic/program/StepConfigureExercises';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -48,7 +56,9 @@ afterEach(() => {
 
 /* ── Factories ── */
 
-function makeExercise(overrides: Partial<ProgramExercise> = {}): ProgramExercise {
+function makeExercise(
+    overrides: Partial<ProgramExercise> = {},
+): ProgramExercise {
     const id = overrides.id ?? `ex-${Math.random().toString(36).slice(2, 8)}`;
     return {
         id,
@@ -112,8 +122,16 @@ function renderStep(
 
 describe('StepConfigureExercises — renderização', () => {
     it('exibe o progresso de exercícios editados', () => {
-        const ex1 = makeExercise({ id: 'e1', title: 'Agachamento', isConfigured: true });
-        const ex2 = makeExercise({ id: 'e2', title: 'Flexão', isConfigured: false });
+        const ex1 = makeExercise({
+            id: 'e1',
+            title: 'Agachamento',
+            isConfigured: true,
+        });
+        const ex2 = makeExercise({
+            id: 'e2',
+            title: 'Flexão',
+            isConfigured: false,
+        });
         const group = makeGroup({ id: 'g1', exercises: [ex1, ex2] });
 
         renderStep([group]);
@@ -123,7 +141,11 @@ describe('StepConfigureExercises — renderização', () => {
 
     it('exibe o nome do grupo e a contagem de exercícios', () => {
         const ex1 = makeExercise({ id: 'e1', title: 'Agachamento' });
-        const group = makeGroup({ id: 'g1', name: 'Série A', exercises: [ex1] });
+        const group = makeGroup({
+            id: 'g1',
+            name: 'Série A',
+            exercises: [ex1],
+        });
 
         renderStep([group]);
 
@@ -132,7 +154,11 @@ describe('StepConfigureExercises — renderização', () => {
     });
 
     it('exibe exercícios com título e descrição', () => {
-        const ex = makeExercise({ id: 'e1', title: 'Bird Dog', isConfigured: false });
+        const ex = makeExercise({
+            id: 'e1',
+            title: 'Bird Dog',
+            isConfigured: false,
+        });
         const group = makeGroup({ id: 'g1', exercises: [ex] });
 
         renderStep([group]);
@@ -155,7 +181,9 @@ describe('StepConfigureExercises — renderização', () => {
 
         renderStep([group]);
 
-        expect(screen.getByText('Frequência: 3 séries, 12 repetições')).toBeInTheDocument();
+        expect(
+            screen.getByText('Frequência: 3 séries, 12 repetições'),
+        ).toBeInTheDocument();
     });
 
     it('exibe botão "Adicionar novo grupo"', () => {
@@ -170,7 +198,9 @@ describe('StepConfigureExercises — renderização', () => {
 
     it('exibe placeholder em grupo vazio', () => {
         renderStep([makeGroup({ id: 'g1', exercises: [] })]);
-        expect(screen.getByText('Arraste exercícios para este grupo')).toBeInTheDocument();
+        expect(
+            screen.getByText('Arraste exercícios para este grupo'),
+        ).toBeInTheDocument();
     });
 });
 
@@ -179,13 +209,18 @@ describe('StepConfigureExercises — renderização', () => {
 describe('StepConfigureExercises — adicionar grupo', () => {
     it('chama onUpdateGroups com novo grupo vazio ao clicar "Adicionar novo grupo"', async () => {
         const user = userEvent.setup();
-        const existingGroup = makeGroup({ id: 'g1', name: 'Grupo A', exercises: [] });
+        const existingGroup = makeGroup({
+            id: 'g1',
+            name: 'Grupo A',
+            exercises: [],
+        });
         const { onUpdateGroups } = renderStep([existingGroup]);
 
         await user.click(screen.getByText('Adicionar novo grupo'));
 
         expect(onUpdateGroups).toHaveBeenCalledOnce();
-        const newGroups = (onUpdateGroups as Mock).mock.calls[0][0] as ProgramGroup[];
+        const newGroups = (onUpdateGroups as Mock).mock
+            .calls[0][0] as ProgramGroup[];
         expect(newGroups).toHaveLength(2);
         expect(newGroups[0].id).toBe('g1');
         expect(newGroups[1].name).toBe('Novo grupo');
@@ -242,7 +277,9 @@ describe('StepConfigureExercises — remover exercício', () => {
 
         // Encontrar o botão trash na row do exercício "Agachamento"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest('[class*="rounded-lg border p-4"]');
+        const exerciseRow = agachamentoText.closest(
+            '[class*="rounded-lg border p-4"]',
+        );
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         const trashBtn = Array.from(rowButtons).find((btn) =>
             btn.className.includes('destructive'),
@@ -252,7 +289,8 @@ describe('StepConfigureExercises — remover exercício', () => {
         await user.click(trashBtn!);
 
         expect(onUpdateGroups).toHaveBeenCalledOnce();
-        const updated = (onUpdateGroups as Mock).mock.calls[0][0] as ProgramGroup[];
+        const updated = (onUpdateGroups as Mock).mock
+            .calls[0][0] as ProgramGroup[];
         expect(updated[0].exercises).toHaveLength(1);
         expect(updated[0].exercises[0].id).toBe('e2');
     });
@@ -269,7 +307,9 @@ describe('StepConfigureExercises — duplicar exercício', () => {
 
         // Encontrar o botão de duplicar na row do exercício
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest('[class*="rounded-lg border p-4"]');
+        const exerciseRow = agachamentoText.closest(
+            '[class*="rounded-lg border p-4"]',
+        );
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         // Ordem dos botões na row: play(video), Settings2, Trash2, Copy
         // O último botão é Copy (duplicar exercício)
@@ -280,7 +320,8 @@ describe('StepConfigureExercises — duplicar exercício', () => {
         await user.click(copyBtn!);
 
         expect(onUpdateGroups).toHaveBeenCalledOnce();
-        const updated = (onUpdateGroups as Mock).mock.calls[0][0] as ProgramGroup[];
+        const updated = (onUpdateGroups as Mock).mock
+            .calls[0][0] as ProgramGroup[];
         expect(updated[0].exercises).toHaveLength(2);
         expect(updated[0].exercises[0].id).toBe('e1');
         expect(updated[0].exercises[1].id).toContain('copy');
@@ -303,7 +344,9 @@ describe('StepConfigureExercises — colapsar grupo', () => {
         // Header do grupo com 1 grupo: EditableName, Badge, Copy(grupo), Chevron
         // (sem Trash porque só 1 grupo)
         const groupNameBtn = screen.getByText('Grupo A');
-        const groupHeader = groupNameBtn.closest('[class*="flex items-center gap-2"]');
+        const groupHeader = groupNameBtn.closest(
+            '[class*="flex items-center gap-2"]',
+        );
         const headerButtons = groupHeader?.querySelectorAll('button') ?? [];
         const chevronBtn = Array.from(headerButtons).pop();
 
@@ -382,7 +425,9 @@ describe('StepConfigureExercises — editar exercício', () => {
 
         // O botão configurar (Settings2) na row tem variant="default"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest('[class*="rounded-lg border p-4"]');
+        const exerciseRow = agachamentoText.closest(
+            '[class*="rounded-lg border p-4"]',
+        );
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         // Encontrar o botão com a classe do variant default (bg-primary)
         const configBtn = Array.from(rowButtons).find(

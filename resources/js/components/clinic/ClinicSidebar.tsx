@@ -17,7 +17,11 @@ import { can } from '@/application/clinic/permissions';
 import { ClinicUserDropdown } from '@/components/clinic/ClinicUserDropdown';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -60,7 +64,12 @@ function SidebarContent({
     const NavItem = ({
         item,
     }: {
-        item: { icon: React.ElementType; label: string; path: string; activePath?: string };
+        item: {
+            icon: React.ElementType;
+            label: string;
+            path: string;
+            activePath?: string;
+        };
     }) => {
         const active = isActive(item.activePath ?? item.path);
         const Icon = item.icon;
@@ -79,7 +88,9 @@ function SidebarContent({
                 )}
             >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+                {!collapsed && (
+                    <span className="text-sm font-medium">{item.label}</span>
+                )}
             </NavLink>
         );
 
@@ -98,13 +109,15 @@ function SidebarContent({
 
     return (
         <>
-            <div className="border-sidebar-border flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b border-sidebar-border p-4">
                 <div className="flex items-center gap-2">
-                    <div className="bg-sidebar-primary flex h-8 w-8 items-center justify-center rounded-lg">
-                        <Activity className="text-sidebar-primary-foreground h-5 w-5" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+                        <Activity className="h-5 w-5 text-sidebar-primary-foreground" />
                     </div>
                     {!collapsed && (
-                        <span className="text-sidebar-foreground font-semibold">FisioElite</span>
+                        <span className="font-semibold text-sidebar-foreground">
+                            FisioElite
+                        </span>
                     )}
                 </div>
                 {!onNavClick && (
@@ -112,7 +125,7 @@ function SidebarContent({
                         variant="ghost"
                         size="icon"
                         onClick={() => setCollapsed(!collapsed)}
-                        className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                     >
                         {collapsed ? (
                             <ChevronRight className="h-4 w-4" />
@@ -129,7 +142,7 @@ function SidebarContent({
                 ))}
             </nav>
 
-            <div className="border-sidebar-border border-t p-3">
+            <div className="border-t border-sidebar-border p-3">
                 <ClinicUserDropdown collapsed={collapsed} placement="sidebar" />
             </div>
         </>
@@ -144,20 +157,20 @@ export function ClinicSidebar() {
     if (isMobile) {
         return (
             <>
-                <div className="bg-sidebar border-sidebar-border fixed top-0 right-0 left-0 z-50 flex h-14 items-center gap-3 border-b px-4">
+                <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4">
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-sidebar-foreground hover:bg-sidebar-accent h-9 w-9"
+                                className="h-9 w-9 text-sidebar-foreground hover:bg-sidebar-accent"
                             >
                                 <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent
                             side="left"
-                            className="bg-sidebar border-sidebar-border w-60 p-0"
+                            className="w-60 border-sidebar-border bg-sidebar p-0"
                         >
                             <div className="flex h-full flex-col">
                                 <SidebarContent
@@ -169,10 +182,10 @@ export function ClinicSidebar() {
                         </SheetContent>
                     </Sheet>
                     <div className="flex items-center gap-2">
-                        <div className="bg-sidebar-primary flex h-7 w-7 items-center justify-center rounded-md">
-                            <Activity className="text-sidebar-primary-foreground h-4 w-4" />
+                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary">
+                            <Activity className="h-4 w-4 text-sidebar-primary-foreground" />
                         </div>
-                        <span className="text-sidebar-foreground text-sm font-semibold">
+                        <span className="text-sm font-semibold text-sidebar-foreground">
                             FisioElite
                         </span>
                     </div>
@@ -184,7 +197,7 @@ export function ClinicSidebar() {
     return (
         <aside
             className={cn(
-                'bg-sidebar border-sidebar-border flex h-screen flex-col border-r transition-all duration-300',
+                'flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300',
                 collapsed ? 'w-16' : 'w-60',
             )}
         >

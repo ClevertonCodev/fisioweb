@@ -1,4 +1,8 @@
-export type QuestionnaireQuestionType = 'multiple_choice' | 'checkbox' | 'scale' | 'text';
+export type QuestionnaireQuestionType =
+    | 'multiple_choice'
+    | 'checkbox'
+    | 'scale'
+    | 'text';
 
 export interface QuestionnaireQuestion {
     id: number;

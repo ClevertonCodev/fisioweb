@@ -1,5 +1,10 @@
 export type AssessmentStatus = 'draft' | 'signed';
-export type AssessmentFieldType = 'textarea' | 'text' | 'range' | 'checkbox' | 'number';
+export type AssessmentFieldType =
+    | 'textarea'
+    | 'text'
+    | 'range'
+    | 'checkbox'
+    | 'number';
 
 export interface AssessmentFieldOption {
     id: number;
@@ -13,7 +18,13 @@ export interface AssessmentField {
     fieldType: AssessmentFieldType;
     required: boolean;
     sortOrder: number;
-    config: { min?: number; max?: number; minLabel?: string; maxLabel?: string; unit?: string } | null;
+    config: {
+        min?: number;
+        max?: number;
+        minLabel?: string;
+        maxLabel?: string;
+        unit?: string;
+    } | null;
     options: AssessmentFieldOption[];
 }
 

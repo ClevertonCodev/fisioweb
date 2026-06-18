@@ -1,4 +1,7 @@
-import type { PatientFilesRepository, PatientFileStoreOptions } from '@/application/clinic/ports';
+import type {
+    PatientFilesRepository,
+    PatientFileStoreOptions,
+} from '@/application/clinic/ports';
 import type { PatientFile } from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
@@ -49,7 +52,9 @@ export const apiClinicPatientFilesRepository: PatientFilesRepository = {
                 onUploadProgress: (e) => {
                     const total = e.total;
                     if (total && options?.onUploadProgress) {
-                        options.onUploadProgress(Math.round((e.loaded * 100) / total));
+                        options.onUploadProgress(
+                            Math.round((e.loaded * 100) / total),
+                        );
                     }
                 },
             },

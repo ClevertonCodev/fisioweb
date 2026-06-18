@@ -13,7 +13,8 @@ export interface UploadPatientFileVariables {
 }
 
 const keys = {
-    patientFiles: (patientId: string) => ['patient-files', 'patient', patientId] as const,
+    patientFiles: (patientId: string) =>
+        ['patient-files', 'patient', patientId] as const,
 };
 
 export function usePatientFiles(patientId: string) {
@@ -33,11 +34,15 @@ export function useUploadPatientFile(patientId: string) {
                 onUploadProgress: vars.onUploadProgress,
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientFiles(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientFiles(patientId),
+            });
             toast.success('Arquivo enviado com sucesso');
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao enviar arquivo');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao enviar arquivo',
+            );
         },
     });
 }
@@ -47,7 +52,9 @@ export function useDeletePatientFile(patientId: string) {
     return useMutation({
         mutationFn: (fileId: string) => repo.destroy(patientId, fileId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientFiles(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientFiles(patientId),
+            });
             toast.success('Arquivo excluído com sucesso');
         },
         onError: () => {

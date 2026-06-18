@@ -35,7 +35,8 @@ function QuestionIcon({ type }: { type: string }) {
 
 function formatAnswer(answer: string | string[] | null): string {
     if (answer === null || answer === undefined) return '—';
-    if (Array.isArray(answer)) return answer.length > 0 ? answer.join(', ') : '—';
+    if (Array.isArray(answer))
+        return answer.length > 0 ? answer.join(', ') : '—';
     return String(answer) || '—';
 }
 
@@ -47,10 +48,16 @@ export function QuestionnaireViewSheet({
 }: QuestionnaireViewSheetProps) {
     const questionnaireId = questionnaire ? String(questionnaire.id) : null;
 
-    const { data: detail, isLoading } = usePatientQuestionnaire(patientId, questionnaireId);
+    const { data: detail, isLoading } = usePatientQuestionnaire(
+        patientId,
+        questionnaireId,
+    );
 
     const answerMap = new Map(
-        (detail?.answers ?? []).map((a) => [a.questionnaireQuestionId, a.answer]),
+        (detail?.answers ?? []).map((a) => [
+            a.questionnaireQuestionId,
+            a.answer,
+        ]),
     );
 
     const statusLabel =
@@ -71,14 +78,18 @@ export function QuestionnaireViewSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="flex w-full flex-col sm:max-w-lg">
                 <SheetHeader>
-                    <SheetTitle>{questionnaire?.template?.title ?? 'Questionário'}</SheetTitle>
+                    <SheetTitle>
+                        {questionnaire?.template?.title ?? 'Questionário'}
+                    </SheetTitle>
                     <SheetDescription className="flex items-center gap-2">
                         <Badge variant={statusVariant}>{statusLabel}</Badge>
                         {questionnaire?.answeredAt && (
-                            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Calendar className="h-3 w-3" />
                                 Respondido em{' '}
-                                {new Date(questionnaire.answeredAt).toLocaleDateString('pt-BR')}
+                                {new Date(
+                                    questionnaire.answeredAt,
+                                ).toLocaleDateString('pt-BR')}
                             </span>
                         )}
                     </SheetDescription>
@@ -100,28 +111,42 @@ export function QuestionnaireViewSheet({
                                 .sort((a, b) => a.sortOrder - b.sortOrder)
                                 .map((section) => (
                                     <div key={section.id}>
-                                        <h3 className="text-foreground mb-3 text-sm font-semibold">
+                                        <h3 className="mb-3 text-sm font-semibold text-foreground">
                                             {section.title}
                                         </h3>
                                         <div className="space-y-4">
                                             {section.questions
                                                 .slice()
-                                                .sort((a, b) => a.sortOrder - b.sortOrder)
+                                                .sort(
+                                                    (a, b) =>
+                                                        a.sortOrder -
+                                                        b.sortOrder,
+                                                )
                                                 .map((question) => {
-                                                    const answer = answerMap.get(question.id);
+                                                    const answer =
+                                                        answerMap.get(
+                                                            question.id,
+                                                        );
                                                     const hasAnswer =
-                                                        answer !== undefined && answer !== null;
+                                                        answer !== undefined &&
+                                                        answer !== null;
                                                     return (
                                                         <div
                                                             key={question.id}
                                                             className="rounded-md border p-3"
                                                         >
-                                                            <div className="text-muted-foreground mb-1.5 flex items-start gap-1.5">
-                                                                <QuestionIcon type={question.type} />
+                                                            <div className="mb-1.5 flex items-start gap-1.5 text-muted-foreground">
+                                                                <QuestionIcon
+                                                                    type={
+                                                                        question.type
+                                                                    }
+                                                                />
                                                                 <p className="text-xs">
-                                                                    {question.label}
+                                                                    {
+                                                                        question.label
+                                                                    }
                                                                     {question.required && (
-                                                                        <span className="text-destructive ml-1">
+                                                                        <span className="ml-1 text-destructive">
                                                                             *
                                                                         </span>
                                                                     )}
@@ -130,11 +155,14 @@ export function QuestionnaireViewSheet({
                                                             <p
                                                                 className={
                                                                     hasAnswer
-                                                                        ? 'text-foreground text-sm font-medium'
-                                                                        : 'text-muted-foreground text-sm italic'
+                                                                        ? 'text-sm font-medium text-foreground'
+                                                                        : 'text-sm text-muted-foreground italic'
                                                                 }
                                                             >
-                                                                {formatAnswer(answer ?? null)}
+                                                                {formatAnswer(
+                                                                    answer ??
+                                                                        null,
+                                                                )}
                                                             </p>
                                                         </div>
                                                     );
@@ -146,8 +174,9 @@ export function QuestionnaireViewSheet({
                     )}
 
                     {!isLoading && !detail?.template?.sections && (
-                        <p className="text-muted-foreground text-sm">
-                            Não foi possível carregar as perguntas deste questionário.
+                        <p className="text-sm text-muted-foreground">
+                            Não foi possível carregar as perguntas deste
+                            questionário.
                         </p>
                     )}
                 </ScrollArea>

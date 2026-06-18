@@ -54,25 +54,26 @@ function toTemplate(raw: ApiQuestionnaireTemplateDto): QuestionnaireTemplate {
     };
 }
 
-export const apiClinicQuestionnaireTemplatesRepository: QuestionnaireTemplatesRepository = {
-    async list() {
-        const res = await apiClient.get<{ data: ApiQuestionnaireTemplateDto[] }>(
-            '/clinic/questionnaire-templates',
-        );
-        return res.data.data.map(toTemplate);
-    },
+export const apiClinicQuestionnaireTemplatesRepository: QuestionnaireTemplatesRepository =
+    {
+        async list() {
+            const res = await apiClient.get<{
+                data: ApiQuestionnaireTemplateDto[];
+            }>('/clinic/questionnaire-templates');
+            return res.data.data.map(toTemplate);
+        },
 
-    async findById(id: string) {
-        const res = await apiClient.get<{ data: ApiQuestionnaireTemplateDto }>(
-            `/clinic/questionnaire-templates/${id}`,
-        );
-        return toTemplate(res.data.data);
-    },
+        async findById(id: string) {
+            const res = await apiClient.get<{
+                data: ApiQuestionnaireTemplateDto;
+            }>(`/clinic/questionnaire-templates/${id}`);
+            return toTemplate(res.data.data);
+        },
 
-    async create(dto) {
-        const res = await apiClient.post<{ data: ApiQuestionnaireTemplateDto }>(
-            '/clinic/questionnaire-templates',
-            {
+        async create(dto) {
+            const res = await apiClient.post<{
+                data: ApiQuestionnaireTemplateDto;
+            }>('/clinic/questionnaire-templates', {
                 title: dto.title,
                 description: dto.description,
                 sections: dto.sections.map((s, si) => ({
@@ -88,15 +89,14 @@ export const apiClinicQuestionnaireTemplatesRepository: QuestionnaireTemplatesRe
                         sort_order: qi,
                     })),
                 })),
-            },
-        );
-        return toTemplate(res.data.data);
-    },
+            });
+            return toTemplate(res.data.data);
+        },
 
-    async update(id, dto) {
-        const res = await apiClient.put<{ data: ApiQuestionnaireTemplateDto }>(
-            `/clinic/questionnaire-templates/${id}`,
-            {
+        async update(id, dto) {
+            const res = await apiClient.put<{
+                data: ApiQuestionnaireTemplateDto;
+            }>(`/clinic/questionnaire-templates/${id}`, {
                 title: dto.title,
                 description: dto.description,
                 sections: dto.sections.map((s, si) => ({
@@ -112,12 +112,11 @@ export const apiClinicQuestionnaireTemplatesRepository: QuestionnaireTemplatesRe
                         sort_order: qi,
                     })),
                 })),
-            },
-        );
-        return toTemplate(res.data.data);
-    },
+            });
+            return toTemplate(res.data.data);
+        },
 
-    async destroy(id) {
-        await apiClient.delete(`/clinic/questionnaire-templates/${id}`);
-    },
-};
+        async destroy(id) {
+            await apiClient.delete(`/clinic/questionnaire-templates/${id}`);
+        },
+    };

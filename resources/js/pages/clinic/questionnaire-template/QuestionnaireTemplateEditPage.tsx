@@ -31,11 +31,14 @@ function validate(title: string, sections: DraftSection[]): string | null {
     if (sections.length === 0) return 'Adicione ao menos uma seção.';
     for (const section of sections) {
         if (!section.title.trim()) return 'Todas as seções precisam de título.';
-        if (section.questions.length === 0) return 'Cada seção precisa ter ao menos uma pergunta.';
+        if (section.questions.length === 0)
+            return 'Cada seção precisa ter ao menos uma pergunta.';
         for (const question of section.questions) {
-            if (!question.label.trim()) return 'Todas as perguntas precisam de enunciado.';
+            if (!question.label.trim())
+                return 'Todas as perguntas precisam de enunciado.';
             if (
-                (question.type === 'multiple_choice' || question.type === 'checkbox') &&
+                (question.type === 'multiple_choice' ||
+                    question.type === 'checkbox') &&
                 question.options.some((o) => !o.trim())
             ) {
                 return 'Preencha todas as opções ou remova as vazias.';
@@ -45,7 +48,9 @@ function validate(title: string, sections: DraftSection[]): string | null {
     return null;
 }
 
-function templateToDraftSections(template: QuestionnaireTemplate): DraftSection[] {
+function templateToDraftSections(
+    template: QuestionnaireTemplate,
+): DraftSection[] {
     return template.sections.map((s) => ({
         _key: crypto.randomUUID(),
         title: s.title,
@@ -78,7 +83,9 @@ export default function QuestionnaireTemplateEditPage() {
         return (
             <ClinicLayout>
                 <div className="p-6">
-                    <p className="text-destructive text-sm">Questionário inválido.</p>
+                    <p className="text-sm text-destructive">
+                        Questionário inválido.
+                    </p>
                 </div>
             </ClinicLayout>
         );
@@ -110,13 +117,19 @@ export default function QuestionnaireTemplateEditPage() {
                 }}
             />
 
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir questionário</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Excluir questionário
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>"{template.title}"</strong>? Esta ação não pode ser desfeita.
+                            <strong>"{template.title}"</strong>? Esta ação não
+                            pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -148,16 +161,25 @@ function QuestionnaireTemplateEditForm({
     isPending: boolean;
     onBack: () => void;
     onDelete: () => void;
-    onSubmit: (dto: { title: string; description: string | null; sections: DraftSection[] extends (infer T)[] ? T[] : never[] }) => Promise<void>;
+    onSubmit: (dto: {
+        title: string;
+        description: string | null;
+        sections: DraftSection[] extends (infer T)[] ? T[] : never[];
+    }) => Promise<void>;
 }) {
     const [title, setTitle] = useState(template.title);
     const [description, setDescription] = useState(template.description ?? '');
-    const [sections, setSections] = useState<DraftSection[]>(() => templateToDraftSections(template));
+    const [sections, setSections] = useState<DraftSection[]>(() =>
+        templateToDraftSections(template),
+    );
     const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit() {
         const err = validate(title, sections);
-        if (err) { setError(err); return; }
+        if (err) {
+            setError(err);
+            return;
+        }
         setError(null);
 
         await onSubmit({
@@ -168,7 +190,10 @@ function QuestionnaireTemplateEditForm({
                 questions: s.questions.map((q) => ({
                     label: q.label.trim(),
                     type: q.type,
-                    options: q.type === 'multiple_choice' || q.type === 'checkbox' ? q.options.map((o) => o.trim()) : null,
+                    options:
+                        q.type === 'multiple_choice' || q.type === 'checkbox'
+                            ? q.options.map((o) => o.trim())
+                            : null,
                     scaleMin: q.scaleMin,
                     scaleMax: q.scaleMax,
                     required: q.required,
@@ -181,14 +206,19 @@ function QuestionnaireTemplateEditForm({
         <div className="space-y-6 p-6">
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                    <Button type="button" variant="ghost" className="w-fit" onClick={onBack}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-fit"
+                        onClick={onBack}
+                    >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Voltar
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
-                        className="text-destructive hover:text-destructive gap-1.5"
+                        className="gap-1.5 text-destructive hover:text-destructive"
                         onClick={onDelete}
                     >
                         <Trash2 className="h-4 w-4" />
@@ -196,8 +226,10 @@ function QuestionnaireTemplateEditForm({
                     </Button>
                 </div>
                 <div>
-                    <h1 className="text-2xl font-semibold">Editar questionário</h1>
-                    <p className="text-muted-foreground text-sm">
+                    <h1 className="text-2xl font-semibold">
+                        Editar questionário
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
                         Atualize as seções e perguntas do questionário.
                     </p>
                 </div>
@@ -223,9 +255,12 @@ function QuestionnaireTemplateEditForm({
                 </div>
             </div>
 
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <QuestionnaireSectionBuilder sections={sections} onChange={setSections} />
+            <QuestionnaireSectionBuilder
+                sections={sections}
+                onChange={setSections}
+            />
 
             <Button onClick={handleSubmit} disabled={isPending}>
                 {isPending ? 'Salvando...' : 'Salvar questionário'}

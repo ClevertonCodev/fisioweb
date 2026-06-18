@@ -13,9 +13,15 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
-import { useDeleteEvolution, usePatientEvolutions } from '@/application/clinic/use-evolutions';
+import {
+    useDeleteEvolution,
+    usePatientEvolutions,
+} from '@/application/clinic/use-evolutions';
 import { usePatientFiles } from '@/application/clinic/use-patient-files';
-import { useDeleteQuestionnaire, usePatientQuestionnaires } from '@/application/clinic/use-patient-questionnaires';
+import {
+    useDeleteQuestionnaire,
+    usePatientQuestionnaires,
+} from '@/application/clinic/use-patient-questionnaires';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -57,7 +63,12 @@ type TimelineEntry =
     | { id: string; type: 'assessment'; date: Date; data: AssessmentSummary }
     | { id: string; type: 'evolution'; date: Date; data: PatientEvolution }
     | { id: string; type: 'file'; date: Date; data: PatientFile }
-    | { id: string; type: 'questionnaire'; date: Date; data: PatientQuestionnaire };
+    | {
+          id: string;
+          type: 'questionnaire';
+          date: Date;
+          data: PatientQuestionnaire;
+      };
 
 // ─── Helper Component para Cards da Timeline ────────────────────────────────
 interface RecordCardProps {
@@ -66,36 +77,57 @@ interface RecordCardProps {
     title: string;
     date: string;
     badge?: string;
-    badgeVariant?: 'active' | 'warning' | 'danger' | 'neutral' | 'success' | 'info';
+    badgeVariant?:
+        | 'active'
+        | 'warning'
+        | 'danger'
+        | 'neutral'
+        | 'success'
+        | 'info';
     children?: React.ReactNode;
     actions?: React.ReactNode;
 }
 
-function TimelineCard({ icon: Icon, iconUrl, title, date, badge, badgeVariant = 'neutral', children, actions }: RecordCardProps) {
+function TimelineCard({
+    icon: Icon,
+    iconUrl,
+    title,
+    date,
+    badge,
+    badgeVariant = 'neutral',
+    children,
+    actions,
+}: RecordCardProps) {
     return (
         <Card className="group relative transition-shadow hover:shadow-md">
             {/* O bolinha da timeline (opcional, posicionado via CSS se usar uma linha vertical) */}
-            <div className="absolute -left-[35px] top-6 h-3 w-3 rounded-full border-2 border-primary bg-background hidden sm:block" />
+            <div className="absolute top-6 -left-[35px] hidden h-3 w-3 rounded-full border-2 border-primary bg-background sm:block" />
 
             <CardHeader className="pb-2">
                 <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-primary">
                         {iconUrl ? (
-                            <img src={iconUrl} alt={title} className="h-10 w-10 object-cover" />
+                            <img
+                                src={iconUrl}
+                                alt={title}
+                                className="h-10 w-10 object-cover"
+                            />
                         ) : (
                             <Icon className="h-5 w-5" />
                         )}
                     </div>
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-foreground text-sm font-semibold">{title}</h3>
+                            <h3 className="text-sm font-semibold text-foreground">
+                                {title}
+                            </h3>
                             {badge && (
                                 <StatusBadge variant={badgeVariant}>
                                     {badge}
                                 </StatusBadge>
                             )}
                         </div>
-                        <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             <span>{date}</span>
                         </div>
@@ -123,17 +155,28 @@ function TimelineCard({ icon: Icon, iconUrl, title, date, badge, badgeVariant = 
     );
 }
 
-export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEvolution, onDeleteEvolution }: PatientAllTabProps) {
+export function PatientAllTab({
+    patientId,
+    searchTerm,
+    onViewEvolution,
+    onEditEvolution,
+    onDeleteEvolution,
+}: PatientAllTabProps) {
     const navigate = useNavigate();
-    const [evolutionToDelete, setEvolutionToDelete] = useState<PatientEvolution | null>(null);
-    const [questionnaireToDelete, setQuestionnaireToDelete] = useState<PatientQuestionnaire | null>(null);
+    const [evolutionToDelete, setEvolutionToDelete] =
+        useState<PatientEvolution | null>(null);
+    const [questionnaireToDelete, setQuestionnaireToDelete] =
+        useState<PatientQuestionnaire | null>(null);
 
     // ─── Fetching (Paralelo) ──────────────────────────────────────────────────
-    const { data: assessments, isLoading: loadA } = usePatientAssessments(patientId);
-    const { data: evolutions, isLoading: loadE } = usePatientEvolutions(patientId);
+    const { data: assessments, isLoading: loadA } =
+        usePatientAssessments(patientId);
+    const { data: evolutions, isLoading: loadE } =
+        usePatientEvolutions(patientId);
     const { mutate: deleteEvolution } = useDeleteEvolution(patientId);
     const { data: files, isLoading: loadF } = usePatientFiles(patientId);
-    const { data: questionnaires, isLoading: loadQ } = usePatientQuestionnaires(patientId);
+    const { data: questionnaires, isLoading: loadQ } =
+        usePatientQuestionnaires(patientId);
     const { mutate: deleteQuestionnaire } = useDeleteQuestionnaire(patientId);
 
     const isLoading = loadA || loadE || loadF || loadQ;
@@ -202,9 +245,14 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                     e.notes?.toLowerCase().includes(term)
                 );
             }
-            if (entry.type === 'assessment') return entry.data.template.name.toLowerCase().includes(term);
-            if (entry.type === 'questionnaire') return (entry.data.template?.title ?? '').toLowerCase().includes(term);
-            if (entry.type === 'file') return entry.data.originalName.toLowerCase().includes(term);
+            if (entry.type === 'assessment')
+                return entry.data.template.name.toLowerCase().includes(term);
+            if (entry.type === 'questionnaire')
+                return (entry.data.template?.title ?? '')
+                    .toLowerCase()
+                    .includes(term);
+            if (entry.type === 'file')
+                return entry.data.originalName.toLowerCase().includes(term);
             return true;
         });
     }, [timeline, searchTerm]);
@@ -223,12 +271,15 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
     if (filteredTimeline.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="bg-muted mb-4 flex h-14 w-14 items-center justify-center rounded-full">
-                    <ClipboardList className="text-muted-foreground h-7 w-7" />
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                    <ClipboardList className="h-7 w-7 text-muted-foreground" />
                 </div>
-                <p className="text-foreground text-sm font-medium">Nenhum registro encontrado</p>
-                <p className="text-muted-foreground mt-1 max-w-xs text-xs">
-                    Crie uma evolução, avaliação, ou adicione arquivos para popular a timeline.
+                <p className="text-sm font-medium text-foreground">
+                    Nenhum registro encontrado
+                </p>
+                <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                    Crie uma evolução, avaliação, ou adicione arquivos para
+                    popular a timeline.
                 </p>
             </div>
         );
@@ -252,27 +303,42 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                 icon={Activity}
                                 title={a.template.name}
                                 date={dateStr}
-                                badge={a.status === 'signed' ? 'Assinada' : 'Rascunho'}
-                                badgeVariant={a.status === 'signed' ? 'active' : 'neutral'}
+                                badge={
+                                    a.status === 'signed'
+                                        ? 'Assinada'
+                                        : 'Rascunho'
+                                }
+                                badgeVariant={
+                                    a.status === 'signed' ? 'active' : 'neutral'
+                                }
                                 actions={
                                     <DropdownMenuItem
                                         className="cursor-pointer gap-2"
-                                        onClick={() => navigate(`/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`)}
+                                        onClick={() =>
+                                            navigate(
+                                                `/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`,
+                                            )
+                                        }
                                     >
                                         <Edit2 className="h-4 w-4" />
-                                        {a.status === 'draft' ? 'Editar rascunho' : 'Ver avaliação'}
+                                        {a.status === 'draft'
+                                            ? 'Editar rascunho'
+                                            : 'Ver avaliação'}
                                     </DropdownMenuItem>
                                 }
                             >
                                 {a.clinicUser && (
-                                    <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                    <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                         <Avatar className="h-5 w-5">
                                             <AvatarFallback className="bg-muted text-[9px]">
                                                 {a.clinicUser.name[0]}
                                             </AvatarFallback>
                                         </Avatar>
                                         <span>
-                                            Por <span className="text-foreground font-medium">{a.clinicUser.name}</span>
+                                            Por{' '}
+                                            <span className="font-medium text-foreground">
+                                                {a.clinicUser.name}
+                                            </span>
                                         </span>
                                     </div>
                                 )}
@@ -280,10 +346,16 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                     variant="outline"
                                     size="sm"
                                     className="cursor-pointer gap-1.5"
-                                    onClick={() => navigate(`/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`)}
+                                    onClick={() =>
+                                        navigate(
+                                            `/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`,
+                                        )
+                                    }
                                 >
                                     <Edit2 className="h-3.5 w-3.5" />
-                                    {a.status === 'draft' ? 'Editar' : 'Ver avaliação'}
+                                    {a.status === 'draft'
+                                        ? 'Editar'
+                                        : 'Ver avaliação'}
                                 </Button>
                             </TimelineCard>
                         );
@@ -298,8 +370,14 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                 icon={FileText}
                                 title={e.title || 'Sessão de Fisioterapia'}
                                 date={dateStr}
-                                badge={e.status === 'signed' ? 'Assinada' : 'Rascunho'}
-                                badgeVariant={e.status === 'signed' ? 'active' : 'neutral'}
+                                badge={
+                                    e.status === 'signed'
+                                        ? 'Assinada'
+                                        : 'Rascunho'
+                                }
+                                badgeVariant={
+                                    e.status === 'signed' ? 'active' : 'neutral'
+                                }
                                 actions={
                                     <>
                                         <DropdownMenuItem
@@ -307,20 +385,26 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                             onClick={() => onViewEvolution?.(e)}
                                         >
                                             <FileText className="h-4 w-4" />
-                                            {e.status === 'signed' ? 'Ver evolução' : 'Visualizar texto'}
+                                            {e.status === 'signed'
+                                                ? 'Ver evolução'
+                                                : 'Visualizar texto'}
                                         </DropdownMenuItem>
                                         {e.status === 'draft' ? (
                                             <>
                                                 <DropdownMenuItem
                                                     className="cursor-pointer gap-2"
-                                                    onClick={() => onEditEvolution?.(e)}
+                                                    onClick={() =>
+                                                        onEditEvolution?.(e)
+                                                    }
                                                 >
                                                     <Edit2 className="h-4 w-4" />
                                                     Editar rascunho
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    className="text-destructive focus:text-destructive cursor-pointer gap-2"
-                                                    onClick={() => setEvolutionToDelete(e)}
+                                                    className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                                                    onClick={() =>
+                                                        setEvolutionToDelete(e)
+                                                    }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                     Excluir rascunho
@@ -330,18 +414,23 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                     </>
                                 }
                             >
-                                <p className="text-muted-foreground mb-3 text-sm line-clamp-2">
-                                    {e.generatedText || e.notes || 'Sem texto preenchido.'}
+                                <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                                    {e.generatedText ||
+                                        e.notes ||
+                                        'Sem texto preenchido.'}
                                 </p>
                                 {e.clinicUser && (
-                                    <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                    <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                         <Avatar className="h-5 w-5">
                                             <AvatarFallback className="bg-muted text-[9px]">
                                                 {e.clinicUser.name[0]}
                                             </AvatarFallback>
                                         </Avatar>
                                         <span>
-                                            Criado por <span className="text-foreground font-medium">{e.clinicUser.name}</span>
+                                            Criado por{' '}
+                                            <span className="font-medium text-foreground">
+                                                {e.clinicUser.name}
+                                            </span>
                                         </span>
                                     </div>
                                 )}
@@ -357,7 +446,9 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                         }
                                     >
                                         <FileText className="h-3.5 w-3.5" />
-                                        {e.status === 'signed' ? 'Ver evolução' : 'Editar rascunho'}
+                                        {e.status === 'signed'
+                                            ? 'Ver evolução'
+                                            : 'Editar rascunho'}
                                     </Button>
                                     {e.status === 'draft' && (
                                         <>
@@ -365,7 +456,9 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                                 variant="outline"
                                                 size="sm"
                                                 className="cursor-pointer gap-1.5"
-                                                onClick={() => onViewEvolution?.(e)}
+                                                onClick={() =>
+                                                    onViewEvolution?.(e)
+                                                }
                                             >
                                                 <FileText className="h-3.5 w-3.5" />
                                                 Visualizar texto
@@ -373,8 +466,10 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="text-destructive hover:text-destructive cursor-pointer gap-1.5"
-                                                onClick={() => setEvolutionToDelete(e)}
+                                                className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
+                                                onClick={() =>
+                                                    setEvolutionToDelete(e)
+                                                }
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                                 Excluir rascunho
@@ -400,23 +495,30 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                 actions={
                                     <DropdownMenuItem
                                         className="cursor-pointer gap-2"
-                                        onClick={() => window.open(f.cdnUrl, '_blank')}
+                                        onClick={() =>
+                                            window.open(f.cdnUrl, '_blank')
+                                        }
                                     >
                                         <Download className="h-4 w-4" />
                                         Download
                                     </DropdownMenuItem>
                                 }
                             >
-                                <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                     <span>{(f.size / 1024).toFixed(1)} kb</span>
                                     <span>•</span>
-                                    <span>Upload via {f.clinicUser?.name || 'Sistema'}</span>
+                                    <span>
+                                        Upload via{' '}
+                                        {f.clinicUser?.name || 'Sistema'}
+                                    </span>
                                 </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="cursor-pointer gap-1.5"
-                                    onClick={() => window.open(f.cdnUrl, '_blank')}
+                                    onClick={() =>
+                                        window.open(f.cdnUrl, '_blank')
+                                    }
                                 >
                                     <Download className="h-3.5 w-3.5" />
                                     Download arquivo
@@ -429,15 +531,29 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                     if (entry.type === 'questionnaire') {
                         const q = entry.data;
                         const templateTitle = q.template?.title ?? null;
-                        const returnTo = encodeURIComponent(`/clinica/pacientes/${patientId}?tab=questionnaires`);
+                        const returnTo = encodeURIComponent(
+                            `/clinica/pacientes/${patientId}?tab=questionnaires`,
+                        );
                         return (
                             <TimelineCard
                                 key={entry.id}
                                 icon={ClipboardList}
                                 title={templateTitle ?? '[Template excluído]'}
                                 date={dateStr}
-                                badge={q.status === 'answered' ? 'Respondido' : q.status === 'expired' ? 'Expirado' : 'Pendente'}
-                                badgeVariant={q.status === 'answered' ? 'active' : q.status === 'expired' ? 'danger' : 'neutral'}
+                                badge={
+                                    q.status === 'answered'
+                                        ? 'Respondido'
+                                        : q.status === 'expired'
+                                          ? 'Expirado'
+                                          : 'Pendente'
+                                }
+                                badgeVariant={
+                                    q.status === 'answered'
+                                        ? 'active'
+                                        : q.status === 'expired'
+                                          ? 'danger'
+                                          : 'neutral'
+                                }
                                 actions={
                                     <>
                                         {templateTitle && (
@@ -455,8 +571,10 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                         )}
                                         {q.status !== 'answered' && (
                                             <DropdownMenuItem
-                                                className="text-destructive cursor-pointer gap-2"
-                                                onClick={() => setQuestionnaireToDelete(q)}
+                                                className="cursor-pointer gap-2 text-destructive"
+                                                onClick={() =>
+                                                    setQuestionnaireToDelete(q)
+                                                }
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                                 Excluir
@@ -465,16 +583,23 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                     </>
                                 }
                             >
-                                <div className="text-muted-foreground mb-3 flex items-center gap-2 text-xs">
+                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
                                     <span>Modalidade: {q.modality}</span>
                                     <span>•</span>
-                                    <span>Enviado por {q.clinicUser?.name || 'Sistema'}</span>
+                                    <span>
+                                        Enviado por{' '}
+                                        {q.clinicUser?.name || 'Sistema'}
+                                    </span>
                                 </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     className="cursor-pointer gap-1.5"
-                                    onClick={() => navigate(`/clinica/pacientes/${patientId}?tab=questionnaires`)}
+                                    onClick={() =>
+                                        navigate(
+                                            `/clinica/pacientes/${patientId}?tab=questionnaires`,
+                                        )
+                                    }
                                 >
                                     <ClipboardList className="h-3.5 w-3.5" />
                                     Ver questionário
@@ -496,8 +621,13 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                         <AlertDialogTitle>Excluir rascunho</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>"{evolutionToDelete?.title || 'Sessão de Fisioterapia'}"</strong>?
-                            Esta ação não pode ser desfeita.
+                            <strong>
+                                "
+                                {evolutionToDelete?.title ||
+                                    'Sessão de Fisioterapia'}
+                                "
+                            </strong>
+                            ? Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -508,7 +638,9 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                                 if (evolutionToDelete) {
                                     onDeleteEvolution
                                         ? onDeleteEvolution(evolutionToDelete)
-                                        : deleteEvolution(String(evolutionToDelete.id));
+                                        : deleteEvolution(
+                                              String(evolutionToDelete.id),
+                                          );
                                 }
                                 setEvolutionToDelete(null);
                             }}
@@ -525,10 +657,12 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir questionário</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Excluir questionário
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tem certeza que deseja excluir este questionário do paciente? Esta ação
-                            não pode ser desfeita.
+                            Tem certeza que deseja excluir este questionário do
+                            paciente? Esta ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -537,7 +671,9 @@ export function PatientAllTab({ patientId, searchTerm, onViewEvolution, onEditEv
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
                                 if (questionnaireToDelete)
-                                    deleteQuestionnaire(String(questionnaireToDelete.id));
+                                    deleteQuestionnaire(
+                                        String(questionnaireToDelete.id),
+                                    );
                                 setQuestionnaireToDelete(null);
                             }}
                         >

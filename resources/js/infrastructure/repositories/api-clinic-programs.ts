@@ -10,7 +10,11 @@ import { apiClient } from '@/infrastructure/api/client';
 interface ApiExercise {
     id: number;
     name: string;
-    videos?: { thumbnail_url?: string | null; cdn_url?: string | null; url?: string | null }[];
+    videos?: {
+        thumbnail_url?: string | null;
+        cdn_url?: string | null;
+        url?: string | null;
+    }[];
 }
 
 interface ApiTreatmentPlanExercise {
@@ -100,7 +104,8 @@ function mapGroup(raw: ApiTreatmentPlanGroup): ProgramGroup {
 function toEntity(raw: ApiTreatmentPlan): Program {
     const groups = (raw.groups ?? []).map(mapGroup);
     const exerciseCount =
-        raw.exercises_count ?? groups.reduce((sum, g) => sum + g.exercises.length, 0);
+        raw.exercises_count ??
+        groups.reduce((sum, g) => sum + g.exercises.length, 0);
     return {
         id: String(raw.id),
         title: raw.title,
@@ -129,7 +134,10 @@ function toApiPayload(dto: ProgramWriteDto) {
         start_date: dto.startDate || undefined,
         end_date: dto.endDate || undefined,
         status: dto.status ?? undefined,
-        groups: dto.groups.map((g, i) => ({ name: g.name, sort_order: g.sortOrder ?? i })),
+        groups: dto.groups.map((g, i) => ({
+            name: g.name,
+            sort_order: g.sortOrder ?? i,
+        })),
         exercises: dto.exercises.map((e, i) => ({
             exercise_id: e.exerciseId,
             group_index: e.groupIndex,
@@ -141,7 +149,10 @@ function toApiPayload(dto: ProgramWriteDto) {
             repetitions_max: e.repetitionsMax,
             load_min: e.loadMin,
             load_max: e.loadMax,
-            rest_time: e.restTime !== null && e.restTime !== undefined ? String(e.restTime) : null,
+            rest_time:
+                e.restTime !== null && e.restTime !== undefined
+                    ? String(e.restTime)
+                    : null,
             notes: e.notes,
             sort_order: i,
         })),
@@ -168,7 +179,9 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
             },
         });
         return {
-            items: Array.isArray(data?.data?.data) ? data.data.data.map(toEntity) : [],
+            items: Array.isArray(data?.data?.data)
+                ? data.data.data.map(toEntity)
+                : [],
             total: data?.data?.total ?? 0,
             lastPage: data?.data?.last_page ?? 1,
             perPage: data?.data?.per_page ?? 10,

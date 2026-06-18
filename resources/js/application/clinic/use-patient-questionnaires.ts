@@ -8,12 +8,21 @@ import { apiClinicPatientQuestionnairesRepository } from '@/infrastructure/repos
 const repo = apiClinicPatientQuestionnairesRepository;
 
 const keys = {
-    patientQuestionnaires: (patientId: string) => ['patient-questionnaires', 'patient', patientId] as const,
+    patientQuestionnaires: (patientId: string) =>
+        ['patient-questionnaires', 'patient', patientId] as const,
     patientQuestionnaire: (patientId: string, questionnaireId: string) =>
-        ['patient-questionnaires', 'patient', patientId, questionnaireId] as const,
+        [
+            'patient-questionnaires',
+            'patient',
+            patientId,
+            questionnaireId,
+        ] as const,
 };
 
-export function usePatientQuestionnaire(patientId: string, questionnaireId: string | null) {
+export function usePatientQuestionnaire(
+    patientId: string,
+    questionnaireId: string | null,
+) {
     return useQuery({
         queryKey: keys.patientQuestionnaire(patientId, questionnaireId ?? ''),
         queryFn: () => repo.findById(patientId, questionnaireId!),
@@ -32,13 +41,18 @@ export function usePatientQuestionnaires(patientId: string) {
 export function useSendQuestionnaire(patientId: string) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: PatientQuestionnaireWriteDto) => repo.store(patientId, dto),
+        mutationFn: (dto: PatientQuestionnaireWriteDto) =>
+            repo.store(patientId, dto),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientQuestionnaires(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientQuestionnaires(patientId),
+            });
             toast.success('Questionário enviado com sucesso');
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao enviar questionário');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao enviar questionário',
+            );
         },
     });
 }
@@ -46,13 +60,18 @@ export function useSendQuestionnaire(patientId: string) {
 export function useDeleteQuestionnaire(patientId: string) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (questionnaireId: string) => repo.destroy(patientId, questionnaireId),
+        mutationFn: (questionnaireId: string) =>
+            repo.destroy(patientId, questionnaireId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientQuestionnaires(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientQuestionnaires(patientId),
+            });
             toast.success('Questionário excluído com sucesso');
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao excluir questionário');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao excluir questionário',
+            );
         },
     });
 }

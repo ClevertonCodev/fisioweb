@@ -65,7 +65,9 @@ interface ApiPatientEvolutionDto {
     created_at: string;
 }
 
-function toTemplateItem(raw: ApiEvolutionTemplateItemDto): EvolutionTemplateItem {
+function toTemplateItem(
+    raw: ApiEvolutionTemplateItemDto,
+): EvolutionTemplateItem {
     return {
         id: raw.id,
         label: raw.label,
@@ -76,7 +78,9 @@ function toTemplateItem(raw: ApiEvolutionTemplateItemDto): EvolutionTemplateItem
     };
 }
 
-function toTemplateSection(raw: ApiEvolutionTemplateSectionDto): EvolutionTemplateSection {
+function toTemplateSection(
+    raw: ApiEvolutionTemplateSectionDto,
+): EvolutionTemplateSection {
     return {
         id: raw.id,
         title: raw.title,
@@ -224,7 +228,10 @@ export const apiClinicEvolutionsRepository: EvolutionsRepository = {
     async generateText(id, checkedItemIds, freeTextValues) {
         const payload = {
             checked_item_ids: checkedItemIds,
-            free_text_values: freeTextValues.map((v) => ({ item_id: v.itemId, value: v.value })),
+            free_text_values: freeTextValues.map((v) => ({
+                item_id: v.itemId,
+                value: v.value,
+            })),
         };
         const res = await apiClient.post<{ data: { generated_text: string } }>(
             `/clinic/evolutions/${id}/generate-text`,

@@ -25,9 +25,11 @@ export const PATIENT_STATUS_VARIANTS: Record<
     alta: 'success',
 };
 
-export const PATIENT_STATUS_OPTIONS: { value: PatientStatus; label: string }[] = (
-    Object.keys(PATIENT_STATUS_LABELS) as PatientStatus[]
-).map((value) => ({ value, label: PATIENT_STATUS_LABELS[value] }));
+export const PATIENT_STATUS_OPTIONS: { value: PatientStatus; label: string }[] =
+    (Object.keys(PATIENT_STATUS_LABELS) as PatientStatus[]).map((value) => ({
+        value,
+        label: PATIENT_STATUS_LABELS[value],
+    }));
 
 function isValidCpf(cpf: string): boolean {
     const digits = cpf.replace(/\D/g, '');
@@ -93,7 +95,9 @@ export const patientFormSchema = z
         if (!data.cpf || data.cpf.trim().length === 0) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: data.is_foreign ? 'Documento obrigatório' : 'CPF obrigatório',
+                message: data.is_foreign
+                    ? 'Documento obrigatório'
+                    : 'CPF obrigatório',
                 path: ['cpf'],
             });
         } else if (!data.is_foreign && !isValidCpf(data.cpf)) {
@@ -148,10 +152,11 @@ export const patientFormDefaults: PatientFormValues = {
 
 // ─── Campos obrigatórios por aba (para indicadores de erro) ───────────────────
 
-export const patientFormTabFields: Record<string, (keyof PatientFormValues)[]> = {
-    'dados-pessoais': ['name', 'cpf', 'birth_date'],
-    contato: ['phone', 'email'],
-};
+export const patientFormTabFields: Record<string, (keyof PatientFormValues)[]> =
+    {
+        'dados-pessoais': ['name', 'cpf', 'birth_date'],
+        contato: ['phone', 'email'],
+    };
 
 // ─── Mapper: PatientFormValues → PatientWriteDto ─────────────────────────────
 
@@ -173,13 +178,15 @@ export function toPatientFormValues(detail: PatientDetail): PatientFormValues {
         biological_sex: detail.biologicalSex ?? '',
         gender: detail.gender ?? '',
         education: detail.education ?? '',
-        status: (detail.status as PatientFormValues['status']) ?? 'em_tratamento',
+        status:
+            (detail.status as PatientFormValues['status']) ?? 'em_tratamento',
         diagnosis: detail.diagnosis ?? '',
         phone: detail.phone ?? '',
         email: detail.email ?? '',
         zip_code: detail.zipCode ?? '',
         address_street: parts[0] ?? '',
-        address_number: (parts[1] ?? '').toUpperCase() === 'S/N' ? '' : (parts[1] ?? ''),
+        address_number:
+            (parts[1] ?? '').toUpperCase() === 'S/N' ? '' : (parts[1] ?? ''),
         address_no_number: (parts[1] ?? '').toUpperCase() === 'S/N',
         address_complement: parts[2] ?? '',
         neighborhood: detail.neighborhood ?? '',
@@ -222,7 +229,9 @@ export function toPatientUpdateDto(data: PatientFormValues): PatientUpdateDto {
         state: data.state || undefined,
         zipCode: data.zip_code || undefined,
         insurance: data.has_insurance ? data.insurance || undefined : undefined,
-        insuranceNumber: data.has_insurance ? data.insurance_number || undefined : undefined,
+        insuranceNumber: data.has_insurance
+            ? data.insurance_number || undefined
+            : undefined,
         referralSource: data.referral_source || undefined,
     };
 }
@@ -257,7 +266,9 @@ export function toPatientWriteDto(data: PatientFormValues): PatientWriteDto {
         state: data.state || undefined,
         zipCode: data.zip_code || undefined,
         insurance: data.has_insurance ? data.insurance || undefined : undefined,
-        insuranceNumber: data.has_insurance ? data.insurance_number || undefined : undefined,
+        insuranceNumber: data.has_insurance
+            ? data.insurance_number || undefined
+            : undefined,
         referralSource: data.referral_source || undefined,
     };
 }

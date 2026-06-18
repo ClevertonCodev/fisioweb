@@ -5,7 +5,11 @@ import type {
     PatientWriteDto,
     PatientsRepository,
 } from '@/application/clinic/ports';
-import type { Patient, PatientDetail, PatientStatus } from '@/domain/clinic/patient';
+import type {
+    Patient,
+    PatientDetail,
+    PatientStatus,
+} from '@/domain/clinic/patient';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiClinicUserDto {
@@ -152,18 +156,22 @@ function toApiPayload(dto: PatientWriteDto): Record<string, unknown> {
 
 export const apiClinicPatientsRepository: PatientsRepository = {
     async list(params: PatientListParams = {}): Promise<PatientListResult> {
-        const res = await apiClient.get<{ data: ApiPatientPage }>('/clinic/patients', {
-            params: {
-                page: params.page,
-                per_page: params.perPage,
-                search: params.search || undefined,
-                is_active: params.isActive,
-                statuses: params.statuses?.join(',') || undefined,
-                professional_ids: params.professionalIds?.join(',') || undefined,
-                date_from: params.dateFrom || undefined,
-                date_to: params.dateTo || undefined,
+        const res = await apiClient.get<{ data: ApiPatientPage }>(
+            '/clinic/patients',
+            {
+                params: {
+                    page: params.page,
+                    per_page: params.perPage,
+                    search: params.search || undefined,
+                    is_active: params.isActive,
+                    statuses: params.statuses?.join(',') || undefined,
+                    professional_ids:
+                        params.professionalIds?.join(',') || undefined,
+                    date_from: params.dateFrom || undefined,
+                    date_to: params.dateTo || undefined,
+                },
             },
-        });
+        );
         const page = res.data.data;
         return {
             data: page.data.map(toEntity),
@@ -175,12 +183,16 @@ export const apiClinicPatientsRepository: PatientsRepository = {
     },
 
     async getById(id: string) {
-        const res = await apiClient.get<{ data: ApiPatientDto }>(`/clinic/patients/${id}`);
+        const res = await apiClient.get<{ data: ApiPatientDto }>(
+            `/clinic/patients/${id}`,
+        );
         return toEntity(res.data.data);
     },
 
     async getDetailById(id: string) {
-        const res = await apiClient.get<{ data: ApiPatientDto }>(`/clinic/patients/${id}`);
+        const res = await apiClient.get<{ data: ApiPatientDto }>(
+            `/clinic/patients/${id}`,
+        );
         return toDetailEntity(res.data.data);
     },
 

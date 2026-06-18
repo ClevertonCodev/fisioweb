@@ -29,7 +29,9 @@ export function PatientFormPersonal({ form }: Props) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">Dados pessoais</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+                Dados pessoais
+            </h2>
 
             <Controller
                 name="is_foreign"
@@ -49,7 +51,7 @@ export function PatientFormPersonal({ form }: Props) {
             />
 
             <div>
-                <Label className="text-muted-foreground text-xs" htmlFor="name">
+                <Label className="text-xs text-muted-foreground" htmlFor="name">
                     Nome completo
                     <Req />
                 </Label>
@@ -63,7 +65,10 @@ export function PatientFormPersonal({ form }: Props) {
             </div>
 
             <div>
-                <Label className="text-muted-foreground text-xs" htmlFor="apelido">
+                <Label
+                    className="text-xs text-muted-foreground"
+                    htmlFor="apelido"
+                >
                     Apelido
                 </Label>
                 <Input
@@ -85,12 +90,15 @@ export function PatientFormPersonal({ form }: Props) {
                             onCheckedChange={field.onChange}
                         />
                         <div>
-                            <Label htmlFor="use_apelido" className="text-sm font-medium">
+                            <Label
+                                htmlFor="use_apelido"
+                                className="text-sm font-medium"
+                            >
                                 Substituir nome pelo apelido em todo o sistema
                             </Label>
-                            <p className="text-muted-foreground text-xs">
-                                Ative para que o apelido apareça no lugar do nome oficial nas telas
-                                do sistema
+                            <p className="text-xs text-muted-foreground">
+                                Ative para que o apelido apareça no lugar do
+                                nome oficial nas telas do sistema
                             </p>
                         </div>
                     </div>
@@ -99,7 +107,10 @@ export function PatientFormPersonal({ form }: Props) {
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="cpf">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="cpf"
+                    >
                         {isForeign ? 'Documento' : 'CPF'}
                         <Req />
                     </Label>
@@ -128,20 +139,33 @@ export function PatientFormPersonal({ form }: Props) {
                     <FieldError message={errors.cpf?.message} />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs">Estado civil</Label>
+                    <Label className="text-xs text-muted-foreground">
+                        Estado civil
+                    </Label>
                     <Controller
                         name="marital_status"
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value || undefined} onValueChange={field.onChange}>
+                            <Select
+                                value={field.value || undefined}
+                                onValueChange={field.onChange}
+                            >
                                 <SelectTrigger className="mt-1.5">
                                     <SelectValue placeholder="Selecione uma opção" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="solteiro">Solteiro(a)</SelectItem>
-                                    <SelectItem value="casado">Casado(a)</SelectItem>
-                                    <SelectItem value="divorciado">Divorciado(a)</SelectItem>
-                                    <SelectItem value="viuvo">Viúvo(a)</SelectItem>
+                                    <SelectItem value="solteiro">
+                                        Solteiro(a)
+                                    </SelectItem>
+                                    <SelectItem value="casado">
+                                        Casado(a)
+                                    </SelectItem>
+                                    <SelectItem value="divorciado">
+                                        Divorciado(a)
+                                    </SelectItem>
+                                    <SelectItem value="viuvo">
+                                        Viúvo(a)
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -151,7 +175,10 @@ export function PatientFormPersonal({ form }: Props) {
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="profession">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="profession"
+                    >
                         Profissão
                     </Label>
                     <Input
@@ -162,19 +189,30 @@ export function PatientFormPersonal({ form }: Props) {
                     />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs">Sexo biológico</Label>
+                    <Label className="text-xs text-muted-foreground">
+                        Sexo biológico
+                    </Label>
                     <Controller
                         name="biological_sex"
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value || undefined} onValueChange={field.onChange}>
+                            <Select
+                                value={field.value || undefined}
+                                onValueChange={field.onChange}
+                            >
                                 <SelectTrigger className="mt-1.5">
                                     <SelectValue placeholder="Selecione uma opção" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="masculino">Masculino</SelectItem>
-                                    <SelectItem value="feminino">Feminino</SelectItem>
-                                    <SelectItem value="intersexo">Intersexo</SelectItem>
+                                    <SelectItem value="masculino">
+                                        Masculino
+                                    </SelectItem>
+                                    <SelectItem value="feminino">
+                                        Feminino
+                                    </SelectItem>
+                                    <SelectItem value="intersexo">
+                                        Intersexo
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -183,19 +221,24 @@ export function PatientFormPersonal({ form }: Props) {
             </div>
 
             <div>
-                <Label className="text-muted-foreground text-xs">Gênero</Label>
+                <Label className="text-xs text-muted-foreground">Gênero</Label>
                 <Controller
                     name="gender"
                     control={control}
                     render={({ field }) => (
-                        <Select value={field.value || undefined} onValueChange={field.onChange}>
+                        <Select
+                            value={field.value || undefined}
+                            onValueChange={field.onChange}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecione uma opção" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="homem">Homem</SelectItem>
                                 <SelectItem value="mulher">Mulher</SelectItem>
-                                <SelectItem value="nao-binario">Não-binário</SelectItem>
+                                <SelectItem value="nao-binario">
+                                    Não-binário
+                                </SelectItem>
                                 <SelectItem value="outro">Outro</SelectItem>
                             </SelectContent>
                         </Select>
@@ -205,27 +248,43 @@ export function PatientFormPersonal({ form }: Props) {
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-muted-foreground text-xs">Escolaridade</Label>
+                    <Label className="text-xs text-muted-foreground">
+                        Escolaridade
+                    </Label>
                     <Controller
                         name="education"
                         control={control}
                         render={({ field }) => (
-                            <Select value={field.value || undefined} onValueChange={field.onChange}>
+                            <Select
+                                value={field.value || undefined}
+                                onValueChange={field.onChange}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione uma opção" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="fundamental">Ensino Fundamental</SelectItem>
-                                    <SelectItem value="medio">Ensino Médio</SelectItem>
-                                    <SelectItem value="superior">Ensino Superior</SelectItem>
-                                    <SelectItem value="pos">Pós-graduação</SelectItem>
+                                    <SelectItem value="fundamental">
+                                        Ensino Fundamental
+                                    </SelectItem>
+                                    <SelectItem value="medio">
+                                        Ensino Médio
+                                    </SelectItem>
+                                    <SelectItem value="superior">
+                                        Ensino Superior
+                                    </SelectItem>
+                                    <SelectItem value="pos">
+                                        Pós-graduação
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
                     />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="birth_date">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="birth_date"
+                    >
                         Data de nascimento
                         <Req />
                     </Label>
@@ -240,7 +299,10 @@ export function PatientFormPersonal({ form }: Props) {
             </div>
 
             <div>
-                <Label className="text-muted-foreground text-xs" htmlFor="diagnosis">
+                <Label
+                    className="text-xs text-muted-foreground"
+                    htmlFor="diagnosis"
+                >
                     Resumo do diagnóstico
                 </Label>
                 <Textarea

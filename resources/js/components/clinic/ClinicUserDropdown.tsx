@@ -14,8 +14,16 @@ import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import { cn } from '@/lib/utils';
@@ -180,7 +188,7 @@ export function ClinicUserDropdown({
                 {user.photoUrl ? (
                     <AvatarImage src={user.photoUrl} alt={user.name} />
                 ) : null}
-                <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-sm font-medium">
+                <AvatarFallback className="bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
                     {firstLetter(user.name)}
                 </AvatarFallback>
             </Avatar>
@@ -221,14 +229,14 @@ export function ClinicUserDropdown({
                 className="w-64 space-y-1 p-2"
             >
                 <div className="px-3 py-2">
-                    <p className="text-foreground text-sm leading-none font-medium">
+                    <p className="text-sm leading-none font-medium text-foreground">
                         {user.name}
                     </p>
-                    <p className="text-muted-foreground mt-1 text-xs leading-none">
+                    <p className="mt-1 text-xs leading-none text-muted-foreground">
                         {user.email}
                     </p>
                 </div>
-                <div className="bg-border h-px" />
+                <div className="h-px bg-border" />
 
                 {menuItems.map((item) => {
                     const Icon = item.icon;
@@ -241,12 +249,12 @@ export function ClinicUserDropdown({
                             onClick={() => handleItemClick(item)}
                             className={popoverItemClass(active)}
                         >
-                            <Icon className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                             <div className="flex min-w-0 flex-col">
-                                <span className="text-foreground text-sm font-medium">
+                                <span className="text-sm font-medium text-foreground">
                                     {item.label}
                                 </span>
-                                <span className="text-muted-foreground text-[11px] leading-tight">
+                                <span className="text-[11px] leading-tight text-muted-foreground">
                                     {item.description}
                                 </span>
                             </div>

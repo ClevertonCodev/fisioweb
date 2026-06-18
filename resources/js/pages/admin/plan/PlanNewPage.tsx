@@ -40,12 +40,15 @@ export default function PlanNewPage() {
     };
 
     const isValid =
-        form.name && form.billingType && form.monthlyValue >= 0 && form.annualValue >= 0;
+        form.name &&
+        form.billingType &&
+        form.monthlyValue >= 0 &&
+        form.annualValue >= 0;
 
     return (
         <AdminLayout>
             <div className="space-y-6 p-4 md:p-6">
-                <div className="text-muted-foreground text-sm">
+                <div className="text-sm text-muted-foreground">
                     <span
                         className="cursor-pointer hover:underline"
                         onClick={() => navigate('/admin/planos')}
@@ -57,10 +60,16 @@ export default function PlanNewPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" onClick={() => navigate('/admin/planos')}>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate('/admin/planos')}
+                    >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-foreground text-2xl font-semibold">Novo Plano</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Novo Plano
+                    </h1>
                 </div>
 
                 <Card>
@@ -68,27 +77,34 @@ export default function PlanNewPage() {
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-1.5">
                                 <Label>
-                                    Nome do Plano <span className="text-destructive">*</span>
+                                    Nome do Plano{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <Input
                                     placeholder="Digite o nome do plano"
                                     value={form.name}
                                     onChange={(e) =>
-                                        setForm((prev) => ({ ...prev, name: e.target.value }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            name: e.target.value,
+                                        }))
                                     }
                                 />
                             </div>
 
                             <div className="space-y-1.5">
                                 <Label>
-                                    Tipo de Cobrança <span className="text-destructive">*</span>
+                                    Tipo de Cobrança{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <Select
                                     value={form.billingType}
                                     onValueChange={(v) =>
                                         setForm((prev) => ({
                                             ...prev,
-                                            billingType: v as 'fixed' | 'per_user',
+                                            billingType: v as
+                                                | 'fixed'
+                                                | 'per_user',
                                         }))
                                     }
                                 >
@@ -97,7 +113,10 @@ export default function PlanNewPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {billingTypes.map((t) => (
-                                            <SelectItem key={t.value} value={t.value}>
+                                            <SelectItem
+                                                key={t.value}
+                                                value={t.value}
+                                            >
                                                 {t.label}
                                             </SelectItem>
                                         ))}
@@ -107,12 +126,16 @@ export default function PlanNewPage() {
 
                             <div className="space-y-1.5">
                                 <Label>
-                                    Valor Mensal <span className="text-destructive">*</span>
+                                    Valor Mensal{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <MoneyInput
                                     value={form.monthlyValue}
                                     onChange={(v) =>
-                                        setForm((prev) => ({ ...prev, monthlyValue: v }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            monthlyValue: v,
+                                        }))
                                     }
                                     name="monthlyValue"
                                     placeholder="0,00"
@@ -121,12 +144,16 @@ export default function PlanNewPage() {
 
                             <div className="space-y-1.5">
                                 <Label>
-                                    Valor Anual <span className="text-destructive">*</span>
+                                    Valor Anual{' '}
+                                    <span className="text-destructive">*</span>
                                 </Label>
                                 <MoneyInput
                                     value={form.annualValue}
                                     onChange={(v) =>
-                                        setForm((prev) => ({ ...prev, annualValue: v }))
+                                        setForm((prev) => ({
+                                            ...prev,
+                                            annualValue: v,
+                                        }))
                                     }
                                     name="annualValue"
                                     placeholder="0,00"
@@ -137,7 +164,10 @@ export default function PlanNewPage() {
                         <hr className="border-border" />
 
                         <div className="flex justify-end gap-3">
-                            <Button variant="outline" onClick={() => navigate('/admin/planos')}>
+                            <Button
+                                variant="outline"
+                                onClick={() => navigate('/admin/planos')}
+                            >
                                 Cancelar
                             </Button>
                             <Button

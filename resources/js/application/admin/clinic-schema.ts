@@ -3,9 +3,14 @@ import { z } from 'zod';
 export const clinicFormSchema = z
     .object({
         name: z.string().min(1, 'Nome é obrigatório'),
-        typePerson: z.enum(['PF', 'PJ'], { required_error: 'Tipo de pessoa é obrigatório' }),
+        typePerson: z.enum(['PF', 'PJ'], {
+            required_error: 'Tipo de pessoa é obrigatório',
+        }),
         document: z.string().min(1, 'Documento é obrigatório'),
-        email: z.string().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
+        email: z
+            .string()
+            .min(1, 'E-mail é obrigatório')
+            .email('E-mail inválido'),
         phone: z.string().optional().default(''),
         status: z.string().default('1'),
         slug: z.string().min(1, 'Slug é obrigatório'),
@@ -39,9 +44,14 @@ export type ClinicFormValues = z.infer<typeof clinicFormSchema>;
 export const editClinicFormSchema = z
     .object({
         name: z.string().min(1, 'Nome é obrigatório'),
-        typePerson: z.enum(['PF', 'PJ'], { required_error: 'Tipo de pessoa é obrigatório' }),
+        typePerson: z.enum(['PF', 'PJ'], {
+            required_error: 'Tipo de pessoa é obrigatório',
+        }),
         document: z.string().min(1, 'Documento é obrigatório'),
-        email: z.string().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
+        email: z
+            .string()
+            .min(1, 'E-mail é obrigatório')
+            .email('E-mail inválido'),
         phone: z.string().optional().default(''),
         status: z.string().default('1'),
         slug: z.string().min(1, 'Slug é obrigatório'),

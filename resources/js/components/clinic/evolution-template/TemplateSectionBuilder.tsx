@@ -50,9 +50,14 @@ export function TemplateSectionBuilder({
     onChange,
     readOnly = false,
 }: TemplateSectionBuilderProps) {
-    const setSection = (sectionIndex: number, updater: (section: DraftSection) => DraftSection) => {
+    const setSection = (
+        sectionIndex: number,
+        updater: (section: DraftSection) => DraftSection,
+    ) => {
         onChange(
-            sections.map((section, idx) => (idx === sectionIndex ? updater(section) : section)),
+            sections.map((section, idx) =>
+                idx === sectionIndex ? updater(section) : section,
+            ),
         );
     };
 
@@ -62,14 +67,20 @@ export function TemplateSectionBuilder({
                 <Card key={section._key}>
                     <CardHeader className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                            <CardTitle className="text-base">Seção {sectionIndex + 1}</CardTitle>
+                            <CardTitle className="text-base">
+                                Seção {sectionIndex + 1}
+                            </CardTitle>
                             {!readOnly && (
                                 <div className="flex items-center gap-1">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         size="icon"
-                                        onClick={() => onChange(moveUp(sections, sectionIndex))}
+                                        onClick={() =>
+                                            onChange(
+                                                moveUp(sections, sectionIndex),
+                                            )
+                                        }
                                         disabled={sectionIndex === 0}
                                     >
                                         <ArrowUp className="h-4 w-4" />
@@ -78,8 +89,17 @@ export function TemplateSectionBuilder({
                                         type="button"
                                         variant="outline"
                                         size="icon"
-                                        onClick={() => onChange(moveDown(sections, sectionIndex))}
-                                        disabled={sectionIndex === sections.length - 1}
+                                        onClick={() =>
+                                            onChange(
+                                                moveDown(
+                                                    sections,
+                                                    sectionIndex,
+                                                ),
+                                            )
+                                        }
+                                        disabled={
+                                            sectionIndex === sections.length - 1
+                                        }
                                     >
                                         <ArrowDown className="h-4 w-4" />
                                     </Button>
@@ -89,7 +109,10 @@ export function TemplateSectionBuilder({
                                         size="sm"
                                         onClick={() =>
                                             onChange(
-                                                sections.filter((_, idx) => idx !== sectionIndex),
+                                                sections.filter(
+                                                    (_, idx) =>
+                                                        idx !== sectionIndex,
+                                                ),
                                             )
                                         }
                                     >
@@ -113,19 +136,31 @@ export function TemplateSectionBuilder({
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {section.items.map((item, itemIndex) => (
-                            <div key={item._key} className="rounded-md border p-3">
+                            <div
+                                key={item._key}
+                                className="rounded-md border p-3"
+                            >
                                 <div className="grid gap-3">
                                     <Input
                                         value={item.label}
                                         onChange={(e) =>
-                                            setSection(sectionIndex, (current) => ({
-                                                ...current,
-                                                items: current.items.map((currItem, idx) =>
-                                                    idx === itemIndex
-                                                        ? { ...currItem, label: e.target.value }
-                                                        : currItem,
-                                                ),
-                                            }))
+                                            setSection(
+                                                sectionIndex,
+                                                (current) => ({
+                                                    ...current,
+                                                    items: current.items.map(
+                                                        (currItem, idx) =>
+                                                            idx === itemIndex
+                                                                ? {
+                                                                      ...currItem,
+                                                                      label: e
+                                                                          .target
+                                                                          .value,
+                                                                  }
+                                                                : currItem,
+                                                    ),
+                                                }),
+                                            )
                                         }
                                         placeholder="Rótulo do item"
                                         disabled={readOnly}
@@ -133,17 +168,24 @@ export function TemplateSectionBuilder({
                                     <Input
                                         value={item.printText}
                                         onChange={(e) =>
-                                            setSection(sectionIndex, (current) => ({
-                                                ...current,
-                                                items: current.items.map((currItem, idx) =>
-                                                    idx === itemIndex
-                                                        ? {
-                                                              ...currItem,
-                                                              printText: e.target.value,
-                                                          }
-                                                        : currItem,
-                                                ),
-                                            }))
+                                            setSection(
+                                                sectionIndex,
+                                                (current) => ({
+                                                    ...current,
+                                                    items: current.items.map(
+                                                        (currItem, idx) =>
+                                                            idx === itemIndex
+                                                                ? {
+                                                                      ...currItem,
+                                                                      printText:
+                                                                          e
+                                                                              .target
+                                                                              .value,
+                                                                  }
+                                                                : currItem,
+                                                    ),
+                                                }),
+                                            )
                                         }
                                         placeholder="Texto para impressão"
                                         disabled={readOnly}
@@ -152,35 +194,53 @@ export function TemplateSectionBuilder({
                                         <Switch
                                             checked={item.hasFreeText}
                                             onCheckedChange={(checked) =>
-                                                setSection(sectionIndex, (current) => ({
-                                                    ...current,
-                                                    items: current.items.map((currItem, idx) =>
-                                                        idx === itemIndex
-                                                            ? { ...currItem, hasFreeText: checked }
-                                                            : currItem,
-                                                    ),
-                                                }))
+                                                setSection(
+                                                    sectionIndex,
+                                                    (current) => ({
+                                                        ...current,
+                                                        items: current.items.map(
+                                                            (currItem, idx) =>
+                                                                idx ===
+                                                                itemIndex
+                                                                    ? {
+                                                                          ...currItem,
+                                                                          hasFreeText:
+                                                                              checked,
+                                                                      }
+                                                                    : currItem,
+                                                        ),
+                                                    }),
+                                                )
                                             }
                                             disabled={readOnly}
                                         />
-                                        <span className="text-sm">Tem campo livre?</span>
+                                        <span className="text-sm">
+                                            Tem campo livre?
+                                        </span>
                                     </div>
                                     {item.hasFreeText && (
                                         <Input
                                             value={item.freeTextPlaceholder}
                                             onChange={(e) =>
-                                                setSection(sectionIndex, (current) => ({
-                                                    ...current,
-                                                    items: current.items.map((currItem, idx) =>
-                                                        idx === itemIndex
-                                                            ? {
-                                                                  ...currItem,
-                                                                  freeTextPlaceholder:
-                                                                      e.target.value,
-                                                              }
-                                                            : currItem,
-                                                    ),
-                                                }))
+                                                setSection(
+                                                    sectionIndex,
+                                                    (current) => ({
+                                                        ...current,
+                                                        items: current.items.map(
+                                                            (currItem, idx) =>
+                                                                idx ===
+                                                                itemIndex
+                                                                    ? {
+                                                                          ...currItem,
+                                                                          freeTextPlaceholder:
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                      }
+                                                                    : currItem,
+                                                        ),
+                                                    }),
+                                                )
                                             }
                                             placeholder="Placeholder do campo livre"
                                             disabled={readOnly}
@@ -193,10 +253,16 @@ export function TemplateSectionBuilder({
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() =>
-                                                    setSection(sectionIndex, (current) => ({
-                                                        ...current,
-                                                        items: moveUp(current.items, itemIndex),
-                                                    }))
+                                                    setSection(
+                                                        sectionIndex,
+                                                        (current) => ({
+                                                            ...current,
+                                                            items: moveUp(
+                                                                current.items,
+                                                                itemIndex,
+                                                            ),
+                                                        }),
+                                                    )
                                                 }
                                                 disabled={itemIndex === 0}
                                             >
@@ -207,12 +273,21 @@ export function TemplateSectionBuilder({
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() =>
-                                                    setSection(sectionIndex, (current) => ({
-                                                        ...current,
-                                                        items: moveDown(current.items, itemIndex),
-                                                    }))
+                                                    setSection(
+                                                        sectionIndex,
+                                                        (current) => ({
+                                                            ...current,
+                                                            items: moveDown(
+                                                                current.items,
+                                                                itemIndex,
+                                                            ),
+                                                        }),
+                                                    )
                                                 }
-                                                disabled={itemIndex === section.items.length - 1}
+                                                disabled={
+                                                    itemIndex ===
+                                                    section.items.length - 1
+                                                }
                                             >
                                                 <ArrowDown className="h-4 w-4" />
                                             </Button>
@@ -221,14 +296,21 @@ export function TemplateSectionBuilder({
                                                 variant="destructive"
                                                 size="sm"
                                                 onClick={() =>
-                                                    setSection(sectionIndex, (current) => ({
-                                                        ...current,
-                                                        items: current.items.filter(
-                                                            (_, idx) => idx !== itemIndex,
-                                                        ),
-                                                    }))
+                                                    setSection(
+                                                        sectionIndex,
+                                                        (current) => ({
+                                                            ...current,
+                                                            items: current.items.filter(
+                                                                (_, idx) =>
+                                                                    idx !==
+                                                                    itemIndex,
+                                                            ),
+                                                        }),
+                                                    )
                                                 }
-                                                disabled={section.items.length === 1}
+                                                disabled={
+                                                    section.items.length === 1
+                                                }
                                             >
                                                 <Trash2 className="mr-1 h-4 w-4" />
                                                 Remover item
@@ -246,7 +328,10 @@ export function TemplateSectionBuilder({
                                 onClick={() =>
                                     setSection(sectionIndex, (current) => ({
                                         ...current,
-                                        items: [...current.items, createDraftItem()],
+                                        items: [
+                                            ...current.items,
+                                            createDraftItem(),
+                                        ],
                                     }))
                                 }
                             >
@@ -262,7 +347,9 @@ export function TemplateSectionBuilder({
                 <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => onChange([...sections, createDraftSection()])}
+                    onClick={() =>
+                        onChange([...sections, createDraftSection()])
+                    }
                 >
                     <Plus className="mr-1 h-4 w-4" />
                     Adicionar seção

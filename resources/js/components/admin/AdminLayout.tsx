@@ -14,9 +14,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
     return (
         <TooltipProvider>
-            <div className="bg-background flex h-screen w-full">
+            <div className="flex h-screen w-full bg-background">
                 <AdminSidebar />
-                <main className={`min-h-0 flex-1 overflow-auto ${isMobile ? 'pt-14' : ''}`}>
+                <main
+                    className={`min-h-0 flex-1 overflow-auto ${isMobile ? 'pt-14' : ''}`}
+                >
                     {children}
                 </main>
             </div>

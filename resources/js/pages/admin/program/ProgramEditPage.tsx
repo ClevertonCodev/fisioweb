@@ -4,13 +4,19 @@ import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useAdminExercises, useUpdateAdminProgram } from '@/application/admin';
-import type { AdminExercise, AdminProgramWriteDto } from '@/application/admin/ports';
+import type {
+    AdminExercise,
+    AdminProgramWriteDto,
+} from '@/application/admin/ports';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminEditExercisePanel } from '@/components/admin/program/AdminEditExercisePanel';
 import { AdminStepConfigureExercises } from '@/components/admin/program/AdminStepConfigureExercises';
 import { AdminStepProgramDetails } from '@/components/admin/program/AdminStepProgramDetails';
 import { AdminStepSelectExercises } from '@/components/admin/program/AdminStepSelectExercises';
-import type { AdminWizardExercise, AdminWizardGroup } from '@/components/admin/program/types';
+import type {
+    AdminWizardExercise,
+    AdminWizardGroup,
+} from '@/components/admin/program/types';
 import { Button } from '@/components/ui/button';
 import type { AdminProgram } from '@/domain/admin';
 
@@ -43,7 +49,11 @@ function programToWizardGroups(program: AdminProgram): AdminWizardGroup[] {
             loadMax: ex.loadMax,
             restTime: ex.restTime,
             notes: ex.notes ?? '',
-            isConfigured: !!(ex.setsMin || ex.repetitionsMin || (ex.daysOfWeek?.length ?? 0) > 0),
+            isConfigured: !!(
+                ex.setsMin ||
+                ex.repetitionsMin ||
+                (ex.daysOfWeek?.length ?? 0) > 0
+            ),
         })),
     }));
 }
@@ -56,20 +66,26 @@ export default function ProgramEditPage() {
 
     const [step, setStep] = useState<WizardStep>(1);
     const [selectedIds, setSelectedIds] = useState<number[]>(() =>
-        (program.groups ?? []).flatMap((g) => (g.exercises ?? []).map((e) => e.exerciseId)),
+        (program.groups ?? []).flatMap((g) =>
+            (g.exercises ?? []).map((e) => e.exerciseId),
+        ),
     );
-    const [groups, setGroups] = useState<AdminWizardGroup[]>(() => programToWizardGroups(program));
+    const [groups, setGroups] = useState<AdminWizardGroup[]>(() =>
+        programToWizardGroups(program),
+    );
     const [editingExercise, setEditingExercise] = useState<{
         groupId: number;
         exerciseId: number;
     } | null>(null);
 
-    const { data: exercisesResult, isLoading: isLoadingExercises } = useAdminExercises({
-        per_page: 200,
-    });
+    const { data: exercisesResult, isLoading: isLoadingExercises } =
+        useAdminExercises({
+            per_page: 200,
+        });
     const exercises = Array.isArray(exercisesResult)
         ? exercisesResult
-        : ((exercisesResult as { data?: AdminExercise[] } | undefined)?.data ?? []);
+        : ((exercisesResult as { data?: AdminExercise[] } | undefined)?.data ??
+          []);
 
     const updateMutation = useUpdateAdminProgram(programId, {
         onSuccess: () => {
@@ -92,7 +108,9 @@ export default function ProgramEditPage() {
 
     const goToStep2 = () => {
         // Find exercises not yet in groups
-        const existingExerciseIds = groups.flatMap((g) => g.exercises.map((e) => e.exerciseId));
+        const existingExerciseIds = groups.flatMap((g) =>
+            g.exercises.map((e) => e.exerciseId),
+        );
         const newExercises: AdminWizardExercise[] = selectedIds
             .filter((id) => !existingExerciseIds.includes(id))
             .map((id) => exercises.find((ex) => ex.id === id))
@@ -131,13 +149,19 @@ export default function ProgramEditPage() {
         const updatedGroups = groups
             .map((g) => ({
                 ...g,
-                exercises: g.exercises.filter((e) => selectedIds.includes(e.exerciseId)),
+                exercises: g.exercises.filter((e) =>
+                    selectedIds.includes(e.exerciseId),
+                ),
             }))
             .filter((g) => g.exercises.length > 0);
 
         if (newExercises.length > 0) {
             if (updatedGroups.length === 0) {
-                updatedGroups.push({ id: Date.now(), name: 'Novo grupo', exercises: newExercises });
+                updatedGroups.push({
+                    id: Date.now(),
+                    name: 'Novo grupo',
+                    exercises: newExercises,
+                });
             } else {
                 updatedGroups[0] = {
                     ...updatedGroups[0],
@@ -164,7 +188,9 @@ export default function ProgramEditPage() {
                 g.id === editingExercise?.groupId
                     ? {
                           ...g,
-                          exercises: g.exercises.map((e) => (e.id === updated.id ? updated : e)),
+                          exercises: g.exercises.map((e) =>
+                              e.id === updated.id ? updated : e,
+                          ),
                       }
                     : g,
             ),
@@ -188,7 +214,7 @@ export default function ProgramEditPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
                         <div className="flex items-center gap-4">
                             <Button
@@ -196,7 +222,9 @@ export default function ProgramEditPage() {
                                 size="sm"
                                 onClick={() => {
                                     if (step === 1) {
-                                        navigate(`/admin/programas/${programId}`);
+                                        navigate(
+                                            `/admin/programas/${programId}`,
+                                        );
                                         return;
                                     }
                                     if (step === 2 && editingExercise) {
@@ -209,13 +237,13 @@ export default function ProgramEditPage() {
                                     }
                                     setStep(2);
                                 }}
-                                className="text-muted-foreground hover:text-foreground gap-1"
+                                className="gap-1 text-muted-foreground hover:text-foreground"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Voltar
                             </Button>
                         </div>
-                        <h1 className="text-foreground mt-2 text-xl font-semibold">
+                        <h1 className="mt-2 text-xl font-semibold text-foreground">
                             {STEP_LABELS[step]}
                         </h1>
                     </div>

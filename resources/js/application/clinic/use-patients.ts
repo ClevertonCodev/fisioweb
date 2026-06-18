@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { PatientListParams, PatientUpdateDto, PatientWriteDto } from '@/application/clinic/ports';
+import type {
+    PatientListParams,
+    PatientUpdateDto,
+    PatientWriteDto,
+} from '@/application/clinic/ports';
 import { apiClinicPatientsRepository } from '@/infrastructure/repositories/api-clinic-patients';
 
 export function usePatients(params: PatientListParams = {}) {
@@ -13,7 +17,10 @@ export function usePatients(params: PatientListParams = {}) {
 export function usePatient(id: string | undefined) {
     return useQuery({
         queryKey: ['patients', id],
-        queryFn: () => (id ? apiClinicPatientsRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id
+                ? apiClinicPatientsRepository.getById(id)
+                : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -22,7 +29,9 @@ export function usePatientDetail(id: string | undefined) {
     return useQuery({
         queryKey: ['patients', id, 'detail'],
         queryFn: () =>
-            id ? apiClinicPatientsRepository.getDetailById(id) : Promise.resolve(null),
+            id
+                ? apiClinicPatientsRepository.getDetailById(id)
+                : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -34,7 +43,9 @@ export function useUpdatePatient() {
             apiClinicPatientsRepository.update(id, dto),
         onSuccess: (patient) => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
-            queryClient.invalidateQueries({ queryKey: ['patients', patient.id, 'detail'] });
+            queryClient.invalidateQueries({
+                queryKey: ['patients', patient.id, 'detail'],
+            });
         },
     });
 }
@@ -42,7 +53,8 @@ export function useUpdatePatient() {
 export function useCreatePatient() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: PatientWriteDto) => apiClinicPatientsRepository.create(dto),
+        mutationFn: (dto: PatientWriteDto) =>
+            apiClinicPatientsRepository.create(dto),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
         },
@@ -52,7 +64,8 @@ export function useCreatePatient() {
 export function useBulkInactivatePatients() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (ids: string[]) => apiClinicPatientsRepository.bulkInactivate(ids),
+        mutationFn: (ids: string[]) =>
+            apiClinicPatientsRepository.bulkInactivate(ids),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
         },
@@ -74,8 +87,7 @@ export function useUploadPatientPhoto() {
 export function useDeletePatientPhoto() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) =>
-            apiClinicPatientsRepository.deletePhoto(id),
+        mutationFn: (id: string) => apiClinicPatientsRepository.deletePhoto(id),
         onSuccess: (patient) => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
             queryClient.setQueryData(['patients', patient.id], patient);

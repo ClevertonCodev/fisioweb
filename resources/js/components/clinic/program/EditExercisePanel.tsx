@@ -33,25 +33,43 @@ const DAYS = [
 
 const SERIES_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 1);
 
-export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePanelProps) {
+export function EditExercisePanel({
+    exercise,
+    onSave,
+    onClose,
+}: EditExercisePanelProps) {
     const [days, setDays] = useState<number[]>(exercise.days);
     const [allDays, setAllDays] = useState(days.length === 7);
-    const [period, setPeriod] = useState<'manha' | 'tarde' | 'noite' | null>(exercise.period);
-    const [seriesMin, setSeriesMin] = useState<number | null>(exercise.seriesMin);
-    const [seriesMax, setSeriesMax] = useState<number | null>(exercise.seriesMax);
+    const [period, setPeriod] = useState<'manha' | 'tarde' | 'noite' | null>(
+        exercise.period,
+    );
+    const [seriesMin, setSeriesMin] = useState<number | null>(
+        exercise.seriesMin,
+    );
+    const [seriesMax, setSeriesMax] = useState<number | null>(
+        exercise.seriesMax,
+    );
     const [repetitionsMin, setRepetitionsMin] = useState<number | null>(
         exercise.repetitionsMin ?? null,
     );
     const [repetitionsMax, setRepetitionsMax] = useState<number | null>(
         exercise.repetitionsMax ?? null,
     );
-    const [loadMin, setLoadMin] = useState<number | null>(exercise.loadMin ?? null);
-    const [loadMax, setLoadMax] = useState<number | null>(exercise.loadMax ?? null);
-    const [restTime, setRestTime] = useState<number | null>(exercise.restTime ?? null);
+    const [loadMin, setLoadMin] = useState<number | null>(
+        exercise.loadMin ?? null,
+    );
+    const [loadMax, setLoadMax] = useState<number | null>(
+        exercise.loadMax ?? null,
+    );
+    const [restTime, setRestTime] = useState<number | null>(
+        exercise.restTime ?? null,
+    );
     const [notes, setNotes] = useState<string>(exercise.notes ?? '');
 
     const toggleDay = (day: number) => {
-        setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+        setDays((prev) =>
+            prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+        );
         setAllDays(false);
     };
 
@@ -79,10 +97,17 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
     };
 
     return (
-        <div className="border-border bg-card flex h-full w-80 flex-col border-l">
-            <div className="border-border flex items-center justify-between border-b px-4 py-3">
-                <h3 className="text-foreground text-sm font-semibold">Editar exercício</h3>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+        <div className="flex h-full w-80 flex-col border-l border-border bg-card">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <h3 className="text-sm font-semibold text-foreground">
+                    Editar exercício
+                </h3>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={onClose}
+                >
                     <X className="h-4 w-4" />
                 </Button>
             </div>
@@ -90,7 +115,9 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
             <div className="flex-1 space-y-6 overflow-auto p-4">
                 {/* Days */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Dias da semana</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Dias da semana
+                    </label>
                     <div className="flex gap-2">
                         {DAYS.map((day) => (
                             <button
@@ -99,8 +126,8 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                                 className={cn(
                                     'h-9 w-9 rounded-md border text-sm font-medium transition-colors',
                                     days.includes(day.value)
-                                        ? 'bg-primary text-primary-foreground border-primary'
-                                        : 'bg-background text-foreground border-border hover:border-muted-foreground',
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border bg-background text-foreground hover:border-muted-foreground',
                                 )}
                             >
                                 {day.label}
@@ -115,7 +142,7 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                         />
                         <label
                             htmlFor="all-days"
-                            className="text-foreground cursor-pointer text-sm"
+                            className="cursor-pointer text-sm text-foreground"
                         >
                             Todos os dias
                         </label>
@@ -124,20 +151,28 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
 
                 {/* Period */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Período</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Período
+                    </label>
                     <div className="flex gap-2">
                         {(['manha', 'tarde', 'noite'] as const).map((p) => (
                             <button
                                 key={p}
-                                onClick={() => setPeriod(period === p ? null : p)}
+                                onClick={() =>
+                                    setPeriod(period === p ? null : p)
+                                }
                                 className={cn(
                                     'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                                     period === p
-                                        ? 'bg-primary text-primary-foreground border-primary'
-                                        : 'bg-background text-foreground border-border hover:border-muted-foreground',
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : 'border-border bg-background text-foreground hover:border-muted-foreground',
                                 )}
                             >
-                                {p === 'manha' ? 'Manhã' : p === 'tarde' ? 'Tarde' : 'Noite'}
+                                {p === 'manha'
+                                    ? 'Manhã'
+                                    : p === 'tarde'
+                                      ? 'Tarde'
+                                      : 'Noite'}
                             </button>
                         ))}
                     </div>
@@ -145,11 +180,15 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
 
                 {/* Series */}
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Séries</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Séries
+                    </label>
                     <div className="flex gap-3">
                         <Select
                             value={seriesMin?.toString() ?? ''}
-                            onValueChange={(v) => setSeriesMin(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setSeriesMin(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Mínima" />
@@ -164,7 +203,9 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                         </Select>
                         <Select
                             value={seriesMax?.toString() ?? ''}
-                            onValueChange={(v) => setSeriesMax(v ? Number(v) : null)}
+                            onValueChange={(v) =>
+                                setSeriesMax(v ? Number(v) : null)
+                            }
                         >
                             <SelectTrigger className="flex-1">
                                 <SelectValue placeholder="Máxima" />
@@ -181,14 +222,20 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Repetições</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Repetições
+                    </label>
                     <div className="flex gap-3">
                         <Input
                             type="number"
                             placeholder="Mínima"
                             value={repetitionsMin ?? ''}
                             onChange={(e) =>
-                                setRepetitionsMin(e.target.value ? Number(e.target.value) : null)
+                                setRepetitionsMin(
+                                    e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
+                                )
                             }
                         />
                         <Input
@@ -196,21 +243,31 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                             placeholder="Máxima"
                             value={repetitionsMax ?? ''}
                             onChange={(e) =>
-                                setRepetitionsMax(e.target.value ? Number(e.target.value) : null)
+                                setRepetitionsMax(
+                                    e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
+                                )
                             }
                         />
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Carga (kg)</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Carga (kg)
+                    </label>
                     <div className="flex gap-3">
                         <Input
                             type="number"
                             placeholder="Mínima"
                             value={loadMin ?? ''}
                             onChange={(e) =>
-                                setLoadMin(e.target.value ? Number(e.target.value) : null)
+                                setLoadMin(
+                                    e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
+                                )
                             }
                         />
                         <Input
@@ -218,14 +275,20 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                             placeholder="Máxima"
                             value={loadMax ?? ''}
                             onChange={(e) =>
-                                setLoadMax(e.target.value ? Number(e.target.value) : null)
+                                setLoadMax(
+                                    e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
+                                )
                             }
                         />
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">Repouso</label>
+                    <label className="text-sm font-medium text-foreground">
+                        Repouso
+                    </label>
                     <Select
                         value={restTime?.toString() ?? ''}
                         onValueChange={(v) => setRestTime(v ? Number(v) : null)}
@@ -245,7 +308,7 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-foreground text-sm font-medium">
+                    <label className="text-sm font-medium text-foreground">
                         Orientações adicionais
                     </label>
                     <Textarea
@@ -257,7 +320,7 @@ export function EditExercisePanel({ exercise, onSave, onClose }: EditExercisePan
                 </div>
             </div>
 
-            <div className="border-border flex gap-3 border-t p-4">
+            <div className="flex gap-3 border-t border-border p-4">
                 <Button variant="outline" className="flex-1" onClick={onClose}>
                     Cancelar
                 </Button>

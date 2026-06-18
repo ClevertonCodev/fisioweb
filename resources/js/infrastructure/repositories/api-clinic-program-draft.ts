@@ -13,7 +13,9 @@ interface ApiDraftResponse {
 export const programDraftRepository = {
     async get(): Promise<ProgramDraft | null> {
         try {
-            const { data } = await apiClient.get<ApiDraftResponse>('/clinic/program-drafts');
+            const { data } = await apiClient.get<ApiDraftResponse>(
+                '/clinic/program-drafts',
+            );
             if (!data?.data || typeof data.data.step !== 'number') return null;
             return data.data as ProgramDraft;
         } catch {

@@ -24,6 +24,15 @@ return new class extends Migration
             $table->string('two_factor_secret')->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();
+
+            // Integração Google Calendar (conexão OAuth individual por usuário)
+            $table->text('google_access_token')->nullable();
+            $table->text('google_refresh_token')->nullable();
+            $table->timestamp('google_token_expires_at')->nullable();
+            $table->string('google_calendar_id')->nullable();
+            $table->text('google_sync_token')->nullable();
+            $table->timestamp('google_connected_at')->nullable();
+
             $table->timestamps();
 
             $table->index(['clinic_id', 'status']);

@@ -59,6 +59,9 @@ class ClinicUser extends Authenticatable implements JWTSubject
         'remember_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
+        'google_access_token',
+        'google_refresh_token',
+        'google_sync_token',
     ];
 
     protected function casts(): array
@@ -69,7 +72,17 @@ class ClinicUser extends Authenticatable implements JWTSubject
             'password'                => 'hashed',
             'status'                  => 'integer',
             'mestre'                  => 'integer',
+            'google_access_token'     => 'encrypted',
+            'google_refresh_token'    => 'encrypted',
+            'google_sync_token'       => 'encrypted',
+            'google_token_expires_at' => 'datetime',
+            'google_connected_at'     => 'datetime',
         ];
+    }
+
+    public function isGoogleConnected(): bool
+    {
+        return $this->google_connected_at !== null;
     }
 
     public function clinic(): BelongsTo
@@ -85,6 +98,11 @@ class ClinicUser extends Authenticatable implements JWTSubject
     public function treatmentPlans(): HasMany
     {
         return $this->hasMany(TreatmentPlan::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'clinic_user_id');
     }
 
     public function isAdmin(): bool

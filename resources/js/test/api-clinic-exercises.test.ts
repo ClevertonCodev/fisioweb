@@ -50,7 +50,9 @@ function makeApiExercise(overrides = {}) {
     };
 }
 
-function makePaginatorResponse(exercises: ReturnType<typeof makeApiExercise>[]) {
+function makePaginatorResponse(
+    exercises: ReturnType<typeof makeApiExercise>[],
+) {
     return {
         data: {
             data: {
@@ -68,7 +70,9 @@ describe('apiClinicExercisesRepository.list', () => {
     it('requisita /clinic/exercises com per_page 200', async () => {
         mockGet.mockResolvedValueOnce(makePaginatorResponse([]));
         await apiClinicExercisesRepository.list();
-        expect(mockGet).toHaveBeenCalledWith('/clinic/exercises', { params: { per_page: 200 } });
+        expect(mockGet).toHaveBeenCalledWith('/clinic/exercises', {
+            params: { per_page: 200 },
+        });
     });
 
     it('retorna array vazio quando a resposta não tem dados', async () => {
@@ -78,7 +82,9 @@ describe('apiClinicExercisesRepository.list', () => {
     });
 
     it('mapeia id numérico para string', async () => {
-        mockGet.mockResolvedValueOnce(makePaginatorResponse([makeApiExercise({ id: 42 })]));
+        mockGet.mockResolvedValueOnce(
+            makePaginatorResponse([makeApiExercise({ id: 42 })]),
+        );
         const [exercise] = await apiClinicExercisesRepository.list();
         expect(exercise.id).toBe('42');
     });
@@ -141,15 +147,20 @@ describe('apiClinicExercisesRepository.list', () => {
 describe('apiClinicExercisesRepository — mapeamento de dificuldade', () => {
     async function getDifficulty(level: 'easy' | 'medium' | 'hard' | null) {
         mockGet.mockResolvedValueOnce(
-            makePaginatorResponse([makeApiExercise({ difficulty_level: level })]),
+            makePaginatorResponse([
+                makeApiExercise({ difficulty_level: level }),
+            ]),
         );
         const [ex] = await apiClinicExercisesRepository.list();
         return ex.difficulty;
     }
 
-    it('mapeia easy → facil', async () => expect(await getDifficulty('easy')).toBe('facil'));
-    it('mapeia medium → medio', async () => expect(await getDifficulty('medium')).toBe('medio'));
-    it('mapeia hard → dificil', async () => expect(await getDifficulty('hard')).toBe('dificil'));
+    it('mapeia easy → facil', async () =>
+        expect(await getDifficulty('easy')).toBe('facil'));
+    it('mapeia medium → medio', async () =>
+        expect(await getDifficulty('medium')).toBe('medio'));
+    it('mapeia hard → dificil', async () =>
+        expect(await getDifficulty('hard')).toBe('dificil'));
     it('usa facil como padrão quando difficulty_level é null', async () =>
         expect(await getDifficulty(null)).toBe('facil'));
 });
@@ -187,7 +198,12 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
             makePaginatorResponse([
                 makeApiExercise({
                     videos: [
-                        makeVideo({ id: 1, url: 'url-first', cdn_url: null, status: 'processing' }),
+                        makeVideo({
+                            id: 1,
+                            url: 'url-first',
+                            cdn_url: null,
+                            status: 'processing',
+                        }),
                         makeVideo({
                             id: 2,
                             url: 'url-second',
@@ -207,7 +223,11 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
             makePaginatorResponse([
                 makeApiExercise({
                     videos: [
-                        makeVideo({ url: 'storage-url', cdn_url: 'cdn-url', status: 'completed' }),
+                        makeVideo({
+                            url: 'storage-url',
+                            cdn_url: 'cdn-url',
+                            status: 'completed',
+                        }),
                     ],
                 }),
             ]),
@@ -220,7 +240,13 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
         mockGet.mockResolvedValueOnce(
             makePaginatorResponse([
                 makeApiExercise({
-                    videos: [makeVideo({ url: 'storage-url', cdn_url: null, status: 'completed' })],
+                    videos: [
+                        makeVideo({
+                            url: 'storage-url',
+                            cdn_url: null,
+                            status: 'completed',
+                        }),
+                    ],
                 }),
             ]),
         );
@@ -229,7 +255,9 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
     });
 
     it('retorna strings vazias e duration 0 quando não há vídeos', async () => {
-        mockGet.mockResolvedValueOnce(makePaginatorResponse([makeApiExercise({ videos: [] })]));
+        mockGet.mockResolvedValueOnce(
+            makePaginatorResponse([makeApiExercise({ videos: [] })]),
+        );
         const [ex] = await apiClinicExercisesRepository.list();
         expect(ex.videoUrl).toBe('');
         expect(ex.thumbnailUrl).toBe('');
@@ -239,28 +267,34 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
 
 describe('apiClinicExercisesRepository.toggleFavorite', () => {
     it('envia POST para a rota correta', async () => {
-        mockPost.mockResolvedValueOnce({ data: { data: { exercise_id: 5, is_favorite: true } } });
+        mockPost.mockResolvedValueOnce({
+            data: { data: { exercise_id: 5, is_favorite: true } },
+        });
         await apiClinicExercisesRepository.toggleFavorite('5');
         expect(mockPost).toHaveBeenCalledWith('/clinic/exercises/5/favorite');
     });
 
     it('retorna isFavorite true quando API retorna true', async () => {
-        mockPost.mockResolvedValueOnce({ data: { data: { exercise_id: 1, is_favorite: true } } });
+        mockPost.mockResolvedValueOnce({
+            data: { data: { exercise_id: 1, is_favorite: true } },
+        });
         const result = await apiClinicExercisesRepository.toggleFavorite('1');
         expect(result.isFavorite).toBe(true);
     });
 
     it('retorna isFavorite false quando API retorna false', async () => {
-        mockPost.mockResolvedValueOnce({ data: { data: { exercise_id: 1, is_favorite: false } } });
+        mockPost.mockResolvedValueOnce({
+            data: { data: { exercise_id: 1, is_favorite: false } },
+        });
         const result = await apiClinicExercisesRepository.toggleFavorite('1');
         expect(result.isFavorite).toBe(false);
     });
 
     it('propaga erro quando a requisição falha', async () => {
         mockPost.mockRejectedValueOnce(new Error('Network Error'));
-        await expect(apiClinicExercisesRepository.toggleFavorite('1')).rejects.toThrow(
-            'Network Error',
-        );
+        await expect(
+            apiClinicExercisesRepository.toggleFavorite('1'),
+        ).rejects.toThrow('Network Error');
     });
 });
 

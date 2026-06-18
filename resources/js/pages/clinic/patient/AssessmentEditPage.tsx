@@ -34,7 +34,10 @@ function TextField({ field, value, onChange, readonly }: TextFieldProps) {
                 onChange={(e) => onChange(e.target.value)}
                 readOnly={readonly}
                 placeholder="Escreva sua resposta aqui"
-                className={cn('min-h-24 resize-none', readonly && 'cursor-default')}
+                className={cn(
+                    'min-h-24 resize-none',
+                    readonly && 'cursor-default',
+                )}
             />
         );
     }
@@ -59,7 +62,7 @@ interface NumberFieldProps {
 function NumberField({ field, value, onChange, readonly }: NumberFieldProps) {
     const unit = field.config?.unit;
     return (
-        <div className="flex items-center gap-2 max-w-56">
+        <div className="flex max-w-56 items-center gap-2">
             <Input
                 type="number"
                 value={value}
@@ -69,7 +72,9 @@ function NumberField({ field, value, onChange, readonly }: NumberFieldProps) {
                 className={cn('text-right', readonly && 'cursor-default')}
             />
             {unit && (
-                <span className="text-sm text-muted-foreground shrink-0 min-w-10">{unit}</span>
+                <span className="min-w-10 shrink-0 text-sm text-muted-foreground">
+                    {unit}
+                </span>
             )}
         </div>
     );
@@ -89,23 +94,25 @@ function RangeField({ field, value, onChange, readonly }: RangeFieldProps) {
     return (
         <div>
             <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground w-20 text-right">
+                <span className="w-20 text-right text-xs text-muted-foreground">
                     {field.config?.minLabel ?? min}
                 </span>
                 <div className="flex-1">
                     <Slider
                         value={[current]}
-                        onValueChange={([v]) => !readonly && onChange(String(v))}
+                        onValueChange={([v]) =>
+                            !readonly && onChange(String(v))
+                        }
                         min={min}
                         max={max}
                         step={1}
                         disabled={readonly}
                     />
                 </div>
-                <span className="text-xs text-muted-foreground w-20">
+                <span className="w-20 text-xs text-muted-foreground">
                     {field.config?.maxLabel ?? max}
                 </span>
-                <span className="text-xs font-mono bg-primary/10 text-primary rounded px-2 py-0.5 min-w-8 text-center">
+                <span className="min-w-8 rounded bg-primary/10 px-2 py-0.5 text-center font-mono text-xs text-primary">
                     {current}
                 </span>
             </div>
@@ -120,7 +127,12 @@ interface CheckboxFieldProps {
     readonly: boolean;
 }
 
-function CheckboxField({ field, selectedOptionIds, onToggle, readonly }: CheckboxFieldProps) {
+function CheckboxField({
+    field,
+    selectedOptionIds,
+    onToggle,
+    readonly,
+}: CheckboxFieldProps) {
     return (
         <div className="grid grid-cols-2 gap-2">
             {field.options.map((opt) => {
@@ -132,16 +144,18 @@ function CheckboxField({ field, selectedOptionIds, onToggle, readonly }: Checkbo
                         disabled={readonly}
                         onClick={() => !readonly && onToggle(opt.id)}
                         className={cn(
-                            'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors duration-150 text-left',
+                            'flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors duration-150',
                             active
-                                ? 'border-primary bg-primary/10 text-primary font-medium'
+                                ? 'border-primary bg-primary/10 font-medium text-primary'
                                 : 'border-border bg-background text-foreground',
                             !readonly && 'cursor-pointer hover:bg-accent/50',
                             readonly && 'cursor-default',
                         )}
                     >
                         <span className="flex-1">{opt.label}</span>
-                        {active && <Check className="h-4 w-4 text-primary shrink-0" />}
+                        {active && (
+                            <Check className="h-4 w-4 shrink-0 text-primary" />
+                        )}
                     </button>
                 );
             })}
@@ -167,20 +181,23 @@ function SectionCard({
     readonly,
 }: SectionCardProps) {
     return (
-        <div className="rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-border shadow-sm">
             <div className="bg-muted px-5 py-3">
-                <h3 className="font-mono text-xs font-bold uppercase tracking-widest text-primary">
+                <h3 className="font-mono text-xs font-bold tracking-widest text-primary uppercase">
                     {section.title}
                 </h3>
             </div>
-            <div className="p-5 space-y-5">
+            <div className="space-y-5 p-5">
                 {section.fields.map((field) => (
                     <div key={field.id}>
-                        <label className="text-sm font-medium text-foreground block mb-1.5">
+                        <label className="mb-1.5 block text-sm font-medium text-foreground">
                             {field.label}
-                            {field.required && <span className="text-destructive ml-1">*</span>}
+                            {field.required && (
+                                <span className="ml-1 text-destructive">*</span>
+                            )}
                         </label>
-                        {(field.fieldType === 'textarea' || field.fieldType === 'text') && (
+                        {(field.fieldType === 'textarea' ||
+                            field.fieldType === 'text') && (
                             <TextField
                                 field={field}
                                 value={answers.get(field.id) ?? ''}
@@ -207,8 +224,12 @@ function SectionCard({
                         {field.fieldType === 'checkbox' && (
                             <CheckboxField
                                 field={field}
-                                selectedOptionIds={selectedOptions.get(field.id) ?? new Set()}
-                                onToggle={(optionId) => onOptionToggle(field.id, optionId)}
+                                selectedOptionIds={
+                                    selectedOptions.get(field.id) ?? new Set()
+                                }
+                                onToggle={(optionId) =>
+                                    onOptionToggle(field.id, optionId)
+                                }
                                 readonly={readonly}
                             />
                         )}
@@ -222,15 +243,24 @@ function SectionCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function AssessmentEditPage() {
-    const { id: patientId, assessmentId } = useParams<{ id: string; assessmentId: string }>();
+    const { id: patientId, assessmentId } = useParams<{
+        id: string;
+        assessmentId: string;
+    }>();
     const navigate = useNavigate();
 
-    const { data: assessment, isLoading, isError } = useAssessment(assessmentId!);
+    const {
+        data: assessment,
+        isLoading,
+        isError,
+    } = useAssessment(assessmentId!);
     const updateAssessment = useUpdateAssessment();
     const signAssessment = useSignAssessment(patientId!);
 
     const [answers, setAnswers] = useState<Map<number, string>>(new Map());
-    const [selectedOptions, setSelectedOptions] = useState<Map<number, Set<number>>>(new Map());
+    const [selectedOptions, setSelectedOptions] = useState<
+        Map<number, Set<number>>
+    >(new Map());
 
     // Initialize form state from loaded assessment
     useEffect(() => {
@@ -264,12 +294,18 @@ export default function AssessmentEditPage() {
     }
 
     function buildPayload() {
-        const dtoAnswers = Array.from(answers.entries()).map(([fieldId, value]) => ({
-            fieldId,
-            value,
-        }));
-        const dtoOptions = Array.from(selectedOptions.entries()).flatMap(([fieldId, optionIds]) =>
-            Array.from(optionIds).map((optionId) => ({ fieldId, optionId })),
+        const dtoAnswers = Array.from(answers.entries()).map(
+            ([fieldId, value]) => ({
+                fieldId,
+                value,
+            }),
+        );
+        const dtoOptions = Array.from(selectedOptions.entries()).flatMap(
+            ([fieldId, optionIds]) =>
+                Array.from(optionIds).map((optionId) => ({
+                    fieldId,
+                    optionId,
+                })),
         );
         return { answers: dtoAnswers, answerOptions: dtoOptions };
     }
@@ -294,13 +330,15 @@ export default function AssessmentEditPage() {
 
     return (
         <ClinicLayout>
-            <div className="flex flex-col h-[calc(100vh-64px)]">
+            <div className="flex h-[calc(100vh-64px)] flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-border flex items-start justify-between gap-4 bg-card">
+                <div className="flex items-start justify-between gap-4 border-b border-border bg-card px-6 py-4">
                     <div className="flex items-start gap-3">
                         <button
-                            onClick={() => navigate(`/clinica/pacientes/${patientId}`)}
-                            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer mt-0.5"
+                            onClick={() =>
+                                navigate(`/clinica/pacientes/${patientId}`)
+                            }
+                            className="mt-0.5 flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                             <ChevronLeft className="h-4 w-4" />
                             Voltar
@@ -315,12 +353,18 @@ export default function AssessmentEditPage() {
                             )}
                             <div className="mt-1">
                                 {assessment?.status === 'signed' && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                    >
                                         Assinada
                                     </Badge>
                                 )}
                                 {isDraft && (
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                    >
                                         Rascunho
                                     </Badge>
                                 )}
@@ -328,25 +372,29 @@ export default function AssessmentEditPage() {
                         </div>
                     </div>
                     {isDraft && (
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex shrink-0 gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="gap-2 cursor-pointer"
+                                className="cursor-pointer gap-2"
                                 onClick={handleSave}
                                 disabled={updateAssessment.isPending}
                             >
                                 <Save className="h-4 w-4" />
-                                {updateAssessment.isPending ? 'Salvando...' : 'Salvar rascunho'}
+                                {updateAssessment.isPending
+                                    ? 'Salvando...'
+                                    : 'Salvar rascunho'}
                             </Button>
                             <Button
                                 size="sm"
-                                className="gap-2 cursor-pointer"
+                                className="cursor-pointer gap-2"
                                 onClick={handleSign}
                                 disabled={signAssessment.isPending}
                             >
                                 <PenLine className="h-4 w-4" />
-                                {signAssessment.isPending ? 'Assinando...' : 'Assinar'}
+                                {signAssessment.isPending
+                                    ? 'Assinando...'
+                                    : 'Assinar'}
                             </Button>
                         </div>
                     )}
@@ -354,11 +402,14 @@ export default function AssessmentEditPage() {
 
                 {/* Body */}
                 <ScrollArea className="flex-1">
-                    <div className="p-6 space-y-6 max-w-4xl">
+                    <div className="max-w-4xl space-y-6 p-6">
                         {isLoading && (
                             <div className="space-y-4">
                                 {Array.from({ length: 3 }).map((_, i) => (
-                                    <Skeleton key={i} className="h-48 w-full rounded-xl" />
+                                    <Skeleton
+                                        key={i}
+                                        className="h-48 w-full rounded-xl"
+                                    />
                                 ))}
                             </div>
                         )}
@@ -385,23 +436,27 @@ export default function AssessmentEditPage() {
 
                 {/* Footer (only for draft) */}
                 {isDraft && (
-                    <div className="px-6 py-3 border-t border-border bg-card/80 backdrop-blur flex justify-end gap-2">
+                    <div className="flex justify-end gap-2 border-t border-border bg-card/80 px-6 py-3 backdrop-blur">
                         <Button
                             variant="outline"
-                            className="gap-2 cursor-pointer"
+                            className="cursor-pointer gap-2"
                             onClick={handleSave}
                             disabled={updateAssessment.isPending}
                         >
                             <Save className="h-4 w-4" />
-                            {updateAssessment.isPending ? 'Salvando...' : 'Salvar rascunho'}
+                            {updateAssessment.isPending
+                                ? 'Salvando...'
+                                : 'Salvar rascunho'}
                         </Button>
                         <Button
-                            className="gap-2 cursor-pointer"
+                            className="cursor-pointer gap-2"
                             onClick={handleSign}
                             disabled={signAssessment.isPending}
                         >
                             <PenLine className="h-4 w-4" />
-                            {signAssessment.isPending ? 'Assinando...' : 'Assinar avaliação'}
+                            {signAssessment.isPending
+                                ? 'Assinando...'
+                                : 'Assinar avaliação'}
                         </Button>
                     </div>
                 )}

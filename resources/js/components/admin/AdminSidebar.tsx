@@ -23,9 +23,17 @@ import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -35,7 +43,12 @@ interface NavItem {
     label: string;
     path: string;
     external?: boolean;
-    children?: { icon: React.ElementType; label: string; description: string; path: string }[];
+    children?: {
+        icon: React.ElementType;
+        label: string;
+        description: string;
+        path: string;
+    }[];
 }
 
 const mainNavItems: NavItem[] = [
@@ -112,7 +125,9 @@ function SidebarContent({
     const location = useLocation();
     const navigate = useNavigate();
     const { logout } = useAuth();
-    const [openDropdownPath, setOpenDropdownPath] = useState<string | null>(null);
+    const [openDropdownPath, setOpenDropdownPath] = useState<string | null>(
+        null,
+    );
 
     const handleLogout = () => {
         logout('admin').then(() => {
@@ -139,14 +154,23 @@ function SidebarContent({
         );
 
         const content = item.external ? (
-            <a href={item.path} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            <a
+                href={item.path}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={linkClass}
+            >
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+                {!collapsed && (
+                    <span className="text-sm font-medium">{item.label}</span>
+                )}
             </a>
         ) : (
             <NavLink to={item.path} onClick={onNavClick} className={linkClass}>
                 <Icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
+                {!collapsed && (
+                    <span className="text-sm font-medium">{item.label}</span>
+                )}
             </NavLink>
         );
 
@@ -171,7 +195,9 @@ function SidebarContent({
         return (
             <Popover
                 open={isOpen}
-                onOpenChange={(open) => setOpenDropdownPath(open ? item.path : null)}
+                onOpenChange={(open) =>
+                    setOpenDropdownPath(open ? item.path : null)
+                }
             >
                 <PopoverTrigger asChild>
                     <button
@@ -224,12 +250,12 @@ function SidebarContent({
                                     cActive && 'bg-accent',
                                 )}
                             >
-                                <ChildIcon className="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0" />
+                                <ChildIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                                 <div className="flex flex-col">
-                                    <span className="text-foreground text-sm font-medium">
+                                    <span className="text-sm font-medium text-foreground">
                                         {child.label}
                                     </span>
-                                    <span className="text-muted-foreground text-[11px] leading-tight">
+                                    <span className="text-[11px] leading-tight text-muted-foreground">
                                         {child.description}
                                     </span>
                                 </div>
@@ -242,23 +268,24 @@ function SidebarContent({
     };
 
     const renderNavItem = (item: NavItem) => {
-        if (item.children) return <NavItemWithChildren key={item.path} item={item} />;
+        if (item.children)
+            return <NavItemWithChildren key={item.path} item={item} />;
         return <NavItemSimple key={item.path} item={item} />;
     };
 
     return (
         <>
-            <div className="border-sidebar-border flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b border-sidebar-border p-4">
                 <div className="flex items-center gap-2">
-                    <div className="bg-sidebar-primary flex h-8 w-8 items-center justify-center rounded-lg">
-                        <Activity className="text-sidebar-primary-foreground h-5 w-5" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
+                        <Activity className="h-5 w-5 text-sidebar-primary-foreground" />
                     </div>
                     {!collapsed && (
                         <div className="flex flex-col">
-                            <span className="text-sidebar-foreground text-sm font-semibold">
+                            <span className="text-sm font-semibold text-sidebar-foreground">
                                 FisioElite
                             </span>
-                            <span className="text-sidebar-foreground/50 text-[10px] tracking-wider uppercase">
+                            <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
                                 Admin
                             </span>
                         </div>
@@ -269,7 +296,7 @@ function SidebarContent({
                         variant="ghost"
                         size="icon"
                         onClick={() => setCollapsed(!collapsed)}
-                        className="text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent h-8 w-8"
+                        className="h-8 w-8 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                     >
                         {collapsed ? (
                             <ChevronRight className="h-4 w-4" />
@@ -284,17 +311,19 @@ function SidebarContent({
                 {mainNavItems.map((item) => renderNavItem(item))}
             </nav>
 
-            <div className="border-sidebar-border space-y-1 border-t p-3">
+            <div className="space-y-1 border-t border-sidebar-border p-3">
                 {bottomNavItems.map((item) => (
                     <NavItemSimple key={item.path} item={item} />
                 ))}
                 <button
                     type="button"
                     onClick={handleLogout}
-                    className="text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200"
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sidebar-foreground/60 transition-all duration-200 hover:bg-sidebar-accent hover:text-destructive"
                 >
                     <LogOut className="h-5 w-5 flex-shrink-0" />
-                    {!collapsed && <span className="text-sm font-medium">Sair</span>}
+                    {!collapsed && (
+                        <span className="text-sm font-medium">Sair</span>
+                    )}
                 </button>
             </div>
         </>
@@ -308,18 +337,21 @@ export function AdminSidebar() {
 
     if (isMobile) {
         return (
-            <div className="bg-sidebar border-sidebar-border fixed top-0 right-0 left-0 z-50 flex h-14 items-center gap-3 border-b px-4">
+            <div className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4">
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-sidebar-foreground hover:bg-sidebar-accent h-9 w-9"
+                            className="h-9 w-9 text-sidebar-foreground hover:bg-sidebar-accent"
                         >
                             <Menu className="h-5 w-5" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="bg-sidebar border-sidebar-border w-60 p-0">
+                    <SheetContent
+                        side="left"
+                        className="w-60 border-sidebar-border bg-sidebar p-0"
+                    >
                         <div className="flex h-full flex-col">
                             <SidebarContent
                                 collapsed={false}
@@ -330,14 +362,14 @@ export function AdminSidebar() {
                     </SheetContent>
                 </Sheet>
                 <div className="flex items-center gap-2">
-                    <div className="bg-sidebar-primary flex h-7 w-7 items-center justify-center rounded-md">
-                        <Activity className="text-sidebar-primary-foreground h-4 w-4" />
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary">
+                        <Activity className="h-4 w-4 text-sidebar-primary-foreground" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sidebar-foreground text-sm font-semibold">
+                        <span className="text-sm font-semibold text-sidebar-foreground">
                             FisioElite
                         </span>
-                        <span className="text-sidebar-foreground/50 text-[10px] tracking-wider uppercase">
+                        <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
                             Admin
                         </span>
                     </div>
@@ -349,7 +381,7 @@ export function AdminSidebar() {
     return (
         <aside
             className={cn(
-                'bg-sidebar border-sidebar-border flex h-screen flex-col border-r transition-all duration-300',
+                'flex h-screen flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300',
                 collapsed ? 'w-16' : 'w-60',
             )}
         >

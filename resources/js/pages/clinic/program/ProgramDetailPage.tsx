@@ -42,7 +42,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 
 export type ClinicProgramDetailLoaderData = {
@@ -63,28 +67,42 @@ function StatusBadge({ program }: { program: Program }) {
     const ui = deriveUiStatus(program);
     if (ui === 'completed') {
         return (
-            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-600">
+            <Badge
+                variant="outline"
+                className="border-emerald-200 bg-emerald-50 text-emerald-600"
+            >
                 Completou
-                {program.patientCompletedCount > 0 ? ` • ${program.patientCompletedCount}x` : ''}
+                {program.patientCompletedCount > 0
+                    ? ` • ${program.patientCompletedCount}x`
+                    : ''}
             </Badge>
         );
     }
     if (ui === 'not_viewed') {
         return (
-            <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-600">
+            <Badge
+                variant="outline"
+                className="border-amber-200 bg-amber-50 text-amber-600"
+            >
                 Não visualizado
             </Badge>
         );
     }
     if (ui === 'viewed') {
         return (
-            <Badge variant="outline" className="border-border text-muted-foreground">
+            <Badge
+                variant="outline"
+                className="border-border text-muted-foreground"
+            >
                 Visualizado
             </Badge>
         );
     }
     return (
-        <Badge variant="outline" className="border-border text-muted-foreground">
+        <Badge
+            variant="outline"
+            className="border-border text-muted-foreground"
+        >
             Rascunho
         </Badge>
     );
@@ -101,7 +119,9 @@ function formatFrequency(exercise: ProgramExercise): string {
 
     if (exercise.days && exercise.days.length > 0) {
         parts.push(
-            exercise.days.length === 7 ? 'Todos os dias' : `${exercise.days.length}x/semana`,
+            exercise.days.length === 7
+                ? 'Todos os dias'
+                : `${exercise.days.length}x/semana`,
         );
     }
 
@@ -139,7 +159,11 @@ function formatFrequency(exercise: ProgramExercise): string {
 function formatDate(iso: string | null): string {
     if (!iso) return '—';
     const d = new Date(iso + (iso.includes('T') ? '' : 'T00:00:00'));
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 }
 
 function daysUntil(iso: string | null): number | null {
@@ -170,8 +194,8 @@ function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
     };
 
     return (
-        <div className="border-border bg-card flex items-center gap-5 rounded-lg border p-4">
-            <div className="bg-muted relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg">
+        <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
+            <div className="relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                 <video
                     ref={videoRef}
                     src={exercise.videoUrl}
@@ -185,8 +209,8 @@ function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
                     className="absolute inset-0 flex items-center justify-center"
                 >
                     {!isPlaying && (
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
-                            <Play className="text-foreground ml-0.5 h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
+                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
                         </div>
                     )}
                 </button>
@@ -195,16 +219,20 @@ function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
                         onClick={togglePlay}
                         className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
                     >
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
-                            <Pause className="text-foreground h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
+                            <Pause className="h-4 w-4 text-foreground" />
                         </div>
                     </button>
                 )}
             </div>
 
             <div className="flex min-w-0 flex-col gap-1">
-                <span className="text-foreground font-medium">{exercise.title}</span>
-                <span className="text-muted-foreground text-sm">{formatFrequency(exercise)}</span>
+                <span className="font-medium text-foreground">
+                    {exercise.title}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                    {formatFrequency(exercise)}
+                </span>
             </div>
         </div>
     );
@@ -242,7 +270,9 @@ export default function ProgramDetailPage() {
         return (
             <ClinicLayout>
                 <div className="flex h-full items-center justify-center">
-                    <p className="text-muted-foreground">Programa não encontrado.</p>
+                    <p className="text-muted-foreground">
+                        Programa não encontrado.
+                    </p>
                 </div>
             </ClinicLayout>
         );
@@ -255,21 +285,25 @@ export default function ProgramDetailPage() {
             <ClinicLayout>
                 <div className="flex h-full flex-col">
                     {/* Header */}
-                    <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                    <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                         <div className="px-6 py-4">
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => navigate('/clinica/programas')}
-                                        className="text-muted-foreground hover:text-foreground gap-1"
+                                        onClick={() =>
+                                            navigate('/clinica/programas')
+                                        }
+                                        className="gap-1 text-muted-foreground hover:text-foreground"
                                     >
                                         <ArrowLeft className="h-4 w-4" />
                                         Voltar
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Voltar aos programas</TooltipContent>
+                                <TooltipContent>
+                                    Voltar aos programas
+                                </TooltipContent>
                             </Tooltip>
                         </div>
                     </header>
@@ -280,7 +314,7 @@ export default function ProgramDetailPage() {
                         <Card className="p-6">
                             <div className="mb-1 flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <h1 className="text-foreground text-xl font-semibold">
+                                    <h1 className="text-xl font-semibold text-foreground">
                                         {program.title}
                                     </h1>
                                     <StatusBadge program={program} />
@@ -288,7 +322,11 @@ export default function ProgramDetailPage() {
                                 <div className="flex items-center gap-1">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                            >
                                                 <MoreVertical className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
@@ -305,7 +343,9 @@ export default function ProgramDetailPage() {
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onClick={() => duplicate(program.id)}
+                                                onClick={() =>
+                                                    duplicate(program.id)
+                                                }
                                                 className="cursor-pointer gap-2"
                                             >
                                                 <Copy className="h-4 w-4" />
@@ -326,7 +366,9 @@ export default function ProgramDetailPage() {
                                                 Baixar PDF
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                onClick={() => toModel(program.id)}
+                                                onClick={() =>
+                                                    toModel(program.id)
+                                                }
                                                 className="cursor-pointer gap-2"
                                             >
                                                 <BookmarkCheck className="h-4 w-4" />
@@ -334,8 +376,12 @@ export default function ProgramDetailPage() {
                                             </DropdownMenuItem>
                                             {program.status === 'draft' && (
                                                 <DropdownMenuItem
-                                                    onClick={() => setShowDeleteDialog(true)}
-                                                    className="text-destructive focus:text-destructive cursor-pointer gap-2"
+                                                    onClick={() =>
+                                                        setShowDeleteDialog(
+                                                            true,
+                                                        )
+                                                    }
+                                                    className="cursor-pointer gap-2 text-destructive focus:text-destructive"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                     Excluir
@@ -347,11 +393,11 @@ export default function ProgramDetailPage() {
                             </div>
 
                             {program.professionalName && (
-                                <p className="text-muted-foreground mb-1 text-sm">
+                                <p className="mb-1 text-sm text-muted-foreground">
                                     Criado por: {program.professionalName}
                                 </p>
                             )}
-                            <p className="text-muted-foreground mb-5 text-sm">
+                            <p className="mb-5 text-sm text-muted-foreground">
                                 Data de criação: {formatDate(program.createdAt)}
                             </p>
 
@@ -359,12 +405,12 @@ export default function ProgramDetailPage() {
                             <div className="flex flex-wrap items-center gap-8">
                                 {program.patientName && (
                                     <div className="flex items-center gap-2">
-                                        <User className="text-muted-foreground h-4 w-4" />
+                                        <User className="h-4 w-4 text-muted-foreground" />
                                         <div>
-                                            <p className="text-muted-foreground text-xs">
+                                            <p className="text-xs text-muted-foreground">
                                                 Paciente:
                                             </p>
-                                            <p className="text-foreground text-sm font-medium">
+                                            <p className="text-sm font-medium text-foreground">
                                                 {program.patientName}
                                             </p>
                                         </div>
@@ -372,10 +418,12 @@ export default function ProgramDetailPage() {
                                 )}
 
                                 <div className="flex items-center gap-2">
-                                    <Dumbbell className="text-muted-foreground h-4 w-4" />
+                                    <Dumbbell className="h-4 w-4 text-muted-foreground" />
                                     <div>
-                                        <p className="text-muted-foreground text-xs">Exercícios:</p>
-                                        <p className="text-foreground text-sm font-medium">
+                                        <p className="text-xs text-muted-foreground">
+                                            Exercícios:
+                                        </p>
+                                        <p className="text-sm font-medium text-foreground">
                                             {program.exerciseCount}{' '}
                                             {program.exerciseCount === 1
                                                 ? 'exercício'
@@ -386,12 +434,12 @@ export default function ProgramDetailPage() {
 
                                 {program.endDate && (
                                     <div className="flex items-center gap-2">
-                                        <CalendarDays className="text-muted-foreground h-4 w-4" />
+                                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
                                         <div>
-                                            <p className="text-muted-foreground text-xs">
+                                            <p className="text-xs text-muted-foreground">
                                                 Válido até:
                                             </p>
-                                            <p className="text-foreground text-sm font-medium">
+                                            <p className="text-sm font-medium text-foreground">
                                                 {formatDate(program.endDate)}{' '}
                                                 {validityDays != null && (
                                                     <span className="text-primary">
@@ -409,17 +457,23 @@ export default function ProgramDetailPage() {
                         {program.groups.map((group) => (
                             <div key={group.id}>
                                 <div className="mb-4 flex items-center gap-2">
-                                    <h2 className="text-foreground text-base font-semibold">
+                                    <h2 className="text-base font-semibold text-foreground">
                                         {group.name}
                                     </h2>
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                    >
                                         {group.exercises.length}
                                     </Badge>
                                 </div>
 
                                 <div className="space-y-3">
                                     {group.exercises.map((exercise) => (
-                                        <ExerciseRow key={exercise.id} exercise={exercise} />
+                                        <ExerciseRow
+                                            key={exercise.id}
+                                            exercise={exercise}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -428,13 +482,17 @@ export default function ProgramDetailPage() {
                 </div>
             </ClinicLayout>
 
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Excluir programa</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tem certeza que deseja excluir <strong>"{program.title}"</strong>? Esta
-                            ação não pode ser desfeita.
+                            Tem certeza que deseja excluir{' '}
+                            <strong>"{program.title}"</strong>? Esta ação não
+                            pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -443,7 +501,8 @@ export default function ProgramDetailPage() {
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
                                 deleteProgram(program.id, {
-                                    onSuccess: () => navigate('/clinica/programas'),
+                                    onSuccess: () =>
+                                        navigate('/clinica/programas'),
                                 });
                             }}
                         >

@@ -115,7 +115,10 @@ describe('ProgramDetailPage', () => {
             isPending: false,
         } as any);
 
-        vi.spyOn(useProgramsHook, 'useConvertToModelClinicProgram').mockReturnValue({
+        vi.spyOn(
+            useProgramsHook,
+            'useConvertToModelClinicProgram',
+        ).mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
         } as any);
@@ -130,12 +133,19 @@ describe('ProgramDetailPage', () => {
     }
 
     it('exibe mensagem de erro quando o loader falha', () => {
-        mockLoaderData = { program: null, error: 'Programa não encontrado na API' };
+        mockLoaderData = {
+            program: null,
+            error: 'Programa não encontrado na API',
+        };
 
         renderPage();
 
-        expect(screen.getByText('Programa não encontrado na API')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /voltar/i })).toBeInTheDocument();
+        expect(
+            screen.getByText('Programa não encontrado na API'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /voltar/i }),
+        ).toBeInTheDocument();
     });
 
     it('exibe mensagem quando programa é null e sem erro', () => {
@@ -143,7 +153,9 @@ describe('ProgramDetailPage', () => {
 
         renderPage();
 
-        expect(screen.getByText('Programa não encontrado.')).toBeInTheDocument();
+        expect(
+            screen.getByText('Programa não encontrado.'),
+        ).toBeInTheDocument();
     });
 
     it('exibe título e dados do programa via loader', () => {
@@ -152,9 +164,13 @@ describe('ProgramDetailPage', () => {
 
         renderPage();
 
-        expect(screen.getByText('Mão e dedos – Osteoartrite')).toBeInTheDocument();
+        expect(
+            screen.getByText('Mão e dedos – Osteoartrite'),
+        ).toBeInTheDocument();
         expect(screen.getByText('Maria Rilva Bitu')).toBeInTheDocument();
-        expect(screen.getByText('Dr. Ricardo Silva', { exact: false })).toBeInTheDocument();
+        expect(
+            screen.getByText('Dr. Ricardo Silva', { exact: false }),
+        ).toBeInTheDocument();
         expect(screen.getByText('2 exercícios')).toBeInTheDocument();
     });
 
@@ -171,7 +187,10 @@ describe('ProgramDetailPage', () => {
 
     it('exibe badge "Visualizado" para programa visto pelo paciente', () => {
         mockLoaderData = {
-            program: makeProgram({ status: 'active', patientViewedAt: '2026-03-01T10:00:00Z' }),
+            program: makeProgram({
+                status: 'active',
+                patientViewedAt: '2026-03-01T10:00:00Z',
+            }),
             error: null,
         };
 
@@ -182,7 +201,10 @@ describe('ProgramDetailPage', () => {
 
     it('exibe badge "Completou" com contagem para programa concluído', () => {
         mockLoaderData = {
-            program: makeProgram({ status: 'completed', patientCompletedCount: 5 }),
+            program: makeProgram({
+                status: 'completed',
+                patientCompletedCount: 5,
+            }),
             error: null,
         };
 
@@ -193,7 +215,11 @@ describe('ProgramDetailPage', () => {
 
     it('exibe badge "Rascunho" para programa em rascunho', () => {
         mockLoaderData = {
-            program: makeProgram({ status: 'draft', patientId: null, patientName: null }),
+            program: makeProgram({
+                status: 'draft',
+                patientId: null,
+                patientName: null,
+            }),
             error: null,
         };
 
@@ -208,7 +234,9 @@ describe('ProgramDetailPage', () => {
         renderPage();
 
         expect(screen.getByText('Novo grupo')).toBeInTheDocument();
-        expect(screen.getByText('Mobilização passiva do dedo em flexão')).toBeInTheDocument();
+        expect(
+            screen.getByText('Mobilização passiva do dedo em flexão'),
+        ).toBeInTheDocument();
     });
 
     it('exibe a frequência formatada do exercício', () => {
@@ -237,7 +265,9 @@ describe('ProgramDetailPage', () => {
 
     it('usa dados do hook quando disponíveis (atualização reativa)', () => {
         const loaderProgram = makeProgram({ title: 'Título via loader' });
-        const hookProgram = makeProgram({ title: 'Título via hook (atualizado)' });
+        const hookProgram = makeProgram({
+            title: 'Título via hook (atualizado)',
+        });
 
         mockLoaderData = { program: loaderProgram, error: null };
 
@@ -249,7 +279,9 @@ describe('ProgramDetailPage', () => {
 
         renderPage();
 
-        expect(screen.getByText('Título via hook (atualizado)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Título via hook (atualizado)'),
+        ).toBeInTheDocument();
         expect(screen.queryByText('Título via loader')).not.toBeInTheDocument();
     });
 });

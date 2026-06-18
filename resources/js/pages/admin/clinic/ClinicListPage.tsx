@@ -22,7 +22,11 @@ import {
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Clinic } from '@/domain/admin';
 import { formatDocument } from '@/lib/utils';
 
@@ -54,7 +58,11 @@ export default function ClinicListPage() {
                 const key = `_imp_${Date.now()}`;
                 localStorage.setItem(
                     key,
-                    JSON.stringify({ token: res.access_token, guard: 'clinic', user: res.user }),
+                    JSON.stringify({
+                        token: res.access_token,
+                        guard: 'clinic',
+                        user: res.user,
+                    }),
                 );
                 window.open(`/clinica/entrar?key=${key}`, '_blank');
             },
@@ -105,8 +113,10 @@ export default function ClinicListPage() {
             !String(c.id).includes(appliedSearch)
         )
             return false;
-        if (appliedPlan !== 'todos' && String(c.planId) !== appliedPlan) return false;
-        if (appliedStatus !== 'todos' && String(c.status) !== appliedStatus) return false;
+        if (appliedPlan !== 'todos' && String(c.planId) !== appliedPlan)
+            return false;
+        if (appliedStatus !== 'todos' && String(c.status) !== appliedStatus)
+            return false;
         if (appliedDateFrom) {
             const from = new Date(appliedDateFrom);
             if (new Date(c.createdAt) < from) return false;
@@ -122,7 +132,8 @@ export default function ClinicListPage() {
     const perPage = parseInt(itemsPerPage, 10);
     const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
     const paginated = useMemo(
-        () => filtered.slice((currentPage - 1) * perPage, currentPage * perPage),
+        () =>
+            filtered.slice((currentPage - 1) * perPage, currentPage * perPage),
         [filtered, currentPage, perPage],
     );
 
@@ -144,10 +155,12 @@ export default function ClinicListPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-6">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-foreground text-2xl font-semibold">Clínicas</h1>
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                Clínicas
+                            </h1>
                             <Button
                                 className="gap-2"
                                 onClick={() => navigate('/admin/clinicas/nova')}
@@ -164,28 +177,35 @@ export default function ClinicListPage() {
                     {/* Filters Card */}
                     <Card className="mb-6">
                         <CardHeader className="pb-4">
-                            <CardTitle className="text-base font-semibold">Filtros</CardTitle>
+                            <CardTitle className="text-base font-semibold">
+                                Filtros
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5">
                                 <div className="space-y-1.5">
-                                    <label className="text-foreground text-sm font-medium">
+                                    <label className="text-sm font-medium text-foreground">
                                         Buscar
                                     </label>
                                     <div className="relative">
-                                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
                                             placeholder="ID, nome ou documento"
                                             value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                            onChange={(e) =>
+                                                setSearch(e.target.value)
+                                            }
+                                            onKeyDown={(e) =>
+                                                e.key === 'Enter' &&
+                                                handleSearch()
+                                            }
                                             className="pl-9"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-foreground text-sm font-medium">
+                                    <label className="text-sm font-medium text-foreground">
                                         Plano
                                     </label>
                                     <Select
@@ -196,9 +216,14 @@ export default function ClinicListPage() {
                                             <SelectValue placeholder="Todos os planos" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="todos">Todos os planos</SelectItem>
+                                            <SelectItem value="todos">
+                                                Todos os planos
+                                            </SelectItem>
                                             {plansOptions.map((p) => (
-                                                <SelectItem key={p.id} value={String(p.id)}>
+                                                <SelectItem
+                                                    key={p.id}
+                                                    value={String(p.id)}
+                                                >
                                                     {p.name}
                                                 </SelectItem>
                                             ))}
@@ -207,43 +232,57 @@ export default function ClinicListPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-foreground text-sm font-medium">
+                                    <label className="text-sm font-medium text-foreground">
                                         Data de
                                     </label>
                                     <Input
                                         type="date"
                                         value={dateFrom}
-                                        onChange={(e) => setDateFrom(e.target.value)}
+                                        onChange={(e) =>
+                                            setDateFrom(e.target.value)
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-foreground text-sm font-medium">
+                                    <label className="text-sm font-medium text-foreground">
                                         Data até
                                     </label>
                                     <Input
                                         type="date"
                                         value={dateTo}
-                                        onChange={(e) => setDateTo(e.target.value)}
+                                        onChange={(e) =>
+                                            setDateTo(e.target.value)
+                                        }
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-foreground text-sm font-medium">
+                                    <label className="text-sm font-medium text-foreground">
                                         Status
                                     </label>
                                     <Select
                                         value={statusFilter}
-                                        onValueChange={(v) => setStatusFilter(v)}
+                                        onValueChange={(v) =>
+                                            setStatusFilter(v)
+                                        }
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Todos os status" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="todos">Todos os status</SelectItem>
-                                            <SelectItem value="1">Ativo</SelectItem>
-                                            <SelectItem value="0">Inativo</SelectItem>
-                                            <SelectItem value="-1">Cancelado</SelectItem>
+                                            <SelectItem value="todos">
+                                                Todos os status
+                                            </SelectItem>
+                                            <SelectItem value="1">
+                                                Ativo
+                                            </SelectItem>
+                                            <SelectItem value="0">
+                                                Inativo
+                                            </SelectItem>
+                                            <SelectItem value="-1">
+                                                Cancelado
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -272,13 +311,17 @@ export default function ClinicListPage() {
                     >
                         {(clinic) => (
                             <TableRow key={clinic.id}>
-                                <TableCell className="text-foreground font-medium">
+                                <TableCell className="font-medium text-foreground">
                                     {clinic.id}
                                 </TableCell>
                                 <TableCell>
                                     <button
-                                        className="text-primary text-left font-medium hover:underline"
-                                        onClick={() => navigate(`/admin/clinicas/${clinic.id}`)}
+                                        className="text-left font-medium text-primary hover:underline"
+                                        onClick={() =>
+                                            navigate(
+                                                `/admin/clinicas/${clinic.id}`,
+                                            )
+                                        }
                                     >
                                         {clinic.name}
                                     </button>
@@ -307,12 +350,16 @@ export default function ClinicListPage() {
                                     </StatusBadge>
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
-                                    {new Date(clinic.createdAt).toLocaleDateString('pt-BR', {
+                                    {new Date(
+                                        clinic.createdAt,
+                                    ).toLocaleDateString('pt-BR', {
                                         day: '2-digit',
                                         month: '2-digit',
                                         year: 'numeric',
                                     })}{' '}
-                                    {new Date(clinic.createdAt).toLocaleTimeString('pt-BR', {
+                                    {new Date(
+                                        clinic.createdAt,
+                                    ).toLocaleTimeString('pt-BR', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                     })}
@@ -324,21 +371,27 @@ export default function ClinicListPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
-                                                    disabled={loginAsMutation.isPending}
-                                                    onClick={() => handleLoginAs(clinic)}
+                                                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
+                                                    disabled={
+                                                        loginAsMutation.isPending
+                                                    }
+                                                    onClick={() =>
+                                                        handleLoginAs(clinic)
+                                                    }
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Logar na clínica</TooltipContent>
+                                            <TooltipContent>
+                                                Logar na clínica
+                                            </TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
+                                                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
                                                     onClick={() =>
                                                         navigate(
                                                             `/admin/clinicas/${clinic.id}/editar`,
@@ -348,24 +401,30 @@ export default function ClinicListPage() {
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Editar</TooltipContent>
+                                            <TooltipContent>
+                                                Editar
+                                            </TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-destructive/70 hover:text-destructive h-8 w-8 cursor-pointer"
+                                                    className="h-8 w-8 cursor-pointer text-destructive/70 hover:text-destructive"
                                                     disabled={
                                                         clinic.status === -1 ||
                                                         cancelMutation.isPending
                                                     }
-                                                    onClick={() => handleCancel(clinic)}
+                                                    onClick={() =>
+                                                        handleCancel(clinic)
+                                                    }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Cancelar</TooltipContent>
+                                            <TooltipContent>
+                                                Cancelar
+                                            </TooltipContent>
                                         </Tooltip>
                                     </div>
                                 </TableCell>

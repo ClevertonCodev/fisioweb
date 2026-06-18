@@ -33,12 +33,17 @@ function migrateOldAuthKeys(): void {
     }
 }
 
-export function getStoredAuth(guard?: AuthGuard): { token: string; guard: AuthGuard } | null {
+export function getStoredAuth(
+    guard?: AuthGuard,
+): { token: string; guard: AuthGuard } | null {
     // sessionStorage priority — used for impersonation in a new tab
     const sessionToken = sessionStorage.getItem(SESSION_TOKEN_KEY);
-    const sessionGuard = sessionStorage.getItem(SESSION_GUARD_KEY) as AuthGuard | null;
+    const sessionGuard = sessionStorage.getItem(
+        SESSION_GUARD_KEY,
+    ) as AuthGuard | null;
     if (sessionToken && sessionGuard) {
-        if (!guard || sessionGuard === guard) return { token: sessionToken, guard: sessionGuard };
+        if (!guard || sessionGuard === guard)
+            return { token: sessionToken, guard: sessionGuard };
     }
 
     migrateOldAuthKeys();

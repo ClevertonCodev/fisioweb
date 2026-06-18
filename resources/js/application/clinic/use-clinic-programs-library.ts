@@ -5,7 +5,9 @@ import type { ClinicProgramsLibraryParams } from '@/infrastructure/repositories/
 
 const PROGRAMS_LIBRARY_KEY = ['clinic', 'programs-library'] as const;
 
-export function listClinicProgramsLibraryPaginated(params?: ClinicProgramsLibraryParams) {
+export function listClinicProgramsLibraryPaginated(
+    params?: ClinicProgramsLibraryParams,
+) {
     return apiClinicProgramsLibraryRepository.list(params);
 }
 

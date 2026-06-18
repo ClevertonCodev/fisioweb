@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Clinic\Http\Controllers\AppointmentController;
 use Modules\Clinic\Http\Controllers\AssessmentController;
 use Modules\Clinic\Http\Controllers\ClinicProfileController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
@@ -28,6 +29,15 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');
     Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo');
     Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
+
+    Route::prefix('appointments')->name('clinic.appointments.')->group(function () {
+        Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::post('/', [AppointmentController::class, 'store'])->name('store');
+        Route::get('{appointment}', [AppointmentController::class, 'show'])->name('show');
+        Route::put('{appointment}', [AppointmentController::class, 'update'])->name('update');
+        Route::patch('{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('status');
+        Route::post('{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
+    });
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');

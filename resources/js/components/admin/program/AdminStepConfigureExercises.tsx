@@ -31,7 +31,11 @@ import { useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 import type { AdminWizardExercise, AdminWizardGroup } from './types';
@@ -51,14 +55,21 @@ export function AdminStepConfigureExercises({
     onNext,
     onBack,
 }: AdminStepConfigureExercisesProps) {
-    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(
+        new Set(),
+    );
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
     );
 
-    const totalExercises = groups.reduce((sum, g) => sum + g.exercises.length, 0);
+    const totalExercises = groups.reduce(
+        (sum, g) => sum + g.exercises.length,
+        0,
+    );
     const configuredCount = groups.reduce(
         (sum, g) => sum + g.exercises.filter((e) => e.isConfigured).length,
         0,
@@ -78,7 +89,12 @@ export function AdminStepConfigureExercises({
             groups
                 .map((g) =>
                     g.id === groupId
-                        ? { ...g, exercises: g.exercises.filter((e) => e.id !== exerciseId) }
+                        ? {
+                              ...g,
+                              exercises: g.exercises.filter(
+                                  (e) => e.id !== exerciseId,
+                              ),
+                          }
                         : g,
                 )
                 .filter((g) => g.exercises.length > 0),
@@ -105,7 +121,9 @@ export function AdminStepConfigureExercises({
     };
 
     const renameGroup = (groupId: number, name: string) => {
-        onUpdateGroups(groups.map((g) => (g.id === groupId ? { ...g, name } : g)));
+        onUpdateGroups(
+            groups.map((g) => (g.id === groupId ? { ...g, name } : g)),
+        );
     };
 
     const handleDragEnd = (groupId: number) => (event: DragEndEvent) => {
@@ -115,9 +133,14 @@ export function AdminStepConfigureExercises({
         onUpdateGroups(
             groups.map((g) => {
                 if (g.id !== groupId) return g;
-                const oldIndex = g.exercises.findIndex((e) => e.id === active.id);
+                const oldIndex = g.exercises.findIndex(
+                    (e) => e.id === active.id,
+                );
                 const newIndex = g.exercises.findIndex((e) => e.id === over.id);
-                return { ...g, exercises: arrayMove(g.exercises, oldIndex, newIndex) };
+                return {
+                    ...g,
+                    exercises: arrayMove(g.exercises, oldIndex, newIndex),
+                };
             }),
         );
     };
@@ -125,14 +148,14 @@ export function AdminStepConfigureExercises({
     return (
         <div className="flex h-full min-w-0 flex-1 flex-col">
             {/* Header with progress */}
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
                 <div className="flex items-center gap-4">
-                    <span className="text-muted-foreground text-sm">
+                    <span className="text-sm text-muted-foreground">
                         {configuredCount} de {totalExercises} editados
                     </span>
-                    <div className="bg-muted h-2 w-40 overflow-hidden rounded-full">
+                    <div className="h-2 w-40 overflow-hidden rounded-full bg-muted">
                         <div
-                            className="bg-primary h-full rounded-full transition-all"
+                            className="h-full rounded-full bg-primary transition-all"
                             style={{
                                 width: `${totalExercises ? (configuredCount / totalExercises) * 100 : 0}%`,
                             }}
@@ -160,9 +183,14 @@ export function AdminStepConfigureExercises({
                                 <div className="flex items-center gap-2">
                                     <EditableGroupName
                                         name={group.name}
-                                        onRename={(n) => renameGroup(group.id, n)}
+                                        onRename={(n) =>
+                                            renameGroup(group.id, n)
+                                        }
                                     />
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs"
+                                    >
                                         {group.exercises.length}
                                     </Badge>
                                     <div className="flex-1" />
@@ -188,20 +216,32 @@ export function AdminStepConfigureExercises({
                                         onDragEnd={handleDragEnd(group.id)}
                                     >
                                         <SortableContext
-                                            items={group.exercises.map((e) => e.id)}
-                                            strategy={verticalListSortingStrategy}
+                                            items={group.exercises.map(
+                                                (e) => e.id,
+                                            )}
+                                            strategy={
+                                                verticalListSortingStrategy
+                                            }
                                         >
                                             <div className="space-y-3">
-                                                {group.exercises.map((exercise) => (
-                                                    <SortableExerciseRow
-                                                        key={exercise.id}
-                                                        exercise={exercise}
-                                                        groupId={group.id}
-                                                        onEdit={onEditExercise}
-                                                        onRemove={removeExercise}
-                                                        onDuplicate={duplicateExercise}
-                                                    />
-                                                ))}
+                                                {group.exercises.map(
+                                                    (exercise) => (
+                                                        <SortableExerciseRow
+                                                            key={exercise.id}
+                                                            exercise={exercise}
+                                                            groupId={group.id}
+                                                            onEdit={
+                                                                onEditExercise
+                                                            }
+                                                            onRemove={
+                                                                removeExercise
+                                                            }
+                                                            onDuplicate={
+                                                                duplicateExercise
+                                                            }
+                                                        />
+                                                    ),
+                                                )}
                                             </div>
                                         </SortableContext>
                                     </DndContext>
@@ -228,7 +268,14 @@ function SortableExerciseRow({
     onRemove: (groupId: number, exerciseId: number) => void;
     onDuplicate: (groupId: number, exerciseId: number) => void;
 }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
         id: exercise.id,
     });
 
@@ -258,20 +305,20 @@ function SortableExerciseRow({
             ref={setNodeRef}
             style={style}
             className={cn(
-                'bg-card border-border flex items-center gap-4 rounded-lg border p-4 transition-shadow',
+                'flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow',
                 isDragging && 'relative z-50 opacity-90 shadow-lg',
             )}
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="text-muted-foreground/50 h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing"
+                className="h-5 w-5 flex-shrink-0 cursor-grab text-muted-foreground/50 active:cursor-grabbing"
             >
                 <GripVertical className="h-5 w-5" />
             </div>
 
             {/* Thumbnail with play */}
-            <div className="bg-muted group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md">
+            <div className="group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                 <video
                     ref={videoRef}
                     src={exercise.videoUrl ?? undefined}
@@ -286,8 +333,8 @@ function SortableExerciseRow({
                     className="absolute inset-0 flex items-center justify-center"
                 >
                     {!isPlaying && (
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                            <Play className="text-foreground ml-0.5 h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
                         </div>
                     )}
                 </button>
@@ -296,8 +343,8 @@ function SortableExerciseRow({
                         onClick={togglePlay}
                         className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
                     >
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
-                            <Pause className="text-foreground h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
+                            <Pause className="h-4 w-4 text-foreground" />
                         </div>
                     </button>
                 )}
@@ -305,9 +352,13 @@ function SortableExerciseRow({
 
             {/* Info */}
             <div className="min-w-0 flex-1">
-                <p className="text-foreground text-sm font-medium">{exercise.name}</p>
-                <p className="text-muted-foreground mt-1 text-xs">
-                    {exercise.isConfigured ? 'Configurado' : 'Sem especificações'}
+                <p className="text-sm font-medium text-foreground">
+                    {exercise.name}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {exercise.isConfigured
+                        ? 'Configurado'
+                        : 'Sem especificações'}
                 </p>
             </div>
 
@@ -331,7 +382,7 @@ function SortableExerciseRow({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
+                            className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-destructive"
                             onClick={() => onRemove(groupId, exercise.id)}
                         >
                             <Trash2 className="h-4 w-4" />
@@ -344,7 +395,7 @@ function SortableExerciseRow({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground h-8 w-8 cursor-pointer"
+                            className="h-8 w-8 cursor-pointer text-muted-foreground"
                             onClick={() => onDuplicate(groupId, exercise.id)}
                         >
                             <Copy className="h-4 w-4" />
@@ -357,7 +408,13 @@ function SortableExerciseRow({
     );
 }
 
-function EditableGroupName({ name, onRename }: { name: string; onRename: (n: string) => void }) {
+function EditableGroupName({
+    name,
+    onRename,
+}: {
+    name: string;
+    onRename: (n: string) => void;
+}) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(name);
 
@@ -365,7 +422,7 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
         return (
             <input
                 autoFocus
-                className="text-foreground border-primary border-b bg-transparent px-1 text-sm font-semibold outline-none"
+                className="border-b border-primary bg-transparent px-1 text-sm font-semibold text-foreground outline-none"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onBlur={() => {
@@ -374,7 +431,8 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
                     else setValue(name);
                 }}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    if (e.key === 'Enter')
+                        (e.target as HTMLInputElement).blur();
                 }}
             />
         );
@@ -383,7 +441,7 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
     return (
         <button
             onClick={() => setEditing(true)}
-            className="text-foreground hover:text-primary flex cursor-pointer items-center gap-1 text-sm font-semibold"
+            className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-foreground hover:text-primary"
         >
             {name}
             <Pencil className="h-3 w-3" />

@@ -19,7 +19,11 @@ import type { PatientEvolution } from '@/domain/clinic';
 function EvolutionGeneratedText({ text }: { text: string | null }) {
     const raw = text?.trim() ?? '';
     if (!raw) {
-        return <p className="text-muted-foreground text-sm">Sem texto principal preenchido.</p>;
+        return (
+            <p className="text-sm text-muted-foreground">
+                Sem texto principal preenchido.
+            </p>
+        );
     }
 
     const blocks = raw.split(/\n\n+/);
@@ -38,12 +42,19 @@ function EvolutionGeneratedText({ text }: { text: string | null }) {
                         .filter(Boolean);
                     return (
                         <div key={bi} className="space-y-2">
-                            <p className="text-foreground font-semibold">{sectionTitle}</p>
+                            <p className="font-semibold text-foreground">
+                                {sectionTitle}
+                            </p>
                             {bodyLines.length === 0 ? (
-                                <p className="text-muted-foreground text-xs italic">—</p>
+                                <p className="text-xs text-muted-foreground italic">
+                                    —
+                                </p>
                             ) : (
                                 bodyLines.map((line, li) => (
-                                    <p key={li} className="text-muted-foreground">
+                                    <p
+                                        key={li}
+                                        className="text-muted-foreground"
+                                    >
                                         {line}
                                     </p>
                                 ))
@@ -52,7 +63,10 @@ function EvolutionGeneratedText({ text }: { text: string | null }) {
                     );
                 }
                 return (
-                    <p key={bi} className="text-muted-foreground whitespace-pre-wrap">
+                    <p
+                        key={bi}
+                        className="whitespace-pre-wrap text-muted-foreground"
+                    >
                         {block}
                     </p>
                 );
@@ -83,11 +97,14 @@ export function EvolutionViewDrawer({
         return null;
     }
 
-    const dateLabel = new Date(evolution.createdAt).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    });
+    const dateLabel = new Date(evolution.createdAt).toLocaleDateString(
+        'pt-BR',
+        {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        },
+    );
 
     const handlePrint = async () => {
         setPrinting(true);
@@ -100,19 +117,27 @@ export function EvolutionViewDrawer({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+            <SheetContent
+                side="right"
+                className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl"
+            >
                 <SheetHeader className="border-b px-6 py-4 text-left">
                     <SheetTitle className="pr-8 text-base leading-snug">
                         {evolution.title?.trim() || 'Evolução'}
                     </SheetTitle>
-                    <SheetDescription className="sr-only">Visualização da evolução</SheetDescription>
-                    <div className="text-muted-foreground mt-2 space-y-1 text-sm">
+                    <SheetDescription className="sr-only">
+                        Visualização da evolução
+                    </SheetDescription>
+                    <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                         <p>{patientName}</p>
                         <p>{dateLabel}</p>
-                        {evolution.status === 'signed' && evolution.clinicUser?.name ? (
+                        {evolution.status === 'signed' &&
+                        evolution.clinicUser?.name ? (
                             <p>
                                 Assinado por{' '}
-                                <span className="text-foreground font-medium">{evolution.clinicUser.name}</span>
+                                <span className="font-medium text-foreground">
+                                    {evolution.clinicUser.name}
+                                </span>
                             </p>
                         ) : null}
                     </div>
@@ -128,7 +153,10 @@ export function EvolutionViewDrawer({
                                 </AlertTitle>
                                 <AlertDescription className="text-amber-900/90 dark:text-amber-100/90">
                                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                        <span className="text-sm">Assine quando o conteúdo estiver finalizado.</span>
+                                        <span className="text-sm">
+                                            Assine quando o conteúdo estiver
+                                            finalizado.
+                                        </span>
                                         {onEditDraft ? (
                                             <Button
                                                 type="button"
@@ -145,12 +173,16 @@ export function EvolutionViewDrawer({
                             </Alert>
                         ) : null}
 
-                        <EvolutionGeneratedText text={evolution.generatedText} />
+                        <EvolutionGeneratedText
+                            text={evolution.generatedText}
+                        />
 
                         {evolution.notes?.trim() ? (
-                            <div className="border-border space-y-1 border-t pt-4">
-                                <p className="text-foreground text-sm font-semibold">Observações:</p>
-                                <p className="text-muted-foreground whitespace-pre-wrap text-sm">
+                            <div className="space-y-1 border-t border-border pt-4">
+                                <p className="text-sm font-semibold text-foreground">
+                                    Observações:
+                                </p>
+                                <p className="text-sm whitespace-pre-wrap text-muted-foreground">
                                     {evolution.notes.trim()}
                                 </p>
                             </div>
@@ -170,7 +202,11 @@ export function EvolutionViewDrawer({
                             <Printer className="h-4 w-4" />
                             {printing ? 'Abrindo…' : 'Imprimir'}
                         </Button>
-                        <Button type="button" className="cursor-pointer" onClick={() => onOpenChange(false)}>
+                        <Button
+                            type="button"
+                            className="cursor-pointer"
+                            onClick={() => onOpenChange(false)}
+                        >
                             Fechar
                         </Button>
                     </div>

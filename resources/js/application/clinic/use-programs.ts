@@ -1,7 +1,15 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { ProgramListParams, ProgramWriteDto } from '@/application/clinic/ports';
+import type {
+    ProgramListParams,
+    ProgramWriteDto,
+} from '@/application/clinic/ports';
 import type { Program } from '@/domain/clinic';
 import { apiClinicProgramsRepository } from '@/infrastructure/repositories';
 
@@ -17,7 +25,10 @@ export function useClinicPrograms(params?: ProgramListParams) {
     });
 }
 
-export function useClinicProgramsQuery(params?: ProgramListParams, enabled = true) {
+export function useClinicProgramsQuery(
+    params?: ProgramListParams,
+    enabled = true,
+) {
     return useQuery({
         queryKey: ['clinic-programs', params ?? {}],
         queryFn: () => listClinicPrograms(params),
@@ -26,10 +37,15 @@ export function useClinicProgramsQuery(params?: ProgramListParams, enabled = tru
 }
 
 export function listMyModelsPaginated(params?: ProgramListParams) {
-    return apiClinicProgramsRepository.list({ ...params, withoutPatient: true });
+    return apiClinicProgramsRepository.list({
+        ...params,
+        withoutPatient: true,
+    });
 }
 
-export function useInfiniteMyPrograms(params?: Omit<ProgramListParams, 'page' | 'withoutPatient'>) {
+export function useInfiniteMyPrograms(
+    params?: Omit<ProgramListParams, 'page' | 'withoutPatient'>,
+) {
     return useInfiniteQuery({
         queryKey: ['clinic-programs', 'infinite-my-models', params ?? null],
         queryFn: ({ pageParam }) =>
@@ -40,7 +56,9 @@ export function useInfiniteMyPrograms(params?: Omit<ProgramListParams, 'page' | 
                 perPage: 20,
             }),
         getNextPageParam: (lastPage) =>
-            lastPage.currentPage < lastPage.lastPage ? lastPage.currentPage + 1 : undefined,
+            lastPage.currentPage < lastPage.lastPage
+                ? lastPage.currentPage + 1
+                : undefined,
         initialPageParam: 1,
         staleTime: Infinity,
     });
@@ -53,7 +71,10 @@ export function findClinicProgram(id: string): Promise<Program | null> {
 export function useClinicProgram(id: string | undefined) {
     return useQuery({
         queryKey: ['clinic-programs', id],
-        queryFn: () => (id ? apiClinicProgramsRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id
+                ? apiClinicProgramsRepository.getById(id)
+                : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -61,7 +82,8 @@ export function useClinicProgram(id: string | undefined) {
 export function useCreateClinicProgram() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: ProgramWriteDto) => apiClinicProgramsRepository.create(dto),
+        mutationFn: (dto: ProgramWriteDto) =>
+            apiClinicProgramsRepository.create(dto),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['clinic-programs'] });
         },
@@ -92,7 +114,9 @@ export function useUpdateClinicProgram() {
             apiClinicProgramsRepository.update(id, dto),
         onSuccess: (_, { id }) => {
             queryClient.invalidateQueries({ queryKey: ['clinic-programs'] });
-            queryClient.invalidateQueries({ queryKey: ['clinic-programs', id] });
+            queryClient.invalidateQueries({
+                queryKey: ['clinic-programs', id],
+            });
         },
         onError: () => {
             toast.error('Erro ao salvar programa. Tente novamente.');

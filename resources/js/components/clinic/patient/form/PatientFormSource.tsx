@@ -17,21 +17,32 @@ export function PatientFormSource({ form }: Props) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">Como me conheceu?</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+                Como me conheceu?
+            </h2>
             <div>
-                <Label className="text-muted-foreground text-xs">Tipo de indicação</Label>
+                <Label className="text-xs text-muted-foreground">
+                    Tipo de indicação
+                </Label>
                 <Controller
                     name="referral_source"
                     control={control}
                     render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                        >
                             <SelectTrigger className="mt-1.5">
                                 <SelectValue placeholder="Selecione uma opção" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="google">Google</SelectItem>
-                                <SelectItem value="instagram">Instagram</SelectItem>
-                                <SelectItem value="indicacao_amigo">Indicação de amigo</SelectItem>
+                                <SelectItem value="instagram">
+                                    Instagram
+                                </SelectItem>
+                                <SelectItem value="indicacao_amigo">
+                                    Indicação de amigo
+                                </SelectItem>
                                 <SelectItem value="indicacao_profissional">
                                     Indicação profissional
                                 </SelectItem>

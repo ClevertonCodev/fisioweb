@@ -93,12 +93,15 @@ describe('can.manageClinicalRecords', () => {
 });
 
 describe('matriz de permissões — todos os roles cobertos', () => {
-    it.each(ROLES)('role %s sempre retorna boolean em todas as permissões', (role) => {
-        expect(typeof can.delete(role)).toBe('boolean');
-        expect(typeof can.deleteOwn(role)).toBe('boolean');
-        expect(typeof can.manageUsers(role)).toBe('boolean');
-        expect(typeof can.sign(role)).toBe('boolean');
-        expect(typeof can.bulkInactivate(role)).toBe('boolean');
-        expect(typeof can.manageClinicalRecords(role)).toBe('boolean');
-    });
+    it.each(ROLES)(
+        'role %s sempre retorna boolean em todas as permissões',
+        (role) => {
+            expect(typeof can.delete(role)).toBe('boolean');
+            expect(typeof can.deleteOwn(role)).toBe('boolean');
+            expect(typeof can.manageUsers(role)).toBe('boolean');
+            expect(typeof can.sign(role)).toBe('boolean');
+            expect(typeof can.bulkInactivate(role)).toBe('boolean');
+            expect(typeof can.manageClinicalRecords(role)).toBe('boolean');
+        },
+    );
 });

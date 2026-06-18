@@ -122,7 +122,9 @@ export interface ClinicProgramsLibraryResult {
 }
 
 export const apiClinicProgramsLibraryRepository = {
-    async list(params: ClinicProgramsLibraryParams = {}): Promise<ClinicProgramsLibraryResult> {
+    async list(
+        params: ClinicProgramsLibraryParams = {},
+    ): Promise<ClinicProgramsLibraryResult> {
         const { data } = await apiClient.get<{
             current_page: number;
             data: ApiSharedProgram[];
@@ -147,7 +149,9 @@ export const apiClinicProgramsLibraryRepository = {
     },
 
     async getDetail(id: number): Promise<SharedProgram> {
-        const { data } = await apiClient.get<{ data: ApiSharedProgram }>(`/clinic/programs/${id}`);
+        const { data } = await apiClient.get<{ data: ApiSharedProgram }>(
+            `/clinic/programs/${id}`,
+        );
         return mapProgram(data.data);
     },
 };

@@ -13,7 +13,7 @@ export function PatientFormInsurance({ form }: Props) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">Convênio</h2>
+            <h2 className="text-lg font-semibold text-foreground">Convênio</h2>
             <Controller
                 name="has_insurance"
                 control={control}
@@ -33,7 +33,10 @@ export function PatientFormInsurance({ form }: Props) {
             {hasInsurance && (
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label className="text-muted-foreground text-xs" htmlFor="insurance">
+                        <Label
+                            className="text-xs text-muted-foreground"
+                            htmlFor="insurance"
+                        >
                             Convênio
                         </Label>
                         <Input
@@ -44,7 +47,10 @@ export function PatientFormInsurance({ form }: Props) {
                         />
                     </div>
                     <div>
-                        <Label className="text-muted-foreground text-xs" htmlFor="insurance_number">
+                        <Label
+                            className="text-xs text-muted-foreground"
+                            htmlFor="insurance_number"
+                        >
                             Número do plano
                         </Label>
                         <Input

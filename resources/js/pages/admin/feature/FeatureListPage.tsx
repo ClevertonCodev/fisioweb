@@ -17,7 +17,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Feature } from '@/domain/admin';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -34,14 +38,19 @@ const featureColumns = [
 export default function FeatureListPage() {
     const navigate = useNavigate();
     const revalidator = useRevalidator();
-    const { features, error } = useLoaderData() as { features: Feature[]; error: string | null };
+    const { features, error } = useLoaderData() as {
+        features: Feature[];
+        error: string | null;
+    };
     const [search, setSearch] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [appliedSearch, setAppliedSearch] = useState('');
     const [appliedType, setAppliedType] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-    const deleteMutation = useDeleteFeature({ onSuccess: () => revalidator.revalidate() });
+    const deleteMutation = useDeleteFeature({
+        onSuccess: () => revalidator.revalidate(),
+    });
 
     const handleDelete = (f: Feature) => {
         deleteMutation.mutate(f.id);
@@ -92,20 +101,29 @@ export default function FeatureListPage() {
         featureTypes.find((t) => t.value === type)?.label ?? type;
 
     const formatCurrency = (value: number | null) =>
-        value != null ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—';
+        value != null
+            ? value.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+              })
+            : '—';
 
     return (
         <AdminLayout>
             <div className="space-y-6 p-4 md:p-6">
                 {error && (
-                    <div className="border-destructive/50 bg-destructive/10 text-destructive rounded-md border px-4 py-3 text-sm">
+                    <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                         {error}
                     </div>
                 )}
 
                 <div className="flex items-center justify-between">
-                    <h1 className="text-foreground text-2xl font-semibold">Funcionalidades</h1>
-                    <Button onClick={() => navigate('/admin/funcionalidades/nova')}>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Funcionalidades
+                    </h1>
+                    <Button
+                        onClick={() => navigate('/admin/funcionalidades/nova')}
+                    >
                         <Plus className="mr-2 h-4 w-4" />
                         Nova Funcionalidade
                     </Button>
@@ -113,30 +131,44 @@ export default function FeatureListPage() {
 
                 <Card>
                     <CardContent className="space-y-4 p-4">
-                        <h3 className="text-foreground font-medium">Filtros</h3>
+                        <h3 className="font-medium text-foreground">Filtros</h3>
                         <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
                             <div className="space-y-1.5">
-                                <Label className="text-muted-foreground text-sm">Buscar</Label>
+                                <Label className="text-sm text-muted-foreground">
+                                    Buscar
+                                </Label>
                                 <div className="relative">
-                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="ID, chave ou nome"
                                         value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
                                         className="pl-9"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-muted-foreground text-sm">Tipo</Label>
-                                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                                <Label className="text-sm text-muted-foreground">
+                                    Tipo
+                                </Label>
+                                <Select
+                                    value={typeFilter}
+                                    onValueChange={setTypeFilter}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Todos os tipos" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todos os tipos</SelectItem>
+                                        <SelectItem value="all">
+                                            Todos os tipos
+                                        </SelectItem>
                                         {featureTypes.map((t) => (
-                                            <SelectItem key={t.value} value={t.value}>
+                                            <SelectItem
+                                                key={t.value}
+                                                value={t.value}
+                                            >
                                                 {t.label}
                                             </SelectItem>
                                         ))}
@@ -145,7 +177,10 @@ export default function FeatureListPage() {
                             </div>
                             <div className="flex gap-2">
                                 <Button onClick={handleSearch}>Buscar</Button>
-                                <Button variant="outline" onClick={clearFilters}>
+                                <Button
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                >
                                     Limpar
                                 </Button>
                             </div>
@@ -169,10 +204,16 @@ export default function FeatureListPage() {
                 >
                     {(f) => (
                         <TableRow key={f.id}>
-                            <TableCell className="text-primary font-medium">{f.id}</TableCell>
-                            <TableCell className="font-mono text-sm">{f.key}</TableCell>
+                            <TableCell className="font-medium text-primary">
+                                {f.id}
+                            </TableCell>
+                            <TableCell className="font-mono text-sm">
+                                {f.key}
+                            </TableCell>
                             <TableCell>{f.name}</TableCell>
-                            <TableCell>{formatCurrency(f.valueIsolated)}</TableCell>
+                            <TableCell>
+                                {formatCurrency(f.valueIsolated)}
+                            </TableCell>
                             <TableCell>{getTypeLabel(f.type)}</TableCell>
                             <TableCell>
                                 <div className="flex items-center justify-center gap-1">
@@ -181,7 +222,7 @@ export default function FeatureListPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
+                                                className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
                                                 onClick={() =>
                                                     navigate(
                                                         `/admin/funcionalidades/${f.id}/editar`,
@@ -198,11 +239,12 @@ export default function FeatureListPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="text-destructive/70 hover:text-destructive h-8 w-8 cursor-pointer"
+                                                className="h-8 w-8 cursor-pointer text-destructive/70 hover:text-destructive"
                                                 onClick={() => handleDelete(f)}
                                                 disabled={
                                                     deleteMutation.isPending &&
-                                                    deleteMutation.variables === f.id
+                                                    deleteMutation.variables ===
+                                                        f.id
                                                 }
                                             >
                                                 <Trash2 className="h-4 w-4" />

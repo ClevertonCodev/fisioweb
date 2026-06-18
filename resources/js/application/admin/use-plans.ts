@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { FeaturePlanWriteDto, PlanWriteDto } from '@/application/admin/ports';
+import type {
+    FeaturePlanWriteDto,
+    PlanWriteDto,
+} from '@/application/admin/ports';
 import type { BillingType } from '@/domain/admin';
 import type { ApiErrorResponse } from '@/domain/api';
 import { apiPlansRepository } from '@/infrastructure/repositories';
@@ -16,7 +19,11 @@ export const billingTypes: { value: BillingType; label: string }[] = [
 // Funções de use-case puras (não-hook) — usáveis em loaders do React Router
 // ---------------------------------------------------------------------------
 
-export function listPlans(params?: { search?: string; per_page?: number; page?: number }) {
+export function listPlans(params?: {
+    search?: string;
+    per_page?: number;
+    page?: number;
+}) {
     return apiPlansRepository.list(params);
 }
 
@@ -32,7 +39,11 @@ export function listFeaturePlans(params?: { plan_id?: number }) {
 // React Query hooks
 // ---------------------------------------------------------------------------
 
-export function usePlans(params?: { search?: string; per_page?: number; page?: number }) {
+export function usePlans(params?: {
+    search?: string;
+    per_page?: number;
+    page?: number;
+}) {
     return useQuery({
         queryKey: ['admin', 'plans', params],
         queryFn: () => apiPlansRepository.list(params),
@@ -42,7 +53,8 @@ export function usePlans(params?: { search?: string; per_page?: number; page?: n
 export function usePlan(id: number | undefined) {
     return useQuery({
         queryKey: ['admin', 'plan', id],
-        queryFn: () => (id ? apiPlansRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id ? apiPlansRepository.getById(id) : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -57,7 +69,8 @@ export function useFeaturePlans(params?: { plan_id?: number }) {
 export function useCreatePlan(options?: { onSuccess?: () => void }) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: PlanWriteDto) => apiPlansRepository.create(payload),
+        mutationFn: (payload: PlanWriteDto) =>
+            apiPlansRepository.create(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'plans'] });
             toast.success('Plano criado com sucesso.');
@@ -69,18 +82,26 @@ export function useCreatePlan(options?: { onSuccess?: () => void }) {
     });
 }
 
-export function useUpdatePlan(planId: number, options?: { onSuccess?: () => void }) {
+export function useUpdatePlan(
+    planId: number,
+    options?: { onSuccess?: () => void },
+) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: PlanWriteDto) => apiPlansRepository.update(planId, payload),
+        mutationFn: (payload: PlanWriteDto) =>
+            apiPlansRepository.update(planId, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'plans'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'plan', planId] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'plan', planId],
+            });
             toast.success('Plano atualizado com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao atualizar plano.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao atualizar plano.',
+            );
         },
     });
 }
@@ -96,7 +117,9 @@ export function useDeletePlan(options?: { onSuccess?: () => void }) {
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao excluir plano.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao excluir plano.',
+            );
         },
     });
 }
@@ -104,15 +127,19 @@ export function useDeletePlan(options?: { onSuccess?: () => void }) {
 export function useCreateFeaturePlan(options?: { onSuccess?: () => void }) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: FeaturePlanWriteDto) => apiPlansRepository.createFeaturePlan(payload),
+        mutationFn: (payload: FeaturePlanWriteDto) =>
+            apiPlansRepository.createFeaturePlan(payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'featurePlans'] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'featurePlans'],
+            });
             toast.success('Funcionalidade vinculada ao plano.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
             toast.error(
-                err?.response?.data?.message ?? 'Erro ao vincular funcionalidade ao plano.',
+                err?.response?.data?.message ??
+                    'Erro ao vincular funcionalidade ao plano.',
             );
         },
     });
@@ -123,12 +150,16 @@ export function useDeleteFeaturePlan(options?: { onSuccess?: () => void }) {
     return useMutation({
         mutationFn: (id: number) => apiPlansRepository.destroyFeaturePlan(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin', 'featurePlans'] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'featurePlans'],
+            });
             toast.success('Configuração removida com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao remover configuração.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao remover configuração.',
+            );
         },
     });
 }

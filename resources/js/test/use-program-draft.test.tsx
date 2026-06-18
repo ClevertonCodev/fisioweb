@@ -30,7 +30,12 @@ describe('useProgramDraft', () => {
     it('no mount prefere draft do backend quando savedAt é mais recente', async () => {
         localStorage.setItem(
             DRAFT_KEY,
-            JSON.stringify({ step: 1, selectedIds: ['old'], groups: [], savedAt: 1000 }),
+            JSON.stringify({
+                step: 1,
+                selectedIds: ['old'],
+                groups: [],
+                savedAt: 1000,
+            }),
         );
 
         getMock.mockResolvedValueOnce({
@@ -46,7 +51,9 @@ describe('useProgramDraft', () => {
             expect(result.current.draft?.selectedIds).toEqual(['backend']);
         });
 
-        expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}')).toMatchObject({
+        expect(
+            JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}'),
+        ).toMatchObject({
             selectedIds: ['backend'],
             savedAt: 2000,
         });
@@ -55,7 +62,12 @@ describe('useProgramDraft', () => {
     it('no mount mantém draft local quando ele é mais recente que backend', async () => {
         localStorage.setItem(
             DRAFT_KEY,
-            JSON.stringify({ step: 3, selectedIds: ['local'], groups: [], savedAt: 3000 }),
+            JSON.stringify({
+                step: 3,
+                selectedIds: ['local'],
+                groups: [],
+                savedAt: 3000,
+            }),
         );
 
         getMock.mockResolvedValueOnce({
@@ -79,7 +91,9 @@ describe('useProgramDraft', () => {
         saveMock.mockResolvedValueOnce(undefined);
 
         const groups = [{ id: 'g1', name: 'Grupo 1', exercises: [] }];
-        const { result } = renderHook(() => useProgramDraft(2, ['10'], groups as any));
+        const { result } = renderHook(() =>
+            useProgramDraft(2, ['10'], groups as any),
+        );
 
         act(() => {
             result.current.scheduleSave();
@@ -89,7 +103,9 @@ describe('useProgramDraft', () => {
             vi.advanceTimersByTime(500);
         });
 
-        expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}')).toMatchObject({
+        expect(
+            JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}'),
+        ).toMatchObject({
             step: 2,
             selectedIds: ['10'],
             savedAt: 1711840000000,
@@ -125,7 +141,12 @@ describe('useProgramDraft', () => {
     it('clearDraft limpa localStorage, zera estado e chama discard no backend', async () => {
         localStorage.setItem(
             DRAFT_KEY,
-            JSON.stringify({ step: 2, selectedIds: ['x'], groups: [], savedAt: 1 }),
+            JSON.stringify({
+                step: 2,
+                selectedIds: ['x'],
+                groups: [],
+                savedAt: 1,
+            }),
         );
         getMock.mockResolvedValueOnce(null);
         discardMock.mockResolvedValueOnce(undefined);
@@ -148,7 +169,12 @@ describe('useProgramDraft', () => {
     it('restoreDraft retorna rascunho atual e remove banner local', async () => {
         localStorage.setItem(
             DRAFT_KEY,
-            JSON.stringify({ step: 4, selectedIds: ['rest'], groups: [], savedAt: 10 }),
+            JSON.stringify({
+                step: 4,
+                selectedIds: ['rest'],
+                groups: [],
+                savedAt: 10,
+            }),
         );
         getMock.mockResolvedValueOnce(null);
 

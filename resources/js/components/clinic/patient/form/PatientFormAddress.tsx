@@ -18,8 +18,12 @@ export function PatientFormAddress({ form }: Props) {
     useEffect(() => {
         lookup(zipCode).then((result) => {
             if (!result) return;
-            setValue('address_street', result.street, { shouldValidate: false });
-            setValue('neighborhood', result.neighborhood, { shouldValidate: false });
+            setValue('address_street', result.street, {
+                shouldValidate: false,
+            });
+            setValue('neighborhood', result.neighborhood, {
+                shouldValidate: false,
+            });
             setValue('city', result.city, { shouldValidate: false });
             setValue('state', result.state, { shouldValidate: false });
         });
@@ -27,7 +31,7 @@ export function PatientFormAddress({ form }: Props) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">Endereço</h2>
+            <h2 className="text-lg font-semibold text-foreground">Endereço</h2>
 
             <Controller
                 name="zip_code"
@@ -35,7 +39,10 @@ export function PatientFormAddress({ form }: Props) {
                 render={({ field }) => (
                     <div className="flex items-center gap-4">
                         <div className="w-64">
-                            <Label className="text-muted-foreground text-xs" htmlFor="zip_code">
+                            <Label
+                                className="text-xs text-muted-foreground"
+                                htmlFor="zip_code"
+                            >
                                 CEP
                             </Label>
                             <Input
@@ -46,14 +53,19 @@ export function PatientFormAddress({ form }: Props) {
                             />
                         </div>
                         {loading && (
-                            <span className="text-muted-foreground mt-5 text-sm">Buscando...</span>
+                            <span className="mt-5 text-sm text-muted-foreground">
+                                Buscando...
+                            </span>
                         )}
                     </div>
                 )}
             />
 
             <div>
-                <Label className="text-muted-foreground text-xs" htmlFor="address_street">
+                <Label
+                    className="text-xs text-muted-foreground"
+                    htmlFor="address_street"
+                >
                     Rua/Avenida
                 </Label>
                 <Input
@@ -66,7 +78,10 @@ export function PatientFormAddress({ form }: Props) {
 
             <div className="flex items-end gap-4">
                 <div className="w-32">
-                    <Label className="text-muted-foreground text-xs" htmlFor="address_number">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="address_number"
+                    >
                         Número
                     </Label>
                     <Input
@@ -96,7 +111,10 @@ export function PatientFormAddress({ form }: Props) {
             </div>
 
             <div>
-                <Label className="text-muted-foreground text-xs" htmlFor="address_complement">
+                <Label
+                    className="text-xs text-muted-foreground"
+                    htmlFor="address_complement"
+                >
                     Complemento
                 </Label>
                 <Input
@@ -109,7 +127,10 @@ export function PatientFormAddress({ form }: Props) {
 
             <div className="grid grid-cols-3 gap-4">
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="neighborhood">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="neighborhood"
+                    >
                         Bairro
                     </Label>
                     <Input
@@ -120,7 +141,10 @@ export function PatientFormAddress({ form }: Props) {
                     />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="city">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="city"
+                    >
                         Cidade
                     </Label>
                     <Input
@@ -131,7 +155,10 @@ export function PatientFormAddress({ form }: Props) {
                     />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="state">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="state"
+                    >
                         Estado (UF)
                     </Label>
                     <Input

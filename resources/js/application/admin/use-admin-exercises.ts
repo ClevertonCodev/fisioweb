@@ -23,7 +23,10 @@ export function useAdminExercises(params?: ListParams) {
 export function useAdminExercise(id: number | undefined) {
     return useQuery({
         queryKey: ['admin', 'exercise', id],
-        queryFn: () => (id ? apiAdminExercisesRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id
+                ? apiAdminExercisesRepository.getById(id)
+                : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -38,7 +41,8 @@ export function useAdminExerciseOptions() {
 export function useCreateAdminExercise() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: Record<string, unknown>) => apiAdminExercisesRepository.create(data),
+        mutationFn: (data: Record<string, unknown>) =>
+            apiAdminExercisesRepository.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'exercises'] });
         },
@@ -48,10 +52,13 @@ export function useCreateAdminExercise() {
 export function useUpdateAdminExercise(id: number) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (data: Record<string, unknown>) => apiAdminExercisesRepository.update(id, data),
+        mutationFn: (data: Record<string, unknown>) =>
+            apiAdminExercisesRepository.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'exercises'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'exercise', id] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'exercise', id],
+            });
         },
     });
 }

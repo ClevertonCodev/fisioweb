@@ -19,7 +19,11 @@ import {
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { TableCell, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { AdminProgram } from '@/domain/admin';
 
 const DEFAULT_PAGE_SIZE = 15;
@@ -35,7 +39,11 @@ const columns = [
 
 export default function ProgramListPage() {
     const navigate = useNavigate();
-    const { data: programsData, isLoading, isError } = useAdminPrograms({ perPage: 200 });
+    const {
+        data: programsData,
+        isLoading,
+        isError,
+    } = useAdminPrograms({ perPage: 200 });
     const programs: AdminProgram[] = programsData?.data ?? [];
 
     const [search, setSearch] = useState('');
@@ -93,13 +101,15 @@ export default function ProgramListPage() {
         <AdminLayout>
             <div className="space-y-6 p-4 md:p-6">
                 {isError && (
-                    <div className="border-destructive/50 bg-destructive/10 text-destructive rounded-md border px-4 py-3 text-sm">
+                    <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                         Erro ao carregar programas.
                     </div>
                 )}
 
                 <div className="flex items-center justify-between">
-                    <h1 className="text-foreground text-2xl font-semibold">Programas Template</h1>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Programas Template
+                    </h1>
                     <Button onClick={() => navigate('/admin/programas/novo')}>
                         <Plus className="mr-2 h-4 w-4" />
                         Novo Programa
@@ -108,37 +118,57 @@ export default function ProgramListPage() {
 
                 <Card>
                     <CardContent className="space-y-4 p-4">
-                        <h3 className="text-foreground font-medium">Filtros</h3>
+                        <h3 className="font-medium text-foreground">Filtros</h3>
                         <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
                             <div className="space-y-1.5">
-                                <Label className="text-muted-foreground text-sm">Buscar</Label>
+                                <Label className="text-sm text-muted-foreground">
+                                    Buscar
+                                </Label>
                                 <div className="relative">
-                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="ID ou título"
                                         value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        onChange={(e) =>
+                                            setSearch(e.target.value)
+                                        }
+                                        onKeyDown={(e) =>
+                                            e.key === 'Enter' && handleSearch()
+                                        }
                                         className="pl-9"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-muted-foreground text-sm">Status</Label>
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <Label className="text-sm text-muted-foreground">
+                                    Status
+                                </Label>
+                                <Select
+                                    value={statusFilter}
+                                    onValueChange={setStatusFilter}
+                                >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Todos" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todos</SelectItem>
-                                        <SelectItem value="active">Ativo</SelectItem>
-                                        <SelectItem value="inactive">Inativo</SelectItem>
+                                        <SelectItem value="all">
+                                            Todos
+                                        </SelectItem>
+                                        <SelectItem value="active">
+                                            Ativo
+                                        </SelectItem>
+                                        <SelectItem value="inactive">
+                                            Inativo
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="flex gap-2">
                                 <Button onClick={handleSearch}>Buscar</Button>
-                                <Button variant="outline" onClick={clearFilters}>
+                                <Button
+                                    variant="outline"
+                                    onClick={clearFilters}
+                                >
                                     Limpar
                                 </Button>
                             </div>
@@ -151,12 +181,18 @@ export default function ProgramListPage() {
                     data={paginatedData}
                     totalLabel="programas"
                     totalCount={filtered.length}
-                    emptyMessage={isLoading ? 'Carregando...' : 'Nenhum programa encontrado.'}
+                    emptyMessage={
+                        isLoading
+                            ? 'Carregando...'
+                            : 'Nenhum programa encontrado.'
+                    }
                     pagination={{
                         currentPage,
                         totalPages,
                         onPageChange: (page) =>
-                            setCurrentPage(Math.max(1, Math.min(page, totalPages))),
+                            setCurrentPage(
+                                Math.max(1, Math.min(page, totalPages)),
+                            ),
                     }}
                     pageSize={pageSize}
                     onPageSizeChange={(size) => {
@@ -166,16 +202,24 @@ export default function ProgramListPage() {
                 >
                     {(p) => (
                         <TableRow key={p.id}>
-                            <TableCell className="text-primary font-medium">{p.id}</TableCell>
-                            <TableCell className="font-medium">{p.title}</TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
+                            <TableCell className="font-medium text-primary">
+                                {p.id}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                                {p.title}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
                                 {p.physioArea?.name ?? '—'}
                             </TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
-                                {p.durationMinutes ? `${p.durationMinutes} min` : '—'}
+                            <TableCell className="text-sm text-muted-foreground">
+                                {p.durationMinutes
+                                    ? `${p.durationMinutes} min`
+                                    : '—'}
                             </TableCell>
                             <TableCell>
-                                <StatusBadge variant={p.isActive ? 'active' : 'neutral'}>
+                                <StatusBadge
+                                    variant={p.isActive ? 'active' : 'neutral'}
+                                >
                                     {p.isActive ? 'Ativo' : 'Inativo'}
                                 </StatusBadge>
                             </TableCell>
@@ -186,22 +230,30 @@ export default function ProgramListPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="text-muted-foreground hover:text-foreground h-8 w-8"
-                                                onClick={() => navigate(`/admin/programas/${p.id}`)}
+                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                onClick={() =>
+                                                    navigate(
+                                                        `/admin/programas/${p.id}`,
+                                                    )
+                                                }
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>Ver detalhes</TooltipContent>
+                                        <TooltipContent>
+                                            Ver detalhes
+                                        </TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="text-muted-foreground hover:text-foreground h-8 w-8"
+                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                                 onClick={() =>
-                                                    navigate(`/admin/programas/${p.id}/editar`)
+                                                    navigate(
+                                                        `/admin/programas/${p.id}/editar`,
+                                                    )
                                                 }
                                             >
                                                 <Pencil className="h-4 w-4" />
@@ -214,11 +266,12 @@ export default function ProgramListPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="text-destructive/70 hover:text-destructive h-8 w-8"
+                                                className="h-8 w-8 text-destructive/70 hover:text-destructive"
                                                 onClick={() => handleDelete(p)}
                                                 disabled={
                                                     deleteMutation.isPending &&
-                                                    deleteMutation.variables === p.id
+                                                    deleteMutation.variables ===
+                                                        p.id
                                                 }
                                             >
                                                 <Trash2 className="h-4 w-4" />

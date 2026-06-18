@@ -22,10 +22,12 @@ function validate(name: string, sections: DraftSection[]): string | null {
 
     for (const section of sections) {
         if (!section.title.trim()) return 'Todas as seções precisam de título.';
-        if (section.items.length === 0) return 'Cada seção precisa ter ao menos um item.';
+        if (section.items.length === 0)
+            return 'Cada seção precisa ter ao menos um item.';
         for (const item of section.items) {
             if (!item.label.trim()) return 'Todos os itens precisam de rótulo.';
-            if (!item.printText.trim()) return 'Todos os itens precisam de texto para impressão.';
+            if (!item.printText.trim())
+                return 'Todos os itens precisam de texto para impressão.';
         }
     }
 
@@ -42,7 +44,9 @@ export default function EvolutionTemplateEditPage() {
         return (
             <ClinicLayout>
                 <div className="p-6">
-                    <p className="text-destructive text-sm">Template inválido.</p>
+                    <p className="text-sm text-destructive">
+                        Template inválido.
+                    </p>
                 </div>
             </ClinicLayout>
         );
@@ -156,7 +160,12 @@ function EvolutionTemplateEditForm({
     return (
         <div className="space-y-6 p-6">
             <div className="space-y-3">
-                <Button type="button" variant="ghost" className="w-fit" onClick={onBack}>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-fit"
+                    onClick={onBack}
+                >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Voltar
                 </Button>
@@ -164,7 +173,7 @@ function EvolutionTemplateEditForm({
                     <h1 className="text-2xl font-semibold">
                         {isReadOnly ? 'Visualizar template' : 'Editar template'}
                     </h1>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         {isReadOnly
                             ? 'Templates do sistema são somente leitura.'
                             : 'Atualize as seções e itens do template.'}
@@ -200,7 +209,7 @@ function EvolutionTemplateEditForm({
                 </div>
             </div>
 
-            {error && <p className="text-destructive text-sm">{error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <TemplateSectionBuilder
                 sections={sections}

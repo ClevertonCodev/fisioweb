@@ -28,10 +28,14 @@ export function AdminStepSelectExercises({
 
     const filtered = useMemo(() => {
         if (!search) return exercises;
-        return exercises.filter((ex) => ex.name.toLowerCase().includes(search.toLowerCase()));
+        return exercises.filter((ex) =>
+            ex.name.toLowerCase().includes(search.toLowerCase()),
+        );
     }, [exercises, search]);
 
-    const selectedExercises = exercises.filter((ex) => selectedIds.includes(ex.id));
+    const selectedExercises = exercises.filter((ex) =>
+        selectedIds.includes(ex.id),
+    );
     const hasSelectedExercises = selectedExercises.length > 0;
 
     return (
@@ -39,9 +43,9 @@ export function AdminStepSelectExercises({
             {/* Main - exercise grid */}
             <div className="flex min-w-0 flex-1 flex-col">
                 {/* Search */}
-                <div className="border-border flex items-center gap-3 border-b px-6 py-4">
+                <div className="flex items-center gap-3 border-b border-border px-6 py-4">
                     <div className="relative max-w-sm flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar exercício"
                             value={search}
@@ -54,11 +58,11 @@ export function AdminStepSelectExercises({
                 {/* Grid */}
                 <ScrollArea className="flex-1 p-6">
                     {isLoading ? (
-                        <div className="text-muted-foreground flex items-center justify-center py-20 text-sm">
+                        <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
                             Carregando exercícios...
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div className="text-muted-foreground flex items-center justify-center py-20 text-sm">
+                        <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
                             Nenhum exercício encontrado.
                         </div>
                     ) : (
@@ -71,13 +75,17 @@ export function AdminStepSelectExercises({
                             )}
                         >
                             {filtered.map((exercise) => {
-                                const isSelected = selectedIds.includes(exercise.id);
+                                const isSelected = selectedIds.includes(
+                                    exercise.id,
+                                );
                                 return (
                                     <ExerciseSelectCard
                                         key={exercise.id}
                                         exercise={exercise}
                                         isSelected={isSelected}
-                                        onToggleSelect={() => onToggleSelect(exercise)}
+                                        onToggleSelect={() =>
+                                            onToggleSelect(exercise)
+                                        }
                                     />
                                 );
                             })}
@@ -88,11 +96,12 @@ export function AdminStepSelectExercises({
 
             {/* Right sidebar - selected exercises */}
             {hasSelectedExercises && (
-                <div className="border-border bg-card flex w-80 flex-shrink-0 flex-col border-l">
-                    <div className="border-border flex items-center gap-2 border-b px-4 py-3">
-                        <span className="text-foreground text-sm font-medium">
-                            {selectedIds.length} exercício{selectedIds.length !== 1 ? 's' : ''}{' '}
-                            selecionado{selectedIds.length !== 1 ? 's' : ''}
+                <div className="flex w-80 flex-shrink-0 flex-col border-l border-border bg-card">
+                    <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+                        <span className="text-sm font-medium text-foreground">
+                            {selectedIds.length} exercício
+                            {selectedIds.length !== 1 ? 's' : ''} selecionado
+                            {selectedIds.length !== 1 ? 's' : ''}
                         </span>
                     </div>
 
@@ -111,22 +120,25 @@ export function AdminStepSelectExercises({
                                 return (
                                     <div
                                         key={ex.id}
-                                        className="hover:bg-accent/50 flex items-center gap-3 rounded-md p-2"
+                                        className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
                                     >
-                                        <div className="bg-muted h-14 w-24 flex-shrink-0 overflow-hidden rounded">
+                                        <div className="h-14 w-24 flex-shrink-0 overflow-hidden rounded bg-muted">
                                             <img
-                                                src={video?.thumbnail_url ?? undefined}
+                                                src={
+                                                    video?.thumbnail_url ??
+                                                    undefined
+                                                }
                                                 alt={ex.name}
                                                 className="h-full w-full object-cover"
                                             />
                                         </div>
-                                        <p className="text-foreground line-clamp-2 flex-1 text-xs font-medium">
+                                        <p className="line-clamp-2 flex-1 text-xs font-medium text-foreground">
                                             {ex.name}
                                         </p>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-muted-foreground hover:text-destructive h-7 w-7 flex-shrink-0"
+                                            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onRemove(ex.id);
@@ -140,7 +152,7 @@ export function AdminStepSelectExercises({
                         </div>
                     </ScrollArea>
 
-                    <div className="border-border border-t p-4">
+                    <div className="border-t border-border p-4">
                         <Button className="w-full" onClick={onNext}>
                             Avançar
                         </Button>
@@ -165,7 +177,11 @@ function ExerciseSelectCard({
 
     const video = (
         exercise.videos as
-            | { thumbnail_url?: string | null; cdn_url?: string | null; url?: string | null }[]
+            | {
+                  thumbnail_url?: string | null;
+                  cdn_url?: string | null;
+                  url?: string | null;
+              }[]
             | undefined
     )?.[0];
     const videoUrl = video?.cdn_url ?? video?.url ?? undefined;
@@ -187,14 +203,14 @@ function ExerciseSelectCard({
     return (
         <div
             className={cn(
-                'group bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-all duration-200',
+                'group relative flex flex-col overflow-hidden rounded-lg border bg-card text-left transition-all duration-200',
                 isSelected
-                    ? 'border-primary ring-primary/20 ring-2'
+                    ? 'border-primary ring-2 ring-primary/20'
                     : 'border-border hover:border-muted-foreground/30',
             )}
         >
             {/* Thumbnail with play */}
-            <div className="bg-muted relative aspect-video overflow-hidden">
+            <div className="relative aspect-video overflow-hidden bg-muted">
                 <video
                     ref={videoRef}
                     src={videoUrl}
@@ -213,10 +229,14 @@ function ExerciseSelectCard({
                         backgroundColor: isSelected
                             ? 'hsl(var(--primary))'
                             : 'hsl(var(--background) / 0.6)',
-                        borderColor: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                        borderColor: isSelected
+                            ? 'hsl(var(--primary))'
+                            : 'hsl(var(--border))',
                     }}
                 >
-                    {isSelected && <Check className="text-primary-foreground h-4 w-4" />}
+                    {isSelected && (
+                        <Check className="h-4 w-4 text-primary-foreground" />
+                    )}
                 </button>
 
                 {/* Play button */}
@@ -225,8 +245,8 @@ function ExerciseSelectCard({
                     className="absolute inset-0 flex cursor-pointer items-center justify-center"
                 >
                     {!isPlaying && (
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                            <Play className="text-foreground ml-0.5 h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
                         </div>
                     )}
                 </button>
@@ -235,14 +255,14 @@ function ExerciseSelectCard({
                         onClick={togglePlay}
                         className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
                     >
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
-                            <Pause className="text-foreground h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
+                            <Pause className="h-4 w-4 text-foreground" />
                         </div>
                     </button>
                 )}
             </div>
             <div className="p-2">
-                <p className="text-card-foreground line-clamp-2 text-xs font-medium">
+                <p className="line-clamp-2 text-xs font-medium text-card-foreground">
                     {exercise.name}
                 </p>
             </div>

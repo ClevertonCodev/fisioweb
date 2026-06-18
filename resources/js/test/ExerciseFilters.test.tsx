@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
-import type { FilterCategory, ExerciseFilters as Filters } from '@/domain/clinic';
-
+import type {
+    FilterCategory,
+    ExerciseFilters as Filters,
+} from '@/domain/clinic';
 
 class ResizeObserverStub {
     observe() {}
@@ -78,9 +80,15 @@ describe('ExerciseFilters — renderização', () => {
 
     it('não renderiza o botão X quando onClose não é passado', () => {
         render(
-            <ExerciseFilters categories={[]} filters={emptyFilters} onFiltersChange={vi.fn()} />,
+            <ExerciseFilters
+                categories={[]}
+                filters={emptyFilters}
+                onFiltersChange={vi.fn()}
+            />,
         );
-        expect(screen.queryByRole('button', { name: /fechar/i })).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /fechar/i }),
+        ).not.toBeInTheDocument();
     });
 
     it('renderiza e aciona o botão X quando onClose é passado', async () => {
@@ -110,7 +118,9 @@ describe('ExerciseFilters — expandir/recolher categorias', () => {
                 onFiltersChange={vi.fn()}
             />,
         );
-        expect(screen.queryByText('Traumato-Ortopédica')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Traumato-Ortopédica'),
+        ).not.toBeInTheDocument();
     });
 
     it('exibe as opções após clicar no trigger da categoria', async () => {
@@ -150,7 +160,10 @@ describe('ExerciseFilters — interação com checkboxes', () => {
     it('chama onFiltersChange removendo o valor ao clicar numa opção marcada', async () => {
         const user = userEvent.setup();
         const onFiltersChange = vi.fn();
-        const filtersWithSpecialty = { ...emptyFilters, specialty: ['Traumato-Ortopédica'] };
+        const filtersWithSpecialty = {
+            ...emptyFilters,
+            specialty: ['Traumato-Ortopédica'],
+        };
         render(
             <ExerciseFilters
                 categories={[specialtyCategory]}
@@ -180,9 +193,14 @@ describe('ExerciseFilters — busca interna', () => {
         await user.click(screen.getByText('Especialidade'));
         expect(screen.getByText('Neurofuncional')).toBeInTheDocument();
 
-        await user.type(screen.getByPlaceholderText(/pesquisar filtro/i), 'Neuro');
+        await user.type(
+            screen.getByPlaceholderText(/pesquisar filtro/i),
+            'Neuro',
+        );
         expect(screen.getByText('Neurofuncional')).toBeInTheDocument();
-        expect(screen.queryByText('Traumato-Ortopédica')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Traumato-Ortopédica'),
+        ).not.toBeInTheDocument();
     });
 
     it('oculta a categoria inteira quando nenhuma opção bate com a busca', async () => {
@@ -194,7 +212,10 @@ describe('ExerciseFilters — busca interna', () => {
                 onFiltersChange={vi.fn()}
             />,
         );
-        await user.type(screen.getByPlaceholderText(/pesquisar filtro/i), 'xyz');
+        await user.type(
+            screen.getByPlaceholderText(/pesquisar filtro/i),
+            'xyz',
+        );
         expect(screen.queryByText('Especialidade')).not.toBeInTheDocument();
     });
 });
@@ -208,18 +229,25 @@ describe('ExerciseFilters — botão Limpar filtros', () => {
                 onFiltersChange={vi.fn()}
             />,
         );
-        expect(screen.getByRole('button', { name: /limpar filtros/i })).toBeDisabled();
+        expect(
+            screen.getByRole('button', { name: /limpar filtros/i }),
+        ).toBeDisabled();
     });
 
     it('está habilitado quando há filtros ativos', () => {
         render(
             <ExerciseFilters
                 categories={[specialtyCategory]}
-                filters={{ ...emptyFilters, specialty: ['Traumato-Ortopédica'] }}
+                filters={{
+                    ...emptyFilters,
+                    specialty: ['Traumato-Ortopédica'],
+                }}
                 onFiltersChange={vi.fn()}
             />,
         );
-        expect(screen.getByRole('button', { name: /limpar filtros/i })).not.toBeDisabled();
+        expect(
+            screen.getByRole('button', { name: /limpar filtros/i }),
+        ).not.toBeDisabled();
     });
 
     it('chama onFiltersChange com todos os filtros zerados ao clicar', async () => {
@@ -228,11 +256,16 @@ describe('ExerciseFilters — botão Limpar filtros', () => {
         render(
             <ExerciseFilters
                 categories={[specialtyCategory]}
-                filters={{ ...emptyFilters, specialty: ['Traumato-Ortopédica'] }}
+                filters={{
+                    ...emptyFilters,
+                    specialty: ['Traumato-Ortopédica'],
+                }}
                 onFiltersChange={onFiltersChange}
             />,
         );
-        await user.click(screen.getByRole('button', { name: /limpar filtros/i }));
+        await user.click(
+            screen.getByRole('button', { name: /limpar filtros/i }),
+        );
         expect(onFiltersChange).toHaveBeenCalledWith(emptyFilters);
     });
 });
@@ -242,7 +275,10 @@ describe('ExerciseFilters — badge de contagem por categoria', () => {
         render(
             <ExerciseFilters
                 categories={[specialtyCategory]}
-                filters={{ ...emptyFilters, specialty: ['Traumato-Ortopédica', 'Neurofuncional'] }}
+                filters={{
+                    ...emptyFilters,
+                    specialty: ['Traumato-Ortopédica', 'Neurofuncional'],
+                }}
                 onFiltersChange={vi.fn()}
             />,
         );

@@ -65,12 +65,20 @@ export function ImageCropModal({
     hintText = 'Arraste a área para posicionar o recorte. Use + e − para zoom.',
 }: ImageCropModalProps) {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+    const [naturalSize, setNaturalSize] = useState<{
+        w: number;
+        h: number;
+    } | null>(null);
     const [crop, setCrop] = useState<CropPercent>(() => getInitialCrop(aspect));
     const [zoom, setZoom] = useState(1);
     const [isProcessing, setIsProcessing] = useState(false);
     const [dragging, setDragging] = useState(false);
-    const dragStart = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+    const dragStart = useRef<{
+        x: number;
+        y: number;
+        left: number;
+        top: number;
+    } | null>(null);
     const imageWrapRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -93,16 +101,24 @@ export function ImageCropModal({
         setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP));
     }, []);
 
-    const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-        const { naturalWidth, naturalHeight } = e.currentTarget;
-        setNaturalSize({ w: naturalWidth, h: naturalHeight });
-    }, []);
+    const onImageLoad = useCallback(
+        (e: React.SyntheticEvent<HTMLImageElement>) => {
+            const { naturalWidth, naturalHeight } = e.currentTarget;
+            setNaturalSize({ w: naturalWidth, h: naturalHeight });
+        },
+        [],
+    );
 
     const handlePointerDown = useCallback(
         (e: React.PointerEvent) => {
             e.preventDefault();
             setDragging(true);
-            dragStart.current = { x: e.clientX, y: e.clientY, left: crop.left, top: crop.top };
+            dragStart.current = {
+                x: e.clientX,
+                y: e.clientY,
+                left: crop.left,
+                top: crop.top,
+            };
             (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
         },
         [crop.left, crop.top],
@@ -119,8 +135,14 @@ export function ImageCropModal({
             const pctY = dy * 100;
             setCrop((prev) => ({
                 ...prev,
-                left: Math.max(0, Math.min(100 - prev.width, dragStart.current!.left + pctX)),
-                top: Math.max(0, Math.min(100 - prev.height, dragStart.current!.top + pctY)),
+                left: Math.max(
+                    0,
+                    Math.min(100 - prev.width, dragStart.current!.left + pctX),
+                ),
+                top: Math.max(
+                    0,
+                    Math.min(100 - prev.height, dragStart.current!.top + pctY),
+                ),
             }));
         },
         [dragging],
@@ -137,8 +159,14 @@ export function ImageCropModal({
         setIsProcessing(true);
         try {
             const { w: nw, h: nh } = naturalSize;
-            const adjLeft = Math.max(0, (crop.left / 100 - (1 - zoom) / 2) / zoom);
-            const adjTop = Math.max(0, (crop.top / 100 - (1 - zoom) / 2) / zoom);
+            const adjLeft = Math.max(
+                0,
+                (crop.left / 100 - (1 - zoom) / 2) / zoom,
+            );
+            const adjTop = Math.max(
+                0,
+                (crop.top / 100 - (1 - zoom) / 2) / zoom,
+            );
             const adjWidth = Math.min(1 - adjLeft, crop.width / 100 / zoom);
             const adjHeight = Math.min(1 - adjTop, crop.height / 100 / zoom);
             const pixelCrop = {
@@ -147,13 +175,24 @@ export function ImageCropModal({
                 width: adjWidth * nw,
                 height: adjHeight * nh,
             };
-            const mimeType = imageFile?.type?.startsWith('image/') ? imageFile.type : 'image/jpeg';
-            const blob = await getCroppedImageBlob(imageSrc, pixelCrop, mimeType);
+            const mimeType = imageFile?.type?.startsWith('image/')
+                ? imageFile.type
+                : 'image/jpeg';
+            const blob = await getCroppedImageBlob(
+                imageSrc,
+                pixelCrop,
+                mimeType,
+            );
             const extension = imageFile?.name?.split('.').pop() || 'jpg';
-            const name = imageFile?.name?.replace(/\.[^.]+$/, '') || 'thumbnail';
-            const croppedFile = new File([blob], `${name}-cropped.${extension}`, {
-                type: blob.type,
-            });
+            const name =
+                imageFile?.name?.replace(/\.[^.]+$/, '') || 'thumbnail';
+            const croppedFile = new File(
+                [blob],
+                `${name}-cropped.${extension}`,
+                {
+                    type: blob.type,
+                },
+            );
             onConfirm(croppedFile);
             onOpenChange(false);
         } finally {
@@ -178,13 +217,16 @@ export function ImageCropModal({
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 {!imageSrc ? (
-                    <div className="bg-muted text-muted-foreground flex h-[400px] w-full items-center justify-center">
+                    <div className="flex h-[400px] w-full items-center justify-center bg-muted text-muted-foreground">
                         Carregando…
                     </div>
                 ) : (
                     <>
                         <div className="flex max-h-[400px] w-full items-center justify-center overflow-hidden rounded-lg bg-black">
-                            <div ref={imageWrapRef} className="relative flex-none overflow-hidden">
+                            <div
+                                ref={imageWrapRef}
+                                className="relative flex-none overflow-hidden"
+                            >
                                 <img
                                     src={imageSrc}
                                     alt="Recortar"
@@ -204,7 +246,7 @@ export function ImageCropModal({
                                         style={{ pointerEvents: 'none' }}
                                     >
                                         <div
-                                            className="border-primary bg-primary/20 absolute cursor-move border-2"
+                                            className="absolute cursor-move border-2 border-primary bg-primary/20"
                                             style={{
                                                 left: `${crop.left}%`,
                                                 top: `${crop.top}%`,
@@ -234,7 +276,7 @@ export function ImageCropModal({
                             >
                                 <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="text-muted-foreground min-w-[3rem] text-center text-sm">
+                            <span className="min-w-[3rem] text-center text-sm text-muted-foreground">
                                 {Math.round(zoom * 100)}%
                             </span>
                             <Button
@@ -248,7 +290,9 @@ export function ImageCropModal({
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-muted-foreground text-center text-sm">{hintText}</p>
+                        <p className="text-center text-sm text-muted-foreground">
+                            {hintText}
+                        </p>
                         <DialogFooter>
                             <Button
                                 type="button"

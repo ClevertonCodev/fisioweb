@@ -15,7 +15,13 @@ export function RequireClinicAdmin({ children }: { children: ReactNode }) {
     }
 
     if (!can.manageUsers(role)) {
-        return <Navigate to="/clinica" replace state={{ from: location.pathname }} />;
+        return (
+            <Navigate
+                to="/clinica"
+                replace
+                state={{ from: location.pathname }}
+            />
+        );
     }
 
     return children;
@@ -37,7 +43,13 @@ export function RequireClinicUserSelfOrAdmin({
     }
 
     if (!user) {
-        return <Navigate to="/clinica/login" replace state={{ from: location.pathname }} />;
+        return (
+            <Navigate
+                to="/clinica/login"
+                replace
+                state={{ from: location.pathname }}
+            />
+        );
     }
 
     if (!userId) {

@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/googlecalendar",
+    "description": "",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@paytour.com.br"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\GoogleCalendar\\": "app/",
+            "Modules\\GoogleCalendar\\Database\\Factories\\": "database/factories/",
+            "Modules\\GoogleCalendar\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\GoogleCalendar\\Tests\\": "tests/"
+        }
+    }
+}

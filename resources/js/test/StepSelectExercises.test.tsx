@@ -60,7 +60,9 @@ function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
     };
 }
 
-function makeProgramExercise(overrides: Partial<ProgramExercise> = {}): ProgramExercise {
+function makeProgramExercise(
+    overrides: Partial<ProgramExercise> = {},
+): ProgramExercise {
     const id = overrides.id ?? `pe-${Math.random().toString(36).slice(2, 8)}`;
     return {
         id,
@@ -142,7 +144,9 @@ describe('StepSelectExercises — renderização', () => {
     });
 
     it('não exibe sidebar quando nenhum exercício está selecionado e não há grupos', () => {
-        renderStep({ exercises: [makeExercise({ id: '1', title: 'Agachamento' })] });
+        renderStep({
+            exercises: [makeExercise({ id: '1', title: 'Agachamento' })],
+        });
         expect(screen.queryByText(/selecionado/i)).not.toBeInTheDocument();
     });
 });
@@ -189,7 +193,9 @@ describe('StepSelectExercises — seleção flat (sem grupos)', () => {
         ];
         renderStep({ exercises, selectedIds: ['1', '2'] });
 
-        expect(screen.getByText('2 exercícios selecionados')).toBeInTheDocument();
+        expect(
+            screen.getByText('2 exercícios selecionados'),
+        ).toBeInTheDocument();
     });
 
     it('exibe 1 exercício selecionado (singular)', () => {
@@ -244,8 +250,16 @@ describe('StepSelectExercises — seleção flat (sem grupos)', () => {
 
 describe('StepSelectExercises — sidebar com grupos', () => {
     it('exibe nomes dos grupos na sidebar', () => {
-        const ex1 = makeProgramExercise({ id: 'pe1', exerciseId: '1', title: 'Agachamento' });
-        const ex2 = makeProgramExercise({ id: 'pe2', exerciseId: '2', title: 'Flexão' });
+        const ex1 = makeProgramExercise({
+            id: 'pe1',
+            exerciseId: '1',
+            title: 'Agachamento',
+        });
+        const ex2 = makeProgramExercise({
+            id: 'pe2',
+            exerciseId: '2',
+            title: 'Flexão',
+        });
         const groups = [
             makeGroup({ id: 'g1', name: 'Aquecimento', exercises: [ex1] }),
             makeGroup({ id: 'g2', name: 'Principal', exercises: [ex2] }),
@@ -265,9 +279,19 @@ describe('StepSelectExercises — sidebar com grupos', () => {
     });
 
     it('exibe contagem total de exercícios na header da sidebar', () => {
-        const ex1 = makeProgramExercise({ id: 'pe1', exerciseId: '1', title: 'Agachamento' });
-        const ex2 = makeProgramExercise({ id: 'pe2', exerciseId: '2', title: 'Flexão' });
-        const groups = [makeGroup({ id: 'g1', name: 'Grupo A', exercises: [ex1, ex2] })];
+        const ex1 = makeProgramExercise({
+            id: 'pe1',
+            exerciseId: '1',
+            title: 'Agachamento',
+        });
+        const ex2 = makeProgramExercise({
+            id: 'pe2',
+            exerciseId: '2',
+            title: 'Flexão',
+        });
+        const groups = [
+            makeGroup({ id: 'g1', name: 'Grupo A', exercises: [ex1, ex2] }),
+        ];
 
         renderStep({
             exercises: [
@@ -278,7 +302,9 @@ describe('StepSelectExercises — sidebar com grupos', () => {
             groups,
         });
 
-        expect(screen.getByText('2 exercícios selecionados')).toBeInTheDocument();
+        expect(
+            screen.getByText('2 exercícios selecionados'),
+        ).toBeInTheDocument();
     });
 
     it('exibe botão "Adicionar exercícios nesse grupo" para cada grupo', () => {
@@ -292,7 +318,9 @@ describe('StepSelectExercises — sidebar com grupos', () => {
             groups,
         });
 
-        const addButtons = screen.getAllByText('Adicionar exercícios nesse grupo');
+        const addButtons = screen.getAllByText(
+            'Adicionar exercícios nesse grupo',
+        );
         expect(addButtons).toHaveLength(2);
     });
 
@@ -310,7 +338,9 @@ describe('StepSelectExercises — sidebar com grupos', () => {
             onSetTargetGroup,
         });
 
-        const addButtons = screen.getAllByText('Adicionar exercícios nesse grupo');
+        const addButtons = screen.getAllByText(
+            'Adicionar exercícios nesse grupo',
+        );
         await user.click(addButtons[1]); // Segundo grupo "Principal"
 
         expect(onSetTargetGroup).toHaveBeenCalledWith('g2');
@@ -328,7 +358,9 @@ describe('StepSelectExercises — sidebar com grupos', () => {
             targetGroupId: 'g2',
         });
 
-        const addButtons = screen.getAllByText('Adicionar exercícios nesse grupo');
+        const addButtons = screen.getAllByText(
+            'Adicionar exercícios nesse grupo',
+        );
         // O botão do grupo alvo deve ter classe border-primary
         const targetBtn = addButtons[1].closest('button');
         const otherBtn = addButtons[0].closest('button');
@@ -339,8 +371,14 @@ describe('StepSelectExercises — sidebar com grupos', () => {
     it('chama onRemoveFromGroup ao remover exercício na sidebar com grupos', async () => {
         const user = userEvent.setup();
         const onRemoveFromGroup = vi.fn();
-        const ex1 = makeProgramExercise({ id: 'pe1', exerciseId: '1', title: 'Agachamento' });
-        const groups = [makeGroup({ id: 'g1', name: 'Grupo A', exercises: [ex1] })];
+        const ex1 = makeProgramExercise({
+            id: 'pe1',
+            exerciseId: '1',
+            title: 'Agachamento',
+        });
+        const groups = [
+            makeGroup({ id: 'g1', name: 'Grupo A', exercises: [ex1] }),
+        ];
 
         renderStep({
             exercises: [makeExercise({ id: '1', title: 'Agachamento' })],
@@ -366,8 +404,14 @@ describe('StepSelectExercises — sidebar com grupos', () => {
 describe('StepSelectExercises — colapsar grupo na sidebar', () => {
     it('esconde exercícios e botão ao colapsar o grupo', async () => {
         const user = userEvent.setup();
-        const ex1 = makeProgramExercise({ id: 'pe1', exerciseId: '1', title: 'Agachamento' });
-        const groups = [makeGroup({ id: 'g1', name: 'Aquecimento', exercises: [ex1] })];
+        const ex1 = makeProgramExercise({
+            id: 'pe1',
+            exerciseId: '1',
+            title: 'Agachamento',
+        });
+        const groups = [
+            makeGroup({ id: 'g1', name: 'Aquecimento', exercises: [ex1] }),
+        ];
 
         renderStep({
             exercises: [makeExercise({ id: '1', title: 'Agachamento' })],
@@ -376,10 +420,14 @@ describe('StepSelectExercises — colapsar grupo na sidebar', () => {
         });
 
         // Verificar que "Adicionar exercícios nesse grupo" está visível
-        expect(screen.getByText('Adicionar exercícios nesse grupo')).toBeInTheDocument();
+        expect(
+            screen.getByText('Adicionar exercícios nesse grupo'),
+        ).toBeInTheDocument();
 
         // Clicar no botão de collapse no header do grupo da sidebar
-        const groupHeader = screen.getByText('Aquecimento').closest('[class*="flex items-center"]');
+        const groupHeader = screen
+            .getByText('Aquecimento')
+            .closest('[class*="flex items-center"]');
         const collapseBtn = groupHeader?.querySelector('button');
 
         // O último botão no group header é o collapse
@@ -390,6 +438,8 @@ describe('StepSelectExercises — colapsar grupo na sidebar', () => {
         await user.click(lastBtn!);
 
         // Após colapsar, "Adicionar exercícios nesse grupo" deve sumir
-        expect(screen.queryByText('Adicionar exercícios nesse grupo')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Adicionar exercícios nesse grupo'),
+        ).not.toBeInTheDocument();
     });
 });

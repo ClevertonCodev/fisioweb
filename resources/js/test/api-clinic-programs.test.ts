@@ -22,7 +22,11 @@ function makeApiPlan(overrides: Record<string, unknown> = {}) {
         id: 1,
         title: 'Plano teste',
         patient_id: 10,
-        patient: { id: 10, name: 'Ana Costa', photo_url: 'https://cdn.example.com/a.jpg' },
+        patient: {
+            id: 10,
+            name: 'Ana Costa',
+            photo_url: 'https://cdn.example.com/a.jpg',
+        },
         clinic_user: { id: 2, name: 'Dr. Silva' },
         message: null,
         start_date: '2026-01-01',

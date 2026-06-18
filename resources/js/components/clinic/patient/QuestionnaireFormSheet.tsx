@@ -1,7 +1,6 @@
 import { Edit2, Plus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { useSendQuestionnaire } from '@/application/clinic/use-patient-questionnaires';
 import { useQuestionnaireTemplates } from '@/application/clinic/use-questionnaire-templates';
@@ -42,11 +41,15 @@ export function QuestionnaireFormSheet({
     const navigate = useNavigate();
 
     const [step, setStep] = useState<1 | 2>(1);
-    const [selectedTemplate, setSelectedTemplate] = useState<QuestionnaireTemplate | null>(null);
-    const [modality, setModality] = useState<'presencial' | 'remoto'>('presencial');
+    const [selectedTemplate, setSelectedTemplate] =
+        useState<QuestionnaireTemplate | null>(null);
+    const [modality, setModality] = useState<'presencial' | 'remoto'>(
+        'presencial',
+    );
     const [expiresLocal, setExpiresLocal] = useState('');
 
-    const { data: templates = [], isLoading: loadingTemplates } = useQuestionnaireTemplates();
+    const { data: templates = [], isLoading: loadingTemplates } =
+        useQuestionnaireTemplates();
     const { mutateAsync, isPending } = useSendQuestionnaire(patientId);
 
     const resetState = useCallback(() => {
@@ -77,9 +80,17 @@ export function QuestionnaireFormSheet({
         } catch {
             // feedback via hook onError
         }
-    }, [selectedTemplate, modality, expiresLocal, mutateAsync, handleOpenChange]);
+    }, [
+        selectedTemplate,
+        modality,
+        expiresLocal,
+        mutateAsync,
+        handleOpenChange,
+    ]);
 
-    const returnTo = encodeURIComponent(patientRecordPath + '?tab=questionnaires');
+    const returnTo = encodeURIComponent(
+        patientRecordPath + '?tab=questionnaires',
+    );
 
     const goToNewTemplate = () => {
         handleOpenChange(false);
@@ -88,7 +99,9 @@ export function QuestionnaireFormSheet({
 
     const goToEditTemplate = (template: QuestionnaireTemplate) => {
         handleOpenChange(false);
-        navigate(`/clinica/questionarios/${template.id}/editar?returnTo=${returnTo}`);
+        navigate(
+            `/clinica/questionarios/${template.id}/editar?returnTo=${returnTo}`,
+        );
     };
 
     const sortedTemplates = useMemo(
@@ -101,7 +114,9 @@ export function QuestionnaireFormSheet({
             <SheetContent className="flex w-full flex-col sm:max-w-lg">
                 <SheetHeader>
                     <SheetTitle>
-                        {step === 1 ? 'Selecionar questionário' : 'Configurar envio'}
+                        {step === 1
+                            ? 'Selecionar questionário'
+                            : 'Configurar envio'}
                     </SheetTitle>
                     <SheetDescription>
                         {step === 1
@@ -131,7 +146,7 @@ export function QuestionnaireFormSheet({
                                     <Skeleton className="h-14 w-full" />
                                 </div>
                             ) : sortedTemplates.length === 0 ? (
-                                <p className="text-muted-foreground py-4 text-center text-sm">
+                                <p className="py-4 text-center text-sm text-muted-foreground">
                                     Nenhum questionário cadastrado ainda.
                                 </p>
                             ) : (
@@ -142,14 +157,18 @@ export function QuestionnaireFormSheet({
                                             className={`flex items-center justify-between rounded-md border p-3 transition-colors ${
                                                 selectedTemplate?.id === t.id
                                                     ? 'border-primary bg-primary/5'
-                                                    : 'hover:bg-muted/50 cursor-pointer'
+                                                    : 'cursor-pointer hover:bg-muted/50'
                                             }`}
-                                            onClick={() => setSelectedTemplate(t)}
+                                            onClick={() =>
+                                                setSelectedTemplate(t)
+                                            }
                                         >
                                             <div>
-                                                <p className="text-sm font-medium">{t.title}</p>
+                                                <p className="text-sm font-medium">
+                                                    {t.title}
+                                                </p>
                                                 {t.description && (
-                                                    <p className="text-muted-foreground text-xs">
+                                                    <p className="text-xs text-muted-foreground">
                                                         {t.description}
                                                     </p>
                                                 )}
@@ -181,19 +200,35 @@ export function QuestionnaireFormSheet({
                                 <Label>Modalidade</Label>
                                 <RadioGroup
                                     value={modality}
-                                    onValueChange={(v) => setModality(v as 'presencial' | 'remoto')}
+                                    onValueChange={(v) =>
+                                        setModality(
+                                            v as 'presencial' | 'remoto',
+                                        )
+                                    }
                                     className="flex flex-wrap gap-4"
                                     disabled={isPending}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="presencial" id="q-mod-presencial" />
-                                        <Label htmlFor="q-mod-presencial" className="font-normal">
+                                        <RadioGroupItem
+                                            value="presencial"
+                                            id="q-mod-presencial"
+                                        />
+                                        <Label
+                                            htmlFor="q-mod-presencial"
+                                            className="font-normal"
+                                        >
                                             Presencial
                                         </Label>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="remoto" id="q-mod-remoto" />
-                                        <Label htmlFor="q-mod-remoto" className="font-normal">
+                                        <RadioGroupItem
+                                            value="remoto"
+                                            id="q-mod-remoto"
+                                        />
+                                        <Label
+                                            htmlFor="q-mod-remoto"
+                                            className="font-normal"
+                                        >
                                             Remoto
                                         </Label>
                                     </div>
@@ -201,14 +236,18 @@ export function QuestionnaireFormSheet({
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="q-expires">Data de expiração (opcional)</Label>
+                                <Label htmlFor="q-expires">
+                                    Data de expiração (opcional)
+                                </Label>
                                 <input
                                     id="q-expires"
                                     type="datetime-local"
                                     value={expiresLocal}
-                                    onChange={(e) => setExpiresLocal(e.target.value)}
+                                    onChange={(e) =>
+                                        setExpiresLocal(e.target.value)
+                                    }
                                     disabled={isPending}
-                                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 />
                             </div>
                         </div>

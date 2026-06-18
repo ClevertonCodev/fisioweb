@@ -35,11 +35,15 @@ export function SendQuestionnaireModal({
     onOpenChange,
     patientId,
 }: SendQuestionnaireModalProps) {
-    const [selectedTemplate, setSelectedTemplate] = useState<SelectOption | null>(null);
-    const [modality, setModality] = useState<'presencial' | 'remoto'>('presencial');
+    const [selectedTemplate, setSelectedTemplate] =
+        useState<SelectOption | null>(null);
+    const [modality, setModality] = useState<'presencial' | 'remoto'>(
+        'presencial',
+    );
     const [expiresLocal, setExpiresLocal] = useState('');
 
-    const { data: templates = [], isLoading: loadingTemplates } = useQuestionnaireTemplates();
+    const { data: templates = [], isLoading: loadingTemplates } =
+        useQuestionnaireTemplates();
     const { mutateAsync, isPending } = useSendQuestionnaire(patientId);
 
     const templateOptions = useMemo(
@@ -77,7 +81,13 @@ export function SendQuestionnaireModal({
         } catch {
             // feedback via useSendQuestionnaire onError
         }
-    }, [selectedTemplate, expiresLocal, modality, mutateAsync, handleOpenChange]);
+    }, [
+        selectedTemplate,
+        expiresLocal,
+        modality,
+        mutateAsync,
+        handleOpenChange,
+    ]);
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -85,7 +95,8 @@ export function SendQuestionnaireModal({
                 <DialogHeader>
                     <DialogTitle>Enviar questionário ao paciente</DialogTitle>
                     <DialogDescription>
-                        Escolha o questionário, a modalidade e, se quiser, uma data de expiração.
+                        Escolha o questionário, a modalidade e, se quiser, uma
+                        data de expiração.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -93,11 +104,16 @@ export function SendQuestionnaireModal({
                     <div className="space-y-2">
                         <Label>Questionário</Label>
                         {loadingTemplates ? (
-                            <p className="text-muted-foreground text-sm">Carregando questionários…</p>
+                            <p className="text-sm text-muted-foreground">
+                                Carregando questionários…
+                            </p>
                         ) : templates.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                                 Nenhum questionário cadastrado.{' '}
-                                <a href="/clinica/questionarios" className="text-primary underline">
+                                <a
+                                    href="/clinica/questionarios"
+                                    className="text-primary underline"
+                                >
                                     Criar questionário
                                 </a>
                             </p>
@@ -117,19 +133,33 @@ export function SendQuestionnaireModal({
                         <Label>Modalidade</Label>
                         <RadioGroup
                             value={modality}
-                            onValueChange={(v) => setModality(v as 'presencial' | 'remoto')}
+                            onValueChange={(v) =>
+                                setModality(v as 'presencial' | 'remoto')
+                            }
                             className="flex flex-wrap gap-4"
                             disabled={isPending}
                         >
                             <div className="flex items-center gap-2">
-                                <RadioGroupItem value="presencial" id="send-q-mod-presencial" />
-                                <Label htmlFor="send-q-mod-presencial" className="font-normal">
+                                <RadioGroupItem
+                                    value="presencial"
+                                    id="send-q-mod-presencial"
+                                />
+                                <Label
+                                    htmlFor="send-q-mod-presencial"
+                                    className="font-normal"
+                                >
                                     Presencial
                                 </Label>
                             </div>
                             <div className="flex items-center gap-2">
-                                <RadioGroupItem value="remoto" id="send-q-mod-remoto" />
-                                <Label htmlFor="send-q-mod-remoto" className="font-normal">
+                                <RadioGroupItem
+                                    value="remoto"
+                                    id="send-q-mod-remoto"
+                                />
+                                <Label
+                                    htmlFor="send-q-mod-remoto"
+                                    className="font-normal"
+                                >
                                     Remoto
                                 </Label>
                             </div>
@@ -137,14 +167,16 @@ export function SendQuestionnaireModal({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="send-q-expires">Data de expiração (opcional)</Label>
+                        <Label htmlFor="send-q-expires">
+                            Data de expiração (opcional)
+                        </Label>
                         <input
                             id="send-q-expires"
                             type="datetime-local"
                             value={expiresLocal}
                             onChange={(e) => setExpiresLocal(e.target.value)}
                             disabled={isPending}
-                            className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         />
                     </div>
                 </div>
@@ -160,7 +192,9 @@ export function SendQuestionnaireModal({
                     </Button>
                     <Button
                         type="button"
-                        disabled={!selectedTemplate || isPending || loadingTemplates}
+                        disabled={
+                            !selectedTemplate || isPending || loadingTemplates
+                        }
                         onClick={() => void handleSubmit()}
                     >
                         {isPending ? 'Enviando…' : 'Enviar'}

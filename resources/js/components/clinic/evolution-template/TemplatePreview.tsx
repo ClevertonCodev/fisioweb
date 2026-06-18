@@ -1,7 +1,11 @@
 import { ChevronDown } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 import type { DraftSection } from './types';
 
@@ -29,7 +33,7 @@ export function TemplatePreview({ sections }: TemplatePreviewProps) {
                 <CollapsibleContent>
                     <CardContent className="space-y-5">
                         {sections.length === 0 && (
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                                 Nenhuma seção adicionada ainda.
                             </p>
                         )}
@@ -38,10 +42,11 @@ export function TemplatePreview({ sections }: TemplatePreviewProps) {
                                 <p className="font-semibold">
                                     {section.title || 'Seção sem título'}
                                 </p>
-                                <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
+                                <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                                     {section.items.map((item) => (
                                         <li key={item._key}>
-                                            {item.printText || 'Item sem texto de impressão'}
+                                            {item.printText ||
+                                                'Item sem texto de impressão'}
                                         </li>
                                     ))}
                                 </ul>

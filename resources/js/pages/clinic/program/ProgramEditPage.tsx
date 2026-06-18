@@ -3,14 +3,22 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useInfiniteExercises } from '@/application/clinic';
-import { useClinicProgram, useUpdateClinicProgram } from '@/application/clinic/use-programs';
+import {
+    useClinicProgram,
+    useUpdateClinicProgram,
+} from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EditExercisePanel } from '@/components/clinic/program/EditExercisePanel';
 import { StepConfigureExercises } from '@/components/clinic/program/StepConfigureExercises';
 import { StepProgramDetails } from '@/components/clinic/program/StepProgramDetails';
 import { StepSelectExercises } from '@/components/clinic/program/StepSelectExercises';
 import { Button } from '@/components/ui/button';
-import type { Exercise, ProgramExercise, ProgramGroup, ProgramStep } from '@/domain/clinic';
+import type {
+    Exercise,
+    ProgramExercise,
+    ProgramGroup,
+    ProgramStep,
+} from '@/domain/clinic';
 
 const STEP_LABELS: Record<ProgramStep, string> = {
     1: 'Editar programa',
@@ -48,7 +56,9 @@ export default function ProgramEditPage() {
 
     const [initialTitle, setInitialTitle] = useState('');
     const [initialMessage, setInitialMessage] = useState('');
-    const [initialPatientId, setInitialPatientId] = useState<number | null>(null);
+    const [initialPatientId, setInitialPatientId] = useState<number | null>(
+        null,
+    );
     const [initialPatientName, setInitialPatientName] = useState('');
     const [initialStartDate, setInitialStartDate] = useState('');
     const [initialEndDate, setInitialEndDate] = useState('');
@@ -59,41 +69,53 @@ export default function ProgramEditPage() {
 
         setInitialTitle(program.title ?? '');
         setInitialMessage(program.message ?? '');
-        setInitialPatientId(program.patientId ? Number(program.patientId) : null);
+        setInitialPatientId(
+            program.patientId ? Number(program.patientId) : null,
+        );
         setInitialPatientName(program.patientName ?? '');
-        setInitialStartDate(program.startDate ? program.startDate.slice(0, 10) : '');
+        setInitialStartDate(
+            program.startDate ? program.startDate.slice(0, 10) : '',
+        );
         setInitialEndDate(program.endDate ? program.endDate.slice(0, 10) : '');
 
-        const mappedGroups: ProgramGroup[] = (program.groups ?? []).map((group) => ({
-            id: group.id.toString(),
-            name: group.name,
-            exercises: group.exercises.map((ex) => ({
-                id: ex.id.toString(),
-                exerciseId: ex.exerciseId.toString(),
-                title: ex.title,
-                thumbnailUrl: ex.thumbnailUrl,
-                videoUrl: ex.videoUrl,
-                days: ex.days ?? [],
-                period: ex.period ?? null,
-                seriesMin: ex.seriesMin ?? null,
-                seriesMax: ex.seriesMax ?? null,
-                repetitionsMin: ex.repetitionsMin ?? null,
-                repetitionsMax: ex.repetitionsMax ?? null,
-                loadMin: ex.loadMin ?? null,
-                loadMax: ex.loadMax ?? null,
-                restTime: ex.restTime ?? null,
-                notes: ex.notes ?? null,
-                isConfigured: true,
-            })),
-        }));
+        const mappedGroups: ProgramGroup[] = (program.groups ?? []).map(
+            (group) => ({
+                id: group.id.toString(),
+                name: group.name,
+                exercises: group.exercises.map((ex) => ({
+                    id: ex.id.toString(),
+                    exerciseId: ex.exerciseId.toString(),
+                    title: ex.title,
+                    thumbnailUrl: ex.thumbnailUrl,
+                    videoUrl: ex.videoUrl,
+                    days: ex.days ?? [],
+                    period: ex.period ?? null,
+                    seriesMin: ex.seriesMin ?? null,
+                    seriesMax: ex.seriesMax ?? null,
+                    repetitionsMin: ex.repetitionsMin ?? null,
+                    repetitionsMax: ex.repetitionsMax ?? null,
+                    loadMin: ex.loadMin ?? null,
+                    loadMax: ex.loadMax ?? null,
+                    restTime: ex.restTime ?? null,
+                    notes: ex.notes ?? null,
+                    isConfigured: true,
+                })),
+            }),
+        );
 
         setGroups(mappedGroups);
-        setSelectedIds(mappedGroups.flatMap((g) => g.exercises.map((e) => e.exerciseId)));
+        setSelectedIds(
+            mappedGroups.flatMap((g) => g.exercises.map((e) => e.exerciseId)),
+        );
     }, [program, initialized]);
 
     const effectiveSelectedIds = useMemo(() => {
         if (groups.length === 0) return selectedIds;
-        return [...new Set(groups.flatMap((g) => g.exercises.map((e) => e.exerciseId)))];
+        return [
+            ...new Set(
+                groups.flatMap((g) => g.exercises.map((e) => e.exerciseId)),
+            ),
+        ];
     }, [groups, selectedIds]);
 
     const toggleSelect = useCallback(
@@ -106,12 +128,15 @@ export default function ProgramEditPage() {
                     setGroups((prev) =>
                         prev.map((g) => ({
                             ...g,
-                            exercises: g.exercises.filter((e) => e.exerciseId !== exercise.id),
+                            exercises: g.exercises.filter(
+                                (e) => e.exerciseId !== exercise.id,
+                            ),
                         })),
                     );
                 } else {
                     const tId =
-                        targetGroupId && groups.some((g) => g.id === targetGroupId)
+                        targetGroupId &&
+                        groups.some((g) => g.id === targetGroupId)
                             ? targetGroupId
                             : groups[0]?.id;
                     if (!tId) return;
@@ -135,7 +160,9 @@ export default function ProgramEditPage() {
                     };
                     setGroups((prev) =>
                         prev.map((g) =>
-                            g.id === tId ? { ...g, exercises: [...g.exercises, newEx] } : g,
+                            g.id === tId
+                                ? { ...g, exercises: [...g.exercises, newEx] }
+                                : g,
                         ),
                     );
                 }
@@ -154,15 +181,23 @@ export default function ProgramEditPage() {
         setSelectedIds((prev) => prev.filter((eid) => eid !== id));
     }, []);
 
-    const removeFromGroup = useCallback((groupId: string, exerciseId: string) => {
-        setGroups((prev) =>
-            prev.map((g) =>
-                g.id === groupId
-                    ? { ...g, exercises: g.exercises.filter((e) => e.id !== exerciseId) }
-                    : g,
-            ),
-        );
-    }, []);
+    const removeFromGroup = useCallback(
+        (groupId: string, exerciseId: string) => {
+            setGroups((prev) =>
+                prev.map((g) =>
+                    g.id === groupId
+                        ? {
+                              ...g,
+                              exercises: g.exercises.filter(
+                                  (e) => e.id !== exerciseId,
+                              ),
+                          }
+                        : g,
+                ),
+            );
+        },
+        [],
+    );
 
     const goToStep2 = () => {
         const programExercises: ProgramExercise[] = selectedIds
@@ -188,7 +223,13 @@ export default function ProgramEditPage() {
             }));
 
         if (groups.length === 0) {
-            setGroups([{ id: 'group-1', name: 'Novo grupo', exercises: programExercises }]);
+            setGroups([
+                {
+                    id: 'group-1',
+                    name: 'Novo grupo',
+                    exercises: programExercises,
+                },
+            ]);
         }
         setStep(2);
     };
@@ -201,7 +242,12 @@ export default function ProgramEditPage() {
         setGroups((prev) =>
             prev.map((g) =>
                 g.id === editingExercise?.groupId
-                    ? { ...g, exercises: g.exercises.map((e) => (e.id === updated.id ? updated : e)) }
+                    ? {
+                          ...g,
+                          exercises: g.exercises.map((e) =>
+                              e.id === updated.id ? updated : e,
+                          ),
+                      }
                     : g,
             ),
         );
@@ -216,8 +262,15 @@ export default function ProgramEditPage() {
         endDate: string;
         message: string;
     }) => {
-        const groupsPayload = groups.map((g, i) => ({ name: g.name, sortOrder: i }));
-        const periodMap = { manha: 'morning', tarde: 'afternoon', noite: 'night' } as const;
+        const groupsPayload = groups.map((g, i) => ({
+            name: g.name,
+            sortOrder: i,
+        }));
+        const periodMap = {
+            manha: 'morning',
+            tarde: 'afternoon',
+            noite: 'night',
+        } as const;
         const exercisesPayload = groups.flatMap((g, groupIndex) =>
             g.exercises.map((e) => ({
                 exerciseId: Number(e.exerciseId),
@@ -244,7 +297,9 @@ export default function ProgramEditPage() {
                     message: details.message,
                     startDate: details.startDate || null,
                     endDate: details.endDate || null,
-                    status: (details.patientId ? 'active' : 'draft') as 'active' | 'draft',
+                    status: (details.patientId ? 'active' : 'draft') as
+                        | 'active'
+                        | 'draft',
                     groups: groupsPayload,
                     exercises: exercisesPayload,
                 },
@@ -263,7 +318,9 @@ export default function ProgramEditPage() {
         return (
             <ClinicLayout>
                 <div className="flex h-full items-center justify-center">
-                    <p className="text-muted-foreground">Carregando programa...</p>
+                    <p className="text-muted-foreground">
+                        Carregando programa...
+                    </p>
                 </div>
             </ClinicLayout>
         );
@@ -272,7 +329,7 @@ export default function ProgramEditPage() {
     return (
         <ClinicLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
                         <div className="flex items-center gap-4">
                             <Button
@@ -295,13 +352,13 @@ export default function ProgramEditPage() {
                                         setStep(2);
                                     }
                                 }}
-                                className="text-muted-foreground hover:text-foreground gap-1"
+                                className="gap-1 text-muted-foreground hover:text-foreground"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Voltar
                             </Button>
                         </div>
-                        <h1 className="text-foreground mt-2 text-xl font-semibold">
+                        <h1 className="mt-2 text-xl font-semibold text-foreground">
                             {STEP_LABELS[step]}
                         </h1>
                     </div>

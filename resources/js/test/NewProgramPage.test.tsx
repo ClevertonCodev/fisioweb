@@ -90,7 +90,12 @@ describe('NewProgramPage com preenchimento via location.state', () => {
                     thumbnailUrl: 'thumb.jpg',
                     videoUrl: 'video.mp4',
                 },
-                { id: '101', title: 'Flexão', thumbnailUrl: 'thumb2.jpg', videoUrl: 'video2.mp4' },
+                {
+                    id: '101',
+                    title: 'Flexão',
+                    thumbnailUrl: 'thumb2.jpg',
+                    videoUrl: 'video2.mp4',
+                },
             ],
             isLoading: false,
         } as any);
@@ -175,7 +180,9 @@ describe('NewProgramPage com preenchimento via location.state', () => {
 
         // Estamos na etapa 2. Há múltiplos botões "Voltar" (header + step).
         // Clicar no header (primeiro "Voltar").
-        const backButtons = screen.getAllByRole('button', { name: /^voltar$/i });
+        const backButtons = screen.getAllByRole('button', {
+            name: /^voltar$/i,
+        });
         await user.click(backButtons[0]);
 
         // Agora estamos na etapa 1 (Novo programa)
@@ -185,6 +192,8 @@ describe('NewProgramPage com preenchimento via location.state', () => {
         expect(screen.getByText('Grupo Principal')).toBeInTheDocument();
 
         // Deve exibir o botão "Adicionar exercícios nesse grupo" para o grupo
-        expect(screen.getByText('Adicionar exercícios nesse grupo')).toBeInTheDocument();
+        expect(
+            screen.getByText('Adicionar exercícios nesse grupo'),
+        ).toBeInTheDocument();
     });
 });

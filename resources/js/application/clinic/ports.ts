@@ -125,10 +125,50 @@ export interface ExercisesRepository {
     toggleFavorite(id: string): Promise<{ isFavorite: boolean }>;
 }
 
+/** Parâmetros de listagem do calendário (camelCase, application concern). */
+export interface AppointmentListParams {
+    from?: string;
+    to?: string;
+    clinicUserId?: string;
+    status?: string;
+}
+
+/** DTO de escrita para criar/editar consulta (camelCase). */
+export interface AppointmentWriteDto {
+    patientId: string;
+    clinicUserId: string;
+    title?: string | null;
+    description?: string | null;
+    location?: string | null;
+    startsAt: string;
+    endsAt: string;
+}
+
 export interface AppointmentsRepository {
-    list(): Promise<Appointment[]>;
+    list(params?: AppointmentListParams): Promise<Appointment[]>;
     getClinicUsers(): Promise<{ id: string; name: string }[]>;
     getAgendaPatients(): Promise<{ id: string; name: string }[]>;
+    create(dto: AppointmentWriteDto): Promise<Appointment>;
+    update(id: string, dto: AppointmentWriteDto): Promise<Appointment>;
+    updateStatus(
+        id: string,
+        status: import('@/domain/clinic').AppointmentStatus,
+    ): Promise<Appointment>;
+    cancel(id: string): Promise<Appointment>;
+}
+
+/** Estado de conexão Google Calendar do usuário autenticado (camelCase). */
+export interface GoogleCalendarStatus {
+    connected: boolean;
+    googleCalendarId: string | null;
+    connectedAt: string | null;
+}
+
+export interface GoogleCalendarRepository {
+    getStatus(): Promise<GoogleCalendarStatus>;
+    /** URL de consentimento OAuth para redirecionar o navegador. */
+    getAuthUrl(): Promise<string>;
+    disconnect(): Promise<void>;
 }
 
 export interface ProgramExerciseWriteDto {

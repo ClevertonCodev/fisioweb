@@ -3,9 +3,15 @@ import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { VIDEO_STATUS_LABELS, VIDEO_STATUS_VARIANTS } from '@/application/admin/exercise-constants';
+import {
+    VIDEO_STATUS_LABELS,
+    VIDEO_STATUS_VARIANTS,
+} from '@/application/admin/exercise-constants';
 import type { AdminVideo } from '@/application/admin/ports';
-import { useAdminVideos, useDeleteAdminVideo } from '@/application/admin/use-admin-videos';
+import {
+    useAdminVideos,
+    useDeleteAdminVideo,
+} from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { Button } from '@/components/ui/button';
@@ -80,11 +86,13 @@ export default function AdminVideosPage() {
         return (
             <AdminLayout>
                 <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         Não foi possível carregar os vídeos.
                     </p>
-                    <p className="text-destructive text-sm">
-                        {error instanceof Error ? error.message : 'Erro desconhecido'}
+                    <p className="text-sm text-destructive">
+                        {error instanceof Error
+                            ? error.message
+                            : 'Erro desconhecido'}
                     </p>
                 </div>
             </AdminLayout>
@@ -94,14 +102,14 @@ export default function AdminVideosPage() {
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center justify-between gap-4 px-6 py-4">
-                        <h1 className="text-foreground text-2xl font-semibold">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             Biblioteca de Vídeos
                         </h1>
                         <div className="flex items-center gap-3">
                             <div className="relative w-64">
-                                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Pesquisar"
                                     value={search}
@@ -121,15 +129,15 @@ export default function AdminVideosPage() {
 
                 <div className="flex-1 overflow-auto p-6">
                     {isLoading ? (
-                        <div className="text-muted-foreground py-8 text-center text-sm">
+                        <div className="py-8 text-center text-sm text-muted-foreground">
                             Carregando...
                         </div>
                     ) : (
                         <>
                             {meta && (
-                                <p className="text-muted-foreground mb-4 text-sm">
-                                    Total de vídeos: {meta.total} (página {meta.current_page} de{' '}
-                                    {meta.last_page})
+                                <p className="mb-4 text-sm text-muted-foreground">
+                                    Total de vídeos: {meta.total} (página{' '}
+                                    {meta.current_page} de {meta.last_page})
                                 </p>
                             )}
                             {filteredVideos.length > 0 ? (
@@ -138,31 +146,44 @@ export default function AdminVideosPage() {
                                         {filteredVideos.map((video) => (
                                             <ExerciseCard
                                                 key={video.id}
-                                                videoUrl={video.cdn_url ?? video.url}
-                                                thumbnailUrl={video.thumbnail_url}
-                                                title={video.original_filename ?? video.filename}
+                                                videoUrl={
+                                                    video.cdn_url ?? video.url
+                                                }
+                                                thumbnailUrl={
+                                                    video.thumbnail_url
+                                                }
+                                                title={
+                                                    video.original_filename ??
+                                                    video.filename
+                                                }
                                                 canPlay={
-                                                    video.status === 'completed' && !!video.cdn_url
+                                                    video.status ===
+                                                        'completed' &&
+                                                    !!video.cdn_url
                                                 }
                                                 badge={
                                                     <StatusBadge
                                                         variant={
-                                                            VIDEO_STATUS_VARIANTS[video.status] ??
-                                                            'neutral'
+                                                            VIDEO_STATUS_VARIANTS[
+                                                                video.status
+                                                            ] ?? 'neutral'
                                                         }
                                                     >
-                                                        {VIDEO_STATUS_LABELS[video.status] ??
-                                                            video.status}
+                                                        {VIDEO_STATUS_LABELS[
+                                                            video.status
+                                                        ] ?? video.status}
                                                     </StatusBadge>
                                                 }
                                                 onEdit={() => handleEdit(video)}
-                                                onDelete={() => handleDelete(video)}
+                                                onDelete={() =>
+                                                    handleDelete(video)
+                                                }
                                             />
                                         ))}
                                     </div>
                                     {!search.trim() && (
                                         <div className="mt-6 flex items-center justify-between">
-                                            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                 <span>Itens por página</span>
                                                 <Select
                                                     value={String(perPage)}
@@ -175,11 +196,18 @@ export default function AdminVideosPage() {
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {PAGE_SIZE_OPTIONS.map((n) => (
-                                                            <SelectItem key={n} value={String(n)}>
-                                                                {n}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {PAGE_SIZE_OPTIONS.map(
+                                                            (n) => (
+                                                                <SelectItem
+                                                                    key={n}
+                                                                    value={String(
+                                                                        n,
+                                                                    )}
+                                                                >
+                                                                    {n}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -190,12 +218,24 @@ export default function AdminVideosPage() {
                                                         <PaginationItem>
                                                             <PaginationPrevious
                                                                 href="#"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
                                                                     e.preventDefault();
-                                                                    if (page > 1)
-                                                                        setPage((p) => p - 1);
+                                                                    if (
+                                                                        page > 1
+                                                                    )
+                                                                        setPage(
+                                                                            (
+                                                                                p,
+                                                                            ) =>
+                                                                                p -
+                                                                                1,
+                                                                        );
                                                                 }}
-                                                                aria-disabled={page <= 1}
+                                                                aria-disabled={
+                                                                    page <= 1
+                                                                }
                                                                 className={
                                                                     page <= 1
                                                                         ? 'pointer-events-none opacity-50'
@@ -204,46 +244,88 @@ export default function AdminVideosPage() {
                                                             />
                                                         </PaginationItem>
                                                         {Array.from(
-                                                            { length: totalPages },
+                                                            {
+                                                                length: totalPages,
+                                                            },
                                                             (_, i) => i + 1,
                                                         )
                                                             .filter(
                                                                 (p) =>
                                                                     p === 1 ||
-                                                                    p === totalPages ||
-                                                                    Math.abs(p - page) <= 1,
+                                                                    p ===
+                                                                        totalPages ||
+                                                                    Math.abs(
+                                                                        p -
+                                                                            page,
+                                                                    ) <= 1,
                                                             )
-                                                            .map((p, idx, arr) => (
-                                                                <PaginationItem key={p}>
-                                                                    {idx > 0 &&
-                                                                        arr[idx - 1] !== p - 1 && (
-                                                                            <span className="px-2">
-                                                                                …
-                                                                            </span>
-                                                                        )}
-                                                                    <PaginationLink
-                                                                        href="#"
-                                                                        onClick={(e) => {
-                                                                            e.preventDefault();
-                                                                            setPage(p);
-                                                                        }}
-                                                                        isActive={page === p}
+                                                            .map(
+                                                                (
+                                                                    p,
+                                                                    idx,
+                                                                    arr,
+                                                                ) => (
+                                                                    <PaginationItem
+                                                                        key={p}
                                                                     >
-                                                                        {p}
-                                                                    </PaginationLink>
-                                                                </PaginationItem>
-                                                            ))}
+                                                                        {idx >
+                                                                            0 &&
+                                                                            arr[
+                                                                                idx -
+                                                                                    1
+                                                                            ] !==
+                                                                                p -
+                                                                                    1 && (
+                                                                                <span className="px-2">
+                                                                                    …
+                                                                                </span>
+                                                                            )}
+                                                                        <PaginationLink
+                                                                            href="#"
+                                                                            onClick={(
+                                                                                e,
+                                                                            ) => {
+                                                                                e.preventDefault();
+                                                                                setPage(
+                                                                                    p,
+                                                                                );
+                                                                            }}
+                                                                            isActive={
+                                                                                page ===
+                                                                                p
+                                                                            }
+                                                                        >
+                                                                            {p}
+                                                                        </PaginationLink>
+                                                                    </PaginationItem>
+                                                                ),
+                                                            )}
                                                         <PaginationItem>
                                                             <PaginationNext
                                                                 href="#"
-                                                                onClick={(e) => {
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
                                                                     e.preventDefault();
-                                                                    if (page < totalPages)
-                                                                        setPage((p) => p + 1);
+                                                                    if (
+                                                                        page <
+                                                                        totalPages
+                                                                    )
+                                                                        setPage(
+                                                                            (
+                                                                                p,
+                                                                            ) =>
+                                                                                p +
+                                                                                1,
+                                                                        );
                                                                 }}
-                                                                aria-disabled={page >= totalPages}
+                                                                aria-disabled={
+                                                                    page >=
+                                                                    totalPages
+                                                                }
                                                                 className={
-                                                                    page >= totalPages
+                                                                    page >=
+                                                                    totalPages
                                                                         ? 'pointer-events-none opacity-50'
                                                                         : ''
                                                                 }
@@ -257,10 +339,10 @@ export default function AdminVideosPage() {
                                 </>
                             ) : (
                                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                                    <p className="text-foreground mb-2 text-lg font-medium">
+                                    <p className="mb-2 text-lg font-medium text-foreground">
                                         Nenhum vídeo encontrado
                                     </p>
-                                    <p className="text-muted-foreground max-w-md">
+                                    <p className="max-w-md text-muted-foreground">
                                         {search.trim()
                                             ? 'Tente ajustar a busca ou limpar o filtro.'
                                             : 'Envie um vídeo para começar. Depois vincule aos exercícios na tela de Exercícios.'}

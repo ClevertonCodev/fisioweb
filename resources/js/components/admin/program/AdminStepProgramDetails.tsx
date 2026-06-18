@@ -39,7 +39,9 @@ export function AdminStepProgramDetails({
     initialValues,
 }: AdminStepProgramDetailsProps) {
     const [title, setTitle] = useState(initialValues?.title ?? '');
-    const [description, setDescription] = useState(initialValues?.description ?? '');
+    const [description, setDescription] = useState(
+        initialValues?.description ?? '',
+    );
     const [physioAreaId, setPhysioAreaId] = useState<number | null>(
         initialValues?.physioAreaId ?? null,
     );
@@ -75,22 +77,23 @@ export function AdminStepProgramDetails({
             sortOrder: gi,
         }));
 
-        const exerciseDtos: AdminProgramExerciseWriteDto[] = groups.flatMap((g, gi) =>
-            g.exercises.map((e, ei) => ({
-                exerciseId: e.exerciseId,
-                groupIndex: gi,
-                daysOfWeek: e.days.length > 0 ? e.days : null,
-                period: e.period,
-                setsMin: e.setsMin,
-                setsMax: e.setsMax,
-                repetitionsMin: e.repetitionsMin,
-                repetitionsMax: e.repetitionsMax,
-                loadMin: e.loadMin,
-                loadMax: e.loadMax,
-                restTime: e.restTime,
-                notes: e.notes,
-                sortOrder: ei,
-            })),
+        const exerciseDtos: AdminProgramExerciseWriteDto[] = groups.flatMap(
+            (g, gi) =>
+                g.exercises.map((e, ei) => ({
+                    exerciseId: e.exerciseId,
+                    groupIndex: gi,
+                    daysOfWeek: e.days.length > 0 ? e.days : null,
+                    period: e.period,
+                    setsMin: e.setsMin,
+                    setsMax: e.setsMax,
+                    repetitionsMin: e.repetitionsMin,
+                    repetitionsMax: e.repetitionsMax,
+                    loadMin: e.loadMin,
+                    loadMax: e.loadMax,
+                    restTime: e.restTime,
+                    notes: e.notes,
+                    sortOrder: ei,
+                })),
         );
 
         onSave({
@@ -112,8 +115,9 @@ export function AdminStepProgramDetails({
                 <div className="space-y-4 p-8">
                     <div className="space-y-4">
                         <div>
-                            <label className="text-foreground mb-1.5 block text-sm font-medium">
-                                Título <span className="text-destructive">*</span>
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">
+                                Título{' '}
+                                <span className="text-destructive">*</span>
                             </label>
                             <Input
                                 placeholder="Nome do programa template"
@@ -123,7 +127,7 @@ export function AdminStepProgramDetails({
                         </div>
 
                         <div>
-                            <label className="text-foreground mb-1.5 block text-sm font-medium">
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">
                                 Descrição
                             </label>
                             <Textarea
@@ -136,7 +140,7 @@ export function AdminStepProgramDetails({
 
                         <div className="flex gap-3">
                             <div className="flex-1">
-                                <label className="text-foreground mb-1.5 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-foreground">
                                     Área
                                 </label>
                                 <SelectOptions
@@ -144,36 +148,56 @@ export function AdminStepProgramDetails({
                                         const a =
                                             physioAreaId && options
                                                 ? options.physio_areas.find(
-                                                      (x) => x.id === physioAreaId,
+                                                      (x) =>
+                                                          x.id === physioAreaId,
                                                   )
                                                 : undefined;
-                                        return a ? { label: a.name, value: a.id.toString() } : null;
+                                        return a
+                                            ? {
+                                                  label: a.name,
+                                                  value: a.id.toString(),
+                                              }
+                                            : null;
                                     })()}
                                     onChange={(opt: SelectOption | null) => {
-                                        setPhysioAreaId(opt ? Number(opt.value) : null);
+                                        setPhysioAreaId(
+                                            opt ? Number(opt.value) : null,
+                                        );
                                         setPhysioSubareaId(null);
                                     }}
-                                    options={(options?.physio_areas ?? []).map((a) => ({
-                                        label: a.name,
-                                        value: a.id.toString(),
-                                    }))}
+                                    options={(options?.physio_areas ?? []).map(
+                                        (a) => ({
+                                            label: a.name,
+                                            value: a.id.toString(),
+                                        }),
+                                    )}
                                     placeholder="Selecionar área"
                                 />
                             </div>
 
                             <div className="flex-1">
-                                <label className="text-foreground mb-1.5 block text-sm font-medium">
+                                <label className="mb-1.5 block text-sm font-medium text-foreground">
                                     Subárea
                                 </label>
                                 <SelectOptions
                                     value={(() => {
                                         const s = physioSubareaId
-                                            ? subareas.find((x) => x.id === physioSubareaId)
+                                            ? subareas.find(
+                                                  (x) =>
+                                                      x.id === physioSubareaId,
+                                              )
                                             : undefined;
-                                        return s ? { label: s.name, value: s.id.toString() } : null;
+                                        return s
+                                            ? {
+                                                  label: s.name,
+                                                  value: s.id.toString(),
+                                              }
+                                            : null;
                                     })()}
                                     onChange={(opt: SelectOption | null) =>
-                                        setPhysioSubareaId(opt ? Number(opt.value) : null)
+                                        setPhysioSubareaId(
+                                            opt ? Number(opt.value) : null,
+                                        )
                                     }
                                     options={subareas.map((s) => ({
                                         label: s.name,
@@ -186,7 +210,7 @@ export function AdminStepProgramDetails({
                         </div>
 
                         <div>
-                            <label className="text-foreground mb-1.5 block text-sm font-medium">
+                            <label className="mb-1.5 block text-sm font-medium text-foreground">
                                 Duração estimada (minutos)
                             </label>
                             <Input
@@ -194,7 +218,9 @@ export function AdminStepProgramDetails({
                                 min={1}
                                 placeholder="Ex: 45"
                                 value={durationMinutes}
-                                onChange={(e) => setDurationMinutes(e.target.value)}
+                                onChange={(e) =>
+                                    setDurationMinutes(e.target.value)
+                                }
                                 className="max-w-xs"
                             />
                         </div>
@@ -207,7 +233,7 @@ export function AdminStepProgramDetails({
                             />
                             <label
                                 htmlFor="is-active"
-                                className="text-foreground cursor-pointer text-sm"
+                                className="cursor-pointer text-sm text-foreground"
                             >
                                 Programa ativo
                             </label>
@@ -217,16 +243,18 @@ export function AdminStepProgramDetails({
             </ScrollArea>
 
             {/* Right - summary */}
-            <div className="border-border bg-card flex flex-1 flex-col border-l">
+            <div className="flex flex-1 flex-col border-l border-border bg-card">
                 <div className="space-y-4 p-6">
-                    <h3 className="text-foreground text-base font-semibold">Resumo do programa</h3>
+                    <h3 className="text-base font-semibold text-foreground">
+                        Resumo do programa
+                    </h3>
 
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-2">
                             {thumbnails.map((url, i) => (
                                 <div
                                     key={i}
-                                    className="border-card bg-muted h-10 w-10 overflow-hidden rounded-full border-2"
+                                    className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted"
                                 >
                                     {url && (
                                         <img
@@ -238,29 +266,38 @@ export function AdminStepProgramDetails({
                                 </div>
                             ))}
                             {remaining > 0 && (
-                                <div className="border-card bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-full border-2 text-xs font-medium">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium text-muted-foreground">
                                     +{remaining}
                                 </div>
                             )}
                         </div>
-                        <span className="text-foreground ml-2 text-sm">
-                            {totalExercises} exercício{totalExercises !== 1 ? 's' : ''}
+                        <span className="ml-2 text-sm text-foreground">
+                            {totalExercises} exercício
+                            {totalExercises !== 1 ? 's' : ''}
                         </span>
                     </div>
 
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Grupos</span>
-                            <span className="text-foreground">{groups.length}</span>
+                            <span className="text-muted-foreground">
+                                Grupos
+                            </span>
+                            <span className="text-foreground">
+                                {groups.length}
+                            </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Exercícios</span>
-                            <span className="text-foreground">{totalExercises}</span>
+                            <span className="text-muted-foreground">
+                                Exercícios
+                            </span>
+                            <span className="text-foreground">
+                                {totalExercises}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-border mt-auto border-t p-4">
+                <div className="mt-auto border-t border-border p-4">
                     <Button
                         className="w-full"
                         onClick={handleSubmit}

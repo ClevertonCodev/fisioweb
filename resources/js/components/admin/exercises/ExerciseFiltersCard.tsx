@@ -57,24 +57,33 @@ export function ExerciseFiltersCard({
     return (
         <Card>
             <CardContent className="space-y-4 p-4">
-                <h3 className="text-foreground font-medium">Filtros</h3>
+                <h3 className="font-medium text-foreground">Filtros</h3>
                 <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-6">
                     <div className="space-y-1.5">
-                        <Label className="text-muted-foreground text-sm">Buscar</Label>
+                        <Label className="text-sm text-muted-foreground">
+                            Buscar
+                        </Label>
                         <div className="relative">
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Nome do exercício"
                                 value={search}
                                 onChange={(e) => onSearchChange(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && onSearch()}
+                                onKeyDown={(e) =>
+                                    e.key === 'Enter' && onSearch()
+                                }
                                 className="pl-9"
                             />
                         </div>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-muted-foreground text-sm">Área</Label>
-                        <Select value={physioAreaId || 'todos'} onValueChange={onPhysioAreaChange}>
+                        <Label className="text-sm text-muted-foreground">
+                            Área
+                        </Label>
+                        <Select
+                            value={physioAreaId || 'todos'}
+                            onValueChange={onPhysioAreaChange}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Todas" />
                             </SelectTrigger>
@@ -89,8 +98,13 @@ export function ExerciseFiltersCard({
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-muted-foreground text-sm">Região corporal</Label>
-                        <Select value={bodyRegionId || 'todos'} onValueChange={onBodyRegionChange}>
+                        <Label className="text-sm text-muted-foreground">
+                            Região corporal
+                        </Label>
+                        <Select
+                            value={bodyRegionId || 'todos'}
+                            onValueChange={onBodyRegionChange}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Todas" />
                             </SelectTrigger>
@@ -101,7 +115,10 @@ export function ExerciseFiltersCard({
                                         {r.name}
                                     </SelectItem>,
                                     ...(r.children ?? []).map((c) => (
-                                        <SelectItem key={c.id} value={String(c.id)}>
+                                        <SelectItem
+                                            key={c.id}
+                                            value={String(c.id)}
+                                        >
                                             — {c.name}
                                         </SelectItem>
                                     )),
@@ -110,7 +127,9 @@ export function ExerciseFiltersCard({
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-muted-foreground text-sm">Dificuldade</Label>
+                        <Label className="text-sm text-muted-foreground">
+                            Dificuldade
+                        </Label>
                         <Select
                             value={difficultyLevel || 'todos'}
                             onValueChange={onDifficultyChange}
@@ -121,16 +140,20 @@ export function ExerciseFiltersCard({
                             <SelectContent>
                                 <SelectItem value="todos">Todas</SelectItem>
                                 {options?.difficulties &&
-                                    Object.entries(options.difficulties).map(([k, v]) => (
-                                        <SelectItem key={k} value={k}>
-                                            {v}
-                                        </SelectItem>
-                                    ))}
+                                    Object.entries(options.difficulties).map(
+                                        ([k, v]) => (
+                                            <SelectItem key={k} value={k}>
+                                                {v}
+                                            </SelectItem>
+                                        ),
+                                    )}
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-muted-foreground text-sm">Forma de movimento</Label>
+                        <Label className="text-sm text-muted-foreground">
+                            Forma de movimento
+                        </Label>
                         <Select
                             value={movementForm || 'todos'}
                             onValueChange={onMovementFormChange}
@@ -141,11 +164,13 @@ export function ExerciseFiltersCard({
                             <SelectContent>
                                 <SelectItem value="todos">Todas</SelectItem>
                                 {options?.movement_forms &&
-                                    Object.entries(options.movement_forms).map(([k, v]) => (
-                                        <SelectItem key={k} value={k}>
-                                            {v}
-                                        </SelectItem>
-                                    ))}
+                                    Object.entries(options.movement_forms).map(
+                                        ([k, v]) => (
+                                            <SelectItem key={k} value={k}>
+                                                {v}
+                                            </SelectItem>
+                                        ),
+                                    )}
                             </SelectContent>
                         </Select>
                     </div>

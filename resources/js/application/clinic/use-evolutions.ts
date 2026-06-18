@@ -1,13 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { EvolutionTemplateWriteDto, EvolutionWriteDto } from '@/application/clinic/ports';
+import type {
+    EvolutionTemplateWriteDto,
+    EvolutionWriteDto,
+} from '@/application/clinic/ports';
 import { apiClinicEvolutionsRepository } from '@/infrastructure/repositories/api-clinic-evolutions';
 
 const repo = apiClinicEvolutionsRepository;
 
 const keys = {
-    patientEvolutions: (patientId: string) => ['evolutions', 'patient', patientId] as const,
+    patientEvolutions: (patientId: string) =>
+        ['evolutions', 'patient', patientId] as const,
     evolution: (id: string) => ['evolutions', id] as const,
     templates: () => ['evolutions', 'templates'] as const,
     template: (id: string) => ['evolutions', 'templates', id] as const,
@@ -47,7 +51,8 @@ export function useEvolutionTemplate(id: string) {
 export function useCreateEvolutionTemplate() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: EvolutionTemplateWriteDto) => repo.createTemplate(dto),
+        mutationFn: (dto: EvolutionTemplateWriteDto) =>
+            repo.createTemplate(dto),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: keys.templates() });
             toast.success('Template criado com sucesso');
@@ -61,12 +66,19 @@ export function useCreateEvolutionTemplate() {
 export function useUpdateEvolutionTemplate() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, dto }: { id: string; dto: EvolutionTemplateWriteDto }) =>
-            repo.updateTemplate(id, dto),
+        mutationFn: ({
+            id,
+            dto,
+        }: {
+            id: string;
+            dto: EvolutionTemplateWriteDto;
+        }) => repo.updateTemplate(id, dto),
         onSuccess: (template) => {
             const templateId = String(template.id);
             queryClient.invalidateQueries({ queryKey: keys.templates() });
-            queryClient.invalidateQueries({ queryKey: keys.template(templateId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.template(templateId),
+            });
             toast.success('Template atualizado com sucesso');
         },
         onError: () => {
@@ -94,7 +106,9 @@ export function useCreateEvolution(patientId: string) {
     return useMutation({
         mutationFn: (dto: EvolutionWriteDto) => repo.create(patientId, dto),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientEvolutions(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientEvolutions(patientId),
+            });
         },
         onError: () => {
             toast.error('Erro ao criar evolução');
@@ -105,10 +119,15 @@ export function useCreateEvolution(patientId: string) {
 export function useUpdateEvolution(patientId: string) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, dto }: { id: string; dto: EvolutionWriteDto }) => repo.update(id, dto),
+        mutationFn: ({ id, dto }: { id: string; dto: EvolutionWriteDto }) =>
+            repo.update(id, dto),
         onSuccess: (evolution) => {
-            queryClient.invalidateQueries({ queryKey: keys.evolution(String(evolution.id)) });
-            queryClient.invalidateQueries({ queryKey: keys.patientEvolutions(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.evolution(String(evolution.id)),
+            });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientEvolutions(patientId),
+            });
         },
         onError: () => {
             toast.error('Erro ao salvar evolução');
@@ -121,8 +140,12 @@ export function useSignEvolution(patientId: string) {
     return useMutation({
         mutationFn: (id: string) => repo.sign(id),
         onSuccess: (evolution) => {
-            queryClient.invalidateQueries({ queryKey: keys.evolution(String(evolution.id)) });
-            queryClient.invalidateQueries({ queryKey: keys.patientEvolutions(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.evolution(String(evolution.id)),
+            });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientEvolutions(patientId),
+            });
         },
         onError: () => {
             toast.error('Erro ao assinar evolução');
@@ -135,7 +158,9 @@ export function useDeleteEvolution(patientId: string) {
     return useMutation({
         mutationFn: (id: string) => repo.destroy(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: keys.patientEvolutions(patientId) });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientEvolutions(patientId),
+            });
         },
         onError: () => {
             toast.error('Erro ao excluir evolução');
@@ -161,7 +186,9 @@ export function useGenerateEvolutionText() {
 }
 
 /** Abre o PDF da evolução em nova aba (Bearer via apiClient). */
-export async function openEvolutionPdfInNewTab(evolutionId: string): Promise<void> {
+export async function openEvolutionPdfInNewTab(
+    evolutionId: string,
+): Promise<void> {
     try {
         const blob = await repo.fetchPdfBlob(evolutionId);
         const url = URL.createObjectURL(blob);

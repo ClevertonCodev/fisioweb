@@ -61,7 +61,8 @@ export function useClinics(params?: {
 export function useClinic(id: number | undefined) {
     return useQuery({
         queryKey: ['admin', 'clinic', id],
-        queryFn: () => (id ? apiClinicsRepository.getById(id) : Promise.resolve(null)),
+        queryFn: () =>
+            id ? apiClinicsRepository.getById(id) : Promise.resolve(null),
         enabled: !!id,
     });
 }
@@ -76,31 +77,41 @@ export function usePlansOptions() {
 export function useCreateClinic(options?: { onSuccess?: () => void }) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (payload: ClinicWriteDto) => apiClinicsRepository.create(payload),
+        mutationFn: (payload: ClinicWriteDto) =>
+            apiClinicsRepository.create(payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'clinics'] });
             toast.success('Clínica criada com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao criar clínica.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao criar clínica.',
+            );
         },
     });
 }
 
-export function useUpdateClinic(clinicId: number, options?: { onSuccess?: () => void }) {
+export function useUpdateClinic(
+    clinicId: number,
+    options?: { onSuccess?: () => void },
+) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (payload: Omit<ClinicWriteDto, 'password'>) =>
             apiClinicsRepository.update(clinicId, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'clinics'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'clinic', clinicId] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'clinic', clinicId],
+            });
             toast.success('Clínica atualizada com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao atualizar clínica.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao atualizar clínica.',
+            );
         },
     });
 }
@@ -109,7 +120,9 @@ export function useLoginAsClinic() {
     return useMutation({
         mutationFn: (id: number) => apiClinicsRepository.loginAs(id),
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao acessar clínica.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao acessar clínica.',
+            );
         },
     });
 }
@@ -120,12 +133,16 @@ export function useCancelClinic(options?: { onSuccess?: () => void }) {
         mutationFn: (id: number) => apiClinicsRepository.destroy(id),
         onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: ['admin', 'clinics'] });
-            queryClient.invalidateQueries({ queryKey: ['admin', 'clinic', id] });
+            queryClient.invalidateQueries({
+                queryKey: ['admin', 'clinic', id],
+            });
             toast.success('Clínica cancelada com sucesso.');
             options?.onSuccess?.();
         },
         onError: (err: ApiErrorResponse) => {
-            toast.error(err?.response?.data?.message ?? 'Erro ao cancelar clínica.');
+            toast.error(
+                err?.response?.data?.message ?? 'Erro ao cancelar clínica.',
+            );
         },
     });
 }

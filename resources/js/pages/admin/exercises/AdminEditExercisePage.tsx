@@ -9,7 +9,10 @@ import {
     useUpdateAdminExercise,
 } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { ExerciseForm, type ExerciseFormState } from '@/components/admin/exercises/ExerciseForm';
+import {
+    ExerciseForm,
+    type ExerciseFormState,
+} from '@/components/admin/exercises/ExerciseForm';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -56,12 +59,16 @@ export default function AdminEditExercisePage() {
 
     useEffect(() => {
         if (exercise) {
-            const firstVideo = (exercise.videos as { id: number }[] | undefined)?.[0];
+            const firstVideo = (
+                exercise.videos as { id: number }[] | undefined
+            )?.[0];
             setForm({
                 name: exercise.name,
                 physio_area_id: String(exercise.physio_area_id),
                 physio_subarea_id:
-                    exercise.physio_subarea_id != null ? String(exercise.physio_subarea_id) : '',
+                    exercise.physio_subarea_id != null
+                        ? String(exercise.physio_subarea_id)
+                        : '',
                 body_region_id: String(exercise.body_region_id),
                 therapeutic_goal: exercise.therapeutic_goal ?? '',
                 description: exercise.description ?? '',
@@ -76,8 +83,14 @@ export default function AdminEditExercisePage() {
                 contraindications: exercise.contraindications ?? '',
                 frequency: exercise.frequency ?? '',
                 sets: exercise.sets != null ? String(exercise.sets) : '',
-                repetitions: exercise.repetitions != null ? String(exercise.repetitions) : '',
-                rest_time: exercise.rest_time != null ? String(exercise.rest_time) : '',
+                repetitions:
+                    exercise.repetitions != null
+                        ? String(exercise.repetitions)
+                        : '',
+                rest_time:
+                    exercise.rest_time != null
+                        ? String(exercise.rest_time)
+                        : '',
                 clinical_notes: exercise.clinical_notes ?? '',
                 video_id: firstVideo ? String(firstVideo.id) : '',
                 is_active: exercise.is_active,
@@ -85,7 +98,10 @@ export default function AdminEditExercisePage() {
         }
     }, [exercise]);
 
-    const setField = (field: keyof ExerciseFormState, value: string | boolean) => {
+    const setField = (
+        field: keyof ExerciseFormState,
+        value: string | boolean,
+    ) => {
         setForm((p) => ({ ...p, [field]: value }));
         if (errors[field]) setErrors((e) => ({ ...e, [field]: '' }));
     };
@@ -96,7 +112,9 @@ export default function AdminEditExercisePage() {
         const payload: Record<string, unknown> = {
             name: form.name,
             physio_area_id: parseInt(form.physio_area_id, 10),
-            physio_subarea_id: form.physio_subarea_id ? parseInt(form.physio_subarea_id, 10) : null,
+            physio_subarea_id: form.physio_subarea_id
+                ? parseInt(form.physio_subarea_id, 10)
+                : null,
             body_region_id: parseInt(form.body_region_id, 10),
             therapeutic_goal: form.therapeutic_goal || null,
             description: form.description || null,
@@ -111,7 +129,9 @@ export default function AdminEditExercisePage() {
             contraindications: form.contraindications || null,
             frequency: form.frequency || null,
             sets: form.sets ? parseInt(form.sets, 10) : null,
-            repetitions: form.repetitions ? parseInt(form.repetitions, 10) : null,
+            repetitions: form.repetitions
+                ? parseInt(form.repetitions, 10)
+                : null,
             rest_time: form.rest_time ? parseInt(form.rest_time, 10) : null,
             clinical_notes: form.clinical_notes || null,
             video_id: form.video_id ? parseInt(form.video_id, 10) : null,
@@ -126,7 +146,10 @@ export default function AdminEditExercisePage() {
                 const data = (
                     err as {
                         response?: {
-                            data?: { message?: string; errors?: Record<string, string[]> };
+                            data?: {
+                                message?: string;
+                                errors?: Record<string, string[]>;
+                            };
                         };
                     }
                 )?.response?.data;
@@ -163,18 +186,22 @@ export default function AdminEditExercisePage() {
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="space-y-3 px-6 py-4">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
                                     <BreadcrumbLink asChild>
-                                        <Link to="/admin/exercicios">Exercícios</Link>
+                                        <Link to="/admin/exercicios">
+                                            Exercícios
+                                        </Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>Editar: {exercise.name}</BreadcrumbPage>
+                                    <BreadcrumbPage>
+                                        Editar: {exercise.name}
+                                    </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
@@ -187,7 +214,7 @@ export default function AdminEditExercisePage() {
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
-                            <h1 className="text-foreground text-2xl font-semibold">
+                            <h1 className="text-2xl font-semibold text-foreground">
                                 Editar Exercício
                             </h1>
                         </div>

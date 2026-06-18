@@ -1,4 +1,8 @@
-import type { FeaturePlanWriteDto, PlanWriteDto, PlansRepository } from '@/application/admin/ports';
+import type {
+    FeaturePlanWriteDto,
+    PlanWriteDto,
+    PlansRepository,
+} from '@/application/admin/ports';
 import type { FeaturePlan, Plan } from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
@@ -53,7 +57,9 @@ function toFeaturePlan(raw: Record<string, unknown>): FeaturePlan {
     };
 }
 
-function toFeaturePlanApiPayload(dto: FeaturePlanWriteDto): Record<string, unknown> {
+function toFeaturePlanApiPayload(
+    dto: FeaturePlanWriteDto,
+): Record<string, unknown> {
     return {
         plan_id: dto.planId,
         feature_id: dto.featureId,
@@ -63,48 +69,59 @@ function toFeaturePlanApiPayload(dto: FeaturePlanWriteDto): Record<string, unkno
 
 export const apiPlansRepository: PlansRepository = {
     async list(params = {}) {
-        const { data } = await apiClient.get<{ data: unknown }>('/admin/plans', {
-            params: {
-                per_page: params.per_page ?? 500,
-                page: params.page ?? 1,
-                search: params.search,
+        const { data } = await apiClient.get<{ data: unknown }>(
+            '/admin/plans',
+            {
+                params: {
+                    per_page: params.per_page ?? 500,
+                    page: params.page ?? 1,
+                    search: params.search,
+                },
             },
-        });
+        );
         const body = data as { data?: unknown[] | { data?: unknown[] } };
         const raw = body?.data;
         const items = Array.isArray(raw)
             ? raw
-            : raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown[] }).data)
+            : raw &&
+                typeof raw === 'object' &&
+                Array.isArray((raw as { data?: unknown[] }).data)
               ? (raw as { data: unknown[] }).data
               : [];
         return items.map((p) => toPlan(p as ApiPlanDto));
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: unknown }>(`/admin/plans/${id}`);
+        const { data } = await apiClient.get<{ data: unknown }>(
+            `/admin/plans/${id}`,
+        );
         if (!data?.data) return null;
         return toPlan((data as { data: ApiPlanDto }).data);
     },
 
     async getFeaturePlans(params = {}) {
-        const { data } = await apiClient.get<{ data: unknown }>('/admin/feature-plans', {
-            params: { per_page: 500, ...params },
-        });
+        const { data } = await apiClient.get<{ data: unknown }>(
+            '/admin/feature-plans',
+            {
+                params: { per_page: 500, ...params },
+            },
+        );
         const body = data as { data?: unknown[] | { data?: unknown[] } };
         const raw = body?.data;
         const items = Array.isArray(raw)
             ? raw
-            : raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown[] }).data)
+            : raw &&
+                typeof raw === 'object' &&
+                Array.isArray((raw as { data?: unknown[] }).data)
               ? (raw as { data: unknown[] }).data
               : [];
         return items.map((fp) => toFeaturePlan(fp as Record<string, unknown>));
     },
 
     async createFeaturePlan(payload: FeaturePlanWriteDto) {
-        const { data } = await apiClient.post<{ data: Record<string, unknown> }>(
-            '/admin/feature-plans',
-            toFeaturePlanApiPayload(payload),
-        );
+        const { data } = await apiClient.post<{
+            data: Record<string, unknown>;
+        }>('/admin/feature-plans', toFeaturePlanApiPayload(payload));
         return toFeaturePlan(data.data);
     },
 

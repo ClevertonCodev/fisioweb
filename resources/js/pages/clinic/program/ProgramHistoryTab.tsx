@@ -44,7 +44,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,18 +63,27 @@ function firstLetter(name: string | null): string {
 function formatDate(iso: string | null): string {
     if (!iso) return '—';
     const d = new Date(iso + (iso.includes('T') ? '' : 'T00:00:00'));
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 }
 
 function dateDiffDays(a: string, b: string): number {
-    return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86_400_000);
+    return Math.round(
+        (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000,
+    );
 }
 
 function validityProgress(program: Program): number {
     if (!program.startDate || !program.endDate) return 0;
     const total = dateDiffDays(program.startDate, program.endDate);
     if (total <= 0) return 100;
-    const elapsed = dateDiffDays(program.startDate, new Date().toISOString().slice(0, 10));
+    const elapsed = dateDiffDays(
+        program.startDate,
+        new Date().toISOString().slice(0, 10),
+    );
     return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
 }
 
@@ -99,7 +112,9 @@ function StatusBadge({ program }: { program: Program }) {
                 className="shrink-0 border-emerald-200 bg-emerald-50 text-xs whitespace-nowrap text-emerald-600"
             >
                 Completou
-                {program.patientCompletedCount > 0 ? ` • ${program.patientCompletedCount}x` : ''}
+                {program.patientCompletedCount > 0
+                    ? ` • ${program.patientCompletedCount}x`
+                    : ''}
             </Badge>
         );
     }
@@ -117,7 +132,7 @@ function StatusBadge({ program }: { program: Program }) {
         return (
             <Badge
                 variant="outline"
-                className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
+                className="shrink-0 border-border text-xs whitespace-nowrap text-muted-foreground"
             >
                 Visualizado
             </Badge>
@@ -126,7 +141,7 @@ function StatusBadge({ program }: { program: Program }) {
     return (
         <Badge
             variant="outline"
-            className="border-border text-muted-foreground shrink-0 text-xs whitespace-nowrap"
+            className="shrink-0 border-border text-xs whitespace-nowrap text-muted-foreground"
         >
             Rascunho
         </Badge>
@@ -138,7 +153,7 @@ function ProgressBar({ program }: { program: Program }) {
     const ui = deriveUiStatus(program);
     const { progressColor } = uiStatusConfig[ui];
     return (
-        <div className="bg-muted mt-1.5 h-1.5 w-28 overflow-hidden rounded-full">
+        <div className="mt-1.5 h-1.5 w-28 overflow-hidden rounded-full bg-muted">
             <div
                 className={`h-full rounded-full ${progressColor}`}
                 style={{ width: `${progress}%` }}
@@ -154,7 +169,12 @@ type ProgramActionsProps = {
     onDelete: (p: Program) => void;
 };
 
-function ProgramActions({ program, onDuplicate, onToModel, onDelete }: ProgramActionsProps) {
+function ProgramActions({
+    program,
+    onDuplicate,
+    onToModel,
+    onDelete,
+}: ProgramActionsProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -188,7 +208,7 @@ function ProgramActions({ program, onDuplicate, onToModel, onDelete }: ProgramAc
                 {program.status === 'draft' && (
                     <DropdownMenuItem
                         onClick={() => onDelete(program)}
-                        className="text-destructive focus:text-destructive cursor-pointer gap-2"
+                        className="cursor-pointer gap-2 text-destructive focus:text-destructive"
                     >
                         <Trash2 className="h-4 w-4" />
                         Excluir
@@ -270,12 +290,16 @@ export default function ProgramHistoryTab() {
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [statusFilters, setStatusFilters] = useState<UiStatus[]>([]);
-    const [professionalFilters, setProfessionalFilters] = useState<string[]>([]);
+    const [professionalFilters, setProfessionalFilters] = useState<string[]>(
+        [],
+    );
     const [filtersOpen, setFiltersOpen] = useState(false);
 
     const apiStatus = useMemo(() => {
         if (statusFilters.length === 0) return undefined;
-        const hasActiveVariant = statusFilters.some((s) => s === 'not_viewed' || s === 'viewed');
+        const hasActiveVariant = statusFilters.some(
+            (s) => s === 'not_viewed' || s === 'viewed',
+        );
         const hasDraft = statusFilters.includes('draft');
         const hasCompleted = statusFilters.includes('completed');
         const backendStatuses = [
@@ -283,10 +307,16 @@ export default function ProgramHistoryTab() {
             hasDraft ? 'draft' : null,
             hasCompleted ? 'completed' : null,
         ].filter(Boolean);
-        return backendStatuses.length === 1 ? (backendStatuses[0] as string) : undefined;
+        return backendStatuses.length === 1
+            ? (backendStatuses[0] as string)
+            : undefined;
     }, [statusFilters]);
 
-    const { data: result, isFetching, isLoading } = useClinicPrograms({
+    const {
+        data: result,
+        isFetching,
+        isLoading,
+    } = useClinicPrograms({
         page: currentPage,
         perPage,
         search: searchPrograms || undefined,
@@ -314,11 +344,15 @@ export default function ProgramHistoryTab() {
     const visiblePrograms = useMemo(() => {
         let items = result?.items ?? [];
         if (statusFilters.length > 0) {
-            items = items.filter((p) => statusFilters.includes(deriveUiStatus(p)));
+            items = items.filter((p) =>
+                statusFilters.includes(deriveUiStatus(p)),
+            );
         }
         if (professionalFilters.length > 0) {
             items = items.filter(
-                (p) => p.professionalId !== null && professionalFilters.includes(p.professionalId),
+                (p) =>
+                    p.professionalId !== null &&
+                    professionalFilters.includes(p.professionalId),
             );
         }
         return items;
@@ -329,11 +363,14 @@ export default function ProgramHistoryTab() {
 
     const activeFilterCount = statusFilters.length + professionalFilters.length;
     const allProfessionalsSelected =
-        clinicUsers.length > 0 && professionalFilters.length === clinicUsers.length;
+        clinicUsers.length > 0 &&
+        professionalFilters.length === clinicUsers.length;
 
     const toggleStatus = useCallback((value: UiStatus) => {
         setStatusFilters((prev) =>
-            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+            prev.includes(value)
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
         setCurrentPage(1);
     }, []);
@@ -363,7 +400,9 @@ export default function ProgramHistoryTab() {
     const { mutate: duplicate } = useDuplicateClinicProgram();
     const { mutate: toModel } = useConvertToModelClinicProgram();
     const { mutate: deleteProgram } = useDeleteClinicProgram();
-    const [programToDelete, setProgramToDelete] = useState<Program | null>(null);
+    const [programToDelete, setProgramToDelete] = useState<Program | null>(
+        null,
+    );
 
     return (
         <>
@@ -371,7 +410,7 @@ export default function ProgramHistoryTab() {
                 {/* Filters bar */}
                 <div className="mb-6 flex items-center gap-4">
                     <div className="relative w-64">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar"
                             value={searchPrograms}
@@ -384,11 +423,15 @@ export default function ProgramHistoryTab() {
                     </div>
                     <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
                                 <SlidersHorizontal className="h-4 w-4" />
                                 Filtros
                                 {activeFilterCount > 0 && (
-                                    <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
                                         {activeFilterCount}
                                     </span>
                                 )}
@@ -396,11 +439,13 @@ export default function ProgramHistoryTab() {
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-64 p-0">
                             <div className="flex items-center justify-between px-4 py-3">
-                                <span className="text-sm font-semibold">Filtros</span>
+                                <span className="text-sm font-semibold">
+                                    Filtros
+                                </span>
                                 {activeFilterCount > 0 && (
                                     <button
                                         onClick={clearFilters}
-                                        className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                                     >
                                         <X className="h-3 w-3" />
                                         Limpar
@@ -409,19 +454,25 @@ export default function ProgramHistoryTab() {
                             </div>
                             <Separator />
                             <div className="py-1">
-                                <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                     Status
                                 </p>
                                 {STATUS_FILTER_OPTIONS.map((opt) => (
                                     <label
                                         key={opt.value}
-                                        className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                        className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                     >
                                         <Checkbox
-                                            checked={statusFilters.includes(opt.value)}
-                                            onCheckedChange={() => toggleStatus(opt.value)}
+                                            checked={statusFilters.includes(
+                                                opt.value,
+                                            )}
+                                            onCheckedChange={() =>
+                                                toggleStatus(opt.value)
+                                            }
                                         />
-                                        <span className="text-sm">{opt.label}</span>
+                                        <span className="text-sm">
+                                            {opt.label}
+                                        </span>
                                     </label>
                                 ))}
                             </div>
@@ -429,13 +480,17 @@ export default function ProgramHistoryTab() {
                                 <>
                                     <Separator />
                                     <div className="py-1">
-                                        <p className="text-muted-foreground px-4 py-2 text-xs font-medium tracking-wide uppercase">
+                                        <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                                             Profissional
                                         </p>
-                                        <label className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2">
+                                        <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
                                             <Checkbox
-                                                checked={allProfessionalsSelected}
-                                                onCheckedChange={toggleAllProfessionals}
+                                                checked={
+                                                    allProfessionalsSelected
+                                                }
+                                                onCheckedChange={
+                                                    toggleAllProfessionals
+                                                }
                                             />
                                             <span className="text-sm font-medium">
                                                 Selecionar Todos
@@ -446,19 +501,23 @@ export default function ProgramHistoryTab() {
                                             {clinicUsers.map((user) => (
                                                 <label
                                                     key={user.id}
-                                                    className="hover:bg-accent flex cursor-pointer items-center gap-3 px-4 py-2"
+                                                    className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
                                                 >
                                                     <Checkbox
                                                         checked={professionalFilters.includes(
                                                             user.id,
                                                         )}
                                                         onCheckedChange={() =>
-                                                            toggleProfessional(user.id)
+                                                            toggleProfessional(
+                                                                user.id,
+                                                            )
                                                         }
                                                     />
                                                     <Avatar className="h-7 w-7 shrink-0">
-                                                        <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                            {firstLetter(user.name)}
+                                                        <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                            {firstLetter(
+                                                                user.name,
+                                                            )}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <span className="text-sm leading-tight">
@@ -475,7 +534,7 @@ export default function ProgramHistoryTab() {
                     {activeFilterCount > 0 && (
                         <button
                             onClick={clearFilters}
-                            className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                         >
                             <X className="h-3 w-3" />
                             Limpar filtros
@@ -486,7 +545,9 @@ export default function ProgramHistoryTab() {
                 {/* Tabela — desktop */}
                 <div className="hidden md:block">
                     {showSkeleton ? (
-                        <ProgramHistoryTableSkeleton rows={Math.min(perPage, 8)} />
+                        <ProgramHistoryTableSkeleton
+                            rows={Math.min(perPage, 8)}
+                        />
                     ) : (
                         <DataTable<Program>
                             columns={COLUMNS}
@@ -518,7 +579,11 @@ export default function ProgramHistoryTab() {
                                 <TableRow
                                     key={program.id}
                                     className="cursor-pointer"
-                                    onClick={() => navigate(`/clinica/programas/${program.id}`)}
+                                    onClick={() =>
+                                        navigate(
+                                            `/clinica/programas/${program.id}`,
+                                        )
+                                    }
                                 >
                                     {/* Paciente */}
                                     <TableCell>
@@ -526,16 +591,24 @@ export default function ProgramHistoryTab() {
                                             <Avatar className="h-9 w-9">
                                                 {program.patientPhotoUrl && (
                                                     <AvatarImage
-                                                        src={program.patientPhotoUrl}
-                                                        alt={program.patientName ?? ''}
+                                                        src={
+                                                            program.patientPhotoUrl
+                                                        }
+                                                        alt={
+                                                            program.patientName ??
+                                                            ''
+                                                        }
                                                     />
                                                 )}
-                                                <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                    {firstLetter(program.patientName)}
+                                                <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                    {firstLetter(
+                                                        program.patientName,
+                                                    )}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-foreground font-medium">
-                                                {program.patientName ?? '(sem paciente)'}
+                                            <span className="font-medium text-foreground">
+                                                {program.patientName ??
+                                                    '(sem paciente)'}
                                             </span>
                                         </div>
                                     </TableCell>
@@ -543,10 +616,10 @@ export default function ProgramHistoryTab() {
                                     {/* Programa */}
                                     <TableCell>
                                         <div>
-                                            <p className="text-foreground font-medium">
+                                            <p className="font-medium text-foreground">
                                                 {program.title}
                                             </p>
-                                            <p className="text-muted-foreground text-xs">
+                                            <p className="text-xs text-muted-foreground">
                                                 {program.exerciseCount}{' '}
                                                 {program.exerciseCount === 1
                                                     ? 'exercício'
@@ -559,12 +632,15 @@ export default function ProgramHistoryTab() {
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <Avatar className="h-7 w-7">
-                                                <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                    {firstLetter(program.professionalName)}
+                                                <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                    {firstLetter(
+                                                        program.professionalName,
+                                                    )}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-muted-foreground text-sm">
-                                                {program.professionalName ?? '—'}
+                                            <span className="text-sm text-muted-foreground">
+                                                {program.professionalName ??
+                                                    '—'}
                                             </span>
                                         </div>
                                     </TableCell>
@@ -572,22 +648,26 @@ export default function ProgramHistoryTab() {
                                     {/* Validade */}
                                     <TableCell>
                                         <div className="min-w-[10rem]">
-                                            <p className="text-foreground text-sm whitespace-nowrap">
+                                            <p className="text-sm whitespace-nowrap text-foreground">
                                                 {formatDate(program.endDate)}{' '}
-                                                {program.startDate && program.endDate && (
-                                                    <span className="text-muted-foreground">
-                                                        (
-                                                        {dateDiffDays(
-                                                            program.startDate,
-                                                            program.endDate,
-                                                        )}{' '}
-                                                        dias)
-                                                    </span>
-                                                )}
+                                                {program.startDate &&
+                                                    program.endDate && (
+                                                        <span className="text-muted-foreground">
+                                                            (
+                                                            {dateDiffDays(
+                                                                program.startDate,
+                                                                program.endDate,
+                                                            )}{' '}
+                                                            dias)
+                                                        </span>
+                                                    )}
                                             </p>
-                                            {program.startDate && program.endDate && (
-                                                <ProgressBar program={program} />
-                                            )}
+                                            {program.startDate &&
+                                                program.endDate && (
+                                                    <ProgressBar
+                                                        program={program}
+                                                    />
+                                                )}
                                         </div>
                                     </TableCell>
 
@@ -597,7 +677,9 @@ export default function ProgramHistoryTab() {
                                     </TableCell>
 
                                     {/* Ações */}
-                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                    <TableCell
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <ProgramActions
                                             program={program}
                                             onDuplicate={duplicate}
@@ -614,7 +696,9 @@ export default function ProgramHistoryTab() {
                 {/* Cards — mobile */}
                 <div className="md:hidden">
                     {showSkeleton ? (
-                        <ProgramHistoryCardSkeleton rows={Math.min(perPage, 4)} />
+                        <ProgramHistoryCardSkeleton
+                            rows={Math.min(perPage, 4)}
+                        />
                     ) : (
                         <CardList<Program>
                             data={visiblePrograms}
@@ -644,8 +728,12 @@ export default function ProgramHistoryTab() {
                             {(program) => (
                                 <Card
                                     key={program.id}
-                                    className="hover:bg-accent/40 cursor-pointer transition-colors"
-                                    onClick={() => navigate(`/clinica/programas/${program.id}`)}
+                                    className="cursor-pointer transition-colors hover:bg-accent/40"
+                                    onClick={() =>
+                                        navigate(
+                                            `/clinica/programas/${program.id}`,
+                                        )
+                                    }
                                 >
                                     <div className="p-4">
                                         {/* Linha 1: paciente + status + ações */}
@@ -654,26 +742,42 @@ export default function ProgramHistoryTab() {
                                                 <Avatar className="h-9 w-9 shrink-0">
                                                     {program.patientPhotoUrl && (
                                                         <AvatarImage
-                                                            src={program.patientPhotoUrl}
-                                                            alt={program.patientName ?? ''}
+                                                            src={
+                                                                program.patientPhotoUrl
+                                                            }
+                                                            alt={
+                                                                program.patientName ??
+                                                                ''
+                                                            }
                                                         />
                                                     )}
-                                                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                        {firstLetter(program.patientName)}
+                                                    <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                        {firstLetter(
+                                                            program.patientName,
+                                                        )}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <span className="text-foreground truncate font-medium">
-                                                    {program.patientName ?? '(sem paciente)'}
+                                                <span className="truncate font-medium text-foreground">
+                                                    {program.patientName ??
+                                                        '(sem paciente)'}
                                                 </span>
                                             </div>
                                             <div className="flex shrink-0 items-center gap-1">
-                                                <StatusBadge program={program} />
-                                                <div onClick={(e) => e.stopPropagation()}>
+                                                <StatusBadge
+                                                    program={program}
+                                                />
+                                                <div
+                                                    onClick={(e) =>
+                                                        e.stopPropagation()
+                                                    }
+                                                >
                                                     <ProgramActions
                                                         program={program}
                                                         onDuplicate={duplicate}
                                                         onToModel={toModel}
-                                                        onDelete={setProgramToDelete}
+                                                        onDelete={
+                                                            setProgramToDelete
+                                                        }
                                                     />
                                                 </div>
                                             </div>
@@ -681,10 +785,10 @@ export default function ProgramHistoryTab() {
 
                                         {/* Linha 2: título + exercícios */}
                                         <div className="mt-2 ml-12">
-                                            <p className="text-foreground font-medium">
+                                            <p className="font-medium text-foreground">
                                                 {program.title}
                                             </p>
-                                            <p className="text-muted-foreground text-xs">
+                                            <p className="text-xs text-muted-foreground">
                                                 {program.exerciseCount}{' '}
                                                 {program.exerciseCount === 1
                                                     ? 'exercício'
@@ -696,34 +800,45 @@ export default function ProgramHistoryTab() {
                                         <div className="mt-2 ml-12 flex flex-wrap items-start justify-between gap-2">
                                             <div className="flex items-center gap-2">
                                                 <Avatar className="h-6 w-6 shrink-0">
-                                                    <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                                                        {firstLetter(program.professionalName)}
+                                                    <AvatarFallback className="bg-muted text-xs text-muted-foreground">
+                                                        {firstLetter(
+                                                            program.professionalName,
+                                                        )}
                                                     </AvatarFallback>
                                                 </Avatar>
-                                                <span className="text-muted-foreground text-sm">
-                                                    {program.professionalName ?? '—'}
+                                                <span className="text-sm text-muted-foreground">
+                                                    {program.professionalName ??
+                                                        '—'}
                                                 </span>
                                             </div>
                                             {program.endDate && (
                                                 <div className="text-right">
-                                                    <p className="text-foreground text-sm whitespace-nowrap">
-                                                        {formatDate(program.endDate)}{' '}
-                                                        {program.startDate && program.endDate && (
-                                                            <span className="text-muted-foreground">
-                                                                (
-                                                                {dateDiffDays(
-                                                                    program.startDate,
-                                                                    program.endDate,
-                                                                )}{' '}
-                                                                dias)
-                                                            </span>
-                                                        )}
+                                                    <p className="text-sm whitespace-nowrap text-foreground">
+                                                        {formatDate(
+                                                            program.endDate,
+                                                        )}{' '}
+                                                        {program.startDate &&
+                                                            program.endDate && (
+                                                                <span className="text-muted-foreground">
+                                                                    (
+                                                                    {dateDiffDays(
+                                                                        program.startDate,
+                                                                        program.endDate,
+                                                                    )}{' '}
+                                                                    dias)
+                                                                </span>
+                                                            )}
                                                     </p>
-                                                    {program.startDate && program.endDate && (
-                                                        <div className="flex justify-end">
-                                                            <ProgressBar program={program} />
-                                                        </div>
-                                                    )}
+                                                    {program.startDate &&
+                                                        program.endDate && (
+                                                            <div className="flex justify-end">
+                                                                <ProgressBar
+                                                                    program={
+                                                                        program
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        )}
                                                 </div>
                                             )}
                                         </div>
@@ -738,16 +853,18 @@ export default function ProgramHistoryTab() {
                     !searchPrograms &&
                     activeFilterCount === 0 &&
                     !showSkeleton && (
-                    <div className="mt-6 flex justify-center">
-                        <Button
-                            onClick={() => navigate('/clinica/programas/novo')}
-                            className="gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Criar primeiro programa
-                        </Button>
-                    </div>
-                )}
+                        <div className="mt-6 flex justify-center">
+                            <Button
+                                onClick={() =>
+                                    navigate('/clinica/programas/novo')
+                                }
+                                className="gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Criar primeiro programa
+                            </Button>
+                        </div>
+                    )}
             </div>
 
             <AlertDialog
@@ -759,8 +876,8 @@ export default function ProgramHistoryTab() {
                         <AlertDialogTitle>Excluir programa</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>"{programToDelete?.title}"</strong>? Esta ação não pode ser
-                            desfeita.
+                            <strong>"{programToDelete?.title}"</strong>? Esta
+                            ação não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -768,7 +885,8 @@ export default function ProgramHistoryTab() {
                         <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
-                                if (programToDelete) deleteProgram(programToDelete.id);
+                                if (programToDelete)
+                                    deleteProgram(programToDelete.id);
                                 setProgramToDelete(null);
                             }}
                         >

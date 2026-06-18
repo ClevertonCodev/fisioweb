@@ -9,7 +9,10 @@ export const routerFutureFlags = {
 
 export function TestBrowserRouter({ children }: { children: ReactNode }) {
     const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+        defaultOptions: {
+            queries: { retry: false },
+            mutations: { retry: false },
+        },
     });
     return (
         <QueryClientProvider client={queryClient}>

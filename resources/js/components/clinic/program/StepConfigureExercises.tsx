@@ -37,7 +37,11 @@ import { useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { ProgramExercise, ProgramGroup } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
 
@@ -56,15 +60,22 @@ export function StepConfigureExercises({
     onNext,
     onBack,
 }: StepConfigureExercisesProps) {
-    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+        new Set(),
+    );
     const [activeId, setActiveId] = useState<string | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
     );
 
-    const totalExercises = groups.reduce((sum, g) => sum + g.exercises.length, 0);
+    const totalExercises = groups.reduce(
+        (sum, g) => sum + g.exercises.length,
+        0,
+    );
     const configuredCount = groups.reduce(
         (sum, g) => sum + g.exercises.filter((e) => e.isConfigured).length,
         0,
@@ -112,7 +123,12 @@ export function StepConfigureExercises({
         onUpdateGroups(
             groups.map((g) =>
                 g.id === groupId
-                    ? { ...g, exercises: g.exercises.filter((e) => e.id !== exerciseId) }
+                    ? {
+                          ...g,
+                          exercises: g.exercises.filter(
+                              (e) => e.id !== exerciseId,
+                          ),
+                      }
                     : g,
             ),
         );
@@ -138,7 +154,9 @@ export function StepConfigureExercises({
     };
 
     const renameGroup = (groupId: string, name: string) => {
-        onUpdateGroups(groups.map((g) => (g.id === groupId ? { ...g, name } : g)));
+        onUpdateGroups(
+            groups.map((g) => (g.id === groupId ? { ...g, name } : g)),
+        );
     };
 
     /* ── Cross-group drag handlers ── */
@@ -154,15 +172,20 @@ export function StepConfigureExercises({
         const srcId = active.id as string;
         const overId = over.id as string;
 
-        const srcGroup = groups.find((g) => g.exercises.some((e) => e.id === srcId));
+        const srcGroup = groups.find((g) =>
+            g.exercises.some((e) => e.id === srcId),
+        );
         if (!srcGroup) return;
 
         let destGroup = groups.find((g) => g.id === overId);
         let overIdx = -1;
 
         if (!destGroup) {
-            destGroup = groups.find((g) => g.exercises.some((e) => e.id === overId));
-            if (destGroup) overIdx = destGroup.exercises.findIndex((e) => e.id === overId);
+            destGroup = groups.find((g) =>
+                g.exercises.some((e) => e.id === overId),
+            );
+            if (destGroup)
+                overIdx = destGroup.exercises.findIndex((e) => e.id === overId);
         }
 
         if (!destGroup || srcGroup.id === destGroup.id) return;
@@ -173,7 +196,10 @@ export function StepConfigureExercises({
         onUpdateGroups(
             groups.map((g) => {
                 if (g.id === srcGroup.id) {
-                    return { ...g, exercises: g.exercises.filter((e) => e.id !== srcId) };
+                    return {
+                        ...g,
+                        exercises: g.exercises.filter((e) => e.id !== srcId),
+                    };
                 }
                 if (g.id === destGroup!.id) {
                     const exs = [...g.exercises];
@@ -194,8 +220,12 @@ export function StepConfigureExercises({
         const aId = active.id as string;
         const oId = over.id as string;
 
-        const aGroup = groups.find((g) => g.exercises.some((e) => e.id === aId));
-        const oGroup = groups.find((g) => g.exercises.some((e) => e.id === oId));
+        const aGroup = groups.find((g) =>
+            g.exercises.some((e) => e.id === aId),
+        );
+        const oGroup = groups.find((g) =>
+            g.exercises.some((e) => e.id === oId),
+        );
 
         if (aGroup && oGroup && aGroup.id === oGroup.id) {
             const oldIdx = aGroup.exercises.findIndex((e) => e.id === aId);
@@ -204,7 +234,14 @@ export function StepConfigureExercises({
                 onUpdateGroups(
                     groups.map((g) =>
                         g.id === aGroup.id
-                            ? { ...g, exercises: arrayMove(g.exercises, oldIdx, newIdx) }
+                            ? {
+                                  ...g,
+                                  exercises: arrayMove(
+                                      g.exercises,
+                                      oldIdx,
+                                      newIdx,
+                                  ),
+                              }
                             : g,
                     ),
                 );
@@ -219,14 +256,14 @@ export function StepConfigureExercises({
     return (
         <div className="flex h-full min-w-0 flex-1 flex-col">
             {/* Header with progress */}
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
                 <div className="flex items-center gap-4">
-                    <span className="text-muted-foreground text-sm">
+                    <span className="text-sm text-muted-foreground">
                         {configuredCount} de {totalExercises} editados
                     </span>
-                    <div className="bg-muted h-2 w-40 overflow-hidden rounded-full">
+                    <div className="h-2 w-40 overflow-hidden rounded-full bg-muted">
                         <div
-                            className="bg-primary h-full rounded-full transition-all"
+                            className="h-full rounded-full bg-primary transition-all"
                             style={{
                                 width: `${totalExercises ? (configuredCount / totalExercises) * 100 : 0}%`,
                             }}
@@ -248,10 +285,12 @@ export function StepConfigureExercises({
                 {/* Add new group */}
                 <button
                     onClick={addGroup}
-                    className="text-muted-foreground hover:text-foreground hover:border-muted-foreground mb-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 transition-colors"
+                    className="mb-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
                 >
                     <List className="h-5 w-5" />
-                    <span className="text-sm font-medium">Adicionar novo grupo</span>
+                    <span className="text-sm font-medium">
+                        Adicionar novo grupo
+                    </span>
                 </button>
 
                 <DndContext
@@ -270,9 +309,14 @@ export function StepConfigureExercises({
                                     <div className="flex items-center gap-2">
                                         <EditableGroupName
                                             name={group.name}
-                                            onRename={(n) => renameGroup(group.id, n)}
+                                            onRename={(n) =>
+                                                renameGroup(group.id, n)
+                                            }
                                         />
-                                        <Badge variant="secondary" className="text-xs">
+                                        <Badge
+                                            variant="secondary"
+                                            className="text-xs"
+                                        >
                                             {group.exercises.length}
                                         </Badge>
                                         <div className="flex-1" />
@@ -282,12 +326,16 @@ export function StepConfigureExercises({
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8"
-                                                    onClick={() => duplicateGroup(group.id)}
+                                                    onClick={() =>
+                                                        duplicateGroup(group.id)
+                                                    }
                                                 >
                                                     <Copy className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Duplicar grupo</TooltipContent>
+                                            <TooltipContent>
+                                                Duplicar grupo
+                                            </TooltipContent>
                                         </Tooltip>
                                         {groups.length > 1 && (
                                             <Tooltip>
@@ -295,20 +343,28 @@ export function StepConfigureExercises({
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="text-muted-foreground hover:text-destructive h-8 w-8"
-                                                        onClick={() => deleteGroup(group.id)}
+                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                        onClick={() =>
+                                                            deleteGroup(
+                                                                group.id,
+                                                            )
+                                                        }
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
-                                                <TooltipContent>Excluir grupo</TooltipContent>
+                                                <TooltipContent>
+                                                    Excluir grupo
+                                                </TooltipContent>
                                             </Tooltip>
                                         )}
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8"
-                                            onClick={() => toggleGroup(group.id)}
+                                            onClick={() =>
+                                                toggleGroup(group.id)
+                                            }
                                         >
                                             {isCollapsed ? (
                                                 <ChevronDown className="h-4 w-4" />
@@ -322,23 +378,43 @@ export function StepConfigureExercises({
                                     {!isCollapsed && (
                                         <DroppableGroupContainer id={group.id}>
                                             <SortableContext
-                                                items={group.exercises.map((e) => e.id)}
-                                                strategy={verticalListSortingStrategy}
+                                                items={group.exercises.map(
+                                                    (e) => e.id,
+                                                )}
+                                                strategy={
+                                                    verticalListSortingStrategy
+                                                }
                                             >
                                                 <div className="space-y-3">
-                                                    {group.exercises.map((exercise) => (
-                                                        <SortableExerciseRow
-                                                            key={exercise.id}
-                                                            exercise={exercise}
-                                                            groupId={group.id}
-                                                            onEdit={onEditExercise}
-                                                            onRemove={removeExercise}
-                                                            onDuplicate={duplicateExercise}
-                                                        />
-                                                    ))}
-                                                    {group.exercises.length === 0 && (
-                                                        <div className="text-muted-foreground flex items-center justify-center rounded-lg border-2 border-dashed py-8 text-sm">
-                                                            Arraste exercícios para este grupo
+                                                    {group.exercises.map(
+                                                        (exercise) => (
+                                                            <SortableExerciseRow
+                                                                key={
+                                                                    exercise.id
+                                                                }
+                                                                exercise={
+                                                                    exercise
+                                                                }
+                                                                groupId={
+                                                                    group.id
+                                                                }
+                                                                onEdit={
+                                                                    onEditExercise
+                                                                }
+                                                                onRemove={
+                                                                    removeExercise
+                                                                }
+                                                                onDuplicate={
+                                                                    duplicateExercise
+                                                                }
+                                                            />
+                                                        ),
+                                                    )}
+                                                    {group.exercises.length ===
+                                                        0 && (
+                                                        <div className="flex items-center justify-center rounded-lg border-2 border-dashed py-8 text-sm text-muted-foreground">
+                                                            Arraste exercícios
+                                                            para este grupo
                                                         </div>
                                                     )}
                                                 </div>
@@ -352,9 +428,9 @@ export function StepConfigureExercises({
 
                     <DragOverlay dropAnimation={null}>
                         {activeExercise && (
-                            <div className="bg-card border-border flex items-center gap-4 rounded-lg border p-4 opacity-90 shadow-lg">
-                                <GripVertical className="text-muted-foreground/50 h-5 w-5" />
-                                <div className="bg-muted h-20 w-28 flex-shrink-0 overflow-hidden rounded-md">
+                            <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 opacity-90 shadow-lg">
+                                <GripVertical className="h-5 w-5 text-muted-foreground/50" />
+                                <div className="h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                                     <img
                                         src={activeExercise.thumbnailUrl}
                                         alt=""
@@ -362,10 +438,10 @@ export function StepConfigureExercises({
                                     />
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-foreground text-sm font-medium">
+                                    <p className="text-sm font-medium text-foreground">
                                         {activeExercise.title}
                                     </p>
-                                    <p className="text-muted-foreground mt-1 text-xs">
+                                    <p className="mt-1 text-xs text-muted-foreground">
                                         {formatFrequency(activeExercise)}
                                     </p>
                                 </div>
@@ -377,10 +453,12 @@ export function StepConfigureExercises({
                 {/* Add more exercises */}
                 <button
                     onClick={onBack}
-                    className="text-muted-foreground hover:text-foreground hover:border-muted-foreground mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 transition-colors"
+                    className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
                 >
                     <CirclePlus className="h-5 w-5" />
-                    <span className="text-sm font-medium">Adicionar exercícios</span>
+                    <span className="text-sm font-medium">
+                        Adicionar exercícios
+                    </span>
                 </button>
             </ScrollArea>
         </div>
@@ -394,7 +472,9 @@ function formatFrequency(ex: ProgramExercise): string {
     const parts: string[] = [];
 
     const sets =
-        ex.seriesMin != null && ex.seriesMax != null && ex.seriesMin !== ex.seriesMax
+        ex.seriesMin != null &&
+        ex.seriesMax != null &&
+        ex.seriesMin !== ex.seriesMax
             ? `${ex.seriesMin}-${ex.seriesMax} séries`
             : ex.seriesMin != null
               ? `${ex.seriesMin} séries`
@@ -418,7 +498,13 @@ function formatFrequency(ex: ProgramExercise): string {
     return `Frequência: ${parts.join(', ')}`;
 }
 
-function DroppableGroupContainer({ id, children }: { id: string; children: React.ReactNode }) {
+function DroppableGroupContainer({
+    id,
+    children,
+}: {
+    id: string;
+    children: React.ReactNode;
+}) {
     const { setNodeRef, isOver } = useDroppable({ id });
     return (
         <div
@@ -446,7 +532,14 @@ function SortableExerciseRow({
     onRemove: (groupId: string, exerciseId: string) => void;
     onDuplicate: (groupId: string, exerciseId: string) => void;
 }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
         id: exercise.id,
     });
 
@@ -476,20 +569,20 @@ function SortableExerciseRow({
             ref={setNodeRef}
             style={style}
             className={cn(
-                'bg-card border-border flex items-center gap-4 rounded-lg border p-4 transition-shadow',
+                'flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow',
                 isDragging && 'relative z-50 opacity-30',
             )}
         >
             <div
                 {...attributes}
                 {...listeners}
-                className="text-muted-foreground/50 h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing"
+                className="h-5 w-5 flex-shrink-0 cursor-grab text-muted-foreground/50 active:cursor-grabbing"
             >
                 <GripVertical className="h-5 w-5" />
             </div>
 
             {/* Thumbnail with play */}
-            <div className="bg-muted group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md">
+            <div className="group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                 <video
                     ref={videoRef}
                     src={exercise.videoUrl}
@@ -504,8 +597,8 @@ function SortableExerciseRow({
                     className="absolute inset-0 flex items-center justify-center"
                 >
                     {!isPlaying && (
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                            <Play className="text-foreground ml-0.5 h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
                         </div>
                     )}
                 </button>
@@ -514,8 +607,8 @@ function SortableExerciseRow({
                         onClick={togglePlay}
                         className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
                     >
-                        <div className="bg-background/80 border-border/30 flex h-10 w-10 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
-                            <Pause className="text-foreground h-4 w-4" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
+                            <Pause className="h-4 w-4 text-foreground" />
                         </div>
                     </button>
                 )}
@@ -523,8 +616,12 @@ function SortableExerciseRow({
 
             {/* Info */}
             <div className="min-w-0 flex-1">
-                <p className="text-foreground text-sm font-medium">{exercise.title}</p>
-                <p className="text-muted-foreground mt-1 text-xs">{formatFrequency(exercise)}</p>
+                <p className="text-sm font-medium text-foreground">
+                    {exercise.title}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {formatFrequency(exercise)}
+                </p>
             </div>
 
             {/* Actions */}
@@ -547,7 +644,7 @@ function SortableExerciseRow({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-destructive h-8 w-8 cursor-pointer"
+                            className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-destructive"
                             onClick={() => onRemove(groupId, exercise.id)}
                         >
                             <Trash2 className="h-4 w-4" />
@@ -560,7 +657,7 @@ function SortableExerciseRow({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground h-8 w-8 cursor-pointer"
+                            className="h-8 w-8 cursor-pointer text-muted-foreground"
                             onClick={() => onDuplicate(groupId, exercise.id)}
                         >
                             <Copy className="h-4 w-4" />
@@ -573,7 +670,13 @@ function SortableExerciseRow({
     );
 }
 
-function EditableGroupName({ name, onRename }: { name: string; onRename: (n: string) => void }) {
+function EditableGroupName({
+    name,
+    onRename,
+}: {
+    name: string;
+    onRename: (n: string) => void;
+}) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(name);
 
@@ -581,7 +684,7 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
         return (
             <input
                 autoFocus
-                className="text-foreground border-primary border-b bg-transparent px-1 text-sm font-semibold outline-none"
+                className="border-b border-primary bg-transparent px-1 text-sm font-semibold text-foreground outline-none"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onBlur={() => {
@@ -590,7 +693,8 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
                     else setValue(name);
                 }}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                    if (e.key === 'Enter')
+                        (e.target as HTMLInputElement).blur();
                 }}
             />
         );
@@ -599,7 +703,7 @@ function EditableGroupName({ name, onRename }: { name: string; onRename: (n: str
     return (
         <button
             onClick={() => setEditing(true)}
-            className="text-foreground hover:text-primary flex cursor-pointer items-center gap-1 text-sm font-semibold"
+            className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-foreground hover:text-primary"
         >
             {name}
             <Pencil className="h-3 w-3" />

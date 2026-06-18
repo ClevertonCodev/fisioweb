@@ -5,7 +5,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateQuestionnaireTemplate } from '@/application/clinic/use-questionnaire-templates';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { QuestionnaireSectionBuilder } from '@/components/clinic/questionnaire-template/QuestionnaireSectionBuilder';
-import { createDraftSection, type DraftSection } from '@/components/clinic/questionnaire-template/types';
+import {
+    createDraftSection,
+    type DraftSection,
+} from '@/components/clinic/questionnaire-template/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,11 +18,14 @@ function validate(title: string, sections: DraftSection[]): string | null {
     if (sections.length === 0) return 'Adicione ao menos uma seção.';
     for (const section of sections) {
         if (!section.title.trim()) return 'Todas as seções precisam de título.';
-        if (section.questions.length === 0) return 'Cada seção precisa ter ao menos uma pergunta.';
+        if (section.questions.length === 0)
+            return 'Cada seção precisa ter ao menos uma pergunta.';
         for (const question of section.questions) {
-            if (!question.label.trim()) return 'Todas as perguntas precisam de enunciado.';
+            if (!question.label.trim())
+                return 'Todas as perguntas precisam de enunciado.';
             if (
-                (question.type === 'multiple_choice' || question.type === 'checkbox') &&
+                (question.type === 'multiple_choice' ||
+                    question.type === 'checkbox') &&
                 question.options.some((o) => !o.trim())
             ) {
                 return 'Preencha todas as opções ou remova as vazias.';
@@ -38,12 +44,17 @@ export default function QuestionnaireTemplateNewPage() {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [sections, setSections] = useState<DraftSection[]>(() => [createDraftSection()]);
+    const [sections, setSections] = useState<DraftSection[]>(() => [
+        createDraftSection(),
+    ]);
     const [error, setError] = useState<string | null>(null);
 
     async function handleSubmit() {
         const err = validate(title, sections);
-        if (err) { setError(err); return; }
+        if (err) {
+            setError(err);
+            return;
+        }
         setError(null);
 
         await createTemplate.mutateAsync({
@@ -54,7 +65,10 @@ export default function QuestionnaireTemplateNewPage() {
                 questions: s.questions.map((q) => ({
                     label: q.label.trim(),
                     type: q.type,
-                    options: q.type === 'multiple_choice' || q.type === 'checkbox' ? q.options.map((o) => o.trim()) : null,
+                    options:
+                        q.type === 'multiple_choice' || q.type === 'checkbox'
+                            ? q.options.map((o) => o.trim())
+                            : null,
                     scaleMin: q.scaleMin,
                     scaleMax: q.scaleMax,
                     required: q.required,
@@ -73,15 +87,20 @@ export default function QuestionnaireTemplateNewPage() {
                         type="button"
                         variant="ghost"
                         className="w-fit"
-                        onClick={() => navigate(returnTo ?? -1 as unknown as string)}
+                        onClick={() =>
+                            navigate(returnTo ?? (-1 as unknown as string))
+                        }
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Voltar
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-semibold">Novo questionário</h1>
-                        <p className="text-muted-foreground text-sm">
-                            Crie um formulário com seções e perguntas para enviar ao paciente.
+                        <h1 className="text-2xl font-semibold">
+                            Novo questionário
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            Crie um formulário com seções e perguntas para
+                            enviar ao paciente.
                         </p>
                     </div>
                 </div>
@@ -106,12 +125,20 @@ export default function QuestionnaireTemplateNewPage() {
                     </div>
                 </div>
 
-                {error && <p className="text-destructive text-sm">{error}</p>}
+                {error && <p className="text-sm text-destructive">{error}</p>}
 
-                <QuestionnaireSectionBuilder sections={sections} onChange={setSections} />
+                <QuestionnaireSectionBuilder
+                    sections={sections}
+                    onChange={setSections}
+                />
 
-                <Button onClick={handleSubmit} disabled={createTemplate.isPending}>
-                    {createTemplate.isPending ? 'Salvando...' : 'Salvar questionário'}
+                <Button
+                    onClick={handleSubmit}
+                    disabled={createTemplate.isPending}
+                >
+                    {createTemplate.isPending
+                        ? 'Salvando...'
+                        : 'Salvar questionário'}
                 </Button>
             </div>
         </ClinicLayout>

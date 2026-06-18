@@ -1,4 +1,12 @@
-import { AlertCircle, ArrowLeft, CheckCircle2, ImagePlus, Loader2, Upload, X } from 'lucide-react';
+import {
+    AlertCircle,
+    ArrowLeft,
+    CheckCircle2,
+    ImagePlus,
+    Loader2,
+    Upload,
+    X,
+} from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +22,8 @@ const ACCEPT_VIDEO =
 const ACCEPT_THUMB = 'image/jpeg,image/png,image/webp';
 
 export default function AdminVideoCreatePage() {
-    const { upload, abort, status, progress, error, reset } = usePresignedUpload();
+    const { upload, abort, status, progress, error, reset } =
+        usePresignedUpload();
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
     const [originalFilename, setOriginalFilename] = useState('');
@@ -67,14 +76,17 @@ export default function AdminVideoCreatePage() {
         if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
     }, []);
 
-    const handleThumbnailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setCropModalFile(file);
-            setCropModalOpen(true);
-        }
-        if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
-    }, []);
+    const handleThumbnailChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                setCropModalFile(file);
+                setCropModalOpen(true);
+            }
+            if (thumbnailInputRef.current) thumbnailInputRef.current.value = '';
+        },
+        [],
+    );
 
     const handleCropConfirm = useCallback((croppedFile: File) => {
         setThumbnailFile(croppedFile);
@@ -91,7 +103,9 @@ export default function AdminVideoCreatePage() {
     }, []);
 
     const isUploading =
-        status === 'requesting' || status === 'uploading' || status === 'confirming';
+        status === 'requesting' ||
+        status === 'uploading' ||
+        status === 'confirming';
 
     const statusLabels: Record<string, string> = {
         requesting: 'Solicitando URL...',
@@ -104,36 +118,53 @@ export default function AdminVideoCreatePage() {
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center gap-4 px-6 py-4">
-                        <Button variant="ghost" size="icon" asChild className="shrink-0">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            className="shrink-0"
+                        >
                             <Link to="/admin/videos">
                                 <ArrowLeft className="size-4" />
                             </Link>
                         </Button>
-                        <h1 className="text-foreground text-2xl font-semibold">Enviar vídeo</h1>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            Enviar vídeo
+                        </h1>
                     </div>
                 </header>
 
                 <div className="flex-1 overflow-auto p-6">
-                    <div className="border-border bg-card mx-auto max-w-2xl rounded-xl border p-6">
-                        <h2 className="text-foreground mb-4 text-lg font-semibold">Novo vídeo</h2>
+                    <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">
+                        <h2 className="mb-4 text-lg font-semibold text-foreground">
+                            Novo vídeo
+                        </h2>
 
                         {isUploading ? (
                             <div className="flex flex-col items-center gap-3 py-8">
-                                <Loader2 className="text-primary size-10 animate-spin" />
-                                <p className="text-sm font-medium">{statusLabels[status]}</p>
+                                <Loader2 className="size-10 animate-spin text-primary" />
+                                <p className="text-sm font-medium">
+                                    {statusLabels[status]}
+                                </p>
                                 {status === 'uploading' && (
                                     <div className="w-full max-w-xs">
-                                        <div className="bg-muted h-2 overflow-hidden rounded-full">
+                                        <div className="h-2 overflow-hidden rounded-full bg-muted">
                                             <div
-                                                className="bg-primary h-full rounded-full transition-all duration-300"
-                                                style={{ width: `${progress}%` }}
+                                                className="h-full rounded-full bg-primary transition-all duration-300"
+                                                style={{
+                                                    width: `${progress}%`,
+                                                }}
                                             />
                                         </div>
                                     </div>
                                 )}
-                                <Button variant="outline" size="sm" onClick={abort}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={abort}
+                                >
                                     <X className="mr-1 size-3" />
                                     Cancelar
                                 </Button>
@@ -145,11 +176,17 @@ export default function AdminVideoCreatePage() {
                                     Upload concluído!
                                 </p>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={reset}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={reset}
+                                    >
                                         Enviar outro
                                     </Button>
                                     <Button size="sm" asChild>
-                                        <Link to="/admin/videos">Ir para lista</Link>
+                                        <Link to="/admin/videos">
+                                            Ir para lista
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>
@@ -171,7 +208,7 @@ export default function AdminVideoCreatePage() {
                                 />
 
                                 <div>
-                                    <Label className="text-foreground mb-2 block text-sm font-medium">
+                                    <Label className="mb-2 block text-sm font-medium text-foreground">
                                         Vídeo (obrigatório)
                                     </Label>
                                     <div
@@ -189,19 +226,21 @@ export default function AdminVideoCreatePage() {
                                                 ? 'border-primary bg-primary/5'
                                                 : 'border-border bg-muted/30 hover:border-primary/50'
                                         }`}
-                                        onClick={() => fileInputRef.current?.click()}
+                                        onClick={() =>
+                                            fileInputRef.current?.click()
+                                        }
                                     >
                                         {videoFile ? (
                                             <div className="flex items-center gap-3">
-                                                <Upload className="text-muted-foreground size-5" />
-                                                <span className="text-foreground text-sm font-medium">
+                                                <Upload className="size-5 text-muted-foreground" />
+                                                <span className="text-sm font-medium text-foreground">
                                                     {videoFile.name}
                                                 </span>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="text-muted-foreground hover:text-destructive h-7"
+                                                    className="h-7 text-muted-foreground hover:text-destructive"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         clearVideo();
@@ -212,12 +251,14 @@ export default function AdminVideoCreatePage() {
                                             </div>
                                         ) : (
                                             <>
-                                                <Upload className="text-muted-foreground size-10" />
-                                                <p className="text-foreground mt-2 text-sm font-medium">
-                                                    Arraste o vídeo ou clique para selecionar
+                                                <Upload className="size-10 text-muted-foreground" />
+                                                <p className="mt-2 text-sm font-medium text-foreground">
+                                                    Arraste o vídeo ou clique
+                                                    para selecionar
                                                 </p>
-                                                <p className="text-muted-foreground mt-1 text-xs">
-                                                    MP4, MPEG, MOV, AVI, WebM, FLV, MKV — Máx. 20MB
+                                                <p className="mt-1 text-xs text-muted-foreground">
+                                                    MP4, MPEG, MOV, AVI, WebM,
+                                                    FLV, MKV — Máx. 20MB
                                                 </p>
                                             </>
                                         )}
@@ -232,7 +273,11 @@ export default function AdminVideoCreatePage() {
                                         <Input
                                             id="original_filename"
                                             value={originalFilename}
-                                            onChange={(e) => setOriginalFilename(e.target.value)}
+                                            onChange={(e) =>
+                                                setOriginalFilename(
+                                                    e.target.value,
+                                                )
+                                            }
                                             placeholder={videoFile.name}
                                             className="mt-1"
                                         />
@@ -240,24 +285,26 @@ export default function AdminVideoCreatePage() {
                                 )}
 
                                 <div>
-                                    <Label className="text-foreground mb-2 block text-sm font-medium">
+                                    <Label className="mb-2 block text-sm font-medium text-foreground">
                                         Thumbnail (opcional)
                                     </Label>
                                     <div
-                                        className="border-border bg-muted/30 hover:border-primary/50 flex min-h-[80px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-4 transition-colors"
-                                        onClick={() => thumbnailInputRef.current?.click()}
+                                        className="flex min-h-[80px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 py-4 transition-colors hover:border-primary/50"
+                                        onClick={() =>
+                                            thumbnailInputRef.current?.click()
+                                        }
                                     >
                                         {thumbnailFile ? (
                                             <div className="flex w-full items-center justify-between gap-2 px-4">
-                                                <ImagePlus className="text-muted-foreground size-5" />
-                                                <span className="text-foreground min-w-0 flex-1 truncate text-sm">
+                                                <ImagePlus className="size-5 text-muted-foreground" />
+                                                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                                                     {thumbnailFile.name}
                                                 </span>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="text-muted-foreground hover:text-destructive h-7 shrink-0"
+                                                    className="h-7 shrink-0 text-muted-foreground hover:text-destructive"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         clearThumbnail();
@@ -268,11 +315,12 @@ export default function AdminVideoCreatePage() {
                                             </div>
                                         ) : (
                                             <>
-                                                <ImagePlus className="text-muted-foreground size-8" />
-                                                <p className="text-foreground mt-2 text-sm font-medium">
-                                                    Clique para escolher uma imagem
+                                                <ImagePlus className="size-8 text-muted-foreground" />
+                                                <p className="mt-2 text-sm font-medium text-foreground">
+                                                    Clique para escolher uma
+                                                    imagem
                                                 </p>
-                                                <p className="text-muted-foreground mt-1 text-xs">
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     JPEG, PNG ou WebP — Máx. 5MB
                                                 </p>
                                             </>
@@ -281,13 +329,17 @@ export default function AdminVideoCreatePage() {
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="duration">Duração em segundos (opcional)</Label>
+                                    <Label htmlFor="duration">
+                                        Duração em segundos (opcional)
+                                    </Label>
                                     <Input
                                         id="duration"
                                         type="number"
                                         min={0}
                                         value={duration}
-                                        onChange={(e) => setDuration(e.target.value)}
+                                        onChange={(e) =>
+                                            setDuration(e.target.value)
+                                        }
                                         placeholder="Ex: 120"
                                         className="mt-1"
                                     />
@@ -297,13 +349,16 @@ export default function AdminVideoCreatePage() {
                                     <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">
                                         <AlertCircle className="size-4 shrink-0" />
                                         <span>{error}</span>
-                                        <button onClick={() => reset()} className="ml-auto">
+                                        <button
+                                            onClick={() => reset()}
+                                            className="ml-auto"
+                                        >
                                             <X className="size-4" />
                                         </button>
                                     </div>
                                 )}
 
-                                <div className="border-border flex items-center justify-end gap-3 border-t pt-4">
+                                <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
                                     <Button variant="outline" asChild>
                                         <Link to="/admin/videos">Cancelar</Link>
                                     </Button>

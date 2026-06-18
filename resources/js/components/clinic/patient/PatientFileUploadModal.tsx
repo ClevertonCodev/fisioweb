@@ -159,13 +159,13 @@ export function PatientFileUploadModal({
                         setDragOver(false);
                     }}
                     onDrop={handleDrop}
-                    className={`border-border flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
-                        dragOver ? 'bg-primary/5 border-primary' : 'bg-muted/30'
+                    className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border p-6 transition-colors ${
+                        dragOver ? 'border-primary bg-primary/5' : 'bg-muted/30'
                     } ${isPending ? 'pointer-events-none opacity-60' : ''}`}
                     onClick={() => !isPending && fileInputRef.current?.click()}
                 >
-                    <Upload className="text-muted-foreground mb-2 h-8 w-8" />
-                    <p className="text-muted-foreground text-center text-sm">
+                    <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+                    <p className="text-center text-sm text-muted-foreground">
                         Arraste um arquivo aqui ou clique para escolher
                     </p>
                     <Button
@@ -195,7 +195,7 @@ export function PatientFileUploadModal({
                 </div>
 
                 {file && (
-                    <div className="border-border space-y-3 rounded-lg border p-3">
+                    <div className="space-y-3 rounded-lg border border-border p-3">
                         <div className="flex items-start gap-3">
                             {previewUrl ? (
                                 <img
@@ -204,13 +204,15 @@ export function PatientFileUploadModal({
                                     className="h-20 w-20 shrink-0 rounded-md object-cover"
                                 />
                             ) : (
-                                <div className="bg-muted flex h-20 w-20 shrink-0 items-center justify-center rounded-md">
-                                    <FileText className="text-muted-foreground h-8 w-8" />
+                                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md bg-muted">
+                                    <FileText className="h-8 w-8 text-muted-foreground" />
                                 </div>
                             )}
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium">{file.name}</p>
-                                <p className="text-muted-foreground text-xs">
+                                <p className="truncate text-sm font-medium">
+                                    {file.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
                                     {formatBytes(file.size)}
                                 </p>
                             </div>
@@ -228,8 +230,11 @@ export function PatientFileUploadModal({
                         </div>
                         {isPending && (
                             <div className="space-y-1">
-                                <Progress value={uploadPercent} className="h-2" />
-                                <p className="text-muted-foreground text-center text-xs">
+                                <Progress
+                                    value={uploadPercent}
+                                    className="h-2"
+                                />
+                                <p className="text-center text-xs text-muted-foreground">
                                     Enviando… {uploadPercent}%
                                 </p>
                             </div>

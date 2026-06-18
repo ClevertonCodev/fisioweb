@@ -15,10 +15,10 @@ export function CalendarSidebar({
     onUserChange,
 }: CalendarSidebarProps) {
     return (
-        <div className="border-border bg-card hidden w-56 shrink-0 space-y-6 border-r p-4 lg:block">
+        <div className="hidden w-56 shrink-0 space-y-6 border-r border-border bg-card p-4 lg:block">
             {/* Fisioterapeutas */}
             <div className="space-y-3">
-                <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     Fisioterapeutas
                 </h3>
                 <div className="space-y-1">
@@ -27,7 +27,7 @@ export function CalendarSidebar({
                         className={cn(
                             'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                             !selectedUserId
-                                ? 'bg-accent text-accent-foreground font-medium'
+                                ? 'bg-accent font-medium text-accent-foreground'
                                 : 'text-foreground hover:bg-muted',
                         )}
                     >
@@ -37,12 +37,16 @@ export function CalendarSidebar({
                         <button
                             key={user.id}
                             onClick={() =>
-                                onUserChange(selectedUserId === user.id ? undefined : user.id)
+                                onUserChange(
+                                    selectedUserId === user.id
+                                        ? undefined
+                                        : user.id,
+                                )
                             }
                             className={cn(
                                 'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                                 selectedUserId === user.id
-                                    ? 'bg-accent text-accent-foreground font-medium'
+                                    ? 'bg-accent font-medium text-accent-foreground'
                                     : 'text-foreground hover:bg-muted',
                             )}
                         >
@@ -61,7 +65,7 @@ export function CalendarSidebar({
 
             {/* Legenda de status */}
             <div className="space-y-3">
-                <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                     Status
                 </h3>
                 <div className="space-y-2">
@@ -71,7 +75,9 @@ export function CalendarSidebar({
                                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                                 style={{ backgroundColor: bg }}
                             />
-                            <span className="text-muted-foreground text-sm">{label}</span>
+                            <span className="text-sm text-muted-foreground">
+                                {label}
+                            </span>
                         </div>
                     ))}
                 </div>

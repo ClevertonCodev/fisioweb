@@ -56,7 +56,9 @@ export default function AdminExercisesIndexPage() {
         deleteMutation.mutate(id, {
             onSuccess: () => toast.success('Exercício removido.'),
             onError: (err: unknown) => {
-                const res = (err as { response?: { data?: { message?: string } } })?.response?.data;
+                const res = (
+                    err as { response?: { data?: { message?: string } } }
+                )?.response?.data;
                 toast.error(res?.message ?? 'Erro ao excluir.');
             },
         });
@@ -80,9 +82,11 @@ export default function AdminExercisesIndexPage() {
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center justify-between px-6 py-4">
-                        <h1 className="text-foreground text-2xl font-semibold">Exercícios</h1>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            Exercícios
+                        </h1>
                         <Button
                             onClick={() => navigate('/admin/exercicios/novo')}
                             className="gap-2"
@@ -98,13 +102,21 @@ export default function AdminExercisesIndexPage() {
                         search={search}
                         onSearchChange={(v) => setSearch(v)}
                         physioAreaId={physioAreaId}
-                        onPhysioAreaChange={(v) => setAndResetPage(setPhysioAreaId, v)}
+                        onPhysioAreaChange={(v) =>
+                            setAndResetPage(setPhysioAreaId, v)
+                        }
                         bodyRegionId={bodyRegionId}
-                        onBodyRegionChange={(v) => setAndResetPage(setBodyRegionId, v)}
+                        onBodyRegionChange={(v) =>
+                            setAndResetPage(setBodyRegionId, v)
+                        }
                         difficultyLevel={difficultyLevel}
-                        onDifficultyChange={(v) => setAndResetPage(setDifficultyLevel, v)}
+                        onDifficultyChange={(v) =>
+                            setAndResetPage(setDifficultyLevel, v)
+                        }
                         movementForm={movementForm}
-                        onMovementFormChange={(v) => setAndResetPage(setMovementForm, v)}
+                        onMovementFormChange={(v) =>
+                            setAndResetPage(setMovementForm, v)
+                        }
                         onSearch={() => {
                             setAppliedSearch(search);
                             setPage(1);
@@ -113,9 +125,10 @@ export default function AdminExercisesIndexPage() {
                         options={options}
                     />
 
-                    <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
                         <span>
-                            Total de <strong>exercícios</strong>: <strong>{total}</strong>
+                            Total de <strong>exercícios</strong>:{' '}
+                            <strong>{total}</strong>
                             {lastPage > 1 && (
                                 <span className="ml-2">
                                     ( página {page} de {lastPage} )

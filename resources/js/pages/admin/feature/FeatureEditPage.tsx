@@ -57,8 +57,12 @@ function EditFeatureForm({
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-1.5">
                             <Label>Chave (key)</Label>
-                            <Input value={form.key} disabled className="bg-muted/50" />
-                            <p className="text-muted-foreground text-xs">
+                            <Input
+                                value={form.key}
+                                disabled
+                                className="bg-muted/50"
+                            />
+                            <p className="text-xs text-muted-foreground">
                                 A chave não pode ser alterada.
                             </p>
                         </div>
@@ -70,7 +74,10 @@ function EditFeatureForm({
                                 placeholder="Nome da funcionalidade"
                                 value={form.name}
                                 onChange={(e) =>
-                                    setForm((prev) => ({ ...prev, name: e.target.value }))
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        name: e.target.value,
+                                    }))
                                 }
                                 required
                             />
@@ -79,7 +86,12 @@ function EditFeatureForm({
                             <Label>Valor Isolado</Label>
                             <MoneyInput
                                 value={form.valueIsolated}
-                                onChange={(v) => setForm((prev) => ({ ...prev, valueIsolated: v }))}
+                                onChange={(v) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        valueIsolated: v,
+                                    }))
+                                }
                                 name="valueIsolated"
                                 placeholder="0,00"
                             />
@@ -90,14 +102,19 @@ function EditFeatureForm({
                             </Label>
                             <Select
                                 value={form.type}
-                                onValueChange={(v) => setForm((prev) => ({ ...prev, type: v }))}
+                                onValueChange={(v) =>
+                                    setForm((prev) => ({ ...prev, type: v }))
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecione o tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {featureTypes.map((t) => (
-                                        <SelectItem key={t.value} value={t.value}>
+                                        <SelectItem
+                                            key={t.value}
+                                            value={t.value}
+                                        >
                                             {t.label}
                                         </SelectItem>
                                     ))}
@@ -118,7 +135,11 @@ function EditFeatureForm({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={!form.name || !form.type || updateMutation.isPending}
+                            disabled={
+                                !form.name ||
+                                !form.type ||
+                                updateMutation.isPending
+                            }
                         >
                             Salvar alterações
                         </Button>
@@ -130,12 +151,18 @@ function EditFeatureForm({
 }
 
 /** Conteúdo da página: só monta quando a API já retornou e temos `feature`. */
-function EditFeaturePageContent({ feature, featureId }: { feature: Feature; featureId: number }) {
+function EditFeaturePageContent({
+    feature,
+    featureId,
+}: {
+    feature: Feature;
+    featureId: number;
+}) {
     const navigate = useNavigate();
 
     return (
         <div className="space-y-6 p-4 md:p-6">
-            <div className="text-muted-foreground text-sm">
+            <div className="text-sm text-muted-foreground">
                 <span
                     className="cursor-pointer hover:underline"
                     onClick={() => navigate('/admin/funcionalidades')}
@@ -154,7 +181,9 @@ function EditFeaturePageContent({ feature, featureId }: { feature: Feature; feat
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-foreground text-2xl font-semibold">Editar Funcionalidade</h1>
+                <h1 className="text-2xl font-semibold text-foreground">
+                    Editar Funcionalidade
+                </h1>
             </div>
 
             <EditFeatureForm

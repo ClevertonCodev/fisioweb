@@ -51,7 +51,10 @@ const difficultyMap: Record<string, ExerciseDifficulty> = {
 };
 
 function toEntity(raw: ApiExercise): Exercise {
-    const video = raw.videos.find((v) => v.status === 'completed') ?? raw.videos[0] ?? null;
+    const video =
+        raw.videos.find((v) => v.status === 'completed') ??
+        raw.videos[0] ??
+        null;
 
     return {
         id: String(raw.id),
@@ -76,20 +79,28 @@ function toEntity(raw: ApiExercise): Exercise {
 
 export const apiClinicExercisesRepository: ExercisesRepository = {
     async list() {
-        const { data } = await apiClient.get<{ data: ApiPaginator }>('/clinic/exercises', {
-            params: { per_page: 200 },
-        });
+        const { data } = await apiClient.get<{ data: ApiPaginator }>(
+            '/clinic/exercises',
+            {
+                params: { per_page: 200 },
+            },
+        );
         const items = data?.data?.data ?? [];
         return items.map(toEntity);
     },
 
-    async listPaginated(params?: ExerciseListParams): Promise<ExerciseListResult> {
-        const { data } = await apiClient.get<{ data: ApiPaginator }>('/clinic/exercises', {
-            params: {
-                page: params?.page ?? 1,
-                per_page: params?.perPage ?? 20,
+    async listPaginated(
+        params?: ExerciseListParams,
+    ): Promise<ExerciseListResult> {
+        const { data } = await apiClient.get<{ data: ApiPaginator }>(
+            '/clinic/exercises',
+            {
+                params: {
+                    page: params?.page ?? 1,
+                    per_page: params?.perPage ?? 20,
+                },
             },
-        });
+        );
         return {
             items: (data?.data?.data ?? []).map(toEntity),
             total: data?.data?.total ?? 0,
@@ -100,7 +111,9 @@ export const apiClinicExercisesRepository: ExercisesRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: ApiExercise }>(`/clinic/exercises/${id}`);
+        const { data } = await apiClient.get<{ data: ApiExercise }>(
+            `/clinic/exercises/${id}`,
+        );
         if (!data?.data) return null;
         return toEntity(data.data);
     },

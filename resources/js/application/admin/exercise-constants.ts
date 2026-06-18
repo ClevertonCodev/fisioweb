@@ -6,7 +6,10 @@ export const DIFFICULTY_LABELS: Record<string, string> = {
     hard: 'Difícil',
 };
 
-export const DIFFICULTY_VARIANTS: Record<string, 'active' | 'warning' | 'danger'> = {
+export const DIFFICULTY_VARIANTS: Record<
+    string,
+    'active' | 'warning' | 'danger'
+> = {
     easy: 'active',
     medium: 'warning',
     hard: 'danger',
@@ -31,7 +34,10 @@ export const VIDEO_STATUS_LABELS: Record<string, string> = {
     failed: 'Falhou',
 };
 
-export const VIDEO_STATUS_VARIANTS: Record<string, 'active' | 'warning' | 'neutral' | 'danger'> = {
+export const VIDEO_STATUS_VARIANTS: Record<
+    string,
+    'active' | 'warning' | 'neutral' | 'danger'
+> = {
     pending: 'neutral',
     processing: 'warning',
     completed: 'active',

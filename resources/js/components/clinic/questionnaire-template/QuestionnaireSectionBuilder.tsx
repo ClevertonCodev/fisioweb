@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 
 import {
@@ -44,7 +50,12 @@ function updateQuestion(
     return sections.map((s, sIdx) =>
         sIdx !== si
             ? s
-            : { ...s, questions: s.questions.map((q, qIdx) => (qIdx !== qi ? q : updater(q))) },
+            : {
+                  ...s,
+                  questions: s.questions.map((q, qIdx) =>
+                      qIdx !== qi ? q : updater(q),
+                  ),
+              },
     );
 }
 
@@ -55,13 +66,17 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                 <Card key={section._key}>
                     <CardHeader className="space-y-3">
                         <div className="flex items-center justify-between gap-2">
-                            <CardTitle className="text-base">Seção {si + 1}</CardTitle>
+                            <CardTitle className="text-base">
+                                Seção {si + 1}
+                            </CardTitle>
                             <div className="flex items-center gap-1">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() => onChange(moveUp(sections, si))}
+                                    onClick={() =>
+                                        onChange(moveUp(sections, si))
+                                    }
                                     disabled={si === 0}
                                 >
                                     <ArrowUp className="h-4 w-4" />
@@ -70,7 +85,9 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                     type="button"
                                     variant="outline"
                                     size="icon"
-                                    onClick={() => onChange(moveDown(sections, si))}
+                                    onClick={() =>
+                                        onChange(moveDown(sections, si))
+                                    }
                                     disabled={si === sections.length - 1}
                                 >
                                     <ArrowDown className="h-4 w-4" />
@@ -79,7 +96,13 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                     type="button"
                                     variant="destructive"
                                     size="sm"
-                                    onClick={() => onChange(sections.filter((_, idx) => idx !== si))}
+                                    onClick={() =>
+                                        onChange(
+                                            sections.filter(
+                                                (_, idx) => idx !== si,
+                                            ),
+                                        )
+                                    }
                                 >
                                     <Trash2 className="mr-1 h-4 w-4" />
                                     Remover seção
@@ -92,7 +115,9 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                             onChange={(e) =>
                                 onChange(
                                     sections.map((s, idx) =>
-                                        idx !== si ? s : { ...s, title: e.target.value },
+                                        idx !== si
+                                            ? s
+                                            : { ...s, title: e.target.value },
                                     ),
                                 )
                             }
@@ -103,11 +128,11 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                         {section.questions.map((question, qi) => (
                             <div
                                 key={question._key}
-                                className="bg-muted/30 space-y-3 rounded-md border p-4"
+                                className="space-y-3 rounded-md border bg-muted/30 p-4"
                             >
                                 {/* cabeçalho da pergunta */}
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="text-muted-foreground text-xs font-medium">
+                                    <span className="text-xs font-medium text-muted-foreground">
                                         Pergunta {qi + 1}
                                     </span>
                                     <div className="flex items-center gap-1">
@@ -123,7 +148,11 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                                             ? s
                                                             : {
                                                                   ...s,
-                                                                  questions: moveUp(s.questions, qi),
+                                                                  questions:
+                                                                      moveUp(
+                                                                          s.questions,
+                                                                          qi,
+                                                                      ),
                                                               },
                                                     ),
                                                 )
@@ -144,12 +173,19 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                                             ? s
                                                             : {
                                                                   ...s,
-                                                                  questions: moveDown(s.questions, qi),
+                                                                  questions:
+                                                                      moveDown(
+                                                                          s.questions,
+                                                                          qi,
+                                                                      ),
                                                               },
                                                     ),
                                                 )
                                             }
-                                            disabled={qi === section.questions.length - 1}
+                                            disabled={
+                                                qi ===
+                                                section.questions.length - 1
+                                            }
                                         >
                                             <ArrowDown className="h-3 w-3" />
                                         </Button>
@@ -165,9 +201,15 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                                             ? s
                                                             : {
                                                                   ...s,
-                                                                  questions: s.questions.filter(
-                                                                      (_, qIdx) => qIdx !== qi,
-                                                                  ),
+                                                                  questions:
+                                                                      s.questions.filter(
+                                                                          (
+                                                                              _,
+                                                                              qIdx,
+                                                                          ) =>
+                                                                              qIdx !==
+                                                                              qi,
+                                                                      ),
                                                               },
                                                     ),
                                                 )
@@ -186,10 +228,15 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                         value={question.label}
                                         onChange={(e) =>
                                             onChange(
-                                                updateQuestion(sections, si, qi, (q) => ({
-                                                    ...q,
-                                                    label: e.target.value,
-                                                })),
+                                                updateQuestion(
+                                                    sections,
+                                                    si,
+                                                    qi,
+                                                    (q) => ({
+                                                        ...q,
+                                                        label: e.target.value,
+                                                    }),
+                                                ),
                                             )
                                         }
                                     />
@@ -197,21 +244,32 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
 
                                 {/* tipo */}
                                 <div className="space-y-1">
-                                    <Label className="text-xs">Tipo de resposta</Label>
+                                    <Label className="text-xs">
+                                        Tipo de resposta
+                                    </Label>
                                     <Select
                                         value={question.type}
                                         onValueChange={(v) =>
                                             onChange(
-                                                updateQuestion(sections, si, qi, (q) => ({
-                                                    ...q,
-                                                    type: v as QuestionType,
-                                                    options:
-                                                        v === 'multiple_choice' || v === 'checkbox'
-                                                            ? q.options.length >= 2
+                                                updateQuestion(
+                                                    sections,
+                                                    si,
+                                                    qi,
+                                                    (q) => ({
+                                                        ...q,
+                                                        type: v as QuestionType,
+                                                        options:
+                                                            v ===
+                                                                'multiple_choice' ||
+                                                            v === 'checkbox'
                                                                 ? q.options
-                                                                : ['', '']
-                                                            : q.options,
-                                                })),
+                                                                      .length >=
+                                                                  2
+                                                                    ? q.options
+                                                                    : ['', '']
+                                                                : q.options,
+                                                    }),
+                                                ),
                                             )
                                         }
                                     >
@@ -220,12 +278,14 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {(
-                                                Object.entries(questionTypeLabels) as [
-                                                    QuestionType,
-                                                    string,
-                                                ][]
+                                                Object.entries(
+                                                    questionTypeLabels,
+                                                ) as [QuestionType, string][]
                                             ).map(([value, label]) => (
-                                                <SelectItem key={value} value={value}>
+                                                <SelectItem
+                                                    key={value}
+                                                    value={value}
+                                                >
                                                     {label}
                                                 </SelectItem>
                                             ))}
@@ -237,11 +297,19 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                 {(question.type === 'multiple_choice' ||
                                     question.type === 'checkbox') && (
                                     <div className="space-y-2">
-                                        <Label className="text-xs">Opções</Label>
+                                        <Label className="text-xs">
+                                            Opções
+                                        </Label>
                                         {question.options.map((opt, oi) => (
-                                            <div key={oi} className="flex items-center gap-2">
-                                                <span className="text-muted-foreground w-5 text-xs">
-                                                    {String.fromCharCode(65 + oi)}.
+                                            <div
+                                                key={oi}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <span className="w-5 text-xs text-muted-foreground">
+                                                    {String.fromCharCode(
+                                                        65 + oi,
+                                                    )}
+                                                    .
                                                 </span>
                                                 <Input
                                                     placeholder={`Opção ${oi + 1}`}
@@ -254,18 +322,26 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                                                 qi,
                                                                 (q) => ({
                                                                     ...q,
-                                                                    options: q.options.map(
-                                                                        (o, oIdx) =>
-                                                                            oIdx === oi
-                                                                                ? e.target.value
-                                                                                : o,
-                                                                    ),
+                                                                    options:
+                                                                        q.options.map(
+                                                                            (
+                                                                                o,
+                                                                                oIdx,
+                                                                            ) =>
+                                                                                oIdx ===
+                                                                                oi
+                                                                                    ? e
+                                                                                          .target
+                                                                                          .value
+                                                                                    : o,
+                                                                        ),
                                                                 }),
                                                             ),
                                                         )
                                                     }
                                                 />
-                                                {question.options.length > 2 && (
+                                                {question.options.length >
+                                                    2 && (
                                                     <Button
                                                         type="button"
                                                         variant="ghost"
@@ -279,9 +355,15 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                                                     qi,
                                                                     (q) => ({
                                                                         ...q,
-                                                                        options: q.options.filter(
-                                                                            (_, oIdx) => oIdx !== oi,
-                                                                        ),
+                                                                        options:
+                                                                            q.options.filter(
+                                                                                (
+                                                                                    _,
+                                                                                    oIdx,
+                                                                                ) =>
+                                                                                    oIdx !==
+                                                                                    oi,
+                                                                            ),
                                                                     }),
                                                                 ),
                                                             )
@@ -298,10 +380,18 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                             size="sm"
                                             onClick={() =>
                                                 onChange(
-                                                    updateQuestion(sections, si, qi, (q) => ({
-                                                        ...q,
-                                                        options: [...q.options, ''],
-                                                    })),
+                                                    updateQuestion(
+                                                        sections,
+                                                        si,
+                                                        qi,
+                                                        (q) => ({
+                                                            ...q,
+                                                            options: [
+                                                                ...q.options,
+                                                                '',
+                                                            ],
+                                                        }),
+                                                    ),
                                                 )
                                             }
                                         >
@@ -315,33 +405,55 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                 {question.type === 'scale' && (
                                     <div className="flex gap-4">
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Mínimo</Label>
+                                            <Label className="text-xs">
+                                                Mínimo
+                                            </Label>
                                             <Input
                                                 type="number"
                                                 className="w-20"
                                                 value={question.scaleMin}
                                                 onChange={(e) =>
                                                     onChange(
-                                                        updateQuestion(sections, si, qi, (q) => ({
-                                                            ...q,
-                                                            scaleMin: Number(e.target.value),
-                                                        })),
+                                                        updateQuestion(
+                                                            sections,
+                                                            si,
+                                                            qi,
+                                                            (q) => ({
+                                                                ...q,
+                                                                scaleMin:
+                                                                    Number(
+                                                                        e.target
+                                                                            .value,
+                                                                    ),
+                                                            }),
+                                                        ),
                                                     )
                                                 }
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Máximo</Label>
+                                            <Label className="text-xs">
+                                                Máximo
+                                            </Label>
                                             <Input
                                                 type="number"
                                                 className="w-20"
                                                 value={question.scaleMax}
                                                 onChange={(e) =>
                                                     onChange(
-                                                        updateQuestion(sections, si, qi, (q) => ({
-                                                            ...q,
-                                                            scaleMax: Number(e.target.value),
-                                                        })),
+                                                        updateQuestion(
+                                                            sections,
+                                                            si,
+                                                            qi,
+                                                            (q) => ({
+                                                                ...q,
+                                                                scaleMax:
+                                                                    Number(
+                                                                        e.target
+                                                                            .value,
+                                                                    ),
+                                                            }),
+                                                        ),
                                                     )
                                                 }
                                             />
@@ -356,10 +468,15 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                         checked={question.required}
                                         onCheckedChange={(v) =>
                                             onChange(
-                                                updateQuestion(sections, si, qi, (q) => ({
-                                                    ...q,
-                                                    required: v,
-                                                })),
+                                                updateQuestion(
+                                                    sections,
+                                                    si,
+                                                    qi,
+                                                    (q) => ({
+                                                        ...q,
+                                                        required: v,
+                                                    }),
+                                                ),
                                             )
                                         }
                                     />
@@ -382,7 +499,13 @@ export function QuestionnaireSectionBuilder({ sections, onChange }: Props) {
                                     sections.map((s, sIdx) =>
                                         sIdx !== si
                                             ? s
-                                            : { ...s, questions: [...s.questions, createDraftQuestion()] },
+                                            : {
+                                                  ...s,
+                                                  questions: [
+                                                      ...s.questions,
+                                                      createDraftQuestion(),
+                                                  ],
+                                              },
                                     ),
                                 )
                             }

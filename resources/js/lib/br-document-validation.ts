@@ -52,13 +52,17 @@ export function isValidCrefitoRegistration(raw: string): boolean {
     if (s.length < 6 || s.length > 30) return false;
     if (!/[A-Za-zÀ-ÿ]/u.test(s)) return false;
     const compact = s.replace(/\s+/g, '');
-    return /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u.test(compact);
+    return /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u.test(
+        compact,
+    );
 }
 
 export type ClinicUserDocumentKind = 'cpf' | 'cnpj' | 'crefito';
 
 /** Melhor esforço para pré-selecionar o tipo na edição. */
-export function inferClinicUserDocumentKind(raw: string | undefined | null): ClinicUserDocumentKind {
+export function inferClinicUserDocumentKind(
+    raw: string | undefined | null,
+): ClinicUserDocumentKind {
     const d = (raw ?? '').trim();
     if (!d) return 'cpf';
     if (/[A-Za-zÀ-ÿ]/u.test(d)) return 'crefito';

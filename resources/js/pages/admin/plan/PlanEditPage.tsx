@@ -57,20 +57,25 @@ function EditPlanForm({
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-1.5">
                             <Label>
-                                Nome do Plano <span className="text-destructive">*</span>
+                                Nome do Plano{' '}
+                                <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 placeholder="Digite o nome do plano"
                                 value={form.name}
                                 onChange={(e) =>
-                                    setForm((prev) => ({ ...prev, name: e.target.value }))
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        name: e.target.value,
+                                    }))
                                 }
                                 required
                             />
                         </div>
                         <div className="space-y-1.5">
                             <Label>
-                                Tipo de Cobrança <span className="text-destructive">*</span>
+                                Tipo de Cobrança{' '}
+                                <span className="text-destructive">*</span>
                             </Label>
                             <Select
                                 value={form.billingType}
@@ -86,7 +91,10 @@ function EditPlanForm({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {billingTypes.map((t) => (
-                                        <SelectItem key={t.value} value={t.value}>
+                                        <SelectItem
+                                            key={t.value}
+                                            value={t.value}
+                                        >
                                             {t.label}
                                         </SelectItem>
                                     ))}
@@ -95,22 +103,34 @@ function EditPlanForm({
                         </div>
                         <div className="space-y-1.5">
                             <Label>
-                                Valor Mensal <span className="text-destructive">*</span>
+                                Valor Mensal{' '}
+                                <span className="text-destructive">*</span>
                             </Label>
                             <MoneyInput
                                 value={form.monthlyValue}
-                                onChange={(v) => setForm((prev) => ({ ...prev, monthlyValue: v }))}
+                                onChange={(v) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        monthlyValue: v,
+                                    }))
+                                }
                                 name="monthlyValue"
                                 placeholder="0,00"
                             />
                         </div>
                         <div className="space-y-1.5">
                             <Label>
-                                Valor Anual <span className="text-destructive">*</span>
+                                Valor Anual{' '}
+                                <span className="text-destructive">*</span>
                             </Label>
                             <MoneyInput
                                 value={form.annualValue}
-                                onChange={(v) => setForm((prev) => ({ ...prev, annualValue: v }))}
+                                onChange={(v) =>
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        annualValue: v,
+                                    }))
+                                }
                                 name="annualValue"
                                 placeholder="0,00"
                             />
@@ -129,7 +149,11 @@ function EditPlanForm({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={!form.name || !form.billingType || updateMutation.isPending}
+                            disabled={
+                                !form.name ||
+                                !form.billingType ||
+                                updateMutation.isPending
+                            }
                         >
                             Salvar alterações
                         </Button>
@@ -145,7 +169,7 @@ function PlanEditPageContent({ plan, planId }: { plan: Plan; planId: number }) {
 
     return (
         <div className="space-y-6 p-4 md:p-6">
-            <div className="text-muted-foreground text-sm">
+            <div className="text-sm text-muted-foreground">
                 <span
                     className="cursor-pointer hover:underline"
                     onClick={() => navigate('/admin/planos')}
@@ -157,10 +181,16 @@ function PlanEditPageContent({ plan, planId }: { plan: Plan; planId: number }) {
             </div>
 
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/admin/planos')}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/admin/planos')}
+                >
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h1 className="text-foreground text-2xl font-semibold">Editar Plano</h1>
+                <h1 className="text-2xl font-semibold text-foreground">
+                    Editar Plano
+                </h1>
             </div>
 
             <EditPlanForm

@@ -46,8 +46,10 @@ export default function PatientNewPage() {
     const [activeTab, setActiveTab] = useState('dados-pessoais');
     const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-    const { mutateAsync: createPatient, isPending: isCreating } = useCreatePatient();
-    const { mutateAsync: uploadPhoto, isPending: isUploading } = useUploadPatientPhoto();
+    const { mutateAsync: createPatient, isPending: isCreating } =
+        useCreatePatient();
+    const { mutateAsync: uploadPhoto, isPending: isUploading } =
+        useUploadPatientPhoto();
     const isPending = isCreating || isUploading;
 
     const form = useForm<PatientFormValues>({
@@ -63,7 +65,9 @@ export default function PatientNewPage() {
     const tabsWithErrors = useMemo(() => {
         return Object.entries(patientFormTabFields)
             .filter(([, fields]) =>
-                (fields as (keyof PatientFormValues)[]).some((f) => !!errors[f]),
+                (fields as (keyof PatientFormValues)[]).some(
+                    (f) => !!errors[f],
+                ),
             )
             .map(([tab]) => tab);
     }, [errors]);
@@ -87,28 +91,34 @@ export default function PatientNewPage() {
             toast.success('Paciente cadastrado com sucesso');
             navigate('/clinica/pacientes');
         } catch {
-            toast.error('Erro ao cadastrar paciente. Verifique os dados e tente novamente.');
+            toast.error(
+                'Erro ao cadastrar paciente. Verifique os dados e tente novamente.',
+            );
         }
     };
 
     return (
         <ClinicLayout>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex h-full flex-col"
+            >
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
                         <button
                             type="button"
                             onClick={() => navigate('/clinica/pacientes')}
-                            className="text-muted-foreground hover:text-foreground mb-4 flex items-center gap-1 text-sm"
+                            className="mb-4 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
                         >
                             <ArrowLeft className="h-4 w-4" />
                             Voltar
                         </button>
-                        <h1 className="text-foreground mb-1 text-2xl font-semibold">
+                        <h1 className="mb-1 text-2xl font-semibold text-foreground">
                             Adicionar paciente
                         </h1>
-                        <p className="text-muted-foreground mb-4 text-sm">
-                            Crie as informações de seu paciente e salve as alterações
+                        <p className="mb-4 text-sm text-muted-foreground">
+                            Crie as informações de seu paciente e salve as
+                            alterações
                         </p>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <TabsList className="h-auto flex-wrap gap-0 rounded-none bg-transparent p-0">
@@ -116,11 +126,11 @@ export default function PatientNewPage() {
                                     <TabsTrigger
                                         key={tab.value}
                                         value={tab.value}
-                                        className="data-[state=active]:border-primary relative rounded-none border-b-2 border-transparent px-4 pt-1 pb-3 text-sm font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                                        className="relative rounded-none border-b-2 border-transparent px-4 pt-1 pb-3 text-sm font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                                     >
                                         {tab.label}
                                         {tabsWithErrors.includes(tab.value) && (
-                                            <span className="bg-destructive absolute top-1 right-1 h-1.5 w-1.5 rounded-full" />
+                                            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-destructive" />
                                         )}
                                     </TabsTrigger>
                                 ))}
@@ -131,8 +141,15 @@ export default function PatientNewPage() {
 
                 <div className="flex-1 overflow-auto p-6">
                     <div className="max-w-3xl">
-                        <div className={activeTab !== 'dados-pessoais' ? 'hidden' : ''}>
-                            <PatientPhotoSection value={photoFile} onChange={setPhotoFile} />
+                        <div
+                            className={
+                                activeTab !== 'dados-pessoais' ? 'hidden' : ''
+                            }
+                        >
+                            <PatientPhotoSection
+                                value={photoFile}
+                                onChange={setPhotoFile}
+                            />
                             <div className="mb-6 flex flex-wrap items-center gap-4">
                                 <div className="w-64">
                                     <Controller
@@ -153,7 +170,9 @@ export default function PatientNewPage() {
                                                     <SelectItem value="em_prevencao">
                                                         Em prevenção
                                                     </SelectItem>
-                                                    <SelectItem value="alta">Alta</SelectItem>
+                                                    <SelectItem value="alta">
+                                                        Alta
+                                                    </SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -162,24 +181,43 @@ export default function PatientNewPage() {
                             </div>
                             <PatientFormPersonal form={form} />
                         </div>
-                        <div className={activeTab !== 'contato' ? 'hidden' : ''}>
+                        <div
+                            className={activeTab !== 'contato' ? 'hidden' : ''}
+                        >
                             <PatientFormContact form={form} />
                         </div>
-                        <div className={activeTab !== 'endereco' ? 'hidden' : ''}>
+                        <div
+                            className={activeTab !== 'endereco' ? 'hidden' : ''}
+                        >
                             <PatientFormAddress form={form} />
                         </div>
-                        <div className={activeTab !== 'convenio' ? 'hidden' : ''}>
+                        <div
+                            className={activeTab !== 'convenio' ? 'hidden' : ''}
+                        >
                             <PatientFormInsurance form={form} />
                         </div>
-                        <div className={activeTab !== 'indicacao' ? 'hidden' : ''}>
+                        <div
+                            className={
+                                activeTab !== 'indicacao' ? 'hidden' : ''
+                            }
+                        >
                             <PatientFormReferral />
                         </div>
-                        <div className={activeTab !== 'como-conheceu' ? 'hidden' : ''}>
+                        <div
+                            className={
+                                activeTab !== 'como-conheceu' ? 'hidden' : ''
+                            }
+                        >
                             <PatientFormSource form={form} />
                         </div>
 
                         <div className="mt-10 flex justify-end">
-                            <Button type="submit" size="lg" className="px-8" disabled={isPending}>
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="px-8"
+                                disabled={isPending}
+                            >
                                 {isCreating
                                     ? 'Criando paciente...'
                                     : isUploading

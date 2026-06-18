@@ -20,6 +20,7 @@ import {
 } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
+import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
@@ -71,11 +72,13 @@ function UserEditForm({
     role,
     roleChangeDisabled,
     canManageUsers,
+    isOwnProfile,
 }: {
     user: ClinicUserSummary;
     role: ClinicUserEditFormValues['role'];
     roleChangeDisabled: boolean;
     canManageUsers: boolean;
+    isOwnProfile: boolean;
 }) {
     const navigate = useNavigate();
     const updateUser = useUpdateClinicUser(user.id);
@@ -459,6 +462,8 @@ function UserEditForm({
                         )}
                     />
 
+                    {isOwnProfile && <GoogleCalendarConnection />}
+
                     <div className="flex gap-3 pt-2">
                         <Button
                             type="button"
@@ -562,6 +567,7 @@ export function UserEditPage() {
                 role={resolvedRole}
                 roleChangeDisabled={masterRoleLocked}
                 canManageUsers={canManageUsers}
+                isOwnProfile={String(authUser?.id) === String(clinicUser.id)}
             />
         </ClinicLayout>
     );

@@ -36,10 +36,13 @@ export function useAdminProgramDetail(id: number | undefined) {
     });
 }
 
-export function useCreateAdminProgram(options?: { onSuccess?: (id: number) => void }) {
+export function useCreateAdminProgram(options?: {
+    onSuccess?: (id: number) => void;
+}) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dto: AdminProgramWriteDto) => apiAdminProgramsRepository.create(dto),
+        mutationFn: (dto: AdminProgramWriteDto) =>
+            apiAdminProgramsRepository.create(dto),
         onSuccess: (program) => {
             queryClient.invalidateQueries({ queryKey: PROGRAMS_KEY });
             options?.onSuccess?.(program.id);
@@ -47,7 +50,10 @@ export function useCreateAdminProgram(options?: { onSuccess?: (id: number) => vo
     });
 }
 
-export function useUpdateAdminProgram(id: number, options?: { onSuccess?: () => void }) {
+export function useUpdateAdminProgram(
+    id: number,
+    options?: { onSuccess?: () => void },
+) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (dto: Partial<AdminProgramWriteDto>) =>

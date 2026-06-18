@@ -69,43 +69,58 @@ specs/002-appointment-scheduling/
 ### Source Code (repository root)
 
 ```text
+# Módulo Clinic — agendamento (núcleo) + armazenamento da conexão Google no usuário
 modules/Clinic/
 ├── app/
 │   ├── Models/
 │   │   └── Appointment.php                      # novo (clinic_appointments)
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── AppointmentController.php        # novo (CRUD + cancel + status)
-│   │   │   └── GoogleCalendarController.php     # novo (connect/callback/disconnect)
+│   │   │   └── AppointmentController.php        # novo (CRUD + cancel + status)
 │   │   └── Requests/
 │   │       ├── StoreAppointmentRequest.php      # novo
 │   │       ├── UpdateAppointmentRequest.php     # novo
 │   │       └── UpdateAppointmentStatusRequest.php # novo
 │   ├── Services/
-│   │   ├── AppointmentService.php               # novo (regras + transições + dispatch)
-│   │   └── GoogleCalendarService.php            # novo (OAuth + push/pull Calendar)
+│   │   └── AppointmentService.php               # novo (regras + transições + dispatch dos Jobs do módulo GoogleCalendar)
 │   ├── Repositories/
 │   │   └── AppointmentRepository.php            # novo
 │   ├── Contracts/
 │   │   ├── AppointmentServiceInterface.php      # novo
-│   │   ├── AppointmentRepositoryInterface.php   # novo
-│   │   └── GoogleCalendarServiceInterface.php   # novo
+│   │   └── AppointmentRepositoryInterface.php   # novo
 │   ├── Policies/
 │   │   └── AppointmentPolicy.php                # novo (ownership por clinic_id + role)
 │   ├── Enums/
 │   │   └── AppointmentStatus.php                # novo (enum + transições válidas)
-│   ├── Jobs/
-│   │   ├── SyncAppointmentToGoogleJob.php       # novo (push create/update/delete)
-│   │   └── PullGoogleCalendarJob.php            # novo (polling reverso por usuário)
-│   ├── Console/
-│   │   └── (schedule do PullGoogleCalendarJob via registerCommandSchedules)
 │   └── Providers/
-│       └── ClinicServiceProvider.php            # editar: bind + Gate::policy + schedule
+│       └── ClinicServiceProvider.php            # editar: bind + Gate::policy
 ├── database/migrations/
-│   ├── 2026_02_27_000003_create_clinic_users_table.php   # EDITAR: colunas Google
+│   ├── 2026_02_27_000003_create_clinic_users_table.php   # EDITAR: colunas Google (conexão fica no usuário)
 │   └── 2026_06_16_000001_create_clinic_appointments_table.php # novo
-├── routes/clinic.php                            # editar: rotas appointments + google
+├── routes/clinic.php                            # editar: rotas appointments
 └── tests/                                       # Feature + Unit (PHPUnit)
+
+# Módulo GoogleCalendar — integração Google isolada (mesmo padrão de WhatsApp/Cloudflare)
+modules/GoogleCalendar/
+├── app/
+│   ├── Contracts/
+│   │   └── GoogleCalendarServiceInterface.php   # OAuth + eventos (create/update/delete/list)
+│   ├── Services/
+│   │   └── GoogleCalendarService.php            # google/apiclient (OAuth, refresh, Calendar API)
+│   ├── Http/Controllers/
+│   │   └── GoogleCalendarController.php         # connect/callback/disconnect/status (guard clinic)
+│   ├── Jobs/
+│   │   ├── SyncAppointmentToGoogleJob.php       # push create/update/delete
+│   │   └── PullGoogleCalendarJob.php            # polling reverso por usuário (syncToken)
+│   ├── Console/Commands/
+│   │   └── PullGoogleCalendarCommand.php        # agendado (~5 min) no provider do módulo
+│   └── Providers/
+│       ├── GoogleCalendarServiceProvider.php    # bind do service + schedule do command
+│       └── RouteServiceProvider.php
+├── config/config.php                            # lê services.google
+├── routes/api.php                               # rotas google-calendar (middleware auth:clinic)
+├── module.json + composer.json                  # scaffold nwidart/laravel-modules
+└── tests/                                        # Feature + Unit (conexão + push com Queue::fake)
 
 resources/js/
 ├── domain/clinic/appointment.ts                # ajustar (remover sendCalendarInvite)
@@ -122,7 +137,7 @@ resources/js/
 └── pages/clinic/AgendaPage.tsx                  # loader real
 ```
 
-**Structure Decision**: Web application modular. Backend segue o padrão de vertical slice existente em `modules/Clinic` (Controller→Service→Repository→Contract→Request→Policy, bindings no `ClinicServiceProvider`). Frontend segue DDD já estabelecido (domain→application→infrastructure→page) e reaproveita a tela de Agenda mockada, trocando o repositório mock pelo concreto.
+**Structure Decision**: Web application modular. O **núcleo de agendamento** segue o padrão de vertical slice de `modules/Clinic` (Controller→Service→Repository→Contract→Request→Policy, bindings no `ClinicServiceProvider`). A **integração com o Google Calendar fica em um módulo próprio `modules/GoogleCalendar`** (mesmo padrão dos módulos de integração existentes WhatsApp e Cloudflare): expõe um `GoogleCalendarService` genérico, o controller de conexão OAuth, os Jobs de sincronização e o Command de polling. O `AppointmentService` (Clinic) apenas despacha os Jobs do módulo GoogleCalendar; os tokens da conexão ficam no `clinic_users` (dado do usuário). Frontend segue DDD já estabelecido (domain→application→infrastructure→page) e reaproveita a tela de Agenda mockada, trocando o repositório mock pelo concreto.
 
 ## Complexity Tracking
 

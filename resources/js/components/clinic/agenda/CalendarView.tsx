@@ -27,7 +27,12 @@ export function CalendarView({
 
     return (
         <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+            plugins={[
+                dayGridPlugin,
+                timeGridPlugin,
+                listPlugin,
+                interactionPlugin,
+            ]}
             initialView={isMobile ? 'listWeek' : 'timeGridWeek'}
             locale={ptBrLocale}
             headerToolbar={
@@ -66,7 +71,8 @@ export function CalendarView({
             stickyHeaderDates={true}
             longPressDelay={300}
             eventClick={(info) => {
-                const appointment = info.event.extendedProps.appointment as Appointment;
+                const appointment = info.event.extendedProps
+                    .appointment as Appointment;
                 onEventClick(appointment);
             }}
             dateClick={(info) => {

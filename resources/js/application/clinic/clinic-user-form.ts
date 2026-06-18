@@ -9,18 +9,29 @@ import {
     serializeClinicUserDocument,
 } from '@/lib/br-document-validation';
 
-export const CLINIC_USER_ROLES = ['admin', 'secretary', 'physiotherapist'] as const;
+export const CLINIC_USER_ROLES = [
+    'admin',
+    'secretary',
+    'physiotherapist',
+] as const;
 
 export type ClinicUserFormRole = (typeof CLINIC_USER_ROLES)[number];
 
-export function normalizeClinicUserRole(role: unknown): ClinicUserFormRole | null {
-    if (typeof role === 'string' && (CLINIC_USER_ROLES as readonly string[]).includes(role)) {
+export function normalizeClinicUserRole(
+    role: unknown,
+): ClinicUserFormRole | null {
+    if (
+        typeof role === 'string' &&
+        (CLINIC_USER_ROLES as readonly string[]).includes(role)
+    ) {
         return role as ClinicUserFormRole;
     }
     return null;
 }
 
-const roleEnum = z.enum(CLINIC_USER_ROLES, { required_error: 'Função obrigatória' });
+const roleEnum = z.enum(CLINIC_USER_ROLES, {
+    required_error: 'Função obrigatória',
+});
 
 export const CLINIC_USER_DOCUMENT_KINDS = ['cpf', 'cnpj', 'crefito'] as const;
 
@@ -28,7 +39,9 @@ export const CLINIC_USER_STATUS_VALUES = ['1', '0'] as const;
 
 export type ClinicUserFormStatus = (typeof CLINIC_USER_STATUS_VALUES)[number];
 
-const statusEnum = z.enum(CLINIC_USER_STATUS_VALUES, { required_error: 'Status obrigatório' });
+const statusEnum = z.enum(CLINIC_USER_STATUS_VALUES, {
+    required_error: 'Status obrigatório',
+});
 
 const documentKindEnum = z.enum(CLINIC_USER_DOCUMENT_KINDS);
 
@@ -125,7 +138,9 @@ export const clinicUserNewFormSchema = z
 
 export type ClinicUserNewFormValues = z.infer<typeof clinicUserNewFormSchema>;
 
-export function toClinicUserWriteDto(values: ClinicUserNewFormValues): ClinicUserWriteDto {
+export function toClinicUserWriteDto(
+    values: ClinicUserNewFormValues,
+): ClinicUserWriteDto {
     if (!values.role) {
         throw new Error('Função obrigatória.');
     }
@@ -136,7 +151,10 @@ export function toClinicUserWriteDto(values: ClinicUserNewFormValues): ClinicUse
         password: values.password,
         role: values.role,
         status: Number(values.status ?? '1'),
-        document: serializeClinicUserDocument(values.documentKind, values.document),
+        document: serializeClinicUserDocument(
+            values.documentKind,
+            values.document,
+        ),
     };
 }
 

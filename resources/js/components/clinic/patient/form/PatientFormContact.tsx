@@ -18,10 +18,13 @@ export function PatientFormContact({ form }: Props) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">Contato</h2>
+            <h2 className="text-lg font-semibold text-foreground">Contato</h2>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="phone">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="phone"
+                    >
                         Telefone
                         <Req />
                     </Label>
@@ -40,7 +43,10 @@ export function PatientFormContact({ form }: Props) {
                     <FieldError message={errors.phone?.message} />
                 </div>
                 <div>
-                    <Label className="text-muted-foreground text-xs" htmlFor="email">
+                    <Label
+                        className="text-xs text-muted-foreground"
+                        htmlFor="email"
+                    >
                         E-mail
                         <Req />
                     </Label>

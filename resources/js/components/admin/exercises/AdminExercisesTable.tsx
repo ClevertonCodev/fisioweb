@@ -1,7 +1,11 @@
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { DIFFICULTY_LABELS, DIFFICULTY_VARIANTS, MOVEMENT_FORM_LABELS } from '@/application/admin';
+import {
+    DIFFICULTY_LABELS,
+    DIFFICULTY_VARIANTS,
+    MOVEMENT_FORM_LABELS,
+} from '@/application/admin';
 import type { AdminExercise } from '@/application/admin/ports';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -13,7 +17,11 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface AdminExercisesTableProps {
     exercises: AdminExercise[];
@@ -31,7 +39,7 @@ export function AdminExercisesTable({
     const navigate = useNavigate();
 
     return (
-        <div className="border-border rounded-lg border">
+        <div className="rounded-lg border border-border">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -42,7 +50,9 @@ export function AdminExercisesTable({
                         <TableHead>Dificuldade</TableHead>
                         <TableHead>Movimento</TableHead>
                         <TableHead>Ativo</TableHead>
-                        <TableHead className="w-28 text-center">Ações</TableHead>
+                        <TableHead className="w-28 text-center">
+                            Ações
+                        </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -50,7 +60,7 @@ export function AdminExercisesTable({
                         <TableRow>
                             <TableCell
                                 colSpan={8}
-                                className="text-muted-foreground py-8 text-center"
+                                className="py-8 text-center text-muted-foreground"
                             >
                                 Carregando...
                             </TableCell>
@@ -59,7 +69,7 @@ export function AdminExercisesTable({
                         <TableRow>
                             <TableCell
                                 colSpan={8}
-                                className="text-muted-foreground py-8 text-center"
+                                className="py-8 text-center text-muted-foreground"
                             >
                                 Nenhum exercício encontrado.
                             </TableCell>
@@ -67,7 +77,9 @@ export function AdminExercisesTable({
                     ) : (
                         exercises.map((ex) => (
                             <TableRow key={ex.id}>
-                                <TableCell className="font-medium">{ex.id}</TableCell>
+                                <TableCell className="font-medium">
+                                    {ex.id}
+                                </TableCell>
                                 <TableCell>{ex.name}</TableCell>
                                 <TableCell className="text-muted-foreground">
                                     {ex.physio_area?.name ?? '—'}
@@ -78,20 +90,26 @@ export function AdminExercisesTable({
                                 <TableCell>
                                     <StatusBadge
                                         variant={
-                                            DIFFICULTY_VARIANTS[ex.difficulty_level] ?? 'neutral'
+                                            DIFFICULTY_VARIANTS[
+                                                ex.difficulty_level
+                                            ] ?? 'neutral'
                                         }
                                     >
-                                        {DIFFICULTY_LABELS[ex.difficulty_level] ??
-                                            ex.difficulty_level}
+                                        {DIFFICULTY_LABELS[
+                                            ex.difficulty_level
+                                        ] ?? ex.difficulty_level}
                                     </StatusBadge>
                                 </TableCell>
                                 <TableCell className="text-muted-foreground">
                                     {ex.movement_form
-                                        ? (MOVEMENT_FORM_LABELS[ex.movement_form] ??
-                                          ex.movement_form)
+                                        ? (MOVEMENT_FORM_LABELS[
+                                              ex.movement_form
+                                          ] ?? ex.movement_form)
                                         : '—'}
                                 </TableCell>
-                                <TableCell>{ex.is_active ? 'Sim' : 'Não'}</TableCell>
+                                <TableCell>
+                                    {ex.is_active ? 'Sim' : 'Não'}
+                                </TableCell>
                                 <TableCell>
                                     <div className="flex items-center justify-center gap-1">
                                         <Tooltip>
@@ -101,7 +119,9 @@ export function AdminExercisesTable({
                                                     size="icon"
                                                     className="h-8 w-8"
                                                     onClick={() =>
-                                                        navigate(`/admin/exercicios/${ex.id}`)
+                                                        navigate(
+                                                            `/admin/exercicios/${ex.id}`,
+                                                        )
                                                     }
                                                 >
                                                     <Eye className="h-4 w-4" />
@@ -124,21 +144,27 @@ export function AdminExercisesTable({
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Editar</TooltipContent>
+                                            <TooltipContent>
+                                                Editar
+                                            </TooltipContent>
                                         </Tooltip>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-destructive/70 hover:text-destructive h-8 w-8"
-                                                    onClick={() => onDelete(ex.id, ex.name)}
+                                                    className="h-8 w-8 text-destructive/70 hover:text-destructive"
+                                                    onClick={() =>
+                                                        onDelete(ex.id, ex.name)
+                                                    }
                                                     disabled={isDeleting}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </TooltipTrigger>
-                                            <TooltipContent>Excluir</TooltipContent>
+                                            <TooltipContent>
+                                                Excluir
+                                            </TooltipContent>
                                         </Tooltip>
                                     </div>
                                 </TableCell>

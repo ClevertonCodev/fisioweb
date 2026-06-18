@@ -1,0 +1,11 @@
+{
+    "name": "GoogleCalendar",
+    "alias": "googlecalendar",
+    "description": "Integração bidirecional com o Google Calendar (OAuth por usuário, push e pull).",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\GoogleCalendar\\Providers\\GoogleCalendarServiceProvider"
+    ],
+    "files": []
+}

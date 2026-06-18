@@ -3,7 +3,11 @@ import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface ExerciseCardProps {
@@ -60,9 +64,9 @@ export function ExerciseCard({
     };
 
     return (
-        <div className="group bg-card border-border relative flex flex-col overflow-hidden rounded-lg border shadow-sm transition-all duration-200 hover:shadow-md">
+        <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
             {/* Thumbnail / Video Container */}
-            <div className="bg-muted relative aspect-[4/3] overflow-hidden rounded-t-lg">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg bg-muted">
                 <video
                     ref={videoRef}
                     src={videoUrl ?? undefined}
@@ -79,8 +83,8 @@ export function ExerciseCard({
                         className="absolute inset-0 flex cursor-pointer items-center justify-center"
                     >
                         {!isPlaying && (
-                            <div className="bg-background/80 border-border/30 flex h-14 w-14 items-center justify-center rounded-full border shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                                <Play className="text-foreground ml-0.5 h-6 w-6" />
+                            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
+                                <Play className="ml-0.5 h-6 w-6 text-foreground" />
                             </div>
                         )}
                     </button>
@@ -92,14 +96,18 @@ export function ExerciseCard({
                         onClick={togglePlay}
                         className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
                     >
-                        <div className="bg-background/80 border-border/30 flex h-14 w-14 items-center justify-center rounded-full border shadow-lg backdrop-blur-md">
-                            <Pause className="text-foreground h-6 w-6" />
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
+                            <Pause className="h-6 w-6 text-foreground" />
                         </div>
                     </button>
                 )}
 
                 {/* Top Left Badge */}
-                {badge && <div className="pointer-events-none absolute top-2 left-2">{badge}</div>}
+                {badge && (
+                    <div className="pointer-events-none absolute top-2 left-2">
+                        {badge}
+                    </div>
+                )}
 
                 {/* Favorite Star — só renderiza quando onToggleFavorite for fornecido */}
                 {onToggleFavorite !== undefined && (
@@ -114,14 +122,21 @@ export function ExerciseCard({
                                     'absolute top-2 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-all',
                                     isFavorite
                                         ? 'bg-warning/20 text-warning'
-                                        : 'bg-background/60 text-muted-foreground hover:text-warning opacity-0 backdrop-blur-sm group-hover:opacity-100',
+                                        : 'bg-background/60 text-muted-foreground opacity-0 backdrop-blur-sm group-hover:opacity-100 hover:text-warning',
                                 )}
                             >
-                                <Star className={cn('h-4 w-4', isFavorite && 'fill-warning')} />
+                                <Star
+                                    className={cn(
+                                        'h-4 w-4',
+                                        isFavorite && 'fill-warning',
+                                    )}
+                                />
                             </button>
                         </TooltipTrigger>
                         <TooltipContent>
-                            {isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                            {isFavorite
+                                ? 'Remover dos favoritos'
+                                : 'Adicionar aos favoritos'}
                         </TooltipContent>
                     </Tooltip>
                 )}
@@ -130,10 +145,14 @@ export function ExerciseCard({
             {/* Content Row */}
             <div className="flex flex-1 items-start justify-between gap-2 p-3">
                 <div className="min-w-0">
-                    <h3 className="text-card-foreground line-clamp-2 text-[11px] leading-snug font-medium">
+                    <h3 className="line-clamp-2 text-[11px] leading-snug font-medium text-card-foreground">
                         {title}
                     </h3>
-                    {subtitle && <p className="text-muted-foreground mt-0.5 text-xs">{subtitle}</p>}
+                    {subtitle && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            {subtitle}
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex flex-shrink-0 items-center gap-0.5">
@@ -143,7 +162,7 @@ export function ExerciseCard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-muted-foreground hover:text-foreground h-8 w-8 cursor-pointer"
+                                    className="h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
                                     onClick={onInfo}
                                 >
                                     <Info className="h-4 w-4" />
@@ -158,7 +177,7 @@ export function ExerciseCard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-muted-foreground hover:text-foreground h-8 w-8"
+                                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                     onClick={onEdit}
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -173,7 +192,7 @@ export function ExerciseCard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                                    className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                     onClick={onDelete}
                                 >
                                     <Trash2 className="h-4 w-4" />

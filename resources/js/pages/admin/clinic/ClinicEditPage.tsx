@@ -4,8 +4,15 @@ import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { useClinic, usePlansOptions, useUpdateClinic } from '@/application/admin';
-import { editClinicFormSchema, type EditClinicFormValues } from '@/application/admin/clinic-schema';
+import {
+    useClinic,
+    usePlansOptions,
+    useUpdateClinic,
+} from '@/application/admin';
+import {
+    editClinicFormSchema,
+    type EditClinicFormValues,
+} from '@/application/admin/clinic-schema';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import {
     Breadcrumb,
@@ -18,7 +25,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -65,7 +78,13 @@ export default function ClinicEditPage() {
 
 // ─── Formulário (monta somente com dados disponíveis) ─────────────────────────
 
-function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number }) {
+function EditClinicForm({
+    clinic,
+    clinicId,
+}: {
+    clinic: Clinic;
+    clinicId: number;
+}) {
     const navigate = useNavigate();
     const { data: plansOptions = [] } = usePlansOptions();
 
@@ -130,18 +149,22 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
-                <header className="bg-background/95 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="space-y-3 px-6 py-4">
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
                                     <BreadcrumbLink asChild>
-                                        <Link to="/admin/clinicas">Clínicas</Link>
+                                        <Link to="/admin/clinicas">
+                                            Clínicas
+                                        </Link>
                                     </BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator />
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>Editar Clínica</BreadcrumbPage>
+                                    <BreadcrumbPage>
+                                        Editar Clínica
+                                    </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
@@ -154,7 +177,7 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                             >
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
-                            <h1 className="text-foreground text-2xl font-semibold">
+                            <h1 className="text-2xl font-semibold text-foreground">
                                 Editar Clínica
                             </h1>
                         </div>
@@ -167,7 +190,7 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                             <Card className="mx-auto max-w-4xl">
                                 <CardContent className="space-y-8 p-6">
                                     <section className="space-y-4">
-                                        <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                        <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                             Informações Básicas
                                         </h2>
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -205,11 +228,19 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                         </Label>
                                                         <Select
                                                             value={field.value}
-                                                            onValueChange={(v) => {
-                                                                field.onChange(v);
-                                                                form.setValue('document', '', {
-                                                                    shouldValidate: false,
-                                                                });
+                                                            onValueChange={(
+                                                                v,
+                                                            ) => {
+                                                                field.onChange(
+                                                                    v,
+                                                                );
+                                                                form.setValue(
+                                                                    'document',
+                                                                    '',
+                                                                    {
+                                                                        shouldValidate: false,
+                                                                    },
+                                                                );
                                                             }}
                                                         >
                                                             <FormControl>
@@ -219,10 +250,12 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                             </FormControl>
                                                             <SelectContent>
                                                                 <SelectItem value="PF">
-                                                                    Pessoa Física
+                                                                    Pessoa
+                                                                    Física
                                                                 </SelectItem>
                                                                 <SelectItem value="PJ">
-                                                                    Pessoa Jurídica
+                                                                    Pessoa
+                                                                    Jurídica
                                                                 </SelectItem>
                                                             </SelectContent>
                                                         </Select>
@@ -246,15 +279,24 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                         <FormControl>
                                                             <CpfCnpjInput
                                                                 type={
-                                                                    watchedType === 'PJ'
+                                                                    watchedType ===
+                                                                    'PJ'
                                                                         ? 'cnpj'
                                                                         : 'cpf'
                                                                 }
-                                                                value={field.value}
-                                                                onChange={(raw) =>
-                                                                    field.onChange(raw)
+                                                                value={
+                                                                    field.value
                                                                 }
-                                                                onBlur={field.onBlur}
+                                                                onChange={(
+                                                                    raw,
+                                                                ) =>
+                                                                    field.onChange(
+                                                                        raw,
+                                                                    )
+                                                                }
+                                                                onBlur={
+                                                                    field.onBlur
+                                                                }
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -275,7 +317,10 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                             </span>
                                                         </Label>
                                                         <FormControl>
-                                                            <Input type="email" {...field} />
+                                                            <Input
+                                                                type="email"
+                                                                {...field}
+                                                            />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -293,11 +338,20 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                         </Label>
                                                         <FormControl>
                                                             <PhoneInput
-                                                                value={field.value ?? ''}
-                                                                onChange={(raw) =>
-                                                                    field.onChange(raw)
+                                                                value={
+                                                                    field.value ??
+                                                                    ''
                                                                 }
-                                                                onBlur={field.onBlur}
+                                                                onChange={(
+                                                                    raw,
+                                                                ) =>
+                                                                    field.onChange(
+                                                                        raw,
+                                                                    )
+                                                                }
+                                                                onBlur={
+                                                                    field.onBlur
+                                                                }
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -319,7 +373,9 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                         </Label>
                                                         <Select
                                                             value={field.value}
-                                                            onValueChange={field.onChange}
+                                                            onValueChange={
+                                                                field.onChange
+                                                            }
                                                         >
                                                             <FormControl>
                                                                 <SelectTrigger>
@@ -349,25 +405,36 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                             <SlugInput
                                                 value={watchedSlug}
                                                 onChange={(slug) =>
-                                                    form.setValue('slug', slug, {
-                                                        shouldValidate:
-                                                            form.formState.touchedFields.slug,
-                                                    })
+                                                    form.setValue(
+                                                        'slug',
+                                                        slug,
+                                                        {
+                                                            shouldValidate:
+                                                                form.formState
+                                                                    .touchedFields
+                                                                    .slug,
+                                                        },
+                                                    )
                                                 }
                                                 baseName={watchedName}
                                                 required
                                             />
-                                            {form.formState.touchedFields.slug &&
+                                            {form.formState.touchedFields
+                                                .slug &&
                                                 form.formState.errors.slug && (
-                                                    <p className="text-destructive mt-1 text-[11px] font-medium">
-                                                        {form.formState.errors.slug.message}
+                                                    <p className="mt-1 text-[11px] font-medium text-destructive">
+                                                        {
+                                                            form.formState
+                                                                .errors.slug
+                                                                .message
+                                                        }
                                                     </p>
                                                 )}
                                         </div>
                                     </section>
 
                                     <section className="space-y-4">
-                                        <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                        <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                             Plano
                                         </h2>
                                         <div className="max-w-md">
@@ -380,8 +447,13 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                             Plano
                                                         </Label>
                                                         <Select
-                                                            value={field.value || undefined}
-                                                            onValueChange={field.onChange}
+                                                            value={
+                                                                field.value ||
+                                                                undefined
+                                                            }
+                                                            onValueChange={
+                                                                field.onChange
+                                                            }
                                                         >
                                                             <FormControl>
                                                                 <SelectTrigger>
@@ -389,14 +461,22 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                                                 </SelectTrigger>
                                                             </FormControl>
                                                             <SelectContent>
-                                                                {plansOptions.map((p) => (
-                                                                    <SelectItem
-                                                                        key={p.id}
-                                                                        value={String(p.id)}
-                                                                    >
-                                                                        {p.name}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {plansOptions.map(
+                                                                    (p) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                p.id
+                                                                            }
+                                                                            value={String(
+                                                                                p.id,
+                                                                            )}
+                                                                        >
+                                                                            {
+                                                                                p.name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                         <FormMessage />
@@ -407,40 +487,54 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                     </section>
 
                                     <section className="space-y-4">
-                                        <h2 className="text-foreground border-border border-b pb-2 text-lg font-semibold">
+                                        <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
                                             Endereço
                                         </h2>
                                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                             <div className="space-y-1.5">
-                                                <Label className="text-foreground">CEP</Label>
+                                                <Label className="text-foreground">
+                                                    CEP
+                                                </Label>
                                                 <Input
                                                     placeholder="00000-000"
-                                                    {...form.register('zipCode')}
+                                                    {...form.register(
+                                                        'zipCode',
+                                                    )}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-foreground">Endereço</Label>
+                                                <Label className="text-foreground">
+                                                    Endereço
+                                                </Label>
                                                 <Input
                                                     placeholder="Rua, avenida, etc."
-                                                    {...form.register('address')}
+                                                    {...form.register(
+                                                        'address',
+                                                    )}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-foreground">Número</Label>
+                                                <Label className="text-foreground">
+                                                    Número
+                                                </Label>
                                                 <Input
                                                     placeholder="Número"
                                                     {...form.register('number')}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-foreground">Cidade</Label>
+                                                <Label className="text-foreground">
+                                                    Cidade
+                                                </Label>
                                                 <Input
                                                     placeholder="Nome da cidade"
                                                     {...form.register('city')}
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label className="text-foreground">Estado</Label>
+                                                <Label className="text-foreground">
+                                                    Estado
+                                                </Label>
                                                 <Input
                                                     placeholder="UF"
                                                     maxLength={2}
@@ -450,7 +544,7 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                         </div>
                                     </section>
 
-                                    <div className="border-border flex justify-end gap-3 border-t pt-4">
+                                    <div className="flex justify-end gap-3 border-t border-border pt-4">
                                         <Button
                                             type="button"
                                             variant="outline"
@@ -460,7 +554,10 @@ function EditClinicForm({ clinic, clinicId }: { clinic: Clinic; clinicId: number
                                         </Button>
                                         <Button
                                             type="submit"
-                                            disabled={!isFormReady || updateMutation.isPending}
+                                            disabled={
+                                                !isFormReady ||
+                                                updateMutation.isPending
+                                            }
                                         >
                                             Salvar alterações
                                         </Button>

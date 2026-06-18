@@ -26,8 +26,8 @@ export default function ClinicLoginPage() {
         } catch (err: unknown) {
             const message =
                 err && typeof err === 'object' && 'response' in err
-                    ? (err as { response?: { data?: { message?: string } } }).response?.data
-                          ?.message
+                    ? (err as { response?: { data?: { message?: string } } })
+                          .response?.data?.message
                     : null;
             setError(message || 'Erro ao entrar. Tente novamente.');
         } finally {
@@ -38,18 +38,20 @@ export default function ClinicLoginPage() {
     return (
         <div className="flex min-h-screen flex-col md:flex-row">
             {/* Left side - Form */}
-            <div className="bg-card flex w-full flex-col items-center justify-center px-8 py-12 md:w-[440px] lg:w-[480px]">
+            <div className="flex w-full flex-col items-center justify-center bg-card px-8 py-12 md:w-[440px] lg:w-[480px]">
                 {/* Logo */}
                 <div className="mb-8 flex items-center gap-2">
-                    <div className="bg-primary/10 border-primary/20 flex h-10 w-10 items-center justify-center rounded-xl border">
-                        <Activity className="text-primary h-5 w-5" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
+                        <Activity className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-foreground text-xl font-bold tracking-tight">
+                    <span className="text-xl font-bold tracking-tight text-foreground">
                         FisioClinic
                     </span>
                 </div>
 
-                <h1 className="text-foreground mb-8 text-2xl font-bold">Entrar</h1>
+                <h1 className="mb-8 text-2xl font-bold text-foreground">
+                    Entrar
+                </h1>
 
                 {/* Social buttons */}
                 <div className="flex w-full max-w-[340px] items-center gap-3">
@@ -84,7 +86,11 @@ export default function ClinicLoginPage() {
                         className="h-12 flex-1 gap-2 rounded-xl text-sm font-medium"
                         type="button"
                     >
-                        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="#1877F2">
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="h-5 w-5"
+                            fill="#1877F2"
+                        >
                             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                         Meta
@@ -92,15 +98,20 @@ export default function ClinicLoginPage() {
                 </div>
 
                 <div className="my-4 flex w-full max-w-[340px] items-center gap-3">
-                    <div className="bg-border h-px flex-1" />
-                    <span className="text-muted-foreground text-xs font-medium uppercase">ou</span>
-                    <div className="bg-border h-px flex-1" />
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase">
+                        ou
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleLogin} className="w-full max-w-[340px] space-y-4">
+                <form
+                    onSubmit={handleLogin}
+                    className="w-full max-w-[340px] space-y-4"
+                >
                     {error && (
-                        <div className="bg-destructive/10 border-destructive/20 text-destructive rounded-lg border px-4 py-3 text-sm">
+                        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                             {error}
                         </div>
                     )}
@@ -111,7 +122,7 @@ export default function ClinicLoginPage() {
                             placeholder="E-mail"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="bg-background border-border placeholder:text-muted-foreground/60 h-12 rounded-xl text-base"
+                            className="h-12 rounded-xl border-border bg-background text-base placeholder:text-muted-foreground/60"
                             required
                         />
                     </div>
@@ -122,13 +133,13 @@ export default function ClinicLoginPage() {
                             placeholder="Senha"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="bg-background border-border placeholder:text-muted-foreground/60 h-12 rounded-xl pr-12 text-base"
+                            className="h-12 rounded-xl border-border bg-background pr-12 text-base placeholder:text-muted-foreground/60"
                             required
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-4 -translate-y-1/2 transition-colors"
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             {showPassword ? (
                                 <EyeOff className="h-4 w-4" />
@@ -145,7 +156,7 @@ export default function ClinicLoginPage() {
                     >
                         {isLoading ? (
                             <div className="flex items-center gap-2">
-                                <div className="border-primary-foreground/30 border-t-primary-foreground h-4 w-4 animate-spin rounded-full border-2" />
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                                 Entrando...
                             </div>
                         ) : (
@@ -157,21 +168,21 @@ export default function ClinicLoginPage() {
                 <button
                     type="button"
                     onClick={() => navigate('/clinica/recuperar-senha')}
-                    className="text-primary hover:text-primary/80 mt-4 text-sm font-medium transition-colors"
+                    className="mt-4 text-sm font-medium text-primary transition-colors hover:text-primary/80"
                 >
                     Esqueci minha senha
                 </button>
 
                 <div className="mt-8 space-y-1 text-center">
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         Não possui uma conta?{' '}
-                        <button className="text-primary hover:text-primary/80 font-semibold transition-colors">
+                        <button className="font-semibold text-primary transition-colors hover:text-primary/80">
                             Criar conta
                         </button>
                     </p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         Precisa de ajuda?{' '}
-                        <button className="text-primary hover:text-primary/80 font-semibold transition-colors">
+                        <button className="font-semibold text-primary transition-colors hover:text-primary/80">
                             Falar com suporte
                         </button>
                     </p>
@@ -180,11 +191,15 @@ export default function ClinicLoginPage() {
 
             {/* Right side - Hero */}
             <div className="relative hidden flex-1 items-center justify-center overflow-hidden md:flex">
-                <img src={loginBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                <div className="bg-primary/60 absolute inset-0" />
+                <img
+                    src={loginBg}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-primary/60" />
 
                 <div className="relative z-10 max-w-xl px-12 text-center">
-                    <h2 className="text-primary-foreground mb-6 font-serif text-4xl font-bold italic lg:text-5xl">
+                    <h2 className="mb-6 font-serif text-4xl font-bold text-primary-foreground italic lg:text-5xl">
                         Você sempre à frente
                     </h2>
 
@@ -193,16 +208,17 @@ export default function ClinicLoginPage() {
                         {[1, 2, 3, 4, 5, 6].map((i) => (
                             <div
                                 key={i}
-                                className="border-primary-foreground/40 bg-primary-foreground/20 -ml-2 h-10 w-10 rounded-full border-2 first:ml-0"
+                                className="-ml-2 h-10 w-10 rounded-full border-2 border-primary-foreground/40 bg-primary-foreground/20 first:ml-0"
                             />
                         ))}
-                        <span className="text-primary-foreground ml-3 text-sm font-semibold">
+                        <span className="ml-3 text-sm font-semibold text-primary-foreground">
                             +20.000 profissionais da saúde
                         </span>
                     </div>
 
-                    <p className="text-primary-foreground/90 mt-4 text-base">
-                        Facilite sua vida. Tenha todas as ferramentas que precisa em um só lugar!
+                    <p className="mt-4 text-base text-primary-foreground/90">
+                        Facilite sua vida. Tenha todas as ferramentas que
+                        precisa em um só lugar!
                     </p>
                 </div>
             </div>

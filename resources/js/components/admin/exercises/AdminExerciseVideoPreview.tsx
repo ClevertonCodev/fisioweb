@@ -4,11 +4,15 @@ interface AdminExerciseVideoPreviewProps {
     title?: string;
 }
 
-export function AdminExerciseVideoPreview({ src, poster, title }: AdminExerciseVideoPreviewProps) {
+export function AdminExerciseVideoPreview({
+    src,
+    poster,
+    title,
+}: AdminExerciseVideoPreviewProps) {
     if (!src) return null;
 
     return (
-        <div className="border-border max-w-sm overflow-hidden rounded-lg border">
+        <div className="max-w-sm overflow-hidden rounded-lg border border-border">
             <video
                 src={src}
                 poster={poster ?? undefined}

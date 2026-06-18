@@ -3,10 +3,17 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import type { FilterCategory, ExerciseFilters as Filters } from '@/domain/clinic';
+import type {
+    FilterCategory,
+    ExerciseFilters as Filters,
+} from '@/domain/clinic';
 import { cn } from '@/lib/utils';
 
 interface ExerciseFiltersProps {
@@ -34,7 +41,8 @@ export function ExerciseFilters({
     };
 
     const toggleFilter = (categoryId: string, value: string) => {
-        const currentValues = (filters[categoryId as keyof Filters] as string[]) || [];
+        const currentValues =
+            (filters[categoryId as keyof Filters] as string[]) || [];
         const newValues = currentValues.includes(value)
             ? currentValues.filter((v) => v !== value)
             : [...currentValues, value];
@@ -64,7 +72,11 @@ export function ExerciseFilters({
     const getActiveFiltersCount = () => {
         return Object.entries(filters)
             .filter(([key]) => key !== 'search')
-            .reduce((count, [, value]) => count + (Array.isArray(value) ? value.length : 0), 0);
+            .reduce(
+                (count, [, value]) =>
+                    count + (Array.isArray(value) ? value.length : 0),
+                0,
+            );
     };
 
     const filteredCategories = categories
@@ -79,16 +91,18 @@ export function ExerciseFilters({
     const activeCount = getActiveFiltersCount();
 
     return (
-        <div className="bg-card border-border flex h-full flex-col border-l">
+        <div className="flex h-full flex-col border-l border-border bg-card">
             {/* Header */}
-            <div className="border-border flex items-center justify-between border-b p-4">
-                <h2 className="text-card-foreground text-lg font-semibold">Filtros</h2>
+            <div className="flex items-center justify-between border-b border-border p-4">
+                <h2 className="text-lg font-semibold text-card-foreground">
+                    Filtros
+                </h2>
                 {onClose && (
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        className="text-muted-foreground hover:text-foreground h-8 w-8"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
                     >
                         <X className="h-4 w-4" />
                     </Button>
@@ -96,9 +110,9 @@ export function ExerciseFilters({
             </div>
 
             {/* Search */}
-            <div className="border-border border-b p-4">
+            <div className="border-b border-border p-4">
                 <div className="relative">
-                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                         placeholder="Pesquisar filtro"
                         value={filterSearch}
@@ -114,7 +128,9 @@ export function ExerciseFilters({
                     {filteredCategories.map((category) => {
                         const isOpen = openCategories.includes(category.id);
                         const selectedCount = (
-                            (filters[category.id as keyof Filters] as string[]) || []
+                            (filters[
+                                category.id as keyof Filters
+                            ] as string[]) || []
                         ).length;
 
                         return (
@@ -124,19 +140,19 @@ export function ExerciseFilters({
                                 onOpenChange={() => toggleCategory(category.id)}
                             >
                                 <CollapsibleTrigger asChild>
-                                    <button className="text-card-foreground hover:text-primary flex w-full items-center justify-between px-1 py-2.5 text-sm font-medium transition-colors">
+                                    <button className="flex w-full items-center justify-between px-1 py-2.5 text-sm font-medium text-card-foreground transition-colors hover:text-primary">
                                         <span className="flex items-center gap-2">
                                             {category.label}
                                             {selectedCount > 0 && (
-                                                <span className="bg-primary text-primary-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold">
+                                                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
                                                     {selectedCount}
                                                 </span>
                                             )}
                                         </span>
                                         {isOpen ? (
-                                            <ChevronUp className="text-muted-foreground h-4 w-4" />
+                                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
                                         ) : (
-                                            <ChevronDown className="text-muted-foreground h-4 w-4" />
+                                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                         )}
                                     </button>
                                 </CollapsibleTrigger>
@@ -147,7 +163,10 @@ export function ExerciseFilters({
                                                 (filters[
                                                     category.id as keyof Filters
                                                 ] as string[]) || [];
-                                            const isChecked = selectedValues.includes(option.value);
+                                            const isChecked =
+                                                selectedValues.includes(
+                                                    option.value,
+                                                );
 
                                             return (
                                                 <label
@@ -157,21 +176,25 @@ export function ExerciseFilters({
                                                     <Checkbox
                                                         checked={isChecked}
                                                         onCheckedChange={() =>
-                                                            toggleFilter(category.id, option.value)
+                                                            toggleFilter(
+                                                                category.id,
+                                                                option.value,
+                                                            )
                                                         }
                                                     />
                                                     <span
                                                         className={cn(
                                                             'text-sm transition-colors',
                                                             isChecked
-                                                                ? 'text-card-foreground font-medium'
+                                                                ? 'font-medium text-card-foreground'
                                                                 : 'text-muted-foreground group-hover:text-card-foreground',
                                                         )}
                                                     >
                                                         {option.label}
                                                     </span>
-                                                    {option.count !== undefined && (
-                                                        <span className="text-muted-foreground ml-auto text-xs">
+                                                    {option.count !==
+                                                        undefined && (
+                                                        <span className="ml-auto text-xs text-muted-foreground">
                                                             {option.count}
                                                         </span>
                                                     )}
@@ -187,7 +210,7 @@ export function ExerciseFilters({
             </ScrollArea>
 
             {/* Footer */}
-            <div className="border-border flex items-center justify-between gap-3 border-t p-4">
+            <div className="flex items-center justify-between gap-3 border-t border-border p-4">
                 <Button
                     variant="ghost"
                     onClick={clearAllFilters}

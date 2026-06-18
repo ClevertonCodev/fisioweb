@@ -35,7 +35,10 @@ export default function ImpersonatePage() {
             };
 
             setSessionAuth(token, guard);
-            setUser({ id: user.id, name: user.name, email: user.email }, 'clinic');
+            setUser(
+                { id: user.id, name: user.name, email: user.email },
+                'clinic',
+            );
             navigate('/clinica', { replace: true });
         } catch {
             navigate('/clinica/login', { replace: true });

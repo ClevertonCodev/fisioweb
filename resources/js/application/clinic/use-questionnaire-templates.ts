@@ -31,7 +31,9 @@ export function useCreateQuestionnaireTemplate() {
     return useMutation({
         mutationFn: (dto: QuestionnaireTemplateWriteDto) => repo.create(dto),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: questionnaireTemplateKeys.all });
+            queryClient.invalidateQueries({
+                queryKey: questionnaireTemplateKeys.all,
+            });
             toast.success('Questionário criado com sucesso');
         },
         onError: () => {
@@ -43,10 +45,17 @@ export function useCreateQuestionnaireTemplate() {
 export function useUpdateQuestionnaireTemplate() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, dto }: { id: string; dto: QuestionnaireTemplateWriteDto }) =>
-            repo.update(id, dto),
+        mutationFn: ({
+            id,
+            dto,
+        }: {
+            id: string;
+            dto: QuestionnaireTemplateWriteDto;
+        }) => repo.update(id, dto),
         onSuccess: (template) => {
-            queryClient.invalidateQueries({ queryKey: questionnaireTemplateKeys.all });
+            queryClient.invalidateQueries({
+                queryKey: questionnaireTemplateKeys.all,
+            });
             queryClient.invalidateQueries({
                 queryKey: questionnaireTemplateKeys.detail(String(template.id)),
             });
@@ -63,7 +72,9 @@ export function useDeleteQuestionnaireTemplate() {
     return useMutation({
         mutationFn: (id: string) => repo.destroy(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: questionnaireTemplateKeys.all });
+            queryClient.invalidateQueries({
+                queryKey: questionnaireTemplateKeys.all,
+            });
             toast.success('Questionário excluído com sucesso');
         },
         onError: () => {

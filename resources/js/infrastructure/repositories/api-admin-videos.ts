@@ -57,20 +57,21 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: unknown }>(`${BASE}/${id}`);
+        const { data } = await apiClient.get<{ data: unknown }>(
+            `${BASE}/${id}`,
+        );
         if (!data?.data) return null;
         return mapVideo((data as { data: Record<string, unknown> }).data);
     },
 
     async requestPresignedUpload(params) {
-        const { data } = await apiClient.post<{ data: Record<string, unknown> }>(
-            `${BASE}/presigned-upload-request`,
-            {
-                filename: params.filename,
-                mime_type: params.mime_type,
-                size: params.size,
-            },
-        );
+        const { data } = await apiClient.post<{
+            data: Record<string, unknown>;
+        }>(`${BASE}/presigned-upload-request`, {
+            filename: params.filename,
+            mime_type: params.mime_type,
+            size: params.size,
+        });
         const d = (data as { data?: Record<string, unknown> })?.data ?? {};
         return {
             video_id: d.video_id as number,
@@ -82,14 +83,13 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     },
 
     async requestPresignedThumbnail(videoId, params) {
-        const { data } = await apiClient.post<{ data: Record<string, unknown> }>(
-            `${BASE}/${videoId}/presigned-thumbnail-request`,
-            {
-                filename: params.filename,
-                mime_type: params.mime_type,
-                size: params.size,
-            },
-        );
+        const { data } = await apiClient.post<{
+            data: Record<string, unknown>;
+        }>(`${BASE}/${videoId}/presigned-thumbnail-request`, {
+            filename: params.filename,
+            mime_type: params.mime_type,
+            size: params.size,
+        });
         const d = (data as { data?: Record<string, unknown> })?.data ?? {};
         return {
             upload_url: d.upload_url as string,
@@ -99,14 +99,13 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     },
 
     async requestPresignedThumbnailReplace(videoId, params) {
-        const { data } = await apiClient.post<{ data: Record<string, unknown> }>(
-            `${BASE}/${videoId}/presigned-thumbnail-replace-request`,
-            {
-                filename: params.filename,
-                mime_type: params.mime_type,
-                size: params.size,
-            },
-        );
+        const { data } = await apiClient.post<{
+            data: Record<string, unknown>;
+        }>(`${BASE}/${videoId}/presigned-thumbnail-replace-request`, {
+            filename: params.filename,
+            mime_type: params.mime_type,
+            size: params.size,
+        });
         const d = (data as { data?: Record<string, unknown> })?.data ?? {};
         return {
             upload_url: d.upload_url as string,
@@ -130,7 +129,10 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     },
 
     async update(videoId, payload) {
-        const { data } = await apiClient.patch<{ data: unknown }>(`${BASE}/${videoId}`, payload);
+        const { data } = await apiClient.patch<{ data: unknown }>(
+            `${BASE}/${videoId}`,
+            payload,
+        );
         return mapVideo((data as { data: Record<string, unknown> }).data);
     },
 

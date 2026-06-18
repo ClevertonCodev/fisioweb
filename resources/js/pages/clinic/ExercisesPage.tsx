@@ -2,7 +2,10 @@ import { ArrowLeft, Search, SlidersHorizontal, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useInfiniteExercises, useToggleExerciseFavorite } from '@/application/clinic';
+import {
+    useInfiniteExercises,
+    useToggleExerciseFavorite,
+} from '@/application/clinic';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
@@ -13,8 +16,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { Exercise, FilterCategory, ExerciseFilters as Filters } from '@/domain/clinic';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type {
+    Exercise,
+    FilterCategory,
+    ExerciseFilters as Filters,
+} from '@/domain/clinic';
 import { cn } from '@/lib/utils';
 
 const difficultyColors = {
@@ -47,23 +58,32 @@ interface ExercisesPageProps {
     embedded?: boolean;
 }
 
-export default function ExercisesPage({ embedded = false }: ExercisesPageProps) {
+export default function ExercisesPage({
+    embedded = false,
+}: ExercisesPageProps) {
     const navigate = useNavigate();
     const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } =
         useInfiniteExercises();
     const toggleFavoriteMutation = useToggleExerciseFavorite();
-    const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<string>>(new Set());
+    const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<string>>(
+        new Set(),
+    );
     const [showFilters, setShowFilters] = useState(false);
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [filters, setFilters] = useState<Filters>(initialFilters);
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
+    const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
+        null,
+    );
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    const allExercises = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+    const allExercises = useMemo(
+        () => data?.pages.flatMap((p) => p.items) ?? [],
+        [data],
+    );
 
     const selectedExercise = useMemo(
         () => exercises.find((e) => e.id === selectedExerciseId) ?? null,
@@ -88,7 +108,11 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
 
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                if (
+                    entries[0].isIntersecting &&
+                    hasNextPage &&
+                    !isFetchingNextPage
+                ) {
                     fetchNextPage();
                 }
             },
@@ -143,9 +167,21 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
             ),
             makeCategory('muscleGroup', 'Grupo Muscular', (e) => e.muscleGroup),
             makeCategory('equipment', 'Equipamento', (e) => e.equipment),
-            makeCategory('movementType', 'Tipo de Movimento', (e) => e.movementType),
-            makeCategory('movementPattern', 'Padrão de Movimento', (e) => e.movementPattern),
-            makeCategory('movementForm', 'Forma de Movimento', (e) => e.movementForm),
+            makeCategory(
+                'movementType',
+                'Tipo de Movimento',
+                (e) => e.movementType,
+            ),
+            makeCategory(
+                'movementPattern',
+                'Padrão de Movimento',
+                (e) => e.movementPattern,
+            ),
+            makeCategory(
+                'movementForm',
+                'Forma de Movimento',
+                (e) => e.movementForm,
+            ),
         ].filter((cat) => cat.options.length > 0);
     }, [exercises]);
 
@@ -155,7 +191,9 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
 
             if (
                 filters.search &&
-                !exercise.title.toLowerCase().includes(filters.search.toLowerCase())
+                !exercise.title
+                    .toLowerCase()
+                    .includes(filters.search.toLowerCase())
             ) {
                 return false;
             }
@@ -174,7 +212,10 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
             ];
 
             for (const [filterValues, exerciseValue] of filterChecks) {
-                if (filterValues.length > 0 && !filterValues.includes(exerciseValue)) {
+                if (
+                    filterValues.length > 0 &&
+                    !filterValues.includes(exerciseValue)
+                ) {
                     return false;
                 }
             }
@@ -186,7 +227,11 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
     const activeFiltersCount = useMemo(() => {
         return Object.entries(filters)
             .filter(([key]) => key !== 'search')
-            .reduce((count, [, value]) => count + (Array.isArray(value) ? value.length : 0), 0);
+            .reduce(
+                (count, [, value]) =>
+                    count + (Array.isArray(value) ? value.length : 0),
+                0,
+            );
     }, [filters]);
 
     const handleToggleFavorite = (exercise: Exercise) => {
@@ -194,19 +239,27 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
 
         setPendingFavoriteIds((prev) => new Set(prev).add(exercise.id));
         setExercises((prev) =>
-            prev.map((ex) => (ex.id === exercise.id ? { ...ex, isFavorite: !ex.isFavorite } : ex)),
+            prev.map((ex) =>
+                ex.id === exercise.id
+                    ? { ...ex, isFavorite: !ex.isFavorite }
+                    : ex,
+            ),
         );
 
         toggleFavoriteMutation.mutate(exercise.id, {
             onSuccess: ({ isFavorite }) => {
                 setExercises((prev) =>
-                    prev.map((ex) => (ex.id === exercise.id ? { ...ex, isFavorite } : ex)),
+                    prev.map((ex) =>
+                        ex.id === exercise.id ? { ...ex, isFavorite } : ex,
+                    ),
                 );
             },
             onError: () => {
                 setExercises((prev) =>
                     prev.map((ex) =>
-                        ex.id === exercise.id ? { ...ex, isFavorite: exercise.isFavorite } : ex,
+                        ex.id === exercise.id
+                            ? { ...ex, isFavorite: exercise.isFavorite }
+                            : ex,
                     ),
                 );
             },
@@ -228,9 +281,9 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
     const removeFilter = (categoryId: string, value: string) => {
         setFilters((prev) => ({
             ...prev,
-            [categoryId]: (prev[categoryId as keyof Filters] as string[]).filter(
-                (v) => v !== value,
-            ),
+            [categoryId]: (
+                prev[categoryId as keyof Filters] as string[]
+            ).filter((v) => v !== value),
         }));
     };
 
@@ -244,7 +297,7 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
         <>
             <div className="flex h-full flex-col">
                 {/* Header */}
-                <header className="bg-background/95 supports-[backdrop-filter]:bg-background/80 border-border sticky top-0 z-10 border-b backdrop-blur">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                     <div className="px-6 py-4">
                         {!embedded && (
                             <div className="mb-4 flex items-center gap-4">
@@ -254,24 +307,26 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => navigate('/clinica')}
-                                            className="text-muted-foreground hover:text-foreground gap-1"
+                                            className="gap-1 text-muted-foreground hover:text-foreground"
                                         >
                                             <ArrowLeft className="h-4 w-4" />
                                             Voltar
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Voltar ao dashboard</TooltipContent>
+                                    <TooltipContent>
+                                        Voltar ao dashboard
+                                    </TooltipContent>
                                 </Tooltip>
                             </div>
                         )}
 
                         <div className="flex items-center justify-between gap-4">
-                            <h1 className="text-foreground text-2xl font-semibold">
+                            <h1 className="text-2xl font-semibold text-foreground">
                                 Biblioteca de Exercícios
                             </h1>
                             <div className="flex items-center gap-3">
                                 <div className="relative w-64">
-                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         placeholder="Pesquisar"
                                         value={filters.search}
@@ -285,9 +340,15 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                     />
                                 </div>
                                 <Button
-                                    variant={showFavoritesOnly ? 'secondary' : 'outline'}
+                                    variant={
+                                        showFavoritesOnly
+                                            ? 'secondary'
+                                            : 'outline'
+                                    }
                                     size="sm"
-                                    onClick={() => setShowFavoritesOnly((prev) => !prev)}
+                                    onClick={() =>
+                                        setShowFavoritesOnly((prev) => !prev)
+                                    }
                                     className="gap-2"
                                 >
                                     <Star
@@ -304,7 +365,9 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                     <TooltipTrigger asChild>
                                         <Button
                                             variant={
-                                                activeFiltersCount > 0 ? 'secondary' : 'outline'
+                                                activeFiltersCount > 0
+                                                    ? 'secondary'
+                                                    : 'outline'
                                             }
                                             size="icon"
                                             onClick={() => setShowFilters(true)}
@@ -337,10 +400,18 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                                 variant="secondary"
                                                 className="gap-1 pr-1"
                                             >
-                                                {getFilterLabel(categoryId, value)}
+                                                {getFilterLabel(
+                                                    categoryId,
+                                                    value,
+                                                )}
                                                 <button
-                                                    onClick={() => removeFilter(categoryId, value)}
-                                                    className="hover:bg-muted-foreground/20 ml-1 rounded-full p-0.5 transition-colors"
+                                                    onClick={() =>
+                                                        removeFilter(
+                                                            categoryId,
+                                                            value,
+                                                        )
+                                                    }
+                                                    className="ml-1 rounded-full p-0.5 transition-colors hover:bg-muted-foreground/20"
                                                 >
                                                     <X className="h-3 w-3" />
                                                 </button>
@@ -351,7 +422,7 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setFilters(initialFilters)}
-                                    className="text-muted-foreground h-7 text-xs"
+                                    className="h-7 text-xs text-muted-foreground"
                                 >
                                     Limpar todos
                                 </Button>
@@ -361,14 +432,18 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                 </header>
 
                 {/* Exercise Grid */}
-                <div ref={scrollContainerRef} className="flex-1 overflow-auto p-6">
+                <div
+                    ref={scrollContainerRef}
+                    className="flex-1 overflow-auto p-6"
+                >
                     <div className="mb-4">
                         {isLoading ? (
                             <Skeleton className="h-4 w-40" />
                         ) : (
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-sm text-muted-foreground">
                                 {filteredExercises.length} exercício
-                                {filteredExercises.length !== 1 ? 's' : ''} encontrado
+                                {filteredExercises.length !== 1 ? 's' : ''}{' '}
+                                encontrado
                                 {filteredExercises.length !== 1 ? 's' : ''}
                             </p>
                         )}
@@ -395,20 +470,30 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                                                 variant="outline"
                                                 className={cn(
                                                     'text-xs font-medium',
-                                                    difficultyColors[exercise.difficulty],
+                                                    difficultyColors[
+                                                        exercise.difficulty
+                                                    ],
                                                 )}
                                             >
-                                                {difficultyLabels[exercise.difficulty]}
+                                                {
+                                                    difficultyLabels[
+                                                        exercise.difficulty
+                                                    ]
+                                                }
                                             </Badge>
                                         }
                                         isFavorite={exercise.isFavorite}
-                                        onToggleFavorite={() => handleToggleFavorite(exercise)}
+                                        onToggleFavorite={() =>
+                                            handleToggleFavorite(exercise)
+                                        }
                                         onInfo={() => handleInfo(exercise)}
                                     />
                                 ))}
                                 {isFetchingNextPage &&
                                     Array.from({ length: 4 }).map((_, i) => (
-                                        <ExerciseCardSkeleton key={`skeleton-next-${i}`} />
+                                        <ExerciseCardSkeleton
+                                            key={`skeleton-next-${i}`}
+                                        />
                                     ))}
                             </div>
                             {/* Sentinel for infinite scroll */}
@@ -416,14 +501,15 @@ export default function ExercisesPage({ embedded = false }: ExercisesPageProps) 
                         </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="bg-muted mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                                <Search className="text-muted-foreground h-8 w-8" />
+                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                                <Search className="h-8 w-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-foreground mb-2 text-lg font-medium">
+                            <h3 className="mb-2 text-lg font-medium text-foreground">
                                 Nenhum exercício encontrado
                             </h3>
-                            <p className="text-muted-foreground max-w-md">
-                                Tente ajustar seus filtros ou buscar por outro termo.
+                            <p className="max-w-md text-muted-foreground">
+                                Tente ajustar seus filtros ou buscar por outro
+                                termo.
                             </p>
                             <Button
                                 variant="outline"

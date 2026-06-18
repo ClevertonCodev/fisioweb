@@ -11,7 +11,11 @@ import {
     CommandItem,
 } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import type { ProgramGroup } from '@/domain/clinic';
@@ -53,7 +57,9 @@ export function StepProgramDetails({
     const [patientId, setPatientId] = useState<number | null>(initialPatientId);
     const [patientName, setPatientName] = useState(initialPatientName);
     const [patientOpen, setPatientOpen] = useState(false);
-    const [startDate, setStartDate] = useState(initialStartDate ?? new Date().toISOString().slice(0, 10));
+    const [startDate, setStartDate] = useState(
+        initialStartDate ?? new Date().toISOString().slice(0, 10),
+    );
     const [endDate, setEndDate] = useState(initialEndDate);
     const [message, setMessage] = useState(initialMessage);
 
@@ -62,7 +68,8 @@ export function StepProgramDetails({
 
     const totalExercises = groups.reduce((s, g) => s + g.exercises.length, 0);
     const totalDuration = groups.reduce(
-        (s, g) => s + g.exercises.reduce((sum, e) => sum + (e.seriesMin || 0) * 2, 0),
+        (s, g) =>
+            s + g.exercises.reduce((sum, e) => sum + (e.seriesMin || 0) * 2, 0),
         0,
     );
 
@@ -96,23 +103,36 @@ export function StepProgramDetails({
                             />
                         </div>
 
-                        <Popover open={patientOpen} onOpenChange={setPatientOpen}>
+                        <Popover
+                            open={patientOpen}
+                            onOpenChange={setPatientOpen}
+                        >
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
                                     role="combobox"
                                     className="w-full justify-between font-normal"
                                 >
-                                    <span className={cn(!patientName && 'text-muted-foreground')}>
+                                    <span
+                                        className={cn(
+                                            !patientName &&
+                                                'text-muted-foreground',
+                                        )}
+                                    >
                                         {patientName || 'Enviar para...'}
                                     </span>
-                                    <ChevronsUpDown className="text-muted-foreground ml-2 h-4 w-4 shrink-0" />
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-full p-0" align="start">
+                            <PopoverContent
+                                className="w-full p-0"
+                                align="start"
+                            >
                                 <Command>
                                     <CommandInput placeholder="Pesquisar paciente..." />
-                                    <CommandEmpty>Nenhum paciente encontrado.</CommandEmpty>
+                                    <CommandEmpty>
+                                        Nenhum paciente encontrado.
+                                    </CommandEmpty>
                                     <CommandGroup>
                                         {patientId && (
                                             <CommandItem
@@ -139,7 +159,8 @@ export function StepProgramDetails({
                                                 <Check
                                                     className={cn(
                                                         'mr-2 h-4 w-4',
-                                                        patientId === Number(p.id)
+                                                        patientId ===
+                                                            Number(p.id)
                                                             ? 'opacity-100'
                                                             : 'opacity-0',
                                                     )}
@@ -154,17 +175,19 @@ export function StepProgramDetails({
 
                         <div className="flex gap-3">
                             <div className="flex-1">
-                                <label className="text-muted-foreground mb-1 block text-xs">
+                                <label className="mb-1 block text-xs text-muted-foreground">
                                     Início
                                 </label>
                                 <Input
                                     type="date"
                                     value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
+                                    onChange={(e) =>
+                                        setStartDate(e.target.value)
+                                    }
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="text-muted-foreground mb-1 block text-xs">
+                                <label className="mb-1 block text-xs text-muted-foreground">
                                     Término
                                 </label>
                                 <Input
@@ -178,7 +201,7 @@ export function StepProgramDetails({
 
                         <div>
                             <div className="mb-2 flex items-center gap-2">
-                                <button className="text-primary text-sm hover:underline">
+                                <button className="text-sm text-primary hover:underline">
                                     + Criar modelo de mensagem
                                 </button>
                             </div>
@@ -189,7 +212,7 @@ export function StepProgramDetails({
                                 rows={4}
                                 maxLength={600}
                             />
-                            <p className="text-muted-foreground mt-1 text-right text-xs">
+                            <p className="mt-1 text-right text-xs text-muted-foreground">
                                 {600 - message.length} caracteres restantes
                             </p>
                         </div>
@@ -197,44 +220,57 @@ export function StepProgramDetails({
                 </div>
             </ScrollArea>
 
-            <div className="border-border bg-card flex w-72 flex-shrink-0 flex-col border-l">
+            <div className="flex w-72 flex-shrink-0 flex-col border-l border-border bg-card">
                 <div className="space-y-4 p-6">
-                    <h3 className="text-foreground text-base font-semibold">Resumo do programa</h3>
+                    <h3 className="text-base font-semibold text-foreground">
+                        Resumo do programa
+                    </h3>
 
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-2">
                             {thumbnails.map((url, i) => (
                                 <div
                                     key={i}
-                                    className="border-card bg-muted h-10 w-10 overflow-hidden rounded-full border-2"
+                                    className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted"
                                 >
-                                    <img src={url} alt="" className="h-full w-full object-cover" />
+                                    <img
+                                        src={url}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                    />
                                 </div>
                             ))}
                             {remaining > 0 && (
-                                <div className="border-card bg-muted text-muted-foreground flex h-10 w-10 items-center justify-center rounded-full border-2 text-xs font-medium">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium text-muted-foreground">
                                     +{remaining}
                                 </div>
                             )}
                         </div>
-                        <span className="text-foreground ml-2 text-sm">
-                            {totalExercises} exercício{totalExercises !== 1 ? 's' : ''}
+                        <span className="ml-2 text-sm text-foreground">
+                            {totalExercises} exercício
+                            {totalExercises !== 1 ? 's' : ''}
                         </span>
                     </div>
 
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Duração</span>
-                            <span className="text-foreground">{totalDuration} min</span>
+                            <span className="text-muted-foreground">
+                                Duração
+                            </span>
+                            <span className="text-foreground">
+                                {totalDuration} min
+                            </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Acesso disponível por</span>
+                            <span className="text-muted-foreground">
+                                Acesso disponível por
+                            </span>
                             <span className="text-foreground">--</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-border mt-auto border-t p-4">
+                <div className="mt-auto border-t border-border p-4">
                     <Button
                         className="w-full"
                         onClick={handleSubmit}

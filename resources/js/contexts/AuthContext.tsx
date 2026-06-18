@@ -19,7 +19,11 @@ import {
     decodeJwtExp,
     type LoginCredentials,
 } from '@/infrastructure/api/auth.service';
-import { apiClient, clearStoredAuth, getStoredAuth } from '@/infrastructure/api/client';
+import {
+    apiClient,
+    clearStoredAuth,
+    getStoredAuth,
+} from '@/infrastructure/api/client';
 
 const WARN_BEFORE_MS = 5 * 60 * 1000; // 5 minutos antes de expirar
 
@@ -68,7 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const refreshSessionRef = useRef<() => Promise<void>>(() => Promise.resolve());
+    const refreshSessionRef = useRef<() => Promise<void>>(() =>
+        Promise.resolve(),
+    );
 
     const scheduleExpiryWarning = useCallback((token: string) => {
         if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
@@ -96,14 +102,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         expiryTimerRef.current = setTimeout(fire, delay);
     }, []);
 
-    const setUser = useCallback((user: User | null, guard: AuthGuard | null) => {
-        setState({
-            user,
-            guard,
-            isAuthenticated: !!user && !!guard,
-            isLoading: false,
-        });
-    }, []);
+    const setUser = useCallback(
+        (user: User | null, guard: AuthGuard | null) => {
+            setState({
+                user,
+                guard,
+                isAuthenticated: !!user && !!guard,
+                isLoading: false,
+            });
+        },
+        [],
+    );
 
     const login = useCallback(
         async (guard: AuthGuard, credentials: LoginCredentials) => {
@@ -139,10 +148,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             toast.dismiss('session-expiry-warning');
             scheduleExpiryWarning(res.access_token);
         } catch {
-            toast.error('Não foi possível renovar a sessão. Faça login novamente.');
+            toast.error(
+                'Não foi possível renovar a sessão. Faça login novamente.',
+            );
             if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
             clearStoredAuth(auth.guard);
-            setState({ user: null, guard: null, isAuthenticated: false, isLoading: false });
+            setState({
+                user: null,
+                guard: null,
+                isAuthenticated: false,
+                isLoading: false,
+            });
         }
     }, [state.guard, scheduleExpiryWarning]);
 
@@ -206,7 +222,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [state, login, logout, setUser, refreshSession],
     );
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    );
 }
 
 export function useAuth(): AuthContextValue {

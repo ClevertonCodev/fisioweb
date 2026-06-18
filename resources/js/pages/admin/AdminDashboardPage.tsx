@@ -12,7 +12,13 @@ import { Link } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 
 const stats = [
@@ -51,10 +57,34 @@ const stats = [
 ];
 
 const recentClinics = [
-    { id: 4, name: 'Aurora Fisioterapia', plan: 'Start', date: '16/02/2026', status: 1 },
-    { id: 3, name: 'Marileide Cavalcante', plan: 'Start', date: '16/02/2026', status: 1 },
-    { id: 1, name: 'Cleverton Santos', plan: 'Start', date: '11/02/2026', status: 1 },
-    { id: 5, name: 'FisioVida Clínica', plan: 'Enterprise', date: '10/01/2026', status: 1 },
+    {
+        id: 4,
+        name: 'Aurora Fisioterapia',
+        plan: 'Start',
+        date: '16/02/2026',
+        status: 1,
+    },
+    {
+        id: 3,
+        name: 'Marileide Cavalcante',
+        plan: 'Start',
+        date: '16/02/2026',
+        status: 1,
+    },
+    {
+        id: 1,
+        name: 'Cleverton Santos',
+        plan: 'Start',
+        date: '11/02/2026',
+        status: 1,
+    },
+    {
+        id: 5,
+        name: 'FisioVida Clínica',
+        plan: 'Enterprise',
+        date: '10/01/2026',
+        status: 1,
+    },
 ];
 
 const planDistribution = [
@@ -101,14 +131,14 @@ export default function AdminDashboardPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-foreground text-2xl font-semibold">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             Painel Administrativo
                         </h1>
-                        <p className="text-muted-foreground mt-1">
+                        <p className="mt-1 text-muted-foreground">
                             Visão geral da plataforma FisioElite.
                         </p>
                     </div>
-                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         {new Date().toLocaleDateString('pt-BR', {
                             weekday: 'long',
@@ -125,10 +155,10 @@ export default function AdminDashboardPage() {
                             <CardContent className="p-6">
                                 <div className="flex items-start justify-between">
                                     <div className="space-y-2">
-                                        <p className="text-muted-foreground text-sm">
+                                        <p className="text-sm text-muted-foreground">
                                             {stat.title}
                                         </p>
-                                        <p className="text-foreground text-3xl font-bold">
+                                        <p className="text-3xl font-bold text-foreground">
                                             {stat.value}
                                         </p>
                                         <p
@@ -140,7 +170,9 @@ export default function AdminDashboardPage() {
                                             {stat.change}
                                         </p>
                                     </div>
-                                    <div className={`rounded-lg p-3 ${stat.color}`}>
+                                    <div
+                                        className={`rounded-lg p-3 ${stat.color}`}
+                                    >
                                         <stat.icon className="h-5 w-5" />
                                     </div>
                                 </div>
@@ -155,12 +187,17 @@ export default function AdminDashboardPage() {
                     <Card className="lg:col-span-2">
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
-                                <CardTitle className="text-lg">Clínicas Recentes</CardTitle>
-                                <CardDescription>Últimas clínicas cadastradas</CardDescription>
+                                <CardTitle className="text-lg">
+                                    Clínicas Recentes
+                                </CardTitle>
+                                <CardDescription>
+                                    Últimas clínicas cadastradas
+                                </CardDescription>
                             </div>
                             <Button variant="ghost" size="sm" asChild>
                                 <Link to="/admin/clinicas" className="gap-1">
-                                    Ver todas <ChevronRight className="h-4 w-4" />
+                                    Ver todas{' '}
+                                    <ChevronRight className="h-4 w-4" />
                                 </Link>
                             </Button>
                         </CardHeader>
@@ -169,26 +206,29 @@ export default function AdminDashboardPage() {
                                 {recentClinics.map((clinic) => (
                                     <div
                                         key={clinic.id}
-                                        className="bg-muted/50 hover:bg-muted flex items-center gap-4 rounded-lg p-3 transition-colors"
+                                        className="flex items-center gap-4 rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted"
                                     >
                                         <Avatar className="h-10 w-10">
-                                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                            <AvatarFallback className="bg-primary/10 font-medium text-primary">
                                                 {clinic.name.charAt(0)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-foreground truncate font-medium">
+                                            <p className="truncate font-medium text-foreground">
                                                 {clinic.name}
                                             </p>
-                                            <p className="text-muted-foreground text-sm">
+                                            <p className="text-sm text-muted-foreground">
                                                 Plano {clinic.plan}
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-muted-foreground text-sm">
+                                            <p className="text-sm text-muted-foreground">
                                                 {clinic.date}
                                             </p>
-                                            <StatusBadge variant="active" className="mt-1">
+                                            <StatusBadge
+                                                variant="active"
+                                                className="mt-1"
+                                            >
                                                 Ativo
                                             </StatusBadge>
                                         </div>
@@ -202,25 +242,34 @@ export default function AdminDashboardPage() {
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg">Distribuição de Planos</CardTitle>
-                                <CardDescription>Clínicas por plano</CardDescription>
+                                <CardTitle className="text-lg">
+                                    Distribuição de Planos
+                                </CardTitle>
+                                <CardDescription>
+                                    Clínicas por plano
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
                                     {planDistribution.map((plan) => (
-                                        <div key={plan.name} className="space-y-2">
+                                        <div
+                                            key={plan.name}
+                                            className="space-y-2"
+                                        >
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-foreground font-medium">
+                                                <span className="font-medium text-foreground">
                                                     {plan.name}
                                                 </span>
                                                 <span className="text-muted-foreground">
                                                     {plan.count} clínicas
                                                 </span>
                                             </div>
-                                            <div className="bg-muted h-2 overflow-hidden rounded-full">
+                                            <div className="h-2 overflow-hidden rounded-full bg-muted">
                                                 <div
                                                     className={`h-full rounded-full ${plan.color}`}
-                                                    style={{ width: `${(plan.count / 42) * 100}%` }}
+                                                    style={{
+                                                        width: `${(plan.count / 42) * 100}%`,
+                                                    }}
                                                 />
                                             </div>
                                         </div>
@@ -231,23 +280,28 @@ export default function AdminDashboardPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg">Atividade Recente</CardTitle>
+                                <CardTitle className="text-lg">
+                                    Atividade Recente
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
                                     {recentActivity.map((a) => (
-                                        <div key={a.id} className="flex items-start gap-3">
-                                            <div className="bg-muted rounded-lg p-2">
-                                                <a.icon className="text-muted-foreground h-4 w-4" />
+                                        <div
+                                            key={a.id}
+                                            className="flex items-start gap-3"
+                                        >
+                                            <div className="rounded-lg bg-muted p-2">
+                                                <a.icon className="h-4 w-4 text-muted-foreground" />
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-foreground text-sm font-medium">
+                                                <p className="text-sm font-medium text-foreground">
                                                     {a.action}
                                                 </p>
-                                                <p className="text-muted-foreground truncate text-sm">
+                                                <p className="truncate text-sm text-muted-foreground">
                                                     {a.description}
                                                 </p>
-                                                <p className="text-muted-foreground mt-1 text-xs">
+                                                <p className="mt-1 text-xs text-muted-foreground">
                                                     {a.time}
                                                 </p>
                                             </div>

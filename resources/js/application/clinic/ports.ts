@@ -455,3 +455,13 @@ export interface ClinicProfileRepository {
         dto: ClinicProfileUpdateDto,
     ): Promise<import('@/domain/clinic/clinic-profile').ClinicProfile>;
 }
+
+export interface DashboardRepository {
+    getSummary(
+        scope?: import('@/domain/clinic/dashboard').DashboardScope,
+    ): Promise<import('@/domain/clinic/dashboard').DashboardSummary>;
+    getOccupancyRate(params: {
+        granularity: import('@/domain/clinic/dashboard').OccupancyGranularity;
+        clinicUserId?: string;
+    }): Promise<import('@/domain/clinic/dashboard').OccupancyRate>;
+}

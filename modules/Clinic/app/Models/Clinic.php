@@ -30,6 +30,13 @@ class Clinic extends Model
 
     public const TYPE_PERSON_JURIDICA = 'juridica';
 
+    /** Janela de atendimento padrão quando a clínica não a configurou (FR-019a). */
+    public const DEFAULT_WORKING_START = '08:00';
+
+    public const DEFAULT_WORKING_END = '18:00';
+
+    public const DEFAULT_WORKING_DAYS = [1, 2, 3, 4, 5];
+
     protected $fillable = [
         'name',
         'email',
@@ -44,14 +51,37 @@ class Clinic extends Model
         'state',
         'phone',
         'timezone',
+        'working_start',
+        'working_end',
+        'working_days',
         'plan_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'status' => 'integer',
+            'status'       => 'integer',
+            'working_days' => 'array',
         ];
+    }
+
+    /**
+     * Janela de atendimento usada como denominador da Taxa de ocupação.
+     *
+     * @return array{start:string,end:string,days:int[]}
+     */
+    public function workingWindow(): array
+    {
+        return [
+            'start' => $this->normalizeTime($this->working_start, self::DEFAULT_WORKING_START),
+            'end'   => $this->normalizeTime($this->working_end, self::DEFAULT_WORKING_END),
+            'days'  => !empty($this->working_days) ? array_map('intval', $this->working_days) : self::DEFAULT_WORKING_DAYS,
+        ];
+    }
+
+    private function normalizeTime(?string $value, string $default): string
+    {
+        return $value ? substr($value, 0, 5) : $default;
     }
 
     public function plan(): BelongsTo

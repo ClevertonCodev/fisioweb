@@ -21,6 +21,7 @@ use Modules\Clinic\Http\Controllers\TreatmentPlanController;
 
 Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('clinic.dashboard');
+    Route::get('dashboard/occupancy-rate', [DashboardController::class, 'occupancyRate'])->name('clinic.dashboard.occupancy-rate');
 
     Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
     Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');

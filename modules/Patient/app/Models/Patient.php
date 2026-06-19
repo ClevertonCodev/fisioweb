@@ -20,9 +20,28 @@ class Patient extends Authenticatable implements JWTSubject
 
     public const GUARD_NAME = 'patient';
 
+    /** Status que retiram o paciente do conjunto "ativo" do dashboard. */
+    public const STATUS_OBITO = 'obito';
+
+    public const STATUS_CANCELADO = 'cancelado';
+
+    public const STATUS_ALTA = 'alta';
+
+    public const INACTIVE_STATUSES = [
+        self::STATUS_OBITO,
+        self::STATUS_CANCELADO,
+        self::STATUS_ALTA,
+    ];
+
     protected static function newFactory(): PatientFactory
     {
         return PatientFactory::new();
+    }
+
+    /** Pacientes ativos = status diferente de óbito, cancelado e alta (FR-006). */
+    public function scopeActiveStatus($query)
+    {
+        return $query->whereNotIn('status', self::INACTIVE_STATUSES);
     }
 
     protected $fillable = [

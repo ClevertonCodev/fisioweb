@@ -7,6 +7,7 @@ export { apiPlansRepository } from './api-admin-plans';
 export { apiAdminProgramsRepository } from './api-admin-programs';
 export { apiAdminVideosRepository } from './api-admin-videos';
 export { apiClinicAppointmentsRepository } from './api-clinic-appointments';
+export { apiClinicDashboardRepository } from './api-clinic-dashboard';
 export { apiClinicExercisesRepository } from './api-clinic-exercises';
 export { apiClinicPatientsRepository } from './api-clinic-patients';
 export { apiClinicProfileRepository } from './api-clinic-profile';

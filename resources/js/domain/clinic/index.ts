@@ -1,6 +1,7 @@
 export * from './appointment';
 export * from './assessment';
 export * from './clinic-profile';
+export * from './dashboard';
 export * from './evolution';
 export * from './exercise';
 export * from './patient';

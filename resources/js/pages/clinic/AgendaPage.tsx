@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { AppointmentWriteDto } from '@/application/clinic';
@@ -73,6 +74,21 @@ export default function AgendaPage() {
     const [selectedAppointment, setSelectedAppointment] =
         useState<Appointment | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [navHandled, setNavHandled] = useState(false);
+    const location = useLocation();
+
+    // Deep-link da ação rápida "Agendar consulta": abre o modal "Nova consulta"
+    // ao chegar com o sinal de navegação (FR-026). Ajuste de estado durante o
+    // render (mesmo padrão de syncedData), guardado para rodar só uma vez.
+    const openNewAppointment = (
+        location.state as { openNewAppointment?: boolean } | null
+    )?.openNewAppointment;
+    if (openNewAppointment && !navHandled) {
+        setNavHandled(true);
+        setSelectedAppointment(null);
+        setSelectedDate(new Date());
+        setModalOpen(true);
+    }
 
     // Sincroniza o estado local quando os dados do servidor mudam (padrão React:
     // ajuste de estado durante o render, sem setState em useEffect).

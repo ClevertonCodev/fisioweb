@@ -20,8 +20,8 @@ import {
 } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
-import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
 import { Req } from '@/components/clinic/patient/form/shared';
+import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {

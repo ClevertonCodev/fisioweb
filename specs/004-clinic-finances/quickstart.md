@@ -11,11 +11,7 @@ Detalhes de modelo de dados estão em [data-model.md](./data-model.md) e contrat
 
 - Stack já instalada: `composer install && npm install` no projeto.
 - `.env` configurado com banco e JWT (mesmo do plano 003).
-- **Nova dependência composer** declarada no plano (a ser instalada na fase de tarefas):
-
-```bash
-composer require openspout/openspout:^4
-```
+- **Novo módulo `Xlsx`** (espelha `modules/Pdf/`) + dependência composer raiz `openspout/openspout:^4` (a ser criada na fase de tarefas T001).
 
 - Nenhuma dependência npm nova (Chart.js + react-chartjs-2 já presentes).
 

@@ -22,7 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { OccupancyGranularity } from '@/domain/clinic/dashboard';
 
 // Registro do Chart.js (efeito colateral).
-import './chart-setup';
+import '@/components/charts/chart-setup';
 
 interface OccupancyRateChartProps {
     canChooseProfessional: boolean;

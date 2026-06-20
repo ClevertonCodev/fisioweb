@@ -20,15 +20,16 @@ Este documento resolve as decisões deixadas em aberto no Technical Context do `
 
 ## R2. Geração de XLSX
 
-**Decision**: adicionar **`openspout/openspout` ^4** (composer) e usá-lo dentro de `FinanceXlsxExporter`. Streamar para resposta HTTP via `response()->streamDownload(...)`.
+**Decision**: criar módulo **`modules/Xlsx/`** espelhando o padrão do módulo **`modules/Pdf/`** — wrapper fino sobre **`openspout/openspout` ^4** (dependência declarada no `composer.json` raiz, como `barryvdh/laravel-dompdf` hoje). O módulo expõe `XlsxService` (singleton) com métodos `download()` / `stream()` que recebem cabeçalhos + linhas e retornam `Response`. O `FinanceXlsxExporter` do Clinic **injeta `XlsxService`**, não importa Openspout diretamente.
 
 **Rationale**:
-- Não há lib XLSX no projeto hoje. CSV é nativo no Laravel (`fputcsv` + stream).
-- Openspout é a evolução do Spout: ~10× mais leve que PhpSpreadsheet, faz streaming (constante de memória) e gera `.xlsx` válido. Adequado para listas que podem chegar a milhares de transações por exportação.
-- API simples (`Writer\XLSX\Writer`), sem dependência de extensões PHP além do `zip` (já assumido pela stack).
+- Consistência arquitetural: Pdf já isola DomPDF em `Modules\Pdf\Services\PdfService`; qualquer feature futura que precise de Excel reutiliza o mesmo service.
+- Openspout continua sendo a lib subjacente (leve, streaming, sem PhpSpreadsheet).
+- Clinic fica responsável só pelo domínio (colunas, dados das transações); formatação/stream XLSX fica no módulo Xlsx.
 
 **Alternatives considered**:
-- **maatwebsite/excel** (PhpSpreadsheet): mais conhecido no ecossistema Laravel, mas pesado (~30MB), consumo de memória alto e API mais verbosa. Desnecessário para o escopo (listagem tabular simples).
+- **Openspout direto no Clinic** (`FinanceXlsxExporter` importando `OpenSpout\Writer\...`): funciona, mas acopla a lib a um módulo de domínio e quebra o padrão Pdf.
+- **maatwebsite/excel** (PhpSpreadsheet): pesado; descartado.
 - **CSV-only**: descartado — XLSX é requisito (FR-024).
 
 ## R3. Geração de PDF
@@ -154,7 +155,7 @@ No front: usar `RequireClinicAdmin` (skill `security`) ao redor das rotas financ
 ## Resolved unknowns checklist
 
 - [x] Chart library → Chart.js + react-chartjs-2 (existente)
-- [x] XLSX library → openspout/openspout (nova dep composer)
+- [x] XLSX library → módulo `modules/Xlsx/` + `openspout/openspout` no composer raiz
 - [x] PDF generation → módulo `Pdf` + dompdf (existente)
 - [x] PNG export do gráfico → `chart.toBase64Image` no front
 - [x] Persistência do "ocultar valores" → localStorage por usuário

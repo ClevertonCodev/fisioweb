@@ -6,7 +6,11 @@ use Modules\Clinic\Http\Controllers\AssessmentController;
 use Modules\Clinic\Http\Controllers\ClinicProfileController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
 use Modules\Clinic\Http\Controllers\DashboardController;
-use Modules\Clinic\Http\Controllers\EvolutionController;
+use Modules\Clinic\Http\Controllers\FinancialCategoryController;
+use Modules\Clinic\Http\Controllers\FinancialExportController;
+use Modules\Clinic\Http\Controllers\FinancialReportController;
+use Modules\Clinic\Http\Controllers\FinancialSummaryController;
+use Modules\Clinic\Http\Controllers\FinancialTransactionController;
 use Modules\Clinic\Http\Controllers\EvolutionTemplateController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
@@ -124,6 +128,30 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::get('{id}', [QuestionnaireTemplateController::class, 'show'])->name('show');
         Route::put('{id}', [QuestionnaireTemplateController::class, 'update'])->name('update');
         Route::delete('{id}', [QuestionnaireTemplateController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('finances')->middleware('clinic.admin')->name('clinic.finances.')->group(function () {
+        Route::get('transactions/trash', [FinancialTransactionController::class, 'trash'])->name('transactions.trash');
+        Route::post('transactions/{id}/restore', [FinancialTransactionController::class, 'restore'])->name('transactions.restore');
+        Route::apiResource('transactions', FinancialTransactionController::class);
+
+        Route::get('summary', [FinancialSummaryController::class, 'summary'])->name('summary');
+        Route::put('opening-balance', [FinancialSummaryController::class, 'updateOpeningBalance'])->name('opening-balance');
+
+        Route::get('categories', [FinancialCategoryController::class, 'index'])->name('categories.index');
+        Route::post('categories', [FinancialCategoryController::class, 'store'])->name('categories.store');
+        Route::post('categories/{category}/toggle-active', [FinancialCategoryController::class, 'toggleActive'])->name('categories.toggle-active');
+        Route::delete('categories/{category}', [FinancialCategoryController::class, 'destroy'])->name('categories.destroy');
+
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('summary', [FinancialReportController::class, 'summary'])->name('summary');
+            Route::get('income-vs-expense', [FinancialReportController::class, 'incomeVsExpense'])->name('income-vs-expense');
+            Route::get('category-distribution', [FinancialReportController::class, 'categoryDistribution'])->name('category-distribution');
+            Route::get('monthly-comparison', [FinancialReportController::class, 'monthlyComparison'])->name('monthly-comparison');
+            Route::get('category-breakdown', [FinancialReportController::class, 'categoryBreakdown'])->name('category-breakdown');
+        });
+
+        Route::get('export', [FinancialExportController::class, 'export'])->name('export');
     });
 });
 

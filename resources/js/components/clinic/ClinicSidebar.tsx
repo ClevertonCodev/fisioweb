@@ -3,6 +3,7 @@ import {
     Calendar,
     ChevronLeft,
     ChevronRight,
+    DollarSign,
     Dumbbell,
     Home,
     Menu,
@@ -52,7 +53,14 @@ function SidebarContent({
         },
         { icon: Play, label: 'Exercícios', path: '/clinica/exercicios' },
         ...(can.manageUsers(role)
-            ? [{ icon: User, label: 'Usuários', path: '/clinica/usuarios' }]
+            ? [
+                  {
+                      icon: DollarSign,
+                      label: 'Finanças',
+                      path: '/clinica/financas',
+                  },
+                  { icon: User, label: 'Usuários', path: '/clinica/usuarios' },
+              ]
             : []),
     ];
 

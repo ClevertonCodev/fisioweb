@@ -12,7 +12,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Registro do Chart.js (efeito colateral).
-import './chart-setup';
+import '@/components/charts/chart-setup';
 
 /** Rótulos amigáveis para as origens conhecidas; demais usam o valor cru. */
 const SOURCE_LABELS: Record<string, string> = {

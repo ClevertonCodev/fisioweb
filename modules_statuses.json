@@ -1,6 +1,7 @@
 {
     "Admin": true,
     "Pdf": true,
+    "Xlsx": true,
     "Media": true,
     "Cloudflare": true,
     "Clinic": true,

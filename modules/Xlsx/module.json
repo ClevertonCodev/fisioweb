@@ -1,0 +1,11 @@
+{
+    "name": "Xlsx",
+    "alias": "xlsx",
+    "description": "Excel/XLSX export service (Openspout wrapper)",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Xlsx\\Providers\\XlsxServiceProvider"
+    ],
+    "files": []
+}

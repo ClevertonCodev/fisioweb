@@ -11,7 +11,7 @@ Construir, no contexto **clinic**, a página **Finanças** com duas abas:
 - **Finanças**: cards de Entradas/Saídas/Saldo do mês, lista paginada de transações (CRUD + soft delete permanente + tela de lixeira), filtros (tipo/status/categoria/método/busca), ocultar valores, gestão de categorias custom da clínica, painel de configurações e exportação CSV/XLSX/PDF.
 - **Relatório**: cards de totais e variação, gráficos de linha (Entradas × Saídas), pizza (top categorias) e barras (12 meses), tabela resumo, comparação de períodos, exportação PNG/PDF.
 
-Abordagem **backend primeiro**: novo módulo Eloquent + Controllers + Services + Repositories + Policies no módulo `Clinic` (`FinancialTransaction`, `FinancialCategory`, `ClinicCategoryOverride`, `PeriodOpeningBalance`). Policies + middleware `RequireClinicAdmin`-equivalente garantem que apenas o administrador da clínica acessa qualquer endpoint financeiro. Exportações geradas no servidor (CSV stream nativo, XLSX via `openspout/openspout`, PDF via módulo `Pdf` existente / `barryvdh/laravel-dompdf`).
+Abordagem **backend primeiro**: novo módulo Eloquent + Controllers + Services + Repositories + Policies no módulo `Clinic` (`FinancialTransaction`, `FinancialCategory`, `ClinicCategoryOverride`, `PeriodOpeningBalance`). Policies + middleware `RequireClinicAdmin`-equivalente garantem que apenas o administrador da clínica acessa qualquer endpoint financeiro. Exportações geradas no servidor (CSV stream nativo, **XLSX via novo módulo `Xlsx`** espelhando `modules/Pdf/`, PDF via módulo `Pdf` existente).
 
 Depois, **frontend** seguindo DDD do projeto (`domain/clinic/finance*.ts` → `application/clinic/use-finances*.ts` + `ports.ts` → `infrastructure/repositories/api-clinic-finances*.ts` → `pages/clinic/finances/`). Gráficos com **Chart.js via `react-chartjs-2`**, reaproveitando o `chart-setup.ts` já criado em `components/clinic/dashboard/` (a ser promovido para `components/charts/` para uso compartilhado entre Dashboard e Finanças). UI com shadcn/ui (DataTable, Dialog, Form RHF+Zod, Tabs), respeitando `frontend-ui-patterns`.
 
@@ -20,7 +20,7 @@ Depois, **frontend** seguindo DDD do projeto (`domain/clinic/finance*.ts` → `a
 **Language/Version**: PHP 8.2+ (Laravel 12) no backend; TypeScript strict + React 19 no frontend.
 
 **Primary Dependencies**:
-- Backend: Laravel 12, tymon/jwt-auth (guard `clinic`), Eloquent. Reutilização: módulo `Pdf` (DomPDF) para PDFs, módulo `Cloudflare` não é usado nesta feature (downloads diretos pelo navegador). **Nova dependência composer**: `openspout/openspout` (^4) para XLSX — leve, sem PhpSpreadsheet pesado.
+- Backend: Laravel 12, tymon/jwt-auth (guard `clinic`), Eloquent. Reutilização: módulos **`Pdf`** (PDFs) e **`Xlsx`** (planilhas — novo, padrão idêntico ao Pdf). Dependência composer raiz: `openspout/openspout` (^4), como `barryvdh/laravel-dompdf` hoje. Módulo `Cloudflare` não é usado nesta feature.
 - Frontend: TanStack Query v5, axios `apiClient`, shadcn/ui, lucide-react, react-router-dom v6, react-hook-form + Zod. **Reutilização explícita do conjunto já presente** `chart.js` ^4.5 + `react-chartjs-2` ^5.3 (decisão do usuário: "use a lib que já existe no sistema"; o `recharts` instalado fica para o wrapper `components/ui/chart.tsx` do shadcn e não é introduzido em Finanças). **Nenhuma nova dependência npm** para esta feature.
 
 **Storage**: MySQL/PostgreSQL via Eloquent. Quatro tabelas novas (`clinic_financial_transactions`, `clinic_financial_categories`, `clinic_financial_category_overrides`, `clinic_financial_opening_balances`) — todas com prefixo `clinic_` (convenção do módulo, ver memória de case-sensitivity do plano 002). Soft delete permanente via coluna `deleted_at` + `deleted_by_user_id` em `clinic_financial_transactions`; **sem cron de purga**.
@@ -130,7 +130,7 @@ modules/Clinic/
 │       ├── FinanceReportService.php                          # NEW (séries linha/pizza/barras/tabela)
 │       └── Export/
 │           ├── FinanceCsvExporter.php                        # NEW (stream nativo)
-│           ├── FinanceXlsxExporter.php                       # NEW (openspout)
+│           ├── FinanceXlsxExporter.php                       # NEW (via Modules\Xlsx\Services\XlsxService)
 │           └── FinancePdfExporter.php                        # NEW (DomPDF via módulo Pdf)
 ├── database/
 │   ├── factories/

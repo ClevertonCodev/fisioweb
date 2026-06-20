@@ -1,0 +1,24 @@
+{
+    "name": "nwidart/xlsx",
+    "description": "XLSX export module for fisioweb",
+    "authors": [],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "require": {
+        "openspout/openspout": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Xlsx\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Xlsx\\Tests\\": "tests/"
+        }
+    }
+}

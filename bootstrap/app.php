@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'clinic.guard' => \Modules\Clinic\Http\Middleware\SetClinicGuardAsDefault::class,
+            'clinic.admin' => \Modules\Clinic\Http\Middleware\EnsureClinicAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

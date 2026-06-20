@@ -28,7 +28,7 @@ description: "Task list for Clinic Finances feature implementation"
 
 **Purpose**: Project initialization and shared dependencies
 
-- [ ] T001 Add XLSX dependency: run `composer require openspout/openspout:^4` and confirm it lands in `composer.json`/`composer.lock`
+- [ ] T001 Create **`modules/Xlsx/`** module (mirror `modules/Pdf/`): `XlsxServiceProvider`, singleton `XlsxService` (`download`/`stream` from headers + rows), `module.json`, PSR-4 autoload; add `openspout/openspout:^4` to root `composer.json` (same pattern as `barryvdh/laravel-dompdf` for Pdf)
 - [ ] T002 [P] Promote chart setup for reuse: move `resources/js/components/clinic/dashboard/chart-setup.ts` to `resources/js/components/charts/chart-setup.ts` and update all importers (Dashboard) to the new path
 - [ ] T003 [P] Create test folders: `modules/Clinic/tests/Feature/Finances/`, `modules/Clinic/tests/Unit/Finances/`, and `resources/js/test/finances/` (add `.gitkeep` if needed)
 
@@ -222,7 +222,7 @@ description: "Task list for Clinic Finances feature implementation"
 
 - [ ] T091 [P] [US4] `ExportFinancialTransactionsRequest` (format/range/from/to validation; custom requires from≤to) in `modules/Clinic/app/Http/Requests/ExportFinancialTransactionsRequest.php`
 - [ ] T092 [P] [US4] `FinanceCsvExporter` (native streamed CSV) in `modules/Clinic/app/Services/Export/FinanceCsvExporter.php`
-- [ ] T093 [P] [US4] `FinanceXlsxExporter` (openspout) in `modules/Clinic/app/Services/Export/FinanceXlsxExporter.php`
+- [ ] T093 [P] [US4] `FinanceXlsxExporter` (injects `Modules\Xlsx\Services\XlsxService`, maps transaction rows to headers/columns) in `modules/Clinic/app/Services/Export/FinanceXlsxExporter.php`
 - [ ] T094 [P] [US4] PDF Blade view `export-transactions.blade.php` in `modules/Clinic/resources/views/finance/export-transactions.blade.php`
 - [ ] T095 [US4] `FinancePdfExporter` (DomPDF via Pdf module, uses Blade view) in `modules/Clinic/app/Services/Export/FinancePdfExporter.php` (depends on T094)
 - [ ] T096 [US4] `FinancialExportController` (resolves range→dates, 422 when empty, dispatches exporter, streams w/ Content-Disposition) in `modules/Clinic/app/Http/Controllers/FinancialExportController.php` (depends on T092, T093, T095)

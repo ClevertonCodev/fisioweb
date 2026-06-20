@@ -17,6 +17,7 @@ class ClinicDatabaseSeeder extends Seeder
             EvolutionTemplateSeeder::class,
             ClinicPatientDataSeeder::class,
             DashboardDemoSeeder::class,
+            FinancialDemoSeeder::class,
         ]);
     }
 }

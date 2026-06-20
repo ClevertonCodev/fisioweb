@@ -53,7 +53,7 @@ class AssessmentService implements AssessmentServiceInterface
 
         $this->assertPayloadMatchesTemplate($fieldsById, $dto['answers'] ?? [], $dto['answer_options'] ?? []);
 
-        return DB::transaction(function () use ($dto, $clinicId, $patient, $clinicUserId, $template, $fieldsById) {
+        return DB::transaction(function () use ($dto, $clinicId, $patient, $clinicUserId, $template) {
             $assessment = Assessment::query()->create([
                 'clinic_id'                    => $clinicId,
                 'patient_id'                   => $patient->id,
@@ -84,7 +84,7 @@ class AssessmentService implements AssessmentServiceInterface
 
         $this->assertPayloadMatchesTemplate($fieldsById, $dto['answers'] ?? [], $dto['answer_options'] ?? []);
 
-        return DB::transaction(function () use ($assessment, $dto, $fieldsById) {
+        return DB::transaction(function () use ($assessment, $dto) {
             $assessment->answers()->delete();
             $assessment->answerOptions()->delete();
             $this->persistAnswers($assessment, $dto['answers'] ?? [], $dto['answer_options'] ?? []);

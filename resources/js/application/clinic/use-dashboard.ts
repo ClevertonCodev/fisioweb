@@ -34,3 +34,23 @@ export function useOccupancyRate(
             repository.getOccupancyRate({ granularity, clinicUserId }),
     });
 }
+
+/**
+ * Feed de Atividades recentes (admin/secretário). `enabled` desliga a query
+ * para fisioterapeuta, que recebe 403 (FR-023).
+ */
+export function useRecentActivities(enabled: boolean) {
+    return useQuery({
+        queryKey: ['dashboard', 'activities'],
+        queryFn: () => repository.getActivities(),
+        enabled,
+    });
+}
+
+/** Captação de pacientes por origem, comparando os últimos 3 anos (FR-015/016). */
+export function usePatientAcquisition(scope?: DashboardScope) {
+    return useQuery({
+        queryKey: ['dashboard', 'patientAcquisition', scope ?? 'clinic'],
+        queryFn: () => repository.getPatientAcquisition(scope),
+    });
+}

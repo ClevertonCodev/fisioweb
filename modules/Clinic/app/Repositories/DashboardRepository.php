@@ -8,6 +8,7 @@ use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Enums\AppointmentStatus;
 use Modules\Clinic\Models\Appointment;
+use Modules\Clinic\Models\ClinicActivity;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Services\DashboardScope;
 use Modules\Patient\Models\Patient;
@@ -85,12 +86,80 @@ class DashboardRepository implements DashboardRepositoryInterface
                 'photo_url'   => $p->photo_url,
                 'day'         => $p->birth_date?->day,
                 'phone'       => $p->phone,
-                'can_message' => ! empty($p->phone),
+                'can_message' => !empty($p->phone),
             ])
             ->sortBy('day')
             ->values();
 
         return ['total' => $items->count(), 'items' => $items->all()];
+    }
+
+    public function recentActivities(int $clinicId, string $timezone): array
+    {
+        $appTz = config('app.timezone');
+        $start = Carbon::now($timezone)->startOfDay()->setTimezone($appTz);
+        $end   = Carbon::now($timezone)->endOfDay()->setTimezone($appTz);
+
+        return ClinicActivity::query()
+            ->forClinic($clinicId)
+            ->whereBetween('created_at', [$start, $end])
+            ->with('actor:id,name')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (ClinicActivity $a) => [
+                'id'          => $a->id,
+                'type'        => $a->type->value,
+                'description' => $a->description,
+                'actor_name'  => $a->actor?->name,
+                'created_at'  => $a->created_at?->toIso8601String(),
+            ])
+            ->all();
+    }
+
+    public function patientAcquisition(DashboardScope $scope): array
+    {
+        $currentYear = Carbon::now($scope->timezone)->year;
+        $years       = [$currentYear, $currentYear - 1, $currentYear - 2];
+        $minYear     = $currentYear - 2;
+
+        $rows = $this->scopedPatients($scope)
+            ->whereYear('created_at', '>=', $minYear)
+            ->get(['referral_source', 'created_at']);
+
+        $totalsPerYear = array_fill_keys($years, 0);
+        $bySource      = [];
+
+        foreach ($rows as $row) {
+            $year = $row->created_at?->year;
+            if (!in_array($year, $years, true)) {
+                continue;
+            }
+
+            $source                      = $row->referral_source ?: 'Não informado';
+            $bySource[$source][$year]    = ($bySource[$source][$year] ?? 0) + 1;
+            $totalsPerYear[$year]++;
+        }
+
+        $grandTotal = array_sum($totalsPerYear);
+        $sources    = [];
+
+        foreach ($bySource as $source => $perYear) {
+            $full  = array_fill_keys($years, 0);
+            foreach ($perYear as $year => $count) {
+                $full[$year] = $count;
+            }
+            $total     = array_sum($full);
+            $sources[] = [
+                'source'        => $source,
+                'per_year'      => $full,
+                'total'         => $total,
+                'percent_total' => $grandTotal > 0 ? round($total / $grandTotal * 100, 1) : 0.0,
+            ];
+        }
+
+        usort($sources, fn ($a, $b) => $b['total'] <=> $a['total']);
+
+        return ['years' => $years, 'sources' => $sources, 'totals_per_year' => $totalsPerYear];
     }
 
     /** Query base de pacientes do escopo (clínica + profissional opcional). */

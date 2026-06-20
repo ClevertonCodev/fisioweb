@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Clinic\Models\PatientQuestionnaire;
 use Modules\Clinic\Models\PatientQuestionnaireAnswer;
-use Modules\Clinic\Models\QuestionnaireTemplate;
 
 class PatientQuestionnaireService
 {

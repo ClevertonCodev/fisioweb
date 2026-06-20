@@ -464,4 +464,8 @@ export interface DashboardRepository {
         granularity: import('@/domain/clinic/dashboard').OccupancyGranularity;
         clinicUserId?: string;
     }): Promise<import('@/domain/clinic/dashboard').OccupancyRate>;
+    getActivities(): Promise<import('@/domain/clinic/dashboard').Activity[]>;
+    getPatientAcquisition(
+        scope?: import('@/domain/clinic/dashboard').DashboardScope,
+    ): Promise<import('@/domain/clinic/dashboard').PatientAcquisition>;
 }

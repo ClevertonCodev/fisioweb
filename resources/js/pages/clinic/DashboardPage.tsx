@@ -3,8 +3,11 @@ import { useState } from 'react';
 
 import { useDashboardSummary } from '@/application/clinic/use-dashboard';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { MonthBirthdays } from '@/components/clinic/dashboard/MonthBirthdays';
 import { OccupancyRateChart } from '@/components/clinic/dashboard/OccupancyRateChart';
+import { PatientAcquisitionChart } from '@/components/clinic/dashboard/PatientAcquisitionChart';
 import { QuickActions } from '@/components/clinic/dashboard/QuickActions';
+import { RecentActivities } from '@/components/clinic/dashboard/RecentActivities';
 import { ScopeToggle } from '@/components/clinic/dashboard/ScopeToggle';
 import { StatCards } from '@/components/clinic/dashboard/StatCards';
 import { UpcomingAppointments } from '@/components/clinic/dashboard/UpcomingAppointments';
@@ -51,20 +54,33 @@ export default function DashboardPage() {
                 {/* Cards de indicadores */}
                 <StatCards cards={data?.cards} isLoading={isLoading} />
 
-                {/* Próximas consultas */}
+                {/* Próximas consultas + Aniversariantes ao lado (FR-027) */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <UpcomingAppointments
                         items={data?.upcomingAppointments}
                         isLoading={isLoading}
                         isError={isError}
                     />
+                    <MonthBirthdays
+                        data={data?.birthdays}
+                        isLoading={isLoading}
+                        isError={isError}
+                    />
                 </div>
+
+                {/* Captação de pacientes (FR-027) */}
+                <PatientAcquisitionChart />
 
                 {/* Taxa de ocupação */}
                 <OccupancyRateChart
                     canChooseProfessional={
                         data?.viewer.canChooseProfessional ?? false
                     }
+                />
+
+                {/* Atividades recentes — admin/secretário (FR-023) */}
+                <RecentActivities
+                    enabled={data?.viewer.canViewActivities ?? false}
                 />
             </div>
         </ClinicLayout>

@@ -4,6 +4,7 @@ namespace Modules\Clinic\Tests\Unit;
 
 use Illuminate\Support\Facades\Queue;
 use Mockery;
+use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\AppointmentRepositoryInterface;
 use Modules\Clinic\Enums\AppointmentStatus;
 use Modules\Clinic\Jobs\AppointmentScheduledNotificationJob;
@@ -30,8 +31,9 @@ class AppointmentServiceCreateTest extends TestCase
             }))
             ->andReturn($appointment);
 
-        $service = new AppointmentService($repository);
-        $result  = $service->create([
+        $activityLogger = Mockery::mock(ActivityLoggerInterface::class)->shouldIgnoreMissing();
+        $service        = new AppointmentService($repository, $activityLogger);
+        $result         = $service->create([
             'clinic_id'      => 1,
             'patient_id'     => 1,
             'clinic_user_id' => 1,

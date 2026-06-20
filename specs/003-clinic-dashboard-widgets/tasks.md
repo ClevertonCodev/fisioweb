@@ -38,7 +38,7 @@ description: "Task list for Dashboard da Clínica com Widgets por Papel"
 - [x] T006 Criar `DashboardService` em `modules/Clinic/app/Services/DashboardService.php` (constrói `DashboardScope` a partir do `Auth::guard('clinic')->user()` + query `scope`)
 - [x] T007 Editar `modules/Clinic/app/Http/Controllers/DashboardController.php` para injetar `DashboardServiceInterface` e devolver o agregado (substitui as 4 contagens ad-hoc atuais)
 - [x] T008 Registrar binds dos novos contracts em `modules/Clinic/app/Providers/ClinicServiceProvider.php`
-- [ ] T009 Registrar as sub-rotas do dashboard (`occupancy-rate`, `patient-acquisition`, `activities`) sob o prefixo `dashboard` em `modules/Clinic/routes/clinic.php`
+- [x] T009 Registrar as sub-rotas do dashboard (`occupancy-rate`, `patient-acquisition`, `activities`) sob o prefixo `dashboard` em `modules/Clinic/routes/clinic.php`
 
 ### Frontend — camadas DDD (esqueleto)
 
@@ -122,9 +122,9 @@ description: "Task list for Dashboard da Clínica com Widgets por Papel"
 
 **Independent Test**: lista ordenada por dia, escopo por papel; botão abre `wa.me?text=` com parabéns; sem telefone → desabilitado.
 
-- [ ] T035 [US5] Adicionar agregação de aniversariantes ao `DashboardRepository`/`DashboardService` (mês corrente tz clínica, escopo por papel, `name/photo/day/phone`) — FR-012/013, contracts §1
-- [ ] T036 [P] [US5] Componente `resources/js/components/clinic/dashboard/MonthBirthdays.tsx` com botão que abre WhatsApp Web em nova aba (`https://wa.me/<digits>?text=<parabéns URL-encoded>`) e desabilita quando `can_message=false` (FR-014)
-- [ ] T037 [P] [US5] Feature test: aniversariantes escopados por papel em `modules/Clinic/tests/Feature/Dashboard/BirthdaysTest.php`
+- [x] T035 [US5] Adicionar agregação de aniversariantes ao `DashboardRepository`/`DashboardService` (mês corrente tz clínica, escopo por papel, `name/photo/day/phone`) — FR-012/013, contracts §1
+- [x] T036 [P] [US5] Componente `resources/js/components/clinic/dashboard/MonthBirthdays.tsx` com botão que abre WhatsApp Web em nova aba (`https://wa.me/<digits>?text=<parabéns URL-encoded>`) e desabilita quando `can_message=false` (FR-014)
+- [x] T037 [P] [US5] Feature test: aniversariantes escopados por papel em `modules/Clinic/tests/Feature/Dashboard/BirthdaysTest.php`
 
 **Checkpoint**: relacionamento de aniversário operável.
 
@@ -136,9 +136,9 @@ description: "Task list for Dashboard da Clínica com Widgets por Papel"
 
 **Independent Test**: matriz anos×origens com `count`/`percent`; sem origem → "Não informado"; fisio só os seus.
 
-- [ ] T038 [US6] Criar `modules/Clinic/app/Http/Requests/PatientAcquisitionRequest.php` + action `patientAcquisition` no `DashboardController` + query no `DashboardRepository` (group by `referral_source`, base `created_at`, 3 anos + consolidado, `null→"Não informado"`) — FR-015/016/017, contracts §3
-- [ ] T039 [P] [US6] Componente `resources/js/components/clinic/dashboard/PatientAcquisitionChart.tsx` (Chart.js — comparação 3 anos) + tabela + hook `usePatientAcquisition`
-- [ ] T040 [P] [US6] Feature test: captação escopada por papel + bucket "Não informado" em `modules/Clinic/tests/Feature/Dashboard/PatientAcquisitionTest.php`
+- [x] T038 [US6] Criar `modules/Clinic/app/Http/Requests/PatientAcquisitionRequest.php` + action `patientAcquisition` no `DashboardController` + query no `DashboardRepository` (group by `referral_source`, base `created_at`, 3 anos + consolidado, `null→"Não informado"`) — FR-015/016/017, contracts §3
+- [x] T039 [P] [US6] Componente `resources/js/components/clinic/dashboard/PatientAcquisitionChart.tsx` (Chart.js — comparação 3 anos) + tabela + hook `usePatientAcquisition`
+- [x] T040 [P] [US6] Feature test: captação escopada por papel + bucket "Não informado" em `modules/Clinic/tests/Feature/Dashboard/PatientAcquisitionTest.php`
 
 **Checkpoint**: indicador analítico de captação.
 
@@ -150,12 +150,12 @@ description: "Task list for Dashboard da Clínica com Widgets por Papel"
 
 **Independent Test**: ações do dia aparecem no feed (desc, ator, tempo); fisioterapeuta → 403/oculto; dia vazio → empty state.
 
-- [ ] T041 [US7] Criar migration `modules/Clinic/database/migrations/2026_06_19_000001_create_clinic_activities_table.php` + model `modules/Clinic/app/Models/ClinicActivity.php` + enum `modules/Clinic/app/Enums/ActivityType.php` (8 tipos) — data-model §1, FR-022a/b
-- [ ] T042 [US7] Criar `ActivityLoggerInterface` (`modules/Clinic/app/Contracts/`) + `ActivityLogger` (`modules/Clinic/app/Services/`) + bind no `ClinicServiceProvider`
-- [ ] T043 [US7] Instrumentar eventos chamando o `ActivityLogger` em: `modules/Patient/app/Services/PatientService.php` (create/update), `modules/Clinic/app/Services/TreatmentPlanService.php` (create/update→completed/addExercise), `modules/Clinic/app/Services/AppointmentService.php` (create/updateStatus→completed/cancel) — research §11
-- [ ] T044 [US7] Action `activities` no `DashboardController` + query no `DashboardRepository` (hoje, clínica inteira, `created_at DESC`) com **403 para fisioterapeuta** (FR-023, contracts §4)
-- [ ] T045 [P] [US7] Componente `resources/js/components/clinic/dashboard/RecentActivities.tsx` + hook `useRecentActivities` (só admin/secretário; empty state — FR-024)
-- [ ] T046 [P] [US7] Feature test: feed lista eventos + fisioterapeuta 403 + empty state em `modules/Clinic/tests/Feature/Dashboard/ActivitiesTest.php`
+- [x] T041 [US7] Criar migration `modules/Clinic/database/migrations/2026_06_19_000001_create_clinic_activities_table.php` + model `modules/Clinic/app/Models/ClinicActivity.php` + enum `modules/Clinic/app/Enums/ActivityType.php` (8 tipos) — data-model §1, FR-022a/b
+- [x] T042 [US7] Criar `ActivityLoggerInterface` (`modules/Clinic/app/Contracts/`) + `ActivityLogger` (`modules/Clinic/app/Services/`) + bind no `ClinicServiceProvider`
+- [x] T043 [US7] Instrumentar eventos chamando o `ActivityLogger` em: `modules/Patient/app/Services/PatientService.php` (create/update), `modules/Clinic/app/Services/TreatmentPlanService.php` (create/update→completed/addExercise), `modules/Clinic/app/Services/AppointmentService.php` (create/updateStatus→completed/cancel) — research §11
+- [x] T044 [US7] Action `activities` no `DashboardController` + query no `DashboardRepository` (hoje, clínica inteira, `created_at DESC`) com **403 para fisioterapeuta** (FR-023, contracts §4)
+- [x] T045 [P] [US7] Componente `resources/js/components/clinic/dashboard/RecentActivities.tsx` + hook `useRecentActivities` (só admin/secretário; empty state — FR-024)
+- [x] T046 [P] [US7] Feature test: feed lista eventos + fisioterapeuta 403 + empty state em `modules/Clinic/tests/Feature/Dashboard/ActivitiesTest.php`
 
 **Checkpoint**: todas as 7 user stories independentemente funcionais.
 
@@ -163,10 +163,10 @@ description: "Task list for Dashboard da Clínica com Widgets por Papel"
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T047 [P] Testes frontend: mapping do `api-clinic-dashboard` (snake→camel) e estados loading/empty/error dos widgets em `resources/js/test/` (SC-006/FR-029)
-- [ ] T048 [P] Rodar `npm run types && npm run lint && ./vendor/bin/pint`
-- [ ] T049 Executar os cenários de validação do [quickstart.md](./quickstart.md) por papel
-- [ ] T050 [P] Revisar degradação graciosa: falha de um widget não derruba os demais (cada hook com `queryKey` próprio) — SC-006
+- [x] T047 [P] Testes frontend: mapping do `api-clinic-dashboard` (snake→camel) e estados loading/empty/error dos widgets em `resources/js/test/` (SC-006/FR-029)
+- [x] T048 [P] Rodar `npm run types && npm run lint && ./vendor/bin/pint`
+- [x] T049 Executar os cenários de validação do [quickstart.md](./quickstart.md) por papel
+- [x] T050 [P] Revisar degradação graciosa: falha de um widget não derruba os demais (cada hook com `queryKey` próprio) — SC-006
 
 ---
 

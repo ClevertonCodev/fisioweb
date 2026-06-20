@@ -1,10 +1,12 @@
 import type { DashboardRepository } from '@/application/clinic/ports';
 import type {
+    Activity,
     DashboardScope,
     DashboardSummary,
     DashboardUpcomingAppointment,
     OccupancyGranularity,
     OccupancyRate,
+    PatientAcquisition,
 } from '@/domain/clinic/dashboard';
 import { apiClient } from '@/infrastructure/api/client';
 
@@ -99,6 +101,25 @@ interface ApiOccupancyRate {
     buckets: { label: string; rate: number }[];
 }
 
+interface ApiActivity {
+    id: number;
+    type: string;
+    description: string;
+    actor_name: string | null;
+    created_at: string;
+}
+
+interface ApiAcquisition {
+    years: number[];
+    sources: {
+        source: string;
+        per_year: Record<string, number>;
+        total: number;
+        percent_total: number;
+    }[];
+    totals_per_year: Record<string, number>;
+}
+
 export const apiClinicDashboardRepository: DashboardRepository = {
     async getSummary(scope?: DashboardScope): Promise<DashboardSummary> {
         const params: Record<string, string> = {};
@@ -129,6 +150,41 @@ export const apiClinicDashboardRepository: DashboardRepository = {
             granularity: data.data.granularity,
             occupiedRate: data.data.occupied_rate,
             buckets: data.data.buckets,
+        };
+    },
+
+    async getActivities(): Promise<Activity[]> {
+        const { data } = await apiClient.get<{ data: { items: ApiActivity[] } }>(
+            '/clinic/dashboard/activities',
+        );
+        return data.data.items.map((a) => ({
+            id: String(a.id),
+            type: a.type,
+            description: a.description,
+            actorName: a.actor_name ?? undefined,
+            createdAt: a.created_at,
+        }));
+    },
+
+    async getPatientAcquisition(
+        scope?: DashboardScope,
+    ): Promise<PatientAcquisition> {
+        const params: Record<string, string> = {};
+        if (scope) params.scope = scope;
+
+        const { data } = await apiClient.get<{ data: ApiAcquisition }>(
+            '/clinic/dashboard/patient-acquisition',
+            { params },
+        );
+        return {
+            years: data.data.years,
+            sources: data.data.sources.map((s) => ({
+                source: s.source,
+                perYear: s.per_year,
+                total: s.total,
+                percentTotal: s.percent_total,
+            })),
+            totalsPerYear: data.data.totals_per_year,
         };
     },
 };

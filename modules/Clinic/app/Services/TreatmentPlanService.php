@@ -5,14 +5,17 @@ namespace Modules\Clinic\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Admin\Models\Exercise;
+use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\Clinic\Contracts\TreatmentPlanServiceInterface;
+use Modules\Clinic\Enums\ActivityType;
 use Modules\Clinic\Models\TreatmentPlan;
 
 class TreatmentPlanService implements TreatmentPlanServiceInterface
 {
     public function __construct(
         protected TreatmentPlanRepositoryInterface $repository,
+        protected ActivityLoggerInterface $activityLogger,
     ) {}
 
     public function list(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -31,7 +34,7 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         $groups    = $data['groups'] ?? [];
         unset($data['exercises'], $data['groups']);
 
-        return DB::transaction(function () use ($data, $exercises, $groups) {
+        $plan = DB::transaction(function () use ($data, $exercises, $groups) {
             $plan     = $this->repository->create($data);
             $groupMap = [];
             if (!empty($groups)) {
@@ -46,6 +49,15 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
 
             return $plan->load(['groups.exercises.exercise', 'exercises.exercise', 'patient', 'physioArea', 'physioSubarea']);
         });
+
+        $this->activityLogger->log(
+            $plan->clinic_id,
+            ActivityType::ProgramCreated,
+            "Programa criado — {$plan->title}",
+            $plan,
+        );
+
+        return $plan;
     }
 
     public function update(int $id, array $data): TreatmentPlan
@@ -54,7 +66,9 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         $groups    = $data['groups'] ?? null;
         unset($data['exercises'], $data['groups']);
 
-        return DB::transaction(function () use ($id, $data, $exercises, $groups) {
+        $oldStatus = $this->repository->findOrFail($id)->status;
+
+        $plan = DB::transaction(function () use ($id, $data, $exercises, $groups) {
             $plan     = $this->repository->update($id, $data);
             $groupMap = [];
             if ($groups !== null) {
@@ -72,6 +86,26 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
 
             return $plan->fresh(['groups.exercises.exercise', 'exercises.exercise', 'patient', 'physioArea', 'physioSubarea']);
         });
+
+        if ($oldStatus !== TreatmentPlan::STATUS_COMPLETED && $plan->status === TreatmentPlan::STATUS_COMPLETED) {
+            $this->activityLogger->log(
+                $plan->clinic_id,
+                ActivityType::ProgramCompleted,
+                "Programa concluído — {$plan->title}",
+                $plan,
+            );
+        }
+
+        if ($exercises !== null && count($exercises) > 0) {
+            $this->activityLogger->log(
+                $plan->clinic_id,
+                ActivityType::ExercisesAdded,
+                count($exercises) . ' exercício(s) adicionado(s) — ' . $plan->title,
+                $plan,
+            );
+        }
+
+        return $plan;
     }
 
     public function delete(int $id): bool

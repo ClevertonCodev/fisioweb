@@ -4,6 +4,8 @@ namespace Modules\Patient\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Modules\Clinic\Contracts\ActivityLoggerInterface;
+use Modules\Clinic\Enums\ActivityType;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Models\Patient;
@@ -12,6 +14,7 @@ class PatientService implements PatientServiceInterface
 {
     public function __construct(
         protected PatientRepositoryInterface $repository,
+        protected ActivityLoggerInterface $activityLogger,
     ) {}
 
     public function find(int $id): ?Patient
@@ -36,12 +39,30 @@ class PatientService implements PatientServiceInterface
             'password'       => $cpf ?: $data['email'],
         ]));
 
+        $this->activityLogger->log(
+            $clinicId,
+            ActivityType::PatientCreated,
+            "Novo paciente cadastrado — {$patient->name}",
+            $patient,
+        );
+
         return $patient->load('clinicUser:id,name');
     }
 
     public function update(int $id, array $data): Patient
     {
-        return $this->repository->update($id, $data);
+        $patient = $this->repository->update($id, $data);
+
+        if ($patient->clinic_id) {
+            $this->activityLogger->log(
+                $patient->clinic_id,
+                ActivityType::PatientUpdated,
+                "Paciente atualizado — {$patient->name}",
+                $patient,
+            );
+        }
+
+        return $patient;
     }
 
     public function bulkInactivate(int $clinicId, array $ids): int

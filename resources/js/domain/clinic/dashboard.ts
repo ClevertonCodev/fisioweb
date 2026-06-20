@@ -52,6 +52,14 @@ export interface DashboardSummary {
     birthdays: DashboardBirthdays;
 }
 
+export interface Activity {
+    id: string;
+    type: string;
+    description: string;
+    actorName?: string;
+    createdAt: string;
+}
+
 export type OccupancyGranularity = 'daily' | 'weekly' | 'monthly';
 
 export interface OccupancyBucket {
@@ -64,4 +72,17 @@ export interface OccupancyRate {
     granularity: OccupancyGranularity;
     occupiedRate: number;
     buckets: OccupancyBucket[];
+}
+
+export interface AcquisitionSource {
+    source: string;
+    perYear: Record<string, number>;
+    total: number;
+    percentTotal: number;
+}
+
+export interface PatientAcquisition {
+    years: number[];
+    sources: AcquisitionSource[];
+    totalsPerYear: Record<string, number>;
 }

@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\AssessmentServiceInterface;
-use Modules\Clinic\Models\Assessment;
 use Modules\Clinic\Http\Requests\StoreAssessmentRequest;
 use Modules\Clinic\Http\Requests\UpdateAssessmentRequest;
+use Modules\Clinic\Models\Assessment;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
 class AssessmentController extends Controller

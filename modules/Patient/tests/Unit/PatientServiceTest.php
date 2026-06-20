@@ -4,6 +4,7 @@ namespace Modules\Patient\Tests\Unit;
 
 use Illuminate\Support\Facades\Auth;
 use Mockery\MockInterface;
+use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Models\Patient;
 use Modules\Patient\Services\PatientService;
@@ -20,7 +21,8 @@ class PatientServiceTest extends TestCase
         parent::setUp();
 
         $this->repository = \Mockery::mock(PatientRepositoryInterface::class);
-        $this->service    = new PatientService($this->repository);
+        $activityLogger   = \Mockery::mock(ActivityLoggerInterface::class)->shouldIgnoreMissing();
+        $this->service    = new PatientService($this->repository, $activityLogger);
     }
 
     protected function tearDown(): void

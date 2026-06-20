@@ -36,4 +36,18 @@ interface DashboardRepositoryInterface
      * @return array{total:int,items:array<int,array<string,mixed>>}
      */
     public function monthBirthdays(DashboardScope $scope): array;
+
+    /**
+     * Atividades da clínica no dia corrente, mais recentes primeiro — FR-022/024.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function recentActivities(int $clinicId, string $timezone): array;
+
+    /**
+     * Captação de pacientes por origem, comparando os últimos 3 anos — FR-015/016/017.
+     *
+     * @return array{years:int[],sources:array<int,array<string,mixed>>,totals_per_year:array<int,int>}
+     */
+    public function patientAcquisition(DashboardScope $scope): array;
 }

@@ -8,9 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\EvolutionServiceInterface;
-use Modules\Clinic\Models\PatientEvolution;
 use Modules\Clinic\Http\Requests\StoreEvolutionRequest;
 use Modules\Clinic\Http\Requests\UpdateEvolutionRequest;
+use Modules\Clinic\Models\PatientEvolution;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Pdf\Services\PdfService;
 

@@ -4,8 +4,10 @@ namespace Modules\Clinic\Services;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
+use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\AppointmentRepositoryInterface;
 use Modules\Clinic\Contracts\AppointmentServiceInterface;
+use Modules\Clinic\Enums\ActivityType;
 use Modules\Clinic\Enums\AppointmentStatus;
 use Modules\Clinic\Jobs\AppointmentScheduledNotificationJob;
 use Modules\Clinic\Models\Appointment;
@@ -16,6 +18,7 @@ class AppointmentService implements AppointmentServiceInterface
 {
     public function __construct(
         protected AppointmentRepositoryInterface $repository,
+        protected ActivityLoggerInterface $activityLogger,
     ) {}
 
     public function create(array $data): Appointment
@@ -30,7 +33,18 @@ class AppointmentService implements AppointmentServiceInterface
 
         $this->pushToGoogle($appointment);
 
-        return $appointment->load(['patient', 'clinicUser']);
+        $appointment = $appointment->load(['patient', 'clinicUser']);
+
+        if ($appointment->clinic_id) {
+            $this->activityLogger->log(
+                $appointment->clinic_id,
+                ActivityType::AppointmentScheduled,
+                'Consulta agendada' . ($appointment->patient ? " — {$appointment->patient->name}" : ''),
+                $appointment,
+            );
+        }
+
+        return $appointment;
     }
 
     public function update(int $id, array $data): Appointment
@@ -55,12 +69,32 @@ class AppointmentService implements AppointmentServiceInterface
             ]);
         }
 
-        return $this->repository->update($id, ['status' => $status])->load(['patient', 'clinicUser']);
+        $updated = $this->repository->update($id, ['status' => $status])->load(['patient', 'clinicUser']);
+
+        if ($status === AppointmentStatus::Completed && $updated->clinic_id) {
+            $this->activityLogger->log(
+                $updated->clinic_id,
+                ActivityType::AppointmentCompleted,
+                'Consulta concluída' . ($updated->patient ? " — {$updated->patient->name}" : ''),
+                $updated,
+            );
+        }
+
+        return $updated;
     }
 
     public function cancel(int $id): Appointment
     {
         $appointment = $this->updateStatus($id, AppointmentStatus::Cancelled);
+
+        if ($appointment->clinic_id) {
+            $this->activityLogger->log(
+                $appointment->clinic_id,
+                ActivityType::AppointmentCancelled,
+                'Consulta cancelada' . ($appointment->patient ? " — {$appointment->patient->name}" : ''),
+                $appointment,
+            );
+        }
 
         // Remove o evento correspondente no Google (FR-018/FR-024).
         $user = $appointment->clinicUser;

@@ -35,6 +35,7 @@ yarn-error.log
 /tabelas.txt
 /.cursorrules
 /CLAUDE.md
-/.cursor/skills/speckit-*)
+/.cursor/skills/speckit-*
 /.specify
 /.claude/skills/speckit-*
+/.agents/skills/speckit-*

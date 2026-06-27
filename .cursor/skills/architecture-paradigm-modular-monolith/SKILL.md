@@ -26,7 +26,7 @@ Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `front
    - Chamada sincrona por contrato quando o chamador precisa da resposta agora.
    - Evento de dominio/integracao quando a consequencia pode ocorrer depois ou pertence a outro modulo.
    - Read model/projecao quando um modulo precisa consultar dados derivados sem controlar a regra de origem.
-4. Implementar dentro do modulo dono usando as skills tecnicas existentes.
+4. Implementar dentro do modulo dono usando `backend-clean-code` para manter SOLID, inversao de dependencia e camadas limpas.
 5. Expor somente o necessario para fora do modulo.
 6. Registrar a decisao quando houver nova fronteira, excecao ou caminho para extracao.
 7. Adicionar teste ou checagem que proteja a fronteira se o risco de regressao for relevante.
@@ -35,6 +35,7 @@ Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `front
 
 | Estou fazendo | Carregue tambem |
 |--------------|-----------------|
+| Definir responsabilidades internas, DTOs, interfaces e Service/UseCase | [`backend-clean-code`](../backend-clean-code/SKILL.md) |
 | CRUD/backend dentro de um modulo | [`backend-module`](../backend-module/SKILL.md) |
 | Entidade, relacionamento, query ou transacao | [`laravel-eloquent`](../laravel-eloquent/SKILL.md) |
 | Job async ou listener com fila | [`laravel-queues`](../laravel-queues/SKILL.md) |

@@ -6,7 +6,7 @@ metadata:
   triggers: phpunit, pest, test, teste, mockery, refreshDatabase, factory, actingAs, assertion, composer test
   scope: implementation
   output-format: code
-  related-skills: architecture-paradigm-modular-monolith, backend-module, php-modern
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, php-modern
 ---
 
 # PHP Testing (fisioweb)
@@ -21,6 +21,7 @@ Padrão de testes para o Laravel modular deste projeto. Stack: **PHPUnit 11.5+ +
 - Adicionando fixtures com Factory (`<Entity>::factory()->create()`).
 - Cobrindo autorização (Policies + middleware `auth:<guard>`).
 - Cobrindo contrato/evento entre módulos ou evitando regressão de dependência cross-module — carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md).
+- Testando se Controller fica fino, Service decide e Repository só persiste — carregue [`backend-clean-code`](../backend-clean-code/SKILL.md).
 
 ## Core mandates
 
@@ -70,6 +71,7 @@ modules/<Module>/tests/
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Templates completos (Unit Service, Feature Controller, Data Provider, Mockery, fakes do Laravel) | [`references/testing-quality.md`](references/testing-quality.md) | Implementar testes |
+| Testes alinhados a SOLID e separação de camadas | [`../backend-clean-code/SKILL.md`](../backend-clean-code/SKILL.md) | Definir o que mockar e onde testar regra |
 | Teste de contrato/evento entre módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir o que deve ser protegido |
 | Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Entender estrutura do código sob teste |
 | Tipos modernos (Enum/DTO/VO) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Testar Enums e DTOs |

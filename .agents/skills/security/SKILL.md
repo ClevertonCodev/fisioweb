@@ -6,7 +6,7 @@ metadata:
   triggers: policy, autorização, permission, RequireClinicAdmin, authorizeResource, Gate, can, role, papel, ownership
   scope: implementation
   output-format: code
-  related-skills: architecture-paradigm-modular-monolith, backend-module, frontend-ddd, php-testing
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, frontend-ddd, php-testing
 ---
 
 # Security (fisioweb)
@@ -32,6 +32,7 @@ Se você esconde um botão no frontend mas não protege o endpoint, qualquer usu
 
 | Estou fazendo | Carregue |
 |--------------|----------|
+| Decidir se autorização/regra fica em Policy, Service ou Controller | [`backend-clean-code`](../backend-clean-code/SKILL.md) |
 | Ownership/autorização atravessa módulos backend | [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) |
 | Estrutura de módulo Laravel (Service, Controller, FormRequest) | [`backend-module`](../backend-module/SKILL.md) |
 | Frontend DDD (componentes, rotas) | [`frontend-ddd`](../frontend-ddd/SKILL.md) |

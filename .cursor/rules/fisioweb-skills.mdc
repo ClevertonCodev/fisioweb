@@ -16,6 +16,7 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 ### Backend
 | Tarefa | Skill |
 |--------|-------|
+| SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | `backend-clean-code` |
 | Fronteira entre módulos backend, contrato público, evento, ADR, extração futura | `architecture-paradigm-modular-monolith` |
 | CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
 | Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
@@ -40,10 +41,11 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 
 ## Princípios
 
-1. Monólito modular é regra do backend: `modules/*` têm ownership, fronteiras e contratos explícitos.
-2. Antes de atravessar módulos backend, use `architecture-paradigm-modular-monolith`; não injete Model/Repository interno de outro módulo como atalho.
-3. Backend é fonte de verdade para autorização e regras críticas.
-4. Frontend em camadas: loader → `application/`, página não importa `apiClient`.
-5. HTTP só via `apiClient` — sem `fetch` direto.
-6. `domain/` puro (camelCase, sem `_at`, sem `ApiXxx`).
-7. Form com 2+ campos → RHF + Zod.
+1. Backend limpo por padrão: Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla.
+2. Monólito modular é regra do backend: `modules/*` têm ownership, fronteiras e contratos explícitos.
+3. Antes de atravessar módulos backend, use `architecture-paradigm-modular-monolith`; não injete Model/Repository interno de outro módulo como atalho.
+4. Backend é fonte de verdade para autorização e regras críticas.
+5. Frontend em camadas: loader → `application/`, página não importa `apiClient`.
+6. HTTP só via `apiClient` — sem `fetch` direto.
+7. `domain/` puro (camelCase, sem `_at`, sem `ApiXxx`).
+8. Form com 2+ campos → RHF + Zod.

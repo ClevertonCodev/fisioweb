@@ -6,14 +6,14 @@ metadata:
   triggers: módulo, module, controller, service, repository, contract, FormRequest, CRUD, endpoint, rota, route, Laravel modular
   scope: implementation
   output-format: code
-  related-skills: architecture-paradigm-modular-monolith, laravel-eloquent, laravel-queues, php-modern, php-testing
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, laravel-eloquent, laravel-queues, php-modern, php-testing
 ---
 
 # Backend Module (Laravel modular fisioweb)
 
 Padrão obrigatório para implementar recurso novo dentro de `modules/<Module>/`. Espelha o que está em `modules/Admin/` (Exercise, Feature, AdminProgram são as referências).
 
-Esta skill define a estrutura interna de um módulo. Quando a feature atravessa dois ou mais módulos, primeiro carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) para decidir o módulo dono, o contrato público e se a integração deve ser síncrona ou por evento.
+Esta skill define a estrutura interna de um módulo. Use [`backend-clean-code`](../backend-clean-code/SKILL.md) como regra transversal de SOLID, inversão de dependência, DTOs e separação Controller/Service/Repository. Quando a feature atravessa dois ou mais módulos, primeiro carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) para decidir o módulo dono, o contrato público e se a integração deve ser síncrona ou por evento.
 
 ## Skill Map — quando carregar outra skill
 
@@ -21,6 +21,7 @@ Este skill cobre a **estrutura**. Para tópicos específicos, carregue a skill c
 
 | Estou fazendo | Carregue |
 |--------------|---------|
+| Dúvida sobre onde colocar regra, DTO, interface, Service/UseCase, Repository ou evento | [`backend-clean-code`](../backend-clean-code/SKILL.md) |
 | Feature atravessa módulos, usa dados de outro módulo, ou cria contrato/evento entre módulos | [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) |
 | Modelar Model novo (relacionamentos, scopes, casts, observers) | [`laravel-eloquent`](../laravel-eloquent/SKILL.md) |
 | Adicionar Job async (WhatsApp, PDF, upload R2) | [`laravel-queues`](../laravel-queues/SKILL.md) |
@@ -65,6 +66,8 @@ modules/<Module>/
 | Repository | Queries Eloquent, eager loading, filtros de listagem, paginação | Regra de negócio, validação |
 | Contract | Definir assinatura de Service/Repository do próprio módulo | Conter código ou virar acesso livre para outros módulos |
 | Model | Relacionamentos, casts, scopes (`active()`), constantes (`ALLOWED_KEYS`, `TYPES`) | Lógica de fluxo |
+
+Para aplicar SOLID com mais rigor: Controller não pensa, Service decide, Repository busca/salva, DTO transporta, Model protege regra pequena e Interface desacopla. Veja [`backend-clean-code`](../backend-clean-code/SKILL.md).
 
 ## Assinaturas padrão (siga literalmente)
 

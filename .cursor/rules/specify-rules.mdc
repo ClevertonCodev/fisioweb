@@ -3,7 +3,121 @@ alwaysApply: true
 ---
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-at specs/002-appointment-scheduling/plan.md
+# Fisioweb — Spec Kit Context
+
+Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md`, skills em `.claude/skills/` e mapa resumido em `.cursor/rules/fisioweb-skills.mdc`.
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `CLAUDE.md` / `AGENTS.md` | Overview, stack, comandos, princípios não-negociáveis |
+| `.cursor/rules/fisioweb-skills.mdc` | Skill map — **consultar antes de implementar** |
+| `.claude/skills/` | Skills detalhadas por tarefa (backend, frontend, security, speckit-*) |
+| `.specify/memory/constitution.md` | Princípios Spec Kit (local; template se ainda não ratificado) |
+| `specs/_shared/` | Artefatos compartilhados entre features (ex.: UI patterns) |
+| `specs/*/` | Spec, plan, tasks e contratos da feature ativa |
+
+## Comandos SDD
+
+| Skill | Quando usar |
+|-------|-------------|
+| `/speckit-constitution` | Atualizar princípios do projeto |
+| `/speckit-specify` | Definir feature (o quê/por quê) |
+| `/speckit-clarify` | Esclarecer ambiguidades na spec |
+| `/speckit-checklist` | Validar qualidade da spec |
+| `/speckit-plan` | Plano técnico fisioweb |
+| `/speckit-tasks` | Tarefas acionáveis com paths |
+| `/speckit-analyze` | Auditar consistência spec/plan/tasks |
+| `/speckit-implement` | Implementar tarefas do `tasks.md` |
+| `/speckit-agent-context-update` | Atualizar bloco SPECKIT neste arquivo com plano ativo |
+
+Referência completa: `.cursor/spec-kit-comandos.md`
+
+## Skills — consultar sempre (conforme escopo)
+
+**Leia o `SKILL.md` relevante antes de codar.** Skills em `.cursor/skills/<nome>/` (symlink para `.claude/skills/`).
+
+### Backend
+| Tarefa | Skill |
+|--------|-------|
+| Fronteira entre módulos, contrato público, eventos, ADR | `architecture-paradigm-modular-monolith` |
+| CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
+| Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
+| Job async (WhatsApp, PDF, R2, e-mail) | `laravel-queues` |
+| Enum, DTO readonly, Value Object, match | `php-modern` |
+| Testes PHPUnit + Mockery | `php-testing` |
+
+### Frontend
+| Tarefa | Skill |
+|--------|-------|
+| DDD (domain → application → infra → page → route) | `frontend-ddd` |
+| Hooks, performance, React 19 | `frontend-react` |
+| Testes Vitest + RTL | `frontend-testing` |
+| **Componentes, cores, sidebar, popover, cursor** | **`frontend-ui-patterns`** |
+| DataTable, Forms RHF+Zod, Dialog | `forms-shadcn` |
+| apiClient, Repository, JWT multi-guard | `api-client` |
+
+### Cross-cutting
+| Tarefa | Skill |
+|--------|-------|
+| Policies + permissions.ts + RequireClinicAdmin | `security` |
+
+## Regras inegociáveis (resumo)
+
+1. **Multi-tenant:** todo acesso filtrado por `clinic_id`; global scopes (`BelongsToClinic`) nos models de clínica.
+2. **Monólito modular:** backend em `modules/*` (Admin, Clinic, Patient, Media, Pdf, Xlsx, Cloudflare, GoogleCalendar, WhatsApp) — **não** em `app/Modules`. Não injetar Model/Repository interno de outro módulo.
+3. **Backend é fonte de verdade:** autorização (Policies + middleware), validação de domínio e regras críticas no Laravel; frontend só esconde para UX.
+4. **Camadas frontend:** loader → `application/`; página **nunca** importa `apiClient`; mapeamento snake_case ↔ camelCase só em `infrastructure/`.
+5. **HTTP só via `apiClient`:** guards JWT inferidos pela URL (`/admin/*` → admin, `/clinic/*` → clinic).
+6. **`domain/` puro:** camelCase, sem `_at`, sem `ApiXxx`, sem WriteDto, sem constantes de UI.
+7. **Form com 2+ campos → RHF + Zod** (não copiar pages legadas com `useState`).
+8. **UI:** tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`.
+9. **PHP:** Laravel Pint; sem `declare(strict_types=1)` por convenção atual; Controller → Service → Repository → Model.
+
+## Stack
+
+PHP 8.2+ · Laravel 12 · Eloquent · JWT multi-guard (`admin` + `clinic`) · MySQL/PostgreSQL · Laravel Queues · Cloudflare R2 · DomPDF · React 19 + TypeScript strict · Vite · TanStack Query v5 · react-router-dom v6 · RHF + Zod · shadcn/ui + Tailwind · Vitest 4 + RTL
+
+## Estrutura (alto nível)
+
+```
+modules/                    # backend modular (ownership por módulo)
+resources/js/
+├── domain/                 # entidades puras (camelCase)
+├── application/            # hooks React Query + ports + use-cases
+├── infrastructure/         # apiClient + repositories + mappers
+├── pages/{admin,clinic}/   # EntityListPage / NewPage / EditPage
+├── components/{ui,admin,clinic}/
+└── routes/                 # RouteObject[] por contexto
+```
+
+Path alias: `@` → `resources/js/`
+
+## Comandos shell
+
+```bash
+composer run dev              # Laravel + queue + Pail + Vite
+composer run test             # PHPUnit (backend)
+npm run test                  # Vitest (frontend)
+npm run build && npm run types && npm run lint
+./vendor/bin/pint             # PHP formatter
+```
+
+Teste filtrado: `vendor/bin/phpunit --filter=NomeDoTest`
+
+## Plano ativo
+
+**Feature atual**: `specs/004-clinic-finances/`
+
+| Artefato | Path |
+|----------|------|
+| Spec | `specs/004-clinic-finances/spec.md` |
+| Plan | `specs/004-clinic-finances/plan.md` |
+| Research | `specs/004-clinic-finances/research.md` |
+| Data model | `specs/004-clinic-finances/data-model.md` |
+| Quickstart | `specs/004-clinic-finances/quickstart.md` |
+| Contracts | `specs/004-clinic-finances/contracts/` |
+| Tasks | `specs/004-clinic-finances/tasks.md` |
+| Checklist | `specs/004-clinic-finances/checklists/requirements.md` |
+
+**Antes de implementar:** leia `plan.md` + `tasks.md` da feature ativa e a skill correspondente ao escopo.
 <!-- SPECKIT END -->

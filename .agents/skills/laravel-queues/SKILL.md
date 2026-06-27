@@ -6,7 +6,7 @@ metadata:
   triggers: job, queue, fila, async, dispatch, ShouldQueue, retry, backoff, Bus, Horizon, afterCommit, WhatsApp, PDF
   scope: implementation
   output-format: code
-  related-skills: architecture-paradigm-modular-monolith, backend-module, laravel-eloquent, php-testing
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, laravel-eloquent, php-testing
 ---
 
 # Laravel Queues (fisioweb)
@@ -32,6 +32,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 - Sem Horizon configurado hoje. Worker simples basta.
 - Job dispatch a partir de Observer já em uso (`TreatmentPlanObserver` → `SendWhatsAppMessageJob`).
 - Jobs executam trabalho; eles não substituem contrato entre módulos. Para reação cross-module, use evento de domínio/integração e listener/job no módulo consumidor.
+- Listener/Job deve chamar Service do próprio módulo e seguir [`backend-clean-code`](../backend-clean-code/SKILL.md); não coloque regra grande ou query cross-module direto no Job.
 
 ## Core mandates
 
@@ -59,6 +60,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Padrões completos (Job, dispatch, batching, unique, middleware, testes) | [`references/queues.md`](references/queues.md) | Implementar/testar Job |
+| Responsabilidade de Job, Listener e Service | [`../backend-clean-code/SKILL.md`](../backend-clean-code/SKILL.md) | Evitar Job com regra de negócio ou dependência concreta |
 | Evento/listener atravessa módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir evento, payload e módulo consumidor |
 | Disparar Job de Observer | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Reagir a evento de Model |
 | Testar Job dispatch | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | `Queue::fake()` + `assertPushed` |

@@ -8,6 +8,8 @@ Use **integration events** para fatos estaveis consumidos por outros modulos. El
 
 Use Laravel events/listeners para comunicacao in-process. Use queued listeners/jobs quando houver I/O, PDF, WhatsApp, storage, email ou tarefas lentas.
 
+Eventos Eloquent/Observers continuam sendo ferramenta interna de persistencia. Para comunicacao entre modulos backend, prefira evento de dominio/integracao despachado pelo Service do modulo dono.
+
 ## Event Naming
 
 - Nomear no passado: `ClinicCreated`, `PatientArchived`, `MediaUploadCompleted`.
@@ -47,7 +49,7 @@ final readonly class PatientCreated
 
 - O evento mora no modulo que possui o fato.
 - O listener mora no modulo que possui a consequencia.
-- O listener chama Service/Repository do seu proprio modulo.
+- O listener chama Service do seu proprio modulo. Se precisar de persistencia, o Service usa Repository interno.
 - Se precisar consultar o modulo emissor, usar contrato publico ou payload suficiente.
 
 ## Testing

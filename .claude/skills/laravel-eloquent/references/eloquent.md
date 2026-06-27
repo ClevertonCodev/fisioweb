@@ -378,6 +378,8 @@ public function create(array $data): AdminProgram
 
 Padrão real em `modules/Clinic/app/Observers/TreatmentPlanObserver.php`. Dispara `SendWhatsAppMessageJob` quando o plano fica ativo.
 
+Use Observer para reação interna ao módulo e tarefas ligadas à persistência. Para comunicação entre módulos backend, prefira evento de domínio/integração definido pela skill `architecture-paradigm-modular-monolith`.
+
 ### Criando
 
 ```php
@@ -504,6 +506,6 @@ Patient::upsert(
 3. **`chunk`/`lazy` em jobs e seeders**, nunca em request HTTP.
 4. **`select(['col1', 'col2'])`** quando não precisar de todas as colunas.
 5. **Índice em FK e colunas filtradas** na migration.
-6. **`DB::transaction`** para integridade cross-table.
+6. **`DB::transaction`** para integridade cross-table dentro do módulo; transação cross-module exige decisão arquitetural.
 7. **Cache pesado em Redis** com `Cache::remember(key, ttl, fn)`.
-8. **Não use Observer para operação pesada** — dispatch Job (ver [`laravel-queues`](../laravel-queues/SKILL.md)).
+8. **Não use Observer para operação pesada** — dispatch Job (ver [`laravel-queues`](../laravel-queues/SKILL.md)); se atravessar módulos, use evento de domínio/integração.

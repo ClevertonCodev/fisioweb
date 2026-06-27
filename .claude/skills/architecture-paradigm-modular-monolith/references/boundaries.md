@@ -5,17 +5,18 @@
 - Nomear o modulo por capacidade de negocio, nao por CRUD tecnico.
 - Identificar a entidade/agregado dono e a tabela dona.
 - Manter Services, Repositories, Models, Policies e Requests dentro do modulo dono.
-- Expor o minimo necessario em `Contracts/`, DTOs publicos, rotas HTTP ou eventos.
+- Expor o minimo necessario por ServiceInterface de aplicacao, DTO publico, rota HTTP, evento ou read model.
+- Tratar `RepositoryInterface` em `Contracts/` como contrato interno do modulo, nao como API publica para outros modulos.
 - Evitar imports cruzados para `Repositories`, `Models` e classes internas de outro modulo.
 - Evitar regra de negocio em helpers globais, traits compartilhadas ou services genericos.
 
 ## Public Contract Options
 
-Use `ServiceInterface` quando a colaboracao for sincrona dentro do mesmo processo Laravel e precisar resposta imediata.
+Use `ServiceInterface` de aplicacao quando a colaboracao for sincrona dentro do mesmo processo Laravel e precisar resposta imediata. Nao use `RepositoryInterface` de outro modulo como contrato de integracao.
 
-Use endpoint REST quando o consumidor natural for o frontend ou quando a interacao ja deve parecer externa.
+Use endpoint REST quando a interacao deve parecer externa ao backend ou quando o consumidor e HTTP.
 
-Use DTO readonly quando o contrato atravessa modulo e precisa estabilidade. O DTO deve conter nomes de dominio em camelCase no frontend e nomes idiomaticos PHP no backend; nao vazar estrutura de tabela.
+Use DTO readonly quando o contrato atravessa modulo backend e precisa estabilidade. O DTO deve usar nomes idiomaticos PHP e nao vazar estrutura de tabela.
 
 Use evento quando o modulo dono apenas informa que algo aconteceu e outros modulos decidem consequencias.
 
@@ -50,8 +51,8 @@ Use read model/projecao quando a leitura cruzada e frequente, mas o modulo consu
 - Controller de um modulo instanciando Repository de outro modulo.
 - Service de um modulo escrevendo em tabela de outro modulo.
 - Listener recebendo Model Eloquent completo de outro modulo.
-- Frontend importando entidade de dominio de outro contexto para representar outra regra.
 - Migration de um modulo alterando tabela claramente pertencente a outro modulo sem ADR.
+- RepositoryInterface de um modulo sendo injetada em Service de outro modulo.
 
 ## Acceptable Exceptions
 

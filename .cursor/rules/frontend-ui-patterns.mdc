@@ -1,0 +1,19 @@
+---
+description: Consulte frontend-ui-patterns antes de implementar UI (componentes, cores, sidebar, popover, cursor)
+globs:
+  - resources/js/components/**
+  - resources/js/pages/**
+  - resources/css/**
+alwaysApply: false
+---
+
+# Frontend UI
+
+Antes de criar ou estilizar telas, menus ou componentes visuais:
+
+1. Leia [`frontend-ui-patterns`](../skills/frontend-ui-patterns/SKILL.md)
+2. Artefato Spec Kit: [`specs/_shared/frontend-ui-patterns.md`](../../specs/_shared/frontend-ui-patterns.md)
+3. Identifique e siga o arquivo canônico do repo antes de criar layout, cor ou interação nova
+4. Popover flutuante = fundo claro (`bg-popover`); sidebar = escuro (`bg-sidebar`)
+5. Elementos clicáveis = `cursor-pointer`
+6. Forms/listagens usam [`forms-shadcn`](../skills/forms-shadcn/SKILL.md); estrutura de feature usa [`frontend-ddd`](../skills/frontend-ddd/SKILL.md)

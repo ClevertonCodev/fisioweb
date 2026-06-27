@@ -6,7 +6,7 @@ metadata:
   triggers: job, queue, fila, async, dispatch, ShouldQueue, retry, backoff, Bus, Horizon, afterCommit, WhatsApp, PDF
   scope: implementation
   output-format: code
-  related-skills: backend-module, laravel-eloquent, php-testing
+  related-skills: architecture-paradigm-modular-monolith, backend-module, laravel-eloquent, php-testing
 ---
 
 # Laravel Queues (fisioweb)
@@ -21,6 +21,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 - Processamento de vídeo / mídia (módulo `Media`).
 - Qualquer operação que não precisa bloquear o request HTTP.
 - Reação a evento de Model (Observer dispara Job) — ver [`laravel-eloquent`](../laravel-eloquent/SKILL.md).
+- Consequência assíncrona em outro módulo — primeiro carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) para decidir evento, payload e ownership.
 
 ## Contexto do projeto
 
@@ -30,6 +31,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 - Helpers globais: `logInfo`, `logWarning`, `logError` definidos em `app/Helpers/utils.php`. Use no `handle()` e `failed()`.
 - Sem Horizon configurado hoje. Worker simples basta.
 - Job dispatch a partir de Observer já em uso (`TreatmentPlanObserver` → `SendWhatsAppMessageJob`).
+- Jobs executam trabalho; eles não substituem contrato entre módulos. Para reação cross-module, use evento de domínio/integração e listener/job no módulo consumidor.
 
 ## Core mandates
 
@@ -47,6 +49,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 - Injetar Repository/Service no construtor — eles **serão serializados** com o job. Resolva no `handle()`.
 - Fazer query pesada dentro de `__construct()` — construtor roda no dispatch, não no worker.
 - Passar Eloquent Model não persistido — serialização confia em `id`. Use o `id` ou salve antes.
+- Passar Model Eloquent de outro módulo como payload de integração — use IDs/snapshot mínimo.
 - Esquecer `failed()` — silenciar erro de job é dívida operacional.
 - Disparar Job dentro de Observer `creating()` — model ainda não tem `id`. Use `created()`.
 - Disparar Job dentro de `DB::transaction` sem `afterCommit()` — pode rodar antes do commit e ler dado inexistente.
@@ -56,6 +59,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Padrões completos (Job, dispatch, batching, unique, middleware, testes) | [`references/queues.md`](references/queues.md) | Implementar/testar Job |
+| Evento/listener atravessa módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir evento, payload e módulo consumidor |
 | Disparar Job de Observer | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Reagir a evento de Model |
 | Testar Job dispatch | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | `Queue::fake()` + `assertPushed` |
 | Estrutura de módulo | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Localização do Job no módulo |

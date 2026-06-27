@@ -6,7 +6,7 @@ metadata:
   triggers: model, eloquent, scope, accessor, mutator, cast, observer, with, withCount, chunk, lazy, N+1, DB::transaction, softdeletes
   scope: implementation
   output-format: code
-  related-skills: backend-module, laravel-queues, php-testing, php-modern
+  related-skills: architecture-paradigm-modular-monolith, backend-module, laravel-queues, php-testing, php-modern
 ---
 
 # Laravel Eloquent (fisioweb)
@@ -21,6 +21,7 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 - Refatorando "cast manual" no Service para `protected function casts()` ou Custom Cast.
 - Reagindo a evento de model (post-create, post-update) com Observer — ver `TreatmentPlanObserver`.
 - Modelando query reutilizável → vira Scope (`scopeActive`, `scopeForClinic`).
+- Criando relacionamento ou query que toca Model/tabela de outro módulo — antes carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md).
 
 ## Contexto do projeto (importante)
 
@@ -33,6 +34,7 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 - **Sem Custom Casts** hoje — campo livre quando precisar serializar Value Object.
 - **Sem Accessor com sintaxe `Attribute::make`** hoje — pode introduzir em Model novo sem regressão.
 - Repositórios fazem o `with([...])` central (ver `ExerciseRepository::paginate`). Eager loading é responsabilidade do Repository, não do Controller.
+- Models e Repositories pertencem ao módulo dono. Relações com Models de outro módulo exigem decisão explícita de ownership; não use Eloquent cross-module como atalho para regra de negócio.
 
 ## Core mandates
 
@@ -44,6 +46,7 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 - Usar `with([...])` no Repository, **nunca** confiar em lazy loading dentro de loop.
 - Usar `DB::transaction(...)` em Service quando criar/atualizar envolver múltiplas tabelas.
 - Registrar Observer em `<Module>ServiceProvider::boot()` via `Model::observe(Observer::class)`.
+- Manter escrita em tabelas do próprio módulo; escrita cross-module exige decisão arquitetural.
 
 ### Não deve fazer
 - Acessar relacionamento dentro de loop sem `with()` (N+1).
@@ -51,12 +54,15 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 - Fazer `Model::all()` em listagem com filtro de usuário — sempre `->paginate()` no Repository.
 - Usar `$guarded = []` — abre porta a mass assignment.
 - Usar Accessor para formatar output que é responsabilidade da API Resource/frontend.
+- Escrever em tabela de outro módulo via Model/Repository direto.
+- Usar Observer de Model como contrato implícito entre módulos; para isso prefira evento de domínio/integração.
 
 ## Reference Guide
 
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Padrões completos (modelo, scopes, casts, observers, queries, transações) | [`references/eloquent.md`](references/eloquent.md) | Implementar Model ou query |
+| Fronteira entre módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Relacionamento/query/transação toca outro módulo |
 | Estrutura de módulo (Service/Repository) | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Criar recurso CRUD |
 | Tipos modernos (Enum em `$casts`, DTO de input) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Modelar status/tipo |
 | Disparar Job a partir de Observer | [`../laravel-queues/SKILL.md`](../laravel-queues/SKILL.md) | Reagir a evento async |

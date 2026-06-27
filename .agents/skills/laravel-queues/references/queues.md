@@ -82,6 +82,8 @@ public function handle(): void
 
 **Cuidado:** se o Model for deletado entre dispatch e processamento, o job lança `ModelNotFoundException`. Use `try/catch` ou aceite o retry.
 
+Use Model em Job apenas para trabalho interno ao mesmo módulo. Para integração entre módulos backend, passe IDs e snapshot mínimo via evento de domínio/integração; não use Model de outro módulo como payload.
+
 ## Dispatch — formas
 
 ```php
@@ -300,6 +302,8 @@ public function updated(TreatmentPlan $plan): void
 
 **Sempre `loadMissing`** antes de acessar relacionamento no Observer — model pode vir sem eager loading.
 
+Observer é detalhe interno de persistência. Se a consequência pertence a outro módulo, prefira despachar evento de domínio/integração no Service do módulo dono e deixar o módulo consumidor reagir com listener/job próprio.
+
 ## Testes — `Queue::fake()`
 
 Não rodar o job de verdade. Asserções de dispatch:
@@ -399,7 +403,7 @@ public function test_handle_calls_service_when_configured(): void
 
 1. **Job pequeno e focado** — um job = uma responsabilidade.
 2. **Idempotente** — rodar duas vezes não deve corromper estado.
-3. **Tipos no construtor** — primitivos ou Models, nada de Service.
+3. **Tipos no construtor** — primitivos ou Models do mesmo módulo, nada de Service.
 4. **`$tries` + `$backoff`** sempre definidos.
 5. **`failed()`** sempre implementado com `logError`.
 6. **`afterCommit()`** quando dispatch dentro de `DB::transaction` ou Observer.

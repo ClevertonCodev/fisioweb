@@ -35,10 +35,6 @@ yarn-error.log
 /tabelas.txt
 /.cursorrules
 /CLAUDE.md
-
-# Cursor IDE — config local (rules, symlinks, spec-kit skills)
-/.cursor
-
-# GitHub Spec Kit — bootstrap local (`specify init --here --force --integration cursor-agent`)
+/.cursor/skills/speckit-*)
 /.specify
 /.claude/skills/speckit-*

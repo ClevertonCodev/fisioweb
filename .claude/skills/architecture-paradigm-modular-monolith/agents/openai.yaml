@@ -1,4 +1,4 @@
 interface:
   display_name: "Modular Monolith Architecture"
-  short_description: "Bounded modules with event-driven boundaries"
-  default_prompt: "Use $architecture-paradigm-modular-monolith to design a module boundary and event-driven integration for this feature."
+  short_description: "Backend module boundaries and events"
+  default_prompt: "Use $architecture-paradigm-modular-monolith to design backend module boundaries and event-driven integration for this feature."

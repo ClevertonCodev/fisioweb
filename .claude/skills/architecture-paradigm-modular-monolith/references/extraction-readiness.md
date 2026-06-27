@@ -4,13 +4,13 @@ Microservico e uma opcao de evolucao, nao uma meta inicial. Preparar extracao si
 
 ## Extraction Readiness Checklist
 
-- O modulo tem dono de dados claro.
+- O modulo backend tem dono de dados claro.
 - Outros modulos usam contratos publicos, endpoints, DTOs, eventos ou read models.
 - Nao ha imports frequentes para Models/Repositories internos.
 - Transacoes que atravessam modulos sao raras, conhecidas e documentadas.
 - Eventos importantes tem payload estavel e listeners idempotentes.
 - Testes de contrato cobrem interacoes principais.
-- O frontend consome APIs/application hooks sem depender de detalhes internos do backend.
+- Consumers externos ao modulo dependem de contratos publicos, nao de internals.
 
 ## Split Candidate Signals
 

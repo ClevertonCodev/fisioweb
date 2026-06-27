@@ -3,6 +3,7 @@
 Exemplos adaptados ao domínio do projeto: módulos em `Modules\<Module>\`, guards JWT `admin`/`clinic`, entidades reais (`Exercise`, `Patient`, `Feature`, `AdminProgram`).
 
 > **Nota:** o projeto **não** usa `declare(strict_types=1)` hoje. Os exemplos abaixo mostram o recurso com `strict_types` por completude — ao colar no projeto, remova o `declare` para manter consistência, **a menos que** você esteja criando arquivo novo em módulo novo e tenha alinhado a adoção.
+> DTO/Enum/Value Object é interno ao módulo por padrão. Se outro módulo for consumir esse tipo, defina estabilidade e ownership pela skill `architecture-paradigm-modular-monolith`.
 
 ## Strict Types & Type Declarations
 

@@ -6,7 +6,7 @@ metadata:
   triggers: PHP, PHP 8.2, PHP 8.3, enum, readonly, DTO, value object, match, never, strict types, Eloquent, Laravel
   scope: implementation
   output-format: code
-  related-skills: backend-module, php-testing
+  related-skills: architecture-paradigm-modular-monolith, backend-module, php-testing
 ---
 
 # PHP Modern (fisioweb)
@@ -20,6 +20,7 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 - Recebendo payload complexo em Service e querendo tipar (substituir `array $data` por DTO).
 - Modelando conceito de domínio (Duration, Score, Money) — Value Object readonly.
 - Mapeando valor → valor (label, cor, status HTTP) — usar `match` em vez de `if`/`switch`.
+- Criando DTO/Enum/Value Object usado como contrato entre módulos — antes carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md).
 
 ## Contexto do projeto (importante)
 
@@ -28,6 +29,7 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 - Construtores promovidos com `protected` injectado é o padrão dominante (ver `modules/Admin/app/Services/ExerciseService.php`). `private readonly` aparece em algumas classes (`AdminProgramService`) — ambos são aceitos.
 - **Enums não estão difundidos hoje**: `Feature::ALLOWED_KEYS` e `Feature::TYPES` são arrays de constantes. Para entidades **novas**, prefira Enum tipado. Migrar entidades existentes exige plano de dados.
 - Sem PHPStan/Psalm configurado. Tipagem forte ainda traz ganho via IDE.
+- Tipos em `app/Data`, `app/Enums` e `app/ValueObjects` são internos ao módulo por padrão. Só trate como contrato público quando a skill de arquitetura definir esse papel.
 
 ## Core mandates
 
@@ -45,12 +47,14 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 - Usar Fibers — o projeto é Laravel síncrono, runtime não é async.
 - Criar Attribute custom para roteamento/middleware — Laravel já tem `Route::` facade e middleware groups.
 - Trocar `array $data` por DTO em CRUD trivial — overhead sem ganho.
+- Exportar tipo interno de um módulo para outro sem definir ownership e estabilidade do contrato.
 
 ## Reference Guide
 
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Features PHP 8.2+ adaptadas ao fisioweb | [`references/php-features.md`](references/php-features.md) | Tipos, enums, readonly, match, never, callable |
+| DTO/Enum/VO atravessa módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir contrato público e estabilidade |
 | Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Criar novo recurso CRUD |
 | Testes (PHPUnit + Mockery) | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | Escrever testes para o código novo |
 

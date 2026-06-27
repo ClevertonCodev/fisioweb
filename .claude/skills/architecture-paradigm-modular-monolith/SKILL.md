@@ -1,11 +1,13 @@
 ---
 name: architecture-paradigm-modular-monolith
-description: Projetar e evoluir o fisioweb como monolito modular com fronteiras fortes, contratos publicos entre modulos e arquitetura orientada a eventos. Use ao criar ou refatorar modulos Laravel/React, mover responsabilidades entre bounded contexts, evitar acoplamento direto entre modules/*, definir eventos de dominio/integracao, criar ADRs de arquitetura, planejar fitness tests de dependencia, ou preparar um modulo para possivel extracao futura como microservico sem distribuir o sistema antes da hora.
+description: Projetar e evoluir somente o backend Laravel do fisioweb como monolito modular com fronteiras fortes entre modules/*, contratos publicos entre modulos backend e arquitetura orientada a eventos. Use ao criar ou refatorar modulos backend, mover responsabilidades entre bounded contexts, evitar acoplamento direto entre Models/Repositories/tabelas de modulos diferentes, definir eventos de dominio/integracao, criar ADRs de arquitetura, planejar fitness tests de dependencia, ou preparar um modulo backend para possivel extracao futura como microservico sem distribuir o sistema antes da hora.
 ---
 
 # Architecture Paradigm: Modular Monolith
 
-Use esta skill como criterio arquitetural antes de implementar features que atravessam mais de um modulo. O objetivo e manter um unico deploy Laravel + React, mas tratar `modules/<Module>` como bounded contexts com contratos explicitos e minimo conhecimento interno entre si.
+Use esta skill como criterio arquitetural para o backend antes de implementar features que atravessam mais de um modulo Laravel. O objetivo e manter um unico deploy backend, mas tratar `modules/<Module>` como bounded contexts com contratos explicitos e minimo conhecimento interno entre si.
+
+Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `frontend-ddd`, `forms-shadcn`, `frontend-react`, `frontend-ui-patterns`, `frontend-testing` e `api-client`.
 
 ## Principios
 
@@ -38,17 +40,16 @@ Use esta skill como criterio arquitetural antes de implementar features que atra
 | Job async ou listener com fila | [`laravel-queues`](../laravel-queues/SKILL.md) |
 | DTO, Enum, Value Object ou contrato tipado | [`php-modern`](../php-modern/SKILL.md) |
 | Policy/ownership multi-tenant | [`security`](../security/SKILL.md) |
-| Feature React que consome contrato HTTP | [`frontend-ddd`](../frontend-ddd/SKILL.md), [`api-client`](../api-client/SKILL.md) |
 | Teste de fronteira/backend | [`php-testing`](../php-testing/SKILL.md) |
 
 ## Boundary Rules
 
 - `modules/<Owner>/app/Models/*` pertence ao modulo dono. Outro modulo nao deve importar o model para regra de negocio.
-- Repositories sao internos ao modulo. Exponha ServiceInterface, Facade de aplicacao, DTO ou evento.
+- Repositories sao internos ao modulo. Para outro modulo backend, exponha ServiceInterface de aplicacao, DTO publico, facade de aplicacao ou evento.
 - Tabelas tem dono unico. Outro modulo nao escreve nelas diretamente.
 - Shared code deve ser pequeno, estavel e tecnico. Nao colocar regra de negocio em `app/` ou helpers globais para "compartilhar".
 - Eventos carregam identificadores e snapshots minimos, nao modelos Eloquent completos.
-- O frontend continua seguindo DDD: pages/loaders falam com `application/`; `infrastructure/` conhece HTTP; `domain/` fica puro.
+- `Contracts/` do `backend-module` tambem contem interfaces internas de Repository/Service. Nem todo arquivo em `Contracts/` e automaticamente contrato publico entre modulos.
 
 ## Decision Matrix
 
@@ -56,7 +57,7 @@ Use esta skill como criterio arquitetural antes de implementar features que atra
 |----------|----------|
 | Precisa validar autorizacao ou regra critica | Chamada sincrona ao modulo dono |
 | Precisa enviar WhatsApp, gerar PDF, sincronizar midia, auditar, notificar | Evento + listener/job |
-| Precisa exibir dados de outro modulo em tela | Endpoint do modulo dono ou read model |
+| Precisa expor dados de outro modulo para API | Endpoint do modulo dono ou read model |
 | Precisa alterar dados de outro modulo na mesma transacao | Reavaliar fronteira; se inevitavel, documentar ADR |
 | Precisa compartilhar enum/valor estavel | Value Object/Enum em contrato publico ou pacote compartilhado minimo |
 | Precisa "so fazer join" em tabela de outro modulo | Evitar; criar consulta publica/read model |
@@ -74,7 +75,7 @@ Use esta skill como criterio arquitetural antes de implementar features que atra
 Ao propor ou implementar uma mudanca arquitetural, entregue:
 
 1. Modulo dono e modulos consumidores.
-2. Contrato publico escolhido: ServiceInterface, endpoint, DTO, evento ou read model.
+2. Contrato publico backend escolhido: ServiceInterface de aplicacao, endpoint HTTP, DTO, evento ou read model.
 3. Regra de dependencia: quem pode chamar quem e por qual caminho.
 4. Impacto em dados: tabela dona, escrita permitida, leitura permitida, transacao ou consistencia eventual.
 5. Teste/checagem para proteger a decisao quando aplicavel.

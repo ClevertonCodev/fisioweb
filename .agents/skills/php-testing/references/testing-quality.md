@@ -9,6 +9,8 @@ PHPUnit 11 + Mockery 1.6 em Laravel modular. Todos os exemplos seguem o namespac
 
 Service depende de `Interface`, então mockamos via `createMock(InterfaceClass)`.
 
+Este padrão vale para dependência interna do próprio módulo. Se o Service depende de outro módulo, mocke apenas o contrato público definido pela arquitetura modular, não `RepositoryInterface` ou Model interno do outro módulo.
+
 ```php
 <?php
 
@@ -496,7 +498,7 @@ Event::fake([PatientCreated::class]);
 // ... código que dispara ...
 
 Event::assertDispatched(PatientCreated::class);
-Event::assertDispatched(PatientCreated::class, fn ($e) => $e->patient->id === 1);
+Event::assertDispatched(PatientCreated::class, fn ($e) => $e->patientId === 1);
 Event::assertNotDispatched(SomeOtherEvent::class);
 ```
 

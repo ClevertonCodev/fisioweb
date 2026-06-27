@@ -1,12 +1,12 @@
 ---
 name: security
-description: Autorização ponta-a-ponta no fisioweb — Policies Laravel no backend (autoritativo) + permissions.ts no frontend (apenas UI). Cobre `authorizeResource` em controller, escrita de Policy com ownership por clinic_id, registro no `<Module>ServiceProvider::boot`, `can.xxx(role)` helpers, componentes `RequireClinicAdmin` e `RequireClinicUserSelfOrAdmin` para guardar rota. Use ao adicionar permissão, criar policy, esconder ação na UI por papel, ou auditar fluxo de autorização.
+description: Autorização ponta-a-ponta no fisioweb — Policies Laravel no backend (autoritativo) + permissions.ts no frontend (apenas UI). Cobre `authorizeResource` em controller, escrita de Policy com ownership por clinic_id, registro no ServiceProvider do módulo, `can.xxx(role)` helpers, componentes `RequireClinicAdmin` e `RequireClinicUserSelfOrAdmin` para guardar rota. Use ao adicionar permissão, criar policy, esconder ação na UI por papel, ou auditar fluxo de autorização.
 metadata:
   domain: security
   triggers: policy, autorização, permission, RequireClinicAdmin, authorizeResource, Gate, can, role, papel, ownership
   scope: implementation
   output-format: code
-  related-skills: backend-module, frontend-ddd, php-testing
+  related-skills: architecture-paradigm-modular-monolith, backend-module, frontend-ddd, php-testing
 ---
 
 # Security (fisioweb)
@@ -26,11 +26,13 @@ Se você esconde um botão no frontend mas não protege o endpoint, qualquer usu
 - Adicionando `RequireClinicAdmin` em rota administrativa.
 - Escondendo botão/menu por papel.
 - Auditando se um endpoint está realmente protegido.
+- Autorização depende de ownership em outro módulo ou de dados fora do módulo dono — carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md).
 
 ## Skill Map
 
 | Estou fazendo | Carregue |
 |--------------|----------|
+| Ownership/autorização atravessa módulos backend | [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) |
 | Estrutura de módulo Laravel (Service, Controller, FormRequest) | [`backend-module`](../backend-module/SKILL.md) |
 | Frontend DDD (componentes, rotas) | [`frontend-ddd`](../frontend-ddd/SKILL.md) |
 | Testes de Policy + componentes de guarda | [`php-testing`](../php-testing/SKILL.md), [`frontend-testing`](../frontend-testing/SKILL.md) |
@@ -43,6 +45,7 @@ Se você esconde um botão no frontend mas não protege o endpoint, qualquer usu
 - **Registro**: `<Module>ServiceProvider::boot()` com `Gate::policy(Model::class, Policy::class)` ou via `$policies` em um Provider.
 - **Invocação**: `$this->authorizeResource(Model::class, 'param')` no construtor do Controller; ou `$this->authorize('action', $model)` em métodos pontuais.
 - **Ownership**: a maioria das políticas valida `clinic_id` (multi-tenancy implícito).
+- Policy mora no módulo dono do recurso protegido. Se precisar consultar outro módulo para decidir, use contrato público definido pela arquitetura, não Repository/Model interno como atalho.
 
 ### Frontend
 - **`application/<contexto>/permissions.ts`**: helpers `can.xxx(role)` retornando boolean — espelha papéis do backend.
@@ -69,12 +72,14 @@ Três papéis em `ClinicUser::role`:
 - Comparação de ownership por **id explícito**: `(int) $user->id === (int) $target->id`.
 - Comparação por clinic: `$user->clinic_id === $target->clinic_id`.
 - FormRequest `authorize()` retorna `true` quando o middleware/policy cobre — não duplicar regra.
+- Validar ownership no backend mesmo quando outro módulo iniciou a ação.
 
 ### Backend (não deve fazer)
 - Confiar em ID vindo de `$request->input('user_id')` sem validar ownership.
 - `authorize()` no FormRequest com lógica complexa — passe a Policy.
 - Política que retorna `bool|string` (mensagem) sem necessidade — bool suficiente.
 - Endpoint sem `auth:<guard>` middleware "porque o frontend já protege".
+- Policy de um módulo acessando Repository/Model interno de outro módulo sem contrato público.
 
 ### Frontend (deve fazer)
 - `permissions.ts` em `application/<contexto>/` com helpers tipados por papel.

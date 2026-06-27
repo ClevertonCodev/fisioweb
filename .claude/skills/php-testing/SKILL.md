@@ -1,12 +1,12 @@
 ---
 name: php-testing
-description: Escrever testes PHPUnit + Mockery para o Laravel modular do fisioweb. Use ao criar testes Unit ou Feature em qualquer módulo (Admin, Clinic, Patient, Media etc.), testar Controller via HTTP, mockar Repository/Service via Interface, montar fixtures com Eloquent Factory + RefreshDatabase, ou autenticar com guard JWT (`admin`/`clinic`). Cobre estrutura `modules/<Module>/tests/`, namespace `Modules\<Module>\Tests`, `actingAs($user, 'guard')`, envelope `data` em assertions JSON, snake_case em nomes de teste e Mockery vs createMock.
+description: Escrever testes PHPUnit + Mockery para o Laravel modular do fisioweb. Use ao criar testes Unit ou Feature em qualquer módulo (Admin, Clinic, Patient, Media etc.), testar Controller via HTTP, mockar Repository/Service via Interface, montar fixtures com Eloquent Factory + RefreshDatabase, ou autenticar com guard JWT (`admin`/`clinic`). Cobre estrutura de testes em modules, namespace Modules, `actingAs($user, 'guard')`, envelope `data` em assertions JSON, snake_case em nomes de teste e Mockery vs createMock.
 metadata:
   domain: testing
   triggers: phpunit, pest, test, teste, mockery, refreshDatabase, factory, actingAs, assertion, composer test
   scope: implementation
   output-format: code
-  related-skills: backend-module, php-modern
+  related-skills: architecture-paradigm-modular-monolith, backend-module, php-modern
 ---
 
 # PHP Testing (fisioweb)
@@ -20,6 +20,7 @@ Padrão de testes para o Laravel modular deste projeto. Stack: **PHPUnit 11.5+ +
 - Mockando dependências via Contracts (`<Entity>RepositoryInterface`, `<Entity>ServiceInterface`).
 - Adicionando fixtures com Factory (`<Entity>::factory()->create()`).
 - Cobrindo autorização (Policies + middleware `auth:<guard>`).
+- Cobrindo contrato/evento entre módulos ou evitando regressão de dependência cross-module — carregue [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md).
 
 ## Core mandates
 
@@ -32,12 +33,14 @@ Padrão de testes para o Laravel modular deste projeto. Stack: **PHPUnit 11.5+ +
 - Autenticar com guard correto: `$this->actingAs($user, 'admin')` ou `$this->actingAs($user, 'clinic')`.
 - Asserções JSON respeitando wrapper `data` (e `data.data` quando o controller retorna paginator).
 - Mockar Repository/Service via Interface, nunca a classe concreta.
+- Em teste de Service, mockar RepositoryInterface apenas do próprio módulo. Para outro módulo, mockar contrato público definido pela arquitetura, evento ou endpoint/read model.
 
 ### Não deve fazer
 - Adicionar `declare(strict_types=1)` no teste (projeto não usa).
 - Usar `App\` namespace — é `Modules\<Module>\`.
 - Mockar Eloquent Model (use Factory).
 - Testar via classe concreta de Repository (use Interface no `createMock`).
+- Usar teste para legitimar dependência direta em Model/Repository de outro módulo.
 - Acessar `$response->json('data')` esperando array de itens quando o controller retorna paginator (é `data.data`).
 - Esquecer de chamar `parent::setUp()` no `setUp()`.
 
@@ -67,6 +70,7 @@ modules/<Module>/tests/
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Templates completos (Unit Service, Feature Controller, Data Provider, Mockery, fakes do Laravel) | [`references/testing-quality.md`](references/testing-quality.md) | Implementar testes |
+| Teste de contrato/evento entre módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir o que deve ser protegido |
 | Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Entender estrutura do código sob teste |
 | Tipos modernos (Enum/DTO/VO) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Testar Enums e DTOs |
 | Eloquent (Factory, scopes, observers) | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Testar Model/Scope/Observer |

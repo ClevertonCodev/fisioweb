@@ -45,14 +45,41 @@ return [
                 'read_models',
             ],
         ],
+        'clinical_record' => [
+            'module' => 'ClinicalRecord',
+            'status' => 'extracted',
+            'owns'   => [
+                'clinic_assessments',
+                'clinic_assessment_answers',
+                'clinic_assessment_answer_options',
+                'clinic_evolution_templates',
+                'clinic_evolution_template_sections',
+                'clinic_evolution_template_items',
+                'clinic_patient_evolutions',
+                'clinic_patient_evolution_checked_items',
+                'clinic_patient_files',
+            ],
+            'routes' => [
+                '/api/clinic/patients/*/assessments*',
+                '/api/clinic/patients/*/evolutions*',
+                '/api/clinic/patients/*/files*',
+                '/api/clinic/assessments/*',
+                '/api/clinic/evolutions/*',
+                '/api/clinic/evolution-templates/*',
+                '/api/clinic/assessment-templates/*',
+            ],
+            'collaboration' => [
+                'integration_events',
+                'application_services',
+                'read_models',
+            ],
+        ],
         'care' => [
             'module' => 'ClinicCare',
             'status' => 'candidate',
             'owns'   => [
                 'treatment_plans',
-                'evolutions',
                 'questionnaires',
-                'clinical_files',
             ],
             'collaboration' => [
                 'integration_events',

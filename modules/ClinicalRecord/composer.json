@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/clinicalrecord",
+    "description": "Clinical record module",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ClinicalRecord\\": "app/",
+            "Modules\\ClinicalRecord\\Database\\Factories\\": "database/factories/",
+            "Modules\\ClinicalRecord\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ClinicalRecord\\Tests\\": "tests/"
+        }
+    }
+}

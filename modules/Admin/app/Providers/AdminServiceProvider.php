@@ -8,9 +8,11 @@ use Modules\Admin\Contracts\AdminProgramRepositoryInterface;
 use Modules\Admin\Contracts\AdminProgramServiceInterface;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Contracts\Public\AssessmentTemplateReadServiceInterface;
 use Modules\Admin\Repositories\AdminProgramRepository;
 use Modules\Admin\Repositories\ExerciseRepository;
 use Modules\Admin\Services\AdminProgramService;
+use Modules\Admin\Services\AssessmentTemplateReadService;
 use Modules\Admin\Services\ExerciseService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -46,6 +48,7 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->bind(ExerciseServiceInterface::class, ExerciseService::class);
         $this->app->bind(AdminProgramRepositoryInterface::class, AdminProgramRepository::class);
         $this->app->bind(AdminProgramServiceInterface::class, AdminProgramService::class);
+        $this->app->bind(AssessmentTemplateReadServiceInterface::class, AssessmentTemplateReadService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

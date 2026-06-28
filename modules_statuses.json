@@ -9,5 +9,6 @@
     "WhatsApp": false,
     "GoogleCalendar": true,
     "ClinicFinance": true,
-    "ClinicScheduling": true
+    "ClinicScheduling": true,
+    "ClinicalRecord": true
 }

@@ -53,6 +53,28 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $violations, $this->formatViolations($violations));
     }
 
+    /**
+     * @return array<int, array{file: string, import: string, reason: string}>
+     */
+    private function findClinicalRecordViolations(): array
+    {
+        $violations = [];
+
+        foreach ($this->productionPhpFiles('modules/ClinicalRecord/app') as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+            array_push($violations, ...$this->violationsForContent($file->getPathname(), $contents, 'ClinicalRecord'));
+        }
+
+        return $violations;
+    }
+
+    public function test_clinical_record_production_code_does_not_import_private_module_internals(): void
+    {
+        $violations = $this->findClinicalRecordViolations();
+
+        $this->assertSame([], $violations, $this->formatViolations($violations));
+    }
+
     public function test_boundary_scanner_detects_synthetic_prohibited_import(): void
     {
         $violations = $this->violationsForContent(

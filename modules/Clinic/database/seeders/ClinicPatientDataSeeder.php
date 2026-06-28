@@ -6,20 +6,20 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Modules\Admin\Models\AdminAssessmentTemplate;
 use Modules\Admin\Models\Exercise;
-use Modules\Clinic\Models\Assessment;
-use Modules\Clinic\Models\AssessmentAnswer;
-use Modules\Clinic\Models\AssessmentAnswerOption;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\EvolutionTemplate;
 use Modules\Clinic\Models\ExerciseFavorite;
-use Modules\Clinic\Models\PatientEvolution;
-use Modules\Clinic\Models\PatientFile;
 use Modules\Clinic\Models\PatientQuestionnaire;
 use Modules\Clinic\Models\PatientQuestionnaireAnswer;
 use Modules\Clinic\Models\QuestionnaireQuestion;
 use Modules\Clinic\Models\QuestionnaireSection;
 use Modules\Clinic\Models\QuestionnaireTemplate;
+use Modules\ClinicalRecord\Models\Assessment;
+use Modules\ClinicalRecord\Models\AssessmentAnswer;
+use Modules\ClinicalRecord\Models\AssessmentAnswerOption;
+use Modules\ClinicalRecord\Models\EvolutionTemplate;
+use Modules\ClinicalRecord\Models\PatientEvolution;
+use Modules\ClinicalRecord\Models\PatientFile;
 use Modules\Patient\Models\Patient;
 
 /**

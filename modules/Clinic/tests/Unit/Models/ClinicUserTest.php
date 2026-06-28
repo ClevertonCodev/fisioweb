@@ -3,7 +3,7 @@
 namespace Modules\Clinic\Tests\Unit\Models;
 
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\PatientEvolution;
+use Modules\ClinicalRecord\Models\PatientEvolution;
 use Tests\TestCase;
 
 class ClinicUserTest extends TestCase

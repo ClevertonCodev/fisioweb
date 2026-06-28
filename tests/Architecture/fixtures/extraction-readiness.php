@@ -93,5 +93,46 @@ return [
                 ],
             ],
         ],
+
+        'ClinicalRecord' => [
+            'target'   => 'future_microservice',
+            'criteria' => [
+                'data_ownership' => [
+                    'status'    => 'ready',
+                    'evidence'  => 'Clinical record code and clinic_* prontuario migrations now live under modules/ClinicalRecord.',
+                    'next_step' => 'Keep future clinical record migrations and writes in ClinicalRecord only.',
+                ],
+                'public_contracts' => [
+                    'status'    => 'partial',
+                    'evidence'  => 'ClinicalRecord consumes Admin AssessmentTemplateReadServiceInterface and keeps REST contract compatibility.',
+                    'next_step' => 'Version public read contracts if external consumers appear.',
+                ],
+                'integration_events' => [
+                    'status'    => 'ready',
+                    'evidence'  => 'ClinicalRecord publishes six versioned events for assessment/evolution/patient-file mutations.',
+                    'next_step' => 'Add listeners only through module services and contracts.',
+                ],
+                'idempotency' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'Events are in-process and do not yet require distributed deduplication.',
+                    'next_step' => 'Add event IDs and inbox deduplication before async distributed consumers.',
+                ],
+                'transaction_boundaries' => [
+                    'status'    => 'partial',
+                    'evidence'  => 'Write services centralize mutations and publish events via DB::afterCommit.',
+                    'next_step' => 'Introduce outbox publishing before service extraction.',
+                ],
+                'outbox_inbox_readiness' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'Outbox/inbox infrastructure is not required while events are local.',
+                    'next_step' => 'Add outbox, inbox, retry, dead-letter and replay tooling before extraction.',
+                ],
+                'observability' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'No module-level tracing/event-delivery dashboard exists yet.',
+                    'next_step' => 'Add structured logs, metrics and alerts before extraction.',
+                ],
+            ],
+        ],
     ],
 ];

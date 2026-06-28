@@ -1,0 +1,16 @@
+{
+    "name": "ClinicalRecord",
+    "alias": "clinicalrecord",
+    "description": "Clinical record module",
+    "keywords": [
+        "clinic",
+        "clinical-record",
+        "assessment",
+        "evolution"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ClinicalRecord\\Providers\\ClinicalRecordServiceProvider"
+    ],
+    "files": []
+}

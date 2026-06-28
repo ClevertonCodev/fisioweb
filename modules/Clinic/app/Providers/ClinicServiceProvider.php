@@ -6,30 +6,21 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
-use Modules\Clinic\Contracts\AssessmentServiceInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
-use Modules\Clinic\Contracts\EvolutionServiceInterface;
-use Modules\Clinic\Contracts\EvolutionTemplateServiceInterface;
 use Modules\Clinic\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\Clinic\Contracts\TreatmentPlanServiceInterface;
-use Modules\Clinic\Models\Assessment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\PatientEvolution;
-use Modules\Clinic\Models\PatientFile;
 use Modules\Clinic\Models\PatientQuestionnaire;
 use Modules\Clinic\Models\QuestionnaireTemplate;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Observers\ClinicObserver;
 use Modules\Clinic\Observers\TreatmentPlanObserver;
-use Modules\Clinic\Policies\AssessmentPolicy;
 use Modules\Clinic\Policies\ClinicUserPolicy;
-use Modules\Clinic\Policies\PatientEvolutionPolicy;
-use Modules\Clinic\Policies\PatientFilePolicy;
 use Modules\Clinic\Policies\PatientPolicy;
 use Modules\Clinic\Policies\PatientQuestionnairePolicy;
 use Modules\Clinic\Policies\QuestionnaireTemplatePolicy;
@@ -38,13 +29,9 @@ use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
 use Modules\Clinic\Repositories\TreatmentPlanRepository;
 use Modules\Clinic\Services\ActivityLogger;
-use Modules\Clinic\Services\AssessmentService;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserService;
 use Modules\Clinic\Services\DashboardService;
-use Modules\Clinic\Services\EvolutionService;
-use Modules\Clinic\Services\EvolutionTemplateService;
-use Modules\Clinic\Services\PatientFileService;
 use Modules\Clinic\Services\PatientQuestionnaireService;
 use Modules\Clinic\Services\TreatmentPlanService;
 use Modules\Patient\Models\Patient;
@@ -91,10 +78,6 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
-        $this->app->bind(AssessmentServiceInterface::class, AssessmentService::class);
-        $this->app->bind(EvolutionServiceInterface::class, EvolutionService::class);
-        $this->app->bind(EvolutionTemplateServiceInterface::class, EvolutionTemplateService::class);
-        $this->app->singleton(PatientFileService::class);
         $this->app->singleton(PatientQuestionnaireService::class);
 
         $this->app->register(EventServiceProvider::class);
@@ -105,12 +88,8 @@ class ClinicServiceProvider extends ServiceProvider
     {
         Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
-        Gate::policy(Assessment::class, AssessmentPolicy::class);
-        Gate::policy(PatientEvolution::class, PatientEvolutionPolicy::class);
-        Gate::policy(EvolutionTemplate::class, EvolutionTemplatePolicy::class);
         Gate::policy(QuestionnaireTemplate::class, QuestionnaireTemplatePolicy::class);
         Gate::policy(PatientQuestionnaire::class, PatientQuestionnairePolicy::class);
-        Gate::policy(PatientFile::class, PatientFilePolicy::class);
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
     }
 

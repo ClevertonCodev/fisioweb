@@ -2,9 +2,9 @@
 
 namespace Modules\Admin\Database\Seeders\Assessments;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class MusculoesqueleticaSeeder extends Seeder
 {
@@ -13,10 +13,10 @@ class MusculoesqueleticaSeeder extends Seeder
         $now = Carbon::now();
 
         $tpl = DB::table('admin_assessment_templates')->insertGetId([
-            'name' => 'Fisioterapia Musculoesquelética',
+            'name'        => 'Fisioterapia Musculoesquelética',
             'description' => 'Avaliação fisioterapêutica musculoesquelética geral com exame físico, testes especiais e plano de tratamento.',
-            'is_active' => true, 'sort_order' => 5,
-            'created_at' => $now, 'updated_at' => $now,
+            'is_active'   => true, 'sort_order' => 5,
+            'created_at'  => $now, 'updated_at' => $now,
         ]);
 
         // ── Sinais Vitais ──────────────────────────────────────────────────
@@ -74,7 +74,7 @@ class MusculoesqueleticaSeeder extends Seeder
     {
         return DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $t, 'title' => $title,
-            'sort_order' => $order, 'created_at' => $now, 'updated_at' => $now,
+            'sort_order'                   => $order, 'created_at' => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -82,9 +82,9 @@ class MusculoesqueleticaSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $s, 'label' => $label,
-            'field_type' => $type, 'required' => false, 'sort_order' => $order,
-            'config' => !empty($config) ? json_encode($config) : null,
-            'created_at' => $now, 'updated_at' => $now,
+            'field_type'                  => $type, 'required' => false, 'sort_order' => $order,
+            'config'                      => !empty($config) ? json_encode($config) : null,
+            'created_at'                  => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -93,7 +93,7 @@ class MusculoesqueleticaSeeder extends Seeder
         foreach ($labels as $i => $l) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $f, 'label' => $l,
-                'sort_order' => $i + 1, 'created_at' => $now, 'updated_at' => $now,
+                'sort_order'                => $i + 1, 'created_at' => $now, 'updated_at' => $now,
             ]);
         }
     }

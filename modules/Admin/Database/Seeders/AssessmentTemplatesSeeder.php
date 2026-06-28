@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Database\Seeders;
 
+use Illuminate\Database\Seeder;
 use Modules\Admin\Database\Seeders\Assessments\AntropometriaSeeder;
 use Modules\Admin\Database\Seeders\Assessments\AvaliacaoPadraoSeeder;
 use Modules\Admin\Database\Seeders\Assessments\FisioterapiaEsportivaSeeder;
@@ -15,7 +16,6 @@ use Modules\Admin\Database\Seeders\Assessments\PelvicaMulherSeeder;
 use Modules\Admin\Database\Seeders\Assessments\PilatesSeeder;
 use Modules\Admin\Database\Seeders\Assessments\PosturalSeeder;
 use Modules\Admin\Database\Seeders\Assessments\RespiratoriaSeeder;
-use Illuminate\Database\Seeder;
 
 class AssessmentTemplatesSeeder extends Seeder
 {

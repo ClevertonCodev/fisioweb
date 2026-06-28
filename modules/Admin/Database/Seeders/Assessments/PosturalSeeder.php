@@ -22,32 +22,32 @@ class PosturalSeeder extends Seeder
         // ── Seção 1: História clínica ─────────────────────────────────────
         $s1 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'História clínica', 'sort_order' => 1,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'História clínica', 'sort_order' => 1,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
-        $this->f($s1, 'Diagnóstico clínico',             'textarea', 1);
-        $this->f($s1, 'Queixa principal (QP)',            'textarea', 2);
+        $this->f($s1, 'Diagnóstico clínico', 'textarea', 1);
+        $this->f($s1, 'Queixa principal (QP)', 'textarea', 2);
 
         DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $s1,
-            'label'      => 'Avaliação da intensidade da dor',
-            'field_type' => 'range',
-            'required'   => false,
-            'sort_order' => 3,
-            'config'     => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => 'Avaliação da intensidade da dor',
+            'field_type'                  => 'range',
+            'required'                    => false,
+            'sort_order'                  => 3,
+            'config'                      => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
 
-        $this->f($s1, 'Características da dor',           'textarea', 4);
+        $this->f($s1, 'Características da dor', 'textarea', 4);
         $this->f($s1, 'História da moléstia atual (HMA)', 'textarea', 5);
-        $this->f($s1, 'História pregressa (HP)',          'textarea', 6);
+        $this->f($s1, 'História pregressa (HP)', 'textarea', 6);
 
         // ── Seção 2: Inspeção - Vista anterior ───────────────────────────
         $s2 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Inspeção - Vista anterior', 'sort_order' => 2,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Inspeção - Vista anterior', 'sort_order' => 2,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
 
         $fCabeca = $this->cb($s2, 'Cabeça', 1);
@@ -107,8 +107,8 @@ class PosturalSeeder extends Seeder
         // ── Seção 3: Inspeção - Vista lateral ────────────────────────────
         $s3 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Inspeção - Vista lateral', 'sort_order' => 3,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Inspeção - Vista lateral', 'sort_order' => 3,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
 
         $fCabLat = $this->cb($s3, 'Cabeça', 1);
@@ -135,8 +135,8 @@ class PosturalSeeder extends Seeder
         // ── Seção 4: Inspeção - Vista posterior ──────────────────────────
         $s4 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Inspeção - Vista posterior', 'sort_order' => 4,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Inspeção - Vista posterior', 'sort_order' => 4,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
 
         $fEscap = $this->cb($s4, 'Escápulas', 1);
@@ -160,8 +160,8 @@ class PosturalSeeder extends Seeder
         // ── Seção 5: Observações ──────────────────────────────────────────
         $s5 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Observações', 'sort_order' => 5,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Observações', 'sort_order' => 5,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
         $this->f($s5, 'Observações', 'textarea', 1);
     }
@@ -172,13 +172,13 @@ class PosturalSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sid,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => $config ? json_encode($config) : null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => $config ? json_encode($config) : null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -192,10 +192,10 @@ class PosturalSeeder extends Seeder
         foreach ($options as $i => $label) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fieldId,
-                'label'      => $label,
-                'sort_order' => $i + 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'label'                     => $label,
+                'sort_order'                => $i + 1,
+                'created_at'                => now(),
+                'updated_at'                => now(),
             ]);
         }
     }

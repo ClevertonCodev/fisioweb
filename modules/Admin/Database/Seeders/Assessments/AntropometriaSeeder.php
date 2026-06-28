@@ -24,9 +24,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 1: ANAMNESE ───────────────────────────────────────────────
         $s1 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Anamnese',
-            'sort_order' => 1,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Anamnese',
+            'sort_order'                   => 1,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $this->field($s1, 'Já pratica atividade física? Qual modalidade? Há quanto tempo?', 'textarea', 1, $now);
@@ -56,9 +56,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 2: AVALIAÇÃO POSTURAL — Vista Anterior ───────────────────
         $s2 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Avaliação Postural — Vista Anterior',
-            'sort_order' => 2,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Avaliação Postural — Vista Anterior',
+            'sort_order'                   => 2,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $f = $this->field($s2, 'Cabeça', 'checkbox_multiple', 1, $now);
@@ -82,9 +82,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 3: AVALIAÇÃO POSTURAL — Vista Lateral ────────────────────
         $s3 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Avaliação Postural — Vista Lateral',
-            'sort_order' => 3,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Avaliação Postural — Vista Lateral',
+            'sort_order'                   => 3,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $f = $this->field($s3, 'Cabeça', 'checkbox_multiple', 1, $now);
@@ -111,9 +111,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 4: AVALIAÇÃO POSTURAL — Vista Posterior ──────────────────
         $s4 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Avaliação Postural — Vista Posterior',
-            'sort_order' => 4,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Avaliação Postural — Vista Posterior',
+            'sort_order'                   => 4,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $f = $this->field($s4, 'Escápulas', 'checkbox_multiple', 1, $now);
@@ -137,9 +137,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 5: ANTROPOMETRIA — Medidas ───────────────────────────────
         $s5 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Antropometria — Medidas',
-            'sort_order' => 5,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Antropometria — Medidas',
+            'sort_order'                   => 5,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $this->field($s5, 'Estatura (m)', 'number', 1, $now, ['unit' => 'm']);
@@ -149,9 +149,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 6: ANTROPOMETRIA — Dobras Cutâneas ───────────────────────
         $s6 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Antropometria — Dobras Cutâneas',
-            'sort_order' => 6,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Antropometria — Dobras Cutâneas',
+            'sort_order'                   => 6,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $dobras = ['Tríceps', 'Subescapular', 'Bíceps', 'Axilar média', 'Torácica ou peitoral', 'Supra-ilíaca', 'Abdominal', 'Coxa', 'Panturrilha medial'];
@@ -162,9 +162,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 7: ANTROPOMETRIA — Perímetros ────────────────────────────
         $s7 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Antropometria — Perímetros',
-            'sort_order' => 7,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Antropometria — Perímetros',
+            'sort_order'                   => 7,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $perimetros = ['Tórax', 'Cintura', 'Abdômen', 'Quadril', 'Coxa direita', 'Coxa esquerda', 'Perna direita', 'Perna esquerda', 'Braço direito', 'Braço esquerdo', 'Antebraço direito', 'Antebraço esquerdo'];
@@ -175,9 +175,9 @@ class AntropometriaSeeder extends Seeder
         // ── SEÇÃO 8: COMPOSIÇÃO CORPORAL ───────────────────────────────────
         $s8 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $templateId,
-            'title'      => 'Composição Corporal',
-            'sort_order' => 8,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => 'Composição Corporal',
+            'sort_order'                   => 8,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
 
         $this->field($s8, 'Percentual de gordura (%)', 'number', 1, $now, ['unit' => '%']);
@@ -193,13 +193,13 @@ class AntropometriaSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sectionId,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => ! empty($config) ? json_encode($config) : null,
-            'created_at' => $now,
-            'updated_at' => $now,
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => !empty($config) ? json_encode($config) : null,
+            'created_at'                  => $now,
+            'updated_at'                  => $now,
         ]);
     }
 
@@ -208,10 +208,10 @@ class AntropometriaSeeder extends Seeder
         foreach ($labels as $i => $label) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fieldId,
-                'label'      => $label,
-                'sort_order' => $i + 1,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'label'                     => $label,
+                'sort_order'                => $i + 1,
+                'created_at'                => $now,
+                'updated_at'                => $now,
             ]);
         }
     }

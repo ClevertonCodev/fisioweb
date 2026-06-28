@@ -22,44 +22,44 @@ class PilatesSeeder extends Seeder
         // ── Seção 1: Sinais Vitais ────────────────────────────────────────
         $s1 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Sinais Vitais', 'sort_order' => 1,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Sinais Vitais', 'sort_order' => 1,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
-        $this->f($s1, 'Frequência cardíaca (FC)',      'text', 1);
-        $this->f($s1, 'Pressão arterial (PA)',         'text', 2);
+        $this->f($s1, 'Frequência cardíaca (FC)', 'text', 1);
+        $this->f($s1, 'Pressão arterial (PA)', 'text', 2);
         $this->f($s1, 'Saturação de oxigênio (SpO2)', 'text', 3);
 
         // ── Seção 2: História clínica ─────────────────────────────────────
         $s2 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'História clínica', 'sort_order' => 2,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'História clínica', 'sort_order' => 2,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
-        $this->f($s2, 'Diagnóstico clínico',             'textarea', 1);
-        $this->f($s2, 'Queixa principal (QP)',            'textarea', 2);
+        $this->f($s2, 'Diagnóstico clínico', 'textarea', 1);
+        $this->f($s2, 'Queixa principal (QP)', 'textarea', 2);
 
         DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $s2,
-            'label'      => 'Avaliação da intensidade da dor',
-            'field_type' => 'range',
-            'required'   => false,
-            'sort_order' => 3,
-            'config'     => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => 'Avaliação da intensidade da dor',
+            'field_type'                  => 'range',
+            'required'                    => false,
+            'sort_order'                  => 3,
+            'config'                      => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
 
-        $this->f($s2, 'Características da dor',           'textarea', 4);
-        $this->f($s2, 'História da moléstia atual (HMA)',  'textarea', 5);
-        $this->f($s2, 'História pregressa (HP)',           'textarea', 6);
-        $this->f($s2, 'Hábitos de vida',                  'textarea', 7);
-        $this->f($s2, 'Tratamentos realizados',           'textarea', 8);
+        $this->f($s2, 'Características da dor', 'textarea', 4);
+        $this->f($s2, 'História da moléstia atual (HMA)', 'textarea', 5);
+        $this->f($s2, 'História pregressa (HP)', 'textarea', 6);
+        $this->f($s2, 'Hábitos de vida', 'textarea', 7);
+        $this->f($s2, 'Tratamentos realizados', 'textarea', 8);
 
         // ── Seção 3: Exame físico ─────────────────────────────────────────
         $s3 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Exame físico', 'sort_order' => 3,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Exame físico', 'sort_order' => 3,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
 
         $this->f($s3, 'Principais achados da avaliação postural', 'textarea', 1);
@@ -79,16 +79,16 @@ class PilatesSeeder extends Seeder
         // ── Seção 4: Objetivos do paciente com o Pilates ──────────────────
         $s4 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Objetivos do paciente com o Pilates', 'sort_order' => 4,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Objetivos do paciente com o Pilates', 'sort_order' => 4,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
         $this->f($s4, 'Metas a serem alcançadas durante o tratamento', 'textarea', 1);
 
         // ── Seção 5: Plano de condutas e tratamento ───────────────────────
         $s5 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title' => 'Plano de condutas e tratamento', 'sort_order' => 5,
-            'created_at' => now(), 'updated_at' => now(),
+            'title'                        => 'Plano de condutas e tratamento', 'sort_order' => 5,
+            'created_at'                   => now(), 'updated_at' => now(),
         ]);
         $this->f($s5, 'Técnicas utilizadas para alcançar os objetivos', 'textarea', 1);
     }
@@ -99,13 +99,13 @@ class PilatesSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sid,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => $config ? json_encode($config) : null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => $config ? json_encode($config) : null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -119,10 +119,10 @@ class PilatesSeeder extends Seeder
         foreach ($options as $i => $label) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fieldId,
-                'label'      => $label,
-                'sort_order' => $i + 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'label'                     => $label,
+                'sort_order'                => $i + 1,
+                'created_at'                => now(),
+                'updated_at'                => now(),
             ]);
         }
     }

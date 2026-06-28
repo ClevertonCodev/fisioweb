@@ -81,7 +81,7 @@ class ValidationHelper
             return false;
         }
 
-        if (! preg_match('/[A-Za-z]/', $s)) {
+        if (!preg_match('/[A-Za-z]/', $s)) {
             return false;
         }
 

@@ -57,7 +57,7 @@ export default [
         files: ['**/*.{ts,tsx}'],
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr'],
+        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'dist', 'build', 'coverage', '*.min.js'],
     },
     prettier,
 ];

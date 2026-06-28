@@ -52,7 +52,7 @@ class AvaliacaoPadraoSeeder extends Seeder
         $this->field($s3, 'Circunferência cefálica (cm)', 'number', 5, $now, ['unit' => 'cm']);
 
         // ── SEÇÃO 4: Dobras Cutâneas (mm) ──────────────────────────────────
-        $s4 = $this->section($templateId, 'Dobras Cutâneas (mm)', 4, $now);
+        $s4     = $this->section($templateId, 'Dobras Cutâneas (mm)', 4, $now);
         $dobras = ['Tríceps', 'Bíceps', 'Antebraço', 'Subescapular', 'Axilar média', 'Peitoral', 'Abdominal', 'Suprailíaca', 'Coxa Medial', 'Suprapatelar', 'Panturrilha medial'];
         foreach ($dobras as $i => $d) {
             $this->field($s4, $d, 'number', $i + 1, $now, ['unit' => 'mm']);
@@ -72,9 +72,9 @@ class AvaliacaoPadraoSeeder extends Seeder
     {
         return DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $tplId,
-            'title'      => $title,
-            'sort_order' => $order,
-            'created_at' => $now, 'updated_at' => $now,
+            'title'                        => $title,
+            'sort_order'                   => $order,
+            'created_at'                   => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -82,12 +82,12 @@ class AvaliacaoPadraoSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sId,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => ! empty($config) ? json_encode($config) : null,
-            'created_at' => $now, 'updated_at' => $now,
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => !empty($config) ? json_encode($config) : null,
+            'created_at'                  => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -96,9 +96,9 @@ class AvaliacaoPadraoSeeder extends Seeder
         foreach ($labels as $i => $l) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fId,
-                'label'      => $l,
-                'sort_order' => $i + 1,
-                'created_at' => $now, 'updated_at' => $now,
+                'label'                     => $l,
+                'sort_order'                => $i + 1,
+                'created_at'                => $now, 'updated_at' => $now,
             ]);
         }
     }

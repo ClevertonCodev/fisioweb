@@ -22,10 +22,10 @@ class NeurologicaSeeder extends Seeder
         // ── Seção 1: Acompanhante ─────────────────────────────────────────
         $s1 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Acompanhante',
-            'sort_order' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Acompanhante',
+            'sort_order'                   => 1,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s1, 'Nome', 'text', 1);
         $this->insertFieldSimple($s1, 'Grau de parentesco/relação', 'text', 2);
@@ -33,10 +33,10 @@ class NeurologicaSeeder extends Seeder
         // ── Seção 2: Sinais Vitais ────────────────────────────────────────
         $s2 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Sinais Vitais',
-            'sort_order' => 2,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Sinais Vitais',
+            'sort_order'                   => 2,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s2, 'Frequência cardíaca (FC)', 'text', 1);
         $this->insertFieldSimple($s2, 'Pressão arterial (PA)', 'text', 2);
@@ -45,10 +45,10 @@ class NeurologicaSeeder extends Seeder
         // ── Seção 3: História clínica ─────────────────────────────────────
         $s3 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'História clínica',
-            'sort_order' => 3,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'História clínica',
+            'sort_order'                   => 3,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $clinFields = [
             'Diagnóstico clínico', 'Queixa principal (QP)',
@@ -63,10 +63,10 @@ class NeurologicaSeeder extends Seeder
         // ── Seção 4: Exame físico ─────────────────────────────────────────
         $s4 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Exame físico',
-            'sort_order' => 4,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Exame físico',
+            'sort_order'                   => 4,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
 
         $fApres = $this->insertFieldCheckbox($s4, 'Apresentação do paciente', 1);
@@ -96,20 +96,20 @@ class NeurologicaSeeder extends Seeder
         // ── Seção 5: Exames complementares ───────────────────────────────
         $s5 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Exames complementares',
-            'sort_order' => 5,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Exames complementares',
+            'sort_order'                   => 5,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s5, 'Exames de imagem (RX, RNM, US) ou outros relevantes', 'textarea', 1);
 
         // ── Seção 6: Testes funcionais ────────────────────────────────────
         $s6 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Testes funcionais',
-            'sort_order' => 6,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Testes funcionais',
+            'sort_order'                   => 6,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $testFields = [
             'Time up and go (TUG)', 'Teste de velocidade da marcha',
@@ -133,10 +133,10 @@ class NeurologicaSeeder extends Seeder
         foreach ($sections as $i => $sec) {
             $sId = DB::table('admin_assessment_sections')->insertGetId([
                 'admin_assessment_template_id' => $template,
-                'title'      => $sec['title'],
-                'sort_order' => $startOrder + $i,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'title'                        => $sec['title'],
+                'sort_order'                   => $startOrder + $i,
+                'created_at'                   => now(),
+                'updated_at'                   => now(),
             ]);
             $this->insertFieldSimple($sId, $sec['label'], 'textarea', 1);
         }
@@ -146,13 +146,13 @@ class NeurologicaSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sectionId,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -160,13 +160,13 @@ class NeurologicaSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sectionId,
-            'label'      => $label,
-            'field_type' => 'checkbox',
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => 'checkbox',
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -175,10 +175,10 @@ class NeurologicaSeeder extends Seeder
         foreach ($options as $i => $label) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fieldId,
-                'label'      => $label,
-                'sort_order' => $i + 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'label'                     => $label,
+                'sort_order'                => $i + 1,
+                'created_at'                => now(),
+                'updated_at'                => now(),
             ]);
         }
     }

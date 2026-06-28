@@ -2,9 +2,9 @@
 
 namespace Modules\Admin\Database\Seeders\Assessments;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class FisioterapiaEsportivaSeeder extends Seeder
 {
@@ -13,10 +13,10 @@ class FisioterapiaEsportivaSeeder extends Seeder
         $now = Carbon::now();
 
         $tpl = DB::table('admin_assessment_templates')->insertGetId([
-            'name' => 'Fisioterapia Esportiva',
+            'name'        => 'Fisioterapia Esportiva',
             'description' => 'Avaliação fisioterapêutica para atletas com identificação esportiva, dados da lesão e testes funcionais.',
-            'is_active' => true, 'sort_order' => 4,
-            'created_at' => $now, 'updated_at' => $now,
+            'is_active'   => true, 'sort_order' => 4,
+            'created_at'  => $now, 'updated_at' => $now,
         ]);
 
         // ── Identificação do Atleta ────────────────────────────────────────
@@ -95,7 +95,7 @@ class FisioterapiaEsportivaSeeder extends Seeder
     {
         return DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $t, 'title' => $title,
-            'sort_order' => $order, 'created_at' => $now, 'updated_at' => $now,
+            'sort_order'                   => $order, 'created_at' => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -103,9 +103,9 @@ class FisioterapiaEsportivaSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $s, 'label' => $label,
-            'field_type' => $type, 'required' => false, 'sort_order' => $order,
-            'config' => !empty($config) ? json_encode($config) : null,
-            'created_at' => $now, 'updated_at' => $now,
+            'field_type'                  => $type, 'required' => false, 'sort_order' => $order,
+            'config'                      => !empty($config) ? json_encode($config) : null,
+            'created_at'                  => $now, 'updated_at' => $now,
         ]);
     }
 
@@ -114,7 +114,7 @@ class FisioterapiaEsportivaSeeder extends Seeder
         foreach ($labels as $i => $l) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $f, 'label' => $l,
-                'sort_order' => $i + 1, 'created_at' => $now, 'updated_at' => $now,
+                'sort_order'                => $i + 1, 'created_at' => $now, 'updated_at' => $now,
             ]);
         }
     }

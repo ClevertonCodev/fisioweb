@@ -22,10 +22,10 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 1: Sinais Vitais ────────────────────────────────────────
         $s1 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Sinais Vitais',
-            'sort_order' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Sinais Vitais',
+            'sort_order'                   => 1,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s1, 'Frequência cardíaca (FC)', 'text', 1);
         $this->insertFieldSimple($s1, 'Pressão arterial (PA)', 'text', 2);
@@ -34,10 +34,10 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 2: História clínica ─────────────────────────────────────
         $s2 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'História clínica',
-            'sort_order' => 2,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'História clínica',
+            'sort_order'                   => 2,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         foreach ([
             'Diagnóstico clínico',
@@ -54,10 +54,10 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 3: Antecedentes e hábitos ──────────────────────────────
         $s3 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Antecedentes e hábitos',
-            'sort_order' => 3,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Antecedentes e hábitos',
+            'sort_order'                   => 3,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         foreach ([
             'Antecedentes e hábitos',
@@ -74,10 +74,10 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 4: História urológica ───────────────────────────────────
         $s4 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'História urológica',
-            'sort_order' => 4,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'História urológica',
+            'sort_order'                   => 4,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
 
         $fEnch = $this->insertFieldCheckbox($s4, 'Sintomas urinários (fase de enchimento)', 1);
@@ -127,10 +127,10 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 5: História sexual ──────────────────────────────────────
         $s5 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'História sexual',
-            'sort_order' => 5,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'História sexual',
+            'sort_order'                   => 5,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
 
         $fAtiv = $this->insertFieldCheckbox($s5, 'Atividade sexual', 1);
@@ -154,23 +154,23 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 6: Exame físico ─────────────────────────────────────────
         $s6 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Exame físico',
-            'sort_order' => 6,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Exame físico',
+            'sort_order'                   => 6,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s6, 'Inspeção', 'textarea', 1);
         $this->insertFieldSimple($s6, 'Palpação', 'textarea', 2);
 
         DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $s6,
-            'label'      => 'Avaliação da dor',
-            'field_type' => 'range',
-            'required'   => false,
-            'sort_order' => 3,
-            'config'     => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => 'Avaliação da dor',
+            'field_type'                  => 'range',
+            'required'                    => false,
+            'sort_order'                  => 3,
+            'config'                      => json_encode(['min' => 0, 'max' => 10, 'min_label' => 'Nenhuma dor', 'max_label' => 'Maior dor imaginável']),
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
 
         $this->insertFieldSimple($s6, 'Caracterização da dor', 'textarea', 4);
@@ -179,30 +179,30 @@ class PelvicaHomemSeeder extends Seeder
         // ── Seção 7: Exames complementares ───────────────────────────────
         $s7 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Exames complementares',
-            'sort_order' => 7,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Exames complementares',
+            'sort_order'                   => 7,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s7, 'Exames de imagem (RX, RNM, US) ou outros relevantes', 'textarea', 1);
 
         // ── Seção 8: Testes especiais ─────────────────────────────────────
         $s8 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Testes especiais',
-            'sort_order' => 8,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Testes especiais',
+            'sort_order'                   => 8,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s8, 'Testes específicos para a região alvo que mostram o comprometimento da função ou estrutura', 'textarea', 1);
 
         // ── Seção 9: Testes funcionais ────────────────────────────────────
         $s9 = DB::table('admin_assessment_sections')->insertGetId([
             'admin_assessment_template_id' => $template,
-            'title'      => 'Testes funcionais',
-            'sort_order' => 9,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'title'                        => 'Testes funcionais',
+            'sort_order'                   => 9,
+            'created_at'                   => now(),
+            'updated_at'                   => now(),
         ]);
         $this->insertFieldSimple($s9, 'Exercícios em forma de teste elaborados para avaliar o desempenho do paciente de forma quantitativa e/ou qualitativa', 'textarea', 1);
 
@@ -214,10 +214,10 @@ class PelvicaHomemSeeder extends Seeder
         ] as [$order, $title, $label]) {
             $sId = DB::table('admin_assessment_sections')->insertGetId([
                 'admin_assessment_template_id' => $template,
-                'title'      => $title,
-                'sort_order' => $order,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'title'                        => $title,
+                'sort_order'                   => $order,
+                'created_at'                   => now(),
+                'updated_at'                   => now(),
             ]);
             $this->insertFieldSimple($sId, $label, 'textarea', 1);
         }
@@ -229,13 +229,13 @@ class PelvicaHomemSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sectionId,
-            'label'      => $label,
-            'field_type' => $type,
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => $type,
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -243,13 +243,13 @@ class PelvicaHomemSeeder extends Seeder
     {
         return DB::table('admin_assessment_fields')->insertGetId([
             'admin_assessment_section_id' => $sectionId,
-            'label'      => $label,
-            'field_type' => 'checkbox',
-            'required'   => false,
-            'sort_order' => $order,
-            'config'     => null,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'label'                       => $label,
+            'field_type'                  => 'checkbox',
+            'required'                    => false,
+            'sort_order'                  => $order,
+            'config'                      => null,
+            'created_at'                  => now(),
+            'updated_at'                  => now(),
         ]);
     }
 
@@ -258,10 +258,10 @@ class PelvicaHomemSeeder extends Seeder
         foreach ($options as $i => $label) {
             DB::table('admin_assessment_field_options')->insert([
                 'admin_assessment_field_id' => $fieldId,
-                'label'      => $label,
-                'sort_order' => $i + 1,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'label'                     => $label,
+                'sort_order'                => $i + 1,
+                'created_at'                => now(),
+                'updated_at'                => now(),
             ]);
         }
     }

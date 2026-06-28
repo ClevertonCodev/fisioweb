@@ -76,7 +76,7 @@ modules/
 │   │   └── Services/Financial*|Finance*.php                 # service ownership moves with finance
 │   ├── database/
 │   │   ├── factories/*Financial*.php                        # may remain temporarily whitelisted
-│   │   ├── migrations/*clinic_financial*.php                # names preserved; ownership documented
+│   │   ├── migrations/*clinic_financial*.php                # moved to ClinicFinance, table names preserved
 │   │   └── seeders/*Financial*.php                          # may remain temporarily whitelisted
 │   └── routes/clinic.php                                    # finance routes disabled after move
 ├── ClinicFinance/

@@ -16,9 +16,9 @@ return [
             'target'   => 'future_microservice',
             'criteria' => [
                 'data_ownership' => [
-                    'status'    => 'partial',
-                    'evidence'  => 'Financial code owns clinic_financial_* behavior; historical migrations still live under modules/Clinic/database/migrations.',
-                    'next_step' => 'Move future finance migrations to ClinicFinance and keep Clinic from writing clinic_financial_* tables.',
+                    'status'    => 'ready',
+                    'evidence'  => 'Financial code and clinic_financial_* migrations live under modules/ClinicFinance; Clinic must not write clinic_financial_* tables.',
+                    'next_step' => 'Keep future finance migrations in ClinicFinance and prevent Clinic from reintroducing finance writes.',
                 ],
                 'public_contracts' => [
                     'status'    => 'partial',

@@ -136,7 +136,7 @@ modules/Clinic/
 │   ├── factories/
 │   │   ├── FinancialTransactionFactory.php                   # NEW
 │   │   └── FinancialCategoryFactory.php                      # NEW
-│   ├── migrations/
+│   ├── migrations/                                          # moved to modules/ClinicFinance/database/migrations after modular extraction
 │   │   ├── 2026_06_20_000001_create_clinic_financial_categories_table.php             # NEW
 │   │   ├── 2026_06_20_000002_create_clinic_financial_category_overrides_table.php     # NEW
 │   │   ├── 2026_06_20_000003_create_clinic_financial_opening_balances_table.php       # NEW

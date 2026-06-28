@@ -84,7 +84,7 @@
 - [X] T039 [US1] Update all finance namespaces imported by moved classes under `modules/ClinicFinance/app/`
 - [X] T040 [US1] Update finance factories and seeders namespace references in `modules/Clinic/database/factories/` and `modules/Clinic/database/seeders/`
 - [X] T041 [US1] Move finance feature tests from `modules/Clinic/tests/Feature/Finances/` to `modules/ClinicFinance/tests/Feature/`
-- [X] T042 [US1] Verify current finance migrations remain named under `modules/Clinic/database/migrations/*clinic_financial*.php` and document ownership transfer in `docs/adr/006-clinic-finance-extraction.md`
+- [X] T042 [US1] Move current finance migrations under `modules/ClinicFinance/database/migrations/*clinic_financial*.php` and document ownership transfer in `docs/adr/006-clinic-finance-extraction.md`
 - [X] T043 [US1] Run `php artisan route:list --path=clinic/finances` and record unchanged paths in `specs/006-modular-monolith-eda/route-baseline.md`
 - [X] T044 [US1] Run `vendor/bin/phpunit --filter=FinanceRouteCompatibilityTest` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
 

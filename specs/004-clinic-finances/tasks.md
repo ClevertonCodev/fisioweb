@@ -49,10 +49,10 @@ description: "Task list for Clinic Finances feature implementation"
 
 ### Backend — Migrations (single, sequential — no incremental)
 
-- [ ] T008 [P] Migration `clinic_financial_categories` (nullable `clinic_id`, `name`, `type`, `origin`, `active`, `display_order`, timestamps; indexes `(clinic_id,type,active)`, `(origin,type)`, unique `(clinic_id,name,type)`) in `modules/Clinic/database/migrations/2026_06_20_000001_create_clinic_financial_categories_table.php`
-- [ ] T009 [P] Migration `clinic_financial_category_overrides` (`clinic_id`, `financial_category_id`, `active` default false, timestamps; unique `(clinic_id,financial_category_id)`) in `modules/Clinic/database/migrations/2026_06_20_000002_create_clinic_financial_category_overrides_table.php`
-- [ ] T010 [P] Migration `clinic_financial_opening_balances` (`clinic_id`, `year`, `month`, `amount` decimal(14,2), `updated_by_user_id` nullable, timestamps; unique `(clinic_id,year,month)`) in `modules/Clinic/database/migrations/2026_06_20_000003_create_clinic_financial_opening_balances_table.php`
-- [ ] T011 [P] Migration `clinic_financial_transactions` (FKs `clinic_id`, `financial_category_id` restrict, enums `type/status/payment_method`, `date`, `description`, `gross_amount`, `fee_amount`, `net_amount` generated-or-computed, `notes`, `created_by_user_id`, `deleted_by_user_id`, timestamps + `deleted_at`; indexes per data-model.md) in `modules/Clinic/database/migrations/2026_06_20_000004_create_clinic_financial_transactions_table.php`
+- [ ] T008 [P] Migration `clinic_financial_categories` (nullable `clinic_id`, `name`, `type`, `origin`, `active`, `display_order`, timestamps; indexes `(clinic_id,type,active)`, `(origin,type)`, unique `(clinic_id,name,type)`) in `modules/ClinicFinance/database/migrations/2026_06_20_000001_create_clinic_financial_categories_table.php`
+- [ ] T009 [P] Migration `clinic_financial_category_overrides` (`clinic_id`, `financial_category_id`, `active` default false, timestamps; unique `(clinic_id,financial_category_id)`) in `modules/ClinicFinance/database/migrations/2026_06_20_000002_create_clinic_financial_category_overrides_table.php`
+- [ ] T010 [P] Migration `clinic_financial_opening_balances` (`clinic_id`, `year`, `month`, `amount` decimal(14,2), `updated_by_user_id` nullable, timestamps; unique `(clinic_id,year,month)`) in `modules/ClinicFinance/database/migrations/2026_06_20_000003_create_clinic_financial_opening_balances_table.php`
+- [ ] T011 [P] Migration `clinic_financial_transactions` (FKs `clinic_id`, `financial_category_id` restrict, enums `type/status/payment_method`, `date`, `description`, `gross_amount`, `fee_amount`, `net_amount` generated-or-computed, `notes`, `created_by_user_id`, `deleted_by_user_id`, timestamps + `deleted_at`; indexes per data-model.md) in `modules/ClinicFinance/database/migrations/2026_06_20_000004_create_clinic_financial_transactions_table.php`
 
 ### Backend — Models
 

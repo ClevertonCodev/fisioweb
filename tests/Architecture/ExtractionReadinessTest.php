@@ -38,6 +38,16 @@ class ExtractionReadinessTest extends TestCase
         $this->assertSame([], $violations, implode(PHP_EOL, $violations));
     }
 
+    public function test_clinic_finance_migrations_live_in_the_owner_module(): void
+    {
+        $projectRoot       = dirname(__DIR__, 2);
+        $clinicMigrations  = glob($projectRoot . '/modules/Clinic/database/migrations/*clinic_financial*.php') ?: [];
+        $financeMigrations = glob($projectRoot . '/modules/ClinicFinance/database/migrations/*clinic_financial*.php') ?: [];
+
+        $this->assertSame([], $clinicMigrations, 'Financial migrations must not live in modules/Clinic.');
+        $this->assertCount(4, $financeMigrations, 'ClinicFinance must own the four clinic_financial_* migrations.');
+    }
+
     /**
      * @return array<string, mixed>
      */

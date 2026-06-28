@@ -10,9 +10,9 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 
 class PullGoogleCalendarJob implements ShouldQueue

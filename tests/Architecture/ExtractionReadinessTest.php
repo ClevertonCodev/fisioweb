@@ -48,6 +48,26 @@ class ExtractionReadinessTest extends TestCase
         $this->assertCount(4, $financeMigrations, 'ClinicFinance must own the four clinic_financial_* migrations.');
     }
 
+    public function test_clinic_scheduling_has_all_required_extraction_readiness_criteria(): void
+    {
+        $readiness         = $this->readinessFixture();
+        $requiredCriteria  = $readiness['required_criteria'];
+        $clinicScheduling  = $readiness['modules']['ClinicScheduling']['criteria'] ?? [];
+        $missing           = array_values(array_diff($requiredCriteria, array_keys($clinicScheduling)));
+
+        $this->assertSame([], $missing, 'Missing readiness criteria: ' . implode(', ', $missing));
+    }
+
+    public function test_clinic_scheduling_migrations_live_in_the_owner_module(): void
+    {
+        $projectRoot          = dirname(__DIR__, 2);
+        $clinicMigrations     = glob($projectRoot . '/modules/Clinic/database/migrations/*clinic_appointments*.php') ?: [];
+        $schedulingMigrations = glob($projectRoot . '/modules/ClinicScheduling/database/migrations/*clinic_appointments*.php') ?: [];
+
+        $this->assertSame([], $clinicMigrations, 'Appointment migrations must not live in modules/Clinic.');
+        $this->assertCount(1, $schedulingMigrations, 'ClinicScheduling must own the clinic_appointments migration.');
+    }
+
     /**
      * @return array<string, mixed>
      */

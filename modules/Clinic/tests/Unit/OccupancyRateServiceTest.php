@@ -4,10 +4,10 @@ namespace Modules\Clinic\Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Services\OccupancyRateService;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 
@@ -25,7 +25,7 @@ class OccupancyRateServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->service = new OccupancyRateService;
+        $this->service = app(OccupancyRateService::class);
         // Janela padrão (08:00–18:00 = 600 min/dia, seg–sex) e timezone UTC.
         $this->clinic  = Clinic::factory()->create(['timezone' => 'UTC']);
         $this->physio  = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
@@ -73,7 +73,7 @@ class OccupancyRateServiceTest extends TestCase
             'patient_id'     => Patient::factory()->create(['clinic_id' => $this->clinic->id])->id,
             'starts_at'      => $monday->copy()->setTime(9, 0),
             'ends_at'        => $monday->copy()->setTime(14, 0),
-            'status'         => \Modules\Clinic\Enums\AppointmentStatus::Cancelled,
+            'status'         => \Modules\ClinicScheduling\Enums\AppointmentStatus::Cancelled,
         ]);
 
         $result = $this->service->compute($this->clinic, $this->physio->id, 'daily');

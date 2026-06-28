@@ -6,10 +6,10 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Modules\Clinic\Enums\ActivityType;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
 
 /**

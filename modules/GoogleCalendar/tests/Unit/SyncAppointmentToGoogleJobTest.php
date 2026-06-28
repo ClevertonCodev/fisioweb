@@ -4,10 +4,10 @@ namespace Modules\GoogleCalendar\Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Services\AppointmentService;
+use Modules\ClinicScheduling\Models\Appointment;
+use Modules\ClinicScheduling\Services\AppointmentService;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 use Modules\GoogleCalendar\Jobs\SyncAppointmentToGoogleJob;
 use Modules\Patient\Models\Patient;

@@ -1,14 +1,14 @@
 <?php
 
-namespace Modules\Clinic\Tests\Feature;
+namespace Modules\ClinicScheduling\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Models\Appointment;
 use Tests\TestCase;
 
 class AppointmentFoundationTest extends TestCase

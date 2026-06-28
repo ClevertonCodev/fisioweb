@@ -5,11 +5,11 @@ namespace Modules\Clinic\Tests\Feature\Dashboard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Models\TreatmentPlan;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 

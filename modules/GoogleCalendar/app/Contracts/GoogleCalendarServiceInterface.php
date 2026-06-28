@@ -2,8 +2,8 @@
 
 namespace Modules\GoogleCalendar\Contracts;
 
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Models\Appointment;
 
 interface GoogleCalendarServiceInterface
 {

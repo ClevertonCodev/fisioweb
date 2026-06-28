@@ -102,7 +102,8 @@ class ClinicUser extends Authenticatable implements JWTSubject
 
     public function appointments(): HasMany
     {
-        return $this->hasMany(Appointment::class, 'clinic_user_id');
+        // Agendamento pertence ao módulo ClinicScheduling (FQN inline — fronteira modular).
+        return $this->hasMany(\Modules\ClinicScheduling\Models\Appointment::class, 'clinic_user_id');
     }
 
     public function isAdmin(): bool

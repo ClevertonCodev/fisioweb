@@ -8,5 +8,6 @@
     "Patient": true,
     "WhatsApp": false,
     "GoogleCalendar": true,
-    "ClinicFinance": true
+    "ClinicFinance": true,
+    "ClinicScheduling": true
 }

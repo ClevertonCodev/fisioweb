@@ -3,9 +3,14 @@
 namespace Modules\GoogleCalendar\Providers;
 
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\ClinicScheduling\Events\AppointmentCancelled;
+use Modules\ClinicScheduling\Events\AppointmentRescheduled;
+use Modules\ClinicScheduling\Events\AppointmentScheduled;
 use Modules\GoogleCalendar\Console\Commands\PullGoogleCalendarCommand;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
+use Modules\GoogleCalendar\Listeners\SyncSchedulingToGoogle;
 use Modules\GoogleCalendar\Services\GoogleCalendarService;
 
 class GoogleCalendarServiceProvider extends ServiceProvider
@@ -19,6 +24,15 @@ class GoogleCalendarServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerCommands();
         $this->registerCommandSchedules();
+        $this->registerSchedulingListeners();
+    }
+
+    /** Listeners de integração reagindo aos eventos de ClinicScheduling (EDA). */
+    protected function registerSchedulingListeners(): void
+    {
+        Event::listen(AppointmentScheduled::class, [SyncSchedulingToGoogle::class, 'onUpsert']);
+        Event::listen(AppointmentRescheduled::class, [SyncSchedulingToGoogle::class, 'onUpsert']);
+        Event::listen(AppointmentCancelled::class, [SyncSchedulingToGoogle::class, 'onCancelled']);
     }
 
     public function register(): void

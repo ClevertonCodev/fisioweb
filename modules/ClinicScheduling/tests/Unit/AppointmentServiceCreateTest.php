@@ -1,15 +1,16 @@
 <?php
 
-namespace Modules\Clinic\Tests\Unit;
+namespace Modules\ClinicScheduling\Tests\Unit;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
-use Modules\Clinic\Contracts\ActivityLoggerInterface;
-use Modules\Clinic\Contracts\AppointmentRepositoryInterface;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Jobs\AppointmentScheduledNotificationJob;
-use Modules\Clinic\Models\Appointment;
-use Modules\Clinic\Services\AppointmentService;
+use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Events\AppointmentScheduled;
+use Modules\ClinicScheduling\Jobs\AppointmentScheduledNotificationJob;
+use Modules\ClinicScheduling\Models\Appointment;
+use Modules\ClinicScheduling\Services\AppointmentService;
 use Tests\TestCase;
 
 class AppointmentServiceCreateTest extends TestCase
@@ -17,9 +18,16 @@ class AppointmentServiceCreateTest extends TestCase
     public function test_create_forces_scheduled_status_and_system_source(): void
     {
         Queue::fake();
+        Event::fake();
 
-        $appointment     = Mockery::mock(Appointment::class)->makePartial();
-        $appointment->id = 1;
+        $appointment                 = Mockery::mock(Appointment::class)->makePartial();
+        $appointment->id             = 1;
+        $appointment->clinic_id      = 1;
+        $appointment->patient_id     = 1;
+        $appointment->clinic_user_id = 1;
+        $appointment->status         = AppointmentStatus::Scheduled;
+        $appointment->starts_at      = now()->addDay();
+        $appointment->ends_at        = now()->addDay()->addHour();
         $appointment->shouldReceive('load')->andReturnSelf();
 
         $repository = Mockery::mock(AppointmentRepositoryInterface::class);
@@ -31,9 +39,8 @@ class AppointmentServiceCreateTest extends TestCase
             }))
             ->andReturn($appointment);
 
-        $activityLogger = Mockery::mock(ActivityLoggerInterface::class)->shouldIgnoreMissing();
-        $service        = new AppointmentService($repository, $activityLogger);
-        $result         = $service->create([
+        $service = new AppointmentService($repository);
+        $result  = $service->create([
             'clinic_id'      => 1,
             'patient_id'     => 1,
             'clinic_user_id' => 1,
@@ -43,6 +50,7 @@ class AppointmentServiceCreateTest extends TestCase
 
         $this->assertSame($appointment, $result);
         Queue::assertPushed(AppointmentScheduledNotificationJob::class);
+        Event::assertDispatched(AppointmentScheduled::class);
     }
 
     protected function tearDown(): void

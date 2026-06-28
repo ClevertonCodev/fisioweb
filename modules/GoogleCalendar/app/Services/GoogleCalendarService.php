@@ -8,8 +8,8 @@ use Google\Service\Calendar as GoogleCalendar;
 use Google\Service\Calendar\Event as GoogleEvent;
 use Google\Service\Calendar\EventDateTime;
 use Google\Service\Exception as GoogleServiceException;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 
 class GoogleCalendarService implements GoogleCalendarServiceInterface

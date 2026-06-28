@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/clinicscheduling",
+    "description": "Clinic-scoped scheduling module (appointments)",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ClinicScheduling\\": "app/",
+            "Modules\\ClinicScheduling\\Database\\Factories\\": "database/factories/",
+            "Modules\\ClinicScheduling\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ClinicScheduling\\Tests\\": "tests/"
+        }
+    }
+}

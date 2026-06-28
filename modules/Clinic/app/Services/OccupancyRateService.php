@@ -3,9 +3,8 @@
 namespace Modules\Clinic\Services;
 
 use Carbon\Carbon;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
+use Modules\ClinicScheduling\Contracts\Public\SchedulingReadServiceInterface;
 
 /**
  * Calcula a Taxa de ocupação de um fisioterapeuta (FR-019a/b):
@@ -23,6 +22,10 @@ class OccupancyRateService
 
     private const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
+    public function __construct(
+        protected SchedulingReadServiceInterface $scheduling,
+    ) {}
+
     /**
      * @return array{occupied_rate:float,buckets:array<int,array{label:string,rate:float}>}
      */
@@ -35,12 +38,7 @@ class OccupancyRateService
         $appTz        = config('app.timezone');
         $rangeStart   = $buckets[0]['start']->copy()->setTimezone($appTz);
         $rangeEnd     = end($buckets)['end']->copy()->setTimezone($appTz);
-        $appointments = Appointment::query()
-            ->where('clinic_id', $clinic->id)
-            ->where('clinic_user_id', $clinicUserId)
-            ->where('status', '!=', AppointmentStatus::Cancelled)
-            ->whereBetween('starts_at', [$rangeStart, $rangeEnd])
-            ->get(['starts_at', 'ends_at']);
+        $appointments = $this->scheduling->occupancyIntervals($clinic->id, $clinicUserId, $rangeStart, $rangeEnd);
 
         $result         = [];
         $totalOccupied  = 0;
@@ -49,9 +47,9 @@ class OccupancyRateService
         foreach ($buckets as $bucket) {
             $occupied  = 0;
             foreach ($appointments as $apt) {
-                $startsLocal = $apt->starts_at->copy()->setTimezone($tz);
+                $startsLocal = $apt['starts_at']->copy()->setTimezone($tz);
                 if ($startsLocal->gte($bucket['start']) && $startsLocal->lt($bucket['end'])) {
-                    $occupied += $apt->starts_at->diffInMinutes($apt->ends_at);
+                    $occupied += $apt['starts_at']->diffInMinutes($apt['ends_at']);
                 }
             }
 

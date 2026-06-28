@@ -6,15 +6,18 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\ClinicActivity;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Services\DashboardScope;
+use Modules\ClinicScheduling\Contracts\Public\SchedulingReadServiceInterface;
 use Modules\Patient\Models\Patient;
 
 class DashboardRepository implements DashboardRepositoryInterface
 {
+    public function __construct(
+        protected SchedulingReadServiceInterface $scheduling,
+    ) {}
+
     public function activePatientsCount(DashboardScope $scope): int
     {
         return $this->scopedPatients($scope)->activeStatus()->count();
@@ -22,7 +25,7 @@ class DashboardRepository implements DashboardRepositoryInterface
 
     public function appointmentsTodayCount(DashboardScope $scope): int
     {
-        return $this->todaysAppointments($scope)->count();
+        return $this->scheduling->appointmentsTodayCount($scope->clinicId, $scope->clinicUserId, $scope->timezone);
     }
 
     public function activeProgramsCount(DashboardScope $scope): int
@@ -57,19 +60,12 @@ class DashboardRepository implements DashboardRepositoryInterface
 
     public function upcomingAppointmentsToday(DashboardScope $scope, int $limit = 5): Collection
     {
-        return $this->todaysAppointments($scope)
-            ->with('patient:id,name,photo_url')
-            ->orderBy('starts_at')
-            ->limit($limit)
-            ->get()
-            ->map(fn (Appointment $a) => [
-                'id'                => $a->id,
-                'patient_name'      => $a->patient?->name ?? '',
-                'patient_photo_url' => $a->patient?->photo_url,
-                'title'             => $a->title,
-                'starts_at'         => $a->starts_at?->toIso8601String(),
-                'status'            => $a->status?->value,
-            ]);
+        return collect($this->scheduling->upcomingAppointmentsToday(
+            $scope->clinicId,
+            $scope->clinicUserId,
+            $scope->timezone,
+            $limit,
+        ));
     }
 
     public function monthBirthdays(DashboardScope $scope): array
@@ -166,25 +162,6 @@ class DashboardRepository implements DashboardRepositoryInterface
     private function scopedPatients(DashboardScope $scope)
     {
         $query = Patient::query()->where('clinic_id', $scope->clinicId);
-
-        if ($scope->clinicUserId !== null) {
-            $query->where('clinic_user_id', $scope->clinicUserId);
-        }
-
-        return $query;
-    }
-
-    /** Query base de consultas de hoje (não canceladas) no timezone da clínica. */
-    private function todaysAppointments(DashboardScope $scope)
-    {
-        $appTz = config('app.timezone');
-        $start = Carbon::now($scope->timezone)->startOfDay()->setTimezone($appTz);
-        $end   = Carbon::now($scope->timezone)->endOfDay()->setTimezone($appTz);
-
-        $query = Appointment::query()
-            ->where('clinic_id', $scope->clinicId)
-            ->where('status', '!=', AppointmentStatus::Cancelled)
-            ->whereBetween('starts_at', [$start, $end]);
 
         if ($scope->clinicUserId !== null) {
             $query->where('clinic_user_id', $scope->clinicUserId);

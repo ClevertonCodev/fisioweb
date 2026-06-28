@@ -8,7 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Modules\Clinic\Models\Appointment;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 
 class SyncAppointmentToGoogleJob implements ShouldQueue

@@ -6,8 +6,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
-use Modules\Clinic\Contracts\AppointmentRepositoryInterface;
-use Modules\Clinic\Contracts\AppointmentServiceInterface;
 use Modules\Clinic\Contracts\AssessmentServiceInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
@@ -18,7 +16,6 @@ use Modules\Clinic\Contracts\EvolutionServiceInterface;
 use Modules\Clinic\Contracts\EvolutionTemplateServiceInterface;
 use Modules\Clinic\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\Clinic\Contracts\TreatmentPlanServiceInterface;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Assessment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
@@ -29,7 +26,6 @@ use Modules\Clinic\Models\QuestionnaireTemplate;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Observers\ClinicObserver;
 use Modules\Clinic\Observers\TreatmentPlanObserver;
-use Modules\Clinic\Policies\AppointmentPolicy;
 use Modules\Clinic\Policies\AssessmentPolicy;
 use Modules\Clinic\Policies\ClinicUserPolicy;
 use Modules\Clinic\Policies\PatientEvolutionPolicy;
@@ -38,12 +34,10 @@ use Modules\Clinic\Policies\PatientPolicy;
 use Modules\Clinic\Policies\PatientQuestionnairePolicy;
 use Modules\Clinic\Policies\QuestionnaireTemplatePolicy;
 use Modules\Clinic\Policies\TreatmentPlanPolicy;
-use Modules\Clinic\Repositories\AppointmentRepository;
 use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
 use Modules\Clinic\Repositories\TreatmentPlanRepository;
 use Modules\Clinic\Services\ActivityLogger;
-use Modules\Clinic\Services\AppointmentService;
 use Modules\Clinic\Services\AssessmentService;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserService;
@@ -94,8 +88,6 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(ClinicServiceInterface::class, ClinicService::class);
         $this->app->bind(TreatmentPlanRepositoryInterface::class, TreatmentPlanRepository::class);
         $this->app->bind(TreatmentPlanServiceInterface::class, TreatmentPlanService::class);
-        $this->app->bind(AppointmentRepositoryInterface::class, AppointmentRepository::class);
-        $this->app->bind(AppointmentServiceInterface::class, AppointmentService::class);
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
@@ -120,7 +112,6 @@ class ClinicServiceProvider extends ServiceProvider
         Gate::policy(PatientQuestionnaire::class, PatientQuestionnairePolicy::class);
         Gate::policy(PatientFile::class, PatientFilePolicy::class);
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
-        Gate::policy(Appointment::class, AppointmentPolicy::class);
     }
 
     protected function registerGateBefore(): void

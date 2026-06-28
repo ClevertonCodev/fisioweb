@@ -1,0 +1,15 @@
+{
+    "name": "ClinicScheduling",
+    "alias": "clinicscheduling",
+    "description": "Clinic-scoped scheduling module (appointments)",
+    "keywords": [
+        "clinic",
+        "scheduling",
+        "appointments"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ClinicScheduling\\Providers\\ClinicSchedulingServiceProvider"
+    ],
+    "files": []
+}

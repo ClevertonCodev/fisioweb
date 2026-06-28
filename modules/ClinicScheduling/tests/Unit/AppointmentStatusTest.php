@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\Clinic\Tests\Unit;
+namespace Modules\ClinicScheduling\Tests\Unit;
 
 use Carbon\Carbon;
-use Modules\Clinic\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Tests\TestCase;
 
 class AppointmentStatusTest extends TestCase

@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Clinic\Database\Factories;
+namespace Modules\ClinicScheduling\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Clinic\Enums\AppointmentStatus;
-use Modules\Clinic\Models\Appointment;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
+use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
 
 /**

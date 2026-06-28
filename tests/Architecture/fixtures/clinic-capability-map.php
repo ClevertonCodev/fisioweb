@@ -32,11 +32,12 @@ return [
         ],
         'scheduling' => [
             'module' => 'ClinicScheduling',
-            'status' => 'candidate',
+            'status' => 'extracted',
             'owns'   => [
-                'appointments',
-                'calendar_availability',
-                'schedule_blocks',
+                'clinic_appointments',
+            ],
+            'routes' => [
+                '/api/clinic/appointments/*',
             ],
             'collaboration' => [
                 'integration_events',

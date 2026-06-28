@@ -75,6 +75,73 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $violations, $this->formatViolations($violations));
     }
 
+    /**
+     * @return array<int, array{file: string, import: string, reason: string}>
+     */
+    private function findClinicQuestionnaireViolations(): array
+    {
+        $violations = [];
+
+        foreach ($this->productionPhpFiles('modules/ClinicQuestionnaire/app') as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+            array_push($violations, ...$this->violationsForContent($file->getPathname(), $contents, 'ClinicQuestionnaire'));
+        }
+
+        return $violations;
+    }
+
+    public function test_clinic_questionnaire_production_code_does_not_import_private_module_internals(): void
+    {
+        $violations = $this->findClinicQuestionnaireViolations();
+
+        $this->assertSame([], $violations, $this->formatViolations($violations));
+    }
+
+    public function test_clinic_has_no_duplicate_questionnaire_route_definitions(): void
+    {
+        $projectRoot  = dirname(__DIR__, 2);
+        $clinicRoutes = (string) file_get_contents($projectRoot . '/modules/Clinic/routes/clinic.php');
+
+        $this->assertStringNotContainsString('questionnaire-templates', $clinicRoutes);
+        $this->assertStringNotContainsString('questionnaires', $clinicRoutes);
+    }
+
+    public function test_clinic_questionnaire_controllers_depend_on_service_interfaces(): void
+    {
+        $controllerPath = dirname(__DIR__, 2) . '/modules/ClinicQuestionnaire/app/Http/Controllers';
+        $violations     = [];
+
+        foreach ($this->productionPhpFiles($controllerPath) as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            if (!preg_match('/ServiceInterface/', $contents)) {
+                $violations[] = $file->getPathname() . ' does not reference a ServiceInterface';
+            }
+
+            if (preg_match('/protected\s+\w+Service\s+\$/', $contents) === 1) {
+                $violations[] = $file->getPathname() . ' injects concrete Service instead of interface';
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
+    public function test_clinic_questionnaire_services_depend_on_repository_interfaces(): void
+    {
+        $servicePath = dirname(__DIR__, 2) . '/modules/ClinicQuestionnaire/app/Services';
+        $violations  = [];
+
+        foreach ($this->productionPhpFiles($servicePath) as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            if (!preg_match('/RepositoryInterface/', $contents)) {
+                $violations[] = $file->getPathname() . ' does not reference a RepositoryInterface';
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
     public function test_boundary_scanner_detects_synthetic_prohibited_import(): void
     {
         $violations = $this->violationsForContent(

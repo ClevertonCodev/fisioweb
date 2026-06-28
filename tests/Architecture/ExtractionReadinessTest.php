@@ -110,6 +110,41 @@ class ExtractionReadinessTest extends TestCase
         $this->assertCount(10, array_unique($ownerMigrations), 'ClinicalRecord must own the ten clinical record migrations.');
     }
 
+    public function test_clinic_questionnaire_has_all_required_extraction_readiness_criteria(): void
+    {
+        $readiness             = $this->readinessFixture();
+        $requiredCriteria      = $readiness['required_criteria'];
+        $clinicQuestionnaire   = $readiness['modules']['ClinicQuestionnaire']['criteria'] ?? [];
+        $missing               = array_values(array_diff($requiredCriteria, array_keys($clinicQuestionnaire)));
+
+        $this->assertSame([], $missing, 'Missing readiness criteria: ' . implode(', ', $missing));
+    }
+
+    public function test_clinic_questionnaire_migrations_live_in_the_owner_module(): void
+    {
+        $projectRoot      = dirname(__DIR__, 2);
+        $clinicMigrations = glob($projectRoot . '/modules/Clinic/database/migrations/*questionnaire*.php') ?: [];
+        $ownerMigrations  = glob($projectRoot . '/modules/ClinicQuestionnaire/database/migrations/*questionnaire*.php') ?: [];
+
+        $this->assertSame([], $clinicMigrations, 'Questionnaire migrations must not live in modules/Clinic.');
+        $this->assertCount(1, $ownerMigrations, 'ClinicQuestionnaire must own the clinic_questionnaire tables migration.');
+    }
+
+    public function test_clinic_questionnaire_events_do_not_reference_models(): void
+    {
+        $eventFiles = glob(dirname(__DIR__, 2) . '/modules/ClinicQuestionnaire/app/Events/*.php') ?: [];
+        $violations = [];
+
+        foreach ($eventFiles as $file) {
+            $contents = (string) file_get_contents($file);
+            if (preg_match('/Modules\\\\ClinicQuestionnaire\\\\Models\\\\/', $contents) === 1) {
+                $violations[] = basename($file);
+            }
+        }
+
+        $this->assertSame([], $violations, 'Events must not reference Eloquent models: ' . implode(', ', $violations));
+    }
+
     public function test_clinical_record_events_do_not_reference_models(): void
     {
         $eventFiles = glob(dirname(__DIR__, 2) . '/modules/ClinicalRecord/app/Events/*.php') ?: [];

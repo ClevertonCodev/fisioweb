@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/clinicquestionnaire",
+    "description": "Clinic questionnaire module",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ClinicQuestionnaire\\": "app/",
+            "Modules\\ClinicQuestionnaire\\Database\\Factories\\": "database/factories/",
+            "Modules\\ClinicQuestionnaire\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ClinicQuestionnaire\\Tests\\": "tests/"
+        }
+    }
+}

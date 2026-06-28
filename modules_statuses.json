@@ -10,5 +10,6 @@
     "GoogleCalendar": true,
     "ClinicFinance": true,
     "ClinicScheduling": true,
-    "ClinicalRecord": true
+    "ClinicalRecord": true,
+    "ClinicQuestionnaire": true
 }

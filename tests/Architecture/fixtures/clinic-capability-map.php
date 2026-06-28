@@ -74,12 +74,32 @@ return [
                 'read_models',
             ],
         ],
+        'questionnaire' => [
+            'module' => 'ClinicQuestionnaire',
+            'status' => 'extracted',
+            'owns'   => [
+                'clinic_questionnaire_templates',
+                'clinic_questionnaire_sections',
+                'clinic_questionnaire_questions',
+                'clinic_patient_questionnaires',
+                'clinic_patient_questionnaire_answers',
+            ],
+            'routes' => [
+                '/api/clinic/questionnaire-templates/*',
+                '/api/clinic/patients/*/questionnaires*',
+                '/api/questionnaires/*',
+            ],
+            'collaboration' => [
+                'integration_events',
+                'application_services',
+                'read_models',
+            ],
+        ],
         'care' => [
             'module' => 'ClinicCare',
             'status' => 'candidate',
             'owns'   => [
                 'treatment_plans',
-                'questionnaires',
             ],
             'collaboration' => [
                 'integration_events',

@@ -6,10 +6,7 @@ use Modules\Clinic\Http\Controllers\ClinicUserController;
 use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
-use Modules\Clinic\Http\Controllers\PatientQuestionnaireController;
 use Modules\Clinic\Http\Controllers\ProgramDraftController;
-use Modules\Clinic\Http\Controllers\QuestionnaireAnswerController;
-use Modules\Clinic\Http\Controllers\QuestionnaireTemplateController;
 use Modules\Clinic\Http\Controllers\SharedProgramController;
 use Modules\Clinic\Http\Controllers\TreatmentPlanController;
 
@@ -30,10 +27,6 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::post('bulk-inactivate', [PatientController::class, 'bulkInactivate'])->name('bulk-inactivate');
-        Route::get('{patient}/questionnaires', [PatientQuestionnaireController::class, 'indexByPatient'])->name('questionnaires.index');
-        Route::post('{patient}/questionnaires', [PatientQuestionnaireController::class, 'storeForPatient'])->name('questionnaires.store');
-        Route::get('{patient}/questionnaires/{questionnaire}', [PatientQuestionnaireController::class, 'show'])->name('questionnaires.show');
-        Route::delete('{patient}/questionnaires/{questionnaire}', [PatientQuestionnaireController::class, 'destroy'])->name('questionnaires.destroy');
         Route::get('{id}', [PatientController::class, 'show'])->name('show');
         Route::post('/', [PatientController::class, 'store'])->name('store');
         Route::put('{id}', [PatientController::class, 'update'])->name('update');
@@ -68,18 +61,4 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
 
     Route::get('programs', [SharedProgramController::class, 'index'])->name('clinic.programs.index');
     Route::get('programs/{id}', [SharedProgramController::class, 'show'])->name('clinic.programs.show');
-
-    Route::prefix('questionnaire-templates')->name('clinic.questionnaire-templates.')->group(function () {
-        Route::get('/', [QuestionnaireTemplateController::class, 'index'])->name('index');
-        Route::post('/', [QuestionnaireTemplateController::class, 'store'])->name('store');
-        Route::get('{id}', [QuestionnaireTemplateController::class, 'show'])->name('show');
-        Route::put('{id}', [QuestionnaireTemplateController::class, 'update'])->name('update');
-        Route::delete('{id}', [QuestionnaireTemplateController::class, 'destroy'])->name('destroy');
-    });
-});
-
-// Rotas públicas para o paciente responder o questionário (sem auth de clínica)
-Route::prefix('questionnaires')->name('questionnaires.')->group(function () {
-    Route::get('{id}', [QuestionnaireAnswerController::class, 'show'])->name('show');
-    Route::post('{id}/answer', [QuestionnaireAnswerController::class, 'store'])->name('answer');
 });

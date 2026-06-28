@@ -1,0 +1,15 @@
+{
+    "name": "ClinicQuestionnaire",
+    "alias": "clinicquestionnaire",
+    "description": "Clinic questionnaire module",
+    "keywords": [
+        "clinic",
+        "questionnaire",
+        "patient-form"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ClinicQuestionnaire\\Providers\\ClinicQuestionnaireServiceProvider"
+    ],
+    "files": []
+}

@@ -15,15 +15,11 @@ use Modules\Clinic\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\Clinic\Contracts\TreatmentPlanServiceInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\PatientQuestionnaire;
-use Modules\Clinic\Models\QuestionnaireTemplate;
 use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Observers\ClinicObserver;
 use Modules\Clinic\Observers\TreatmentPlanObserver;
 use Modules\Clinic\Policies\ClinicUserPolicy;
 use Modules\Clinic\Policies\PatientPolicy;
-use Modules\Clinic\Policies\PatientQuestionnairePolicy;
-use Modules\Clinic\Policies\QuestionnaireTemplatePolicy;
 use Modules\Clinic\Policies\TreatmentPlanPolicy;
 use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
@@ -32,7 +28,6 @@ use Modules\Clinic\Services\ActivityLogger;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserService;
 use Modules\Clinic\Services\DashboardService;
-use Modules\Clinic\Services\PatientQuestionnaireService;
 use Modules\Clinic\Services\TreatmentPlanService;
 use Modules\Patient\Models\Patient;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -78,7 +73,6 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
-        $this->app->singleton(PatientQuestionnaireService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
@@ -88,8 +82,6 @@ class ClinicServiceProvider extends ServiceProvider
     {
         Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
-        Gate::policy(QuestionnaireTemplate::class, QuestionnaireTemplatePolicy::class);
-        Gate::policy(PatientQuestionnaire::class, PatientQuestionnairePolicy::class);
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
     }
 

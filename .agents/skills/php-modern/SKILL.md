@@ -40,6 +40,8 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 - Usar `Enum` tipado para status, tipos, categorias finitas em entidades novas.
 - Usar `match` (não `switch`/`if/elseif`) para mapeamento valor → valor.
 - Usar `never` no retorno de métodos que sempre lançam exception ou chamam `exit`.
+- Checar null com `is_null()` / `!is_null()` — não usar `=== null` nem `!== null`.
+- Checar string vazia com `empty()` / `!empty()` — não usar `=== ''` nem `!== ''`.
 
 ### Não deve fazer
 - Adicionar `declare(strict_types=1)` em arquivo que já existe sem revisar callers.
@@ -82,3 +84,5 @@ Ao implementar uma feature, entregue (nesta ordem):
 | Helper que sempre lança/encerra | retorno `: never` |
 | CRUD trivial (1-3 campos) | Continue com `array $data` |
 | Quer adicionar `strict_types` | Só em arquivo novo de módulo novo, alinhar antes |
+| Valor é null? | `is_null($x)` / `!is_null($x)` |
+| String vazia ou filtro opcional? | `empty($x)` / `!empty($x)` |

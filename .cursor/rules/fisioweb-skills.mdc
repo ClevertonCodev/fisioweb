@@ -49,3 +49,4 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 6. HTTP só via `apiClient` — sem `fetch` direto.
 7. `domain/` puro (camelCase, sem `_at`, sem `ApiXxx`).
 8. Form com 2+ campos → RHF + Zod.
+9. PHP: null com `is_null()` / `!is_null()` (não `=== null` / `!== null`); string vazia com `empty()` / `!empty()` (não `=== ''` / `!== ''`).

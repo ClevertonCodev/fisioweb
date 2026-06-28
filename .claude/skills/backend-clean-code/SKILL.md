@@ -139,6 +139,11 @@ event(new ReservationCreated(
 
 Listeners ficam no modulo da consequencia: `SendReservationEmail`, `GenerateAffiliateCommission`, `UpdateReports`.
 
+## Convencoes PHP
+
+- Null: `is_null($x)` / `!is_null($x)` — nunca `=== null` / `!== null`.
+- String vazia ou valor opcional de filtro/payload: `empty($x)` / `!empty($x)` — nunca `=== ''` / `!== ''`.
+
 ## Modulos E Fronteiras
 
 - Dentro do mesmo modulo, `RepositoryInterface` e `ServiceInterface` podem ser contratos internos.

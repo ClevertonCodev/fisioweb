@@ -5,6 +5,35 @@ Exemplos adaptados ao domínio do projeto: módulos em `Modules\<Module>\`, guar
 > **Nota:** o projeto **não** usa `declare(strict_types=1)` hoje. Os exemplos abaixo mostram o recurso com `strict_types` por completude — ao colar no projeto, remova o `declare` para manter consistência, **a menos que** você esteja criando arquivo novo em módulo novo e tenha alinhado a adoção.
 > DTO/Enum/Value Object é interno ao módulo por padrão. Se outro módulo for consumir esse tipo, defina estabilidade e ownership pela skill `architecture-paradigm-modular-monolith`.
 
+## Checagens de null e string vazia
+
+Preferir funções nativas em vez de comparação estrita:
+
+| Evitar | Preferir |
+|--------|----------|
+| `$x === null` | `is_null($x)` |
+| `$x !== null` | `!is_null($x)` |
+| `$x === ''` | `empty($x)` |
+| `$x !== ''` | `!empty($x)` |
+
+```php
+// Evitar
+if ($value === null) {
+    return null;
+}
+if ($filters['search'] !== '') {
+    $query->where('name', 'like', "%{$filters['search']}%");
+}
+
+// Preferir
+if (is_null($value)) {
+    return null;
+}
+if (!empty($filters['search'])) {
+    $query->where('name', 'like', "%{$filters['search']}%");
+}
+```
+
 ## Strict Types & Type Declarations
 
 ```php

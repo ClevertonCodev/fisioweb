@@ -35,6 +35,7 @@ Padrão de testes para o Laravel modular deste projeto. Stack: **PHPUnit 11.5+ +
 - Asserções JSON respeitando wrapper `data` (e `data.data` quando o controller retorna paginator).
 - Mockar Repository/Service via Interface, nunca a classe concreta.
 - Em teste de Service, mockar RepositoryInterface apenas do próprio módulo. Para outro módulo, mockar contrato público definido pela arquitetura, evento ou endpoint/read model.
+- Null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()` (mesma convenção de [`php-modern`](../php-modern/SKILL.md)).
 
 ### Não deve fazer
 - Adicionar `declare(strict_types=1)` no teste (projeto não usa).

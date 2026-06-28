@@ -352,6 +352,8 @@ $this->app->bind(<Entity>ServiceInterface::class, <Entity>Service::class);
 - Status 201 em `store`. 404 com mensagem PT quando `ModelNotFoundException`.
 - Paginação: `paginate($perPage)->withQueryString()`.
 - Eager loading: `with([...])` no Repository, nunca N+1 no Controller.
+- Null: `is_null()` / `!is_null()` — nunca `=== null` / `!== null`.
+- String vazia: `empty()` / `!empty()` — nunca `=== ''` / `!== ''`.
 - Filtros: `!empty($filters['x'])` para strings, `array_key_exists('x', $filters)` para booleanos.
 - `Auth::guard('admin')` ou `Auth::guard('clinic')` — nunca `Auth::user()` sem guard.
 

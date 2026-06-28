@@ -71,7 +71,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 6. **`domain/` puro:** camelCase, sem `_at`, sem `ApiXxx`, sem WriteDto, sem constantes de UI.
 7. **Form com 2+ campos → RHF + Zod** (não copiar pages legadas com `useState`).
 8. **UI:** tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`.
-9. **PHP:** Laravel Pint; sem `declare(strict_types=1)` por convenção atual; Controller → Service → Repository → Model.
+9. **PHP:** Laravel Pint; sem `declare(strict_types=1)` por convenção atual; Controller → Service → Repository → Model; null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
 
 ## Stack
 

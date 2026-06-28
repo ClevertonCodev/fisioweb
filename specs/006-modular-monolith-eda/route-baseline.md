@@ -40,3 +40,35 @@ Routes observed:
 Note:
 
 - `modules/Clinic/routes/clinic.php` needed the existing missing `EvolutionController` import fixed before route listing could run.
+
+## 2026-06-27 - ClinicFinance Route Owner
+
+Command:
+
+```bash
+php artisan route:list --path=clinic/finances
+```
+
+Result:
+
+- Status: PASS
+- Total routes: 19
+- Current owner: `Modules\ClinicFinance\Http\Controllers\Financial*Controller`
+- Public path prefix remains: `api/clinic/finances`
+- No public route path changes from the legacy baseline.
+
+## 2026-06-27 - Final Route Confirmation
+
+Command:
+
+```bash
+php artisan route:list --path=clinic/finances
+```
+
+Result:
+
+- Status: PASS
+- Total routes: 19
+- Public path prefix remains: `api/clinic/finances`
+- Route handlers remain owned by `Modules\ClinicFinance\Http\Controllers\Financial*Controller`.
+- Legacy `modules/Clinic/routes/clinic.php` finance route declarations remain disabled.

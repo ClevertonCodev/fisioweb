@@ -51,3 +51,10 @@
 - Existing file export behavior for `csv`, `xlsx`, and `pdf` remains compatible.
 - Authorization failures and clinic isolation behavior must remain equivalent or stricter.
 - Backend namespace/controller ownership may change without changing the public contract.
+
+## Final Implementation Notes
+
+- Final route owner: `Modules\ClinicFinance\Http\Controllers\Financial*Controller`.
+- Final route file: `modules/ClinicFinance/routes/clinic.php`.
+- Legacy finance route declarations in `modules/Clinic/routes/clinic.php` are disabled.
+- Compatibility is covered by `modules/ClinicFinance/tests/Feature/FinanceRouteCompatibilityTest.php`.

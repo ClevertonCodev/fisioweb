@@ -11,6 +11,18 @@ Events are in-process Laravel events during the first migration, but payloads mu
 
 ## ClinicFinance Events
 
+Namespace: `Modules\ClinicFinance\Events`
+
+Files:
+
+- `modules/ClinicFinance/app/Events/FinancialTransactionRecorded.php`
+- `modules/ClinicFinance/app/Events/FinancialTransactionUpdated.php`
+- `modules/ClinicFinance/app/Events/FinancialTransactionDeleted.php`
+- `modules/ClinicFinance/app/Events/FinancialCategoryCreated.php`
+- `modules/ClinicFinance/app/Events/OpeningBalanceUpdated.php`
+
+Payload version rules are documented in `modules/ClinicFinance/app/Events/README.md`.
+
 ### FinancialTransactionRecorded
 
 Published when a clinic financial transaction is created.

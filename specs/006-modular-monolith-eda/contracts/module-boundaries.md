@@ -23,12 +23,24 @@ Modules may collaborate only through:
 
 Production code under `modules/*/app/**/*.php` must fail when it introduces a prohibited dependency.
 
+Current implemented scan target:
+
+- `modules/ClinicFinance/app/**/*.php`
+
 Allowed with documented whitelist:
 
 - `modules/*/tests/**`
 - `modules/*/database/factories/**`
 - `modules/*/database/seeders/**`
 - Temporary migration support files tied to an ADR.
+
+Whitelist fixture:
+
+- `tests/Architecture/fixtures/module-boundary-whitelist.php`
+
+Capability ownership fixture:
+
+- `tests/Architecture/fixtures/clinic-capability-map.php`
 
 ## `ClinicFinance` Boundary Rules
 
@@ -43,3 +55,9 @@ Allowed with documented whitelist:
 - `ClinicFinance` physical extraction and route ownership transfer.
 - Temporary shared writes between `Clinic` and `ClinicFinance`.
 - Any long-lived exception to model/repository import rules.
+
+## Implemented Guardrails
+
+- `tests/Architecture/ModuleBoundaryTest.php`
+- `tests/Architecture/ClinicScopedModuleNamingTest.php`
+- `tests/Architecture/ExtractionReadinessTest.php`

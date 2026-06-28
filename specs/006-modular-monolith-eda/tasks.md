@@ -39,14 +39,14 @@
 **Critical**: No user story work should begin until this phase is complete.
 
 - [X] T012 Register `ClinicFinance` service provider loading in `bootstrap/providers.php`
-- [ ] T013 Add module boundary whitelist structure in `tests/Architecture/fixtures/module-boundary-whitelist.php`
-- [ ] T014 Create production-code dependency scanner test in `tests/Architecture/ModuleBoundaryTest.php`
-- [ ] T015 Add `ClinicFinance` namespace and forbidden dependency expectations to `tests/Architecture/ModuleBoundaryTest.php`
-- [ ] T016 Create public DTO directory and README for cross-module contracts in `modules/ClinicFinance/app/DTO/README.md`
-- [ ] T017 Create internal contracts directory README distinguishing service contracts from repositories in `modules/ClinicFinance/app/Contracts/README.md`
-- [ ] T018 Create finance route compatibility test base helper in `modules/ClinicFinance/tests/Feature/FinanceRouteCompatibilityTest.php`
-- [ ] T019 Add temporary test/factory/seeder whitelist entries with reasons in `tests/Architecture/fixtures/module-boundary-whitelist.php`
-- [ ] T020 Verify `vendor/bin/phpunit --filter=ModuleBoundaryTest` fails for a synthetic prohibited production import documented in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T013 Add module boundary whitelist structure in `tests/Architecture/fixtures/module-boundary-whitelist.php`
+- [X] T014 Create production-code dependency scanner test in `tests/Architecture/ModuleBoundaryTest.php`
+- [X] T015 Add `ClinicFinance` namespace and forbidden dependency expectations to `tests/Architecture/ModuleBoundaryTest.php`
+- [X] T016 Create public DTO directory and README for cross-module contracts in `modules/ClinicFinance/app/DTO/README.md`
+- [X] T017 Create internal contracts directory README distinguishing service contracts from repositories in `modules/ClinicFinance/app/Contracts/README.md`
+- [X] T018 Create finance route compatibility test base helper in `modules/ClinicFinance/tests/Feature/FinanceRouteCompatibilityTest.php`
+- [X] T019 Add temporary test/factory/seeder whitelist entries with reasons in `tests/Architecture/fixtures/module-boundary-whitelist.php`
+- [X] T020 Verify `vendor/bin/phpunit --filter=ModuleBoundaryTest` fails for a synthetic prohibited production import documented in `specs/006-modular-monolith-eda/test-baseline.md`
 
 **Checkpoint**: Foundation ready. Module skeleton exists, boundary test framework exists, and route compatibility test scaffolding exists.
 
@@ -60,33 +60,33 @@
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Add route parity assertions for all `/clinic/finances/*` paths in `modules/ClinicFinance/tests/Feature/FinanceRouteCompatibilityTest.php`
-- [ ] T022 [P] [US1] Add transaction JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialTransactionControllerTest.php`
-- [ ] T023 [P] [US1] Add category JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialCategoryControllerTest.php`
-- [ ] T024 [P] [US1] Add summary and report JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialReportControllerTest.php`
-- [ ] T025 [P] [US1] Add export compatibility tests for csv/xlsx/pdf and empty export errors in `modules/ClinicFinance/tests/Feature/FinancialExportControllerTest.php`
+- [X] T021 [P] [US1] Add route parity assertions for all `/clinic/finances/*` paths in `modules/ClinicFinance/tests/Feature/FinanceRouteCompatibilityTest.php`
+- [X] T022 [P] [US1] Add transaction JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialTransactionControllerTest.php`
+- [X] T023 [P] [US1] Add category JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialCategoryControllerTest.php`
+- [X] T024 [P] [US1] Add summary and report JSON envelope tests in `modules/ClinicFinance/tests/Feature/FinancialReportControllerTest.php`
+- [X] T025 [P] [US1] Add export compatibility tests for csv/xlsx/pdf and empty export errors in `modules/ClinicFinance/tests/Feature/FinancialExportControllerTest.php`
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Move `FinancialTransactionType`, `FinancialTransactionStatus`, `FinancialCategoryOrigin`, and `PaymentMethod` enums from `modules/Clinic/app/Enums/` to `modules/ClinicFinance/app/Enums/`
-- [ ] T027 [P] [US1] Move `FinancialCategory`, `FinancialTransaction`, and `PeriodOpeningBalance` models from `modules/Clinic/app/Models/` to `modules/ClinicFinance/app/Models/` while preserving table names
-- [ ] T028 [P] [US1] Move financial policies from `modules/Clinic/app/Policies/FinancialCategoryPolicy.php` and `modules/Clinic/app/Policies/FinancialTransactionPolicy.php` to `modules/ClinicFinance/app/Policies/`
-- [ ] T029 [P] [US1] Move financial FormRequests from `modules/Clinic/app/Http/Requests/` to `modules/ClinicFinance/app/Http/Requests/`
-- [ ] T030 [US1] Move financial repository interfaces from `modules/Clinic/app/Contracts/` to `modules/ClinicFinance/app/Contracts/`
-- [ ] T031 [US1] Move financial repositories from `modules/Clinic/app/Repositories/` to `modules/ClinicFinance/app/Repositories/`
-- [ ] T032 [US1] Move finance services from `modules/Clinic/app/Services/FinancialTransactionService.php`, `modules/Clinic/app/Services/FinancialCategoryService.php`, `modules/Clinic/app/Services/FinanceSummaryService.php`, and `modules/Clinic/app/Services/FinanceReportService.php` to `modules/ClinicFinance/app/Services/`
-- [ ] T033 [US1] Move finance exporters from `modules/Clinic/app/Services/Export/` to `modules/ClinicFinance/app/Services/Export/`
-- [ ] T034 [US1] Move finance controllers from `modules/Clinic/app/Http/Controllers/Financial*Controller.php` to `modules/ClinicFinance/app/Http/Controllers/`
-- [ ] T035 [US1] Bind `ClinicFinance` repositories and services in `modules/ClinicFinance/app/Providers/ClinicFinanceServiceProvider.php`
-- [ ] T036 [US1] Register `ClinicFinance` financial policies in `modules/ClinicFinance/app/Providers/ClinicFinanceServiceProvider.php`
-- [ ] T037 [US1] Define the same `/clinic/finances/*` routes in `modules/ClinicFinance/routes/clinic.php`
-- [ ] T038 [US1] Disable legacy finance route declarations in `modules/Clinic/routes/clinic.php` after `ClinicFinance` route parity passes
-- [ ] T039 [US1] Update all finance namespaces imported by moved classes under `modules/ClinicFinance/app/`
-- [ ] T040 [US1] Update finance factories and seeders namespace references in `modules/Clinic/database/factories/` and `modules/Clinic/database/seeders/`
-- [ ] T041 [US1] Move finance feature tests from `modules/Clinic/tests/Feature/Finances/` to `modules/ClinicFinance/tests/Feature/`
-- [ ] T042 [US1] Verify current finance migrations remain named under `modules/Clinic/database/migrations/*clinic_financial*.php` and document ownership transfer in `docs/adr/006-clinic-finance-extraction.md`
-- [ ] T043 [US1] Run `php artisan route:list --path=clinic/finances` and record unchanged paths in `specs/006-modular-monolith-eda/route-baseline.md`
-- [ ] T044 [US1] Run `vendor/bin/phpunit --filter=FinanceRouteCompatibilityTest` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T026 [P] [US1] Move `FinancialTransactionType`, `FinancialTransactionStatus`, `FinancialCategoryOrigin`, and `PaymentMethod` enums from `modules/Clinic/app/Enums/` to `modules/ClinicFinance/app/Enums/`
+- [X] T027 [P] [US1] Move `FinancialCategory`, `FinancialTransaction`, and `PeriodOpeningBalance` models from `modules/Clinic/app/Models/` to `modules/ClinicFinance/app/Models/` while preserving table names
+- [X] T028 [P] [US1] Move financial policies from `modules/Clinic/app/Policies/FinancialCategoryPolicy.php` and `modules/Clinic/app/Policies/FinancialTransactionPolicy.php` to `modules/ClinicFinance/app/Policies/`
+- [X] T029 [P] [US1] Move financial FormRequests from `modules/Clinic/app/Http/Requests/` to `modules/ClinicFinance/app/Http/Requests/`
+- [X] T030 [US1] Move financial repository interfaces from `modules/Clinic/app/Contracts/` to `modules/ClinicFinance/app/Contracts/`
+- [X] T031 [US1] Move financial repositories from `modules/Clinic/app/Repositories/` to `modules/ClinicFinance/app/Repositories/`
+- [X] T032 [US1] Move finance services from `modules/Clinic/app/Services/FinancialTransactionService.php`, `modules/Clinic/app/Services/FinancialCategoryService.php`, `modules/Clinic/app/Services/FinanceSummaryService.php`, and `modules/Clinic/app/Services/FinanceReportService.php` to `modules/ClinicFinance/app/Services/`
+- [X] T033 [US1] Move finance exporters from `modules/Clinic/app/Services/Export/` to `modules/ClinicFinance/app/Services/Export/`
+- [X] T034 [US1] Move finance controllers from `modules/Clinic/app/Http/Controllers/Financial*Controller.php` to `modules/ClinicFinance/app/Http/Controllers/`
+- [X] T035 [US1] Bind `ClinicFinance` repositories and services in `modules/ClinicFinance/app/Providers/ClinicFinanceServiceProvider.php`
+- [X] T036 [US1] Register `ClinicFinance` financial policies in `modules/ClinicFinance/app/Providers/ClinicFinanceServiceProvider.php`
+- [X] T037 [US1] Define the same `/clinic/finances/*` routes in `modules/ClinicFinance/routes/clinic.php`
+- [X] T038 [US1] Disable legacy finance route declarations in `modules/Clinic/routes/clinic.php` after `ClinicFinance` route parity passes
+- [X] T039 [US1] Update all finance namespaces imported by moved classes under `modules/ClinicFinance/app/`
+- [X] T040 [US1] Update finance factories and seeders namespace references in `modules/Clinic/database/factories/` and `modules/Clinic/database/seeders/`
+- [X] T041 [US1] Move finance feature tests from `modules/Clinic/tests/Feature/Finances/` to `modules/ClinicFinance/tests/Feature/`
+- [X] T042 [US1] Verify current finance migrations remain named under `modules/Clinic/database/migrations/*clinic_financial*.php` and document ownership transfer in `docs/adr/006-clinic-finance-extraction.md`
+- [X] T043 [US1] Run `php artisan route:list --path=clinic/finances` and record unchanged paths in `specs/006-modular-monolith-eda/route-baseline.md`
+- [X] T044 [US1] Run `vendor/bin/phpunit --filter=FinanceRouteCompatibilityTest` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
 
 **Checkpoint**: User Story 1 is complete when `ClinicFinance` serves the same finance routes and finance regression tests pass without frontend changes.
 
@@ -100,24 +100,24 @@
 
 ### Tests for User Story 2
 
-- [ ] T045 [P] [US2] Add event payload unit tests for transaction events in `modules/ClinicFinance/tests/Unit/Events/FinancialTransactionEventsTest.php`
-- [ ] T046 [P] [US2] Add event payload unit tests for category and opening-balance events in `modules/ClinicFinance/tests/Unit/Events/FinancialCategoryAndBalanceEventsTest.php`
-- [ ] T047 [P] [US2] Add service dispatch tests for finance transaction writes in `modules/ClinicFinance/tests/Unit/FinancialTransactionServiceEventTest.php`
-- [ ] T048 [P] [US2] Add service dispatch tests for category and opening-balance writes in `modules/ClinicFinance/tests/Unit/FinancialCategoryAndBalanceEventTest.php`
+- [X] T045 [P] [US2] Add event payload unit tests for transaction events in `modules/ClinicFinance/tests/Unit/Events/FinancialTransactionEventsTest.php`
+- [X] T046 [P] [US2] Add event payload unit tests for category and opening-balance events in `modules/ClinicFinance/tests/Unit/Events/FinancialCategoryAndBalanceEventsTest.php`
+- [X] T047 [P] [US2] Add service dispatch tests for finance transaction writes in `modules/ClinicFinance/tests/Unit/FinancialTransactionServiceEventTest.php`
+- [X] T048 [P] [US2] Add service dispatch tests for category and opening-balance writes in `modules/ClinicFinance/tests/Unit/FinancialCategoryAndBalanceEventTest.php`
 
 ### Implementation for User Story 2
 
-- [ ] T049 [P] [US2] Create `FinancialTransactionRecorded` event in `modules/ClinicFinance/app/Events/FinancialTransactionRecorded.php`
-- [ ] T050 [P] [US2] Create `FinancialTransactionUpdated` event in `modules/ClinicFinance/app/Events/FinancialTransactionUpdated.php`
-- [ ] T051 [P] [US2] Create `FinancialTransactionDeleted` event in `modules/ClinicFinance/app/Events/FinancialTransactionDeleted.php`
-- [ ] T052 [P] [US2] Create `FinancialCategoryCreated` event in `modules/ClinicFinance/app/Events/FinancialCategoryCreated.php`
-- [ ] T053 [P] [US2] Create `OpeningBalanceUpdated` event in `modules/ClinicFinance/app/Events/OpeningBalanceUpdated.php`
-- [ ] T054 [US2] Dispatch transaction events after commit from `modules/ClinicFinance/app/Services/FinancialTransactionService.php`
-- [ ] T055 [US2] Dispatch category events after commit from `modules/ClinicFinance/app/Services/FinancialCategoryService.php`
-- [ ] T056 [US2] Dispatch opening balance events after commit from `modules/ClinicFinance/app/Services/FinanceSummaryService.php`
-- [ ] T057 [US2] Register event discovery or explicit listener mapping in `modules/ClinicFinance/app/Providers/EventServiceProvider.php`
-- [ ] T058 [US2] Document event payload version rules in `modules/ClinicFinance/app/Events/README.md`
-- [ ] T059 [US2] Run `vendor/bin/phpunit --filter=Event` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T049 [P] [US2] Create `FinancialTransactionRecorded` event in `modules/ClinicFinance/app/Events/FinancialTransactionRecorded.php`
+- [X] T050 [P] [US2] Create `FinancialTransactionUpdated` event in `modules/ClinicFinance/app/Events/FinancialTransactionUpdated.php`
+- [X] T051 [P] [US2] Create `FinancialTransactionDeleted` event in `modules/ClinicFinance/app/Events/FinancialTransactionDeleted.php`
+- [X] T052 [P] [US2] Create `FinancialCategoryCreated` event in `modules/ClinicFinance/app/Events/FinancialCategoryCreated.php`
+- [X] T053 [P] [US2] Create `OpeningBalanceUpdated` event in `modules/ClinicFinance/app/Events/OpeningBalanceUpdated.php`
+- [X] T054 [US2] Dispatch transaction events after commit from `modules/ClinicFinance/app/Services/FinancialTransactionService.php`
+- [X] T055 [US2] Dispatch category events after commit from `modules/ClinicFinance/app/Services/FinancialCategoryService.php`
+- [X] T056 [US2] Dispatch opening balance events after commit from `modules/ClinicFinance/app/Services/FinanceSummaryService.php`
+- [X] T057 [US2] Register event discovery or explicit listener mapping in `modules/ClinicFinance/app/Providers/EventServiceProvider.php`
+- [X] T058 [US2] Document event payload version rules in `modules/ClinicFinance/app/Events/README.md`
+- [X] T059 [US2] Run `vendor/bin/phpunit --filter=Event` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
 
 **Checkpoint**: User Story 2 is complete when finance write services publish stable event payloads and all event tests pass.
 
@@ -131,17 +131,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T060 [P] [US3] Add capability naming validation test in `tests/Architecture/ClinicScopedModuleNamingTest.php`
-- [ ] T061 [P] [US3] Add capability ownership fixture for current clinic areas in `tests/Architecture/fixtures/clinic-capability-map.php`
+- [X] T060 [P] [US3] Add capability naming validation test in `tests/Architecture/ClinicScopedModuleNamingTest.php`
+- [X] T061 [P] [US3] Add capability ownership fixture for current clinic areas in `tests/Architecture/fixtures/clinic-capability-map.php`
 
 ### Implementation for User Story 3
 
-- [ ] T062 [US3] Create clinic capability map document in `docs/architecture/clinic-capability-map.md`
-- [ ] T063 [US3] Document future `ClinicScheduling`, `ClinicCare`, `ClinicIdentity`, and `ClinicDashboard` boundaries in `docs/architecture/clinic-capability-map.md`
-- [ ] T064 [US3] Add naming rules for clinic-scoped modules to `docs/architecture/module-boundary-rules.md`
-- [ ] T065 [US3] Add `ClinicFinance` ownership and future module candidates to `tests/Architecture/fixtures/clinic-capability-map.php`
-- [ ] T066 [US3] Update `tests/Architecture/ModuleBoundaryTest.php` to read clinic capability ownership from `tests/Architecture/fixtures/clinic-capability-map.php`
-- [ ] T067 [US3] Record `ClinicFinance` as the first extracted capability in `docs/adr/006-clinic-finance-extraction.md`
+- [X] T062 [US3] Create clinic capability map document in `docs/architecture/clinic-capability-map.md`
+- [X] T063 [US3] Document future `ClinicScheduling`, `ClinicCare`, `ClinicIdentity`, and `ClinicDashboard` boundaries in `docs/architecture/clinic-capability-map.md`
+- [X] T064 [US3] Add naming rules for clinic-scoped modules to `docs/architecture/module-boundary-rules.md`
+- [X] T065 [US3] Add `ClinicFinance` ownership and future module candidates to `tests/Architecture/fixtures/clinic-capability-map.php`
+- [X] T066 [US3] Update `tests/Architecture/ModuleBoundaryTest.php` to read clinic capability ownership from `tests/Architecture/fixtures/clinic-capability-map.php`
+- [X] T067 [US3] Record `ClinicFinance` as the first extracted capability in `docs/adr/006-clinic-finance-extraction.md`
 
 **Checkpoint**: User Story 3 is complete when capability ownership is documented and enforceable by architecture tests.
 
@@ -155,17 +155,17 @@
 
 ### Tests for User Story 4
 
-- [ ] T068 [P] [US4] Add extraction readiness checklist test in `tests/Architecture/ExtractionReadinessTest.php`
-- [ ] T069 [P] [US4] Add fixture for extraction readiness criteria in `tests/Architecture/fixtures/extraction-readiness.php`
+- [X] T068 [P] [US4] Add extraction readiness checklist test in `tests/Architecture/ExtractionReadinessTest.php`
+- [X] T069 [P] [US4] Add fixture for extraction readiness criteria in `tests/Architecture/fixtures/extraction-readiness.php`
 
 ### Implementation for User Story 4
 
-- [ ] T070 [US4] Create extraction readiness checklist in `docs/architecture/extraction-readiness-checklist.md`
-- [ ] T071 [US4] Add `ClinicFinance` readiness assessment section to `docs/architecture/extraction-readiness-checklist.md`
-- [ ] T072 [US4] Add criteria for data ownership, public contracts, events, idempotency, transactions, outbox readiness, and observability to `tests/Architecture/fixtures/extraction-readiness.php`
-- [ ] T073 [US4] Update `tests/Architecture/ExtractionReadinessTest.php` to fail when required readiness criteria are missing for `ClinicFinance`
-- [ ] T074 [US4] Document deferred distributed concerns for future outbox/inbox in `docs/architecture/extraction-readiness-checklist.md`
-- [ ] T075 [US4] Run `vendor/bin/phpunit --filter=ExtractionReadinessTest` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T070 [US4] Create extraction readiness checklist in `docs/architecture/extraction-readiness-checklist.md`
+- [X] T071 [US4] Add `ClinicFinance` readiness assessment section to `docs/architecture/extraction-readiness-checklist.md`
+- [X] T072 [US4] Add criteria for data ownership, public contracts, events, idempotency, transactions, outbox readiness, and observability to `tests/Architecture/fixtures/extraction-readiness.php`
+- [X] T073 [US4] Update `tests/Architecture/ExtractionReadinessTest.php` to fail when required readiness criteria are missing for `ClinicFinance`
+- [X] T074 [US4] Document deferred distributed concerns for future outbox/inbox in `docs/architecture/extraction-readiness-checklist.md`
+- [X] T075 [US4] Run `vendor/bin/phpunit --filter=ExtractionReadinessTest` and record result in `specs/006-modular-monolith-eda/test-baseline.md`
 
 **Checkpoint**: User Story 4 is complete when `ClinicFinance` has a measurable extraction-readiness assessment and guard test.
 
@@ -175,16 +175,16 @@
 
 **Purpose**: Validate the whole migration, clean up temporary code, and update implementation notes.
 
-- [ ] T076 [P] Update `specs/006-modular-monolith-eda/quickstart.md` with final validation command outcomes
-- [ ] T077 [P] Update `specs/006-modular-monolith-eda/contracts/clinic-finance-rest.md` if implementation reveals compatible response details that should be documented
-- [ ] T078 [P] Update `specs/006-modular-monolith-eda/contracts/module-boundaries.md` with the final whitelist file location
-- [ ] T079 [P] Update `specs/006-modular-monolith-eda/contracts/events.md` with final event namespace references
-- [ ] T080 Remove expired temporary shared-write notes from `docs/adr/007-clinic-finance-temporary-shared-writes.md` once `ClinicFinance` is exclusive owner
-- [ ] T081 Run `vendor/bin/phpunit --filter=Finances` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
-- [ ] T082 Run `vendor/bin/phpunit --filter=ModuleBoundaryTest` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
-- [ ] T083 Run `vendor/bin/phpunit --filter=ExtractionReadinessTest` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
-- [ ] T084 Run `./vendor/bin/pint` and record formatting result in `specs/006-modular-monolith-eda/test-baseline.md`
-- [ ] T085 Run `php artisan route:list --path=clinic/finances` and confirm final route owner notes in `specs/006-modular-monolith-eda/route-baseline.md`
+- [X] T076 [P] Update `specs/006-modular-monolith-eda/quickstart.md` with final validation command outcomes
+- [X] T077 [P] Update `specs/006-modular-monolith-eda/contracts/clinic-finance-rest.md` if implementation reveals compatible response details that should be documented
+- [X] T078 [P] Update `specs/006-modular-monolith-eda/contracts/module-boundaries.md` with the final whitelist file location
+- [X] T079 [P] Update `specs/006-modular-monolith-eda/contracts/events.md` with final event namespace references
+- [X] T080 Remove expired temporary shared-write notes from `docs/adr/007-clinic-finance-temporary-shared-writes.md` once `ClinicFinance` is exclusive owner
+- [X] T081 Run `vendor/bin/phpunit --filter=Finances` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T082 Run `vendor/bin/phpunit --filter=ModuleBoundaryTest` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T083 Run `vendor/bin/phpunit --filter=ExtractionReadinessTest` and record final result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T084 Run `./vendor/bin/pint` and record formatting result in `specs/006-modular-monolith-eda/test-baseline.md`
+- [X] T085 Run `php artisan route:list --path=clinic/finances` and confirm final route owner notes in `specs/006-modular-monolith-eda/route-baseline.md`
 
 ---
 

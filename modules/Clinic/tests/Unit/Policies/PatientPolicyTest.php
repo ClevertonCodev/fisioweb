@@ -5,8 +5,6 @@ namespace Modules\Clinic\Tests\Unit\Policies;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Policies\PatientPolicy;
 use Modules\Patient\Models\Patient;
-
-
 use Tests\TestCase;
 
 /**

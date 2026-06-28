@@ -4,8 +4,9 @@ namespace Modules\Pdf\Services;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Modules\Pdf\Contracts\PdfGeneratorInterface;
 
-class PdfService
+class PdfService implements PdfGeneratorInterface
 {
     public function download(string $view, array $data = [], string $filename = 'documento.pdf'): Response
     {

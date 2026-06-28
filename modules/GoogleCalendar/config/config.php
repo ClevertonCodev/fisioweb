@@ -27,11 +27,9 @@ return [
 // Copiar o Client ID e Client Secret para as duas primeiras linhas do .env
 // Limpar o cache de config depois de preencher:
 
-
 // php artisan config:clear
 // Polling reverso (Google → sistema): depende do scheduler rodando. Em desenvolvimento:
 
-
 // php artisan schedule:work
 // (e um worker de fila ativo — composer run dev já sobe o queue:listen).
-//fisioweb-499801
+// fisioweb-499801

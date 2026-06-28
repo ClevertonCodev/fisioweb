@@ -2,9 +2,9 @@
 
 namespace Modules\WhatsApp\Services;
 
+use Modules\WhatsApp\Contracts\WhatsAppServiceInterface;
 use RuntimeException;
 use Twilio\Rest\Client;
-use Modules\WhatsApp\Contracts\WhatsAppServiceInterface;
 
 class TwilioWhatsAppService implements WhatsAppServiceInterface
 {

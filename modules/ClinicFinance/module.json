@@ -1,0 +1,14 @@
+{
+    "name": "ClinicFinance",
+    "alias": "clinicfinance",
+    "description": "Clinic-scoped finance module",
+    "keywords": [
+        "clinic",
+        "finance"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\ClinicFinance\\Providers\\ClinicFinanceServiceProvider"
+    ],
+    "files": []
+}

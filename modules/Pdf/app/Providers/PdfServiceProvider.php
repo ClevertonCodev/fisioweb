@@ -4,6 +4,7 @@ namespace Modules\Pdf\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Modules\Pdf\Contracts\PdfGeneratorInterface;
 use Modules\Pdf\Services\PdfService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -36,6 +37,7 @@ class PdfServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PdfService::class);
+        $this->app->bind(PdfGeneratorInterface::class, PdfService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

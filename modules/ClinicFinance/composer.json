@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/clinicfinance",
+    "description": "Clinic-scoped finance module",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ClinicFinance\\": "app/",
+            "Modules\\ClinicFinance\\Database\\Factories\\": "database/factories/",
+            "Modules\\ClinicFinance\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ClinicFinance\\Tests\\": "tests/"
+        }
+    }
+}

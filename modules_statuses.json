@@ -7,5 +7,6 @@
     "Clinic": true,
     "Patient": true,
     "WhatsApp": false,
-    "GoogleCalendar": true
+    "GoogleCalendar": true,
+    "ClinicFinance": true
 }

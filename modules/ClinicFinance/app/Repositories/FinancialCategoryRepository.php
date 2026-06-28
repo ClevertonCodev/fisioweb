@@ -19,7 +19,7 @@ class FinancialCategoryRepository implements FinancialCategoryRepositoryInterfac
     {
         $query = $this->model->availableForClinic($clinicId);
 
-        if ($type !== null) {
+        if (!is_null($type)) {
             $query->where('type', $type);
         }
 

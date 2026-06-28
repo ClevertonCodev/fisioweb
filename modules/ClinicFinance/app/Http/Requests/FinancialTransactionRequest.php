@@ -23,10 +23,10 @@ abstract class FinancialTransactionRequest extends FormRequest
         $type = FinancialTransactionType::tryFrom((string) $this->input('type'));
 
         $statusRule = ['required', Rule::enum(FinancialTransactionStatus::class)];
-        if ($type !== null) {
+        if (!is_null($type)) {
             $statusRule[] = function (string $attribute, mixed $value, \Closure $fail) use ($type) {
                 $status = FinancialTransactionStatus::tryFrom((string) $value);
-                if ($status === null || !$status->isValidFor($type)) {
+                if (is_null($status) || !$status->isValidFor($type)) {
                     $fail('Status inválido para o tipo de transação informado.');
                 }
             };

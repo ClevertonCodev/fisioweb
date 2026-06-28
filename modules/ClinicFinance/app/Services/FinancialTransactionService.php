@@ -34,7 +34,7 @@ class FinancialTransactionService implements FinancialTransactionServiceInterfac
     public function create(int $clinicId, array $data): FinancialTransaction
     {
         $category = $this->categoryRepository->findAvailableForClinic($clinicId, (int) $data['financial_category_id']);
-        abort_if($category === null, 422, 'Categoria inválida para esta clínica.');
+        abort_if(is_null($category), 422, 'Categoria inválida para esta clínica.');
 
         $gross = (float) $data['gross_amount'];
         $fee   = (float) ($data['fee_amount'] ?? 0);
@@ -73,7 +73,7 @@ class FinancialTransactionService implements FinancialTransactionServiceInterfac
 
         if (isset($data['financial_category_id'])) {
             $category = $this->categoryRepository->findAvailableForClinic($clinicId, (int) $data['financial_category_id']);
-            abort_if($category === null, 422, 'Categoria inválida para esta clínica.');
+            abort_if(is_null($category), 422, 'Categoria inválida para esta clínica.');
         }
 
         $gross              = (float) ($data['gross_amount'] ?? $transaction->gross_amount);

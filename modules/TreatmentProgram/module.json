@@ -1,0 +1,16 @@
+{
+    "name": "TreatmentProgram",
+    "alias": "treatmentprogram",
+    "description": "Clinic-scoped exercise prescription module (treatment plans, program drafts)",
+    "keywords": [
+        "clinic",
+        "treatment",
+        "prescription",
+        "exercises"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\TreatmentProgram\\Providers\\TreatmentProgramServiceProvider"
+    ],
+    "files": []
+}

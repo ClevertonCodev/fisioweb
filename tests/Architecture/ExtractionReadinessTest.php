@@ -160,6 +160,47 @@ class ExtractionReadinessTest extends TestCase
         $this->assertSame([], $violations, 'Events must not reference Eloquent models: ' . implode(', ', $violations));
     }
 
+    public function test_treatment_program_has_all_required_extraction_readiness_criteria(): void
+    {
+        $readiness        = $this->readinessFixture();
+        $requiredCriteria = $readiness['required_criteria'];
+        $treatmentProgram = $readiness['modules']['TreatmentProgram']['criteria'] ?? [];
+        $missing          = array_values(array_diff($requiredCriteria, array_keys($treatmentProgram)));
+
+        $this->assertSame([], $missing, 'Missing readiness criteria: ' . implode(', ', $missing));
+    }
+
+    public function test_treatment_program_migrations_live_in_the_owner_module(): void
+    {
+        $projectRoot      = dirname(__DIR__, 2);
+        $clinicMigrations = [];
+        $ownerMigrations  = [];
+
+        foreach (['*clinic_treatment_plan*.php', '*clinic_program_draft*.php'] as $pattern) {
+            $clinicMigrations = array_merge($clinicMigrations, glob($projectRoot . '/modules/Clinic/database/migrations/' . $pattern) ?: []);
+            $ownerMigrations  = array_merge($ownerMigrations, glob($projectRoot . '/modules/TreatmentProgram/database/migrations/' . $pattern) ?: []);
+        }
+
+        $this->assertSame([], $clinicMigrations, 'Treatment/program migrations must not live in modules/Clinic.');
+        $this->assertCount(5, array_unique($ownerMigrations), 'TreatmentProgram must own the five prescription migrations.');
+    }
+
+    public function test_treatment_program_events_do_not_reference_models(): void
+    {
+        $eventFiles = glob(dirname(__DIR__, 2) . '/modules/TreatmentProgram/app/Events/*.php') ?: [];
+        $violations = [];
+
+        foreach ($eventFiles as $file) {
+            $contents = (string) file_get_contents($file);
+            if (preg_match('/Modules\\\\TreatmentProgram\\\\Models\\\\/', $contents) === 1) {
+                $violations[] = basename($file);
+            }
+        }
+
+        $this->assertNotEmpty($eventFiles, 'TreatmentProgram must publish integration events.');
+        $this->assertSame([], $violations, 'Events must not reference Eloquent models: ' . implode(', ', $violations));
+    }
+
     /**
      * @return array<string, mixed>
      */

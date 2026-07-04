@@ -101,6 +101,6 @@ class Clinic extends Model
 
     public function treatmentPlans(): HasMany
     {
-        return $this->hasMany(TreatmentPlan::class);
+        return $this->hasMany(\Modules\TreatmentProgram\Models\TreatmentPlan::class);
     }
 }

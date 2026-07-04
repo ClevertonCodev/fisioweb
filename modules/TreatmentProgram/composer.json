@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/treatmentprogram",
+    "description": "Clinic-scoped exercise prescription module (treatment plans, program drafts)",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\TreatmentProgram\\": "app/",
+            "Modules\\TreatmentProgram\\Database\\Factories\\": "database/factories/",
+            "Modules\\TreatmentProgram\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\TreatmentProgram\\Tests\\": "tests/"
+        }
+    }
+}

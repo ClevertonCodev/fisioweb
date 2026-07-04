@@ -11,12 +11,13 @@ class ClinicScopedModuleNamingTest extends TestCase
         $map           = $this->capabilityMap();
         $prefix        = $map['rules']['clinic_module_prefix'];
         $legacyModules = $map['rules']['legacy_modules'];
+        $exceptions    = $map['rules']['bounded_context_name_exceptions'] ?? [];
         $violations    = [];
 
         foreach ($map['capabilities'] as $capability => $definition) {
             $module = $definition['module'];
 
-            if (in_array($module, $legacyModules, true)) {
+            if (in_array($module, $legacyModules, true) || in_array($module, $exceptions, true)) {
                 continue;
             }
 

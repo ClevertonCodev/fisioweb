@@ -11,5 +11,6 @@
     "ClinicFinance": true,
     "ClinicScheduling": true,
     "ClinicalRecord": true,
-    "ClinicQuestionnaire": true
+    "ClinicQuestionnaire": true,
+    "TreatmentProgram": true
 }

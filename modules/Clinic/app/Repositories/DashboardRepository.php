@@ -7,15 +7,16 @@ use Illuminate\Support\Collection;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Models\ClinicActivity;
-use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Services\DashboardScope;
 use Modules\ClinicScheduling\Contracts\Public\SchedulingReadServiceInterface;
 use Modules\Patient\Models\Patient;
+use Modules\TreatmentProgram\Contracts\Public\TreatmentProgramReadServiceInterface;
 
 class DashboardRepository implements DashboardRepositoryInterface
 {
     public function __construct(
         protected SchedulingReadServiceInterface $scheduling,
+        protected TreatmentProgramReadServiceInterface $treatmentProgram,
     ) {}
 
     public function activePatientsCount(DashboardScope $scope): int
@@ -32,20 +33,12 @@ class DashboardRepository implements DashboardRepositoryInterface
     {
         [$monthStart, $monthEnd] = $this->currentMonthDates($scope);
 
-        $query = TreatmentPlan::query()
-            ->where('clinic_id', $scope->clinicId)
-            ->where('status', TreatmentPlan::STATUS_ACTIVE)
-            ->whereHas('patient', fn ($q) => $q->activeStatus())
-            ->whereDate('start_date', '<=', $monthEnd)
-            ->where(function ($q) use ($monthStart) {
-                $q->whereNull('end_date')->orWhereDate('end_date', '>=', $monthStart);
-            });
-
-        if ($scope->clinicUserId !== null) {
-            $query->where('clinic_user_id', $scope->clinicUserId);
-        }
-
-        return $query->count();
+        return $this->treatmentProgram->activeProgramsCount(
+            $scope->clinicId,
+            $scope->clinicUserId,
+            $monthStart,
+            $monthEnd,
+        );
     }
 
     public function availableExercises(): array

@@ -11,6 +11,8 @@ use Modules\Clinic\Contracts\ClinicServiceInterface;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
+use Modules\Clinic\Contracts\Public\GoogleCalendarConnectionWriteServiceInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Observers\ClinicObserver;
@@ -22,6 +24,7 @@ use Modules\Clinic\Services\ActivityLogger;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserService;
 use Modules\Clinic\Services\DashboardService;
+use Modules\Clinic\Services\GoogleCalendarConnectionService;
 use Modules\Patient\Models\Patient;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -63,6 +66,8 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
+        $this->app->bind(ClinicUserGoogleConnectionReadServiceInterface::class, GoogleCalendarConnectionService::class);
+        $this->app->bind(GoogleCalendarConnectionWriteServiceInterface::class, GoogleCalendarConnectionService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

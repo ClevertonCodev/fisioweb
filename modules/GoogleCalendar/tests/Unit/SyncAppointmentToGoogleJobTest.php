@@ -88,7 +88,12 @@ class SyncAppointmentToGoogleJobTest extends TestCase
         });
 
         (new SyncAppointmentToGoogleJob($appointment->id))
-            ->handle(app(GoogleCalendarServiceInterface::class));
+            ->handle(
+                app(GoogleCalendarServiceInterface::class),
+                app(\Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface::class),
+                app(\Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface::class),
+                app(\Modules\ClinicScheduling\Contracts\Public\AppointmentSyncWriteServiceInterface::class),
+            );
 
         $this->assertSame('google-event-123', $appointment->fresh()->google_event_id);
         $this->assertNotNull($appointment->fresh()->last_synced_at);

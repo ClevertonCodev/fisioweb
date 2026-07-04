@@ -2,10 +2,11 @@
 
 namespace Modules\GoogleCalendar\Listeners;
 
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
 use Modules\ClinicScheduling\Events\AppointmentCancelled;
 use Modules\ClinicScheduling\Events\AppointmentRescheduled;
 use Modules\ClinicScheduling\Events\AppointmentScheduled;
-use Modules\ClinicScheduling\Models\Appointment;
 use Modules\GoogleCalendar\Jobs\SyncAppointmentToGoogleJob;
 
 /**
@@ -15,27 +16,37 @@ use Modules\GoogleCalendar\Jobs\SyncAppointmentToGoogleJob;
  */
 class SyncSchedulingToGoogle
 {
+    public function __construct(
+        protected ClinicUserGoogleConnectionReadServiceInterface $connections,
+        protected AppointmentReadServiceInterface $appointments,
+    ) {}
+
     /** Agendamento criado ou reagendado → cria/atualiza o evento no Google. */
     public function onUpsert(AppointmentScheduled|AppointmentRescheduled $event): void
     {
-        $appointment = Appointment::find($event->appointmentId);
+        if (is_null($event->professionalId)) {
+            return;
+        }
 
-        if ($appointment?->clinicUser?->isGoogleConnected()) {
-            SyncAppointmentToGoogleJob::dispatch($appointment->id);
+        if ($this->connections->isConnected($event->professionalId)) {
+            SyncAppointmentToGoogleJob::dispatch($event->appointmentId);
         }
     }
 
     /** Agendamento cancelado → remove o evento correspondente no Google. */
     public function onCancelled(AppointmentCancelled $event): void
     {
-        $appointment = Appointment::find($event->appointmentId);
-        $user        = $appointment?->clinicUser;
+        if (is_null($event->professionalId) || !$this->connections->isConnected($event->professionalId)) {
+            return;
+        }
 
-        if ($user?->isGoogleConnected() && !empty($appointment->google_event_id)) {
+        $appointment = $this->appointments->getSnapshotById($event->appointmentId);
+
+        if (!is_null($appointment) && !empty($appointment->googleEventId)) {
             SyncAppointmentToGoogleJob::dispatch(
-                $appointment->id,
+                $event->appointmentId,
                 SyncAppointmentToGoogleJob::ACTION_DELETE,
-                $appointment->google_event_id,
+                $appointment->googleEventId,
             );
         }
     }

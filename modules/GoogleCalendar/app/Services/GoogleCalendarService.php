@@ -3,17 +3,24 @@
 namespace Modules\GoogleCalendar\Services;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Google\Client as GoogleClient;
 use Google\Service\Calendar as GoogleCalendar;
 use Google\Service\Calendar\Event as GoogleEvent;
 use Google\Service\Calendar\EventDateTime;
 use Google\Service\Exception as GoogleServiceException;
-use Modules\Clinic\Models\ClinicUser;
-use Modules\ClinicScheduling\Models\Appointment;
+use Modules\Clinic\Contracts\Public\GoogleCalendarConnectionWriteServiceInterface;
+use Modules\Clinic\Data\Public\GoogleConnectionStateDTO;
+use Modules\Clinic\Data\Public\GoogleTokenSetDTO;
+use Modules\ClinicScheduling\Data\Public\AppointmentSnapshotDTO;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 
 class GoogleCalendarService implements GoogleCalendarServiceInterface
 {
+    public function __construct(
+        protected GoogleCalendarConnectionWriteServiceInterface $connections,
+    ) {}
+
     /** Constrói um client base (sem tokens) com escopo de calendário. */
     private function baseClient(): GoogleClient
     {
@@ -37,7 +44,7 @@ class GoogleCalendarService implements GoogleCalendarServiceInterface
         return $client->createAuthUrl();
     }
 
-    public function connectFromCallback(ClinicUser $user, string $code): void
+    public function connectFromCallback(int $clinicUserId, string $code): void
     {
         $client = $this->baseClient();
         $token  = $client->fetchAccessTokenWithAuthCode($code);
@@ -46,38 +53,31 @@ class GoogleCalendarService implements GoogleCalendarServiceInterface
             throw new \RuntimeException('Falha ao obter tokens do Google: ' . $token['error']);
         }
 
-        $user->forceFill([
-            'google_access_token'     => $token['access_token'] ?? null,
-            'google_refresh_token'    => $token['refresh_token'] ?? $user->google_refresh_token,
-            'google_token_expires_at' => isset($token['expires_in'])
-                ? now()->addSeconds((int) $token['expires_in'])
+        $this->connections->storeTokens($clinicUserId, new GoogleTokenSetDTO(
+            accessToken: $token['access_token'] ?? null,
+            refreshToken: $token['refresh_token'] ?? null,
+            expiresAt: isset($token['expires_in'])
+                ? CarbonImmutable::now()->addSeconds((int) $token['expires_in'])
                 : null,
-            'google_calendar_id'      => 'primary',
-            'google_sync_token'       => null,
-            'google_connected_at'     => now(),
-        ])->save();
+            calendarId: 'primary',
+            syncToken: null,
+            connectedAt: CarbonImmutable::now(),
+        ));
     }
 
-    public function disconnect(ClinicUser $user): void
+    public function disconnect(int $clinicUserId): void
     {
-        $user->forceFill([
-            'google_access_token'     => null,
-            'google_refresh_token'    => null,
-            'google_token_expires_at' => null,
-            'google_calendar_id'      => null,
-            'google_sync_token'       => null,
-            'google_connected_at'     => null,
-        ])->save();
+        $this->connections->clearTokens($clinicUserId);
     }
 
-    public function pushAppointment(ClinicUser $user, Appointment $appointment): string
+    public function pushAppointment(GoogleConnectionStateDTO $connection, AppointmentSnapshotDTO $appointment): string
     {
-        $service    = $this->calendarService($user);
-        $calendarId = $user->google_calendar_id ?: 'primary';
+        $service    = $this->calendarService($connection);
+        $calendarId = $connection->calendarId ?: 'primary';
         $event      = $this->buildEvent($appointment);
 
-        if ($appointment->google_event_id) {
-            $saved = $service->events->update($calendarId, $appointment->google_event_id, $event);
+        if (!empty($appointment->googleEventId)) {
+            $saved = $service->events->update($calendarId, $appointment->googleEventId, $event);
         } else {
             $saved = $service->events->insert($calendarId, $event);
         }
@@ -85,10 +85,10 @@ class GoogleCalendarService implements GoogleCalendarServiceInterface
         return $saved->getId();
     }
 
-    public function deleteAppointment(ClinicUser $user, string $googleEventId): void
+    public function deleteAppointment(GoogleConnectionStateDTO $connection, string $googleEventId): void
     {
-        $service    = $this->calendarService($user);
-        $calendarId = $user->google_calendar_id ?: 'primary';
+        $service    = $this->calendarService($connection);
+        $calendarId = $connection->calendarId ?: 'primary';
 
         try {
             $service->events->delete($calendarId, $googleEventId);
@@ -100,10 +100,10 @@ class GoogleCalendarService implements GoogleCalendarServiceInterface
         }
     }
 
-    public function pullChanges(ClinicUser $user): array
+    public function pullChanges(GoogleConnectionStateDTO $connection): array
     {
-        $service    = $this->calendarService($user);
-        $calendarId = $user->google_calendar_id ?: 'primary';
+        $service    = $this->calendarService($connection);
+        $calendarId = $connection->calendarId ?: 'primary';
         $months     = (int) config('googlecalendar.pull_window_months', 3);
 
         // Sincronização por janela limitada: evita que eventos recorrentes
@@ -140,56 +140,58 @@ class GoogleCalendarService implements GoogleCalendarServiceInterface
     }
 
     /** Client autenticado para o usuário, com refresh transparente do token. */
-    private function authenticatedClient(ClinicUser $user): GoogleClient
+    private function authenticatedClient(GoogleConnectionStateDTO $connection): GoogleClient
     {
         $client = $this->baseClient();
 
         $client->setAccessToken(array_filter([
-            'access_token'  => $user->google_access_token,
-            'refresh_token' => $user->google_refresh_token,
-            'expires_in'    => $user->google_token_expires_at
-                ? max(0, $user->google_token_expires_at->diffInSeconds(now(), false) * -1)
+            'access_token'  => $connection->accessToken,
+            'refresh_token' => $connection->refreshToken,
+            'expires_in'    => !is_null($connection->tokenExpiresAt)
+                ? max(0, $connection->tokenExpiresAt->diffInSeconds(now(), false) * -1)
                 : 0,
         ]));
 
-        if ($client->isAccessTokenExpired() && $user->google_refresh_token) {
-            $new = $client->fetchAccessTokenWithRefreshToken($user->google_refresh_token);
+        if ($client->isAccessTokenExpired() && !empty($connection->refreshToken)) {
+            $new = $client->fetchAccessTokenWithRefreshToken($connection->refreshToken);
 
             if (!isset($new['error'])) {
-                $user->forceFill([
-                    'google_access_token'     => $new['access_token'] ?? $user->google_access_token,
-                    'google_token_expires_at' => isset($new['expires_in'])
-                        ? now()->addSeconds((int) $new['expires_in'])
-                        : $user->google_token_expires_at,
-                ])->save();
+                $this->connections->storeTokens($connection->clinicUserId, new GoogleTokenSetDTO(
+                    accessToken: $new['access_token'] ?? $connection->accessToken,
+                    refreshToken: $new['refresh_token'] ?? $connection->refreshToken,
+                    expiresAt: isset($new['expires_in'])
+                        ? CarbonImmutable::now()->addSeconds((int) $new['expires_in'])
+                        : $connection->tokenExpiresAt,
+                    calendarId: $connection->calendarId ?: 'primary',
+                    syncToken: $connection->syncToken,
+                    connectedAt: $connection->connectedAt ?: CarbonImmutable::now(),
+                ));
             }
         }
 
         return $client;
     }
 
-    private function calendarService(ClinicUser $user): GoogleCalendar
+    private function calendarService(GoogleConnectionStateDTO $connection): GoogleCalendar
     {
-        return new GoogleCalendar($this->authenticatedClient($user));
+        return new GoogleCalendar($this->authenticatedClient($connection));
     }
 
-    private function buildEvent(Appointment $appointment): GoogleEvent
+    private function buildEvent(AppointmentSnapshotDTO $appointment): GoogleEvent
     {
-        $timezone = $appointment->clinic?->timezone ?: config('app.timezone', 'America/Sao_Paulo');
-
         $event = new GoogleEvent;
         $event->setSummary($appointment->title ?: 'Consulta');
         $event->setDescription($appointment->description ?: '');
         $event->setLocation($appointment->location ?: '');
 
         $start = new EventDateTime;
-        $start->setDateTime(Carbon::parse($appointment->starts_at)->toRfc3339String());
-        $start->setTimeZone($timezone);
+        $start->setDateTime(Carbon::parse($appointment->startsAt)->toRfc3339String());
+        $start->setTimeZone($appointment->timezone);
         $event->setStart($start);
 
         $end = new EventDateTime;
-        $end->setDateTime(Carbon::parse($appointment->ends_at)->toRfc3339String());
-        $end->setTimeZone($timezone);
+        $end->setDateTime(Carbon::parse($appointment->endsAt)->toRfc3339String());
+        $end->setTimeZone($appointment->timezone);
         $event->setEnd($end);
 
         return $event;

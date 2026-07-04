@@ -6,7 +6,6 @@
     "Cloudflare": true,
     "Clinic": true,
     "Patient": true,
-    "WhatsApp": false,
     "GoogleCalendar": true,
     "ClinicFinance": true,
     "ClinicScheduling": true,

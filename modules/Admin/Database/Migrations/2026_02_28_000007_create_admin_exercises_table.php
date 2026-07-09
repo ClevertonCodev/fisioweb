@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('physio_area_id')->constrained('admin_physio_areas')->restrictOnDelete();
             $table->foreignId('physio_subarea_id')->nullable()->constrained('admin_physio_subareas')->nullOnDelete();
-            $table->foreignId('body_region_id')->constrained('admin_body_regions')->restrictOnDelete();
+            $table->foreignId('body_region_id')->nullable()->constrained('admin_body_regions')->restrictOnDelete();
             $table->string('therapeutic_goal')->nullable();
             $table->text('description')->nullable();
             $table->text('audio_description')->nullable();
@@ -30,8 +30,16 @@ return new class extends Migration
             $table->unsignedSmallInteger('repetitions')->nullable();
             $table->unsignedSmallInteger('rest_time')->nullable();
             $table->text('clinical_notes')->nullable();
-            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by')->nullable()->constrained('users')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
+
+            // Exercícios enviados por clínicas + fluxo de revisão do admin do sistema.
+            $table->foreignId('clinic_id')->nullable()->constrained('clinics')->nullOnDelete();
+            $table->string('review_status')->default('approved');
+            $table->foreignId('submitted_by_clinic_user_id')->nullable()->constrained('clinic_users')->nullOnDelete();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('reviewed_at')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 
@@ -39,6 +47,8 @@ return new class extends Migration
             $table->index('body_region_id');
             $table->index('difficulty_level');
             $table->index('is_active');
+            $table->index('clinic_id');
+            $table->index('review_status');
         });
     }
 

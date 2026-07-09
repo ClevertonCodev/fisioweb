@@ -284,6 +284,20 @@ export function VideoPlayerModal({
                             </Badge>
                         </div>
 
+                        {exercise.isOwnSubmission &&
+                            exercise.reviewStatus !== 'approved' && (
+                                <div className="mb-3">
+                                    <Badge
+                                        variant="outline"
+                                        className="border-warning/30 bg-warning/20 text-warning-foreground"
+                                    >
+                                        {exercise.reviewStatus === 'rejected'
+                                            ? 'Somente sua clínica'
+                                            : 'Em revisão · só sua clínica'}
+                                    </Badge>
+                                </div>
+                            )}
+
                         {exercise.objective && (
                             <p className="mb-4 text-sm leading-relaxed text-foreground">
                                 {exercise.objective}

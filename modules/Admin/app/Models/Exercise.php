@@ -39,6 +39,18 @@ class Exercise extends Model
         self::MOVEMENT_FORM_UNILATERAL => 'Unilateral',
     ];
 
+    public const REVIEW_PENDING = 'pending';
+
+    public const REVIEW_APPROVED = 'approved';
+
+    public const REVIEW_REJECTED = 'rejected';
+
+    public const REVIEW_STATUSES = [
+        self::REVIEW_PENDING  => 'Pendente',
+        self::REVIEW_APPROVED => 'Aprovado',
+        self::REVIEW_REJECTED => 'Rejeitado',
+    ];
+
     protected $fillable = [
         'name',
         'physio_area_id',
@@ -62,6 +74,11 @@ class Exercise extends Model
         'clinical_notes',
         'created_by',
         'is_active',
+        'clinic_id',
+        'review_status',
+        'submitted_by_clinic_user_id',
+        'reviewed_by',
+        'reviewed_at',
     ];
 
     protected function casts(): array
@@ -72,6 +89,7 @@ class Exercise extends Model
             'rest_time'   => 'integer',
             'is_active'   => 'boolean',
             'created_at'  => 'datetime',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -105,8 +123,47 @@ class Exercise extends Model
         return $this->belongsToMany(Video::class, 'admin_exercise_video')->withTimestamps();
     }
 
+    public function clinic(): BelongsTo
+    {
+        // Clínica de origem (fronteira modular — FQN inline).
+        return $this->belongsTo(\Modules\Clinic\Models\Clinic::class);
+    }
+
+    public function submittedByClinicUser(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'submitted_by_clinic_user_id');
+    }
+
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('review_status', self::REVIEW_APPROVED);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('review_status', self::REVIEW_PENDING);
+    }
+
+    public function scopeVisibleToClinic($query, int $clinicId)
+    {
+        return $query->where(function ($q) use ($clinicId) {
+            $q->where('review_status', self::REVIEW_APPROVED)
+                ->orWhere('clinic_id', $clinicId);
+        });
+    }
+
+    public function isOwnedByClinic(int $clinicId): bool
+    {
+        return (int) $this->clinic_id === $clinicId;
     }
 }

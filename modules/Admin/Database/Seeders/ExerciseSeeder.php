@@ -229,6 +229,9 @@ class ExerciseSeeder extends Seeder
                     'rest_time'         => $data['rest_time'],
                     'frequency'         => $data['frequency'],
                     'is_active'         => true,
+                    // Catálogo oficial: global e aprovado.
+                    'clinic_id'         => null,
+                    'review_status'     => Exercise::REVIEW_APPROVED,
                 ]
             );
 
@@ -238,5 +241,39 @@ class ExerciseSeeder extends Seeder
 
             $exercise->videos()->syncWithoutDetaching($videoIds);
         }
+
+        $this->seedPendingClinicSubmission();
+    }
+
+    private function seedPendingClinicSubmission(): void
+    {
+        $clinicUser = \Modules\Clinic\Models\ClinicUser::where('role', \Modules\Clinic\Models\ClinicUser::ROLE_ADMIN)->first();
+
+        if (is_null($clinicUser)) {
+            return;
+        }
+
+        $area = PhysioArea::where('name', 'Traumato-Ortopédica')->first();
+
+        $exercise = Exercise::updateOrCreate(
+            ['name' => 'Alongamento de Isquiotibiais (envio da clínica)'],
+            [
+                'physio_area_id'              => $area?->id,
+                'body_region_id'              => null,
+                'created_by'                  => null,
+                'description'                 => 'Exercício enviado por uma clínica, aguardando revisão do admin do sistema.',
+                'difficulty_level'            => Exercise::DIFFICULTY_EASY,
+                'is_active'                   => true,
+                'clinic_id'                   => $clinicUser->clinic_id,
+                'submitted_by_clinic_user_id' => $clinicUser->id,
+                'review_status'               => Exercise::REVIEW_PENDING,
+            ]
+        );
+
+        $videoIds = collect([1])
+            ->filter(fn ($id) => Video::find($id) !== null)
+            ->all();
+
+        $exercise->videos()->syncWithoutDetaching($videoIds);
     }
 }

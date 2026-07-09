@@ -24,7 +24,16 @@ class ExerciseRepository implements ExerciseRepositoryInterface
 
     public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->with(['physioArea', 'physioSubarea', 'bodyRegion', 'createdBy', 'videos']);
+        $query = $this->model->with(['physioArea', 'physioSubarea', 'bodyRegion', 'createdBy', 'videos', 'clinic', 'submittedByClinicUser']);
+
+        // Escopo de visibilidade da clínica: catálogo global aprovado + exercícios da própria clínica.
+        if (!empty($filters['visible_to_clinic_id'])) {
+            $query->visibleToClinic((int) $filters['visible_to_clinic_id']);
+        }
+
+        if (!empty($filters['review_status'])) {
+            $query->where('review_status', $filters['review_status']);
+        }
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];

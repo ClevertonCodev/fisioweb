@@ -1,4 +1,11 @@
-import { ArrowLeft, Search, SlidersHorizontal, Star, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    Plus,
+    Search,
+    SlidersHorizontal,
+    Star,
+    X,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,6 +13,7 @@ import {
     useInfiniteExercises,
     useToggleExerciseFavorite,
 } from '@/application/clinic';
+import { can } from '@/application/clinic/permissions';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { ExerciseFilters } from '@/components/clinic/ExerciseFilters';
 import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
@@ -21,24 +29,14 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useAuth } from '@/contexts/AuthContext';
+import type { ClinicRole } from '@/domain/auth/session';
 import type {
     Exercise,
     FilterCategory,
     ExerciseFilters as Filters,
 } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
-
-const difficultyColors = {
-    facil: 'bg-success/20 text-success border-success/30',
-    medio: 'bg-warning/20 text-warning-foreground border-warning/30',
-    dificil: 'bg-destructive/20 text-destructive border-destructive/30',
-};
-
-const difficultyLabels = {
-    facil: 'Fácil',
-    medio: 'Médio',
-    dificil: 'Difícil',
-};
 
 const initialFilters: Filters = {
     search: '',
@@ -62,6 +60,8 @@ export default function ExercisesPage({
     embedded = false,
 }: ExercisesPageProps) {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const canSubmit = can.manageUsers(user?.role as ClinicRole | undefined);
     const { data, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } =
         useInfiniteExercises();
     const toggleFavoriteMutation = useToggleExerciseFavorite();
@@ -325,6 +325,20 @@ export default function ExercisesPage({
                                 Biblioteca de Exercícios
                             </h1>
                             <div className="flex items-center gap-3">
+                                {canSubmit && (
+                                    <Button
+                                        size="sm"
+                                        onClick={() =>
+                                            navigate(
+                                                '/clinica/exercicios/enviar',
+                                            )
+                                        }
+                                        className="gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Enviar exercício
+                                    </Button>
+                                )}
                                 <div className="relative w-64">
                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
@@ -465,23 +479,6 @@ export default function ExercisesPage({
                                         thumbnailUrl={exercise.thumbnailUrl}
                                         title={exercise.title}
                                         subtitle={exercise.specialty}
-                                        badge={
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    'text-xs font-medium',
-                                                    difficultyColors[
-                                                        exercise.difficulty
-                                                    ],
-                                                )}
-                                            >
-                                                {
-                                                    difficultyLabels[
-                                                        exercise.difficulty
-                                                    ]
-                                                }
-                                            </Badge>
-                                        }
                                         isFavorite={exercise.isFavorite}
                                         onToggleFavorite={() =>
                                             handleToggleFavorite(exercise)

@@ -4,11 +4,13 @@ import {
     ChevronRight,
     Clock,
     CreditCard,
+    Dumbbell,
     TrendingUp,
     Users,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { usePendingExerciseCount } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -125,9 +127,30 @@ const recentActivity = [
 ];
 
 export default function AdminDashboardPage() {
+    const { data: pendingExercises = 0 } = usePendingExerciseCount();
+
     return (
         <AdminLayout>
             <div className="space-y-6 p-6">
+                {/* Aviso de exercícios enviados por clínicas a revisar */}
+                {pendingExercises > 0 && (
+                    <Link
+                        to="/admin/exercicios/revisar"
+                        className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm transition-colors hover:bg-warning/20"
+                    >
+                        <div className="rounded-lg bg-warning/20 p-2 text-warning-foreground">
+                            <Dumbbell className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium text-foreground">
+                            {pendingExercises} exercício
+                            {pendingExercises !== 1 ? 's' : ''} enviado
+                            {pendingExercises !== 1 ? 's' : ''} por clínicas
+                            aguardando revisão
+                        </span>
+                        <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" />
+                    </Link>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>

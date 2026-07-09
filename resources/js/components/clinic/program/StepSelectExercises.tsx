@@ -4,12 +4,14 @@ import {
     ChevronDown,
     ChevronUp,
     CirclePlus,
+    Info,
     Search,
     Star,
     Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -361,6 +363,8 @@ function ExerciseSelectCard({
     isSelected: boolean;
     onToggleSelect: () => void;
 }) {
+    const [infoOpen, setInfoOpen] = useState(false);
+
     return (
         <div
             className={cn(
@@ -422,16 +426,40 @@ function ExerciseSelectCard({
                     </TooltipContent>
                 </Tooltip>
             </div>
-            <div className="p-3">
-                <p className="line-clamp-2 text-[11px] leading-snug font-medium text-card-foreground">
-                    {exercise.title}
-                </p>
-                {exercise.specialty && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                        {exercise.specialty}
+            <div className="flex items-start justify-between gap-2 p-3">
+                <div className="min-w-0">
+                    <p className="line-clamp-2 text-[11px] leading-snug font-medium text-card-foreground">
+                        {exercise.title}
                     </p>
-                )}
+                    {exercise.specialty && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            {exercise.specialty}
+                        </p>
+                    )}
+                </div>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setInfoOpen(true);
+                            }}
+                        >
+                            <Info className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ver detalhes</TooltipContent>
+                </Tooltip>
             </div>
+
+            <VideoPlayerModal
+                exercise={exercise}
+                open={infoOpen}
+                onOpenChange={setInfoOpen}
+            />
         </div>
     );
 }

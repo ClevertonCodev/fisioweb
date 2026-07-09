@@ -1,11 +1,4 @@
-import {
-    ArrowLeft,
-    Plus,
-    Search,
-    SlidersHorizontal,
-    Star,
-    X,
-} from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -299,46 +292,11 @@ export default function ExercisesPage({
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                     <div className="px-6 py-4">
-                        {!embedded && (
-                            <div className="mb-4 flex items-center gap-4">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => navigate('/clinica')}
-                                            className="gap-1 text-muted-foreground hover:text-foreground"
-                                        >
-                                            <ArrowLeft className="h-4 w-4" />
-                                            Voltar
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        Voltar ao dashboard
-                                    </TooltipContent>
-                                </Tooltip>
-                            </div>
-                        )}
-
                         <div className="flex items-center justify-between gap-4">
                             <h1 className="text-2xl font-semibold text-foreground">
                                 Biblioteca de Exercícios
                             </h1>
                             <div className="flex items-center gap-3">
-                                {canSubmit && (
-                                    <Button
-                                        size="sm"
-                                        onClick={() =>
-                                            navigate(
-                                                '/clinica/exercicios/enviar',
-                                            )
-                                        }
-                                        className="gap-2"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Enviar exercício
-                                    </Button>
-                                )}
                                 <div className="relative w-64">
                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
@@ -399,6 +357,20 @@ export default function ExercisesPage({
                                     </TooltipTrigger>
                                     <TooltipContent>Filtros</TooltipContent>
                                 </Tooltip>
+                                {canSubmit && (
+                                    <Button
+                                        size="sm"
+                                        onClick={() =>
+                                            navigate(
+                                                '/clinica/exercicios/enviar',
+                                            )
+                                        }
+                                        className="gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Enviar exercício
+                                    </Button>
+                                )}
                             </div>
                         </div>
 

@@ -436,14 +436,14 @@ export default function ExercisesPage({
                     </div>
 
                     {isLoading ? (
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                             {Array.from({ length: 20 }).map((_, i) => (
                                 <ExerciseCardSkeleton key={i} />
                             ))}
                         </div>
                     ) : filteredExercises.length > 0 ? (
                         <>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                                 {filteredExercises.map((exercise) => (
                                     <ExerciseCard
                                         key={exercise.id}

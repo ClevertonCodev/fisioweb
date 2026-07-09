@@ -1,4 +1,4 @@
-import { Info, Pause, Pencil, Play, Star, Trash2 } from 'lucide-react';
+import { Info, Maximize, Pencil, Play, Star, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 
@@ -63,10 +63,21 @@ export function ExerciseCard({
         setIsPlaying(false);
     };
 
+    const handleFullscreen = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const video = videoRef.current;
+        if (!video) return;
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            video.requestFullscreen?.();
+        }
+    };
+
     return (
         <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
-            {/* Thumbnail / Video Container */}
-            <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg bg-muted">
+            {/* Thumbnail / Video Container — vídeo com respiro (padding) como no Vedius */}
+            <div className="relative mx-3 mt-3 aspect-square overflow-hidden rounded-lg bg-muted">
                 <video
                     ref={videoRef}
                     src={videoUrl ?? undefined}
@@ -76,30 +87,42 @@ export function ExerciseCard({
                     playsInline
                 />
 
-                {/* Play/Pause Button Overlay */}
+                {/* Overlay de player — estilo Vedius (cores do sistema) */}
                 {canPlay && (
-                    <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex cursor-pointer items-center justify-center"
-                    >
-                        {!isPlaying && (
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                                <Play className="ml-0.5 h-6 w-6 text-foreground" />
-                            </div>
-                        )}
-                    </button>
-                )}
+                    <>
+                        <button
+                            onClick={togglePlay}
+                            aria-label={isPlaying ? 'Parar' : 'Reproduzir'}
+                            className={cn(
+                                'absolute inset-0 flex cursor-pointer items-center justify-center transition-all duration-200',
+                                'bg-transparent group-hover:bg-primary/25',
+                                isPlaying && 'opacity-0 hover:opacity-100',
+                            )}
+                        >
+                            {isPlaying ? (
+                                // Botão "parar" — círculo com quadrado, igual ao Vedius
+                                <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white drop-shadow-md">
+                                    <span className="h-3.5 w-3.5 rounded-[2px] bg-white" />
+                                </span>
+                            ) : (
+                                <Play className="ml-0.5 h-9 w-9 fill-white text-white drop-shadow-md transition-transform duration-200 group-hover:scale-110" />
+                            )}
+                        </button>
 
-                {/* Pause overlay on hover when playing */}
-                {isPlaying && (
-                    <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
-                    >
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
-                            <Pause className="h-6 w-6 text-foreground" />
-                        </div>
-                    </button>
+                        {/* Tela cheia — canto inferior direito */}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button
+                                    onClick={handleFullscreen}
+                                    aria-label="Ver em tela cheia"
+                                    className="absolute right-2 bottom-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-white opacity-0 drop-shadow-md transition-opacity duration-200 hover:bg-black/30 group-hover:opacity-100"
+                                >
+                                    <Maximize className="h-4 w-4" />
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Ver em tela cheia</TooltipContent>
+                        </Tooltip>
+                    </>
                 )}
 
                 {/* Top Left Badge */}

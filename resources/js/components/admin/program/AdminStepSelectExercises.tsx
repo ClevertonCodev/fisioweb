@@ -1,10 +1,11 @@
-import { Check, Pause, Play, Search, Trash2 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { Check, Search, Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import type { AdminExercise } from '@/application/admin/ports';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { VideoThumb } from '@/components/VideoThumb';
 import { cn } from '@/lib/utils';
 
 interface AdminStepSelectExercisesProps {
@@ -172,9 +173,6 @@ function ExerciseSelectCard({
     isSelected: boolean;
     onToggleSelect: () => void;
 }) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-
     const video = (
         exercise.videos as
             | {
@@ -187,19 +185,6 @@ function ExerciseSelectCard({
     const videoUrl = video?.cdn_url ?? video?.url ?? undefined;
     const thumbnailUrl = video?.thumbnail_url ?? undefined;
 
-    const togglePlay = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const v = videoRef.current;
-        if (!v) return;
-        if (isPlaying) {
-            v.pause();
-            setIsPlaying(false);
-        } else {
-            v.play();
-            setIsPlaying(true);
-        }
-    };
-
     return (
         <div
             className={cn(
@@ -211,15 +196,7 @@ function ExerciseSelectCard({
         >
             {/* Thumbnail with play */}
             <div className="relative aspect-video overflow-hidden bg-muted">
-                <video
-                    ref={videoRef}
-                    src={videoUrl}
-                    poster={thumbnailUrl}
-                    className="h-full w-full object-cover"
-                    onEnded={() => setIsPlaying(false)}
-                    controlsList="nodownload"
-                    playsInline
-                />
+                <VideoThumb videoUrl={videoUrl} thumbnailUrl={thumbnailUrl} />
 
                 {/* Select overlay */}
                 <button
@@ -238,28 +215,6 @@ function ExerciseSelectCard({
                         <Check className="h-4 w-4 text-primary-foreground" />
                     )}
                 </button>
-
-                {/* Play button */}
-                <button
-                    onClick={togglePlay}
-                    className="absolute inset-0 flex cursor-pointer items-center justify-center"
-                >
-                    {!isPlaying && (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
-                        </div>
-                    )}
-                </button>
-                {isPlaying && (
-                    <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
-                    >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
-                            <Pause className="h-4 w-4 text-foreground" />
-                        </div>
-                    </button>
-                )}
             </div>
             <div className="p-2">
                 <p className="line-clamp-2 text-xs font-medium text-card-foreground">

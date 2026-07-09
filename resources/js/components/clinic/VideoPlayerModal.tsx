@@ -179,9 +179,7 @@ export function VideoPlayerModal({
                                 onClick={togglePlay}
                                 className="absolute inset-0 flex cursor-pointer items-center justify-center"
                             >
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
-                                    <Play className="ml-0.5 h-8 w-8 text-foreground" />
-                                </div>
+                                <Play className="ml-0.5 h-12 w-12 fill-white text-white drop-shadow-lg transition-transform duration-200 hover:scale-110" />
                             </button>
                         )}
 

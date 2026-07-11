@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Admin\Http\Controllers\AdminProgramController;
 use Modules\Admin\Http\Controllers\DashboardController;
 use Modules\Admin\Http\Controllers\ExerciseController;
+use Modules\Admin\Http\Controllers\ExerciseReviewController;
 use Modules\Admin\Http\Controllers\FeatureController;
 use Modules\Admin\Http\Controllers\FeaturePlanController;
 use Modules\Admin\Http\Controllers\PlanController;
@@ -37,6 +38,9 @@ Route::prefix('admin')->middleware('auth:admin')->group(function () {
     Route::prefix('exercises')->name('admin.exercises.')->group(function () {
         Route::get('/', [ExerciseController::class, 'index'])->name('index');
         Route::get('options', [ExerciseController::class, 'options'])->name('options');
+        Route::get('pending-count', [ExerciseReviewController::class, 'pendingCount'])->name('pending-count');
+        Route::put('{id}/approve', [ExerciseReviewController::class, 'approve'])->name('approve');
+        Route::put('{id}/reject', [ExerciseReviewController::class, 'reject'])->name('reject');
         Route::get('{id}', [ExerciseController::class, 'show'])->name('show');
         Route::post('/', [ExerciseController::class, 'store'])->name('store');
         Route::put('{id}', [ExerciseController::class, 'update'])->name('update');

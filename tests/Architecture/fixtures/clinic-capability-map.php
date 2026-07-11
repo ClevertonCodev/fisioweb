@@ -6,6 +6,9 @@ return [
         'legacy_modules'       => [
             'Clinic',
         ],
+        'bounded_context_name_exceptions' => [
+            'TreatmentProgram',
+        ],
         'reserved_admin_candidates' => [
             'AdminFinance',
         ],
@@ -95,11 +98,19 @@ return [
                 'read_models',
             ],
         ],
-        'care' => [
-            'module' => 'ClinicCare',
-            'status' => 'candidate',
+        'treatment_program' => [
+            'module' => 'TreatmentProgram',
+            'status' => 'extracted',
             'owns'   => [
-                'treatment_plans',
+                'clinic_treatment_plans',
+                'clinic_treatment_plan_groups',
+                'clinic_treatment_plan_exercises',
+                'clinic_program_drafts',
+            ],
+            'routes' => [
+                '/api/clinic/treatment-plans*',
+                '/api/clinic/program-drafts*',
+                '/api/clinic/programs*',
             ],
             'collaboration' => [
                 'integration_events',

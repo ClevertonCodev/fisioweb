@@ -6,9 +6,6 @@ use Modules\Clinic\Http\Controllers\ClinicUserController;
 use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
-use Modules\Clinic\Http\Controllers\ProgramDraftController;
-use Modules\Clinic\Http\Controllers\SharedProgramController;
-use Modules\Clinic\Http\Controllers\TreatmentPlanController;
 
 Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('clinic.dashboard');
@@ -35,30 +32,12 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::delete('{id}', [PatientController::class, 'destroy'])->name('destroy');
     });
 
-    Route::prefix('treatment-plans')->name('clinic.treatment-plans.')->group(function () {
-        Route::get('/', [TreatmentPlanController::class, 'index'])->name('index');
-        Route::get('{id}/pdf', [TreatmentPlanController::class, 'downloadPdf'])->name('pdf');
-        Route::get('{id}', [TreatmentPlanController::class, 'show'])->name('show');
-        Route::post('/', [TreatmentPlanController::class, 'store'])->name('store');
-        Route::put('{id}', [TreatmentPlanController::class, 'update'])->name('update');
-        Route::delete('{id}', [TreatmentPlanController::class, 'destroy'])->name('destroy');
-        Route::post('{id}/duplicate', [TreatmentPlanController::class, 'duplicate'])->name('duplicate');
-        Route::post('{id}/to-model', [TreatmentPlanController::class, 'toModel'])->name('to-model');
-    });
-
     Route::prefix('exercises')->name('clinic.exercises.')->group(function () {
         Route::get('/', [ExerciseController::class, 'index'])->name('index');
+        Route::get('options', [ExerciseController::class, 'options'])->name('options');
+        Route::post('/', [ExerciseController::class, 'store'])->name('store');
         Route::post('{id}/favorite', [ExerciseController::class, 'toggleFavorite'])->name('favorite');
     });
 
     Route::get('favorites', [ExerciseController::class, 'favorites'])->name('clinic.favorites');
-
-    Route::prefix('program-drafts')->name('clinic.program-drafts.')->group(function () {
-        Route::get('/', [ProgramDraftController::class, 'show'])->name('show');
-        Route::put('/', [ProgramDraftController::class, 'upsert'])->name('upsert');
-        Route::delete('/', [ProgramDraftController::class, 'destroy'])->name('destroy');
-    });
-
-    Route::get('programs', [SharedProgramController::class, 'index'])->name('clinic.programs.index');
-    Route::get('programs/{id}', [SharedProgramController::class, 'show'])->name('clinic.programs.show');
 });

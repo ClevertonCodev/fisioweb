@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { ClipboardCheck, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import {
     useAdminExerciseOptions,
     useAdminExercises,
     useDeleteAdminExercise,
+    usePendingExerciseCount,
 } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { AdminExercisesTable } from '@/components/admin/exercises/AdminExercisesTable';
@@ -49,6 +50,7 @@ export default function AdminExercisesIndexPage() {
     const lastPage = exercisesData?.meta.lastPage ?? 1;
     const total = exercisesData?.meta.total ?? 0;
     const { data: options } = useAdminExerciseOptions();
+    const { data: pendingCount = 0 } = usePendingExerciseCount();
     const deleteMutation = useDeleteAdminExercise();
 
     const handleDelete = (id: number, name: string) => {
@@ -87,13 +89,32 @@ export default function AdminExercisesIndexPage() {
                         <h1 className="text-2xl font-semibold text-foreground">
                             Exercícios
                         </h1>
-                        <Button
-                            onClick={() => navigate('/admin/exercicios/novo')}
-                            className="gap-2"
-                        >
-                            <Plus className="h-4 w-4" />
-                            Novo Exercício
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    navigate('/admin/exercicios/revisar')
+                                }
+                                className="relative gap-2"
+                            >
+                                <ClipboardCheck className="h-4 w-4" />
+                                Exercícios a revisar
+                                {pendingCount > 0 && (
+                                    <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-xs font-semibold text-warning-foreground">
+                                        {pendingCount}
+                                    </span>
+                                )}
+                            </Button>
+                            <Button
+                                onClick={() =>
+                                    navigate('/admin/exercicios/novo')
+                                }
+                                className="gap-2"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Novo Exercício
+                            </Button>
+                        </div>
                     </div>
                 </header>
 

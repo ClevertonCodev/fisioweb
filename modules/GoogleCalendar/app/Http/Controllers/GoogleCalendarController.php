@@ -9,13 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
-use Modules\Clinic\Models\ClinicUser;
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 
 class GoogleCalendarController extends Controller
 {
     public function __construct(
         protected GoogleCalendarServiceInterface $service,
+        protected ClinicUserGoogleConnectionReadServiceInterface $connections,
     ) {}
 
     /** Inicia o fluxo OAuth — devolve a URL de consentimento. */
@@ -43,9 +44,8 @@ class GoogleCalendarController extends Controller
 
         try {
             $userId = (int) Crypt::decryptString($request->input('state'));
-            $user   = ClinicUser::findOrFail($userId);
 
-            $this->service->connectFromCallback($user, $request->input('code'));
+            $this->service->connectFromCallback($userId, $request->input('code'));
         } catch (\Throwable $e) {
             Log::warning('Google Calendar callback falhou', ['message' => $e->getMessage()]);
 
@@ -59,7 +59,7 @@ class GoogleCalendarController extends Controller
     public function disconnect(): JsonResponse
     {
         $user = Auth::guard('clinic')->user();
-        $this->service->disconnect($user);
+        $this->service->disconnect((int) $user->id);
 
         return response()->json(['data' => ['connected' => false]]);
     }
@@ -67,13 +67,13 @@ class GoogleCalendarController extends Controller
     /** Estado de conexão do usuário autenticado. */
     public function status(): JsonResponse
     {
-        $user = Auth::guard('clinic')->user();
+        $connection = $this->connections->findByAuthenticatedClinicUser();
 
         return response()->json([
             'data' => [
-                'connected'          => $user->isGoogleConnected(),
-                'google_calendar_id' => $user->google_calendar_id,
-                'connected_at'       => $user->google_connected_at,
+                'connected'          => $connection->connected,
+                'google_calendar_id' => $connection->calendarId,
+                'connected_at'       => $connection->connectedAt,
             ],
         ]);
     }

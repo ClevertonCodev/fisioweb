@@ -4,14 +4,14 @@ import {
     ChevronDown,
     ChevronUp,
     CirclePlus,
-    Pause,
-    Play,
+    Info,
     Search,
     Star,
     Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { VideoThumb } from '@/components/VideoThumb';
 import type { Exercise, ProgramGroup } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
 
@@ -152,8 +153,8 @@ export function StepSelectExercises({
                         className={cn(
                             'grid gap-4',
                             showSidebar
-                                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-                                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
+                                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-3'
+                                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
                         )}
                     >
                         {filtered.map((exercise) => {
@@ -362,21 +363,7 @@ function ExerciseSelectCard({
     isSelected: boolean;
     onToggleSelect: () => void;
 }) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-
-    const togglePlay = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const video = videoRef.current;
-        if (!video) return;
-        if (isPlaying) {
-            video.pause();
-            setIsPlaying(false);
-        } else {
-            video.play();
-            setIsPlaying(true);
-        }
-    };
+    const [infoOpen, setInfoOpen] = useState(false);
 
     return (
         <div
@@ -387,16 +374,11 @@ function ExerciseSelectCard({
                     : 'border-border hover:border-muted-foreground/30',
             )}
         >
-            {/* Thumbnail with play */}
-            <div className="relative aspect-video overflow-hidden bg-muted">
-                <video
-                    ref={videoRef}
-                    src={exercise.videoUrl}
-                    poster={exercise.thumbnailUrl}
-                    className="h-full w-full object-cover"
-                    onEnded={() => setIsPlaying(false)}
-                    controlsList="nodownload"
-                    playsInline
+            {/* Thumbnail with play — vídeo quadrado com respiro, igual à biblioteca */}
+            <div className="relative mx-3 mt-3 aspect-square overflow-hidden rounded-lg bg-muted">
+                <VideoThumb
+                    videoUrl={exercise.videoUrl}
+                    thumbnailUrl={exercise.thumbnailUrl}
                 />
 
                 {/* Select overlay */}
@@ -416,28 +398,6 @@ function ExerciseSelectCard({
                         <Check className="h-4 w-4 text-primary-foreground" />
                     )}
                 </button>
-
-                {/* Play button */}
-                <button
-                    onClick={togglePlay}
-                    className="absolute inset-0 flex cursor-pointer items-center justify-center"
-                >
-                    {!isPlaying && (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
-                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
-                        </div>
-                    )}
-                </button>
-                {isPlaying && (
-                    <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex cursor-pointer items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
-                    >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
-                            <Pause className="h-4 w-4 text-foreground" />
-                        </div>
-                    </button>
-                )}
 
                 {/* Favorite star */}
                 <Tooltip>
@@ -466,11 +426,40 @@ function ExerciseSelectCard({
                     </TooltipContent>
                 </Tooltip>
             </div>
-            <div className="p-2">
-                <p className="line-clamp-2 text-xs font-medium text-card-foreground">
-                    {exercise.title}
-                </p>
+            <div className="flex items-start justify-between gap-2 p-3">
+                <div className="min-w-0">
+                    <p className="line-clamp-2 text-[11px] leading-snug font-medium text-card-foreground">
+                        {exercise.title}
+                    </p>
+                    {exercise.specialty && (
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            {exercise.specialty}
+                        </p>
+                    )}
+                </div>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setInfoOpen(true);
+                            }}
+                        >
+                            <Info className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ver detalhes</TooltipContent>
+                </Tooltip>
             </div>
+
+            <VideoPlayerModal
+                exercise={exercise}
+                open={infoOpen}
+                onOpenChange={setInfoOpen}
+            />
         </div>
     );
 }

@@ -4,5 +4,6 @@ export * from './use-admin-exercises';
 export * from './use-admin-programs';
 export * from './use-admin-videos';
 export * from './use-clinics';
+export * from './use-exercise-review';
 export * from './use-features';
 export * from './use-plans';

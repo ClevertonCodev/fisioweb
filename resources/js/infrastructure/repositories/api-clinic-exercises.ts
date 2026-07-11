@@ -1,9 +1,14 @@
 import type {
     ExerciseListParams,
     ExerciseListResult,
+    ExerciseSubmitDto,
     ExercisesRepository,
 } from '@/application/clinic/ports';
-import type { Exercise, ExerciseDifficulty } from '@/domain/clinic';
+import type {
+    Exercise,
+    ExerciseDifficulty,
+    ExerciseReviewStatus,
+} from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiVideo {
@@ -32,6 +37,8 @@ interface ApiExercise {
     movement_form: string | null;
     kinetic_chain: string | null;
     is_favorite: boolean;
+    review_status: ExerciseReviewStatus | null;
+    is_own_submission: boolean;
     videos: ApiVideo[];
     created_at: string;
 }
@@ -73,6 +80,8 @@ function toEntity(raw: ApiExercise): Exercise {
         movementForm: raw.movement_form ?? '',
         duration: video?.duration ?? 0,
         isFavorite: raw.is_favorite ?? false,
+        reviewStatus: raw.review_status ?? 'approved',
+        isOwnSubmission: raw.is_own_submission ?? false,
         createdAt: raw.created_at ?? '',
     };
 }
@@ -127,5 +136,19 @@ export const apiClinicExercisesRepository: ExercisesRepository = {
             data: { exercise_id: number; is_favorite: boolean };
         }>(`/clinic/exercises/${id}/favorite`);
         return { isFavorite: data.data.is_favorite };
+    },
+
+    async submit(dto: ExerciseSubmitDto): Promise<Exercise> {
+        const { data } = await apiClient.post<{ data: ApiExercise }>(
+            '/clinic/exercises',
+            {
+                name: dto.name,
+                physio_area_id: dto.physioAreaId,
+                difficulty_level: dto.difficultyLevel,
+                description: dto.description ?? null,
+                video_id: dto.videoId,
+            },
+        );
+        return toEntity(data.data);
     },
 };

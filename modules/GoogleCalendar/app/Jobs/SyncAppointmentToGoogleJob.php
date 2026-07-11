@@ -2,14 +2,21 @@
 
 namespace Modules\GoogleCalendar\Jobs;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
-use Modules\ClinicScheduling\Models\Appointment;
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentSyncWriteServiceInterface;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
+use Modules\GoogleCalendar\Events\GoogleCalendarEventDeleted;
+use Modules\GoogleCalendar\Events\GoogleCalendarEventPushed;
 
 class SyncAppointmentToGoogleJob implements ShouldQueue
 {
@@ -23,46 +30,64 @@ class SyncAppointmentToGoogleJob implements ShouldQueue
 
     public const ACTION_DELETE = 'delete';
 
+    private const EVENT_VERSION = 1;
+
     public function __construct(
         public int $appointmentId,
         public string $action = self::ACTION_UPSERT,
         public ?string $googleEventId = null,
     ) {}
 
-    public function handle(GoogleCalendarServiceInterface $service): void
-    {
+    public function handle(
+        GoogleCalendarServiceInterface $service,
+        ClinicUserGoogleConnectionReadServiceInterface $connections,
+        AppointmentReadServiceInterface $appointments,
+        AppointmentSyncWriteServiceInterface $syncWriter,
+    ): void {
+        $appointment = $appointments->getSnapshotById($this->appointmentId);
+
+        if (is_null($appointment) || is_null($appointment->clinicUserId)) {
+            return;
+        }
+
+        $connection = $connections->findStateByUserId($appointment->clinicUserId);
+
+        if (is_null($connection) || !$connection->connected) {
+            return;
+        }
+
         // DELETE pode ocorrer após cancelamento — usa o id capturado no dispatch.
         if ($this->action === self::ACTION_DELETE) {
-            $appointment = Appointment::find($this->appointmentId);
-            $user        = $appointment?->clinicUser;
+            $googleEventId = $this->googleEventId ?: $appointment->googleEventId;
 
-            if ($user?->isGoogleConnected() && $this->googleEventId) {
-                $service->deleteAppointment($user, $this->googleEventId);
+            if (!empty($googleEventId)) {
+                $service->deleteAppointment($connection, $googleEventId);
+                $this->dispatchEvent(new GoogleCalendarEventDeleted(
+                    version: self::EVENT_VERSION,
+                    clinicUserId: $connection->clinicUserId,
+                    googleEventId: $googleEventId,
+                    occurredAt: CarbonImmutable::now(),
+                ));
             }
 
             return;
         }
 
-        $appointment = Appointment::with(['clinicUser', 'clinic'])->find($this->appointmentId);
+        $eventId = $service->pushAppointment($connection, $appointment);
 
-        if (!$appointment) {
-            return;
-        }
+        $syncWriter->recordGoogleEventId($appointment->id, $eventId, CarbonImmutable::now());
+        $this->dispatchEvent(new GoogleCalendarEventPushed(
+            version: self::EVENT_VERSION,
+            clinicUserId: $connection->clinicUserId,
+            appointmentId: $appointment->id,
+            googleEventId: $eventId,
+            occurredAt: CarbonImmutable::now(),
+        ));
+    }
 
-        $user = $appointment->clinicUser;
-
-        if (!$user || !$user->isGoogleConnected()) {
-            return;
-        }
-
-        $eventId = $service->pushAppointment($user, $appointment);
-
-        // Idempotência: registra o evento e a marca de sincronização sem
-        // disparar observers/eventos que reabririam o ciclo (anti-loop).
-        $appointment->forceFill([
-            'google_event_id' => $eventId,
-            'last_synced_at'  => now(),
-        ])->saveQuietly();
+    private function dispatchEvent(object $event): void
+    {
+        DB::afterCommit(fn () => Event::dispatch($event));
     }
 
     public function failed(\Throwable $e): void

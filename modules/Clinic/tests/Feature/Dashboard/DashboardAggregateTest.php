@@ -7,10 +7,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Queue;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\TreatmentPlan;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
+use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Tests\TestCase;
 
 class DashboardAggregateTest extends TestCase

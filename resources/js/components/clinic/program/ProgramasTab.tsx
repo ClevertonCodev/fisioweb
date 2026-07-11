@@ -1,14 +1,5 @@
-import {
-    Calendar,
-    Clock,
-    Dumbbell,
-    Maximize,
-    Pause,
-    Play,
-    Search,
-    User,
-} from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Calendar, Clock, Dumbbell, Search, User } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -24,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { VideoThumb } from '@/components/VideoThumb';
 import type { AdminProgramExercise } from '@/domain/admin';
 import type { ProgramExercise } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
@@ -39,72 +31,13 @@ interface ExerciseRowProps {
 }
 
 function ExerciseRow({ exercise, frequency }: ExerciseRowProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [showControls, setShowControls] = useState(false);
-
-    const togglePlay = useCallback(
-        (e: React.MouseEvent) => {
-            e.stopPropagation();
-            if (!videoRef.current) return;
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
-            }
-            setIsPlaying(!isPlaying);
-        },
-        [isPlaying],
-    );
-
-    const handleFullscreen = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        videoRef.current?.requestFullscreen?.();
-    }, []);
-
     return (
         <div className="flex items-center gap-4 py-3">
-            <div
-                className="group relative h-[100px] w-[180px] flex-shrink-0 cursor-pointer overflow-hidden rounded-lg"
-                onMouseEnter={() => setShowControls(true)}
-                onMouseLeave={() => setShowControls(false)}
-            >
-                <video
-                    ref={videoRef}
-                    src={exercise.videoUrl ?? undefined}
-                    poster={exercise.thumbnailUrl ?? undefined}
-                    className="h-full w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    onEnded={() => setIsPlaying(false)}
+            <div className="group relative h-[100px] w-[180px] flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted">
+                <VideoThumb
+                    videoUrl={exercise.videoUrl}
+                    thumbnailUrl={exercise.thumbnailUrl}
                 />
-                {!isPlaying && (
-                    <div
-                        className="absolute inset-0 flex items-center justify-center bg-black/20"
-                        onClick={togglePlay}
-                    >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50">
-                            <Play className="ml-0.5 h-5 w-5 fill-white text-white" />
-                        </div>
-                    </div>
-                )}
-                {isPlaying && showControls && (
-                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/60 to-transparent px-2 py-1">
-                        <button
-                            onClick={togglePlay}
-                            className="text-white hover:text-white/80"
-                        >
-                            <Pause className="h-4 w-4" />
-                        </button>
-                        <button
-                            onClick={handleFullscreen}
-                            className="text-white hover:text-white/80"
-                        >
-                            <Maximize className="h-4 w-4" />
-                        </button>
-                    </div>
-                )}
             </div>
 
             <p className="min-w-0 flex-1 font-medium text-foreground">

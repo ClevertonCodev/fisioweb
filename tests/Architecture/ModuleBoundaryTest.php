@@ -106,6 +106,77 @@ class ModuleBoundaryTest extends TestCase
         $this->assertStringNotContainsString('questionnaires', $clinicRoutes);
     }
 
+    /**
+     * @return array<int, array{file: string, import: string, reason: string}>
+     */
+    private function findTreatmentProgramViolations(): array
+    {
+        $violations = [];
+
+        foreach ($this->productionPhpFiles('modules/TreatmentProgram/app') as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+            array_push($violations, ...$this->violationsForContent($file->getPathname(), $contents, 'TreatmentProgram'));
+        }
+
+        return $violations;
+    }
+
+    public function test_treatment_program_production_code_does_not_import_private_module_internals(): void
+    {
+        $violations = $this->findTreatmentProgramViolations();
+
+        $this->assertSame([], $violations, $this->formatViolations($violations));
+    }
+
+    public function test_clinic_has_no_duplicate_treatment_program_route_definitions(): void
+    {
+        $projectRoot  = dirname(__DIR__, 2);
+        $clinicRoutes = (string) file_get_contents($projectRoot . '/modules/Clinic/routes/clinic.php');
+
+        $this->assertStringNotContainsString('treatment-plans', $clinicRoutes);
+        $this->assertStringNotContainsString('program-drafts', $clinicRoutes);
+        $this->assertStringNotContainsString("'programs'", $clinicRoutes);
+    }
+
+    public function test_treatment_program_controllers_depend_on_service_interfaces(): void
+    {
+        $controllerPath         = dirname(__DIR__, 2) . '/modules/TreatmentProgram/app/Http/Controllers';
+        $concreteDomainServices = ['TreatmentPlanService', 'ProgramDraftService', 'ProgramCatalogReadService', 'TreatmentProgramReadService'];
+        $violations             = [];
+
+        foreach ($this->productionPhpFiles($controllerPath) as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            if (!preg_match('/ServiceInterface/', $contents)) {
+                $violations[] = $file->getPathname() . ' does not reference a ServiceInterface';
+            }
+
+            foreach ($concreteDomainServices as $service) {
+                if (preg_match('/protected\s+' . $service . '\s+\$/', $contents) === 1) {
+                    $violations[] = $file->getPathname() . " injects concrete {$service} instead of its interface";
+                }
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
+    public function test_treatment_program_services_depend_on_repository_interfaces(): void
+    {
+        $servicePath = dirname(__DIR__, 2) . '/modules/TreatmentProgram/app/Services';
+        $violations  = [];
+
+        foreach ($this->productionPhpFiles($servicePath) as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            if (!preg_match('/RepositoryInterface/', $contents)) {
+                $violations[] = $file->getPathname() . ' does not reference a RepositoryInterface';
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
     public function test_clinic_questionnaire_controllers_depend_on_service_interfaces(): void
     {
         $controllerPath = dirname(__DIR__, 2) . '/modules/ClinicQuestionnaire/app/Http/Controllers';

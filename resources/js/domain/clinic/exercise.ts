@@ -1,6 +1,8 @@
 /** Exercício - contexto clínica */
 export type ExerciseDifficulty = 'facil' | 'medio' | 'dificil';
 
+export type ExerciseReviewStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Exercise {
     id: string;
     title: string;
@@ -18,6 +20,10 @@ export interface Exercise {
     movementForm: string;
     duration: number;
     isFavorite: boolean;
+    /** Status de revisão do sistema. 'approved' = visível globalmente. */
+    reviewStatus: ExerciseReviewStatus;
+    /** True quando o exercício foi enviado pela própria clínica logada. */
+    isOwnSubmission: boolean;
     createdAt: string;
 }
 

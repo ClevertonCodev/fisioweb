@@ -2,18 +2,24 @@
 
 namespace Modules\GoogleCalendar\Jobs;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Google\Service\Calendar\Event as GoogleEvent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
-use Modules\Clinic\Models\ClinicUser;
-use Modules\ClinicScheduling\Enums\AppointmentStatus;
-use Modules\ClinicScheduling\Models\Appointment;
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
+use Modules\Clinic\Contracts\Public\GoogleCalendarConnectionWriteServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentCancelFromExternalSourceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentUpsertFromExternalSourceInterface;
+use Modules\ClinicScheduling\Data\Public\AppointmentExternalEventDTO;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
+use Modules\GoogleCalendar\Events\GoogleCalendarChangesPulled;
 
 class PullGoogleCalendarJob implements ShouldQueue
 {
@@ -23,47 +29,63 @@ class PullGoogleCalendarJob implements ShouldQueue
 
     public array $backoff = [30, 60, 120];
 
+    private const EVENT_VERSION = 1;
+
     public function __construct(public int $clinicUserId) {}
 
-    public function handle(GoogleCalendarServiceInterface $service): void
-    {
-        $user = ClinicUser::find($this->clinicUserId);
+    public function handle(
+        GoogleCalendarServiceInterface $service,
+        ClinicUserGoogleConnectionReadServiceInterface $connections,
+        GoogleCalendarConnectionWriteServiceInterface $connectionWriter,
+        AppointmentReadServiceInterface $appointmentReader,
+        AppointmentUpsertFromExternalSourceInterface $appointmentUpsert,
+        AppointmentCancelFromExternalSourceInterface $appointmentCancel,
+    ): void {
+        $connection = $connections->findStateByUserId($this->clinicUserId);
 
-        if (!$user || !$user->isGoogleConnected()) {
+        if (is_null($connection) || !$connection->connected) {
             return;
         }
 
-        $result = $service->pullChanges($user);
+        $result = $service->pullChanges($connection);
 
         foreach ($result['events'] as $event) {
             /** @var GoogleEvent $event */
-            $this->applyEvent($user, $event);
+            $this->applyEvent($connection->clinicId, $connection->clinicUserId, $event, $appointmentReader, $appointmentUpsert, $appointmentCancel);
         }
 
         if (!empty($result['nextSyncToken'])) {
-            $user->forceFill(['google_sync_token' => $result['nextSyncToken']])->save();
+            $connectionWriter->storeSyncToken($connection->clinicUserId, $result['nextSyncToken']);
         }
+
+        $this->dispatchEvent(new GoogleCalendarChangesPulled(
+            version: self::EVENT_VERSION,
+            clinicUserId: $connection->clinicUserId,
+            pulledEventCount: count($result['events']),
+            occurredAt: CarbonImmutable::now(),
+        ));
     }
 
-    private function applyEvent(ClinicUser $user, GoogleEvent $event): void
-    {
+    private function applyEvent(
+        int $clinicId,
+        int $clinicUserId,
+        GoogleEvent $event,
+        AppointmentReadServiceInterface $appointmentReader,
+        AppointmentUpsertFromExternalSourceInterface $appointmentUpsert,
+        AppointmentCancelFromExternalSourceInterface $appointmentCancel,
+    ): void {
         $eventId = $event->getId();
 
-        if (!$eventId) {
+        if (empty($eventId)) {
             return;
         }
 
-        $existing = Appointment::where('clinic_id', $user->clinic_id)
-            ->where('google_event_id', $eventId)
-            ->first();
-
         // Evento removido/cancelado no Google → cancela no sistema (sem delete).
         if ($event->getStatus() === 'cancelled') {
-            if ($existing && $existing->status !== AppointmentStatus::Cancelled) {
-                $existing->forceFill([
-                    'status'         => AppointmentStatus::Cancelled,
-                    'last_synced_at' => now(),
-                ])->saveQuietly();
+            $appointmentId = $appointmentReader->findIdByExternalEventId($clinicId, $eventId);
+
+            if (!is_null($appointmentId)) {
+                $appointmentCancel->cancelFromExternalSource($appointmentId, CarbonImmutable::now());
             }
 
             return;
@@ -72,39 +94,29 @@ class PullGoogleCalendarJob implements ShouldQueue
         $start = $this->extractDateTime($event->getStart());
         $end   = $this->extractDateTime($event->getEnd());
 
-        if (!$start || !$end) {
+        if (is_null($start) || is_null($end)) {
             return; // eventos de dia inteiro sem horário não viram consulta.
         }
 
-        $payload = [
-            'title'          => $event->getSummary() ?: 'Evento Google',
-            'description'    => $event->getDescription(),
-            'location'       => $event->getLocation(),
-            'starts_at'      => $start,
-            'ends_at'        => $end,
-            'last_synced_at' => now(),
-        ];
-
-        if ($existing) {
-            // Anti-loop: saveQuietly não dispara push de volta.
-            $existing->forceFill($payload)->saveQuietly();
-
-            return;
-        }
-
-        Appointment::withoutEvents(fn () => Appointment::create(array_merge($payload, [
-            'clinic_id'       => $user->clinic_id,
-            'clinic_user_id'  => $user->id,
-            'patient_id'      => null,
-            'status'          => AppointmentStatus::Scheduled,
-            'source'          => Appointment::SOURCE_GOOGLE,
-            'google_event_id' => $eventId,
-        ])));
+        $appointmentUpsert->upsertFromExternalSource(new AppointmentExternalEventDTO(
+            clinicId: $clinicId,
+            clinicUserId: $clinicUserId,
+            patientId: null,
+            externalEventId: $eventId,
+            title: $event->getSummary() ?: 'Evento Google',
+            description: $event->getDescription(),
+            location: $event->getLocation(),
+            startsAt: $start,
+            endsAt: $end,
+            status: 'scheduled',
+            source: 'google',
+            syncedAt: CarbonImmutable::now(),
+        ));
     }
 
-    private function extractDateTime($eventDateTime): ?Carbon
+    private function extractDateTime($eventDateTime): ?CarbonImmutable
     {
-        if (!$eventDateTime) {
+        if (is_null($eventDateTime)) {
             return null;
         }
 
@@ -112,7 +124,7 @@ class PullGoogleCalendarJob implements ShouldQueue
 
         // O Google devolve o horário com offset (ex.: -03:00); normaliza para
         // UTC para casar com o armazenamento do sistema (app.timezone = UTC).
-        return $value ? Carbon::parse($value)->utc() : null;
+        return !empty($value) ? CarbonImmutable::parse($value)->utc() : null;
     }
 
     public function failed(\Throwable $e): void
@@ -121,5 +133,10 @@ class PullGoogleCalendarJob implements ShouldQueue
             'clinic_user_id' => $this->clinicUserId,
             'message'        => $e->getMessage(),
         ]);
+    }
+
+    private function dispatchEvent(object $event): void
+    {
+        DB::afterCommit(fn () => Event::dispatch($event));
     }
 }

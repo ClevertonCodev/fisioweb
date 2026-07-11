@@ -175,5 +175,46 @@ return [
                 ],
             ],
         ],
+
+        'TreatmentProgram' => [
+            'target'   => 'future_microservice',
+            'criteria' => [
+                'data_ownership' => [
+                    'status'    => 'ready',
+                    'evidence'  => 'Prescription code and clinic_treatment_*/clinic_program_drafts migrations live under modules/TreatmentProgram; Clinic reads active program counts via TreatmentProgramReadServiceInterface.',
+                    'next_step' => 'Keep future prescription migrations and writes in TreatmentProgram only.',
+                ],
+                'public_contracts' => [
+                    'status'    => 'partial',
+                    'evidence'  => 'REST contract preserved; TreatmentProgramReadServiceInterface exposes the dashboard read model; Admin ExerciseCatalog/ProgramCatalog read contracts consumed instead of Admin models.',
+                    'next_step' => 'Version public service contracts if external consumers appear.',
+                ],
+                'integration_events' => [
+                    'status'    => 'ready',
+                    'evidence'  => 'TreatmentProgram publishes seven versioned events (plan created/activated/completed/archived, draft created/updated/converted) with IDs, minimal snapshots and occurredAt.',
+                    'next_step' => 'Add consumers only through listeners in their own modules (WhatsApp activation notification already listens to TreatmentPlanActivated).',
+                ],
+                'idempotency' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'Events are in-process and do not yet require distributed deduplication.',
+                    'next_step' => 'Add event IDs and inbox deduplication before async distributed consumers.',
+                ],
+                'transaction_boundaries' => [
+                    'status'    => 'partial',
+                    'evidence'  => 'Write services centralize mutations and publish events via DB::afterCommit.',
+                    'next_step' => 'Introduce outbox publishing before service extraction.',
+                ],
+                'outbox_inbox_readiness' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'Outbox/inbox infrastructure is not required while events are local.',
+                    'next_step' => 'Add outbox, inbox, retry, dead-letter and replay tooling before extraction.',
+                ],
+                'observability' => [
+                    'status'    => 'deferred',
+                    'evidence'  => 'No module-level tracing/event-delivery dashboard exists yet.',
+                    'next_step' => 'Add structured logs, metrics and alerts before extraction.',
+                ],
+            ],
+        ],
     ],
 ];

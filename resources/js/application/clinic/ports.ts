@@ -117,12 +117,22 @@ export interface ExerciseListResult {
     currentPage: number;
 }
 
+/** DTO de envio de exercício pela clínica (camelCase, application concern). */
+export interface ExerciseSubmitDto {
+    name: string;
+    physioAreaId: number;
+    difficultyLevel: 'easy' | 'medium' | 'hard';
+    description?: string | null;
+    videoId: number;
+}
+
 export interface ExercisesRepository {
     list(): Promise<Exercise[]>;
     listPaginated(params?: ExerciseListParams): Promise<ExerciseListResult>;
     getById(id: string): Promise<Exercise | null>;
     getFilterCategories(): Promise<FilterCategory[]>;
     toggleFavorite(id: string): Promise<{ isFavorite: boolean }>;
+    submit(dto: ExerciseSubmitDto): Promise<Exercise>;
 }
 
 /** Parâmetros de listagem do calendário (camelCase, application concern). */

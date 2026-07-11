@@ -97,7 +97,7 @@ class ClinicUser extends Authenticatable implements JWTSubject
 
     public function treatmentPlans(): HasMany
     {
-        return $this->hasMany(TreatmentPlan::class);
+        return $this->hasMany(\Modules\TreatmentProgram\Models\TreatmentPlan::class);
     }
 
     public function appointments(): HasMany

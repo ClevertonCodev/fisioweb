@@ -11,24 +11,20 @@ use Modules\Clinic\Contracts\ClinicServiceInterface;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
-use Modules\Clinic\Contracts\TreatmentPlanRepositoryInterface;
-use Modules\Clinic\Contracts\TreatmentPlanServiceInterface;
+use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
+use Modules\Clinic\Contracts\Public\GoogleCalendarConnectionWriteServiceInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Clinic\Models\TreatmentPlan;
 use Modules\Clinic\Observers\ClinicObserver;
-use Modules\Clinic\Observers\TreatmentPlanObserver;
 use Modules\Clinic\Policies\ClinicUserPolicy;
 use Modules\Clinic\Policies\PatientPolicy;
-use Modules\Clinic\Policies\TreatmentPlanPolicy;
 use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
-use Modules\Clinic\Repositories\TreatmentPlanRepository;
 use Modules\Clinic\Services\ActivityLogger;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserService;
 use Modules\Clinic\Services\DashboardService;
-use Modules\Clinic\Services\TreatmentPlanService;
+use Modules\Clinic\Services\GoogleCalendarConnectionService;
 use Modules\Patient\Models\Patient;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -54,7 +50,6 @@ class ClinicServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
         Clinic::observe(ClinicObserver::class);
-        TreatmentPlan::observe(TreatmentPlanObserver::class);
 
         $this->registerPolicies();
         $this->registerGateBefore();
@@ -68,11 +63,11 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(ClinicUserServiceInterface::class, ClinicUserService::class);
         $this->app->bind(ClinicRepositoryInterface::class, ClinicRepository::class);
         $this->app->bind(ClinicServiceInterface::class, ClinicService::class);
-        $this->app->bind(TreatmentPlanRepositoryInterface::class, TreatmentPlanRepository::class);
-        $this->app->bind(TreatmentPlanServiceInterface::class, TreatmentPlanService::class);
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
+        $this->app->bind(ClinicUserGoogleConnectionReadServiceInterface::class, GoogleCalendarConnectionService::class);
+        $this->app->bind(GoogleCalendarConnectionWriteServiceInterface::class, GoogleCalendarConnectionService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
@@ -81,7 +76,6 @@ class ClinicServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Patient::class, PatientPolicy::class);
-        Gate::policy(TreatmentPlan::class, TreatmentPlanPolicy::class);
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
     }
 

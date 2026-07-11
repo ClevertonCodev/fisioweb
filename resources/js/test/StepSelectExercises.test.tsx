@@ -55,6 +55,8 @@ function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
         movementForm: '',
         duration: 30,
         isFavorite: false,
+        reviewStatus: 'approved',
+        isOwnSubmission: false,
         createdAt: '2026-01-01',
         ...overrides,
     };

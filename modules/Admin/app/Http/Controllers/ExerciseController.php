@@ -26,6 +26,7 @@ class ExerciseController extends Controller
         $filters = $request->only([
             'search', 'physio_area_id', 'physio_subarea_id',
             'body_region_id', 'difficulty_level', 'movement_form', 'is_active',
+            'review_status',
         ]);
         $perPage   = $request->integer('per_page', 15);
         $exercises = $this->exerciseService->list($filters, $perPage);

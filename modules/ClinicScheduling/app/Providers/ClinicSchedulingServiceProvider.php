@@ -6,10 +6,15 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentCancelFromExternalSourceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentSyncWriteServiceInterface;
+use Modules\ClinicScheduling\Contracts\Public\AppointmentUpsertFromExternalSourceInterface;
 use Modules\ClinicScheduling\Contracts\Public\SchedulingReadServiceInterface;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\ClinicScheduling\Policies\AppointmentPolicy;
 use Modules\ClinicScheduling\Repositories\AppointmentRepository;
+use Modules\ClinicScheduling\Services\AppointmentExternalSyncService;
 use Modules\ClinicScheduling\Services\AppointmentService;
 use Modules\ClinicScheduling\Services\SchedulingReadService;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -36,6 +41,10 @@ class ClinicSchedulingServiceProvider extends ServiceProvider
         $this->app->bind(AppointmentRepositoryInterface::class, AppointmentRepository::class);
         $this->app->bind(AppointmentServiceInterface::class, AppointmentService::class);
         $this->app->bind(SchedulingReadServiceInterface::class, SchedulingReadService::class);
+        $this->app->bind(AppointmentReadServiceInterface::class, AppointmentExternalSyncService::class);
+        $this->app->bind(AppointmentSyncWriteServiceInterface::class, AppointmentExternalSyncService::class);
+        $this->app->bind(AppointmentUpsertFromExternalSourceInterface::class, AppointmentExternalSyncService::class);
+        $this->app->bind(AppointmentCancelFromExternalSourceInterface::class, AppointmentExternalSyncService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

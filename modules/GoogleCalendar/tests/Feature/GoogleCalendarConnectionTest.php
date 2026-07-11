@@ -50,17 +50,13 @@ class GoogleCalendarConnectionTest extends TestCase
     {
         $this->mock(GoogleCalendarServiceInterface::class, function ($mock) {
             $mock->shouldReceive('connectFromCallback')->once()
-                ->andReturnUsing(function (ClinicUser $user) {
-                    $user->forceFill(['google_connected_at' => now()])->save();
-                });
+                ->with($this->user->id, 'fake-code');
         });
 
         $state = Crypt::encryptString((string) $this->user->id);
 
         $this->getJson('/api/clinic/google-calendar/callback?code=fake-code&state=' . urlencode($state))
             ->assertRedirect();
-
-        $this->assertTrue($this->user->fresh()->isGoogleConnected());
     }
 
     public function test_callback_with_error_does_not_connect(): void

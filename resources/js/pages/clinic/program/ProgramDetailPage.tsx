@@ -7,13 +7,11 @@ import {
     FileDown,
     FileText,
     MoreVertical,
-    Pause,
     Pencil,
-    Play,
     Trash2,
     User,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -47,6 +45,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { VideoThumb } from '@/components/VideoThumb';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 
 export type ClinicProgramDetailLoaderData = {
@@ -177,53 +176,13 @@ function daysUntil(iso: string | null): number | null {
 }
 
 function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-
-    const togglePlay = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const video = videoRef.current;
-        if (!video) return;
-        if (isPlaying) {
-            video.pause();
-            setIsPlaying(false);
-        } else {
-            video.play();
-            setIsPlaying(true);
-        }
-    };
-
     return (
         <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
-            <div className="relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
-                <video
-                    ref={videoRef}
-                    src={exercise.videoUrl}
-                    poster={exercise.thumbnailUrl}
-                    className="h-full w-full object-cover"
-                    onEnded={() => setIsPlaying(false)}
-                    playsInline
+            <div className="group relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                <VideoThumb
+                    videoUrl={exercise.videoUrl}
+                    thumbnailUrl={exercise.thumbnailUrl}
                 />
-                <button
-                    onClick={togglePlay}
-                    className="absolute inset-0 flex items-center justify-center"
-                >
-                    {!isPlaying && (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md transition-transform duration-200 hover:scale-110">
-                            <Play className="ml-0.5 h-4 w-4 text-foreground" />
-                        </div>
-                    )}
-                </button>
-                {isPlaying && (
-                    <button
-                        onClick={togglePlay}
-                        className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 hover:opacity-100"
-                    >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/30 bg-background/80 shadow-lg backdrop-blur-md">
-                            <Pause className="h-4 w-4 text-foreground" />
-                        </div>
-                    </button>
-                )}
             </div>
 
             <div className="flex min-w-0 flex-col gap-1">

@@ -7,6 +7,7 @@ export * from './use-assessments';
 export * from './use-cep-lookup';
 export * from './use-evolutions';
 export * from './use-exercises';
+export * from './use-submit-exercise';
 export * from './use-google-calendar';
 export * from './use-patient-files';
 export * from './use-patient-questionnaires';

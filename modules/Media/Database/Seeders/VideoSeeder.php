@@ -15,28 +15,31 @@ class VideoSeeder extends Seeder
     {
         $cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
 
+        // Chaveado por id (1 e 2) para preservar as referências do ExerciseSeeder
+        // mesmo quando os arquivos do bucket são trocados.
         $videos = [
-            [
-                'filename'          => '71c65daf-4c7c-42ca-b409-3b83ba50b0f2_1773551152.mp4',
+            1 => [
+                'filename'          => 'bf6fd593-97ff-4bc2-be31-469a5e0a6c00_1783782291.mp4',
                 'original_filename' => 'ponte-gluteo.mp4',
-                'thumbnail'         => 'e8d9f13b-0042-4371-8cf6-bb822b3f2fef_1773551154.jpeg',
+                'thumbnail'         => '31fa195c-d9f5-49e6-bb57-78da4d32b932_1783558953.png',
                 'duration'          => 45,
             ],
-            [
-                'filename'          => '229bd21a-c21a-422c-8918-5e21a1fc6330_1773552565.mp4',
+            2 => [
+                'filename'          => '7cb1e772-ea99-4564-9478-82198e60d9eb_1783558952.mp4',
                 'original_filename' => 'bird-dog.mp4',
-                'thumbnail'         => 'ea2f1521-0b40-4c69-a5e3-a014d624a120_1773552566.jpeg',
+                'thumbnail'         => '139645c7-fa38-4679-a24c-2c3113a8fecc_1783782292.jpeg',
                 'duration'          => 60,
             ],
         ];
 
-        foreach ($videos as $data) {
+        foreach ($videos as $id => $data) {
             $path          = 'videos/' . $data['filename'];
             $thumbnailPath = 'thumbnails/videos/' . $data['thumbnail'];
 
             Video::withTrashed()->updateOrCreate(
-                ['filename' => $data['filename']],
+                ['id' => $id],
                 [
+                    'filename'          => $data['filename'],
                     'original_filename' => $data['original_filename'],
                     'path'              => $path,
                     'url'               => $cdn . '/' . $path,

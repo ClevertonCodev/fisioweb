@@ -44,7 +44,10 @@ class ClinicPatientDataSeeder extends Seeder
 
         $this->cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
 
-        foreach (Clinic::all() as $clinic) {
+        // Dados clínicos de demonstração só para Performance e Premium; Start fica mínima
+        $clinics = Clinic::whereIn('email', ['clevertonsantoscodev@gmail.com', 'performance@fisioweb.local'])->get();
+
+        foreach ($clinics as $clinic) {
             $this->seedForClinic($clinic);
         }
     }

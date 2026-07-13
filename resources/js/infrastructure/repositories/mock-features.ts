@@ -4,24 +4,31 @@ import type { Feature } from '@/domain/admin';
 export const mockFeatures: Feature[] = [
     {
         id: 1,
-        key: 'video_call',
-        name: 'Vídeo',
+        key: 'agenda',
+        name: 'Agenda',
         valueIsolated: 10.0,
         type: 'bool',
     },
     {
         id: 2,
-        key: 'ai_assistant',
-        name: 'Assistente IA',
-        valueIsolated: 25.0,
+        key: 'programas_exercicios',
+        name: 'Programas e Exercícios',
+        valueIsolated: 15.0,
         type: 'bool',
     },
     {
         id: 3,
-        key: 'custom_exercises',
-        name: 'Exercícios Personalizados',
-        valueIsolated: null,
-        type: 'int',
+        key: 'financas',
+        name: 'Finanças',
+        valueIsolated: 5.0,
+        type: 'bool',
+    },
+    {
+        id: 4,
+        key: 'app',
+        name: 'App',
+        valueIsolated: 20.0,
+        type: 'bool',
     },
 ];
 
@@ -29,9 +36,10 @@ export const mockFeaturesRepository: FeaturesRepository = {
     async getCreateOptions() {
         return {
             allowed_keys: {
-                video_call: 'Vídeo',
-                ai_assistant: 'Assistente IA',
-                custom_exercises: 'Exercícios Personalizados',
+                agenda: 'Agenda',
+                programas_exercicios: 'Programas e Exercícios',
+                financas: 'Finanças',
+                app: 'App',
             },
             available_keys: {},
             types: { bool: 'Ativa/Inativa', int: 'Quantidade' },

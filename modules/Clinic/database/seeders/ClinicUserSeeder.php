@@ -8,17 +8,8 @@ use Modules\Clinic\Models\ClinicUser;
 
 class ClinicUserSeeder extends Seeder
 {
-    private const PHOTO_BASE = 'patients/photos/';
-
-    /** Fotos reais hospedadas no bucket R2 (fisioweb/patients/photos), reaproveitadas do seeder de pacientes. */
-    private const PHOTOS = [
-        '032810b7-4ba1-4d74-9243-1005b4460b69_1774066597.jpeg',
-        '6e70de13-4eeb-4afb-8f35-89d1247a361f_1780851118.jpeg',
-        '8adf7633-4538-40b7-b1b8-559e53abca4e_1774075098.jpeg',
-        'a001990a-79dd-4edd-80cd-ed5940c1271a_1776215136.jpeg',
-        'b2f0bc67-6252-47e6-8c99-ead5661130aa_1774074879.jpeg',
-        'd216b1fa-985c-4952-9290-a383f601e213_1774074338.jpeg',
-    ];
+    /** Foto real hospedada no bucket R2 (fisioweb/patients/photos), reaproveitada do seeder de pacientes. */
+    private const PHOTO = 'patients/photos/2cc94b05-8e9c-465a-b42a-6c40b473bf59_1783781535.png';
 
     /**
      * Adiciona profissionais extras para desenvolvimento/testes.
@@ -62,7 +53,7 @@ class ClinicUserSeeder extends Seeder
             ],
         ];
 
-        foreach ($extras as $index => $data) {
+        foreach ($extras as $data) {
             $user = ClinicUser::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -73,7 +64,7 @@ class ClinicUserSeeder extends Seeder
                     'role'      => $data['role'],
                     'mestre'    => $data['mestre'],
                     'status'    => ClinicUser::STATUS_ACTIVE,
-                    'photo_url' => $cdn . '/' . self::PHOTO_BASE . self::PHOTOS[$index % count(self::PHOTOS)],
+                    'photo_url' => $cdn . '/' . self::PHOTO,
                 ],
             );
 
@@ -81,14 +72,7 @@ class ClinicUserSeeder extends Seeder
             $this->command->info("Usuário {$action}: {$user->name} ({$user->email}) — senha: {$devPassword}");
         }
 
-        // Garante foto também nos usuários criados fora deste seeder (ex.: usuário mestre),
-        // deslocando o índice para não repetir as fotos já usadas nos extras
-        $offset = count($extras);
-
-        ClinicUser::whereNull('photo_url')
-            ->get()
-            ->each(fn (ClinicUser $user, int $index) => $user->update([
-                'photo_url' => $cdn . '/' . self::PHOTO_BASE . self::PHOTOS[($index + $offset) % count(self::PHOTOS)],
-            ]));
+        // Garante a foto do R2 também nos usuários criados fora deste seeder (ex.: admins do DatabaseSeeder)
+        ClinicUser::query()->update(['photo_url' => $cdn . '/' . self::PHOTO]);
     }
 }

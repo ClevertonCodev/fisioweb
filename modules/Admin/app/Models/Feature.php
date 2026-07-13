@@ -9,20 +9,19 @@ class Feature extends Model
 {
     protected $table = 'admin_features';
 
-    public const KEY_VIDEO_CALL = 'video_call';
+    public const KEY_AGENDA = 'agenda';
+
+    public const KEY_PROGRAMAS_EXERCICIOS = 'programas_exercicios';
+
+    public const KEY_FINANCAS = 'financas';
+
+    public const KEY_APP = 'app';
 
     public const ALLOWED_KEYS = [
-        self::KEY_VIDEO_CALL => 'Vídeo',
-        'teste'              => 'teste',
-        'teste2'             => 'teste2',
-        'teste3'             => 'teste3',
-        'teste4'             => 'teste4',
-        'teste5'             => 'teste5',
-        'teste6'             => 'teste6',
-        'teste7'             => 'teste7',
-        'teste8'             => 'teste8',
-        'teste9'             => 'teste9',
-        'teste10'            => 'teste10',
+        self::KEY_AGENDA               => 'Agenda',
+        self::KEY_PROGRAMAS_EXERCICIOS => 'Programas e Exercícios',
+        self::KEY_FINANCAS             => 'Finanças',
+        self::KEY_APP                  => 'App',
     ];
 
     public const TYPES = [

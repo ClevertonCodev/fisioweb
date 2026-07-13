@@ -42,7 +42,8 @@ class DashboardDemoSeeder extends Seeder
             return;
         }
 
-        $clinics = Clinic::query()->orderBy('id')->limit(2)->get();
+        // Agenda faz parte dos planos Performance e Premium; a clínica Start fica de fora
+        $clinics = Clinic::whereIn('email', ['clevertonsantoscodev@gmail.com', 'performance@fisioweb.local'])->get();
 
         foreach ($clinics as $clinic) {
             $this->seedForClinic($clinic);

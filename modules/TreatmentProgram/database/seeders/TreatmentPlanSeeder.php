@@ -19,7 +19,8 @@ class TreatmentPlanSeeder extends Seeder
             return;
         }
 
-        $clinics = Clinic::all();
+        // Programas e Exercícios fazem parte dos planos Performance e Premium; Start fica de fora
+        $clinics = Clinic::whereIn('email', ['clevertonsantoscodev@gmail.com', 'performance@fisioweb.local'])->get();
         if ($clinics->isEmpty()) {
             $this->command->warn('Nenhuma clínica encontrada. Rode DatabaseSeeder antes.');
 

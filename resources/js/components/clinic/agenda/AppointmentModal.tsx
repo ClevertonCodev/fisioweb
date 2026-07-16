@@ -68,7 +68,7 @@ interface AppointmentModalProps {
     appointment: Appointment | null;
     initialDate: Date | null;
     patients: { id: string; name: string }[];
-    clinicUsers: { id: string; name: string }[];
+    clinicUsers: { id: string; name: string; photoUrl?: string }[];
     onSubmit: (dto: AppointmentWriteDto) => Promise<void> | void;
     isSubmitting?: boolean;
     /**

@@ -1,11 +1,11 @@
 import { AgendaGoogleCalendarActions } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { STATUS_COLORS } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
 
 interface CalendarSidebarProps {
-    clinicUsers: { id: string; name: string }[];
+    clinicUsers: { id: string; name: string; photoUrl?: string }[];
     selectedUserId?: string;
     onUserChange: (id: string | undefined) => void;
 }
@@ -24,6 +24,7 @@ export function CalendarSidebar({
                 </h3>
                 <div className="space-y-1">
                     <button
+                        type="button"
                         onClick={() => onUserChange(undefined)}
                         className={cn(
                             'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
@@ -34,31 +35,44 @@ export function CalendarSidebar({
                     >
                         Todos
                     </button>
-                    {clinicUsers.map((user) => (
-                        <button
-                            key={user.id}
-                            onClick={() =>
-                                onUserChange(
+                    {/* Máx. ~5 usuários visíveis; o restante rola. */}
+                    <div className="scrollbar-thin max-h-[12.5rem] space-y-1 overflow-y-auto pr-0.5">
+                        {clinicUsers.map((user) => (
+                            <button
+                                type="button"
+                                key={user.id}
+                                onClick={() =>
+                                    onUserChange(
+                                        selectedUserId === user.id
+                                            ? undefined
+                                            : user.id,
+                                    )
+                                }
+                                className={cn(
+                                    'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                                     selectedUserId === user.id
-                                        ? undefined
-                                        : user.id,
-                                )
-                            }
-                            className={cn(
-                                'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
-                                selectedUserId === user.id
-                                    ? 'bg-accent font-medium text-accent-foreground'
-                                    : 'text-foreground hover:bg-muted',
-                            )}
-                        >
-                            <Avatar className="h-6 w-6">
-                                <AvatarFallback className="text-[10px]">
-                                    {user.name.charAt(0)}
-                                </AvatarFallback>
-                            </Avatar>
-                            <span className="truncate">{user.name}</span>
-                        </button>
-                    ))}
+                                        ? 'bg-accent font-medium text-accent-foreground'
+                                        : 'text-foreground hover:bg-muted',
+                                )}
+                            >
+                                <Avatar
+                                    key={user.photoUrl ?? 'no-photo'}
+                                    className="h-6 w-6"
+                                >
+                                    {user.photoUrl && (
+                                        <AvatarImage
+                                            src={user.photoUrl}
+                                            alt={user.name}
+                                        />
+                                    )}
+                                    <AvatarFallback className="text-[10px]">
+                                        {user.name.charAt(0)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <span className="truncate">{user.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

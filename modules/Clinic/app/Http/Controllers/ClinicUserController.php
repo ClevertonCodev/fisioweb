@@ -35,7 +35,7 @@ class ClinicUserController extends Controller
             $query->where('id', $authUser->id);
         }
 
-        $users = $query->orderBy('name')->get(['id', 'name']);
+        $users = $query->orderBy('name')->get(['id', 'name', 'photo_url']);
 
         return response()->json(['data' => $users]);
     }

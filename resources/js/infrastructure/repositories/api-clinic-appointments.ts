@@ -1,4 +1,5 @@
 import type {
+    AgendaProfessional,
     AppointmentListParams,
     AppointmentsRepository,
     AppointmentWriteDto,
@@ -9,6 +10,12 @@ import { apiClient } from '@/infrastructure/api/client';
 interface ApiNamedDto {
     id: number;
     name: string;
+}
+
+interface ApiProfessionalDto {
+    id: number;
+    name: string;
+    photo_url?: string | null;
 }
 
 interface ApiAppointmentDto {
@@ -75,11 +82,15 @@ export const apiClinicAppointmentsRepository: AppointmentsRepository = {
         return data.data.map(toEntity);
     },
 
-    async getClinicUsers(): Promise<{ id: string; name: string }[]> {
-        const { data } = await apiClient.get<{ data: ApiNamedDto[] }>(
+    async getClinicUsers(): Promise<AgendaProfessional[]> {
+        const { data } = await apiClient.get<{ data: ApiProfessionalDto[] }>(
             '/clinic/users/professionals',
         );
-        return data.data.map((u) => ({ id: String(u.id), name: u.name }));
+        return data.data.map((u) => ({
+            id: String(u.id),
+            name: u.name,
+            photoUrl: u.photo_url ?? undefined,
+        }));
     },
 
     async getAgendaPatients(): Promise<{ id: string; name: string }[]> {

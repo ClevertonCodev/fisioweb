@@ -155,9 +155,16 @@ export interface AppointmentWriteDto {
     endsAt: string;
 }
 
+/** Profissional listável na agenda (filtro / select). */
+export interface AgendaProfessional {
+    id: string;
+    name: string;
+    photoUrl?: string;
+}
+
 export interface AppointmentsRepository {
     list(params?: AppointmentListParams): Promise<Appointment[]>;
-    getClinicUsers(): Promise<{ id: string; name: string }[]>;
+    getClinicUsers(): Promise<AgendaProfessional[]>;
     getAgendaPatients(): Promise<{ id: string; name: string }[]>;
     create(dto: AppointmentWriteDto): Promise<Appointment>;
     update(id: string, dto: AppointmentWriteDto): Promise<Appointment>;

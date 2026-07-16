@@ -46,15 +46,24 @@ class ProfessionalsListTest extends TestCase
 
     public function test_admin_sees_admin_and_physiotherapists_as_professionals(): void
     {
+        $this->physio->forceFill([
+            'photo_url' => 'https://cdn.example.com/physio.jpg',
+        ])->save();
+
         $response = $this->actingAs($this->admin, 'clinic')
             ->getJson('/api/clinic/users/professionals')
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonStructure(['data' => [['id', 'name', 'photo_url']]]);
 
         $ids = collect($response->json('data'))->pluck('id')->all();
 
         $this->assertContains($this->admin->id, $ids);
         $this->assertContains($this->physio->id, $ids);
         $this->assertNotContains($this->secretary->id, $ids);
+        $this->assertSame(
+            'https://cdn.example.com/physio.jpg',
+            collect($response->json('data'))->firstWhere('id', $this->physio->id)['photo_url'],
+        );
     }
 
     public function test_secretary_sees_admin_and_physiotherapists_as_professionals(): void

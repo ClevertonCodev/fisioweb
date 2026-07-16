@@ -1,4 +1,13 @@
-import { CheckCircle2, Loader2, Mail, MessageCircle } from 'lucide-react';
+import {
+    Check,
+    CheckCircle2,
+    Copy,
+    Loader2,
+    Mail,
+    MessageCircle,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -71,8 +80,26 @@ export function ProgramShareDialog({
     onOpenChange,
     onDone,
 }: ProgramShareDialogProps) {
+    const [copied, setCopied] = useState(false);
     const whatsappUrl = program ? buildWhatsAppUrl(program) : null;
     const mailtoUrl = program ? buildMailtoUrl(program) : null;
+    const shareUrl = program?.shareUrl ?? null;
+
+    useEffect(() => {
+        if (!open) setCopied(false);
+    }, [open]);
+
+    async function handleCopyLink() {
+        if (!shareUrl) return;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            toast.success('Link copiado');
+            window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error('Não foi possível copiar o link');
+        }
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,11 +233,27 @@ export function ProgramShareDialog({
                                 )}
                             </Button>
 
-                            {program.shareUrl && (
-                                <p className="break-all rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-                                    {program.shareUrl}
-                                </p>
-                            )}
+                            <Button
+                                variant="outline"
+                                className="h-12 w-full cursor-pointer justify-start gap-3"
+                                disabled={!shareUrl}
+                                onClick={handleCopyLink}
+                            >
+                                {copied ? (
+                                    <Check className="h-5 w-5 text-primary" />
+                                ) : (
+                                    <Copy className="h-5 w-5 text-primary" />
+                                )}
+                                <span className="flex flex-col items-start">
+                                    <span className="text-sm font-medium">
+                                        {copied ? 'Link copiado' : 'Copiar link'}
+                                    </span>
+                                    <span className="max-w-full truncate text-xs font-normal text-muted-foreground">
+                                        {shareUrl ??
+                                            'Link de acesso indisponível'}
+                                    </span>
+                                </span>
+                            </Button>
                         </div>
 
                         <DialogFooter>

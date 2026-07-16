@@ -1,8 +1,7 @@
-import { Activity, Eye, EyeOff } from 'lucide-react';
+import { Activity, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import loginBg from '@/assets/login-bg.jpg';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,28 +35,47 @@ export default function ClinicLoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col md:flex-row">
-            {/* Left side - Form */}
-            <div className="flex w-full flex-col items-center justify-center bg-card px-8 py-12 md:w-[440px] lg:w-[480px]">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-12">
+            {/* Decorative background */}
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background"
+            />
+            <div
+                aria-hidden
+                className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl"
+            />
+            <div
+                aria-hidden
+                className="pointer-events-none absolute -right-40 -bottom-40 h-[28rem] w-[28rem] rounded-full bg-primary/10 blur-3xl"
+            />
+
+            {/* Card */}
+            <div className="relative z-10 w-full max-w-md">
                 {/* Logo */}
-                <div className="mb-8 flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
-                        <Activity className="h-5 w-5 text-primary" />
+                <div className="mb-8 flex flex-col items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-sm shadow-primary/10">
+                        <Activity className="h-7 w-7 text-primary" />
                     </div>
-                    <span className="text-xl font-bold tracking-tight text-foreground">
+                    <span className="text-2xl font-bold tracking-tight text-foreground">
                         FisioClinic
                     </span>
                 </div>
 
-                <h1 className="mb-8 text-2xl font-bold text-foreground">
-                    Entrar
-                </h1>
+                <div className="rounded-3xl border border-border/60 bg-card/80 p-8 shadow-xl shadow-primary/5 backdrop-blur-sm sm:p-10">
+                    <div className="mb-6 text-center">
+                        <h1 className="text-2xl font-bold text-foreground">
+                            Bem-vindo de volta
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Acesse o painel da sua clínica
+                        </p>
+                    </div>
 
-                {/* Social buttons */}
-                <div className="flex w-full max-w-[340px] items-center gap-3">
+                    {/* Google */}
                     <Button
                         variant="outline"
-                        className="h-12 flex-1 gap-2 rounded-xl text-sm font-medium"
+                        className="h-12 w-full gap-2 rounded-xl text-sm font-medium"
                         type="button"
                     >
                         <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -78,102 +96,90 @@ export default function ClinicLoginPage() {
                                 fill="#EA4335"
                             />
                         </svg>
-                        Google
+                        Continuar com Google
                     </Button>
 
-                    <Button
-                        variant="outline"
-                        className="h-12 flex-1 gap-2 rounded-xl text-sm font-medium"
-                        type="button"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="h-5 w-5"
-                            fill="#1877F2"
-                        >
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                        Meta
-                    </Button>
-                </div>
-
-                <div className="my-4 flex w-full max-w-[340px] items-center gap-3">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase">
-                        ou
-                    </span>
-                    <div className="h-px flex-1 bg-border" />
-                </div>
-
-                {/* Form */}
-                <form
-                    onSubmit={handleLogin}
-                    className="w-full max-w-[340px] space-y-4"
-                >
-                    {error && (
-                        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                            {error}
-                        </div>
-                    )}
-
-                    <div>
-                        <Input
-                            type="email"
-                            placeholder="E-mail"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="h-12 rounded-xl border-border bg-background text-base placeholder:text-muted-foreground/60"
-                            required
-                        />
+                    <div className="my-6 flex items-center gap-3">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs font-medium text-muted-foreground uppercase">
+                            ou
+                        </span>
+                        <div className="h-px flex-1 bg-border" />
                     </div>
 
-                    <div className="relative">
-                        <Input
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="Senha"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-12 rounded-xl border-border bg-background pr-12 text-base placeholder:text-muted-foreground/60"
-                            required
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                            ) : (
-                                <Eye className="h-4 w-4" />
-                            )}
-                        </button>
-                    </div>
-
-                    <Button
-                        type="submit"
-                        className="h-12 w-full rounded-xl text-base font-semibold"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center gap-2">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-                                Entrando...
+                    {/* Form */}
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        {error && (
+                            <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                                {error}
                             </div>
-                        ) : (
-                            'Acessar'
                         )}
-                    </Button>
-                </form>
 
-                <button
-                    type="button"
-                    onClick={() => navigate('/clinica/recuperar-senha')}
-                    className="mt-4 text-sm font-medium text-primary transition-colors hover:text-primary/80"
-                >
-                    Esqueci minha senha
-                </button>
+                        <div className="relative">
+                            <Mail className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type="email"
+                                placeholder="E-mail"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="h-12 rounded-xl border-border bg-background pl-11 text-base placeholder:text-muted-foreground/60"
+                                required
+                            />
+                        </div>
 
-                <div className="mt-8 space-y-1 text-center">
+                        <div className="relative">
+                            <Lock className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="Senha"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="h-12 rounded-xl border-border bg-background px-11 text-base placeholder:text-muted-foreground/60"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute top-1/2 right-4 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4" />
+                                ) : (
+                                    <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    navigate('/clinica/recuperar-senha')
+                                }
+                                className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                            >
+                                Esqueci minha senha
+                            </button>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            className="h-12 w-full rounded-xl text-base font-semibold"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                                    Entrando...
+                                </div>
+                            ) : (
+                                'Acessar'
+                            )}
+                        </Button>
+                    </form>
+                </div>
+
+                <div className="mt-6 space-y-1 text-center">
                     <p className="text-sm text-muted-foreground">
                         Não possui uma conta?{' '}
                         <button className="font-semibold text-primary transition-colors hover:text-primary/80">
@@ -185,40 +191,6 @@ export default function ClinicLoginPage() {
                         <button className="font-semibold text-primary transition-colors hover:text-primary/80">
                             Falar com suporte
                         </button>
-                    </p>
-                </div>
-            </div>
-
-            {/* Right side - Hero */}
-            <div className="relative hidden flex-1 items-center justify-center overflow-hidden md:flex">
-                <img
-                    src={loginBg}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-primary/60" />
-
-                <div className="relative z-10 max-w-xl px-12 text-center">
-                    <h2 className="mb-6 font-serif text-4xl font-bold text-primary-foreground italic lg:text-5xl">
-                        Você sempre à frente
-                    </h2>
-
-                    {/* Avatars row */}
-                    <div className="mb-3 flex items-center justify-center gap-1">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div
-                                key={i}
-                                className="-ml-2 h-10 w-10 rounded-full border-2 border-primary-foreground/40 bg-primary-foreground/20 first:ml-0"
-                            />
-                        ))}
-                        <span className="ml-3 text-sm font-semibold text-primary-foreground">
-                            +20.000 profissionais da saúde
-                        </span>
-                    </div>
-
-                    <p className="mt-4 text-base text-primary-foreground/90">
-                        Facilite sua vida. Tenha todas as ferramentas que
-                        precisa em um só lugar!
                     </p>
                 </div>
             </div>

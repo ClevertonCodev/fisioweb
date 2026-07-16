@@ -58,6 +58,7 @@ function makeProgram(overrides: Partial<Program> = {}): Program {
         patientPhotoUrl: null,
         professionalId: null,
         professionalName: 'Dr. Ricardo Silva',
+        professionalPhotoUrl: null,
         exerciseCount: 2,
         startDate: '2026-01-01',
         endDate: '2026-06-30',

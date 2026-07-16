@@ -47,7 +47,11 @@ interface ApiTreatmentPlan {
     title: string;
     patient_id: number | null;
     patient?: { id: number; name: string; photo_url?: string | null } | null;
-    clinic_user?: { id: number; name: string } | null;
+    clinic_user?: {
+        id: number;
+        name: string;
+        photo_url?: string | null;
+    } | null;
     message: string | null;
     start_date: string | null;
     end_date: string | null;
@@ -114,6 +118,7 @@ function toEntity(raw: ApiTreatmentPlan): Program {
         patientPhotoUrl: raw.patient?.photo_url ?? null,
         professionalId: raw.clinic_user?.id ? String(raw.clinic_user.id) : null,
         professionalName: raw.clinic_user?.name ?? null,
+        professionalPhotoUrl: raw.clinic_user?.photo_url ?? null,
         exerciseCount,
         startDate: raw.start_date ?? '',
         endDate: raw.end_date ?? null,

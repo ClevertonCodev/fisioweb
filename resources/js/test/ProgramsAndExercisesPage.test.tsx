@@ -59,6 +59,7 @@ function baseProgram(overrides: Partial<Program> = {}): Program {
         patientPhotoUrl: null,
         professionalId: '1',
         professionalName: 'Profissional Base',
+        professionalPhotoUrl: null,
         exerciseCount: 5,
         startDate: '2026-01-01',
         endDate: '2026-12-31',

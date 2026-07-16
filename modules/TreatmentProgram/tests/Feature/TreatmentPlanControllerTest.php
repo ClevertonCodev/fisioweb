@@ -89,6 +89,10 @@ class TreatmentPlanControllerTest extends TestCase
 
     public function test_index_includes_exercises_count_clinic_user_patient_photo_and_engagement(): void
     {
+        $this->clinicUser->update([
+            'photo_url' => 'https://cdn.example.com/physio.jpg',
+        ]);
+
         $exercise = Exercise::create([
             'name'           => 'Exercício Listagem',
             'physio_area_id' => $this->physioArea->id,
@@ -139,6 +143,7 @@ class TreatmentPlanControllerTest extends TestCase
             ->assertJsonPath('data.data.0.patient.photo_url', 'https://cdn.example.com/patient.jpg')
             ->assertJsonPath('data.data.0.clinic_user.id', $this->clinicUser->id)
             ->assertJsonPath('data.data.0.clinic_user.name', $this->clinicUser->name)
+            ->assertJsonPath('data.data.0.clinic_user.photo_url', 'https://cdn.example.com/physio.jpg')
             ->assertJsonPath('data.data.0.patient_completed_count', 4);
 
         $this->assertNotNull($response->json('data.data.0.patient_viewed_at'));

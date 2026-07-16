@@ -638,7 +638,24 @@ export default function ProgramHistoryTab() {
                                     {/* Profissional */}
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <Avatar className="h-7 w-7">
+                                            <Avatar
+                                                key={
+                                                    program.professionalPhotoUrl ??
+                                                    'no-photo'
+                                                }
+                                                className="h-7 w-7"
+                                            >
+                                                {program.professionalPhotoUrl && (
+                                                    <AvatarImage
+                                                        src={
+                                                            program.professionalPhotoUrl
+                                                        }
+                                                        alt={
+                                                            program.professionalName ??
+                                                            ''
+                                                        }
+                                                    />
+                                                )}
                                                 <AvatarFallback className="bg-muted text-xs text-muted-foreground">
                                                     {firstLetter(
                                                         program.professionalName,
@@ -806,7 +823,24 @@ export default function ProgramHistoryTab() {
                                         {/* Linha 3: profissional + validade */}
                                         <div className="mt-2 ml-12 flex flex-wrap items-start justify-between gap-2">
                                             <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6 shrink-0">
+                                                <Avatar
+                                                    key={
+                                                        program.professionalPhotoUrl ??
+                                                        'no-photo'
+                                                    }
+                                                    className="h-6 w-6 shrink-0"
+                                                >
+                                                    {program.professionalPhotoUrl && (
+                                                        <AvatarImage
+                                                            src={
+                                                                program.professionalPhotoUrl
+                                                            }
+                                                            alt={
+                                                                program.professionalName ??
+                                                                ''
+                                                            }
+                                                        />
+                                                    )}
                                                     <AvatarFallback className="bg-muted text-xs text-muted-foreground">
                                                         {firstLetter(
                                                             program.professionalName,

@@ -33,6 +33,7 @@ export interface Program {
     patientPhotoUrl: string | null;
     professionalId: string | null;
     professionalName: string | null;
+    professionalPhotoUrl: string | null;
     exerciseCount: number;
     startDate: string;
     endDate: string | null;

@@ -17,6 +17,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from '@/components/ui/sheet';
+import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
@@ -61,6 +67,7 @@ export function StepSelectExercises({
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
         new Set(),
     );
+    const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
     const gridRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -110,6 +117,10 @@ export function StepSelectExercises({
         ? totalGroupExercises > 0 || groups.length > 0
         : selectedExercises.length > 0;
 
+    const selectedCount = hasGroups
+        ? totalGroupExercises
+        : selectedIds.length;
+
     const toggleGroupCollapse = (groupId: string) => {
         setCollapsedGroups((prev) => {
             const next = new Set(prev);
@@ -119,13 +130,42 @@ export function StepSelectExercises({
         });
     };
 
+    const selectedList = (
+        <SelectedExercisesList
+            hasGroups={hasGroups}
+            groups={groups}
+            selectedExercises={selectedExercises}
+            collapsedGroups={collapsedGroups}
+            targetGroupId={targetGroupId}
+            onToggleCollapse={toggleGroupCollapse}
+            onRemove={onRemove}
+            onRemoveFromGroup={onRemoveFromGroup}
+            onSetTargetGroup={onSetTargetGroup}
+        />
+    );
+
+    const selectedHeader = hasGroups ? (
+        <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <ArrowRight className="h-4 w-4 shrink-0" />
+            {selectedCount} exercício
+            {selectedCount !== 1 ? 's' : ''} selecionado
+            {selectedCount !== 1 ? 's' : ''}
+        </span>
+    ) : (
+        <span className="text-sm font-medium text-foreground">
+            {selectedCount} exercício
+            {selectedCount !== 1 ? 's' : ''} selecionado
+            {selectedCount !== 1 ? 's' : ''}
+        </span>
+    );
+
     return (
-        <div className="flex h-full">
+        <div className="flex h-full min-w-0 overflow-hidden">
             {/* Main - exercise grid */}
             <div className="flex min-w-0 flex-1 flex-col">
                 {/* Search & filters */}
-                <div className="flex items-center gap-3 border-b border-border px-6 py-4">
-                    <div className="relative max-w-sm flex-1">
+                <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
+                    <div className="relative min-w-0 flex-1 basis-full sm:basis-auto sm:max-w-sm">
                         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar"
@@ -138,7 +178,8 @@ export function StepSelectExercises({
                         variant={showFavorites ? 'secondary' : 'outline'}
                         size="sm"
                         onClick={() => setShowFavorites(!showFavorites)}
-                        className="gap-2"
+                        className="cursor-pointer gap-2"
+                        aria-label="Favoritos"
                     >
                         <Star
                             className={cn(
@@ -146,18 +187,22 @@ export function StepSelectExercises({
                                 showFavorites && 'fill-warning text-warning',
                             )}
                         />
-                        Favoritos
+                        <span className="hidden sm:inline">Favoritos</span>
                     </Button>
                 </div>
 
                 {/* Grid */}
-                <div ref={gridRef} className="flex-1 overflow-auto p-6">
+                <div
+                    ref={gridRef}
+                    className={cn(
+                        'flex-1 overflow-auto p-4 sm:p-6',
+                        showSidebar && 'pb-24 md:pb-6',
+                    )}
+                >
                     <div
                         className={cn(
-                            'grid gap-4',
-                            showSidebar
-                                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-3'
-                                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+                            'grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4',
+                            showSidebar ? 'lg:grid-cols-3' : 'lg:grid-cols-4',
                         )}
                     >
                         {isLoading
@@ -189,179 +234,224 @@ export function StepSelectExercises({
                 </div>
             </div>
 
-            {/* Right sidebar */}
+            {/* Desktop sidebar */}
             {showSidebar && (
-                <div className="flex w-80 flex-shrink-0 flex-col border-l border-border bg-card">
-                    {/* Header */}
+                <div className="hidden w-80 flex-shrink-0 flex-col border-l border-border bg-card md:flex">
                     <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-                        {hasGroups ? (
-                            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                                <ArrowRight className="h-4 w-4" />
-                                {totalGroupExercises} exercício
-                                {totalGroupExercises !== 1 ? 's' : ''}{' '}
-                                selecionado
-                                {totalGroupExercises !== 1 ? 's' : ''}
-                            </span>
-                        ) : (
-                            <span className="text-sm font-medium text-foreground">
-                                {selectedIds.length} exercício
-                                {selectedIds.length !== 1 ? 's' : ''}{' '}
-                                selecionado
-                                {selectedIds.length !== 1 ? 's' : ''}
-                            </span>
-                        )}
+                        {selectedHeader}
                     </div>
-
-                    <div className="flex-1 overflow-auto">
-                        {hasGroups ? (
-                            /* Grouped sidebar */
-                            <div className="p-2">
-                                {groups.map((group) => {
-                                    const isCollapsed = collapsedGroups.has(
-                                        group.id,
-                                    );
-                                    const isTarget = targetGroupId === group.id;
-                                    return (
-                                        <div key={group.id} className="mb-4">
-                                            {/* Group header */}
-                                            <div className="flex items-center gap-2 px-2 py-1">
-                                                <span className="text-sm font-semibold text-foreground">
-                                                    {group.name}
-                                                </span>
-                                                <Badge className="flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs">
-                                                    {group.exercises.length}
-                                                </Badge>
-                                                <div className="flex-1" />
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6"
-                                                    onClick={() =>
-                                                        toggleGroupCollapse(
-                                                            group.id,
-                                                        )
-                                                    }
-                                                >
-                                                    {isCollapsed ? (
-                                                        <ChevronDown className="h-3 w-3" />
-                                                    ) : (
-                                                        <ChevronUp className="h-3 w-3" />
-                                                    )}
-                                                </Button>
-                                            </div>
-
-                                            {!isCollapsed && (
-                                                <>
-                                                    {group.exercises.map(
-                                                        (ex) => (
-                                                            <div
-                                                                key={ex.id}
-                                                                className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
-                                                            >
-                                                                <div className="h-14 w-24 flex-shrink-0 overflow-hidden rounded bg-muted">
-                                                                    <img
-                                                                        src={
-                                                                            ex.thumbnailUrl
-                                                                        }
-                                                                        alt={
-                                                                            ex.title
-                                                                        }
-                                                                        className="h-full w-full object-cover"
-                                                                    />
-                                                                </div>
-                                                                <p className="line-clamp-2 flex-1 text-xs font-medium text-foreground">
-                                                                    {ex.title}
-                                                                </p>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
-                                                                    onClick={(
-                                                                        e,
-                                                                    ) => {
-                                                                        e.stopPropagation();
-                                                                        onRemoveFromGroup(
-                                                                            group.id,
-                                                                            ex.id,
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        ),
-                                                    )}
-
-                                                    {/* Add exercises to this group */}
-                                                    <button
-                                                        onClick={() =>
-                                                            onSetTargetGroup(
-                                                                group.id,
-                                                            )
-                                                        }
-                                                        className={cn(
-                                                            'mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed py-3 text-xs transition-colors',
-                                                            isTarget
-                                                                ? 'border-primary bg-primary/5 text-primary'
-                                                                : 'border-border text-muted-foreground hover:border-muted-foreground hover:text-foreground',
-                                                        )}
-                                                    >
-                                                        <CirclePlus className="h-4 w-4" />
-                                                        <span>
-                                                            Adicionar exercícios
-                                                            nesse grupo
-                                                        </span>
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            /* Flat sidebar (no groups yet) */
-                            <div className="space-y-1 p-2">
-                                {selectedExercises.map((ex) => (
-                                    <div
-                                        key={ex.id}
-                                        className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
-                                    >
-                                        <div className="h-14 w-24 flex-shrink-0 overflow-hidden rounded bg-muted">
-                                            <img
-                                                src={
-                                                    ex.thumbnailUrl ?? undefined
-                                                }
-                                                alt={ex.title}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </div>
-                                        <p className="line-clamp-2 flex-1 text-xs font-medium text-foreground">
-                                            {ex.title}
-                                        </p>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-destructive"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onRemove(ex.id);
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
+                    <div className="flex-1 overflow-auto">{selectedList}</div>
                     <div className="border-t border-border p-4">
-                        <Button className="w-full" onClick={onNext}>
+                        <Button
+                            className="w-full cursor-pointer"
+                            onClick={onNext}
+                        >
                             Avançar
                         </Button>
                     </div>
                 </div>
             )}
+
+            {/* Mobile: sticky bar + sheet with selected list */}
+            {showSidebar && (
+                <>
+                    <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 p-3 backdrop-blur md:hidden">
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                className="min-w-0 flex-1 cursor-pointer gap-2"
+                                onClick={() => setMobileSheetOpen(true)}
+                            >
+                                <span className="truncate">
+                                    {selectedCount} selecionado
+                                    {selectedCount !== 1 ? 's' : ''}
+                                </span>
+                                <ChevronUp className="h-4 w-4 shrink-0" />
+                            </Button>
+                            <Button
+                                className="shrink-0 cursor-pointer px-6"
+                                onClick={onNext}
+                            >
+                                Avançar
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Sheet
+                        open={mobileSheetOpen}
+                        onOpenChange={setMobileSheetOpen}
+                    >
+                        <SheetContent
+                            side="bottom"
+                            className="flex h-[85vh] flex-col gap-0 p-0"
+                        >
+                            <SheetHeader className="border-b border-border px-4 py-4 text-left">
+                                <SheetTitle className="pr-8 text-base font-medium">
+                                    {selectedHeader}
+                                </SheetTitle>
+                            </SheetHeader>
+                            <div className="min-h-0 flex-1 overflow-auto">
+                                {selectedList}
+                            </div>
+                            <div className="border-t border-border p-4">
+                                <Button
+                                    className="w-full cursor-pointer"
+                                    onClick={() => {
+                                        setMobileSheetOpen(false);
+                                        onNext();
+                                    }}
+                                >
+                                    Avançar
+                                </Button>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </>
+            )}
+        </div>
+    );
+}
+
+function SelectedExercisesList({
+    hasGroups,
+    groups,
+    selectedExercises,
+    collapsedGroups,
+    targetGroupId,
+    onToggleCollapse,
+    onRemove,
+    onRemoveFromGroup,
+    onSetTargetGroup,
+}: {
+    hasGroups: boolean;
+    groups: ProgramGroup[];
+    selectedExercises: Exercise[];
+    collapsedGroups: Set<string>;
+    targetGroupId: string | null;
+    onToggleCollapse: (groupId: string) => void;
+    onRemove: (exerciseId: string) => void;
+    onRemoveFromGroup: (groupId: string, exerciseId: string) => void;
+    onSetTargetGroup: (groupId: string) => void;
+}) {
+    if (hasGroups) {
+        return (
+            <div className="p-2">
+                {groups.map((group) => {
+                    const isCollapsed = collapsedGroups.has(group.id);
+                    const isTarget = targetGroupId === group.id;
+                    return (
+                        <div key={group.id} className="mb-4">
+                            <div className="flex items-center gap-2 px-2 py-1">
+                                <span className="text-sm font-semibold text-foreground">
+                                    {group.name}
+                                </span>
+                                <Badge className="flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs">
+                                    {group.exercises.length}
+                                </Badge>
+                                <div className="flex-1" />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 cursor-pointer"
+                                    onClick={() => onToggleCollapse(group.id)}
+                                >
+                                    {isCollapsed ? (
+                                        <ChevronDown className="h-3 w-3" />
+                                    ) : (
+                                        <ChevronUp className="h-3 w-3" />
+                                    )}
+                                </Button>
+                            </div>
+
+                            {!isCollapsed && (
+                                <>
+                                    {group.exercises.map((ex) => (
+                                        <div
+                                            key={ex.id}
+                                            className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
+                                        >
+                                            <div className="h-14 w-20 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-24">
+                                                <img
+                                                    src={ex.thumbnailUrl}
+                                                    alt={ex.title}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            </div>
+                                            <p className="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-foreground">
+                                                {ex.title}
+                                            </p>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 flex-shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onRemoveFromGroup(
+                                                        group.id,
+                                                        ex.id,
+                                                    );
+                                                }}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+
+                                    <button
+                                        onClick={() =>
+                                            onSetTargetGroup(group.id)
+                                        }
+                                        className={cn(
+                                            'mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed py-3 text-xs transition-colors',
+                                            isTarget
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-border text-muted-foreground hover:border-muted-foreground hover:text-foreground',
+                                        )}
+                                    >
+                                        <CirclePlus className="h-4 w-4" />
+                                        <span>
+                                            Adicionar exercícios nesse grupo
+                                        </span>
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-1 p-2">
+            {selectedExercises.map((ex) => (
+                <div
+                    key={ex.id}
+                    className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
+                >
+                    <div className="h-14 w-20 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-24">
+                        <img
+                            src={ex.thumbnailUrl ?? undefined}
+                            alt={ex.title}
+                            className="h-full w-full object-cover"
+                        />
+                    </div>
+                    <p className="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-foreground">
+                        {ex.title}
+                    </p>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 flex-shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onRemove(ex.id);
+                        }}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            ))}
         </div>
     );
 }
@@ -386,14 +476,12 @@ function ExerciseSelectCard({
                     : 'border-border hover:border-muted-foreground/30',
             )}
         >
-            {/* Thumbnail with play — vídeo quadrado com respiro, igual à biblioteca */}
-            <div className="relative mx-3 mt-3 aspect-square overflow-hidden rounded-lg bg-muted">
+            <div className="relative mx-2 mt-2 aspect-square overflow-hidden rounded-lg bg-muted sm:mx-3 sm:mt-3">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}
                 />
 
-                {/* Select overlay */}
                 <button
                     onClick={onToggleSelect}
                     className="absolute top-2 left-2 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 transition-colors"
@@ -411,7 +499,6 @@ function ExerciseSelectCard({
                     )}
                 </button>
 
-                {/* Favorite star */}
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button
@@ -438,13 +525,13 @@ function ExerciseSelectCard({
                     </TooltipContent>
                 </Tooltip>
             </div>
-            <div className="flex items-start justify-between gap-2 p-3">
+            <div className="flex items-start justify-between gap-1 p-2 sm:gap-2 sm:p-3">
                 <div className="min-w-0">
                     <p className="line-clamp-2 text-[11px] leading-snug font-medium text-card-foreground">
                         {exercise.title}
                     </p>
                     {exercise.specialty && (
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
                             {exercise.specialty}
                         </p>
                     )}

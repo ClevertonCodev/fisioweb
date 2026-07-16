@@ -97,7 +97,7 @@ export function EditExercisePanel({
     };
 
     return (
-        <div className="flex h-full w-80 flex-col border-l border-border bg-card">
+        <div className="fixed inset-0 z-30 flex h-full w-full flex-col border-border bg-card md:static md:inset-auto md:z-auto md:w-80 md:border-l">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <h3 className="text-sm font-semibold text-foreground">
                     Editar exercício
@@ -105,7 +105,7 @@ export function EditExercisePanel({
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-7 w-7 cursor-pointer"
                     onClick={onClose}
                 >
                     <X className="h-4 w-4" />

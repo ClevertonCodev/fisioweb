@@ -242,7 +242,10 @@ describe('StepSelectExercises — seleção flat (sem grupos)', () => {
         const exercises = [makeExercise({ id: '1', title: 'Agachamento' })];
         renderStep({ exercises, selectedIds: ['1'], onNext });
 
-        await user.click(screen.getByRole('button', { name: /avançar/i }));
+        const nextButtons = screen.getAllByRole('button', {
+            name: /avançar/i,
+        });
+        await user.click(nextButtons[0]);
 
         expect(onNext).toHaveBeenCalledOnce();
     });

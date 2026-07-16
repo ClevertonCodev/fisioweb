@@ -130,7 +130,6 @@ function toField(raw: ApiAssessmentFieldDto): AssessmentField {
         ? {
               min: raw.config.min,
               max: raw.config.max,
-              // normalize the two key variants used across seeders
               minLabel: raw.config.min_label ?? raw.config.label_min,
               maxLabel: raw.config.max_label ?? raw.config.label_max,
               unit: raw.config.unit,

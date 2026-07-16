@@ -277,9 +277,7 @@ describe('StepConfigureExercises — remover exercício', () => {
 
         // Encontrar o botão trash na row do exercício "Agachamento"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         const trashBtn = Array.from(rowButtons).find((btn) =>
             btn.className.includes('destructive'),
@@ -307,11 +305,9 @@ describe('StepConfigureExercises — duplicar exercício', () => {
 
         // Encontrar o botão de duplicar na row do exercício
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
-        // Ordem dos botões na row: play(video), Settings2, Trash2, Copy
+        // Ordem dos botões na row: Settings2, Trash2, Copy
         // O último botão é Copy (duplicar exercício)
         const allRowButtons = Array.from(rowButtons);
         const copyBtn = allRowButtons[allRowButtons.length - 1];
@@ -344,9 +340,7 @@ describe('StepConfigureExercises — colapsar grupo', () => {
         // Header do grupo com 1 grupo: EditableName, Badge, Copy(grupo), Chevron
         // (sem Trash porque só 1 grupo)
         const groupNameBtn = screen.getByText('Grupo A');
-        const groupHeader = groupNameBtn.closest(
-            '[class*="flex items-center gap-2"]',
-        );
+        const groupHeader = groupNameBtn.closest('[class*="gap-1.5"]');
         const headerButtons = groupHeader?.querySelectorAll('button') ?? [];
         const chevronBtn = Array.from(headerButtons).pop();
 
@@ -364,7 +358,9 @@ describe('StepConfigureExercises — navegação', () => {
         const user = userEvent.setup();
         const { onBack } = renderStep([makeGroup({ id: 'g1' })]);
 
-        await user.click(screen.getByRole('button', { name: /^voltar$/i }));
+        await user.click(
+            screen.getAllByRole('button', { name: /^voltar$/i })[0],
+        );
 
         expect(onBack).toHaveBeenCalledOnce();
     });
@@ -373,7 +369,9 @@ describe('StepConfigureExercises — navegação', () => {
         const user = userEvent.setup();
         const { onNext } = renderStep([makeGroup({ id: 'g1' })]);
 
-        await user.click(screen.getByRole('button', { name: /avançar/i }));
+        await user.click(
+            screen.getAllByRole('button', { name: /avançar/i })[0],
+        );
 
         expect(onNext).toHaveBeenCalledOnce();
     });
@@ -425,9 +423,7 @@ describe('StepConfigureExercises — editar exercício', () => {
 
         // O botão configurar (Settings2) na row tem variant="default"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         // Encontrar o botão com a classe do variant default (bg-primary)
         const configBtn = Array.from(rowButtons).find(

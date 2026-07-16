@@ -253,14 +253,14 @@ export function StepConfigureExercises({
         : null;
 
     return (
-        <div className="flex h-full min-w-0 flex-1 flex-col">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
             {/* Header with progress */}
-            <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">
+            <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="shrink-0 text-sm text-muted-foreground">
                         {configuredCount} de {totalExercises} editados
                     </span>
-                    <div className="h-2 w-40 overflow-hidden rounded-full bg-muted">
+                    <div className="h-2 min-w-0 max-w-40 flex-1 overflow-hidden rounded-full bg-muted">
                         <div
                             className="h-full rounded-full bg-primary transition-all"
                             style={{
@@ -269,18 +269,28 @@ export function StepConfigureExercises({
                         />
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={onBack}>
+                <div className="hidden shrink-0 gap-2 sm:flex">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={onBack}
+                    >
                         Voltar
                     </Button>
-                    <Button size="sm" onClick={onNext}>
+                    <Button
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={onNext}
+                    >
                         Avançar
                     </Button>
                 </div>
             </div>
 
             {/* Groups */}
-            <ScrollArea className="flex-1 p-6">
+            <ScrollArea className="flex-1">
+                <div className="p-4 pb-24 sm:p-6 sm:pb-6">
                 {/* Add new group */}
                 <button
                     onClick={addGroup}
@@ -305,16 +315,18 @@ export function StepConfigureExercises({
                             return (
                                 <div key={group.id} className="space-y-2">
                                     {/* Group header */}
-                                    <div className="flex items-center gap-2">
-                                        <EditableGroupName
-                                            name={group.name}
-                                            onRename={(n) =>
-                                                renameGroup(group.id, n)
-                                            }
-                                        />
+                                    <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                                        <div className="min-w-0 truncate">
+                                            <EditableGroupName
+                                                name={group.name}
+                                                onRename={(n) =>
+                                                    renameGroup(group.id, n)
+                                                }
+                                            />
+                                        </div>
                                         <Badge
                                             variant="secondary"
-                                            className="text-xs"
+                                            className="shrink-0 text-xs"
                                         >
                                             {group.exercises.length}
                                         </Badge>
@@ -324,7 +336,7 @@ export function StepConfigureExercises({
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-8 w-8"
+                                                    className="h-8 w-8 shrink-0 cursor-pointer"
                                                     onClick={() =>
                                                         duplicateGroup(group.id)
                                                     }
@@ -342,7 +354,7 @@ export function StepConfigureExercises({
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                                        className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
                                                         onClick={() =>
                                                             deleteGroup(
                                                                 group.id,
@@ -360,7 +372,7 @@ export function StepConfigureExercises({
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8"
+                                            className="h-8 w-8 shrink-0 cursor-pointer"
                                             onClick={() =>
                                                 toggleGroup(group.id)
                                             }
@@ -459,7 +471,22 @@ export function StepConfigureExercises({
                         Adicionar exercícios
                     </span>
                 </button>
+                </div>
             </ScrollArea>
+
+            {/* Mobile actions */}
+            <div className="fixed inset-x-0 bottom-0 z-20 flex gap-2 border-t border-border bg-card/95 p-3 backdrop-blur sm:hidden">
+                <Button
+                    variant="outline"
+                    className="flex-1 cursor-pointer"
+                    onClick={onBack}
+                >
+                    Voltar
+                </Button>
+                <Button className="flex-1 cursor-pointer" onClick={onNext}>
+                    Avançar
+                </Button>
+            </div>
         </div>
     );
 }
@@ -552,7 +579,7 @@ function SortableExerciseRow({
             ref={setNodeRef}
             style={style}
             className={cn(
-                'flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow',
+                'flex items-center gap-2 rounded-lg border border-border bg-card p-3 transition-shadow sm:gap-4 sm:p-4',
                 isDragging && 'relative z-50 opacity-30',
             )}
         >
@@ -565,7 +592,7 @@ function SortableExerciseRow({
             </div>
 
             {/* Thumbnail with play */}
-            <div className="group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+            <div className="group relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted sm:h-20 sm:w-28">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}
@@ -574,16 +601,16 @@ function SortableExerciseRow({
 
             {/* Info */}
             <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">
+                <p className="line-clamp-2 text-sm font-medium text-foreground">
                     {exercise.title}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:mt-1">
                     {formatFrequency(exercise)}
                 </p>
             </div>
 
             {/* Actions */}
-            <div className="flex flex-shrink-0 items-center gap-1">
+            <div className="flex flex-shrink-0 items-center gap-0.5 sm:gap-1">
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button

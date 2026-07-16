@@ -372,8 +372,8 @@ export default function ProgramNewPage() {
         <ClinicLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="px-6 py-4">
-                        <div className="flex items-center gap-4">
+                    <div className="px-4 py-3 sm:px-6 sm:py-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -394,20 +394,20 @@ export default function ProgramNewPage() {
                                         setStep(2);
                                     }
                                 }}
-                                className="gap-1 text-muted-foreground hover:text-foreground"
+                                className="cursor-pointer gap-1 text-muted-foreground hover:text-foreground"
                             >
                                 <ArrowLeft className="h-4 w-4" />
                                 Voltar
                             </Button>
                         </div>
-                        <h1 className="mt-2 text-xl font-semibold text-foreground">
+                        <h1 className="mt-2 text-lg font-semibold text-foreground sm:text-xl">
                             {STEP_LABELS[step]}
                         </h1>
                     </div>
                 </header>
 
                 {hasDraft && draft && (
-                    <div className="flex items-center justify-between border-b border-border bg-muted px-6 py-3 text-sm">
+                    <div className="flex flex-col gap-2 border-b border-border bg-muted px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
                         <span className="text-muted-foreground">
                             Rascunho salvo às{' '}
                             {new Date(draft.savedAt).toLocaleTimeString(
@@ -422,6 +422,7 @@ export default function ProgramNewPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className="cursor-pointer"
                                 onClick={() => {
                                     const d = restoreDraft();
                                     if (d) handleRestoreDraft(d);
@@ -432,6 +433,7 @@ export default function ProgramNewPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className="cursor-pointer"
                                 onClick={clearDraft}
                             >
                                 Descartar
@@ -487,17 +489,19 @@ export default function ProgramNewPage() {
                     )}
 
                     {step === 4 && (
-                        <StepProgramDetails
-                            groups={groups}
-                            initialTitle={initialTitle}
-                            initialMessage={initialMessage}
-                            onBack={() => setStep(2)}
-                            onSave={handleSaveProgram}
-                            isSaving={
-                                createProgram.isPending ||
-                                updateProgram.isPending
-                            }
-                        />
+                        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                            <StepProgramDetails
+                                groups={groups}
+                                initialTitle={initialTitle}
+                                initialMessage={initialMessage}
+                                onBack={() => setStep(2)}
+                                onSave={handleSaveProgram}
+                                isSaving={
+                                    createProgram.isPending ||
+                                    updateProgram.isPending
+                                }
+                            />
+                        </div>
                     )}
                 </div>
             </div>

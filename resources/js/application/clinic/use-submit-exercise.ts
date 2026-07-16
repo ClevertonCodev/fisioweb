@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
+import { uploadAndSyncClinicVideoReferenceImages } from '@/application/clinic/upload-video-reference-images';
 import { apiClient } from '@/infrastructure/api/client';
 import {
     apiClinicExercisesRepository,
@@ -84,6 +85,8 @@ export interface SubmitExerciseInput {
     description?: string | null;
     videoFile: File;
     thumbnailFile?: File | null;
+    /** Até 2 imagens de referência para o PDF (opcional). */
+    referenceImages?: (File | { file?: File } | null | undefined)[];
     duration?: number;
 }
 
@@ -191,6 +194,14 @@ export function useSubmitExercise() {
                 description: input.description,
                 videoId: presigned.video_id,
             });
+
+            const refs = (input.referenceImages ?? []).filter(Boolean);
+            if (refs.length > 0) {
+                await uploadAndSyncClinicVideoReferenceImages(
+                    presigned.video_id,
+                    input.referenceImages ?? [],
+                );
+            }
 
             setStatus('completed');
             abortRef.current = null;

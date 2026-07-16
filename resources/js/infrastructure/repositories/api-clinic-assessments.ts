@@ -116,6 +116,15 @@ function toFieldOption(
     return { id: raw.id, label: raw.label, sortOrder: raw.sort_order };
 }
 
+function normalizeFieldType(
+    rawType: string,
+): AssessmentField['fieldType'] {
+    if (rawType === 'checkbox_multiple') {
+        return 'checkbox';
+    }
+    return rawType as AssessmentField['fieldType'];
+}
+
 function toField(raw: ApiAssessmentFieldDto): AssessmentField {
     const config = raw.config
         ? {
@@ -130,7 +139,7 @@ function toField(raw: ApiAssessmentFieldDto): AssessmentField {
     return {
         id: raw.id,
         label: raw.label,
-        fieldType: raw.field_type as AssessmentField['fieldType'],
+        fieldType: normalizeFieldType(raw.field_type),
         required: raw.required,
         sortOrder: raw.sort_order,
         config,

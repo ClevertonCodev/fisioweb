@@ -7,6 +7,8 @@ use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
 use Modules\Admin\Models\PhysioArea;
 use Modules\Admin\Models\User as AdminUser;
+use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\ClinicUser;
 use Modules\Media\Models\Video;
 use Tests\TestCase;
 
@@ -87,5 +89,40 @@ class VideoReferenceImagesTest extends TestCase
             ->assertOk();
 
         $this->assertSame(0, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
+    }
+
+    public function test_clinic_user_can_sync_reference_images_to_own_exercise(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create([
+            'clinic_id' => $clinic->id,
+            'role'      => ClinicUser::ROLE_ADMIN,
+        ]);
+        $area  = PhysioArea::create(['name' => 'Área Clínica Ref']);
+        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+
+        $exercise = Exercise::create([
+            'name'                         => 'Envio clínica',
+            'physio_area_id'               => $area->id,
+            'clinic_id'                    => $clinic->id,
+            'submitted_by_clinic_user_id'  => $user->id,
+            'review_status'                => Exercise::REVIEW_PENDING,
+            'is_active'                    => true,
+        ]);
+        $exercise->videos()->attach($video->id);
+
+        $paths = [
+            'thumbnails/videos/clinic-ref-1.jpeg',
+            'thumbnails/videos/clinic-ref-2.png',
+        ];
+
+        $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => $paths,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
+
+        $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
     }
 }

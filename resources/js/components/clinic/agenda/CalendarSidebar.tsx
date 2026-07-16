@@ -1,3 +1,4 @@
+import { AgendaGoogleCalendarActions } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { STATUS_COLORS } from '@/domain/clinic';
@@ -25,7 +26,7 @@ export function CalendarSidebar({
                     <button
                         onClick={() => onUserChange(undefined)}
                         className={cn(
-                            'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                            'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                             !selectedUserId
                                 ? 'bg-accent font-medium text-accent-foreground'
                                 : 'text-foreground hover:bg-muted',
@@ -44,7 +45,7 @@ export function CalendarSidebar({
                                 )
                             }
                             className={cn(
-                                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
+                                'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors',
                                 selectedUserId === user.id
                                     ? 'bg-accent font-medium text-accent-foreground'
                                     : 'text-foreground hover:bg-muted',
@@ -82,6 +83,10 @@ export function CalendarSidebar({
                     ))}
                 </div>
             </div>
+
+            <Separator />
+
+            <AgendaGoogleCalendarActions />
         </div>
     );
 }

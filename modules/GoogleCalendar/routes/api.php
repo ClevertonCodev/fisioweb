@@ -10,6 +10,7 @@ Route::prefix('clinic/google-calendar')->name('clinic.google-calendar.')->group(
     Route::middleware(['auth:clinic', 'clinic.guard'])->group(function () {
         Route::get('connect', [GoogleCalendarController::class, 'connect'])->name('connect');
         Route::get('status', [GoogleCalendarController::class, 'status'])->name('status');
+        Route::post('pull', [GoogleCalendarController::class, 'pull'])->name('pull');
         Route::delete('/', [GoogleCalendarController::class, 'disconnect'])->name('disconnect');
     });
 });

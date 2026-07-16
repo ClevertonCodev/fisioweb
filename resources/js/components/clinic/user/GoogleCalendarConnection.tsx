@@ -76,7 +76,9 @@ export function GoogleCalendarConnection() {
                 ) : (
                     <Button
                         type="button"
-                        onClick={() => connectMutation.mutate()}
+                        onClick={() =>
+                            connectMutation.mutate('/clinica/usuarios')
+                        }
                         disabled={connectMutation.isPending}
                     >
                         <CalendarCheck className="h-4 w-4" />

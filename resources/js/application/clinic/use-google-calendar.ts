@@ -17,7 +17,7 @@ export function useGoogleCalendarStatus(enabled = true) {
 /** Redireciona o navegador para o consentimento OAuth do Google. */
 export function useConnectGoogleCalendar() {
     return useMutation({
-        mutationFn: () => repository.getAuthUrl(),
+        mutationFn: (returnTo?: string) => repository.getAuthUrl(returnTo),
         onSuccess: (url) => {
             window.location.href = url;
         },
@@ -30,6 +30,19 @@ export function useDisconnectGoogleCalendar() {
     return useMutation({
         mutationFn: () => repository.disconnect(),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+        },
+    });
+}
+
+/** Sincroniza agora a agenda local com o Google Calendar do usuário. */
+export function usePullGoogleCalendar() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => repository.pullNow(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['appointments', 'list'] });
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
     });

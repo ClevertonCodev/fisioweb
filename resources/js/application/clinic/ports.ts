@@ -232,6 +232,8 @@ export interface ProgramsRepository {
     toModel(id: string): Promise<Program>;
     update(id: string, dto: ProgramWriteDto): Promise<Program>;
     destroy(id: string): Promise<void>;
+    /** PDF binário para abrir em nova aba (GET autenticado). */
+    fetchPdfBlob(id: string): Promise<Blob>;
 }
 
 export interface AssessmentAnswerWriteDto {

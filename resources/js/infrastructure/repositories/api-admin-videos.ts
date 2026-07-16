@@ -139,4 +139,12 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     async destroy(id) {
         await apiClient.delete(`${BASE}/${id}`);
     },
+
+    async syncReferenceImages(videoId, paths) {
+        const { data } = await apiClient.put<{ data: unknown }>(
+            `${BASE}/${videoId}/reference-images`,
+            { reference_image_paths: paths },
+        );
+        return mapVideo((data as { data: Record<string, unknown> }).data);
+    },
 };

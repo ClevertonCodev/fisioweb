@@ -235,4 +235,12 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
     async destroy(id) {
         await apiClient.delete(`/clinic/treatment-plans/${id}`);
     },
+
+    async fetchPdfBlob(id) {
+        const res = await apiClient.get<Blob>(
+            `/clinic/treatment-plans/${id}/pdf`,
+            { responseType: 'blob' },
+        );
+        return res.data;
+    },
 };

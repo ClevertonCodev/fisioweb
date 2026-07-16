@@ -50,4 +50,10 @@ interface VideoServiceInterface
     ): array;
 
     public function getAvailableForExercise(): Collection;
+
+    /**
+     * @param  list<string>  $referenceImagePaths  paths R2 (máx. 2)
+     * @return array<string, mixed>
+     */
+    public function syncReferenceImages(int $videoId, array $referenceImagePaths): array;
 }

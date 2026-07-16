@@ -14,7 +14,9 @@ import {
     useAdminVideo,
     useUpdateAdminVideo,
 } from '@/application/admin/use-admin-videos';
+import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminVideoReferenceImageFields } from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +60,8 @@ export default function AdminVideoEditPage() {
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] = useState<File | null>(null);
+    const [referenceImage2, setReferenceImage2] = useState<File | null>(null);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -140,6 +144,13 @@ export default function AdminVideoEditPage() {
                 thumbnail_path: thumbnailPath,
             });
 
+            if (referenceImage1 || referenceImage2) {
+                await uploadAndSyncVideoReferenceImages(videoId, [
+                    referenceImage1,
+                    referenceImage2,
+                ]);
+            }
+
             toast.success('Vídeo atualizado.');
             navigate('/admin/videos');
         } catch (err) {
@@ -155,6 +166,8 @@ export default function AdminVideoEditPage() {
         duration,
         updateVideo,
         navigate,
+        referenceImage1,
+        referenceImage2,
     ]);
 
     if (loadingVideo || !videoId) {
@@ -298,6 +311,13 @@ export default function AdminVideoEditPage() {
                                     )}
                                 </div>
                             </div>
+
+                            <AdminVideoReferenceImageFields
+                                referenceImage1={referenceImage1}
+                                referenceImage2={referenceImage2}
+                                onReferenceImage1Change={setReferenceImage1}
+                                onReferenceImage2Change={setReferenceImage2}
+                            />
 
                             {error && (
                                 <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">

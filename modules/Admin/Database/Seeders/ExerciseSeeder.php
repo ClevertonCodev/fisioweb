@@ -5,12 +5,30 @@ namespace Modules\Admin\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\Admin\Models\BodyRegion;
 use Modules\Admin\Models\Exercise;
+use Modules\Admin\Models\ExerciseMedia;
 use Modules\Admin\Models\PhysioArea;
 use Modules\Admin\Models\PhysioSubarea;
 use Modules\Media\Models\Video;
 
 class ExerciseSeeder extends Seeder
 {
+    /**
+     * Imagens de referência do PDF (mesmos arquivos já no R2 / VideoSeeder).
+     * Usa admin_exercise_media existente — sem migration nova.
+     */
+    private const REFERENCE_IMAGES = [
+        [
+            'file'     => '139645c7-fa38-4679-a24c-2c3113a8fecc_1783782292.jpeg',
+            'mime'     => 'image/jpeg',
+            'filename' => 'referencia-1.jpeg',
+        ],
+        [
+            'file'     => '31fa195c-d9f5-49e6-bb57-78da4d32b932_1783558953.png',
+            'mime'     => 'image/png',
+            'filename' => 'referencia-2.png',
+        ],
+    ];
+
     public function run(): void
     {
         $adminId   = \Modules\Admin\Models\User::first()?->id ?? 1;
@@ -240,9 +258,34 @@ class ExerciseSeeder extends Seeder
                 ->all();
 
             $exercise->videos()->syncWithoutDetaching($videoIds);
+            $this->seedReferenceImages($exercise);
         }
 
         $this->seedPendingClinicSubmission();
+    }
+
+    private function seedReferenceImages(Exercise $exercise): void
+    {
+        $cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
+
+        foreach (self::REFERENCE_IMAGES as $index => $image) {
+            $path = 'thumbnails/videos/' . $image['file'];
+
+            ExerciseMedia::updateOrCreate(
+                [
+                    'exercise_id' => $exercise->id,
+                    'sort_order'  => $index,
+                    'type'        => ExerciseMedia::TYPE_IMAGE,
+                ],
+                [
+                    'file_path'         => $path,
+                    'cdn_url'           => $cdn . '/' . $path,
+                    'original_filename' => $image['filename'],
+                    'mime_type'         => $image['mime'],
+                    'size'              => 102400,
+                ]
+            );
+        }
     }
 
     private function seedPendingClinicSubmission(): void
@@ -275,5 +318,6 @@ class ExerciseSeeder extends Seeder
             ->all();
 
         $exercise->videos()->syncWithoutDetaching($videoIds);
+        $this->seedReferenceImages($exercise);
     }
 }

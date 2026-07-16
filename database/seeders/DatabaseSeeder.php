@@ -42,6 +42,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name'     => 'Clínica Cleverton',
                 'document' => '85628325023',
+                'slug'     => 'clinica-cleverton',
                 'plan_id'  => $plans['Premium'],
             ]
         );
@@ -75,6 +76,7 @@ class DatabaseSeeder extends Seeder
                 'name'     => 'Clínica Start',
                 'email'    => 'start@fisioweb.local',
                 'document' => '72686859040',
+                'slug'     => 'clinica-start',
                 'plan'     => 'Start',
                 'admin'    => 'Admin Start',
             ],
@@ -82,6 +84,7 @@ class DatabaseSeeder extends Seeder
                 'name'     => 'Clínica Performance',
                 'email'    => 'performance@fisioweb.local',
                 'document' => '74760866000137',
+                'slug'     => 'clinica-performance',
                 'plan'     => 'Performance',
                 'admin'    => 'Admin Performance',
             ],
@@ -93,6 +96,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'name'     => $data['name'],
                     'document' => $data['document'],
+                    'slug'     => $data['slug'],
                     'plan_id'  => $plans[$data['plan']],
                 ]
             );

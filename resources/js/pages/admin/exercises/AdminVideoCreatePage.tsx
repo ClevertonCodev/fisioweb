@@ -9,9 +9,12 @@ import {
 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { usePresignedUpload } from '@/application/admin/use-admin-videos';
+import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminVideoReferenceImageFields } from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +29,8 @@ export default function AdminVideoCreatePage() {
         usePresignedUpload();
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] = useState<File | null>(null);
+    const [referenceImage2, setReferenceImage2] = useState<File | null>(null);
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [dragOver, setDragOver] = useState(false);
@@ -58,13 +63,37 @@ export default function AdminVideoCreatePage() {
         [handleVideoSelect],
     );
 
-    const handleSubmitUpload = useCallback(() => {
+    const handleSubmitUpload = useCallback(async () => {
         if (!videoFile) return;
-        upload(videoFile, thumbnailFile ?? undefined, {
+        const confirmed = await upload(videoFile, thumbnailFile ?? undefined, {
             original_filename: originalFilename.trim() || undefined,
             duration: duration.trim() ? parseInt(duration, 10) : undefined,
         });
-    }, [upload, videoFile, thumbnailFile, originalFilename, duration]);
+        if (!confirmed) return;
+        if (referenceImage1 || referenceImage2) {
+            try {
+                await uploadAndSyncVideoReferenceImages(
+                    confirmed.id,
+                    [referenceImage1, referenceImage2],
+                    { isNewVideo: true },
+                );
+            } catch (err) {
+                toast.error(
+                    err instanceof Error
+                        ? err.message
+                        : 'Vídeo enviado, mas falha ao salvar imagens de referência.',
+                );
+            }
+        }
+    }, [
+        upload,
+        videoFile,
+        thumbnailFile,
+        referenceImage1,
+        referenceImage2,
+        originalFilename,
+        duration,
+    ]);
 
     const clearVideo = useCallback(() => {
         setVideoFile(null);
@@ -327,6 +356,13 @@ export default function AdminVideoCreatePage() {
                                         )}
                                     </div>
                                 </div>
+
+                                <AdminVideoReferenceImageFields
+                                    referenceImage1={referenceImage1}
+                                    referenceImage2={referenceImage2}
+                                    onReferenceImage1Change={setReferenceImage1}
+                                    onReferenceImage2Change={setReferenceImage2}
+                                />
 
                                 <div>
                                     <Label htmlFor="duration">

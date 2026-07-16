@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { downloadProgramPdf } from '@/application/clinic/download-program-pdf';
 import { formatProgramClinicalRecordText } from '@/application/clinic/format-program-clinical-record-text';
 import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
 import {
@@ -202,7 +203,10 @@ function ProgramActions({
                     <FileText className="h-4 w-4" />
                     Texto para prontuário
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled className="cursor-not-allowed gap-2">
+                <DropdownMenuItem
+                    onClick={() => downloadProgramPdf(program.id)}
+                    className="cursor-pointer gap-2"
+                >
                     <FileDown className="h-4 w-4" />
                     Baixar PDF
                 </DropdownMenuItem>

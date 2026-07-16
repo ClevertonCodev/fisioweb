@@ -251,6 +251,14 @@ export interface AdminVideosRepository {
             thumbnail_path?: string;
         },
     ): Promise<AdminVideo>;
+    /**
+     * Persiste até 2 paths R2 já enviados via presigned (PUT …/reference-images).
+     * Requer backend T024.
+     */
+    syncReferenceImages(
+        videoId: number,
+        paths: string[],
+    ): Promise<AdminVideo>;
     destroy(id: number): Promise<void>;
 }
 

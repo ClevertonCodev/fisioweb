@@ -5,479 +5,558 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ $plan->title }}</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* Vedius reference margins */
+        @page { margin: 18mm 16mm 22mm 16mm; }
 
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 10px;
-            color: #1a1a1a;
-            background: #ffffff;
-            line-height: 1.5;
-        }
-
-        .header {
-            padding: 20px 30px 16px;
-            border-bottom: 2px solid #0d9488;
-        }
-
-        .header-table {
-            width: 100%;
-        }
-
-        .avatar-circle {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background-color: #0d9488;
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            line-height: 52px;
-            display: inline-block;
-        }
-
-        .clinic-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #0f172a;
-            margin-bottom: 3px;
-        }
-
-        .clinic-meta {
-            font-size: 9px;
-            color: #475569;
-            margin-bottom: 2px;
-        }
-
-        .clinic-badge {
-            background-color: #f0fdfa;
-            border: 1px solid #99f6e4;
-            border-radius: 6px;
-            padding: 8px 12px;
-            text-align: center;
-            font-size: 9px;
-            color: #0d9488;
-        }
-
-        .clinic-badge-name {
-            font-size: 11px;
-            font-weight: bold;
-            color: #0f172a;
-            display: block;
-        }
-
-        .plan-header {
-            padding: 20px 30px 0;
-        }
-
-        .plan-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #0f172a;
-            margin-bottom: 4px;
-        }
-
-        .plan-patient {
-            font-size: 11px;
-            color: #64748b;
-            margin-bottom: 16px;
-        }
-
-        .meta-box {
-            margin: 0 30px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .meta-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .meta-cell {
-            padding: 12px 16px;
-            vertical-align: top;
-            width: 50%;
-        }
-
-        .meta-cell-right {
-            border-left: 1px solid #e2e8f0;
-        }
-
-        .meta-label {
-            font-size: 9px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 3px;
-        }
-
-        .meta-value {
-            font-size: 13px;
-            font-weight: bold;
-            color: #0f172a;
-        }
-
-        .meta-sub {
-            font-size: 9px;
-            color: #64748b;
-            margin-top: 1px;
-        }
-
-        .notes-box {
-            margin: 0 30px 20px;
-            background: #fffbeb;
-            border-left: 3px solid #f59e0b;
-            border-radius: 0 6px 6px 0;
-            padding: 10px 14px;
-        }
-
-        .notes-label {
-            font-size: 9px;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #92400e;
-            margin-bottom: 4px;
-            letter-spacing: 0.05em;
-        }
-
-        .notes-text {
-            font-size: 10px;
-            color: #78350f;
-            line-height: 1.6;
-        }
-
-        .section-title {
-            margin: 8px 30px 12px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #0d9488;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            border-bottom: 1px solid #ccfbf1;
-            padding-bottom: 6px;
-        }
-
-        .group-name {
-            margin: 16px 30px 8px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #0f172a;
-            background: #f8fafc;
-            border-left: 3px solid #0d9488;
-            padding: 6px 10px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .exercise-card {
-            margin: 0 30px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-            page-break-inside: avoid;
-        }
-
-        .exercise-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .exercise-thumb-cell {
-            width: 110px;
-            vertical-align: top;
-            padding: 0;
-        }
-
-        .exercise-thumb {
-            width: 110px;
-            height: 110px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .exercise-thumb-placeholder {
-            width: 110px;
-            height: 110px;
-            background: #f1f5f9;
-            text-align: center;
-            line-height: 110px;
-            font-size: 32px;
-            color: #94a3b8;
-            display: block;
-        }
-
-        .exercise-content-cell {
-            vertical-align: top;
-            padding: 12px 14px;
-        }
-
-        .exercise-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: #0f172a;
-            margin-bottom: 5px;
-        }
-
-        .exercise-description {
-            font-size: 9px;
-            color: #475569;
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-
-        .exercise-stats {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .stat-cell {
-            vertical-align: top;
-            padding-right: 12px;
-            width: 25%;
-        }
-
-        .stat-label {
-            font-size: 8px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 1px;
-        }
-
-        .stat-value {
-            font-size: 11px;
-            font-weight: bold;
-            color: #0d9488;
-        }
-
-        .exercise-notes {
-            margin-top: 8px;
-            font-size: 9px;
-            color: #64748b;
-            font-style: italic;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 6px;
+            font-size: 14px;
+            color: #192840;
+            line-height: 1.4;
         }
 
         .footer {
-            margin-top: 24px;
-            padding: 12px 30px;
-            border-top: 1px solid #e2e8f0;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: -16mm;
             text-align: center;
-            font-size: 8px;
-            color: #94a3b8;
+            font-size: 10px;
+            color: #6d7a8e;
+        }
+
+        /* —— Capa —— */
+        .cover { page-break-after: always; }
+
+        .cover-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 50px;
+        }
+
+        .cover-header td { vertical-align: top; }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            display: block;
+            border-radius: 4px;
+        }
+
+        .avatar-fallback {
+            width: 100px;
+            height: 100px;
+            background: #192840;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 100px;
+            border-radius: 4px;
+        }
+
+        .resp-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #192840;
+            margin: 0 0 6px 16px;
+        }
+
+        .resp-line {
+            font-size: 12px;
+            color: #192840;
+            margin: 0 0 4px 16px;
+        }
+
+        .resp-contact {
+            font-size: 12px;
+            color: #192840;
+            margin: 12px 0 0 16px;
+        }
+
+        .resp-contact span { margin-right: 18px; }
+
+        .qr-wrap { text-align: center; width: 140px; }
+        .qr-wrap img { width: 120px; height: 120px; display: block; margin: 0 auto 6px; }
+        .qr-wrap span { font-size: 10px; color: #6d7a8e; }
+
+        .cover-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #192840;
+            line-height: 1.25;
+            margin: 0 0 16px;
+        }
+
+        .cover-patient {
+            font-size: 14px;
+            color: #6d7a8e;
+            margin-bottom: 40px;
+        }
+
+        .meta {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 46px;
+        }
+
+        .meta td { vertical-align: top; padding-right: 32px; }
+
+        .meta-label {
+            font-size: 11px;
+            color: #6d7a8e;
+            margin-bottom: 6px;
+        }
+
+        .meta-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #192840;
+        }
+
+        .meta-days {
+            font-size: 14px;
+            color: #96a0b0;
+            padding-left: 12px;
+        }
+
+        .notes-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: #192840;
+            margin-bottom: 10px;
+        }
+
+        .notes-text {
+            font-size: 14px;
+            color: #192840;
+            line-height: 1.5;
+        }
+
+        /* —— Exercícios (1 por página, como Vedius) —— */
+        .ex-page {
+            page-break-after: always;
+        }
+
+        .ex-page-last {
+            page-break-after: auto;
+        }
+
+        .ex-section {
+            font-size: 16px;
+            font-weight: bold;
+            color: #192840;
+            margin-bottom: 12px;
+        }
+
+        .ex-group {
+            font-size: 20px;
+            font-weight: bold;
+            color: #192840;
+            margin-bottom: 20px;
+        }
+
+        .ex-layout {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ex-layout td { vertical-align: top; }
+
+        .ex-photos {
+            width: 46%;
+            padding-right: 24px;
+        }
+
+        .ex-photos img {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            display: block;
+            margin: 0 0 16px;
+        }
+
+        .ex-photos .ph {
+            width: 320px;
+            height: 240px;
+            background: #e8ecf1;
+            color: #96a0b0;
+            font-size: 36px;
+            text-align: center;
+            line-height: 240px;
+            margin-bottom: 16px;
+        }
+
+        .ex-extra {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #192840;
+            line-height: 1.45;
+        }
+
+        .ex-extra strong {
+            font-weight: bold;
+        }
+
+        .ex-body { width: 54%; }
+
+        .ex-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #192840;
+            margin-bottom: 14px;
+            line-height: 1.3;
+        }
+
+        .ex-desc {
+            font-size: 14px;
+            color: #000000;
+            line-height: 1.45;
+            margin-bottom: 24px;
+        }
+
+        .stat-line {
+            font-size: 14px;
+            color: #6d7a8e;
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+
+        .stat-line .v {
+            color: #192840;
+        }
+
+        /* —— Anotações —— */
+        .ann-page { page-break-before: always; }
+
+        .ann-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #192840;
+            margin-bottom: 14px;
+        }
+
+        .ann-help {
+            font-size: 12px;
+            color: #6d7a8e;
+            margin-bottom: 36px;
+            line-height: 1.45;
+            max-width: 90%;
+        }
+
+        .ann-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ann-table td {
+            width: 50%;
+            vertical-align: top;
+            padding-right: 28px;
+        }
+
+        .ann-row {
+            margin-bottom: 6px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #d5dae3;
+        }
+
+        .ann-box {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid #96a0b0;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .ann-day {
+            font-size: 14px;
+            color: #6d7a8e;
+            vertical-align: middle;
         }
     </style>
 </head>
 <body>
 
 @php
-    $initials = fn(string $name): string => collect(explode(' ', $name))
-        ->filter()
-        ->take(2)
-        ->map(fn($w) => mb_strtoupper(mb_substr($w, 0, 1)))
-        ->implode('');
+    $pdfMeta = $pdfMeta ?? [];
+    $qrImageSrc = $qrImageSrc ?? null;
+    $groupLabel = $groupLabel ?? fn (?string $name) => (is_null($name) || trim($name) === '') ? 'Novo Grupo' : $name;
 
-    $formatRange = fn(?int $min, ?int $max): string => match(true) {
-        $min === null && $max === null => '—',
+    $formatRange = fn (?int $min, ?int $max): ?string => match (true) {
+        $min === null && $max === null => null,
         $min === $max || $max === null => (string) $min,
-        default => "{$min}–{$max}",
+        default => "{$min} - {$max}",
     };
 
-    $daysMap = [
-        'monday'    => 'Seg',
-        'tuesday'   => 'Ter',
-        'wednesday' => 'Qua',
-        'thursday'  => 'Qui',
-        'friday'    => 'Sex',
-        'saturday'  => 'Sáb',
-        'sunday'    => 'Dom',
-    ];
+    $formatFreq = function (?array $days): ?string {
+        if (empty($days)) {
+            return null;
+        }
 
-    $formatDays = function(?array $days) use ($daysMap): string {
-        if (empty($days)) return '—';
-        $labels = collect($days)->map(fn($d) => $daysMap[$d] ?? $d)->implode(', ');
-        return count($days) . 'x/semana (' . $labels . ')';
+        return count($days) . 'x/semana';
     };
 
-    $formatDate = fn($date): string => $date
-        ? \Carbon\Carbon::parse($date)->format('d/m/Y')
-        : '—';
+    $formatRest = function ($rest): ?string {
+        if ($rest === null || $rest === '') {
+            return null;
+        }
+        if (is_numeric($rest)) {
+            $seconds = (int) $rest;
+            if ($seconds >= 60 && $seconds % 60 === 0) {
+                $min = (int) ($seconds / 60);
+
+                return $min . ' minuto' . ($min !== 1 ? 's' : '');
+            }
+
+            return $seconds . ' segundo' . ($seconds !== 1 ? 's' : '');
+        }
+
+        return (string) $rest;
+    };
+
+    $formatPtDate = function ($date): string {
+        if (! $date) {
+            return '—';
+        }
+        $months = [
+            1 => 'janeiro', 2 => 'fevereiro', 3 => 'março', 4 => 'abril',
+            5 => 'maio', 6 => 'junho', 7 => 'julho', 8 => 'agosto',
+            9 => 'setembro', 10 => 'outubro', 11 => 'novembro', 12 => 'dezembro',
+        ];
+        $c = \Carbon\Carbon::parse($date);
+
+        return $c->day . ' ' . ($months[(int) $c->month] ?? $c->format('F'));
+    };
 
     $daysTotal = ($plan->start_date && $plan->end_date)
-        ? (int) \Carbon\Carbon::parse($plan->start_date)->diffInDays($plan->end_date)
+        ? (int) \Carbon\Carbon::parse($plan->start_date)->diffInDays($plan->end_date) + 1
         : null;
 
-    $allSections = collect();
-
-    foreach ($plan->groups as $group) {
-        $allSections->push(['type' => 'group', 'name' => $group->name]);
-        foreach ($group->exercises as $ex) {
-            $allSections->push(['type' => 'exercise', 'item' => $ex]);
+    $periodLabel = null;
+    if ($plan->start_date) {
+        $periodLabel = $formatPtDate($plan->start_date);
+        if ($plan->end_date) {
+            $end = \Carbon\Carbon::parse($plan->end_date);
+            $periodLabel .= ' -> ' . $formatPtDate($plan->end_date) . ', ' . $end->year;
         }
     }
 
-    $flatExercises = $plan->exercises->filter(fn($e) => $e->treatment_plan_group_id === null);
-    foreach ($flatExercises as $ex) {
-        $allSections->push(['type' => 'exercise', 'item' => $ex]);
+    $exercisePages = collect();
+    $currentGroup = null;
+    foreach ($plan->groups as $group) {
+        $gName = $groupLabel($group->name);
+        $first = true;
+        foreach ($group->exercises as $ex) {
+            $exercisePages->push([
+                'group' => $first ? $gName : null,
+                'item'  => $ex,
+            ]);
+            $first = false;
+            $currentGroup = $gName;
+        }
+    }
+    foreach ($plan->exercises->filter(fn ($e) => $e->treatment_plan_group_id === null) as $ex) {
+        $exercisePages->push(['group' => null, 'item' => $ex]);
     }
 
-    $hasExercises = $allSections->where('type', 'exercise')->count() > 0;
+    $responsibleName = $pdfMeta['responsibleName'] ?? ($plan->clinicUser?->name ?? $plan->clinic?->name ?? config('app.name'));
+    $responsibleInitials = $pdfMeta['responsibleInitials'] ?? 'FW';
+    $annotationMonths = $pdfMeta['annotationMonths'] ?? [];
+    $clinicName = $plan->clinic?->name ?? config('app.name');
 @endphp
 
-<div class="header">
-    <table class="header-table">
+<div class="footer">
+    &copy; {{ date('Y') }} {{ $clinicName }}. Todos os direitos reservados
+</div>
+
+{{-- ========== CAPA ========== --}}
+<div class="cover">
+    <table class="cover-header">
         <tr>
-            <td style="width: 60px; vertical-align: middle;">
-                <div class="avatar-circle">{{ $initials($plan->clinic?->name ?? 'Clínica') }}</div>
-            </td>
-            <td style="vertical-align: middle; padding-left: 12px;">
-                <div class="clinic-name">{{ $plan->clinic?->name ?? config('app.name') }}</div>
-                @if($plan->clinic?->document)
-                    <div class="clinic-meta">{{ $plan->clinic->document }}</div>
-                @endif
-                @if($plan->clinic?->email)
-                    <div class="clinic-meta">{{ $plan->clinic->email }}</div>
-                @endif
-                @if($plan->clinic?->phone)
-                    <div class="clinic-meta">{{ $plan->clinic->phone }}</div>
+            <td style="width: 120px;">
+                @if (! empty($pdfMeta['responsiblePhotoUrl']))
+                    <img class="avatar" src="{{ $pdfMeta['responsiblePhotoUrl'] }}" width="100" height="100" alt="" />
+                @else
+                    <div class="avatar-fallback">{{ $responsibleInitials }}</div>
                 @endif
             </td>
-            <td style="width: 130px; vertical-align: middle; text-align: right;">
-                <div class="clinic-badge">
-                    <span class="clinic-badge-name">{{ $plan->clinic?->name ?? config('app.name') }}</span>
-                    @if($plan->clinic?->city)
-                        <span style="display:block; margin-top: 2px;">{{ $plan->clinic->city }}{{ $plan->clinic->state ? ', ' . $plan->clinic->state : '' }}</span>
+            <td>
+                <div class="resp-name">{{ $responsibleName }}</div>
+                @if (! empty($pdfMeta['responsibleCredential']))
+                    <div class="resp-line">Fisioterapeuta ({{ $pdfMeta['responsibleCredential'] }})</div>
+                @else
+                    <div class="resp-line">Fisioterapeuta</div>
+                @endif
+                <div class="resp-contact">
+                    @if (! empty($pdfMeta['responsiblePhone']))
+                        <span>{{ $pdfMeta['responsiblePhone'] }}</span>
+                    @endif
+                    @if (! empty($pdfMeta['responsibleEmail']))
+                        <span>{{ $pdfMeta['responsibleEmail'] }}</span>
                     @endif
                 </div>
+            </td>
+            <td class="qr-wrap">
+                @if (! empty($qrImageSrc))
+                    <img src="{{ $qrImageSrc }}" width="120" height="120" alt="QR" />
+                    <span>Acesse online</span>
+                @endif
             </td>
         </tr>
     </table>
-</div>
 
-<div class="plan-header">
-    <div class="plan-title">{{ $plan->title }}</div>
-    <div class="plan-patient">
-        Para:
-        @if($plan->patient)
-            {{ $plan->patient->name }}
-        @else
-            <em>Sem paciente (Template)</em>
-        @endif
-    </div>
-</div>
+    <div class="cover-title">{{ $plan->title }}</div>
+    <div class="cover-patient">Para: {{ $pdfMeta['patientLabel'] ?? ($plan->patient?->name ?? '—') }}</div>
 
-<div class="meta-box">
-    <table class="meta-table">
+    <table class="meta">
         <tr>
-            <td class="meta-cell">
-                <div class="meta-label">Tempo estimado</div>
+            <td style="width: 28%;">
+                <div class="meta-label">Tempo estimado:</div>
                 <div class="meta-value">
-                    @if($plan->duration_minutes)
+                    @if ($plan->duration_minutes)
                         {{ $plan->duration_minutes }} minuto{{ $plan->duration_minutes !== 1 ? 's' : '' }}
-                    @else
-                        —
                     @endif
                 </div>
             </td>
-            <td class="meta-cell meta-cell-right">
+            <td>
                 <div class="meta-label">Período de execução</div>
                 <div class="meta-value">
-                    {{ $formatDate($plan->start_date) }}
-                    @if($plan->end_date)
-                        &nbsp;→&nbsp;{{ $formatDate($plan->end_date) }}
+                    {{ $periodLabel ?? '—' }}
+                    @if ($daysTotal !== null)
+                        <span class="meta-days">{{ $daysTotal }} dias</span>
                     @endif
                 </div>
-                @if($daysTotal !== null)
-                    <div class="meta-sub">{{ $daysTotal }} dias</div>
-                @endif
             </td>
         </tr>
     </table>
+
+    <div class="notes-label">Observações:</div>
+    @if (! empty($pdfMeta['observations']))
+        <div class="notes-text">{{ $pdfMeta['observations'] }}</div>
+    @endif
 </div>
 
-@if($plan->notes || ($plan->message ?? null))
-    <div class="notes-box">
-        <div class="notes-label">Observações</div>
-        <div class="notes-text">{{ $plan->notes ?? $plan->message ?? '—' }}</div>
-    </div>
-@endif
+{{-- ========== EXERCÍCIOS (1 por página) ========== --}}
+@foreach ($exercisePages as $page)
+    @php
+        $planExercise = $page['item'];
+        $exercise = $planExercise->exercise;
+        $refImages = $exercise?->media
+            ? $exercise->media
+                ->where('type', \Modules\Admin\Models\ExerciseMedia::TYPE_IMAGE)
+                ->sortBy('sort_order')
+                ->pluck('cdn_url')
+                ->filter()
+                ->take(2)
+                ->values()
+                ->all()
+            : [];
+        if (empty($refImages)) {
+            $thumb = $exercise?->videos?->first()?->thumbnail_url;
+            if (! empty($thumb)) {
+                $refImages = [$thumb];
+            }
+        }
 
-@if($hasExercises)
-    <div class="section-title">Exercícios</div>
+        $freq = $formatFreq($planExercise->days_of_week);
+        $sets = $formatRange($planExercise->sets_min, $planExercise->sets_max);
+        $reps = $formatRange($planExercise->repetitions_min, $planExercise->repetitions_max);
+        $rest = $formatRest($planExercise->rest_time);
+        $load = match (true) {
+            is_null($planExercise->load_min) && is_null($planExercise->load_max) => null,
+            is_null($planExercise->load_max) || $planExercise->load_min == $planExercise->load_max => (string) $planExercise->load_min,
+            default => $planExercise->load_min . ' - ' . $planExercise->load_max,
+        };
+        $isLastExercise = $loop->last;
+    @endphp
 
-    @foreach($allSections as $section)
-        @if($section['type'] === 'group')
-            <div class="group-name">{{ $section['name'] }}</div>
-
-        @elseif($section['type'] === 'exercise')
-            @php
-                /** @var \Modules\Clinic\Models\TreatmentPlanExercise $planExercise */
-                $planExercise = $section['item'];
-                $exercise     = $planExercise->exercise;
-                $thumbnail    = $exercise?->videos?->first()?->thumbnail_url;
-            @endphp
-
-            <div class="exercise-card">
-                <table class="exercise-table">
-                    <tr>
-                        <td class="exercise-thumb-cell">
-                            @if($thumbnail)
-                                <img
-                                    src="{{ $thumbnail }}"
-                                    class="exercise-thumb"
-                                    alt="{{ $exercise->name }}"
-                                />
-                            @else
-                                <div class="exercise-thumb-placeholder">&#9654;</div>
-                            @endif
-                        </td>
-                        <td class="exercise-content-cell">
-                            <div class="exercise-name">{{ $exercise?->name ?? '—' }}</div>
-
-                            @if($exercise?->description)
-                                <div class="exercise-description">{{ $exercise->description }}</div>
-                            @endif
-
-                            <table class="exercise-stats">
-                                <tr>
-                                    <td class="stat-cell">
-                                        <div class="stat-label">Freq.</div>
-                                        <div class="stat-value">{{ $formatDays($planExercise->days_of_week) }}</div>
-                                    </td>
-                                    <td class="stat-cell">
-                                        <div class="stat-label">Séries</div>
-                                        <div class="stat-value">{{ $formatRange($planExercise->sets_min, $planExercise->sets_max) }}</div>
-                                    </td>
-                                    <td class="stat-cell">
-                                        <div class="stat-label">Repetições</div>
-                                        <div class="stat-value">{{ $formatRange($planExercise->repetitions_min, $planExercise->repetitions_max) }}</div>
-                                    </td>
-                                    <td class="stat-cell">
-                                        <div class="stat-label">Descanso</div>
-                                        <div class="stat-value">
-                                            {{ $planExercise->rest_time ? $planExercise->rest_time . 's' : '—' }}
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            @if($planExercise->notes)
-                                <div class="exercise-notes">{{ $planExercise->notes }}</div>
-                            @endif
-                        </td>
-                    </tr>
-                </table>
-            </div>
+    <div class="ex-page {{ $isLastExercise ? 'ex-page-last' : '' }}">
+        <div class="ex-section">Exercícios</div>
+        @if (! empty($page['group']))
+            <div class="ex-group">{{ $page['group'] }}</div>
         @endif
-    @endforeach
-@endif
 
-<div class="footer">
-    &copy; {{ date('Y') }} {{ $plan->clinic?->name ?? config('app.name') }}. Todos os direitos reservados
-</div>
+        <table class="ex-layout">
+            <tr>
+                <td class="ex-photos">
+                    @forelse ($refImages as $imageUrl)
+                        <img src="{{ $imageUrl }}" width="320" alt="" />
+                    @empty
+                        <div class="ph">&#9654;</div>
+                    @endforelse
+
+                    @if ($planExercise->notes)
+                        <div class="ex-extra">
+                            <strong>Observações adicionais:</strong> {{ $planExercise->notes }}
+                        </div>
+                    @endif
+                </td>
+                <td class="ex-body">
+                    <div class="ex-name">{{ $exercise?->name ?? '—' }}</div>
+                    @if ($exercise?->description)
+                        <div class="ex-desc">{{ $exercise->description }}</div>
+                    @endif
+
+                    @if ($freq)
+                        <div class="stat-line">Freq.: <span class="v">{{ $freq }}</span></div>
+                    @endif
+                    @if ($sets)
+                        <div class="stat-line">Séries: <span class="v">{{ $sets }}</span></div>
+                    @endif
+                    @if ($reps)
+                        <div class="stat-line">Repetições: <span class="v">{{ $reps }}</span></div>
+                    @endif
+                    @if ($load)
+                        <div class="stat-line">Carga: <span class="v">{{ $load }}</span></div>
+                    @endif
+                    @if ($rest)
+                        <div class="stat-line">Descansar: <span class="v">{{ $rest }}</span></div>
+                    @endif
+                </td>
+            </tr>
+        </table>
+    </div>
+@endforeach
+
+{{-- ========== ANOTAÇÕES ========== --}}
+@foreach ($annotationMonths as $month)
+    @php
+        $days = $month['days'] ?? [];
+        // Vedius: preenche a coluna esquerda (~16 linhas) e o restante vai à direita
+        $left = array_slice($days, 0, 16);
+        $right = array_slice($days, 16);
+    @endphp
+    <div class="ann-page">
+        <div class="ann-title">{{ $month['title'] }}</div>
+        <div class="ann-help">
+            Marque os dias em que realizou os exercícios. Quando necessário, escreva
+            observações de dores ou dificuldades ao realizar um exercício.
+        </div>
+        <table class="ann-table">
+            <tr>
+                <td>
+                    @foreach ($left as $day)
+                        <div class="ann-row">
+                            <span class="ann-box"></span>
+                            <span class="ann-day">{{ $day['dayOfMonth'] }}&nbsp;&nbsp;{{ $day['weekdayShort'] }}</span>
+                        </div>
+                    @endforeach
+                </td>
+                <td>
+                    @foreach ($right as $day)
+                        <div class="ann-row">
+                            <span class="ann-box"></span>
+                            <span class="ann-day">{{ $day['dayOfMonth'] }}&nbsp;&nbsp;{{ $day['weekdayShort'] }}</span>
+                        </div>
+                    @endforeach
+                </td>
+            </tr>
+        </table>
+    </div>
+@endforeach
 
 </body>
 </html>

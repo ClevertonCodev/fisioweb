@@ -133,3 +133,17 @@ describe('apiClinicProgramsRepository.list', () => {
         expect(result.items[0].status).toBe('completed');
     });
 });
+
+describe('apiClinicProgramsRepository.fetchPdfBlob', () => {
+    it('busca PDF com responseType blob', async () => {
+        const blob = new Blob(['%PDF'], { type: 'application/pdf' });
+        mockGet.mockResolvedValueOnce({ data: blob });
+
+        const result = await apiClinicProgramsRepository.fetchPdfBlob('42');
+
+        expect(mockGet).toHaveBeenCalledWith('/clinic/treatment-plans/42/pdf', {
+            responseType: 'blob',
+        });
+        expect(result).toBe(blob);
+    });
+});

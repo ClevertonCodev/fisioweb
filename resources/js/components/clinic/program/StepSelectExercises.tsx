@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { VideoPlayerModal } from '@/components/clinic/VideoPlayerModal';
+import { ExerciseCardSkeleton } from '@/components/ExerciseCardSkeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ interface StepSelectExercisesProps {
     fetchNextPage: () => void;
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
+    isLoading?: boolean;
 }
 
 export function StepSelectExercises({
@@ -52,6 +54,7 @@ export function StepSelectExercises({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isLoading = false,
 }: StepSelectExercisesProps) {
     const [search, setSearch] = useState('');
     const [showFavorites, setShowFavorites] = useState(false);
@@ -157,21 +160,30 @@ export function StepSelectExercises({
                                 : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
                         )}
                     >
-                        {filtered.map((exercise) => {
-                            const isSelected = selectedIds.includes(
-                                exercise.id,
-                            );
-                            return (
-                                <ExerciseSelectCard
-                                    key={exercise.id}
-                                    exercise={exercise}
-                                    isSelected={isSelected}
-                                    onToggleSelect={() =>
-                                        onToggleSelect(exercise)
-                                    }
-                                />
-                            );
-                        })}
+                        {isLoading
+                            ? Array.from({ length: 12 }).map((_, i) => (
+                                  <ExerciseCardSkeleton key={i} />
+                              ))
+                            : filtered.map((exercise) => {
+                                  const isSelected = selectedIds.includes(
+                                      exercise.id,
+                                  );
+                                  return (
+                                      <ExerciseSelectCard
+                                          key={exercise.id}
+                                          exercise={exercise}
+                                          isSelected={isSelected}
+                                          onToggleSelect={() =>
+                                              onToggleSelect(exercise)
+                                          }
+                                      />
+                                  );
+                              })}
+                        {!isLoading &&
+                            isFetchingNextPage &&
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <ExerciseCardSkeleton key={`more-${i}`} />
+                            ))}
                     </div>
                     <div ref={sentinelRef} className="h-4" />
                 </div>

@@ -14,6 +14,7 @@ import { useAdminVideo } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 export default function AdminVideoDetailPage() {
@@ -24,8 +25,19 @@ export default function AdminVideoDetailPage() {
     if (isLoading || !videoId) {
         return (
             <AdminLayout>
-                <div className="flex items-center justify-center p-8">
-                    <div className="text-muted-foreground">Carregando...</div>
+                <div className="flex h-full flex-col">
+                    <header className="border-b border-border px-6 py-4">
+                        <Skeleton className="h-8 w-56" />
+                    </header>
+                    <div className="grid gap-6 p-6 lg:grid-cols-2">
+                        <Skeleton className="aspect-video w-full rounded-lg" />
+                        <div className="space-y-3">
+                            <Skeleton className="h-6 w-2/3" />
+                            <Skeleton className="h-4 w-1/2" />
+                            <Skeleton className="h-4 w-1/3" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                    </div>
                 </div>
             </AdminLayout>
         );

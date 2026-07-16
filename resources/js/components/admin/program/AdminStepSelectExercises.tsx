@@ -2,6 +2,7 @@ import { Check, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { AdminExercise } from '@/application/admin/ports';
+import { ExerciseCardSkeleton } from '@/components/ExerciseCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -59,8 +60,17 @@ export function AdminStepSelectExercises({
                 {/* Grid */}
                 <ScrollArea className="flex-1 p-6">
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">
-                            Carregando exercícios...
+                        <div
+                            className={cn(
+                                'grid gap-4',
+                                hasSelectedExercises
+                                    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
+                            )}
+                        >
+                            {Array.from({ length: 10 }).map((_, i) => (
+                                <ExerciseCardSkeleton key={i} />
+                            ))}
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="flex items-center justify-center py-20 text-sm text-muted-foreground">

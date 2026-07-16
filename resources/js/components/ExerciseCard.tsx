@@ -3,11 +3,13 @@ import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useMediaReady } from '@/hooks/use-media-ready';
 import { cn } from '@/lib/utils';
 
 interface ExerciseCardProps {
@@ -44,6 +46,7 @@ export function ExerciseCard({
 }: ExerciseCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const { ready, markReady } = useMediaReady(thumbnailUrl, videoUrl);
 
     const togglePlay = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -78,17 +81,25 @@ export function ExerciseCard({
         <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
             {/* Thumbnail / Video Container — vídeo com respiro (padding) como no Vedius */}
             <div className="relative mx-3 mt-3 aspect-square overflow-hidden rounded-lg bg-muted">
+                {!ready && (
+                    <Skeleton className="absolute inset-0 z-[1] h-full w-full rounded-none" />
+                )}
                 <video
                     ref={videoRef}
                     src={videoUrl ?? undefined}
                     poster={thumbnailUrl ?? undefined}
-                    className="h-full w-full object-cover"
+                    className={cn(
+                        'h-full w-full object-cover transition-opacity duration-200',
+                        !ready && 'opacity-0',
+                    )}
                     onEnded={handleVideoEnded}
+                    onLoadedData={markReady}
+                    onError={markReady}
                     playsInline
                 />
 
                 {/* Overlay de player — estilo Vedius (cores do sistema) */}
-                {canPlay && (
+                {canPlay && ready && (
                     <>
                         <button
                             onClick={togglePlay}

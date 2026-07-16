@@ -14,7 +14,9 @@ import {
 } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ExerciseCard } from '@/components/ExerciseCard';
+import { ExerciseCardSkeleton } from '@/components/ExerciseCardSkeleton';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import {
     Pagination,
@@ -129,9 +131,14 @@ export default function AdminVideosPage() {
 
                 <div className="flex-1 overflow-auto p-6">
                     {isLoading ? (
-                        <div className="py-8 text-center text-sm text-muted-foreground">
-                            Carregando...
-                        </div>
+                        <>
+                            <Skeleton className="mb-4 h-4 w-48" />
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                                {Array.from({ length: perPage }).map((_, i) => (
+                                    <ExerciseCardSkeleton key={i} />
+                                ))}
+                            </div>
+                        </>
                     ) : (
                         <>
                             {meta && (

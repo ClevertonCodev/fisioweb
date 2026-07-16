@@ -44,6 +44,7 @@ export default function ProgramNewPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        isLoading: isLoadingExercises,
     } = useInfiniteExercises();
 
     const exercises = useMemo(
@@ -454,6 +455,7 @@ export default function ProgramNewPage() {
                             fetchNextPage={fetchNextPage}
                             hasNextPage={hasNextPage}
                             isFetchingNextPage={isFetchingNextPage}
+                            isLoading={isLoadingExercises}
                         />
                     )}
 

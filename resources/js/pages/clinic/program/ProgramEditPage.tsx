@@ -36,6 +36,7 @@ export default function ProgramEditPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        isLoading: isLoadingExercises,
     } = useInfiniteExercises();
 
     const exercises = useMemo(
@@ -379,6 +380,7 @@ export default function ProgramEditPage() {
                             fetchNextPage={fetchNextPage}
                             hasNextPage={hasNextPage}
                             isFetchingNextPage={isFetchingNextPage}
+                            isLoading={isLoadingExercises}
                         />
                     )}
 

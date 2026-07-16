@@ -14,8 +14,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Slider } from '@/components/ui/slider';
 import type { Exercise } from '@/domain/clinic';
+import { useMediaReady } from '@/hooks/use-media-ready';
 import { cn } from '@/lib/utils';
 
 interface VideoPlayerModalProps {
@@ -52,6 +54,10 @@ export function VideoPlayerModal({
     const [showControls, setShowControls] = useState(true);
     const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
         null,
+    );
+    const { ready, markReady } = useMediaReady(
+        exercise?.thumbnailUrl,
+        exercise?.videoUrl,
     );
 
     useEffect(() => {
@@ -155,26 +161,36 @@ export function VideoPlayerModal({
                 <div className="flex min-h-[320px]">
                     {/* Left — Video */}
                     <div
-                        className="relative w-[45%] flex-shrink-0 bg-black"
+                        className="relative w-[45%] flex-shrink-0 bg-muted"
                         onMouseMove={handleMouseMove}
                         onMouseLeave={() => isPlaying && setShowControls(false)}
                     >
+                        {!ready && (
+                            <Skeleton className="absolute inset-0 z-[1] h-full w-full rounded-none" />
+                        )}
                         <video
                             ref={videoRef}
                             src={exercise.videoUrl}
                             poster={exercise.thumbnailUrl}
-                            className="absolute inset-0 h-full w-full object-contain"
+                            className={cn(
+                                'absolute inset-0 h-full w-full object-contain transition-opacity duration-200',
+                                !ready && 'opacity-0',
+                                ready && 'bg-black',
+                            )}
                             onClick={togglePlay}
                             onTimeUpdate={(e) =>
                                 setCurrentTime(e.currentTarget.currentTime)
                             }
-                            onLoadedMetadata={(e) =>
-                                setDuration(e.currentTarget.duration)
-                            }
+                            onLoadedMetadata={(e) => {
+                                setDuration(e.currentTarget.duration);
+                                markReady();
+                            }}
+                            onLoadedData={markReady}
+                            onError={markReady}
                             onEnded={() => setIsPlaying(false)}
                         />
 
-                        {!isPlaying && (
+                        {ready && !isPlaying && (
                             <button
                                 onClick={togglePlay}
                                 className="absolute inset-0 flex cursor-pointer items-center justify-center"

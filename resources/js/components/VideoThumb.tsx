@@ -1,6 +1,8 @@
 import { Maximize, Play } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { Skeleton } from '@/components/ui/skeleton';
+import { useMediaReady } from '@/hooks/use-media-ready';
 import { cn } from '@/lib/utils';
 
 interface VideoThumbProps {
@@ -27,6 +29,7 @@ export function VideoThumb({
 }: VideoThumbProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const { ready, markReady } = useMediaReady(thumbnailUrl, videoUrl);
 
     const togglePlay = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -58,49 +61,60 @@ export function VideoThumb({
 
     return (
         <>
+            {!ready && (
+                <Skeleton className="absolute inset-0 z-[1] h-full w-full rounded-none" />
+            )}
             <video
                 ref={videoRef}
                 src={videoUrl ?? undefined}
                 poster={thumbnailUrl ?? undefined}
-                className={cn('h-full w-full object-cover', className)}
+                className={cn(
+                    'h-full w-full object-cover transition-opacity duration-200',
+                    !ready && 'opacity-0',
+                    className,
+                )}
                 onEnded={() => setIsPlaying(false)}
+                onLoadedData={markReady}
+                onError={markReady}
                 controlsList="nodownload"
                 playsInline
             />
 
-            <button
-                onClick={togglePlay}
-                aria-label={isPlaying ? 'Parar' : 'Reproduzir'}
-                className={cn(
-                    'absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-all duration-200 group-hover:bg-primary/25',
-                    isPlaying && 'opacity-0 hover:opacity-100',
-                )}
-            >
-                {isPlaying ? (
-                    <span
-                        className={cn(
-                            'flex items-center justify-center rounded-full border-2 border-white drop-shadow-md',
-                            stopCircleCls,
-                        )}
-                    >
+            {ready && (
+                <button
+                    onClick={togglePlay}
+                    aria-label={isPlaying ? 'Parar' : 'Reproduzir'}
+                    className={cn(
+                        'absolute inset-0 flex cursor-pointer items-center justify-center bg-transparent transition-all duration-200 group-hover:bg-primary/25',
+                        isPlaying && 'opacity-0 hover:opacity-100',
+                    )}
+                >
+                    {isPlaying ? (
                         <span
                             className={cn(
-                                'rounded-[2px] bg-white',
-                                stopSquareCls,
+                                'flex items-center justify-center rounded-full border-2 border-white drop-shadow-md',
+                                stopCircleCls,
+                            )}
+                        >
+                            <span
+                                className={cn(
+                                    'rounded-[2px] bg-white',
+                                    stopSquareCls,
+                                )}
+                            />
+                        </span>
+                    ) : (
+                        <Play
+                            className={cn(
+                                'ml-0.5 fill-white text-white drop-shadow-md transition-transform duration-200 group-hover:scale-110',
+                                playCls,
                             )}
                         />
-                    </span>
-                ) : (
-                    <Play
-                        className={cn(
-                            'ml-0.5 fill-white text-white drop-shadow-md transition-transform duration-200 group-hover:scale-110',
-                            playCls,
-                        )}
-                    />
-                )}
-            </button>
+                    )}
+                </button>
+            )}
 
-            {showFullscreen && (
+            {ready && showFullscreen && (
                 <button
                     onClick={handleFullscreen}
                     title="Ver em tela cheia"

@@ -18,6 +18,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
     Form,
@@ -37,8 +38,17 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import type { ReactNode } from 'react';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
+
+function SectionTitle({ children }: { children: ReactNode }) {
+    return (
+        <h2 className="border-b border-border pb-2 text-base font-semibold text-foreground">
+            {children}
+        </h2>
+    );
+}
 
 export function UserNewPage() {
     const navigate = useNavigate();
@@ -90,19 +100,34 @@ export function UserNewPage() {
     return (
         <ClinicLayout>
             <div className="mx-auto max-w-3xl space-y-6 p-6">
-                <h1 className="text-2xl font-bold">Novo usuário</h1>
+                <div>
+                    <h1 className="text-2xl font-semibold text-foreground">
+                        Novo usuário
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Preencha os dados para criar um novo usuário da clínica.
+                    </p>
+                </div>
 
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-6"
                     >
-                        <PatientPhotoSection
-                            value={photoFile}
-                            onChange={setPhotoFile}
-                            cropTitle="Recortar foto do usuário"
-                            cropAspect={1}
-                        />
+                        <Card>
+                            <CardContent className="space-y-8 p-6">
+                                <section className="space-y-4">
+                                    <SectionTitle>Foto</SectionTitle>
+                                    <PatientPhotoSection
+                                        value={photoFile}
+                                        onChange={setPhotoFile}
+                                        cropTitle="Recortar foto do usuário"
+                                        cropAspect={1}
+                                    />
+                                </section>
+
+                                <section className="space-y-4">
+                                    <SectionTitle>Dados da conta</SectionTitle>
 
                         <FormField
                             control={form.control}
@@ -309,6 +334,10 @@ export function UserNewPage() {
                                 </FormItem>
                             )}
                         />
+                                </section>
+
+                                <section className="space-y-4">
+                                    <SectionTitle>Documento</SectionTitle>
 
                         <FormField
                             control={form.control}
@@ -386,24 +415,31 @@ export function UserNewPage() {
                                 </FormItem>
                             )}
                         />
+                                </section>
 
-                        <div className="flex gap-3 pt-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => navigate('/clinica/usuarios')}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={createUser.isPending || isUploading}
-                            >
-                                {createUser.isPending || isUploading
-                                    ? 'Salvando...'
-                                    : 'Criar usuário'}
-                            </Button>
-                        </div>
+                                <div className="flex gap-3 border-t border-border pt-6">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() =>
+                                            navigate('/clinica/usuarios')
+                                        }
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            createUser.isPending || isUploading
+                                        }
+                                    >
+                                        {createUser.isPending || isUploading
+                                            ? 'Salvando...'
+                                            : 'Criar usuário'}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </form>
                 </Form>
             </div>

@@ -5,12 +5,13 @@ import { Card } from '@/components/ui/card';
 
 /**
  * Landing mínima para deep link do QR no PDF do programa.
+ * O identificador na URL é um public_token (UUID), não o id sequencial.
  * Login completo do paciente fica fora do escopo desta feature.
  */
 export default function PatientProgramDeepLinkPage() {
-    const { clinicSlug, programId } = useParams<{
+    const { clinicSlug } = useParams<{
         clinicSlug: string;
-        programId: string;
+        publicToken: string;
     }>();
 
     return (
@@ -24,9 +25,9 @@ export default function PatientProgramDeepLinkPage() {
                     paciente na clínica. Se você já tem cadastro, use o app ou
                     portal da clínica com suas credenciais.
                 </p>
-                {clinicSlug && programId && (
+                {clinicSlug && (
                     <p className="mt-4 text-xs text-muted-foreground">
-                        Programa #{programId} · clínica{' '}
+                        Clínica{' '}
                         <span className="font-medium text-foreground">
                             {clinicSlug}
                         </span>

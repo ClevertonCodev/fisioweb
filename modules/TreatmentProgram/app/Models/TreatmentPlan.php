@@ -5,6 +5,7 @@ namespace Modules\TreatmentProgram\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class TreatmentPlan extends Model
 {
@@ -29,6 +30,7 @@ class TreatmentPlan extends Model
         'clinic_id',
         'patient_id',
         'clinic_user_id',
+        'public_token',
         'title',
         'message',
         'physio_area_id',
@@ -51,6 +53,15 @@ class TreatmentPlan extends Model
             'patient_viewed_at'        => 'datetime',
             'patient_completed_count'  => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (TreatmentPlan $plan) {
+            if (empty($plan->public_token)) {
+                $plan->public_token = (string) Str::uuid();
+            }
+        });
     }
 
     public function clinic(): BelongsTo

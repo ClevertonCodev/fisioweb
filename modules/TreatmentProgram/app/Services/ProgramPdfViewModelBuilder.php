@@ -3,6 +3,7 @@
 namespace Modules\TreatmentProgram\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 
 class ProgramPdfViewModelBuilder
@@ -65,7 +66,15 @@ class ProgramPdfViewModelBuilder
             return null;
         }
 
-        return rtrim((string) config('app.url'), '/') . '/' . $slug . '/paciente/programas/' . $plan->id;
+        if (empty($plan->public_token)) {
+            $plan->public_token = (string) Str::uuid();
+            $plan->saveQuietly();
+        }
+
+        return rtrim((string) config('app.url'), '/')
+            . '/' . $slug
+            . '/paciente/programas/'
+            . $plan->public_token;
     }
 
     /**

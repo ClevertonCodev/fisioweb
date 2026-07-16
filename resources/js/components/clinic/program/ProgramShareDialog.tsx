@@ -103,7 +103,7 @@ export function ProgramShareDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="w-full min-w-0 overflow-hidden sm:max-w-md">
                 {phase === 'saving' && (
                     <>
                         <DialogHeader>
@@ -144,9 +144,9 @@ export function ProgramShareDialog({
 
                 {phase === 'ready' && program && (
                     <>
-                        <DialogHeader>
+                        <DialogHeader className="min-w-0 pr-6">
                             <DialogTitle className="flex items-center gap-2">
-                                <CheckCircle2 className="h-5 w-5 text-primary" />
+                                <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
                                 Programa salvo
                             </DialogTitle>
                             <DialogDescription>
@@ -161,94 +161,81 @@ export function ProgramShareDialog({
                             </DialogDescription>
                         </DialogHeader>
 
-                        <div className="space-y-2 py-2">
+                        <div className="flex min-w-0 flex-col gap-2 py-2">
                             <Button
+                                type="button"
                                 variant="outline"
-                                className="h-12 w-full cursor-pointer justify-start gap-3"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
                                 disabled={!whatsappUrl}
-                                asChild={Boolean(whatsappUrl)}
+                                onClick={() => {
+                                    if (whatsappUrl) {
+                                        window.open(
+                                            whatsappUrl,
+                                            '_blank',
+                                            'noopener,noreferrer',
+                                        );
+                                    }
+                                }}
                             >
-                                {whatsappUrl ? (
-                                    <a
-                                        href={whatsappUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <MessageCircle className="h-5 w-5 text-primary" />
-                                        <span className="flex flex-col items-start">
-                                            <span className="text-sm font-medium">
-                                                WhatsApp Web
-                                            </span>
-                                            <span className="text-xs font-normal text-muted-foreground">
-                                                {program.patientPhone ??
-                                                    'Telefone não cadastrado'}
-                                            </span>
-                                        </span>
-                                    </a>
-                                ) : (
-                                    <>
-                                        <MessageCircle className="h-5 w-5 text-muted-foreground" />
-                                        <span className="flex flex-col items-start">
-                                            <span className="text-sm font-medium">
-                                                WhatsApp Web
-                                            </span>
-                                            <span className="text-xs font-normal text-muted-foreground">
-                                                Paciente sem telefone cadastrado
-                                            </span>
-                                        </span>
-                                    </>
-                                )}
+                                <MessageCircle
+                                    className={`h-5 w-5 shrink-0 ${whatsappUrl ? 'text-primary' : 'text-muted-foreground'}`}
+                                />
+                                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                                    <span className="text-sm font-medium">
+                                        WhatsApp Web
+                                    </span>
+                                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
+                                        {whatsappUrl
+                                            ? (program.patientPhone ??
+                                              'Telefone cadastrado')
+                                            : 'Paciente sem telefone cadastrado'}
+                                    </span>
+                                </span>
                             </Button>
 
                             <Button
+                                type="button"
                                 variant="outline"
-                                className="h-12 w-full cursor-pointer justify-start gap-3"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
                                 disabled={!mailtoUrl}
-                                asChild={Boolean(mailtoUrl)}
+                                onClick={() => {
+                                    if (mailtoUrl) {
+                                        window.location.href = mailtoUrl;
+                                    }
+                                }}
                             >
-                                {mailtoUrl ? (
-                                    <a href={mailtoUrl}>
-                                        <Mail className="h-5 w-5 text-primary" />
-                                        <span className="flex flex-col items-start">
-                                            <span className="text-sm font-medium">
-                                                E-mail
-                                            </span>
-                                            <span className="text-xs font-normal text-muted-foreground">
-                                                {program.patientEmail}
-                                            </span>
-                                        </span>
-                                    </a>
-                                ) : (
-                                    <>
-                                        <Mail className="h-5 w-5 text-muted-foreground" />
-                                        <span className="flex flex-col items-start">
-                                            <span className="text-sm font-medium">
-                                                E-mail
-                                            </span>
-                                            <span className="text-xs font-normal text-muted-foreground">
-                                                Paciente sem e-mail cadastrado
-                                            </span>
-                                        </span>
-                                    </>
-                                )}
+                                <Mail
+                                    className={`h-5 w-5 shrink-0 ${mailtoUrl ? 'text-primary' : 'text-muted-foreground'}`}
+                                />
+                                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                                    <span className="text-sm font-medium">
+                                        E-mail
+                                    </span>
+                                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
+                                        {mailtoUrl
+                                            ? program.patientEmail
+                                            : 'Paciente sem e-mail cadastrado'}
+                                    </span>
+                                </span>
                             </Button>
 
                             <Button
+                                type="button"
                                 variant="outline"
-                                className="h-12 w-full cursor-pointer justify-start gap-3"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
                                 disabled={!shareUrl}
                                 onClick={handleCopyLink}
                             >
                                 {copied ? (
-                                    <Check className="h-5 w-5 text-primary" />
+                                    <Check className="h-5 w-5 shrink-0 text-primary" />
                                 ) : (
-                                    <Copy className="h-5 w-5 text-primary" />
+                                    <Copy className="h-5 w-5 shrink-0 text-primary" />
                                 )}
-                                <span className="flex flex-col items-start">
+                                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
                                     <span className="text-sm font-medium">
                                         {copied ? 'Link copiado' : 'Copiar link'}
                                     </span>
-                                    <span className="max-w-full truncate text-xs font-normal text-muted-foreground">
+                                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
                                         {shareUrl ??
                                             'Link de acesso indisponível'}
                                     </span>

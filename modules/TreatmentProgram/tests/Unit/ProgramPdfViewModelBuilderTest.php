@@ -58,8 +58,9 @@ class ProgramPdfViewModelBuilderTest extends TestCase
         $clinic->id = 1;
 
         $plan = new TreatmentPlan([
-            'patient_id' => null,
-            'title'      => 'Teste',
+            'patient_id'   => null,
+            'title'        => 'Teste',
+            'public_token' => '11111111-2222-3333-4444-555555555555',
         ]);
         $plan->id = 10;
         $plan->setRelation('clinic', $clinic);
@@ -70,7 +71,7 @@ class ProgramPdfViewModelBuilderTest extends TestCase
         config(['app.url' => 'http://localhost:8000']);
 
         $this->assertSame(
-            'http://localhost:8000/clinica-demo/paciente/programas/10',
+            'http://localhost:8000/clinica-demo/paciente/programas/11111111-2222-3333-4444-555555555555',
             $this->builder->deepLinkUrl($plan)
         );
     }

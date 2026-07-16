@@ -7,13 +7,13 @@
 ## URL canônica
 
 ```
-{APP_URL}/{clinicSlug}/paciente/programas/{treatmentPlanId}
+{APP_URL}/{clinicSlug}/paciente/programas/{publicToken}
 ```
 
 | Segment | Source |
 |---------|--------|
 | `clinicSlug` | `clinics.slug` |
-| `treatmentPlanId` | `clinic_treatment_plans.id` |
+| `publicToken` | `clinic_treatment_plans.public_token` (UUID opaco; **não** usar o `id` sequencial) |
 
 ## Behavior (mínimo nesta feature)
 

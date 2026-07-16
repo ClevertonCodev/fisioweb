@@ -22,7 +22,7 @@ const router = createBrowserRouter(
         ...clinicRoutes(queryClient),
         adminRoutes,
         {
-            path: '/:clinicSlug/paciente/programas/:programId',
+            path: '/:clinicSlug/paciente/programas/:publicToken',
             element: <PatientProgramDeepLinkPage />,
         },
         { path: '*', element: <NotFound /> },

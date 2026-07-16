@@ -8,6 +8,24 @@ use Modules\Media\Models\Video;
 class VideoSeeder extends Seeder
 {
     /**
+     * Imagens de referência do PDF (mesmos arquivos no R2).
+     * Espelhadas em metadata.reference_images para a tela Editar vídeo
+     * e sincronizadas com admin_exercise_media pelo ExerciseSeeder / sync API.
+     */
+    private const REFERENCE_IMAGES = [
+        [
+            'file'     => '139645c7-fa38-4679-a24c-2c3113a8fecc_1783782292.jpeg',
+            'mime'     => 'image/jpeg',
+            'filename' => 'referencia-1.jpeg',
+        ],
+        [
+            'file'     => '31fa195c-d9f5-49e6-bb57-78da4d32b932_1783558953.png',
+            'mime'     => 'image/png',
+            'filename' => 'referencia-2.png',
+        ],
+    ];
+
+    /**
      * Vídeos reais hospedados no bucket R2 (fisioweb), com thumbnail.
      * Os exercícios do ExerciseSeeder referenciam estes vídeos pelos ids 1 e 2.
      */
@@ -32,6 +50,18 @@ class VideoSeeder extends Seeder
             ],
         ];
 
+        $referenceImages = collect(self::REFERENCE_IMAGES)->map(function (array $image) use ($cdn) {
+            $path = 'thumbnails/videos/' . $image['file'];
+
+            return [
+                'file_path'         => $path,
+                'cdn_url'           => $cdn . '/' . $path,
+                'original_filename' => $image['filename'],
+                'mime_type'         => $image['mime'],
+                'size'              => 102400,
+            ];
+        })->all();
+
         foreach ($videos as $id => $data) {
             $path          = 'videos/' . $data['filename'];
             $thumbnailPath = 'thumbnails/videos/' . $data['thumbnail'];
@@ -52,12 +82,14 @@ class VideoSeeder extends Seeder
                     'thumbnail_path'    => $thumbnailPath,
                     'thumbnail_url'     => $cdn . '/' . $thumbnailPath,
                     'status'            => Video::STATUS_COMPLETED,
-                    'metadata'          => [],
+                    'metadata'          => [
+                        'reference_images' => $referenceImages,
+                    ],
                     'deleted_at'        => null,
                 ],
             );
         }
 
-        $this->command->info('Vídeos do R2 criados: ' . count($videos));
+        $this->command->info('Vídeos do R2 criados: ' . count($videos) . ' (com 2 imagens de referência cada)');
     }
 }

@@ -14,7 +14,10 @@ import { toast } from 'sonner';
 import { usePresignedUpload } from '@/application/admin/use-admin-videos';
 import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { AdminVideoReferenceImageFields } from '@/components/admin/AdminVideoReferenceImageFields';
+import {
+    AdminVideoReferenceImageFields,
+    type ReferenceImageState,
+} from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,8 +32,8 @@ export default function AdminVideoCreatePage() {
         usePresignedUpload();
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-    const [referenceImage1, setReferenceImage1] = useState<File | null>(null);
-    const [referenceImage2, setReferenceImage2] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [dragOver, setDragOver] = useState(false);

@@ -47,10 +47,10 @@ class StoreAppointmentRequest extends FormRequest
     }
 
     /**
-     * Garante isolamento multi-tenant: paciente e fisioterapeuta pertencem à
-     * clínica do usuário autenticado; o responsável é um fisioterapeuta
-     * (FR-012/FR-021). Models de outros módulos referenciados por FQN inline
-     * para preservar a fronteira modular.
+     * Garante isolamento multi-tenant: paciente e responsável pertencem à
+     * clínica do usuário autenticado; o responsável é quem pode atender
+     * (fisioterapeuta ou admin) — FR-012/FR-021. Models de outros módulos
+     * referenciados por FQN inline para preservar a fronteira modular.
      */
     public function withValidator(Validator $validator): void
     {
@@ -69,7 +69,7 @@ class StoreAppointmentRequest extends FormRequest
             if ($this->filled('clinic_user_id')) {
                 $userOk = \Modules\Clinic\Models\ClinicUser::where('id', $this->input('clinic_user_id'))
                     ->where('clinic_id', $clinicId)
-                    ->where('role', \Modules\Clinic\Models\ClinicUser::ROLE_PHYSIOTHERAPIST)
+                    ->whereIn('role', \Modules\Clinic\Models\ClinicUser::ATTENDABLE_ROLES)
                     ->exists();
                 if (!$userOk) {
                     $validator->errors()->add('clinic_user_id', 'Fisioterapeuta inválido para a clínica.');

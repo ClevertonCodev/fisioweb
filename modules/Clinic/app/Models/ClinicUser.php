@@ -34,6 +34,15 @@ class ClinicUser extends Authenticatable implements JWTSubject
         self::ROLE_SECRETARY       => 'Secretário(a)',
     ];
 
+    /**
+     * Roles que podem receber pacientes na agenda (admin também atende).
+     * Secretário(a) fica de fora — agenda e marca, mas não é o responsável clínico.
+     */
+    public const ATTENDABLE_ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_PHYSIOTHERAPIST,
+    ];
+
     public const STATUS_ACTIVE = 1;
 
     public const STATUS_INACTIVE = 0;
@@ -124,6 +133,11 @@ class ClinicUser extends Authenticatable implements JWTSubject
     public function isPhysiotherapist(): bool
     {
         return $this->role === self::ROLE_PHYSIOTHERAPIST;
+    }
+
+    public function canAttendAppointments(): bool
+    {
+        return in_array($this->role, self::ATTENDABLE_ROLES, true);
     }
 
     public function owns(\Illuminate\Database\Eloquent\Model $record): bool

@@ -11,7 +11,7 @@ import {
     X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
 import {
@@ -286,7 +286,11 @@ function ProgramHistoryCardSkeleton({ rows = 4 }: { rows?: number }) {
 
 export default function ProgramHistoryTab() {
     const navigate = useNavigate();
-    const [searchPrograms, setSearchPrograms] = useState('');
+    const [searchParams] = useSearchParams();
+    const patientIdFilter = searchParams.get('patientId');
+    const [searchPrograms, setSearchPrograms] = useState(
+        () => searchParams.get('search') ?? '',
+    );
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [statusFilters, setStatusFilters] = useState<UiStatus[]>([]);
@@ -343,6 +347,9 @@ export default function ProgramHistoryTab() {
 
     const visiblePrograms = useMemo(() => {
         let items = result?.items ?? [];
+        if (patientIdFilter) {
+            items = items.filter((p) => p.patientId === patientIdFilter);
+        }
         if (statusFilters.length > 0) {
             items = items.filter((p) =>
                 statusFilters.includes(deriveUiStatus(p)),
@@ -356,7 +363,7 @@ export default function ProgramHistoryTab() {
             );
         }
         return items;
-    }, [result, statusFilters, professionalFilters]);
+    }, [result, statusFilters, professionalFilters, patientIdFilter]);
 
     const totalCount = result?.total ?? 0;
     const totalPages = result?.lastPage ?? 1;

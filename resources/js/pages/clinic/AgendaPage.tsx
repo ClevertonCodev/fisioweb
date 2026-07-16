@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { AppointmentWriteDto } from '@/application/clinic';
@@ -76,6 +76,8 @@ export default function AgendaPage() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [navHandled, setNavHandled] = useState(false);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const patientIdFilter = searchParams.get('patientId') ?? undefined;
 
     // Deep-link da ação rápida "Agendar consulta": abre o modal "Nova consulta"
     // ao chegar com o sinal de navegação (FR-026). Ajuste de estado durante o
@@ -98,14 +100,41 @@ export default function AgendaPage() {
     }
 
     const filteredAppointments = useMemo(() => {
-        if (!selectedUserId) return appointments;
-        return appointments.filter((a) => a.clinicUserId === selectedUserId);
-    }, [appointments, selectedUserId]);
+        let items = appointments;
+        if (selectedUserId) {
+            items = items.filter((a) => a.clinicUserId === selectedUserId);
+        }
+        if (patientIdFilter) {
+            items = items.filter((a) => a.patientId === patientIdFilter);
+        }
+        return items;
+    }, [appointments, selectedUserId, patientIdFilter]);
 
     const events = useMemo(
         () => filteredAppointments.map(toCalendarEvent),
         [filteredAppointments],
     );
+
+    const calendarInitialDate = useMemo(() => {
+        if (!patientIdFilter || filteredAppointments.length === 0) {
+            return undefined;
+        }
+        const now = Date.now();
+        const upcoming = filteredAppointments
+            .map((a) => new Date(a.startsAt))
+            .filter((d) => !Number.isNaN(d.getTime()))
+            .sort((a, b) => a.getTime() - b.getTime());
+        const next = upcoming.find((d) => d.getTime() >= now);
+        return next ?? upcoming[0];
+    }, [patientIdFilter, filteredAppointments]);
+
+    const filteredPatientName = useMemo(() => {
+        if (!patientIdFilter) return undefined;
+        return (
+            agendaPatients.find((p) => p.id === patientIdFilter)?.name ??
+            filteredAppointments[0]?.patientName
+        );
+    }, [patientIdFilter, agendaPatients, filteredAppointments]);
 
     const handleEventClick = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
@@ -211,9 +240,16 @@ export default function AgendaPage() {
             <div className="flex h-full flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                    <h1 className="text-xl font-semibold text-foreground">
-                        Agenda
-                    </h1>
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-semibold text-foreground">
+                            Agenda
+                        </h1>
+                        {filteredPatientName && (
+                            <p className="truncate text-sm text-muted-foreground">
+                                Agendamentos de {filteredPatientName}
+                            </p>
+                        )}
+                    </div>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button onClick={handleNewConsulta}>
@@ -239,7 +275,13 @@ export default function AgendaPage() {
                             }
                         >
                             <CalendarView
+                                key={
+                                    patientIdFilter
+                                        ? `patient-${patientIdFilter}-${calendarInitialDate?.toISOString() ?? 'empty'}`
+                                        : 'all'
+                                }
                                 events={events}
+                                initialDate={calendarInitialDate}
                                 onEventClick={handleEventClick}
                                 onDateClick={handleDateClick}
                                 onEventDrop={handleEventDrop}

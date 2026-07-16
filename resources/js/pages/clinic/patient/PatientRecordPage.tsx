@@ -49,7 +49,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -71,6 +71,30 @@ import {
 import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
+
+interface RecordEmptyStateProps {
+    icon: React.ElementType;
+    title: string;
+    description: string;
+}
+
+function RecordEmptyState({
+    icon: Icon,
+    title,
+    description,
+}: RecordEmptyStateProps) {
+    return (
+        <div className="flex min-h-[min(24rem,50vh)] w-full flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                <Icon className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground">{title}</p>
+            <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                {description}
+            </p>
+        </div>
+    );
+}
 
 interface RecordCardProps {
     icon: React.ElementType;
@@ -323,13 +347,24 @@ export default function PatientRecordPage() {
                                 Voltar
                             </TooltipContent>
                         </Tooltip>
-                        <Avatar className="h-10 w-10">
+                        <Avatar
+                            key={patient?.photoUrl ?? 'no-photo'}
+                            className="h-10 w-10"
+                        >
                             {loadingPatient ? (
                                 <Skeleton className="h-full w-full rounded-full" />
                             ) : (
-                                <AvatarFallback className="bg-primary/10 font-medium text-primary">
-                                    {patient?.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
+                                <>
+                                    {patient?.photoUrl && (
+                                        <AvatarImage
+                                            src={patient.photoUrl}
+                                            alt={patient.name}
+                                        />
+                                    )}
+                                    <AvatarFallback className="bg-primary/10 font-medium text-primary">
+                                        {patient?.name.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </>
                             )}
                         </Avatar>
                         <div className="min-w-0 flex-1">
@@ -502,14 +537,12 @@ export default function PatientRecordPage() {
 
                         {/* Todos */}
                         <TabsContent value="all" className="flex-1 px-6 py-4">
-                            <div className="max-w-3xl">
-                                <PatientAllTab
-                                    patientId={id ?? ''}
-                                    searchTerm={searchTerm}
-                                    onViewEvolution={openEvolutionViewDrawer}
-                                    onEditEvolution={openEvolutionDrawer}
-                                />
-                            </div>
+                            <PatientAllTab
+                                patientId={id ?? ''}
+                                searchTerm={searchTerm}
+                                onViewEvolution={openEvolutionViewDrawer}
+                                onEditEvolution={openEvolutionDrawer}
+                            />
                         </TabsContent>
 
                         {/* Evoluções */}
@@ -517,123 +550,134 @@ export default function PatientRecordPage() {
                             value="evolution"
                             className="flex-1 px-6 py-4"
                         >
-                            <div className="max-w-3xl space-y-4">
-                                {loadingEvolutions && (
-                                    <>
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                    </>
-                                )}
-                                {errorEvolutions && (
-                                    <p className="text-sm text-destructive">
-                                        Erro ao carregar evoluções.
-                                    </p>
-                                )}
-                                {!loadingEvolutions &&
-                                    filteredEvolutions.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Nenhuma evolução registrada.
+                            {!loadingEvolutions &&
+                            !errorEvolutions &&
+                            filteredEvolutions.length === 0 ? (
+                                <RecordEmptyState
+                                    icon={FileText}
+                                    title="Nenhuma evolução registrada"
+                                    description="Crie uma evolução pelo botão Adicionar para começar o acompanhamento."
+                                />
+                            ) : (
+                                <div className="mx-auto max-w-3xl space-y-4">
+                                    {loadingEvolutions && (
+                                        <>
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                        </>
+                                    )}
+                                    {errorEvolutions && (
+                                        <p className="text-sm text-destructive">
+                                            Erro ao carregar evoluções.
                                         </p>
                                     )}
-                                {filteredEvolutions.map((ev) => (
-                                    <RecordCard
-                                        key={ev.id}
-                                        icon={FileText}
-                                        title={
-                                            ev.title || 'Sessão de Fisioterapia'
-                                        }
-                                        date={new Date(
-                                            ev.createdAt,
-                                        ).toLocaleDateString('pt-BR')}
-                                        badge={
-                                            ev.status === 'signed'
-                                                ? 'Assinada'
-                                                : 'Rascunho'
-                                        }
-                                        badgeVariant={
-                                            ev.status === 'signed'
-                                                ? 'active'
-                                                : 'neutral'
-                                        }
-                                    >
-                                        <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                                            {ev.generatedText ||
-                                                ev.notes ||
-                                                'Sem texto preenchido.'}
-                                        </p>
-                                        {ev.clinicUser && (
-                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                                <Avatar className="h-5 w-5">
-                                                    <AvatarFallback className="bg-muted text-[9px]">
-                                                        {ev.clinicUser.name[0]}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <span>
-                                                    Criado por{' '}
-                                                    <span className="font-medium text-foreground">
-                                                        {ev.clinicUser.name}
+                                    {filteredEvolutions.map((ev) => (
+                                        <RecordCard
+                                            key={ev.id}
+                                            icon={FileText}
+                                            title={
+                                                ev.title ||
+                                                'Sessão de Fisioterapia'
+                                            }
+                                            date={new Date(
+                                                ev.createdAt,
+                                            ).toLocaleDateString('pt-BR')}
+                                            badge={
+                                                ev.status === 'signed'
+                                                    ? 'Assinada'
+                                                    : 'Rascunho'
+                                            }
+                                            badgeVariant={
+                                                ev.status === 'signed'
+                                                    ? 'active'
+                                                    : 'neutral'
+                                            }
+                                        >
+                                            <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                                                {ev.generatedText ||
+                                                    ev.notes ||
+                                                    'Sem texto preenchido.'}
+                                            </p>
+                                            {ev.clinicUser && (
+                                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Avatar className="h-5 w-5">
+                                                        <AvatarFallback className="bg-muted text-[9px]">
+                                                            {
+                                                                ev.clinicUser
+                                                                    .name[0]
+                                                            }
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span>
+                                                        Criado por{' '}
+                                                        <span className="font-medium text-foreground">
+                                                            {
+                                                                ev.clinicUser
+                                                                    .name
+                                                            }
+                                                        </span>
                                                     </span>
-                                                </span>
-                                            </div>
-                                        )}
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer gap-1.5"
-                                                onClick={() =>
-                                                    ev.status === 'signed'
-                                                        ? openEvolutionViewDrawer(
-                                                              ev,
-                                                          )
-                                                        : openEvolutionDrawer(
-                                                              ev,
-                                                          )
-                                                }
-                                            >
-                                                {ev.status === 'signed' ? (
-                                                    <FileText className="h-3.5 w-3.5" />
-                                                ) : (
-                                                    <Edit2 className="h-3.5 w-3.5" />
-                                                )}
-                                                {ev.status === 'signed'
-                                                    ? 'Ver evolução'
-                                                    : 'Editar rascunho'}
-                                            </Button>
-                                            {ev.status === 'draft' ? (
-                                                <>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="cursor-pointer gap-1.5"
-                                                        onClick={() =>
-                                                            openEvolutionViewDrawer(
-                                                                ev,
-                                                            )
-                                                        }
-                                                    >
+                                                </div>
+                                            )}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="cursor-pointer gap-1.5"
+                                                    onClick={() =>
+                                                        ev.status === 'signed'
+                                                            ? openEvolutionViewDrawer(
+                                                                  ev,
+                                                              )
+                                                            : openEvolutionDrawer(
+                                                                  ev,
+                                                              )
+                                                    }
+                                                >
+                                                    {ev.status === 'signed' ? (
                                                         <FileText className="h-3.5 w-3.5" />
-                                                        Visualizar texto
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
-                                                        onClick={() =>
-                                                            setEvolutionToDelete(
-                                                                ev,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                        Excluir rascunho
-                                                    </Button>
-                                                </>
-                                            ) : null}
-                                        </div>
-                                    </RecordCard>
-                                ))}
-                            </div>
+                                                    ) : (
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                    )}
+                                                    {ev.status === 'signed'
+                                                        ? 'Ver evolução'
+                                                        : 'Editar rascunho'}
+                                                </Button>
+                                                {ev.status === 'draft' ? (
+                                                    <>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="cursor-pointer gap-1.5"
+                                                            onClick={() =>
+                                                                openEvolutionViewDrawer(
+                                                                    ev,
+                                                                )
+                                                            }
+                                                        >
+                                                            <FileText className="h-3.5 w-3.5" />
+                                                            Visualizar texto
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
+                                                            onClick={() =>
+                                                                setEvolutionToDelete(
+                                                                    ev,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                            Excluir rascunho
+                                                        </Button>
+                                                    </>
+                                                ) : null}
+                                            </div>
+                                        </RecordCard>
+                                    ))}
+                                </div>
+                            )}
                         </TabsContent>
 
                         {/* Avaliações */}
@@ -641,82 +685,94 @@ export default function PatientRecordPage() {
                             value="assessment"
                             className="flex-1 px-6 py-4"
                         >
-                            <div className="max-w-3xl space-y-4">
-                                {loadingAssessments && (
-                                    <>
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                    </>
-                                )}
-                                {errorAssessments && (
-                                    <p className="text-sm text-destructive">
-                                        Erro ao carregar avaliações.
-                                    </p>
-                                )}
-                                {!loadingAssessments &&
-                                    filteredAssessments.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Nenhuma avaliação registrada.
+                            {!loadingAssessments &&
+                            !errorAssessments &&
+                            filteredAssessments.length === 0 ? (
+                                <RecordEmptyState
+                                    icon={Activity}
+                                    title="Nenhuma avaliação registrada"
+                                    description="Crie uma avaliação pelo botão Adicionar para popular esta aba."
+                                />
+                            ) : (
+                                <div className="mx-auto max-w-3xl space-y-4">
+                                    {loadingAssessments && (
+                                        <>
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                        </>
+                                    )}
+                                    {errorAssessments && (
+                                        <p className="text-sm text-destructive">
+                                            Erro ao carregar avaliações.
                                         </p>
                                     )}
-                                {filteredAssessments.map((a) => (
-                                    <RecordCard
-                                        key={a.id}
-                                        icon={Activity}
-                                        title={a.template.name}
-                                        date={
-                                            a.signedAt
-                                                ? new Date(
-                                                      a.signedAt,
-                                                  ).toLocaleDateString('pt-BR')
-                                                : '—'
-                                        }
-                                        badge={
-                                            a.status === 'signed'
-                                                ? 'Assinada'
-                                                : 'Rascunho'
-                                        }
-                                        badgeVariant={
-                                            a.status === 'signed'
-                                                ? 'active'
-                                                : 'neutral'
-                                        }
-                                    >
-                                        {a.clinicUser && (
-                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                                <Avatar className="h-5 w-5">
-                                                    <AvatarFallback className="bg-muted text-[9px]">
-                                                        {a.clinicUser.name[0]}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <span>
-                                                    Por{' '}
-                                                    <span className="font-medium text-foreground">
-                                                        {a.clinicUser.name}
+                                    {filteredAssessments.map((a) => (
+                                        <RecordCard
+                                            key={a.id}
+                                            icon={Activity}
+                                            title={a.template.name}
+                                            date={
+                                                a.signedAt
+                                                    ? new Date(
+                                                          a.signedAt,
+                                                      ).toLocaleDateString(
+                                                          'pt-BR',
+                                                      )
+                                                    : '—'
+                                            }
+                                            badge={
+                                                a.status === 'signed'
+                                                    ? 'Assinada'
+                                                    : 'Rascunho'
+                                            }
+                                            badgeVariant={
+                                                a.status === 'signed'
+                                                    ? 'active'
+                                                    : 'neutral'
+                                            }
+                                        >
+                                            {a.clinicUser && (
+                                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Avatar className="h-5 w-5">
+                                                        <AvatarFallback className="bg-muted text-[9px]">
+                                                            {
+                                                                a.clinicUser
+                                                                    .name[0]
+                                                            }
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span>
+                                                        Por{' '}
+                                                        <span className="font-medium text-foreground">
+                                                            {
+                                                                a.clinicUser
+                                                                    .name
+                                                            }
+                                                        </span>
                                                     </span>
-                                                </span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="cursor-pointer gap-1.5"
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/pacientes/${id}/avaliacoes/${a.id}/editar`,
+                                                        )
+                                                    }
+                                                >
+                                                    <Edit2 className="h-3.5 w-3.5" />
+                                                    {a.status === 'draft'
+                                                        ? 'Editar rascunho'
+                                                        : 'Ver avaliação'}
+                                                </Button>
                                             </div>
-                                        )}
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer gap-1.5"
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/clinica/pacientes/${id}/avaliacoes/${a.id}/editar`,
-                                                    )
-                                                }
-                                            >
-                                                <Edit2 className="h-3.5 w-3.5" />
-                                                {a.status === 'draft'
-                                                    ? 'Editar rascunho'
-                                                    : 'Ver avaliação'}
-                                            </Button>
-                                        </div>
-                                    </RecordCard>
-                                ))}
-                            </div>
+                                        </RecordCard>
+                                    ))}
+                                </div>
+                            )}
                         </TabsContent>
 
                         {/* Questionários */}
@@ -724,240 +780,254 @@ export default function PatientRecordPage() {
                             value="questionnaire"
                             className="flex-1 px-6 py-4"
                         >
-                            <div className="max-w-3xl space-y-4">
-                                {loadingQuestionnaires && (
-                                    <>
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                        <Skeleton className="h-32 w-full rounded-xl" />
-                                    </>
-                                )}
-                                {errorQuestionnaires && (
-                                    <p className="text-sm text-destructive">
-                                        Erro ao carregar questionários.
-                                    </p>
-                                )}
-                                {!loadingQuestionnaires &&
-                                    filteredQuestionnaires.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Nenhum questionário registrado.
+                            {!loadingQuestionnaires &&
+                            !errorQuestionnaires &&
+                            filteredQuestionnaires.length === 0 ? (
+                                <RecordEmptyState
+                                    icon={ClipboardList}
+                                    title="Nenhum questionário registrado"
+                                    description="Envie um questionário pelo botão Adicionar para popular esta aba."
+                                />
+                            ) : (
+                                <div className="mx-auto max-w-3xl space-y-4">
+                                    {loadingQuestionnaires && (
+                                        <>
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                            <Skeleton className="h-32 w-full rounded-xl" />
+                                        </>
+                                    )}
+                                    {errorQuestionnaires && (
+                                        <p className="text-sm text-destructive">
+                                            Erro ao carregar questionários.
                                         </p>
                                     )}
-                                {filteredQuestionnaires.map((q) => {
-                                    const templateTitle =
-                                        q.template?.title ?? null;
-                                    const returnTo = encodeURIComponent(
-                                        `/clinica/pacientes/${id}?tab=questionnaires`,
-                                    );
-                                    return (
-                                        <RecordCard
-                                            key={q.id}
-                                            icon={ClipboardList}
-                                            title={
-                                                templateTitle ??
-                                                '[Template excluído]'
-                                            }
-                                            date={new Date(
-                                                q.createdAt,
-                                            ).toLocaleDateString('pt-BR')}
-                                            badge={
-                                                q.status === 'answered'
-                                                    ? 'Respondido'
-                                                    : q.status === 'expired'
-                                                      ? 'Expirado'
-                                                      : 'Pendente'
-                                            }
-                                            badgeVariant={
-                                                q.status === 'answered'
-                                                    ? 'active'
-                                                    : q.status === 'expired'
-                                                      ? 'danger'
-                                                      : 'neutral'
-                                            }
-                                            onDelete={
-                                                q.status !== 'answered'
-                                                    ? () =>
-                                                          setQuestionnaireToDelete(
-                                                              q,
-                                                          )
-                                                    : undefined
-                                            }
-                                        >
-                                            <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                                {q.clinicUser && (
-                                                    <>
-                                                        <Avatar className="h-5 w-5">
-                                                            <AvatarFallback className="bg-muted text-[9px]">
-                                                                {
-                                                                    q.clinicUser
-                                                                        .name[0]
-                                                                }
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <span>
-                                                            Por{' '}
-                                                            <span className="font-medium text-foreground">
-                                                                {
-                                                                    q.clinicUser
-                                                                        .name
-                                                                }
+                                    {filteredQuestionnaires.map((q) => {
+                                        const templateTitle =
+                                            q.template?.title ?? null;
+                                        const returnTo = encodeURIComponent(
+                                            `/clinica/pacientes/${id}?tab=questionnaires`,
+                                        );
+                                        return (
+                                            <RecordCard
+                                                key={q.id}
+                                                icon={ClipboardList}
+                                                title={
+                                                    templateTitle ??
+                                                    '[Template excluído]'
+                                                }
+                                                date={new Date(
+                                                    q.createdAt,
+                                                ).toLocaleDateString('pt-BR')}
+                                                badge={
+                                                    q.status === 'answered'
+                                                        ? 'Respondido'
+                                                        : q.status === 'expired'
+                                                          ? 'Expirado'
+                                                          : 'Pendente'
+                                                }
+                                                badgeVariant={
+                                                    q.status === 'answered'
+                                                        ? 'active'
+                                                        : q.status === 'expired'
+                                                          ? 'danger'
+                                                          : 'neutral'
+                                                }
+                                                onDelete={
+                                                    q.status !== 'answered'
+                                                        ? () =>
+                                                              setQuestionnaireToDelete(
+                                                                  q,
+                                                              )
+                                                        : undefined
+                                                }
+                                            >
+                                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                                    {q.clinicUser && (
+                                                        <>
+                                                            <Avatar className="h-5 w-5">
+                                                                <AvatarFallback className="bg-muted text-[9px]">
+                                                                    {
+                                                                        q
+                                                                            .clinicUser
+                                                                            .name[0]
+                                                                    }
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span>
+                                                                Por{' '}
+                                                                <span className="font-medium text-foreground">
+                                                                    {
+                                                                        q
+                                                                            .clinicUser
+                                                                            .name
+                                                                    }
+                                                                </span>
                                                             </span>
-                                                        </span>
-                                                        <span className="mx-1">
-                                                            •
-                                                        </span>
-                                                    </>
-                                                )}
-                                                <span>
-                                                    Modalidade: {q.modality}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="cursor-pointer"
-                                                    onClick={() => {
-                                                        setQuestionnaireToView(
-                                                            q,
-                                                        );
-                                                        setQuestionnaireViewOpen(
-                                                            true,
-                                                        );
-                                                    }}
-                                                >
-                                                    Ver questionário
-                                                </Button>
-                                                {templateTitle && (
+                                                            <span className="mx-1">
+                                                                •
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                    <span>
+                                                        Modalidade:{' '}
+                                                        {q.modality}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="cursor-pointer gap-1.5"
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
-                                                            )
-                                                        }
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setQuestionnaireToView(
+                                                                q,
+                                                            );
+                                                            setQuestionnaireViewOpen(
+                                                                true,
+                                                            );
+                                                        }}
                                                     >
-                                                        <Edit2 className="h-3.5 w-3.5" />
-                                                        Editar
+                                                        Ver questionário
                                                     </Button>
-                                                )}
-                                            </div>
-                                        </RecordCard>
-                                    );
-                                })}
-                            </div>
+                                                    {templateTitle && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="cursor-pointer gap-1.5"
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Edit2 className="h-3.5 w-3.5" />
+                                                            Editar
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </RecordCard>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </TabsContent>
 
                         {/* Arquivos */}
                         <TabsContent value="files" className="flex-1 px-6 py-4">
-                            <div className="max-w-3xl space-y-4">
-                                {loadingFiles && (
-                                    <>
-                                        <Skeleton className="h-20 w-full rounded-xl" />
-                                        <Skeleton className="h-20 w-full rounded-xl" />
-                                    </>
-                                )}
-                                {errorFiles && (
-                                    <p className="text-sm text-destructive">
-                                        Erro ao carregar arquivos.
-                                    </p>
-                                )}
-                                {!loadingFiles &&
-                                    filteredFiles.length === 0 && (
-                                        <p className="text-sm text-muted-foreground">
-                                            Nenhum arquivo registrado.
+                            {!loadingFiles &&
+                            !errorFiles &&
+                            filteredFiles.length === 0 ? (
+                                <RecordEmptyState
+                                    icon={Paperclip}
+                                    title="Nenhum arquivo registrado"
+                                    description="Adicione arquivos pelo botão Adicionar para popular esta aba."
+                                />
+                            ) : (
+                                <div className="mx-auto max-w-3xl space-y-4">
+                                    {loadingFiles && (
+                                        <>
+                                            <Skeleton className="h-20 w-full rounded-xl" />
+                                            <Skeleton className="h-20 w-full rounded-xl" />
+                                        </>
+                                    )}
+                                    {errorFiles && (
+                                        <p className="text-sm text-destructive">
+                                            Erro ao carregar arquivos.
                                         </p>
                                     )}
-                                {filteredFiles.map((file) => (
-                                    <Card
-                                        key={file.id}
-                                        className="group transition-shadow hover:shadow-md"
-                                    >
-                                        <CardHeader className="pb-2">
-                                            <div className="flex items-start gap-3">
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-primary">
-                                                    {file.mimeType?.startsWith(
-                                                        'image/',
-                                                    ) ? (
-                                                        <img
-                                                            src={file.cdnUrl}
-                                                            alt={
-                                                                file.name ??
-                                                                file.originalName
-                                                            }
-                                                            className="h-10 w-10 object-cover"
-                                                        />
-                                                    ) : (
-                                                        <FileText className="h-5 w-5" />
-                                                    )}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h3 className="truncate text-sm font-semibold text-foreground">
-                                                        {file.name ??
-                                                            file.originalName}
-                                                    </h3>
-                                                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                                                        <span>
-                                                            {(
-                                                                file.size / 1024
-                                                            ).toFixed(1)}{' '}
-                                                            kb
-                                                        </span>
-                                                        <span>•</span>
-                                                        <span>
-                                                            {new Date(
-                                                                file.createdAt,
-                                                            ).toLocaleDateString(
-                                                                'pt-BR',
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    {file.clinicUser && (
-                                                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                            <User className="h-3 w-3" />
-                                                            <span>
-                                                                {
-                                                                    file
-                                                                        .clinicUser
-                                                                        .name
+                                    {filteredFiles.map((file) => (
+                                        <Card
+                                            key={file.id}
+                                            className="group transition-shadow hover:shadow-md"
+                                        >
+                                            <CardHeader className="pb-2">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary/10 text-primary">
+                                                        {file.mimeType?.startsWith(
+                                                            'image/',
+                                                        ) ? (
+                                                            <img
+                                                                src={
+                                                                    file.cdnUrl
                                                                 }
+                                                                alt={
+                                                                    file.name ??
+                                                                    file.originalName
+                                                                }
+                                                                className="h-10 w-10 object-cover"
+                                                            />
+                                                        ) : (
+                                                            <FileText className="h-5 w-5" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <h3 className="truncate text-sm font-semibold text-foreground">
+                                                            {file.name ??
+                                                                file.originalName}
+                                                        </h3>
+                                                        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                                                            <span>
+                                                                {(
+                                                                    file.size /
+                                                                    1024
+                                                                ).toFixed(1)}{' '}
+                                                                kb
+                                                            </span>
+                                                            <span>•</span>
+                                                            <span>
+                                                                {new Date(
+                                                                    file.createdAt,
+                                                                ).toLocaleDateString(
+                                                                    'pt-BR',
+                                                                )}
                                                             </span>
                                                         </div>
-                                                    )}
+                                                        {file.clinicUser && (
+                                                            <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                                <User className="h-3 w-3" />
+                                                                <span>
+                                                                    {
+                                                                        file
+                                                                            .clinicUser
+                                                                            .name
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger
+                                                            asChild
+                                                        >
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
+                                                            >
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer gap-2"
+                                                                onClick={() =>
+                                                                    window.open(
+                                                                        file.cdnUrl,
+                                                                        '_blank',
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Download className="h-4 w-4" />
+                                                                Download
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger
-                                                        asChild
-                                                    >
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
-                                                        >
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem
-                                                            className="cursor-pointer gap-2"
-                                                            onClick={() =>
-                                                                window.open(
-                                                                    file.cdnUrl,
-                                                                    '_blank',
-                                                                )
-                                                            }
-                                                        >
-                                                            <Download className="h-4 w-4" />
-                                                            Download
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </CardHeader>
-                                    </Card>
-                                ))}
-                            </div>
+                                            </CardHeader>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
                         </TabsContent>
                     </Tabs>
                 </div>

@@ -1,4 +1,15 @@
-import { MoreVertical, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import {
+    Calendar,
+    ClipboardList,
+    Dumbbell,
+    MoreVertical,
+    Pencil,
+    Plus,
+    Search,
+    SlidersHorizontal,
+    UserX,
+    X,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -100,10 +111,6 @@ function DiagnosisSummary({ diagnosis }: { diagnosis: string }) {
     );
 }
 
-function firstLetter(name: string): string {
-    return name.trim()[0]?.toUpperCase() ?? '?';
-}
-
 function PatientListTableSkeleton({ rows = 8 }: { rows?: number }) {
     return (
         <Card className="overflow-hidden">
@@ -172,35 +179,49 @@ function PatientActions({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 cursor-pointer"
+                >
                     <MoreVertical className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem
-                    onClick={() =>
-                        onNavigate(`/clinica/pacientes/${patient.id}`)
-                    }
-                >
-                    Editar perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() =>
-                        onNavigate(`/clinica/pacientes/${patient.id}`)
-                    }
-                >
-                    Prontuário
-                </DropdownMenuItem>
-                <DropdownMenuItem
+                    className="cursor-pointer gap-2"
                     onClick={() =>
                         onNavigate(
-                            `/clinica/pacientes/${patient.id}?tab=programas`,
+                            `/clinica/pacientes/${patient.id}/editar`,
                         )
                     }
                 >
-                    Programas
+                    <Pencil className="h-4 w-4" />
+                    Editar perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                    className="cursor-pointer gap-2"
+                    onClick={() =>
+                        onNavigate(`/clinica/pacientes/${patient.id}`)
+                    }
+                >
+                    <ClipboardList className="h-4 w-4" />
+                    Prontuário
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    className="cursor-pointer gap-2"
+                    onClick={() =>
+                        onNavigate(
+                            `/clinica/programas/historico?patientId=${patient.id}&search=${encodeURIComponent(patient.name)}`,
+                        )
+                    }
+                >
+                    <Dumbbell className="h-4 w-4" />
+                    Programas
+                </DropdownMenuItem>
+                {/* Temporariamente oculto — reativar quando o recurso estiver pronto
+                <DropdownMenuItem
+                    className="cursor-pointer gap-2"
                     onClick={() =>
                         onNavigate(
                             `/clinica/pacientes/${patient.id}?tab=monitoramento`,
@@ -209,14 +230,30 @@ function PatientActions({
                 >
                     Monitoramento
                 </DropdownMenuItem>
-                <DropdownMenuItem>Agendamentos</DropdownMenuItem>
-                <DropdownMenuItem>Pagamentos</DropdownMenuItem>
+                */}
+                <DropdownMenuItem
+                    className="cursor-pointer gap-2"
+                    onClick={() =>
+                        onNavigate(
+                            `/clinica/agenda?patientId=${patient.id}`,
+                        )
+                    }
+                >
+                    <Calendar className="h-4 w-4" />
+                    Agendamentos
+                </DropdownMenuItem>
+                {/* Temporariamente oculto — reativar quando o recurso estiver pronto
+                <DropdownMenuItem className="cursor-pointer gap-2">
+                    Pagamentos
+                </DropdownMenuItem>
+                */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    className="text-destructive"
+                    className="cursor-pointer gap-2 text-destructive"
                     disabled={inactivateDisabled}
                     onClick={() => onInactivate(patient.id)}
                 >
+                    <UserX className="h-4 w-4" />
                     Inativar paciente
                 </DropdownMenuItem>
             </DropdownMenuContent>
@@ -534,13 +571,6 @@ export default function PatientListPage() {
                                                                 )
                                                             }
                                                         />
-                                                        <Avatar className="h-7 w-7 shrink-0">
-                                                            <AvatarFallback className="bg-muted text-xs text-muted-foreground">
-                                                                {firstLetter(
-                                                                    user.name,
-                                                                )}
-                                                            </AvatarFallback>
-                                                        </Avatar>
                                                         <span className="text-sm leading-tight">
                                                             {user.name}
                                                         </span>

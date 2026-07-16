@@ -270,7 +270,7 @@ export function PatientAllTab({
 
     if (filteredTimeline.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="flex min-h-[min(24rem,50vh)] w-full flex-col items-center justify-center py-16 text-center">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                     <ClipboardList className="h-7 w-7 text-muted-foreground" />
                 </div>
@@ -286,11 +286,12 @@ export function PatientAllTab({
     }
 
     return (
-        <div className="relative pl-0 sm:pl-8">
-            {/* Linha vertical da timeline (escondida no mobile) */}
-            <div className="absolute top-6 bottom-0 left-[11px] hidden w-0.5 bg-border sm:block" />
+        <div className="mx-auto max-w-3xl">
+            <div className="relative pl-0 sm:pl-8">
+                {/* Linha vertical da timeline (escondida no mobile) */}
+                <div className="absolute top-6 bottom-0 left-[11px] hidden w-0.5 bg-border sm:block" />
 
-            <div className="space-y-4">
+                <div className="space-y-4">
                 {filteredTimeline.map((entry) => {
                     const dateStr = entry.date.toLocaleDateString('pt-BR');
 
@@ -610,6 +611,7 @@ export function PatientAllTab({
 
                     return null;
                 })}
+                </div>
             </div>
 
             <AlertDialog

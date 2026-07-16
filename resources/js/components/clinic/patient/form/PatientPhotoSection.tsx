@@ -28,7 +28,8 @@ export function PatientPhotoSection({
     currentPhotoUrl,
     onRemoveCurrent,
     cropTitle = 'Recortar foto do paciente',
-    cropAspect = 16 / 9,
+    /** Sem proporção fixa por padrão — permite crescer/diminuir livremente. */
+    cropAspect,
 }: PatientPhotoSectionProps) {
     const [photoError, setPhotoError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -183,7 +184,7 @@ export function PatientPhotoSection({
                 onConfirm={handleCropConfirm}
                 title={cropTitle}
                 aspect={cropAspect}
-                hintText="Arraste a área para posicionar o recorte. Use + e − para zoom."
+                hintText="Arraste as bordas e os cantos para ajustar o recorte. Arraste o centro para reposicionar."
             />
         </>
     );

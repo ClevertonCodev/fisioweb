@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CalendarViewProps {
     events: CalendarEvent[];
+    initialDate?: Date;
     onEventClick: (appointment: Appointment) => void;
     onDateClick: (date: Date) => void;
     onEventDrop: (id: string, start: string, end: string) => void;
@@ -18,6 +19,7 @@ interface CalendarViewProps {
 
 export function CalendarView({
     events,
+    initialDate,
     onEventClick,
     onDateClick,
     onEventDrop,
@@ -34,6 +36,7 @@ export function CalendarView({
                 interactionPlugin,
             ]}
             initialView={isMobile ? 'listWeek' : 'timeGridWeek'}
+            initialDate={initialDate}
             locale={ptBrLocale}
             headerToolbar={
                 isMobile

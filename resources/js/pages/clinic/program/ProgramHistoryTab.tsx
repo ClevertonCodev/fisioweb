@@ -12,9 +12,12 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { formatProgramClinicalRecordText } from '@/application/clinic/format-program-clinical-record-text';
 import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
 import {
+    findClinicProgram,
     useClinicPrograms,
     useConvertToModelClinicProgram,
     useDeleteClinicProgram,
@@ -166,6 +169,7 @@ type ProgramActionsProps = {
     program: Program;
     onDuplicate: (id: string) => void;
     onToModel: (id: string) => void;
+    onCopyClinicalText: (id: string) => void;
     onDelete: (p: Program) => void;
 };
 
@@ -173,6 +177,7 @@ function ProgramActions({
     program,
     onDuplicate,
     onToModel,
+    onCopyClinicalText,
     onDelete,
 }: ProgramActionsProps) {
     return (
@@ -190,7 +195,10 @@ function ProgramActions({
                     <Copy className="h-4 w-4" />
                     Duplicar
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled className="cursor-not-allowed gap-2">
+                <DropdownMenuItem
+                    onClick={() => onCopyClinicalText(program.id)}
+                    className="cursor-pointer gap-2"
+                >
                     <FileText className="h-4 w-4" />
                     Texto para prontuário
                 </DropdownMenuItem>
@@ -410,6 +418,25 @@ export default function ProgramHistoryTab() {
     const [programToDelete, setProgramToDelete] = useState<Program | null>(
         null,
     );
+
+    const copyClinicalText = useCallback(async (programId: string) => {
+        try {
+            const full = await findClinicProgram(programId);
+            if (!full) {
+                toast.error('Não foi possível carregar o programa.');
+                return;
+            }
+            const text = formatProgramClinicalRecordText(full);
+            if (!text) {
+                toast.error('Programa sem exercícios para copiar.');
+                return;
+            }
+            await navigator.clipboard.writeText(text);
+            toast.success('Texto copiado para a área de transferência.');
+        } catch {
+            toast.error('Não foi possível copiar o texto.');
+        }
+    }, []);
 
     return (
         <>
@@ -708,6 +735,9 @@ export default function ProgramHistoryTab() {
                                             program={program}
                                             onDuplicate={duplicate}
                                             onToModel={toModel}
+                                            onCopyClinicalText={
+                                                copyClinicalText
+                                            }
                                             onDelete={setProgramToDelete}
                                         />
                                     </TableCell>
@@ -799,6 +829,9 @@ export default function ProgramHistoryTab() {
                                                         program={program}
                                                         onDuplicate={duplicate}
                                                         onToModel={toModel}
+                                                        onCopyClinicalText={
+                                                            copyClinicalText
+                                                        }
                                                         onDelete={
                                                             setProgramToDelete
                                                         }

@@ -13,7 +13,9 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { formatProgramClinicalRecordText } from '@/application/clinic/format-program-clinical-record-text';
 import {
     useClinicProgram,
     useConvertToModelClinicProgram,
@@ -239,6 +241,20 @@ export default function ProgramDetailPage() {
 
     const validityDays = daysUntil(program.endDate);
 
+    const copyClinicalText = async () => {
+        try {
+            const text = formatProgramClinicalRecordText(program);
+            if (!text) {
+                toast.error('Programa sem exercícios para copiar.');
+                return;
+            }
+            await navigator.clipboard.writeText(text);
+            toast.success('Texto copiado para a área de transferência.');
+        } catch {
+            toast.error('Não foi possível copiar o texto.');
+        }
+    };
+
     return (
         <>
             <ClinicLayout>
@@ -311,8 +327,8 @@ export default function ProgramDetailPage() {
                                                 Duplicar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                disabled
-                                                className="cursor-not-allowed gap-2"
+                                                onClick={copyClinicalText}
+                                                className="cursor-pointer gap-2"
                                             >
                                                 <FileText className="h-4 w-4" />
                                                 Texto para prontuário

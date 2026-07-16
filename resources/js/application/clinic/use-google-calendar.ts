@@ -35,15 +35,22 @@ export function useDisconnectGoogleCalendar() {
     });
 }
 
-/** Sincroniza agora a agenda local com o Google Calendar do usuário. */
+/**
+ * Enfileira o pull do Google Calendar (worker). Refetch da agenda após um
+ * intervalo curto — o job não termina no request HTTP.
+ */
 export function usePullGoogleCalendar() {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: () => repository.pullNow(),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['appointments', 'list'] });
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+            window.setTimeout(() => {
+                queryClient.invalidateQueries({
+                    queryKey: ['appointments', 'list'],
+                });
+            }, 4000);
         },
     });
 }

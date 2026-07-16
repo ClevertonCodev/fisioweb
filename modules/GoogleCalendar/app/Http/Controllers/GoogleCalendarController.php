@@ -95,8 +95,8 @@ class GoogleCalendarController extends Controller
     }
 
     /**
-     * Puxa agora os eventos do Google Calendar do usuário autenticado
-     * (sincronização sob demanda — além do polling agendado).
+     * Enfileira o pull do Google Calendar do usuário autenticado (worker/job
+     * server). O polling agendado (~5 min) continua rodando em paralelo.
      */
     public function pull(): JsonResponse
     {
@@ -109,9 +109,9 @@ class GoogleCalendarController extends Controller
         }
 
         $user = Auth::guard('clinic')->user();
-        PullGoogleCalendarJob::dispatchSync((int) $user->id);
+        PullGoogleCalendarJob::dispatch((int) $user->id);
 
-        return response()->json(['data' => ['pulled' => true]]);
+        return response()->json(['data' => ['queued' => true]], 202);
     }
 
     /**

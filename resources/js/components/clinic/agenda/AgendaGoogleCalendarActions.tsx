@@ -57,9 +57,11 @@ export function AgendaGoogleCalendarActions() {
     const handlePull = async () => {
         try {
             await pullMutation.mutateAsync();
-            toast.success('Agenda atualizada com o Google.');
+            toast.success(
+                'Atualização enfileirada. A agenda será sincronizada em breve.',
+            );
         } catch {
-            toast.error('Não foi possível atualizar a agenda agora.');
+            toast.error('Não foi possível enfileirar a atualização.');
         }
     };
 

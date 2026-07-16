@@ -2,7 +2,6 @@ import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -12,6 +11,10 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+    StatusBadge,
+    type StatusBadgeProps,
+} from '@/components/ui/status-badge';
 import {
     STATUS_COLORS,
     type AppointmentStatus,
@@ -47,13 +50,33 @@ function statusLabel(status: string): string {
     return STATUS_COLORS[status as AppointmentStatus]?.label ?? status;
 }
 
+/** Mapeia status da consulta → variante do StatusBadge do sistema. */
+function statusVariant(
+    status: string,
+): NonNullable<StatusBadgeProps['variant']> {
+    switch (status as AppointmentStatus) {
+        case 'scheduled':
+            return 'info';
+        case 'confirmed':
+            return 'success';
+        case 'no_show':
+            return 'warning';
+        case 'completed':
+            return 'neutral';
+        case 'cancelled':
+            return 'danger';
+        default:
+            return 'neutral';
+    }
+}
+
 export function UpcomingAppointments({
     items,
     isLoading,
     isError,
 }: UpcomingAppointmentsProps) {
     return (
-        <Card className="lg:col-span-2">
+        <Card className="min-w-0">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle className="text-lg">Próximas Consultas</CardTitle>
@@ -106,20 +129,17 @@ export function UpcomingAppointments({
                                         </p>
                                     )}
                                 </div>
-                                <div className="text-right">
+                                <div className="flex flex-col items-end gap-1 text-right">
                                     <p className="font-medium text-foreground">
                                         {time(appointment.startsAt)}
                                     </p>
-                                    <Badge
-                                        variant={
-                                            appointment.status === 'confirmed'
-                                                ? 'default'
-                                                : 'secondary'
-                                        }
-                                        className="mt-1"
+                                    <StatusBadge
+                                        variant={statusVariant(
+                                            appointment.status,
+                                        )}
                                     >
                                         {statusLabel(appointment.status)}
-                                    </Badge>
+                                    </StatusBadge>
                                 </div>
                             </div>
                         ))}

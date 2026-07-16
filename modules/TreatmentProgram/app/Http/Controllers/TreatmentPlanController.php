@@ -12,6 +12,7 @@ use Modules\Pdf\Contracts\PdfGeneratorInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
 use Modules\TreatmentProgram\Http\Requests\StoreTreatmentPlanRequest;
 use Modules\TreatmentProgram\Http\Requests\UpdateTreatmentPlanRequest;
+use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Services\ProgramPdfQrCodeGenerator;
 use Modules\TreatmentProgram\Services\ProgramPdfViewModelBuilder;
 
@@ -65,7 +66,7 @@ class TreatmentPlanController extends Controller
         ]);
         $plan = $this->treatmentPlanService->create($data);
 
-        return response()->json(['data' => $plan], 201);
+        return response()->json(['data' => $this->planResponse($plan)], 201);
     }
 
     public function update(UpdateTreatmentPlanRequest $request, int $id): JsonResponse
@@ -78,7 +79,7 @@ class TreatmentPlanController extends Controller
             }
             $plan = $this->treatmentPlanService->update($id, $request->validated());
 
-            return response()->json(['data' => $plan]);
+            return response()->json(['data' => $this->planResponse($plan)]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
         }
@@ -167,5 +168,18 @@ class TreatmentPlanController extends Controller
             ],
             $filename
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function planResponse(TreatmentPlan $plan): array
+    {
+        $plan->loadMissing(['patient', 'clinic', 'groups.exercises.exercise', 'exercises.exercise', 'physioArea', 'physioSubarea']);
+
+        $payload = $plan->toArray();
+        $payload['share_url'] = $this->pdfViewModelBuilder->deepLinkUrl($plan);
+
+        return $payload;
     }
 }

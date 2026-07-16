@@ -11,12 +11,17 @@ import {
 import { useUpdateClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EditExercisePanel } from '@/components/clinic/program/EditExercisePanel';
+import {
+    ProgramShareDialog,
+    type ProgramSharePhase,
+} from '@/components/clinic/program/ProgramShareDialog';
 import { StepConfigureExercises } from '@/components/clinic/program/StepConfigureExercises';
 import { StepProgramDetails } from '@/components/clinic/program/StepProgramDetails';
 import { StepSelectExercises } from '@/components/clinic/program/StepSelectExercises';
 import { Button } from '@/components/ui/button';
 import type {
     Exercise,
+    Program,
     ProgramExercise,
     ProgramGroup,
     ProgramStep,
@@ -70,6 +75,10 @@ export default function ProgramNewPage() {
     const [targetGroupId, setTargetGroupId] = useState<string | null>(null);
     const [initialTitle, setInitialTitle] = useState('');
     const [initialMessage, setInitialMessage] = useState('');
+    const [shareOpen, setShareOpen] = useState(false);
+    const [sharePhase, setSharePhase] = useState<ProgramSharePhase>('saving');
+    const [shareProgram, setShareProgram] = useState<Program | null>(null);
+    const [shareError, setShareError] = useState<string | null>(null);
 
     const { draft, hasDraft, scheduleSave, clearDraft, restoreDraft } =
         useProgramDraft(step, selectedIds, groups);
@@ -343,24 +352,72 @@ export default function ProgramNewPage() {
             exercises: exercisesPayload,
         };
 
+        const shouldShare = Boolean(details.patientId);
+
+        if (shouldShare) {
+            setShareProgram(null);
+            setShareError(null);
+            setSharePhase('saving');
+            setShareOpen(true);
+        }
+
         if (editMode && editProgramId) {
             updateProgram.mutate(
                 { id: editProgramId, dto },
                 {
-                    onSuccess: () => {
+                    onSuccess: (program) => {
+                        if (shouldShare) {
+                            clearDraft();
+                            setShareProgram(program);
+                            setSharePhase('ready');
+                            return;
+                        }
                         navigate(`/clinica/programas/${editProgramId}`);
+                    },
+                    onError: (error) => {
+                        if (!shouldShare) return;
+                        setSharePhase('error');
+                        setShareError(
+                            error instanceof Error
+                                ? error.message
+                                : 'Erro ao salvar o programa.',
+                        );
                     },
                 },
             );
         } else {
             createProgram.mutate(dto, {
-                onSuccess: () => {
+                onSuccess: (program) => {
                     clearDraft();
+                    if (shouldShare) {
+                        setShareProgram(program);
+                        setSharePhase('ready');
+                        return;
+                    }
                     navigate('/clinica/programas');
+                },
+                onError: (error) => {
+                    if (!shouldShare) return;
+                    setSharePhase('error');
+                    setShareError(
+                        error instanceof Error
+                            ? error.message
+                            : 'Erro ao salvar o programa.',
+                    );
                 },
             });
         }
     };
+
+    function handleShareDone() {
+        setShareOpen(false);
+        const programId = shareProgram?.id ?? editProgramId;
+        if (programId) {
+            navigate(`/clinica/programas/${programId}`);
+            return;
+        }
+        navigate('/clinica/programas');
+    }
 
     const currentEditExercise =
         editingExercise &&
@@ -505,6 +562,21 @@ export default function ProgramNewPage() {
                     )}
                 </div>
             </div>
+
+            <ProgramShareDialog
+                open={shareOpen}
+                phase={sharePhase}
+                program={shareProgram}
+                errorMessage={shareError}
+                onOpenChange={(open) => {
+                    if (!open && sharePhase === 'saving') return;
+                    setShareOpen(open);
+                    if (!open && sharePhase === 'ready') {
+                        handleShareDone();
+                    }
+                }}
+                onDone={handleShareDone}
+            />
         </ClinicLayout>
     );
 }

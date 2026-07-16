@@ -4,11 +4,9 @@ namespace Modules\GoogleCalendar\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Queue;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
-use Modules\GoogleCalendar\Jobs\PullGoogleCalendarJob;
 use Tests\TestCase;
 
 class GoogleCalendarConnectionTest extends TestCase
@@ -113,7 +111,7 @@ class GoogleCalendarConnectionTest extends TestCase
             ->assertStatus(422);
     }
 
-    public function test_pull_queues_job_when_connected(): void
+    public function test_pull_runs_sync_when_connected(): void
     {
         $this->user->forceFill([
             'google_access_token'  => 'token',
@@ -122,15 +120,16 @@ class GoogleCalendarConnectionTest extends TestCase
             'google_calendar_id'   => 'primary',
         ])->save();
 
-        Queue::fake();
+        $this->mock(GoogleCalendarServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('pullChanges')->once()->andReturn([
+                'events'        => [],
+                'nextSyncToken' => null,
+            ]);
+        });
 
         $this->actingAs($this->user, 'clinic')
             ->postJson('/api/clinic/google-calendar/pull')
-            ->assertStatus(202)
-            ->assertJsonPath('data.queued', true);
-
-        Queue::assertPushed(PullGoogleCalendarJob::class, function (PullGoogleCalendarJob $job) {
-            return $job->clinicUserId === $this->user->id;
-        });
+            ->assertOk()
+            ->assertJsonPath('data.pulled', true);
     }
 }

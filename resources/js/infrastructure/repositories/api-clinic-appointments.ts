@@ -21,6 +21,7 @@ interface ApiAppointmentDto {
     starts_at: string;
     ends_at: string;
     status: Appointment['status'];
+    source?: Appointment['source'] | null;
     patient?: ApiNamedDto | null;
     clinic_user?: ApiNamedDto | null;
 }
@@ -38,12 +39,12 @@ function toEntity(raw: ApiAppointmentDto): Appointment {
         endsAt: raw.ends_at,
         status: raw.status,
         location: raw.location,
+        source: raw.source === 'google' ? 'google' : 'system',
     };
 }
 
 function toPayload(dto: AppointmentWriteDto): Record<string, unknown> {
-    return {
-        patient_id: Number(dto.patientId),
+    const payload: Record<string, unknown> = {
         clinic_user_id: Number(dto.clinicUserId),
         title: dto.title ?? null,
         description: dto.description ?? null,
@@ -51,6 +52,12 @@ function toPayload(dto: AppointmentWriteDto): Record<string, unknown> {
         starts_at: dto.startsAt,
         ends_at: dto.endsAt,
     };
+
+    if (dto.patientId) {
+        payload.patient_id = Number(dto.patientId);
+    }
+
+    return payload;
 }
 
 export const apiClinicAppointmentsRepository: AppointmentsRepository = {

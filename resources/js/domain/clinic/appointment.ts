@@ -6,6 +6,8 @@ export type AppointmentStatus =
     | 'completed'
     | 'no_show';
 
+export type AppointmentSource = 'system' | 'google';
+
 export interface Appointment {
     id: string;
     patientId: string;
@@ -18,6 +20,8 @@ export interface Appointment {
     endsAt: string;
     status: AppointmentStatus;
     location: string | null;
+    /** Origem do evento — `google` = importado do Google Calendar. */
+    source: AppointmentSource;
 }
 
 export interface CalendarEvent {

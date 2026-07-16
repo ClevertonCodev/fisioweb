@@ -35,10 +35,7 @@ export function useDisconnectGoogleCalendar() {
     });
 }
 
-/**
- * Enfileira o pull do Google Calendar (worker). Refetch da agenda após um
- * intervalo curto — o job não termina no request HTTP.
- */
+/** Puxa o Google Calendar na hora (request síncrono) e refetch a agenda. */
 export function usePullGoogleCalendar() {
     const queryClient = useQueryClient();
 
@@ -46,11 +43,9 @@ export function usePullGoogleCalendar() {
         mutationFn: () => repository.pullNow(),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-            window.setTimeout(() => {
-                queryClient.invalidateQueries({
-                    queryKey: ['appointments', 'list'],
-                });
-            }, 4000);
+            queryClient.invalidateQueries({
+                queryKey: ['appointments', 'list'],
+            });
         },
     });
 }

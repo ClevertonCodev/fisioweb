@@ -41,6 +41,7 @@ class PullGoogleCalendarJobTest extends TestCase
             'google_event_id' => 'google-event-1',
             'source'          => 'google',
             'status'          => AppointmentStatus::Scheduled->value,
+            'description'     => "Alinhamento semanal\n\nPauta do dia",
         ]);
 
         $this->assertSame('sync-token-1', $user->fresh()->google_sync_token);
@@ -95,7 +96,7 @@ class PullGoogleCalendarJobTest extends TestCase
         $event = new GoogleEvent;
         $event->setId($id);
         $event->setSummary('Google event');
-        $event->setDescription('Pulled from Google');
+        $event->setDescription('<b>Alinhamento semanal</b><br><br>Pauta do dia');
         $event->setLocation('Room 1');
 
         $start = new EventDateTime;

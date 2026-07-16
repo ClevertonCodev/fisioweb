@@ -145,7 +145,8 @@ export interface AppointmentListParams {
 
 /** DTO de escrita para criar/editar consulta (camelCase). */
 export interface AppointmentWriteDto {
-    patientId: string;
+    /** Opcional em eventos do Google (sem paciente vinculado). */
+    patientId?: string | null;
     clinicUserId: string;
     title?: string | null;
     description?: string | null;

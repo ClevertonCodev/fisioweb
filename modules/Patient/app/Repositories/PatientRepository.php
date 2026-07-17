@@ -44,11 +44,14 @@ class PatientRepository implements PatientRepositoryInterface
             ->selectSub($assessmentDiagnosis, 'assessment_diagnosis');
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
+            $search       = $filters['search'];
+            $searchDigits = preg_replace('/\D+/', '', $search);
+            $query->where(function ($q) use ($search, $searchDigits) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('cpf', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
+                if (!empty($searchDigits)) {
+                    $q->orWhere('cpf', 'like', "%{$searchDigits}%");
+                }
             });
         }
 

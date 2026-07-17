@@ -2,4 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/{any?}', fn () => view('app'))->where('any', '^(?!api/).*$');
+// SPA catch-all: exclui API e o Log Viewer (opcodesio/log-viewer)
+Route::get('/{any?}', fn () => view('app'))->where('any', '^(?!api(?:/|$)|log-viewer(?:/|$)).*$');

@@ -236,12 +236,14 @@ export function StepSelectExercises({
 
             {/* Desktop sidebar */}
             {showSidebar && (
-                <div className="hidden w-80 flex-shrink-0 flex-col border-l border-border bg-card md:flex">
-                    <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+                <div className="hidden h-full min-h-0 w-80 flex-shrink-0 flex-col overflow-hidden border-l border-border bg-card md:flex">
+                    <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3">
                         {selectedHeader}
                     </div>
-                    <div className="flex-1 overflow-auto">{selectedList}</div>
-                    <div className="border-t border-border p-4">
+                    <div className="min-h-0 flex-1 overflow-auto">
+                        {selectedList}
+                    </div>
+                    <div className="relative z-10 shrink-0 border-t border-border bg-card p-4">
                         <Button
                             className="w-full cursor-pointer"
                             onClick={onNext}

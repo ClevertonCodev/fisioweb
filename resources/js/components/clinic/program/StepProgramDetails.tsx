@@ -107,6 +107,8 @@ export function StepProgramDetails({
             remaining={remaining}
             totalExercises={totalExercises}
             totalDuration={totalDuration}
+            startDate={startDate}
+            endDate={endDate}
         />
     );
 
@@ -279,9 +281,11 @@ export function StepProgramDetails({
             </div>
 
             {!isMobile && (
-                <div className="flex w-72 shrink-0 flex-col border-l border-border bg-card">
-                    <div className="space-y-4 p-6">{summary}</div>
-                    <div className="mt-auto border-t border-border p-4">
+                <div className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l border-border bg-card">
+                    <div className="min-h-0 flex-1 space-y-4 overflow-auto p-6">
+                        {summary}
+                    </div>
+                    <div className="relative z-10 mt-auto shrink-0 border-t border-border bg-card p-4">
                         <Button
                             className="w-full cursor-pointer"
                             onClick={handleSubmit}
@@ -308,17 +312,40 @@ export function StepProgramDetails({
     );
 }
 
+function accessDurationLabel(startDate: string, endDate: string): string {
+    if (!endDate.trim()) return '--';
+
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return '--';
+    }
+
+    const days = Math.round(
+        (end.getTime() - start.getTime()) / 86_400_000,
+    );
+    if (days <= 0) return '--';
+
+    return `${days} dia${days !== 1 ? 's' : ''}`;
+}
+
 function ProgramSummary({
     thumbnails,
     remaining,
     totalExercises,
     totalDuration,
+    startDate,
+    endDate,
 }: {
     thumbnails: (string | null)[];
     remaining: number;
     totalExercises: number;
     totalDuration: number;
+    startDate: string;
+    endDate: string;
 }) {
+    const accessLabel = accessDurationLabel(startDate, endDate);
+
     return (
         <>
             <h3 className="text-base font-semibold text-foreground">
@@ -360,7 +387,7 @@ function ProgramSummary({
                     <span className="text-muted-foreground">
                         Acesso disponível por
                     </span>
-                    <span className="text-foreground">--</span>
+                    <span className="text-foreground">{accessLabel}</span>
                 </div>
             </div>
         </>

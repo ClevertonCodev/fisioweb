@@ -17,13 +17,13 @@ export function SupportWhatsappButton() {
     )}`;
 
     return (
-        <div className="group fixed right-5 bottom-5 z-50 flex flex-col items-end gap-3">
-            {/* Balão: escondido, aparece no hover do grupo */}
-            <div className="pointer-events-none relative translate-y-1 rounded-2xl border border-border bg-card px-4 py-3 opacity-0 shadow-lg transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+        // pointer-events-none no wrapper: o balão nunca intercepta cliques em
+        // botões do canto inferior direito (Avançar / Aplicar / Salvar).
+        <div className="pointer-events-none group fixed right-5 bottom-5 z-50 flex flex-col items-end gap-3">
+            <div className="relative translate-y-1 rounded-2xl border border-border bg-card px-4 py-3 opacity-0 shadow-lg transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
                 <span className="text-sm font-medium whitespace-nowrap text-foreground">
                     Dúvidas? Fale com nosso suporte
                 </span>
-                {/* seta apontando pro botão */}
                 <div className="absolute -bottom-1.5 right-6 h-3 w-3 rotate-45 border-r border-b border-border bg-card" />
             </div>
 
@@ -32,7 +32,7 @@ export function SupportWhatsappButton() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Falar com o suporte no WhatsApp"
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-105"
+                className="pointer-events-auto flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-105"
             >
                 <MessageCircle className="h-7 w-7" fill="currentColor" />
             </a>

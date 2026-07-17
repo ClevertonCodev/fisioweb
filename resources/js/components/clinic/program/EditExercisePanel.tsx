@@ -97,8 +97,8 @@ export function EditExercisePanel({
     };
 
     return (
-        <div className="fixed inset-0 z-30 flex h-full w-full flex-col border-border bg-card md:static md:inset-auto md:z-auto md:w-80 md:border-l">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="fixed inset-0 z-30 flex h-full min-h-0 w-full flex-col overflow-hidden border-border bg-card md:static md:inset-auto md:z-auto md:w-80 md:border-l">
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
                 <h3 className="text-sm font-semibold text-foreground">
                     Editar exercício
                 </h3>
@@ -112,7 +112,7 @@ export function EditExercisePanel({
                 </Button>
             </div>
 
-            <div className="flex-1 space-y-6 overflow-auto p-4">
+            <div className="min-h-0 flex-1 space-y-6 overflow-auto p-4">
                 {/* Days */}
                 <div className="space-y-3">
                     <label className="text-sm font-medium text-foreground">
@@ -320,11 +320,15 @@ export function EditExercisePanel({
                 </div>
             </div>
 
-            <div className="flex gap-3 border-t border-border p-4">
-                <Button variant="outline" className="flex-1" onClick={onClose}>
+            <div className="relative z-10 flex shrink-0 gap-3 border-t border-border bg-card p-4">
+                <Button
+                    variant="outline"
+                    className="flex-1 cursor-pointer"
+                    onClick={onClose}
+                >
                     Cancelar
                 </Button>
-                <Button className="flex-1" onClick={handleApply}>
+                <Button className="flex-1 cursor-pointer" onClick={handleApply}>
                     Aplicar
                 </Button>
             </div>

@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 import { ClinicSidebar } from './ClinicSidebar';
+import { SupportWhatsappButton } from './SupportWhatsappButton';
 
 interface ClinicLayoutProps {
     children: ReactNode;
@@ -21,6 +22,7 @@ export function ClinicLayout({ children }: ClinicLayoutProps) {
                 >
                     {children}
                 </main>
+                <SupportWhatsappButton />
             </div>
         </TooltipProvider>
     );

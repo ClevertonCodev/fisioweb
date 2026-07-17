@@ -15,6 +15,20 @@ export default function ClinicLoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const supportWhatsapp = import.meta.env.VITE_SUPPORT_WHATSAPP as
+        | string
+        | undefined;
+
+    const handleSupport = () => {
+        if (!supportWhatsapp) return;
+        const number = supportWhatsapp.replace(/\D/g, '');
+        window.open(
+            `https://wa.me/${number}`,
+            '_blank',
+            'noopener,noreferrer',
+        );
+    };
+
     const handleLogin = async (e: { preventDefault(): void }) => {
         e.preventDefault();
         setError(null);
@@ -182,13 +196,21 @@ export default function ClinicLoginPage() {
                 <div className="mt-6 space-y-1 text-center">
                     <p className="text-sm text-muted-foreground">
                         Não possui uma conta?{' '}
-                        <button className="font-semibold text-primary transition-colors hover:text-primary/80">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/clinica/criar-conta')}
+                            className="font-semibold text-primary transition-colors hover:text-primary/80"
+                        >
                             Criar conta
                         </button>
                     </p>
                     <p className="text-sm text-muted-foreground">
                         Precisa de ajuda?{' '}
-                        <button className="font-semibold text-primary transition-colors hover:text-primary/80">
+                        <button
+                            type="button"
+                            onClick={handleSupport}
+                            className="font-semibold text-primary transition-colors hover:text-primary/80"
+                        >
                             Falar com suporte
                         </button>
                     </p>

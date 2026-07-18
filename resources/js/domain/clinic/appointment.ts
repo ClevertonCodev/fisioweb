@@ -114,3 +114,24 @@ export function canTransitionAppointmentStatus(
 export function isTerminalAppointmentStatus(status: AppointmentStatus): boolean {
     return TERMINAL_STATUSES.includes(status);
 }
+
+const ALL_APPOINTMENT_STATUSES: AppointmentStatus[] = [
+    'scheduled',
+    'confirmed',
+    'no_show',
+    'completed',
+    'cancelled',
+];
+
+/** Status exibíveis no select de edição (atual + transitáveis). */
+export function selectableAppointmentStatuses(
+    current: AppointmentStatus,
+    startsAt: string | Date,
+    now: Date = new Date(),
+): AppointmentStatus[] {
+    return ALL_APPOINTMENT_STATUSES.filter(
+        (s) =>
+            s === current ||
+            canTransitionAppointmentStatus(current, s, startsAt, now),
+    );
+}

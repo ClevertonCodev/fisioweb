@@ -1,20 +1,30 @@
 import { MessageCircle } from 'lucide-react';
 
-const SUPPORT_MESSAGE = 'Olá, preciso de ajuda.';
+export const SUPPORT_MESSAGE = 'Olá, preciso de ajuda.';
+
+/** Número de suporte (só dígitos) a partir de VITE_SUPPORT_WHATSAPP. */
+export function getSupportWhatsappNumber(): string {
+    const raw = import.meta.env.VITE_SUPPORT_WHATSAPP as string | undefined;
+    return (raw ?? '').replace(/\D/g, '');
+}
+
+/** URL do WhatsApp Web/App para o suporte, ou null se não configurado. */
+export function getSupportWhatsappHref(): string | null {
+    const number = getSupportWhatsappNumber();
+    if (!number) return null;
+    return `https://api.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(
+        SUPPORT_MESSAGE,
+    )}`;
+}
 
 /**
  * Botão flutuante de suporte via WhatsApp.
- * Usa VITE_SUPPORT_WHATSAPP do .env; se não estiver definido, não renderiza nada.
+ * Mantido no código, mas não montado no layout — o acesso fica no menu da conta
+ * (`ClinicUserDropdown`). Usa VITE_SUPPORT_WHATSAPP do .env.
  */
 export function SupportWhatsappButton() {
-    const raw = import.meta.env.VITE_SUPPORT_WHATSAPP as string | undefined;
-    const number = (raw ?? '').replace(/\D/g, '');
-
-    if (!number) return null;
-
-    const href = `https://api.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(
-        SUPPORT_MESSAGE,
-    )}`;
+    const href = getSupportWhatsappHref();
+    if (!href) return null;
 
     return (
         // À esquerda: no canto direito o FAB cobria eventos da Agenda (semana/dia).

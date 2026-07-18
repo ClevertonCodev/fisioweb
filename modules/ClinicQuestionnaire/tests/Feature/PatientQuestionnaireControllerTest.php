@@ -248,6 +248,42 @@ class PatientQuestionnaireControllerTest extends TestCase
             ->assertStatus(422);
     }
 
+    public function test_clinic_cannot_reanswer_answered_presencial_questionnaire(): void
+    {
+        $section = QuestionnaireSection::query()->create([
+            'questionnaire_template_id' => $this->template->id,
+            'title'                     => 'Anamnese',
+            'sort_order'                => 0,
+        ]);
+        $question = QuestionnaireQuestion::query()->create([
+            'questionnaire_section_id' => $section->id,
+            'label'                    => 'Qual a queixa?',
+            'type'                     => 'text',
+            'options'                  => null,
+            'scale_min'                => 0,
+            'scale_max'                => 10,
+            'required'                 => true,
+            'sort_order'               => 0,
+        ]);
+
+        $questionnaire = PatientQuestionnaire::factory()
+            ->forPatient($this->patient, $this->clinic)
+            ->create([
+                'questionnaire_template_id' => $this->template->id,
+                'modality'                  => 'presencial',
+                'status'                    => 'answered',
+                'answered_at'               => now(),
+            ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patient->id}/questionnaires/{$questionnaire->id}/answer", [
+                'answers' => [
+                    ['question_id' => $question->id, 'answer' => 'Tentativa'],
+                ],
+            ])
+            ->assertStatus(422);
+    }
+
     private function createQuestionnaireForPatient(?Patient $patient = null, ?Clinic $clinic = null): PatientQuestionnaire
     {
         $patient = $patient ?? $this->patient;

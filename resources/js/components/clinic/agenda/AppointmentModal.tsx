@@ -30,19 +30,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Appointment, AppointmentStatus } from '@/domain/clinic';
-import {
-    canTransitionAppointmentStatus,
-    STATUS_COLORS,
-} from '@/domain/clinic';
+import { selectableAppointmentStatuses, STATUS_COLORS } from '@/domain/clinic';
 import { htmlToPlainText } from '@/lib/html-to-plain-text';
-
-const STATUS_OPTIONS: AppointmentStatus[] = [
-    'scheduled',
-    'confirmed',
-    'no_show',
-    'completed',
-    'cancelled',
-];
 
 function buildSchema(fromGoogle: boolean) {
     return z
@@ -186,14 +175,9 @@ export function AppointmentModal({
     ]);
 
     const statusOptions = appointment
-        ? STATUS_OPTIONS.filter(
-              (s) =>
-                  s === appointment.status ||
-                  canTransitionAppointmentStatus(
-                      appointment.status,
-                      s,
-                      appointment.startsAt,
-                  ),
+        ? selectableAppointmentStatuses(
+              appointment.status,
+              appointment.startsAt,
           )
         : [];
 

@@ -372,7 +372,7 @@ function SelectedExercisesList({
                                             key={ex.id}
                                             className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
                                         >
-                                            <div className="h-14 w-20 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-24">
+                                            <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-14">
                                                 <img
                                                     src={ex.thumbnailUrl}
                                                     alt={ex.title}
@@ -431,7 +431,7 @@ function SelectedExercisesList({
                     key={ex.id}
                     className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
                 >
-                    <div className="h-14 w-20 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-24">
+                    <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded bg-muted sm:w-14">
                         <img
                             src={ex.thumbnailUrl ?? undefined}
                             alt={ex.title}

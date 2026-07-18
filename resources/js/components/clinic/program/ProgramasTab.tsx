@@ -40,7 +40,7 @@ interface ExerciseRowProps {
 function ExerciseRow({ exercise, frequency }: ExerciseRowProps) {
     return (
         <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="group relative h-[100px] w-full flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:w-[180px]">
+            <div className="group relative h-24 w-24 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}

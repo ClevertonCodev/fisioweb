@@ -133,7 +133,7 @@ export function AdminStepSelectExercises({
                                         key={ex.id}
                                         className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
                                     >
-                                        <div className="h-14 w-24 flex-shrink-0 overflow-hidden rounded bg-muted">
+                                        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
                                             <img
                                                 src={
                                                     video?.thumbnail_url ??
@@ -205,7 +205,7 @@ function ExerciseSelectCard({
             )}
         >
             {/* Thumbnail with play */}
-            <div className="relative aspect-video overflow-hidden bg-muted">
+            <div className="relative aspect-square overflow-hidden bg-muted">
                 <VideoThumb videoUrl={videoUrl} thumbnailUrl={thumbnailUrl} />
 
                 {/* Select overlay */}

@@ -294,7 +294,7 @@ function SortableExerciseRow({
             </div>
 
             {/* Thumbnail with play */}
-            <div className="group relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+            <div className="group relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}

@@ -16,7 +16,6 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ExerciseCard } from '@/components/ExerciseCard';
 import { ExerciseCardSkeleton } from '@/components/ExerciseCardSkeleton';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import {
     Pagination,
@@ -33,6 +32,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 25, 50];

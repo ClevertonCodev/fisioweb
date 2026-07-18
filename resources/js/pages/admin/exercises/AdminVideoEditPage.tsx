@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
     AlertCircle,
     ImagePlus,
@@ -9,11 +10,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import {
     useAdminVideo,
     useUpdateAdminVideo,
 } from '@/application/admin/use-admin-videos';
-import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import {
     AdminVideoReferenceImageFields,
@@ -25,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiAdminVideosRepository } from '@/infrastructure/repositories';
-import { useQueryClient } from '@tanstack/react-query';
 
 const ACCEPT_THUMB = 'image/jpeg,image/png,image/webp';
 const ALLOWED_THUMB_MIMES = ['image/jpeg', 'image/png', 'image/webp'];

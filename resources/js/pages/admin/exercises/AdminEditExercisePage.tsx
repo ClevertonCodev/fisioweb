@@ -8,11 +8,11 @@ import {
     useUpdateAdminExercise,
 } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { BackButton } from '@/components/ui/back-button';
 import {
     ExerciseForm,
     type ExerciseFormState,
 } from '@/components/admin/exercises/ExerciseForm';
+import { BackButton } from '@/components/ui/back-button';
 import {
     Breadcrumb,
     BreadcrumbItem,

@@ -10,8 +10,8 @@ import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { usePresignedUpload } from '@/application/admin/use-admin-videos';
 import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
+import { usePresignedUpload } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import {
     AdminVideoReferenceImageFields,

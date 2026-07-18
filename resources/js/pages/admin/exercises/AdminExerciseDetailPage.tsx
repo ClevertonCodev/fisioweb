@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 
 import { useAdminExercise, useDeleteAdminExercise } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { BackButton } from '@/components/ui/back-button';
 import { ExerciseDetailContent } from '@/components/admin/exercises/ExerciseDetailContent';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import {
     Breadcrumb,

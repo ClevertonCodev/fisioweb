@@ -135,7 +135,7 @@ export default function ProgramDetailPage() {
                                             className="flex items-center gap-4 rounded-lg border border-border p-3"
                                         >
                                             {/* Thumbnail */}
-                                            <div className="h-16 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                                            <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                                                 {ex.exercise?.videoUrl ? (
                                                     <video
                                                         src={

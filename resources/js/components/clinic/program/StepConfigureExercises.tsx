@@ -396,7 +396,7 @@ export function StepConfigureExercises({
                         {activeExercise && (
                             <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 opacity-90 shadow-lg">
                                 <GripVertical className="h-5 w-5 text-muted-foreground/50" />
-                                <div className="h-20 w-28 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                                     <img
                                         src={activeExercise.thumbnailUrl}
                                         alt=""
@@ -534,7 +534,7 @@ function SortableExerciseRow({
             </div>
 
             {/* Thumbnail with play */}
-            <div className="group relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted sm:h-20 sm:w-28">
+            <div className="group relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md bg-muted sm:h-20 sm:w-20">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}

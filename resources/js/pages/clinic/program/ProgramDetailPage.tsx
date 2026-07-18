@@ -176,7 +176,7 @@ function daysUntil(iso: string | null): number | null {
 function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
     return (
         <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
-            <div className="group relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div className="group relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}

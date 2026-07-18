@@ -20,6 +20,7 @@ use Modules\ClinicScheduling\Contracts\Public\AppointmentUpsertFromExternalSourc
 use Modules\ClinicScheduling\Data\Public\AppointmentExternalEventDTO;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 use Modules\GoogleCalendar\Events\GoogleCalendarChangesPulled;
+use Modules\GoogleCalendar\Support\GoogleEventDescriptionNormalizer;
 
 class PullGoogleCalendarJob implements ShouldQueue
 {
@@ -104,7 +105,7 @@ class PullGoogleCalendarJob implements ShouldQueue
             patientId: null,
             externalEventId: $eventId,
             title: $event->getSummary() ?: 'Evento Google',
-            description: $event->getDescription(),
+            description: GoogleEventDescriptionNormalizer::toPlainText($event->getDescription()),
             location: $event->getLocation(),
             startsAt: $start,
             endsAt: $end,

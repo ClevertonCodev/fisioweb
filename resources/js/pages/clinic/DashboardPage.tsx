@@ -54,8 +54,8 @@ export default function DashboardPage() {
                 {/* Cards de indicadores */}
                 <StatCards cards={data?.cards} isLoading={isLoading} />
 
-                {/* Próximas consultas + Aniversariantes ao lado (FR-027) */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* Próximas consultas + Aniversariantes 50/50 (FR-027) */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <UpcomingAppointments
                         items={data?.upcomingAppointments}
                         isLoading={isLoading}

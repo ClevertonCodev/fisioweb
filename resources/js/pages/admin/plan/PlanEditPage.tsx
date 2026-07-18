@@ -1,9 +1,9 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 
 import { billingTypes, useUpdatePlan } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -180,17 +180,11 @@ function PlanEditPageContent({ plan, planId }: { plan: Plan; planId: number }) {
                 <span className="text-foreground">Editar Plano</span>
             </div>
 
-            <div className="flex items-center gap-3">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate('/admin/planos')}
-                >
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
+            <div className="flex items-center justify-between gap-3">
                 <h1 className="text-2xl font-semibold text-foreground">
                     Editar Plano
                 </h1>
+                <BackButton to="/admin/planos" />
             </div>
 
             <EditPlanForm

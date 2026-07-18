@@ -16,6 +16,7 @@ import {
     useCreateAssessment,
 } from '@/application/clinic/use-assessments';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -46,8 +47,8 @@ function FieldPreview({ field }: { field: AssessmentField }) {
     if (field.fieldType === 'number') {
         const unit = field.config?.unit;
         return (
-            <div className="flex max-w-56 items-center gap-2">
-                <div className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-right text-sm text-muted-foreground">
+            <div className="flex w-full max-w-xs items-center gap-2">
+                <div className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-right text-sm text-muted-foreground">
                     —
                 </div>
                 {unit && (
@@ -62,22 +63,28 @@ function FieldPreview({ field }: { field: AssessmentField }) {
         const min = field.config?.min ?? 0;
         const max = field.config?.max ?? 10;
         return (
-            <div className="flex items-center gap-3">
-                <span className="w-24 shrink-0 text-right text-xs text-muted-foreground">
-                    {field.config?.minLabel ?? min}
-                </span>
-                <div className="h-2 flex-1 rounded-full bg-border" />
-                <div className="-ml-4 h-4 w-4 shrink-0 rounded-full border-2 border-primary bg-background shadow" />
-                <span className="w-24 shrink-0 text-xs text-muted-foreground">
-                    {field.config?.maxLabel ?? max}
-                </span>
+            <div className="space-y-2">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <span className="hidden w-20 shrink-0 text-right text-xs text-muted-foreground sm:block">
+                        {field.config?.minLabel ?? min}
+                    </span>
+                    <div className="h-2 min-w-0 flex-1 rounded-full bg-border" />
+                    <div className="h-4 w-4 shrink-0 rounded-full border-2 border-primary bg-background shadow" />
+                    <span className="hidden w-20 shrink-0 text-xs text-muted-foreground sm:block">
+                        {field.config?.maxLabel ?? max}
+                    </span>
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground sm:hidden">
+                    <span>{field.config?.minLabel ?? min}</span>
+                    <span>{field.config?.maxLabel ?? max}</span>
+                </div>
             </div>
         );
     }
     if (field.fieldType === 'checkbox' && field.options.length > 0) {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         return (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {field.options.map((opt, i) => (
                     <div
                         key={opt.id}
@@ -86,7 +93,9 @@ function FieldPreview({ field }: { field: AssessmentField }) {
                         <span className="shrink-0 text-xs font-bold text-muted-foreground">
                             {letters[i]}.
                         </span>
-                        <span className="flex-1 text-xs">{opt.label}</span>
+                        <span className="min-w-0 flex-1 break-words text-xs">
+                            {opt.label}
+                        </span>
                     </div>
                 ))}
             </div>
@@ -98,12 +107,12 @@ function FieldPreview({ field }: { field: AssessmentField }) {
 function SectionPreview({ section }: { section: AssessmentSection }) {
     return (
         <div className="overflow-hidden rounded-xl border border-border shadow-sm">
-            <div className="bg-muted px-5 py-3">
-                <h3 className="font-mono text-xs font-bold tracking-widest text-primary uppercase">
+            <div className="bg-muted px-4 py-3 sm:px-5">
+                <h3 className="font-mono text-[11px] font-bold tracking-widest text-primary uppercase sm:text-xs">
                     {section.title}
                 </h3>
             </div>
-            <div className="space-y-5 p-5">
+            <div className="space-y-5 p-4 sm:p-5">
                 {section.fields.map((field) => (
                     <div key={field.id}>
                         <label className="mb-1.5 block text-sm font-medium text-foreground">
@@ -157,25 +166,29 @@ export default function AssessmentNewPage() {
         selectedTemplate?.name ??
         templates?.find((t) => String(t.id) === selectedId)?.name;
 
+    const showListOnMobile = !selectedId;
+    const showPreviewOnMobile = Boolean(selectedId);
+
     return (
         <ClinicLayout>
-            <div className="flex h-[calc(100vh-64px)]">
-                {/* ── Left panel ─────────────────────────── */}
-                <aside className="flex w-80 shrink-0 flex-col border-r border-border bg-card">
+            <div className="flex h-[calc(100vh-64px)] overflow-hidden">
+                {/* ── Left panel (list) ───────────────────── */}
+                <aside
+                    className={cn(
+                        'flex w-full shrink-0 flex-col border-border bg-card md:w-80 md:border-r',
+                        showListOnMobile ? 'flex' : 'hidden',
+                        'md:flex',
+                    )}
+                >
                     {/* Back + title */}
-                    <div className="px-4 pt-4 pb-2">
-                        <button
-                            onClick={() =>
-                                navigate(`/clinica/pacientes/${patientId}`)
-                            }
-                            className="mb-3 flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Voltar
-                        </button>
+                    <div className="flex items-start justify-between gap-4 px-4 pt-4 pb-2">
                         <h2 className="text-xl font-semibold text-foreground">
                             Avaliações
                         </h2>
+                        <BackButton
+                            to={`/clinica/pacientes/${patientId}`}
+                            className="shrink-0"
+                        />
                     </div>
 
                     {/* Search */}
@@ -192,7 +205,7 @@ export default function AssessmentNewPage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-4 border-b border-border px-4">
+                    <div className="flex gap-4 overflow-x-auto border-b border-border px-4">
                         {(
                             [
                                 ['vedius', 'Avaliações Vedius'],
@@ -203,7 +216,7 @@ export default function AssessmentNewPage() {
                                 key={key}
                                 onClick={() => setActiveTab(key)}
                                 className={cn(
-                                    'cursor-pointer border-b-2 pb-2 text-sm font-medium transition-colors',
+                                    'shrink-0 cursor-pointer border-b-2 pb-2 text-sm font-medium transition-colors',
                                     activeTab === key
                                         ? 'border-primary text-primary'
                                         : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -252,7 +265,7 @@ export default function AssessmentNewPage() {
                                                     setSelectedId(String(t.id))
                                                 }
                                                 className={cn(
-                                                    'w-full cursor-pointer px-4 py-2.5 text-left text-sm transition-colors duration-150',
+                                                    'w-full cursor-pointer px-4 py-3 text-left text-sm transition-colors duration-150 md:py-2.5',
                                                     selectedId === String(t.id)
                                                         ? 'border-l-2 border-primary bg-accent text-accent-foreground'
                                                         : 'text-foreground hover:bg-accent/50',
@@ -285,10 +298,16 @@ export default function AssessmentNewPage() {
                     </ScrollArea>
                 </aside>
 
-                {/* ── Right panel ────────────────────────── */}
-                <div className="flex min-w-0 flex-1 flex-col">
+                {/* ── Right panel (preview) ───────────────── */}
+                <div
+                    className={cn(
+                        'min-w-0 flex-1 flex-col',
+                        showPreviewOnMobile ? 'flex' : 'hidden',
+                        'md:flex',
+                    )}
+                >
                     {!selectedId ? (
-                        <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+                        <div className="hidden flex-1 flex-col items-center justify-center px-8 text-center md:flex">
                             <ClipboardList className="mb-4 h-12 w-12 text-muted-foreground/40" />
                             <p className="text-sm font-medium text-foreground">
                                 Selecione uma avaliação
@@ -301,51 +320,64 @@ export default function AssessmentNewPage() {
                     ) : (
                         <>
                             {/* Header */}
-                            <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-4">
+                            <div className="space-y-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+                                <div className="flex items-center justify-between gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedId(null)}
+                                        className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground md:hidden"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                        Lista
+                                    </button>
+                                    <p className="text-xs tracking-wider text-muted-foreground uppercase md:hidden">
+                                        Prévia
+                                    </p>
+                                    <div className="hidden shrink-0 gap-2 md:flex">
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="cursor-pointer gap-2"
+                                                >
+                                                    <LinkIcon className="h-4 w-4" />
+                                                    Enviar link remoto
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                Enviar formulário ao paciente
+                                            </TooltipContent>
+                                        </Tooltip>
+                                        <Button
+                                            size="sm"
+                                            className="cursor-pointer gap-2"
+                                            onClick={handleRespond}
+                                            disabled={
+                                                createAssessment.isPending ||
+                                                loadingTemplate
+                                            }
+                                        >
+                                            <ClipboardList className="h-4 w-4" />
+                                            {createAssessment.isPending
+                                                ? 'Criando...'
+                                                : 'Responder agora'}
+                                        </Button>
+                                    </div>
+                                </div>
                                 <div>
-                                    <h2 className="text-lg font-semibold text-foreground">
+                                    <h2 className="text-base leading-snug font-semibold text-foreground sm:text-lg">
                                         {selectedTemplateName ?? '...'}
                                     </h2>
-                                    <p className="mt-1 text-xs tracking-wider text-muted-foreground uppercase">
+                                    <p className="mt-1 hidden text-xs tracking-wider text-muted-foreground uppercase md:block">
                                         Prévia da avaliação
                                     </p>
-                                </div>
-                                <div className="flex shrink-0 gap-2">
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer gap-2"
-                                            >
-                                                <LinkIcon className="h-4 w-4" />
-                                                Enviar link remoto
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            Enviar formulário ao paciente
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    <Button
-                                        size="sm"
-                                        className="cursor-pointer gap-2"
-                                        onClick={handleRespond}
-                                        disabled={
-                                            createAssessment.isPending ||
-                                            loadingTemplate
-                                        }
-                                    >
-                                        <ClipboardList className="h-4 w-4" />
-                                        {createAssessment.isPending
-                                            ? 'Criando...'
-                                            : 'Responder agora'}
-                                    </Button>
                                 </div>
                             </div>
 
                             {/* Preview content */}
                             <ScrollArea className="flex-1">
-                                <div className="max-w-4xl space-y-6 p-6">
+                                <div className="mx-auto max-w-4xl space-y-4 p-4 sm:space-y-6 sm:p-6">
                                     {loadingTemplate && (
                                         <div className="space-y-4">
                                             {Array.from({ length: 3 }).map(
@@ -370,16 +402,16 @@ export default function AssessmentNewPage() {
                             </ScrollArea>
 
                             {/* Footer */}
-                            <div className="flex justify-end gap-2 border-t border-border bg-card/80 px-6 py-3 backdrop-blur">
+                            <div className="flex flex-col gap-2 border-t border-border bg-card/80 px-4 py-3 backdrop-blur sm:flex-row sm:justify-end sm:px-6">
                                 <Button
                                     variant="outline"
-                                    className="cursor-pointer gap-2"
+                                    className="w-full cursor-pointer gap-2 sm:w-auto"
                                 >
                                     <LinkIcon className="h-4 w-4" />
                                     Enviar link remoto
                                 </Button>
                                 <Button
-                                    className="cursor-pointer gap-2"
+                                    className="w-full cursor-pointer gap-2 sm:w-auto"
                                     onClick={handleRespond}
                                     disabled={
                                         createAssessment.isPending ||

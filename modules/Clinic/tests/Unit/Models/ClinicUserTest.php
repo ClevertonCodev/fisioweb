@@ -49,6 +49,17 @@ class ClinicUserTest extends TestCase
         $this->assertTrue($user->isPhysiotherapist());
     }
 
+    public function test_can_attend_appointments_is_true_for_admin_and_physiotherapist(): void
+    {
+        $admin  = (new ClinicUser)->forceFill(['role' => ClinicUser::ROLE_ADMIN]);
+        $physio = (new ClinicUser)->forceFill(['role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
+        $sec    = (new ClinicUser)->forceFill(['role' => ClinicUser::ROLE_SECRETARY]);
+
+        $this->assertTrue($admin->canAttendAppointments());
+        $this->assertTrue($physio->canAttendAppointments());
+        $this->assertFalse($sec->canAttendAppointments());
+    }
+
     public function test_owns_returns_true_when_record_clinic_user_id_matches_user_id(): void
     {
         $user   = (new ClinicUser)->forceFill(['id' => 5]);

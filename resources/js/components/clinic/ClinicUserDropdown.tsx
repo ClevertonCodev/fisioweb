@@ -5,6 +5,7 @@ import {
     ChevronUp,
     Copy,
     LogOut,
+    MessageCircle,
     User,
     type LucideIcon,
 } from 'lucide-react';
@@ -27,6 +28,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import { cn } from '@/lib/utils';
+
+import { getSupportWhatsappHref } from './SupportWhatsappButton';
 
 function firstLetter(name: string): string {
     const trimmed = name.trim();
@@ -148,6 +151,21 @@ export function ClinicUserDropdown({
             description: 'Edite seus dados pessoais',
             path: profilePath,
         },
+        ...(getSupportWhatsappHref()
+            ? [
+                  {
+                      icon: MessageCircle,
+                      label: 'Suporte',
+                      description: 'Fale conosco pelo WhatsApp',
+                      onClick: () => {
+                          const href = getSupportWhatsappHref();
+                          if (!href) return;
+                          window.open(href, '_blank', 'noopener,noreferrer');
+                          setOpen(false);
+                      },
+                  },
+              ]
+            : []),
         {
             icon: LogOut,
             label: 'Sair',

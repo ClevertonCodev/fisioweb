@@ -1,6 +1,5 @@
 import {
     AlertCircle,
-    ArrowLeft,
     CheckCircle2,
     ImagePlus,
     Loader2,
@@ -9,10 +8,17 @@ import {
 } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import { usePresignedUpload } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import {
+    AdminVideoReferenceImageFields,
+    type ReferenceImageState,
+} from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +32,8 @@ export default function AdminVideoCreatePage() {
         usePresignedUpload();
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [dragOver, setDragOver] = useState(false);
@@ -58,13 +66,37 @@ export default function AdminVideoCreatePage() {
         [handleVideoSelect],
     );
 
-    const handleSubmitUpload = useCallback(() => {
+    const handleSubmitUpload = useCallback(async () => {
         if (!videoFile) return;
-        upload(videoFile, thumbnailFile ?? undefined, {
+        const confirmed = await upload(videoFile, thumbnailFile ?? undefined, {
             original_filename: originalFilename.trim() || undefined,
             duration: duration.trim() ? parseInt(duration, 10) : undefined,
         });
-    }, [upload, videoFile, thumbnailFile, originalFilename, duration]);
+        if (!confirmed) return;
+        if (referenceImage1 || referenceImage2) {
+            try {
+                await uploadAndSyncVideoReferenceImages(
+                    confirmed.id,
+                    [referenceImage1, referenceImage2],
+                    { isNewVideo: true },
+                );
+            } catch (err) {
+                toast.error(
+                    err instanceof Error
+                        ? err.message
+                        : 'Vídeo enviado, mas falha ao salvar imagens de referência.',
+                );
+            }
+        }
+    }, [
+        upload,
+        videoFile,
+        thumbnailFile,
+        referenceImage1,
+        referenceImage2,
+        originalFilename,
+        duration,
+    ]);
 
     const clearVideo = useCallback(() => {
         setVideoFile(null);
@@ -119,20 +151,11 @@ export default function AdminVideoCreatePage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="flex items-center gap-4 px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="shrink-0"
-                        >
-                            <Link to="/admin/videos">
-                                <ArrowLeft className="size-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <h1 className="text-2xl font-semibold text-foreground">
                             Enviar vídeo
                         </h1>
+                        <BackButton to="/admin/videos" className="shrink-0" />
                     </div>
                 </header>
 
@@ -327,6 +350,13 @@ export default function AdminVideoCreatePage() {
                                         )}
                                     </div>
                                 </div>
+
+                                <AdminVideoReferenceImageFields
+                                    referenceImage1={referenceImage1}
+                                    referenceImage2={referenceImage2}
+                                    onReferenceImage1Change={setReferenceImage1}
+                                    onReferenceImage2Change={setReferenceImage2}
+                                />
 
                                 <div>
                                     <Label htmlFor="duration">

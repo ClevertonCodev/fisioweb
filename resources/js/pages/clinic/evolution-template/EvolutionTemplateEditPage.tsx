@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -10,6 +9,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { TemplatePreview } from '@/components/clinic/evolution-template/TemplatePreview';
 import { TemplateSectionBuilder } from '@/components/clinic/evolution-template/TemplateSectionBuilder';
 import type { DraftSection } from '@/components/clinic/evolution-template/types';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -159,16 +159,7 @@ function EvolutionTemplateEditForm({
 
     return (
         <div className="space-y-6 p-6">
-            <div className="space-y-3">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-fit"
-                    onClick={onBack}
-                >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Voltar
-                </Button>
+            <div className="flex items-start justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold">
                         {isReadOnly ? 'Visualizar template' : 'Editar template'}
@@ -179,6 +170,7 @@ function EvolutionTemplateEditForm({
                             : 'Atualize as seções e itens do template.'}
                     </p>
                 </div>
+                <BackButton onClick={onBack} className="w-fit shrink-0" />
             </div>
 
             {isReadOnly && (

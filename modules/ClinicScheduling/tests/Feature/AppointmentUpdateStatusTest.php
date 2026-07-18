@@ -109,6 +109,8 @@ class AppointmentUpdateStatusTest extends TestCase
     public function test_can_update_appointment_details(): void
     {
         $appointment = $this->makeAppointment();
+        $startsAt    = now()->addDays(2)->setTime(14, 0);
+        $endsAt      = now()->addDays(2)->setTime(15, 0);
 
         $this->actingAs($this->admin, 'clinic')
             ->putJson("/api/clinic/appointments/{$appointment->id}", [
@@ -116,12 +118,17 @@ class AppointmentUpdateStatusTest extends TestCase
                 'clinic_user_id' => $this->physio->id,
                 'title'          => 'Reavaliação',
                 'location'       => 'Sala 2',
-                'starts_at'      => now()->addDays(2)->setTime(14, 0)->toIso8601String(),
-                'ends_at'        => now()->addDays(2)->setTime(15, 0)->toIso8601String(),
+                'starts_at'      => $startsAt->toIso8601String(),
+                'ends_at'        => $endsAt->toIso8601String(),
             ])
             ->assertOk()
             ->assertJsonPath('data.title', 'Reavaliação')
             ->assertJsonPath('data.location', 'Sala 2');
+
+        // Drag/resize na agenda persiste via PUT — horários devem sobreviver no banco.
+        $appointment->refresh();
+        $this->assertTrue($appointment->starts_at->equalTo($startsAt));
+        $this->assertTrue($appointment->ends_at->equalTo($endsAt));
     }
 
     public function test_update_does_not_change_status(): void

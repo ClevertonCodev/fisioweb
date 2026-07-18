@@ -1,4 +1,5 @@
 import type {
+    PatientQuestionnaireAnswerWriteDto,
     PatientQuestionnairesRepository,
     PatientQuestionnaireWriteDto,
 } from '@/application/clinic/ports';
@@ -128,6 +129,24 @@ export const apiClinicPatientQuestionnairesRepository: PatientQuestionnairesRepo
                 modality: dto.modality,
                 expires_at: dto.expiresAt,
             });
+            return toPatientQuestionnaire(res.data.data);
+        },
+        async answer(
+            patientId,
+            questionnaireId,
+            answers: PatientQuestionnaireAnswerWriteDto[],
+        ) {
+            const res = await apiClient.post<{
+                data: ApiPatientQuestionnaireDto;
+            }>(
+                `/clinic/patients/${patientId}/questionnaires/${questionnaireId}/answer`,
+                {
+                    answers: answers.map((a) => ({
+                        question_id: a.questionId,
+                        answer: a.answer,
+                    })),
+                },
+            );
             return toPatientQuestionnaire(res.data.data);
         },
         async destroy(patientId, questionnaireId) {

@@ -17,6 +17,8 @@ export function useAdminVideo(id: number | undefined) {
         queryFn: () =>
             id ? apiAdminVideosRepository.getById(id) : Promise.resolve(null),
         enabled: !!id,
+        staleTime: 0,
+        refetchOnMount: 'always',
     });
 }
 

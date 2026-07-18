@@ -100,7 +100,6 @@ function renderStep(
 ) {
     const onUpdateGroups = overrides.onUpdateGroups ?? vi.fn();
     const onEditExercise = overrides.onEditExercise ?? vi.fn();
-    const onNext = overrides.onNext ?? vi.fn();
     const onBack = overrides.onBack ?? vi.fn();
 
     const result = render(
@@ -109,36 +108,17 @@ function renderStep(
                 groups={groups}
                 onUpdateGroups={onUpdateGroups}
                 onEditExercise={onEditExercise}
-                onNext={onNext}
                 onBack={onBack}
             />
         </TooltipProvider>,
     );
 
-    return { ...result, onUpdateGroups, onEditExercise, onNext, onBack };
+    return { ...result, onUpdateGroups, onEditExercise, onBack };
 }
 
 /* ── Testes — renderização ── */
 
 describe('StepConfigureExercises — renderização', () => {
-    it('exibe o progresso de exercícios editados', () => {
-        const ex1 = makeExercise({
-            id: 'e1',
-            title: 'Agachamento',
-            isConfigured: true,
-        });
-        const ex2 = makeExercise({
-            id: 'e2',
-            title: 'Flexão',
-            isConfigured: false,
-        });
-        const group = makeGroup({ id: 'g1', exercises: [ex1, ex2] });
-
-        renderStep([group]);
-
-        expect(screen.getByText('1 de 2 editados')).toBeInTheDocument();
-    });
-
     it('exibe o nome do grupo e a contagem de exercícios', () => {
         const ex1 = makeExercise({ id: 'e1', title: 'Agachamento' });
         const group = makeGroup({
@@ -235,7 +215,7 @@ describe('StepConfigureExercises — excluir grupo', () => {
         const group = makeGroup({ id: 'g1', name: 'Grupo A', exercises: [] });
         renderStep([group]);
 
-        // Com 1 grupo vazio, os únicos botões são: Voltar, Avançar, AddGrupo, EditableName, Copy(grupo), Chevron, AddExercicios
+        // Com 1 grupo vazio: AddGrupo, EditableName, Copy(grupo), Chevron, AddExercicios
         // NÃO deve ter trash no header do grupo
         const allButtons = screen.getAllByRole('button');
         const trashButtons = allButtons.filter((btn) =>
@@ -277,9 +257,7 @@ describe('StepConfigureExercises — remover exercício', () => {
 
         // Encontrar o botão trash na row do exercício "Agachamento"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         const trashBtn = Array.from(rowButtons).find((btn) =>
             btn.className.includes('destructive'),
@@ -307,11 +285,9 @@ describe('StepConfigureExercises — duplicar exercício', () => {
 
         // Encontrar o botão de duplicar na row do exercício
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
-        // Ordem dos botões na row: play(video), Settings2, Trash2, Copy
+        // Ordem dos botões na row: Settings2, Trash2, Copy
         // O último botão é Copy (duplicar exercício)
         const allRowButtons = Array.from(rowButtons);
         const copyBtn = allRowButtons[allRowButtons.length - 1];
@@ -344,9 +320,7 @@ describe('StepConfigureExercises — colapsar grupo', () => {
         // Header do grupo com 1 grupo: EditableName, Badge, Copy(grupo), Chevron
         // (sem Trash porque só 1 grupo)
         const groupNameBtn = screen.getByText('Grupo A');
-        const groupHeader = groupNameBtn.closest(
-            '[class*="flex items-center gap-2"]',
-        );
+        const groupHeader = groupNameBtn.closest('[class*="gap-1.5"]');
         const headerButtons = groupHeader?.querySelectorAll('button') ?? [];
         const chevronBtn = Array.from(headerButtons).pop();
 
@@ -360,24 +334,6 @@ describe('StepConfigureExercises — colapsar grupo', () => {
 /* ── Testes — navegação ── */
 
 describe('StepConfigureExercises — navegação', () => {
-    it('chama onBack ao clicar em "Voltar"', async () => {
-        const user = userEvent.setup();
-        const { onBack } = renderStep([makeGroup({ id: 'g1' })]);
-
-        await user.click(screen.getByRole('button', { name: /^voltar$/i }));
-
-        expect(onBack).toHaveBeenCalledOnce();
-    });
-
-    it('chama onNext ao clicar em "Avançar"', async () => {
-        const user = userEvent.setup();
-        const { onNext } = renderStep([makeGroup({ id: 'g1' })]);
-
-        await user.click(screen.getByRole('button', { name: /avançar/i }));
-
-        expect(onNext).toHaveBeenCalledOnce();
-    });
-
     it('chama onBack ao clicar em "Adicionar exercícios"', async () => {
         const user = userEvent.setup();
         const { onBack } = renderStep([makeGroup({ id: 'g1' })]);
@@ -425,9 +381,7 @@ describe('StepConfigureExercises — editar exercício', () => {
 
         // O botão configurar (Settings2) na row tem variant="default"
         const agachamentoText = screen.getByText('Agachamento');
-        const exerciseRow = agachamentoText.closest(
-            '[class*="rounded-lg border p-4"]',
-        );
+        const exerciseRow = agachamentoText.closest('[class*="bg-card"]');
         const rowButtons = exerciseRow?.querySelectorAll('button') ?? [];
         // Encontrar o botão com a classe do variant default (bg-primary)
         const configBtn = Array.from(rowButtons).find(

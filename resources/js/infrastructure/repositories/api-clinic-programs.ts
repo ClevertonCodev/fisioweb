@@ -46,7 +46,13 @@ interface ApiTreatmentPlan {
     id: number;
     title: string;
     patient_id: number | null;
-    patient?: { id: number; name: string; photo_url?: string | null } | null;
+    patient?: {
+        id: number;
+        name: string;
+        photo_url?: string | null;
+        phone?: string | null;
+        email?: string | null;
+    } | null;
     clinic_user?: {
         id: number;
         name: string;
@@ -60,6 +66,7 @@ interface ApiTreatmentPlan {
     patient_completed_count: number;
     exercises_count?: number;
     groups?: ApiTreatmentPlanGroup[];
+    share_url?: string | null;
     created_at: string;
 }
 
@@ -116,6 +123,9 @@ function toEntity(raw: ApiTreatmentPlan): Program {
         patientId: raw.patient_id ? String(raw.patient_id) : null,
         patientName: raw.patient?.name ?? null,
         patientPhotoUrl: raw.patient?.photo_url ?? null,
+        patientPhone: raw.patient?.phone ?? null,
+        patientEmail: raw.patient?.email ?? null,
+        shareUrl: raw.share_url ?? null,
         professionalId: raw.clinic_user?.id ? String(raw.clinic_user.id) : null,
         professionalName: raw.clinic_user?.name ?? null,
         professionalPhotoUrl: raw.clinic_user?.photo_url ?? null,
@@ -234,5 +244,13 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
 
     async destroy(id) {
         await apiClient.delete(`/clinic/treatment-plans/${id}`);
+    },
+
+    async fetchPdfBlob(id) {
+        const res = await apiClient.get<Blob>(
+            `/clinic/treatment-plans/${id}/pdf`,
+            { responseType: 'blob' },
+        );
+        return res.data;
     },
 };

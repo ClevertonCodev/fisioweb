@@ -1,4 +1,11 @@
-import { Calendar, Clock, Dumbbell, Search, User } from 'lucide-react';
+import {
+    Calendar,
+    ChevronLeft,
+    Clock,
+    Dumbbell,
+    Search,
+    User,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,8 +39,8 @@ interface ExerciseRowProps {
 
 function ExerciseRow({ exercise, frequency }: ExerciseRowProps) {
     return (
-        <div className="flex items-center gap-4 py-3">
-            <div className="group relative h-[100px] w-[180px] flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted">
+        <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="group relative h-24 w-24 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}
@@ -44,7 +51,7 @@ function ExerciseRow({ exercise, frequency }: ExerciseRowProps) {
                 {exercise.name}
             </p>
 
-            <p className="max-w-[400px] flex-shrink-0 text-sm text-primary">
+            <p className="text-sm text-primary sm:max-w-[400px] sm:flex-shrink-0">
                 {frequency}
             </p>
         </div>
@@ -107,91 +114,93 @@ function ProgramDetail({ id }: { id: number }) {
         0;
 
     return (
-        <div className="p-6">
-            <div className="mb-6 rounded-lg border border-border p-6">
-                <h2 className="mb-3 text-xl font-semibold text-foreground">
-                    {program.title}
-                </h2>
-                <Badge className="mb-4 border-primary/20 bg-primary/10 text-primary">
-                    Modelo
-                </Badge>
+        <div className="flex h-full flex-col">
+            <div className="flex-1 overflow-auto p-4 sm:p-6">
+                <div className="mb-6 rounded-lg border border-border p-4 sm:p-6">
+                    <h2 className="mb-3 text-lg font-semibold text-foreground sm:text-xl">
+                        {program.title}
+                    </h2>
+                    <Badge className="mb-4 border-primary/20 bg-primary/10 text-primary">
+                        Modelo
+                    </Badge>
 
-                <div className="flex flex-wrap items-center gap-8 text-sm text-muted-foreground">
-                    {program.createdBy && (
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground sm:gap-8">
+                        {program.createdBy && (
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Criado por
+                                    </p>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {program.createdBy.name}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
+                            <Dumbbell className="h-4 w-4" />
                             <div>
                                 <p className="text-xs text-muted-foreground">
-                                    Criado por
+                                    Exercícios
                                 </p>
                                 <p className="text-sm font-medium text-foreground">
-                                    {program.createdBy.name}
+                                    {totalExercises} exercícios
                                 </p>
                             </div>
                         </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                        <Dumbbell className="h-4 w-4" />
-                        <div>
-                            <p className="text-xs text-muted-foreground">
-                                Exercícios
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                                {totalExercises} exercícios
-                            </p>
-                        </div>
+                        {program.durationMinutes && (
+                            <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Duração
+                                    </p>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {program.durationMinutes} min.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    {program.durationMinutes && (
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <div>
-                                <p className="text-xs text-muted-foreground">
-                                    Duração
-                                </p>
-                                <p className="text-sm font-medium text-foreground">
-                                    {program.durationMinutes} min.
-                                </p>
-                            </div>
-                        </div>
-                    )}
                 </div>
+
+                {program.groups?.map((group) => (
+                    <div key={group.id} className="mb-6">
+                        <div className="mb-4 flex items-center gap-2">
+                            <h3 className="text-base font-medium text-foreground">
+                                {group.name}
+                            </h3>
+                            <span className="text-sm text-muted-foreground">
+                                {group.exercises?.length ?? 0}
+                            </span>
+                        </div>
+
+                        {group.exercises && group.exercises.length > 0 ? (
+                            <div className="divide-y divide-border">
+                                {group.exercises.map((ex) =>
+                                    ex.exercise ? (
+                                        <ExerciseRow
+                                            key={ex.id}
+                                            exercise={ex.exercise}
+                                            frequency={buildFrequency(ex)}
+                                        />
+                                    ) : null,
+                                )}
+                            </div>
+                        ) : (
+                            <p className="py-4 text-sm text-muted-foreground">
+                                Nenhum exercício neste grupo
+                            </p>
+                        )}
+                    </div>
+                ))}
             </div>
 
-            {program.groups?.map((group) => (
-                <div key={group.id} className="mb-6">
-                    <div className="mb-4 flex items-center gap-2">
-                        <h3 className="text-base font-medium text-foreground">
-                            {group.name}
-                        </h3>
-                        <span className="text-sm text-muted-foreground">
-                            {group.exercises?.length ?? 0}
-                        </span>
-                    </div>
-
-                    {group.exercises && group.exercises.length > 0 ? (
-                        <div className="divide-y divide-border">
-                            {group.exercises.map((ex) =>
-                                ex.exercise ? (
-                                    <ExerciseRow
-                                        key={ex.id}
-                                        exercise={ex.exercise}
-                                        frequency={buildFrequency(ex)}
-                                    />
-                                ) : null,
-                            )}
-                        </div>
-                    ) : (
-                        <p className="py-4 text-sm text-muted-foreground">
-                            Nenhum exercício neste grupo
-                        </p>
-                    )}
-                </div>
-            ))}
-
-            <div className="fixed right-6 bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
                 <Button
                     size="lg"
-                    className="shadow-lg"
+                    className="w-full cursor-pointer shadow-lg sm:w-auto"
                     onClick={() =>
                         navigate('/clinica/programas/novo', {
                             state: { program },
@@ -262,94 +271,96 @@ function MyProgramDetail({ id }: { id: string }) {
     );
 
     return (
-        <div className="p-6">
-            <div className="mb-6 rounded-lg border border-border p-6">
-                <h2 className="mb-3 text-xl font-semibold text-foreground">
-                    {program.title}
-                </h2>
-                <Badge className="mb-4 border-primary/20 bg-primary/10 text-primary">
-                    Modelo
-                </Badge>
+        <div className="flex h-full flex-col">
+            <div className="flex-1 overflow-auto p-4 sm:p-6">
+                <div className="mb-6 rounded-lg border border-border p-4 sm:p-6">
+                    <h2 className="mb-3 text-lg font-semibold text-foreground sm:text-xl">
+                        {program.title}
+                    </h2>
+                    <Badge className="mb-4 border-primary/20 bg-primary/10 text-primary">
+                        Modelo
+                    </Badge>
 
-                <div className="flex flex-wrap items-center gap-8 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <div>
-                            <p className="text-xs text-muted-foreground">
-                                Criado por
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                                Você
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Dumbbell className="h-4 w-4" />
-                        <div>
-                            <p className="text-xs text-muted-foreground">
-                                Exercícios
-                            </p>
-                            <p className="text-sm font-medium text-foreground">
-                                {totalExercises} exercícios
-                            </p>
-                        </div>
-                    </div>
-                    {program.createdAt && (
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground sm:gap-8">
                         <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
+                            <User className="h-4 w-4" />
                             <div>
                                 <p className="text-xs text-muted-foreground">
-                                    Criado em
+                                    Criado por
                                 </p>
                                 <p className="text-sm font-medium text-foreground">
-                                    {new Date(
-                                        program.createdAt,
-                                    ).toLocaleDateString('pt-BR')}
+                                    Você
                                 </p>
                             </div>
                         </div>
-                    )}
+                        <div className="flex items-center gap-2">
+                            <Dumbbell className="h-4 w-4" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">
+                                    Exercícios
+                                </p>
+                                <p className="text-sm font-medium text-foreground">
+                                    {totalExercises} exercícios
+                                </p>
+                            </div>
+                        </div>
+                        {program.createdAt && (
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Criado em
+                                    </p>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {new Date(
+                                            program.createdAt,
+                                        ).toLocaleDateString('pt-BR')}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                {program.groups?.map((group) => (
+                    <div key={group.id} className="mb-6">
+                        <div className="mb-4 flex items-center gap-2">
+                            <h3 className="text-base font-medium text-foreground">
+                                {group.name}
+                            </h3>
+                            <span className="text-sm text-muted-foreground">
+                                {group.exercises?.length ?? 0}
+                            </span>
+                        </div>
+
+                        {group.exercises && group.exercises.length > 0 ? (
+                            <div className="divide-y divide-border">
+                                {group.exercises.map((ex) => (
+                                    <ExerciseRow
+                                        key={ex.id}
+                                        exercise={{
+                                            id: Number(ex.exerciseId),
+                                            name: ex.title,
+                                            thumbnailUrl: ex.thumbnailUrl,
+                                            videoUrl: ex.videoUrl,
+                                        }}
+                                        frequency={buildMyFrequency(ex)}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="py-4 text-sm text-muted-foreground">
+                                Nenhum exercício neste grupo
+                            </p>
+                        )}
+                    </div>
+                ))}
             </div>
 
-            {program.groups?.map((group) => (
-                <div key={group.id} className="mb-6">
-                    <div className="mb-4 flex items-center gap-2">
-                        <h3 className="text-base font-medium text-foreground">
-                            {group.name}
-                        </h3>
-                        <span className="text-sm text-muted-foreground">
-                            {group.exercises?.length ?? 0}
-                        </span>
-                    </div>
-
-                    {group.exercises && group.exercises.length > 0 ? (
-                        <div className="divide-y divide-border">
-                            {group.exercises.map((ex) => (
-                                <ExerciseRow
-                                    key={ex.id}
-                                    exercise={{
-                                        id: Number(ex.exerciseId),
-                                        name: ex.title,
-                                        thumbnailUrl: ex.thumbnailUrl,
-                                        videoUrl: ex.videoUrl,
-                                    }}
-                                    frequency={buildMyFrequency(ex)}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="py-4 text-sm text-muted-foreground">
-                            Nenhum exercício neste grupo
-                        </p>
-                    )}
-                </div>
-            ))}
-
-            <div className="fixed right-6 bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
                 <Button
                     size="lg"
-                    className="shadow-lg"
+                    className="w-full cursor-pointer shadow-lg sm:w-auto"
                     onClick={() =>
                         navigate('/clinica/programas/novo', {
                             state: { program },
@@ -375,9 +386,14 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
         null,
     );
     const [selectedMyId, setSelectedMyId] = useState<string | null>(null);
+    const [mobileShowDetail, setMobileShowDetail] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const listRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setMobileShowDetail(false);
+    }, [subTab]);
 
     const {
         data: libraryData,
@@ -445,9 +461,18 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
         return () => observer.disconnect();
     }, [hasNext, isFetchingNext, fetchNext, currentPrograms.length]);
 
+    const showListOnMobile = !mobileShowDetail;
+    const showDetailOnMobile = mobileShowDetail;
+
     return (
-        <div className="flex h-[calc(100vh-160px)]">
-            <div className="flex w-[360px] flex-shrink-0 flex-col border-r border-border bg-muted/10">
+        <div className="flex h-[calc(100vh-160px)] overflow-hidden">
+            <div
+                className={cn(
+                    'w-full flex-shrink-0 flex-col border-border bg-muted/10 md:w-[360px] md:border-r',
+                    showListOnMobile ? 'flex' : 'hidden',
+                    'md:flex',
+                )}
+            >
                 <div className="space-y-4 border-b border-border p-4">
                     <div className="relative">
                         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -505,9 +530,10 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
                             ? libraryPrograms.map((program) => (
                                   <button
                                       key={program.id}
-                                      onClick={() =>
-                                          setSelectedLibraryId(program.id)
-                                      }
+                                      onClick={() => {
+                                          setSelectedLibraryId(program.id);
+                                          setMobileShowDetail(true);
+                                      }}
                                       className={cn(
                                           'w-full cursor-pointer border-l-2 px-4 py-3 text-left text-sm transition-colors hover:bg-muted/50',
                                           effectiveLibraryId === program.id
@@ -521,9 +547,10 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
                             : myPrograms.map((program) => (
                                   <button
                                       key={program.id}
-                                      onClick={() =>
-                                          setSelectedMyId(program.id)
-                                      }
+                                      onClick={() => {
+                                          setSelectedMyId(program.id);
+                                          setMobileShowDetail(true);
+                                      }}
                                       className={cn(
                                           'w-full cursor-pointer border-l-2 px-4 py-3 text-left text-sm transition-colors hover:bg-muted/50',
                                           effectiveMyId === program.id
@@ -539,28 +566,48 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto bg-background">
-                {isLoading ? (
-                    <div className="space-y-4 p-6">
-                        <Skeleton className="h-8 w-64" />
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-40 w-full" />
-                    </div>
-                ) : isLibrary ? (
-                    effectiveLibraryId ? (
-                        <ProgramDetail id={effectiveLibraryId} />
-                    ) : (
-                        <div className="flex h-full items-center justify-center text-muted-foreground">
-                            Selecione um modelo para visualizar
-                        </div>
-                    )
-                ) : effectiveMyId ? (
-                    <MyProgramDetail id={effectiveMyId} />
-                ) : (
-                    <div className="flex h-full items-center justify-center text-muted-foreground">
-                        Selecione um modelo para visualizar
+            <div
+                className={cn(
+                    'min-w-0 flex-1 flex-col bg-background',
+                    showDetailOnMobile ? 'flex' : 'hidden',
+                    'md:flex',
+                )}
+            >
+                {showDetailOnMobile && (
+                    <div className="flex items-center border-b border-border px-4 py-3 md:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileShowDetail(false)}
+                            className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                            Lista
+                        </button>
                     </div>
                 )}
+                <div className="min-h-0 flex-1 overflow-hidden">
+                    {isLoading ? (
+                        <div className="space-y-4 p-4 sm:p-6">
+                            <Skeleton className="h-8 w-64" />
+                            <Skeleton className="h-24 w-full" />
+                            <Skeleton className="h-40 w-full" />
+                        </div>
+                    ) : isLibrary ? (
+                        effectiveLibraryId ? (
+                            <ProgramDetail id={effectiveLibraryId} />
+                        ) : (
+                            <div className="flex h-full items-center justify-center px-4 text-center text-muted-foreground">
+                                Selecione um modelo para visualizar
+                            </div>
+                        )
+                    ) : effectiveMyId ? (
+                        <MyProgramDetail id={effectiveMyId} />
+                    ) : (
+                        <div className="flex h-full items-center justify-center px-4 text-center text-muted-foreground">
+                            Selecione um modelo para visualizar
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

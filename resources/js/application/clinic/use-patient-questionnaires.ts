@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { PatientQuestionnaireWriteDto } from '@/application/clinic/ports';
+import type {
+    PatientQuestionnaireAnswerWriteDto,
+    PatientQuestionnaireWriteDto,
+} from '@/application/clinic/ports';
 import type { ApiErrorResponse } from '@/domain/api';
 import { apiClinicPatientQuestionnairesRepository } from '@/infrastructure/repositories/api-clinic-patient-questionnaires';
 
@@ -52,6 +55,34 @@ export function useSendQuestionnaire(patientId: string) {
         onError: (err: ApiErrorResponse) => {
             toast.error(
                 err?.response?.data?.message ?? 'Erro ao enviar questionário',
+            );
+        },
+    });
+}
+
+export function useAnswerQuestionnaire(patientId: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (vars: {
+            questionnaireId: string;
+            answers: PatientQuestionnaireAnswerWriteDto[];
+        }) => repo.answer(patientId, vars.questionnaireId, vars.answers),
+        onSuccess: (_data, vars) => {
+            queryClient.invalidateQueries({
+                queryKey: keys.patientQuestionnaires(patientId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: keys.patientQuestionnaire(
+                    patientId,
+                    vars.questionnaireId,
+                ),
+            });
+            toast.success('Questionário respondido com sucesso');
+        },
+        onError: (err: ApiErrorResponse) => {
+            toast.error(
+                err?.response?.data?.message ??
+                    'Erro ao responder questionário',
             );
         },
     });

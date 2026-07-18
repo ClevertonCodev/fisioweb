@@ -145,7 +145,8 @@ export interface AppointmentListParams {
 
 /** DTO de escrita para criar/editar consulta (camelCase). */
 export interface AppointmentWriteDto {
-    patientId: string;
+    /** Opcional em eventos do Google (sem paciente vinculado). */
+    patientId?: string | null;
     clinicUserId: string;
     title?: string | null;
     description?: string | null;
@@ -154,9 +155,16 @@ export interface AppointmentWriteDto {
     endsAt: string;
 }
 
+/** Profissional listável na agenda (filtro / select). */
+export interface AgendaProfessional {
+    id: string;
+    name: string;
+    photoUrl?: string;
+}
+
 export interface AppointmentsRepository {
     list(params?: AppointmentListParams): Promise<Appointment[]>;
-    getClinicUsers(): Promise<{ id: string; name: string }[]>;
+    getClinicUsers(): Promise<AgendaProfessional[]>;
     getAgendaPatients(): Promise<{ id: string; name: string }[]>;
     create(dto: AppointmentWriteDto): Promise<Appointment>;
     update(id: string, dto: AppointmentWriteDto): Promise<Appointment>;
@@ -177,7 +185,9 @@ export interface GoogleCalendarStatus {
 export interface GoogleCalendarRepository {
     getStatus(): Promise<GoogleCalendarStatus>;
     /** URL de consentimento OAuth para redirecionar o navegador. */
-    getAuthUrl(): Promise<string>;
+    getAuthUrl(returnTo?: string): Promise<string>;
+    /** Puxa eventos do Google para a agenda do usuário autenticado. */
+    pullNow(): Promise<void>;
     disconnect(): Promise<void>;
 }
 
@@ -232,6 +242,8 @@ export interface ProgramsRepository {
     toModel(id: string): Promise<Program>;
     update(id: string, dto: ProgramWriteDto): Promise<Program>;
     destroy(id: string): Promise<void>;
+    /** PDF binário para abrir em nova aba (GET autenticado). */
+    fetchPdfBlob(id: string): Promise<Blob>;
 }
 
 export interface AssessmentAnswerWriteDto {
@@ -356,6 +368,11 @@ export interface PatientQuestionnaireWriteDto {
     expiresAt?: string | null;
 }
 
+export interface PatientQuestionnaireAnswerWriteDto {
+    questionId: number;
+    answer: string | string[] | number;
+}
+
 export interface PatientQuestionnairesRepository {
     listByPatient(patientId: string): Promise<PatientQuestionnaire[]>;
     findById(
@@ -365,6 +382,11 @@ export interface PatientQuestionnairesRepository {
     store(
         patientId: string,
         dto: PatientQuestionnaireWriteDto,
+    ): Promise<PatientQuestionnaire>;
+    answer(
+        patientId: string,
+        questionnaireId: string,
+        answers: PatientQuestionnaireAnswerWriteDto[],
     ): Promise<PatientQuestionnaire>;
     destroy(patientId: string, questionnaireId: string): Promise<void>;
 }

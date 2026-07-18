@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -30,40 +30,39 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Appointment, AppointmentStatus } from '@/domain/clinic';
-import { STATUS_COLORS } from '@/domain/clinic';
+import { selectableAppointmentStatuses, STATUS_COLORS } from '@/domain/clinic';
+import { htmlToPlainText } from '@/lib/html-to-plain-text';
 
-const STATUS_OPTIONS: AppointmentStatus[] = [
-    'scheduled',
-    'confirmed',
-    'no_show',
-    'completed',
-    'cancelled',
-];
+function buildSchema(fromGoogle: boolean) {
+    return z
+        .object({
+            patientId: fromGoogle
+                ? z.string().optional()
+                : z.string().min(1, 'Selecione o paciente'),
+            clinicUserId: z.string().min(1, 'Selecione o fisioterapeuta'),
+            startsAt: z.string().min(1, 'Informe o início'),
+            endsAt: z.string().min(1, 'Informe o término'),
+            title: z.string().optional(),
+            description: z.string().optional(),
+            location: z.string().optional(),
+        })
+        .refine((d) => new Date(d.endsAt) > new Date(d.startsAt), {
+            message: 'O término deve ser posterior ao início.',
+            path: ['endsAt'],
+        });
+}
 
-const schema = z
-    .object({
-        patientId: z.string().min(1, 'Selecione o paciente'),
-        clinicUserId: z.string().min(1, 'Selecione o fisioterapeuta'),
-        startsAt: z.string().min(1, 'Informe o início'),
-        endsAt: z.string().min(1, 'Informe o término'),
-        title: z.string().optional(),
-        description: z.string().optional(),
-        location: z.string().optional(),
-    })
-    .refine((d) => new Date(d.endsAt) > new Date(d.startsAt), {
-        message: 'O término deve ser posterior ao início.',
-        path: ['endsAt'],
-    });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 interface AppointmentModalProps {
     open: boolean;
     onClose: () => void;
     appointment: Appointment | null;
     initialDate: Date | null;
+    /** Deep-link `?patientId=` — pré-seleciona paciente em Nova Consulta. */
+    initialPatientId?: string;
     patients: { id: string; name: string }[];
-    clinicUsers: { id: string; name: string }[];
+    clinicUsers: { id: string; name: string; photoUrl?: string }[];
     onSubmit: (dto: AppointmentWriteDto) => Promise<void> | void;
     isSubmitting?: boolean;
     /**
@@ -89,6 +88,7 @@ export function AppointmentModal({
     onClose,
     appointment,
     initialDate,
+    initialPatientId,
     patients,
     clinicUsers,
     onSubmit,
@@ -100,9 +100,20 @@ export function AppointmentModal({
 }: AppointmentModalProps) {
     const isEditing = !!appointment;
     const isCancelled = appointment?.status === 'cancelled';
+    const isFromGoogle = appointment?.source === 'google';
+    const isFromGoogleRef = useRef(isFromGoogle);
+    isFromGoogleRef.current = isFromGoogle;
+    /** Evita resetar o form quando só o status da mesma consulta muda. */
+    const loadedAppointmentIdRef = useRef<string | null>(null);
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(schema),
+        // Resolver dinâmico: modal permanece montado ao trocar consulta system/google.
+        resolver: (values, context, options) =>
+            zodResolver(buildSchema(isFromGoogleRef.current))(
+                values,
+                context,
+                options,
+            ),
         defaultValues: {
             patientId: '',
             clinicUserId: '',
@@ -115,8 +126,16 @@ export function AppointmentModal({
     });
 
     useEffect(() => {
-        if (!open) return;
+        if (!open) {
+            loadedAppointmentIdRef.current = null;
+            return;
+        }
         if (appointment) {
+            const alreadyLoaded =
+                loadedAppointmentIdRef.current === appointment.id;
+            loadedAppointmentIdRef.current = appointment.id;
+            if (alreadyLoaded) return;
+
             form.reset({
                 patientId: appointment.patientId,
                 clinicUserId: appointment.clinicUserId,
@@ -129,12 +148,15 @@ export function AppointmentModal({
                     "yyyy-MM-dd'T'HH:mm",
                 ),
                 title: appointment.title ?? '',
-                description: appointment.description ?? '',
+                // Google Calendar manda description em HTML; textarea é texto puro.
+                description: htmlToPlainText(appointment.description),
                 location: appointment.location ?? '',
             });
         } else {
+            if (loadedAppointmentIdRef.current === 'new') return;
+            loadedAppointmentIdRef.current = 'new';
             form.reset({
-                patientId: '',
+                patientId: initialPatientId ?? '',
                 clinicUserId: lockedClinicUserId ?? '',
                 startsAt: formatForInput(initialDate),
                 endsAt: formatForInput(initialDate, 60),
@@ -143,11 +165,25 @@ export function AppointmentModal({
                 location: '',
             });
         }
-    }, [appointment, initialDate, open, form, lockedClinicUserId]);
+    }, [
+        appointment,
+        initialDate,
+        initialPatientId,
+        open,
+        form,
+        lockedClinicUserId,
+    ]);
+
+    const statusOptions = appointment
+        ? selectableAppointmentStatuses(
+              appointment.status,
+              appointment.startsAt,
+          )
+        : [];
 
     const handleSubmit = async (values: FormValues) => {
         await onSubmit({
-            patientId: values.patientId,
+            patientId: isFromGoogle ? null : values.patientId,
             clinicUserId: values.clinicUserId,
             title: values.title || null,
             description: values.description || null,
@@ -162,7 +198,11 @@ export function AppointmentModal({
             <DialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditing ? 'Editar Consulta' : 'Nova Consulta'}
+                        {isEditing
+                            ? isFromGoogle
+                                ? 'Editar evento do Google'
+                                : 'Editar Consulta'
+                            : 'Nova Consulta'}
                     </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
@@ -170,36 +210,38 @@ export function AppointmentModal({
                         onSubmit={form.handleSubmit(handleSubmit)}
                         className="space-y-4"
                     >
-                        <FormField
-                            control={form.control}
-                            name="patientId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Paciente *</FormLabel>
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecione o paciente" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {patients.map((p) => (
-                                                <SelectItem
-                                                    key={p.id}
-                                                    value={p.id}
-                                                >
-                                                    {p.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {!isFromGoogle && (
+                            <FormField
+                                control={form.control}
+                                name="patientId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Paciente *</FormLabel>
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione o paciente" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {patients.map((p) => (
+                                                    <SelectItem
+                                                        key={p.id}
+                                                        value={p.id}
+                                                    >
+                                                        {p.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
                         <FormField
                             control={form.control}
@@ -302,72 +344,88 @@ export function AppointmentModal({
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="location"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Local</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Ex: Sala 3"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {!isFromGoogle && (
+                            <FormField
+                                control={form.control}
+                                name="location"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Local</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="Ex: Sala 3"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
-                        {isEditing && appointment && onStatusChange && (
-                            <div className="space-y-2 rounded-md border border-border p-3">
-                                <FormLabel>Status</FormLabel>
-                                <div className="flex items-center gap-3">
-                                    <span
-                                        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                                        style={{
-                                            backgroundColor:
+                        {isEditing &&
+                            appointment &&
+                            onStatusChange &&
+                            !isFromGoogle && (
+                                <div className="space-y-2 rounded-md border border-border p-3">
+                                    <FormLabel>Status</FormLabel>
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                            style={{
+                                                backgroundColor:
+                                                    STATUS_COLORS[
+                                                        appointment.status
+                                                    ].bg,
+                                                color: STATUS_COLORS[
+                                                    appointment.status
+                                                ].text,
+                                            }}
+                                        >
+                                            {
                                                 STATUS_COLORS[
                                                     appointment.status
-                                                ].bg,
-                                            color: STATUS_COLORS[
-                                                appointment.status
-                                            ].text,
-                                        }}
-                                    >
-                                        {STATUS_COLORS[appointment.status]
-                                            .label}
-                                    </span>
-                                    <Select
-                                        value={appointment.status}
-                                        onValueChange={(v) =>
-                                            onStatusChange(
-                                                v as AppointmentStatus,
-                                            )
-                                        }
-                                        disabled={
-                                            isMutatingStatus || isCancelled
-                                        }
-                                    >
-                                        <SelectTrigger className="flex-1">
-                                            <SelectValue placeholder="Alterar status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {STATUS_OPTIONS.map((s) => (
-                                                <SelectItem key={s} value={s}>
-                                                    {STATUS_COLORS[s].label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                                ].label
+                                            }
+                                        </span>
+                                        <Select
+                                            value={appointment.status}
+                                            onValueChange={(v) =>
+                                                onStatusChange(
+                                                    v as AppointmentStatus,
+                                                )
+                                            }
+                                            disabled={
+                                                isMutatingStatus || isCancelled
+                                            }
+                                        >
+                                            <SelectTrigger className="flex-1">
+                                                <SelectValue placeholder="Alterar status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {statusOptions.map((s) => (
+                                                    <SelectItem
+                                                        key={s}
+                                                        value={s}
+                                                        disabled={
+                                                            s ===
+                                                            appointment.status
+                                                        }
+                                                    >
+                                                        {STATUS_COLORS[s].label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
                         <div className="flex items-center justify-between gap-3 pt-2">
                             {isEditing &&
                             onCancelAppointment &&
-                            !isCancelled ? (
+                            !isCancelled &&
+                            !isFromGoogle ? (
                                 <Button
                                     type="button"
                                     variant="destructive"

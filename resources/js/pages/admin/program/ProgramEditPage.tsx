@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -17,7 +16,7 @@ import type {
     AdminWizardExercise,
     AdminWizardGroup,
 } from '@/components/admin/program/types';
-import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import type { AdminProgram } from '@/domain/admin';
 
 type WizardStep = 1 | 2 | 3;
@@ -210,42 +209,37 @@ export default function ProgramEditPage() {
             .find((g) => g.id === editingExercise.groupId)
             ?.exercises.find((e) => e.id === editingExercise.exerciseId);
 
+    const handleHeaderBack = () => {
+        if (step === 1) {
+            navigate(`/admin/programas/${programId}`);
+            return;
+        }
+        if (step === 2 && editingExercise) {
+            setEditingExercise(null);
+            return;
+        }
+        if (step === 2) {
+            setStep(1);
+            return;
+        }
+        setStep(2);
+    };
+
     return (
         <AdminLayout>
             <div className="flex h-full flex-col">
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    if (step === 1) {
-                                        navigate(
-                                            `/admin/programas/${programId}`,
-                                        );
-                                        return;
-                                    }
-                                    if (step === 2 && editingExercise) {
-                                        setEditingExercise(null);
-                                        return;
-                                    }
-                                    if (step === 2) {
-                                        setStep(1);
-                                        return;
-                                    }
-                                    setStep(2);
-                                }}
-                                className="gap-1 text-muted-foreground hover:text-foreground"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Voltar
-                            </Button>
+                        <div className="flex items-start justify-between gap-4">
+                            <h1 className="text-xl font-semibold text-foreground">
+                                {STEP_LABELS[step]}
+                            </h1>
+                            <BackButton
+                                onClick={handleHeaderBack}
+                                className="shrink-0"
+                            />
                         </div>
-                        <h1 className="mt-2 text-xl font-semibold text-foreground">
-                            {STEP_LABELS[step]}
-                        </h1>
                     </div>
                 </header>
 
@@ -273,10 +267,6 @@ export default function ProgramEditPage() {
                                         setEditingExercise(null);
                                         setStep(3);
                                     }}
-                                    onBack={() => {
-                                        setEditingExercise(null);
-                                        setStep(1);
-                                    }}
                                 />
                             </div>
                             {currentEditExercise && (
@@ -292,7 +282,6 @@ export default function ProgramEditPage() {
                     {step === 3 && (
                         <AdminStepProgramDetails
                             groups={groups}
-                            onBack={() => setStep(2)}
                             onSave={handleSaveProgram}
                             isSaving={updateMutation.isPending}
                             initialValues={{

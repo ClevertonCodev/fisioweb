@@ -116,12 +116,20 @@ function toFieldOption(
     return { id: raw.id, label: raw.label, sortOrder: raw.sort_order };
 }
 
+function normalizeFieldType(
+    rawType: string,
+): AssessmentField['fieldType'] {
+    if (rawType === 'checkbox_multiple') {
+        return 'checkbox';
+    }
+    return rawType as AssessmentField['fieldType'];
+}
+
 function toField(raw: ApiAssessmentFieldDto): AssessmentField {
     const config = raw.config
         ? {
               min: raw.config.min,
               max: raw.config.max,
-              // normalize the two key variants used across seeders
               minLabel: raw.config.min_label ?? raw.config.label_min,
               maxLabel: raw.config.max_label ?? raw.config.label_max,
               unit: raw.config.unit,
@@ -130,7 +138,7 @@ function toField(raw: ApiAssessmentFieldDto): AssessmentField {
     return {
         id: raw.id,
         label: raw.label,
-        fieldType: raw.field_type as AssessmentField['fieldType'],
+        fieldType: normalizeFieldType(raw.field_type),
         required: raw.required,
         sortOrder: raw.sort_order,
         config,

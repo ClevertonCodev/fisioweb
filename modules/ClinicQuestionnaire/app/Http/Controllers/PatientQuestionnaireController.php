@@ -3,9 +3,12 @@
 namespace Modules\ClinicQuestionnaire\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
+use Modules\ClinicQuestionnaire\Http\Requests\AnswerPatientQuestionnaireRequest;
 use Modules\ClinicQuestionnaire\Http\Requests\SendPatientQuestionnaireRequest;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
@@ -62,6 +65,33 @@ class PatientQuestionnaireController extends Controller
 
         if (is_null($record)) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
+        }
+
+        return response()->json(['data' => $record]);
+    }
+
+    public function answer(AnswerPatientQuestionnaireRequest $request, int $patient, int $questionnaire): JsonResponse
+    {
+        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $found    = $this->patientService->find($patient);
+
+        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        try {
+            $record = $this->questionnaireService->answerForClinicPatient(
+                (int) $clinicId,
+                $patient,
+                $questionnaire,
+                $request->validated()['answers'],
+            );
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Questionário não encontrado.'], 404);
+        } catch (ValidationException $exception) {
+            $message = collect($exception->errors())->flatten()->first() ?? $exception->getMessage();
+
+            return response()->json(['message' => $message], 422);
         }
 
         return response()->json(['data' => $record]);

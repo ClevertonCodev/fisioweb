@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -22,7 +22,9 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
     Form,
@@ -54,15 +56,26 @@ import { cn } from '@/lib/utils';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
 
+function SectionTitle({ children }: { children: ReactNode }) {
+    return (
+        <h2 className="border-b border-border pb-2 text-base font-semibold text-foreground">
+            {children}
+        </h2>
+    );
+}
+
 function EditFormSkeleton() {
     return (
         <div className="mx-auto max-w-3xl space-y-6 p-6" aria-hidden>
             <Skeleton className="h-9 w-64" />
-            <div className="space-y-4">
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-            </div>
+            <Card>
+                <CardContent className="space-y-4 p-6">
+                    <Skeleton className="h-24 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </CardContent>
+            </Card>
         </div>
     );
 }
@@ -143,25 +156,47 @@ function UserEditForm({
         }
     }
 
-    return (
-        <div className="mx-auto max-w-3xl space-y-6 p-6">
-            <h1 className="text-2xl font-bold">
-                {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
-            </h1>
+    const backTo = canManageUsers ? '/clinica/usuarios' : '/clinica';
 
+    return (
+        <div className="flex h-full flex-col">
+            <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+                <div className="flex items-start justify-between gap-4 px-6 py-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Atualize as informações e salve as alterações.
+                        </p>
+                    </div>
+                    <BackButton to={backTo} className="shrink-0" />
+                </div>
+            </header>
+
+            <div className="flex-1 overflow-auto p-6">
+                <div className="mx-auto max-w-3xl space-y-6">
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-6"
                 >
-                    <PatientPhotoSection
-                        value={photoFile}
-                        onChange={setPhotoFile}
-                        currentPhotoUrl={user.photoUrl}
-                        onRemoveCurrent={setRemovePhoto}
-                        cropTitle="Recortar foto do usuário"
-                        cropAspect={1}
-                    />
+                    <Card>
+                        <CardContent className="space-y-8 p-6">
+                            <section className="space-y-4">
+                                <SectionTitle>Foto</SectionTitle>
+                                <PatientPhotoSection
+                                    value={photoFile}
+                                    onChange={setPhotoFile}
+                                    currentPhotoUrl={user.photoUrl}
+                                    onRemoveCurrent={setRemovePhoto}
+                                    cropTitle="Recortar foto do usuário"
+                                    cropAspect={1}
+                                />
+                            </section>
+
+                            <section className="space-y-4">
+                                <SectionTitle>Dados da conta</SectionTitle>
 
                     <FormField
                         control={form.control}
@@ -386,6 +421,10 @@ function UserEditForm({
                             )}
                         />
                     )}
+                            </section>
+
+                            <section className="space-y-4">
+                                <SectionTitle>Documento</SectionTitle>
 
                     <FormField
                         control={form.control}
@@ -461,40 +500,45 @@ function UserEditForm({
                             </FormItem>
                         )}
                     />
+                            </section>
+
+                            <div className="flex gap-3 border-t border-border pt-6">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() =>
+                                        navigate(
+                                            canManageUsers
+                                                ? '/clinica/usuarios'
+                                                : '/clinica',
+                                        )
+                                    }
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        updateUser.isPending ||
+                                        isUploading ||
+                                        isDeletingPhoto
+                                    }
+                                >
+                                    {updateUser.isPending ||
+                                    isUploading ||
+                                    isDeletingPhoto
+                                        ? 'Salvando...'
+                                        : 'Salvar alterações'}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {isOwnProfile && <GoogleCalendarConnection />}
-
-                    <div className="flex gap-3 pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() =>
-                                navigate(
-                                    canManageUsers
-                                        ? '/clinica/usuarios'
-                                        : '/clinica',
-                                )
-                            }
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={
-                                updateUser.isPending ||
-                                isUploading ||
-                                isDeletingPhoto
-                            }
-                        >
-                            {updateUser.isPending ||
-                            isUploading ||
-                            isDeletingPhoto
-                                ? 'Salvando...'
-                                : 'Salvar alterações'}
-                        </Button>
-                    </div>
                 </form>
             </Form>
+                </div>
+            </div>
         </div>
     );
 }

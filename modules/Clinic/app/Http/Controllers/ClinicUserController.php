@@ -28,14 +28,14 @@ class ClinicUserController extends Controller
         $query = ClinicUser::query()
             ->where('clinic_id', $authUser->clinic_id)
             ->where('status', ClinicUser::STATUS_ACTIVE)
-            ->where('role', ClinicUser::ROLE_PHYSIOTHERAPIST);
+            ->whereIn('role', ClinicUser::ATTENDABLE_ROLES);
 
         // Fisioterapeuta só enxerga (e marca para) ele mesmo (FR-012).
         if ($authUser->isPhysiotherapist()) {
             $query->where('id', $authUser->id);
         }
 
-        $users = $query->orderBy('name')->get(['id', 'name']);
+        $users = $query->orderBy('name')->get(['id', 'name', 'photo_url']);
 
         return response()->json(['data' => $users]);
     }

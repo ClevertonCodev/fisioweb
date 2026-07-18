@@ -316,6 +316,38 @@ class VideoService implements VideoServiceInterface
             ->map(fn (Video $video) => $this->formatVideo($video));
     }
 
+    public function syncReferenceImages(int $videoId, array $referenceImagePaths): array
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        $paths = array_values(array_filter(
+            array_slice($referenceImagePaths, 0, 2),
+            fn ($path) => is_string($path) && !empty($path)
+        ));
+
+        $images = [];
+        foreach ($paths as $path) {
+            $images[] = [
+                'file_path'         => $path,
+                'cdn_url'           => $this->fileService->getFileCdnUrl($path),
+                'original_filename' => basename($path),
+                'mime_type'         => str_ends_with(strtolower($path), '.png') ? 'image/png' : 'image/jpeg',
+                'size'              => 0,
+            ];
+        }
+
+        $metadata                       = $video->metadata ?? [];
+        $metadata['reference_images']   = $images;
+        $video                          = $this->videoRepository->update($videoId, ['metadata' => $metadata]);
+
+        if (class_exists(\Modules\Admin\Services\ExerciseReferenceImageSyncService::class)) {
+            app(\Modules\Admin\Services\ExerciseReferenceImageSyncService::class)
+                ->syncFromVideo($videoId, $images);
+        }
+
+        return $this->formatVideo($video);
+    }
+
     protected function formatVideo(Video $video): array
     {
         return [

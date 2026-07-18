@@ -18,7 +18,6 @@ import type { AdminWizardGroup } from './types';
 
 interface AdminStepProgramDetailsProps {
     groups: AdminWizardGroup[];
-    onBack: () => void;
     onSave: (dto: AdminProgramWriteDto) => void;
     isSaving?: boolean;
     initialValues?: {
@@ -33,7 +32,6 @@ interface AdminStepProgramDetailsProps {
 
 export function AdminStepProgramDetails({
     groups,
-    onBack,
     onSave,
     isSaving,
     initialValues,

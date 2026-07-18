@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
     AlertCircle,
-    ArrowLeft,
     CheckCircle2,
     ImagePlus,
     Info,
@@ -18,8 +17,13 @@ import {
     useClinicExerciseOptions,
     useSubmitExercise,
 } from '@/application/clinic';
+import {
+    AdminVideoReferenceImageFields,
+    type ReferenceImageState,
+} from '@/components/admin/AdminVideoReferenceImageFields';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -67,6 +71,10 @@ export default function ClinicSubmitExercisePage() {
 
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] =
+        useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] =
+        useState<ReferenceImageState>(null);
     const [dragOver, setDragOver] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -125,6 +133,7 @@ export default function ClinicSubmitExercisePage() {
             description: values.description || null,
             videoFile,
             thumbnailFile,
+            referenceImages: [referenceImage1, referenceImage2],
             duration: values.duration
                 ? parseInt(values.duration, 10)
                 : undefined,
@@ -140,20 +149,11 @@ export default function ClinicSubmitExercisePage() {
         <ClinicLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="flex items-center gap-4 px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="shrink-0"
-                        >
-                            <Link to="/clinica/exercicios">
-                                <ArrowLeft className="size-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <h1 className="text-2xl font-semibold text-foreground">
                             Enviar exercício
                         </h1>
+                        <BackButton to="/clinica/exercicios" />
                     </div>
                 </header>
 
@@ -187,6 +187,8 @@ export default function ClinicSubmitExercisePage() {
                                             reset();
                                             setVideoFile(null);
                                             setThumbnailFile(null);
+                                            setReferenceImage1(null);
+                                            setReferenceImage2(null);
                                             form.reset();
                                         }}
                                     >
@@ -453,10 +455,10 @@ export default function ClinicSubmitExercisePage() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <ImagePlus className="size-8 text-muted-foreground" />
+                                                    <Upload className="size-8 text-muted-foreground" />
                                                     <p className="mt-2 text-sm font-medium">
-                                                        Clique para escolher uma
-                                                        imagem
+                                                        Clique para escolher
+                                                        nova imagem
                                                     </p>
                                                     <p className="mt-1 text-xs text-muted-foreground">
                                                         JPEG, PNG ou WebP — Máx.
@@ -466,6 +468,17 @@ export default function ClinicSubmitExercisePage() {
                                             )}
                                         </div>
                                     </div>
+
+                                    <AdminVideoReferenceImageFields
+                                        referenceImage1={referenceImage1}
+                                        referenceImage2={referenceImage2}
+                                        onReferenceImage1Change={
+                                            setReferenceImage1
+                                        }
+                                        onReferenceImage2Change={
+                                            setReferenceImage2
+                                        }
+                                    />
 
                                     <FormField
                                         control={form.control}

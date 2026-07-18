@@ -26,7 +26,8 @@ class PdfService implements PdfGeneratorInterface
                 'isHtml5ParserEnabled'    => true,
                 'isRemoteEnabled'         => true,
                 'defaultFont'             => 'DejaVu Sans',
-                'dpi'                     => 150,
+                'dpi'                     => 96,
+                'defaultMediaType'        => 'print',
                 'isFontSubsettingEnabled' => true,
             ]);
     }

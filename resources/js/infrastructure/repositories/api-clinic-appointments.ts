@@ -1,4 +1,5 @@
 import type {
+    AgendaProfessional,
     AppointmentListParams,
     AppointmentsRepository,
     AppointmentWriteDto,
@@ -11,6 +12,12 @@ interface ApiNamedDto {
     name: string;
 }
 
+interface ApiProfessionalDto {
+    id: number;
+    name: string;
+    photo_url?: string | null;
+}
+
 interface ApiAppointmentDto {
     id: number;
     patient_id: number | null;
@@ -21,6 +28,7 @@ interface ApiAppointmentDto {
     starts_at: string;
     ends_at: string;
     status: Appointment['status'];
+    source?: Appointment['source'] | null;
     patient?: ApiNamedDto | null;
     clinic_user?: ApiNamedDto | null;
 }
@@ -38,12 +46,12 @@ function toEntity(raw: ApiAppointmentDto): Appointment {
         endsAt: raw.ends_at,
         status: raw.status,
         location: raw.location,
+        source: raw.source === 'google' ? 'google' : 'system',
     };
 }
 
 function toPayload(dto: AppointmentWriteDto): Record<string, unknown> {
-    return {
-        patient_id: Number(dto.patientId),
+    const payload: Record<string, unknown> = {
         clinic_user_id: Number(dto.clinicUserId),
         title: dto.title ?? null,
         description: dto.description ?? null,
@@ -51,6 +59,12 @@ function toPayload(dto: AppointmentWriteDto): Record<string, unknown> {
         starts_at: dto.startsAt,
         ends_at: dto.endsAt,
     };
+
+    if (dto.patientId) {
+        payload.patient_id = Number(dto.patientId);
+    }
+
+    return payload;
 }
 
 export const apiClinicAppointmentsRepository: AppointmentsRepository = {
@@ -68,11 +82,15 @@ export const apiClinicAppointmentsRepository: AppointmentsRepository = {
         return data.data.map(toEntity);
     },
 
-    async getClinicUsers(): Promise<{ id: string; name: string }[]> {
-        const { data } = await apiClient.get<{ data: ApiNamedDto[] }>(
+    async getClinicUsers(): Promise<AgendaProfessional[]> {
+        const { data } = await apiClient.get<{ data: ApiProfessionalDto[] }>(
             '/clinic/users/professionals',
         );
-        return data.data.map((u) => ({ id: String(u.id), name: u.name }));
+        return data.data.map((u) => ({
+            id: String(u.id),
+            name: u.name,
+            photoUrl: u.photo_url ?? undefined,
+        }));
     },
 
     async getAgendaPatients(): Promise<{ id: string; name: string }[]> {

@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('clinic_treatment_plans', function (Blueprint $table) {
             $table->id();
+            $table->uuid('public_token')->unique();
             $table->foreignId('clinic_id')->constrained('clinics')->cascadeOnDelete();
             $table->foreignId('patient_id')->nullable()->constrained('patients')->nullOnDelete();
             $table->foreignId('clinic_user_id')->nullable()->constrained('clinic_users')->nullOnDelete();

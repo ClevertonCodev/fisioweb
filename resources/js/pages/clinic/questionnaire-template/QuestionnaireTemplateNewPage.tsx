@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -9,6 +8,7 @@ import {
     createDraftSection,
     type DraftSection,
 } from '@/components/clinic/questionnaire-template/types';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -82,18 +82,7 @@ export default function QuestionnaireTemplateNewPage() {
     return (
         <ClinicLayout>
             <div className="space-y-6 p-6">
-                <div className="space-y-3">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-fit"
-                        onClick={() =>
-                            navigate(returnTo ?? (-1 as unknown as string))
-                        }
-                    >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Voltar
-                    </Button>
+                <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
                             Novo questionário
@@ -103,6 +92,12 @@ export default function QuestionnaireTemplateNewPage() {
                             enviar ao paciente.
                         </p>
                     </div>
+                    <BackButton
+                        onClick={() =>
+                            navigate(returnTo ?? (-1 as unknown as string))
+                        }
+                        className="w-fit shrink-0"
+                    />
                 </div>
 
                 <div className="grid gap-4">

@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 import {
     useFinanceTrash,
     useRestoreFinanceTransaction,
@@ -9,6 +7,7 @@ import {
     useFinanceValuesVisibility,
 } from '@/application/clinic/use-finance-values-visibility';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -32,11 +31,9 @@ export default function FinancesTrashPage() {
     return (
         <ClinicLayout>
             <div className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                     <h1 className="text-2xl font-semibold">Lixeira</h1>
-                    <Button variant="outline" className="cursor-pointer" asChild>
-                        <Link to="/clinica/financas">Voltar</Link>
-                    </Button>
+                    <BackButton to="/clinica/financas" />
                 </div>
                 <DataTable<FinancialTransaction>
                     columns={columns}

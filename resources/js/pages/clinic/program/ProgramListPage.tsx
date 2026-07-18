@@ -1,14 +1,15 @@
 import { Plus } from 'lucide-react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 function deriveActiveTab(pathname: string): string {
     if (pathname.includes('/exercicios')) return 'exercicios';
@@ -56,15 +57,16 @@ export default function ProgramListPage() {
                             </h1>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button
-                                        onClick={() =>
-                                            navigate('/clinica/programas/novo')
-                                        }
-                                        className="gap-2"
+                                    <Link
+                                        to="/clinica/programas/novo"
+                                        className={cn(
+                                            buttonVariants(),
+                                            'cursor-pointer gap-2',
+                                        )}
                                     >
                                         <Plus className="h-4 w-4" />
                                         Criar programa
-                                    </Button>
+                                    </Link>
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     Criar novo programa de exercícios

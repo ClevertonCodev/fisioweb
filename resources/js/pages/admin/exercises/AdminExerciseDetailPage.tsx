@@ -1,10 +1,11 @@
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useAdminExercise, useDeleteAdminExercise } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ExerciseDetailContent } from '@/components/admin/exercises/ExerciseDetailContent';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import {
     Breadcrumb,
@@ -85,14 +86,6 @@ export default function AdminExerciseDetailPage() {
                         </Breadcrumb>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => navigate(-1)}
-                                >
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
                                 <div>
                                     <h1 className="text-2xl font-semibold text-foreground">
                                         {exercise.name}
@@ -113,6 +106,10 @@ export default function AdminExerciseDetailPage() {
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-2">
+                                <BackButton
+                                    onClick={() => navigate(-1)}
+                                    className="shrink-0"
+                                />
                                 <Button
                                     onClick={() =>
                                         navigate(

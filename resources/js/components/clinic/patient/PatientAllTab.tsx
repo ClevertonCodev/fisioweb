@@ -57,6 +57,7 @@ interface PatientAllTabProps {
     onViewEvolution?: (evolution: PatientEvolution) => void;
     onEditEvolution?: (evolution: PatientEvolution) => void;
     onDeleteEvolution?: (evolution: PatientEvolution) => void;
+    onViewQuestionnaire?: (questionnaire: PatientQuestionnaire) => void;
 }
 
 type TimelineEntry =
@@ -161,10 +162,12 @@ export function PatientAllTab({
     onViewEvolution,
     onEditEvolution,
     onDeleteEvolution,
+    onViewQuestionnaire,
 }: PatientAllTabProps) {
     const navigate = useNavigate();
     const [evolutionToDelete, setEvolutionToDelete] =
         useState<PatientEvolution | null>(null);
+    const [evolutionDeleteTitle, setEvolutionDeleteTitle] = useState('');
     const [questionnaireToDelete, setQuestionnaireToDelete] =
         useState<PatientQuestionnaire | null>(null);
 
@@ -251,11 +254,25 @@ export function PatientAllTab({
                 return (entry.data.template?.title ?? '')
                     .toLowerCase()
                     .includes(term);
-            if (entry.type === 'file')
-                return entry.data.originalName.toLowerCase().includes(term);
+            if (entry.type === 'file') {
+                const f = entry.data;
+                return (
+                    (f.name ?? '').toLowerCase().includes(term) ||
+                    f.originalName.toLowerCase().includes(term)
+                );
+            }
             return true;
         });
     }, [timeline, searchTerm]);
+
+    const hasSearch = Boolean(searchTerm?.trim());
+
+    const requestDeleteEvolution = (evolution: PatientEvolution) => {
+        setEvolutionDeleteTitle(
+            evolution.title?.trim() || 'Sessão de Fisioterapia',
+        );
+        setEvolutionToDelete(evolution);
+    };
 
     // ─── Render ───────────────────────────────────────────────────────────────
     if (isLoading) {
@@ -278,8 +295,9 @@ export function PatientAllTab({
                     Nenhum registro encontrado
                 </p>
                 <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-                    Crie uma evolução, avaliação, ou adicione arquivos para
-                    popular a timeline.
+                    {hasSearch
+                        ? 'Nenhum registro corresponde à pesquisa.'
+                        : 'Crie uma evolução, avaliação, ou adicione arquivos para popular a timeline.'}
                 </p>
             </div>
         );
@@ -404,7 +422,9 @@ export function PatientAllTab({
                                                 <DropdownMenuItem
                                                     className="cursor-pointer gap-2 text-destructive focus:text-destructive"
                                                     onClick={() =>
-                                                        setEvolutionToDelete(e)
+                                                        requestDeleteEvolution(
+                                                            e,
+                                                        )
                                                     }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -469,7 +489,7 @@ export function PatientAllTab({
                                                 size="sm"
                                                 className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
                                                 onClick={() =>
-                                                    setEvolutionToDelete(e)
+                                                    requestDeleteEvolution(e)
                                                 }
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
@@ -596,11 +616,7 @@ export function PatientAllTab({
                                     variant="outline"
                                     size="sm"
                                     className="cursor-pointer gap-1.5"
-                                    onClick={() =>
-                                        navigate(
-                                            `/clinica/pacientes/${patientId}?tab=questionnaires`,
-                                        )
-                                    }
+                                    onClick={() => onViewQuestionnaire?.(q)}
                                 >
                                     <ClipboardList className="h-3.5 w-3.5" />
                                     Ver questionário
@@ -623,13 +639,8 @@ export function PatientAllTab({
                         <AlertDialogTitle>Excluir rascunho</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>
-                                "
-                                {evolutionToDelete?.title ||
-                                    'Sessão de Fisioterapia'}
-                                "
-                            </strong>
-                            ? Esta ação não pode ser desfeita.
+                            <strong>"{evolutionDeleteTitle}"</strong>? Esta ação
+                            não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

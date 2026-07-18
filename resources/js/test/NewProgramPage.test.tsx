@@ -134,9 +134,8 @@ describe('NewProgramPage com preenchimento via location.state', () => {
         const user = userEvent.setup();
         renderComponent();
 
-        // Estamos na etapa 2. Avançamos para a etapa 4 clicando em "Avançar"
-        const nextButton = screen.getByRole('button', { name: /avançar/i });
-        await user.click(nextButton);
+        // Estamos na etapa 2. Avançamos para a etapa 4 pela barra do wizard.
+        await user.click(screen.getByRole('button', { name: /^avançar$/i }));
 
         // Agora estamos na etapa 4 (Detalhes do programa)
         expect(screen.getByText('Detalhes do programa')).toBeInTheDocument();
@@ -178,12 +177,8 @@ describe('NewProgramPage com preenchimento via location.state', () => {
         const user = userEvent.setup();
         renderComponent();
 
-        // Estamos na etapa 2. Há múltiplos botões "Voltar" (header + step).
-        // Clicar no header (primeiro "Voltar").
-        const backButtons = screen.getAllByRole('button', {
-            name: /^voltar$/i,
-        });
-        await user.click(backButtons[0]);
+        // Header BackButton é a navegação "voltar" do wizard.
+        await user.click(screen.getByRole('button', { name: /^voltar$/i }));
 
         // Agora estamos na etapa 1 (Novo programa)
         expect(screen.getByText('Novo programa')).toBeInTheDocument();

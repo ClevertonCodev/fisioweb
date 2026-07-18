@@ -1,6 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
     AlertCircle,
-    ArrowLeft,
     ImagePlus,
     Loader2,
     Upload,
@@ -10,12 +10,18 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import {
     useAdminVideo,
     useUpdateAdminVideo,
 } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import {
+    AdminVideoReferenceImageFields,
+    type ReferenceImageState,
+} from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,10 +49,24 @@ function uploadToPresignedUrl(
     });
 }
 
+function hydrateReferenceSlots(
+    metadata: Record<string, unknown> | null | undefined,
+): [ReferenceImageState, ReferenceImageState] {
+    const refs = Array.isArray(metadata?.reference_images)
+        ? (metadata.reference_images as { cdn_url: string; file_path: string }[])
+        : [];
+
+    return [
+        refs[0] ? { url: refs[0].cdn_url, path: refs[0].file_path } : null,
+        refs[1] ? { url: refs[1].cdn_url, path: refs[1].file_path } : null,
+    ];
+}
+
 export default function AdminVideoEditPage() {
     const { id } = useParams<{ id: string }>();
     const videoId = id ? parseInt(id, 10) : undefined;
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
     const {
         data: video,
@@ -58,6 +78,10 @@ export default function AdminVideoEditPage() {
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
+    /** Evita sobrescrever slots enquanto o usuário está trocando imagens localmente */
+    const [refsDirty, setRefsDirty] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -65,11 +89,36 @@ export default function AdminVideoEditPage() {
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (video) {
-            setOriginalFilename(video.original_filename ?? '');
-            setDuration(video.duration != null ? String(video.duration) : '');
+        setRefsDirty(false);
+        setThumbnailFile(null);
+    }, [videoId]);
+
+    useEffect(() => {
+        if (!video) {
+            return;
         }
-    }, [video?.id]);
+
+        setOriginalFilename(video.original_filename ?? '');
+        setDuration(video.duration != null ? String(video.duration) : '');
+
+        if (refsDirty) {
+            return;
+        }
+
+        const [slot1, slot2] = hydrateReferenceSlots(video.metadata);
+        setReferenceImage1(slot1);
+        setReferenceImage2(slot2);
+    }, [video, refsDirty]);
+
+    const handleReferenceImage1Change = useCallback((state: ReferenceImageState) => {
+        setRefsDirty(true);
+        setReferenceImage1(state);
+    }, []);
+
+    const handleReferenceImage2Change = useCallback((state: ReferenceImageState) => {
+        setRefsDirty(true);
+        setReferenceImage2(state);
+    }, []);
 
     const clearThumbnail = useCallback(() => {
         setThumbnailFile(null);
@@ -140,6 +189,16 @@ export default function AdminVideoEditPage() {
                 thumbnail_path: thumbnailPath,
             });
 
+            // Sempre sincroniza slots (arquivo novo, path existente ou remoção)
+            const synced = await uploadAndSyncVideoReferenceImages(videoId, [
+                referenceImage1,
+                referenceImage2,
+            ]);
+
+            queryClient.setQueryData(['admin', 'video', videoId], synced);
+            await queryClient.invalidateQueries({ queryKey: ['admin', 'videos'] });
+            setRefsDirty(false);
+
             toast.success('Vídeo atualizado.');
             navigate('/admin/videos');
         } catch (err) {
@@ -155,6 +214,9 @@ export default function AdminVideoEditPage() {
         duration,
         updateVideo,
         navigate,
+        queryClient,
+        referenceImage1,
+        referenceImage2,
     ]);
 
     if (loadingVideo || !videoId) {
@@ -186,20 +248,11 @@ export default function AdminVideoEditPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="flex items-center gap-4 px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="shrink-0"
-                        >
-                            <Link to="/admin/videos">
-                                <ArrowLeft className="size-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <h1 className="text-2xl font-semibold text-foreground">
                             Editar vídeo
                         </h1>
+                        <BackButton to="/admin/videos" className="shrink-0" />
                     </div>
                 </header>
 
@@ -298,6 +351,13 @@ export default function AdminVideoEditPage() {
                                     )}
                                 </div>
                             </div>
+
+                            <AdminVideoReferenceImageFields
+                                referenceImage1={referenceImage1}
+                                referenceImage2={referenceImage2}
+                                onReferenceImage1Change={handleReferenceImage1Change}
+                                onReferenceImage2Change={handleReferenceImage2Change}
+                            />
 
                             {error && (
                                 <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-3 text-sm text-red-800">

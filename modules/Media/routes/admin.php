@@ -12,5 +12,6 @@ Route::prefix('admin/media')->middleware('auth:admin')->group(function () {
     Route::post('videos/{video}/confirm-upload', [VideoController::class, 'confirmUpload'])->name('media.admin.videos.confirm-upload');
     Route::patch('videos/{video}', [VideoController::class, 'update'])->name('media.admin.videos.update');
     Route::patch('videos/{video}/metadata', [VideoController::class, 'updateMetadata'])->name('media.admin.videos.update-metadata');
+    Route::put('videos/{video}/reference-images', [VideoController::class, 'syncReferenceImages'])->name('media.admin.videos.reference-images');
     Route::delete('videos/{video}', [VideoController::class, 'destroy'])->name('media.admin.videos.destroy');
 });

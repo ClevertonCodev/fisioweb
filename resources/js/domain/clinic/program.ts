@@ -31,6 +31,9 @@ export interface Program {
     patientId: string | null;
     patientName: string | null;
     patientPhotoUrl: string | null;
+    patientPhone: string | null;
+    patientEmail: string | null;
+    shareUrl: string | null;
     professionalId: string | null;
     professionalName: string | null;
     professionalPhotoUrl: string | null;

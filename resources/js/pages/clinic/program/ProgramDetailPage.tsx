@@ -1,5 +1,4 @@
 import {
-    ArrowLeft,
     BookmarkCheck,
     CalendarDays,
     Copy,
@@ -15,6 +14,7 @@ import { useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { downloadProgramPdf } from '@/application/clinic/download-program-pdf';
 import { formatProgramClinicalRecordText } from '@/application/clinic/format-program-clinical-record-text';
 import {
     useClinicProgram,
@@ -33,6 +33,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -42,11 +43,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { VideoThumb } from '@/components/VideoThumb';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 
@@ -180,7 +176,7 @@ function daysUntil(iso: string | null): number | null {
 function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
     return (
         <div className="flex items-center gap-5 rounded-lg border border-border bg-card p-4">
-            <div className="group relative h-24 w-40 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div className="group relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}
@@ -261,25 +257,14 @@ export default function ProgramDetailPage() {
                 <div className="flex h-full flex-col">
                     {/* Header */}
                     <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                        <div className="px-6 py-4">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                            navigate('/clinica/programas')
-                                        }
-                                        className="gap-1 text-muted-foreground hover:text-foreground"
-                                    >
-                                        <ArrowLeft className="h-4 w-4" />
-                                        Voltar
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Voltar aos programas
-                                </TooltipContent>
-                            </Tooltip>
+                        <div className="flex items-center justify-between gap-4 px-6 py-4">
+                            <h1 className="truncate text-lg font-semibold text-foreground sm:text-xl">
+                                Detalhes do programa
+                            </h1>
+                            <BackButton
+                                to="/clinica/programas"
+                                className="shrink-0"
+                            />
                         </div>
                     </header>
 
@@ -289,9 +274,9 @@ export default function ProgramDetailPage() {
                         <Card className="p-6">
                             <div className="mb-1 flex items-start justify-between">
                                 <div className="flex items-center gap-3">
-                                    <h1 className="text-xl font-semibold text-foreground">
+                                    <h2 className="text-xl font-semibold text-foreground">
                                         {program.title}
-                                    </h1>
+                                    </h2>
                                     <StatusBadge program={program} />
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -334,8 +319,12 @@ export default function ProgramDetailPage() {
                                                 Texto para prontuário
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
-                                                disabled
-                                                className="cursor-not-allowed gap-2"
+                                                onClick={() =>
+                                                    downloadProgramPdf(
+                                                        program.id,
+                                                    )
+                                                }
+                                                className="cursor-pointer gap-2"
                                             >
                                                 <FileDown className="h-4 w-4" />
                                                 Baixar PDF

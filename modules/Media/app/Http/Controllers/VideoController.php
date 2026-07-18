@@ -214,4 +214,32 @@ class VideoController extends Controller
             ], 404);
         }
     }
+
+    public function syncReferenceImages(Request $request, int $video): JsonResponse
+    {
+        $validated = $request->validate([
+            'reference_image_paths'   => ['present', 'array', 'max:2'],
+            'reference_image_paths.*' => ['string', 'max:512'],
+        ]);
+
+        try {
+            $result = $this->videoService->syncReferenceImages(
+                $video,
+                $validated['reference_image_paths'] ?? []
+            );
+
+            return response()->json([
+                'message' => 'Imagens de referência atualizadas com sucesso',
+                'data'    => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
 }

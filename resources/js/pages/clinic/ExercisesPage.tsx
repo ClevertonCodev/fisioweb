@@ -291,92 +291,101 @@ export default function ExercisesPage({
             <div className="flex h-full flex-col">
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-                    <div className="px-6 py-4">
-                        <div className="flex items-center justify-between gap-4">
-                            <h1 className="text-2xl font-semibold text-foreground">
-                                Biblioteca de Exercícios
-                            </h1>
-                            <div className="flex items-center gap-3">
-                                <div className="relative w-64">
-                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Pesquisar"
-                                        value={filters.search}
-                                        onChange={(e) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                search: e.target.value,
-                                            }))
-                                        }
-                                        className="pl-9"
-                                    />
-                                </div>
-                                <Button
-                                    variant={
-                                        showFavoritesOnly
-                                            ? 'secondary'
-                                            : 'outline'
+                    <div className="space-y-3 px-4 py-3 sm:px-6 sm:py-4">
+                        <h1 className="text-lg font-semibold text-foreground sm:text-2xl">
+                            Biblioteca de Exercícios
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="relative min-w-0 flex-1 basis-full sm:basis-64 sm:flex-none">
+                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    placeholder="Pesquisar"
+                                    value={filters.search}
+                                    onChange={(e) =>
+                                        setFilters((prev) => ({
+                                            ...prev,
+                                            search: e.target.value,
+                                        }))
                                     }
-                                    size="sm"
-                                    onClick={() =>
-                                        setShowFavoritesOnly((prev) => !prev)
-                                    }
-                                    className="gap-2"
-                                >
-                                    <Star
-                                        className={cn(
-                                            'h-4 w-4',
-                                            showFavoritesOnly
-                                                ? 'fill-yellow-400 text-yellow-400'
-                                                : 'text-muted-foreground',
-                                        )}
-                                    />
-                                    Favoritos
-                                </Button>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant={
-                                                activeFiltersCount > 0
-                                                    ? 'secondary'
-                                                    : 'outline'
-                                            }
-                                            size="icon"
-                                            onClick={() => setShowFilters(true)}
-                                        >
-                                            <SlidersHorizontal className="h-4 w-4" />
-                                            {activeFiltersCount > 0 && (
-                                                <Badge
-                                                    variant="default"
-                                                    className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center p-0 text-xs"
-                                                >
-                                                    {activeFiltersCount}
-                                                </Badge>
-                                            )}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Filtros</TooltipContent>
-                                </Tooltip>
-                                {canSubmit && (
+                                    className="pl-9"
+                                />
+                            </div>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
                                     <Button
+                                        variant={
+                                            showFavoritesOnly
+                                                ? 'secondary'
+                                                : 'outline'
+                                        }
                                         size="sm"
                                         onClick={() =>
-                                            navigate(
-                                                '/clinica/exercicios/enviar',
-                                            )
+                                            setShowFavoritesOnly((prev) => !prev)
                                         }
-                                        className="gap-2"
+                                        className="cursor-pointer gap-2"
+                                        aria-label="Favoritos"
                                     >
-                                        <Plus className="h-4 w-4" />
-                                        Enviar exercício
+                                        <Star
+                                            className={cn(
+                                                'h-4 w-4',
+                                                showFavoritesOnly
+                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                    : 'text-muted-foreground',
+                                            )}
+                                        />
+                                        <span className="hidden sm:inline">
+                                            Favoritos
+                                        </span>
                                     </Button>
-                                )}
-                            </div>
+                                </TooltipTrigger>
+                                <TooltipContent>Favoritos</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={
+                                            activeFiltersCount > 0
+                                                ? 'secondary'
+                                                : 'outline'
+                                        }
+                                        size="icon"
+                                        onClick={() => setShowFilters(true)}
+                                        className="relative cursor-pointer"
+                                        aria-label="Filtros"
+                                    >
+                                        <SlidersHorizontal className="h-4 w-4" />
+                                        {activeFiltersCount > 0 && (
+                                            <Badge
+                                                variant="default"
+                                                className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center p-0 text-xs"
+                                            >
+                                                {activeFiltersCount}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Filtros</TooltipContent>
+                            </Tooltip>
+                            {canSubmit && (
+                                <Button
+                                    size="sm"
+                                    onClick={() =>
+                                        navigate('/clinica/exercicios/enviar')
+                                    }
+                                    className="ml-auto cursor-pointer gap-2 sm:ml-0"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    <span className="sm:hidden">Enviar</span>
+                                    <span className="hidden sm:inline">
+                                        Enviar exercício
+                                    </span>
+                                </Button>
+                            )}
                         </div>
 
                         {/* Active Filters */}
                         {activeFiltersCount > 0 && (
-                            <div className="mt-4 flex flex-wrap items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 {Object.entries(filters)
                                     .filter(([key]) => key !== 'search')
                                     .map(([categoryId, values]) =>
@@ -420,7 +429,7 @@ export default function ExercisesPage({
                 {/* Exercise Grid */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex-1 overflow-auto p-6"
+                    className="flex-1 overflow-auto p-4 sm:p-6"
                 >
                     <div className="mb-4">
                         {isLoading ? (

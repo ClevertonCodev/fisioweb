@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -11,12 +10,18 @@ import {
 import { useUpdateClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EditExercisePanel } from '@/components/clinic/program/EditExercisePanel';
+import {
+    ProgramShareDialog,
+    type ProgramSharePhase,
+} from '@/components/clinic/program/ProgramShareDialog';
+import { ProgramWizardNavBar } from '@/components/clinic/program/ProgramWizardNavBar';
 import { StepConfigureExercises } from '@/components/clinic/program/StepConfigureExercises';
 import { StepProgramDetails } from '@/components/clinic/program/StepProgramDetails';
 import { StepSelectExercises } from '@/components/clinic/program/StepSelectExercises';
 import { Button } from '@/components/ui/button';
 import type {
     Exercise,
+    Program,
     ProgramExercise,
     ProgramGroup,
     ProgramStep,
@@ -44,6 +49,7 @@ export default function ProgramNewPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        isLoading: isLoadingExercises,
     } = useInfiniteExercises();
 
     const exercises = useMemo(
@@ -69,6 +75,10 @@ export default function ProgramNewPage() {
     const [targetGroupId, setTargetGroupId] = useState<string | null>(null);
     const [initialTitle, setInitialTitle] = useState('');
     const [initialMessage, setInitialMessage] = useState('');
+    const [shareOpen, setShareOpen] = useState(false);
+    const [sharePhase, setSharePhase] = useState<ProgramSharePhase>('saving');
+    const [shareProgram, setShareProgram] = useState<Program | null>(null);
+    const [shareError, setShareError] = useState<string | null>(null);
 
     const { draft, hasDraft, scheduleSave, clearDraft, restoreDraft } =
         useProgramDraft(step, selectedIds, groups);
@@ -342,24 +352,72 @@ export default function ProgramNewPage() {
             exercises: exercisesPayload,
         };
 
+        const shouldShare = Boolean(details.patientId);
+
+        if (shouldShare) {
+            setShareProgram(null);
+            setShareError(null);
+            setSharePhase('saving');
+            setShareOpen(true);
+        }
+
         if (editMode && editProgramId) {
             updateProgram.mutate(
                 { id: editProgramId, dto },
                 {
-                    onSuccess: () => {
+                    onSuccess: (program) => {
+                        if (shouldShare) {
+                            clearDraft();
+                            setShareProgram(program);
+                            setSharePhase('ready');
+                            return;
+                        }
                         navigate(`/clinica/programas/${editProgramId}`);
+                    },
+                    onError: (error) => {
+                        if (!shouldShare) return;
+                        setSharePhase('error');
+                        setShareError(
+                            error instanceof Error
+                                ? error.message
+                                : 'Erro ao salvar o programa.',
+                        );
                     },
                 },
             );
         } else {
             createProgram.mutate(dto, {
-                onSuccess: () => {
+                onSuccess: (program) => {
                     clearDraft();
+                    if (shouldShare) {
+                        setShareProgram(program);
+                        setSharePhase('ready');
+                        return;
+                    }
                     navigate('/clinica/programas');
+                },
+                onError: (error) => {
+                    if (!shouldShare) return;
+                    setSharePhase('error');
+                    setShareError(
+                        error instanceof Error
+                            ? error.message
+                            : 'Erro ao salvar o programa.',
+                    );
                 },
             });
         }
     };
+
+    function handleShareDone() {
+        setShareOpen(false);
+        const programId = shareProgram?.id ?? editProgramId;
+        if (programId) {
+            navigate(`/clinica/programas/${programId}`);
+            return;
+        }
+        navigate('/clinica/programas');
+    }
 
     const currentEditExercise =
         editingExercise &&
@@ -367,46 +425,63 @@ export default function ProgramNewPage() {
             .find((g) => g.id === editingExercise.groupId)
             ?.exercises.find((e) => e.id === editingExercise.exerciseId);
 
+    const configureProgress = useMemo(() => {
+        const total = groups.reduce((sum, g) => sum + g.exercises.length, 0);
+        const configured = groups.reduce(
+            (sum, g) => sum + g.exercises.filter((e) => e.isConfigured).length,
+            0,
+        );
+        return { configured, total };
+    }, [groups]);
+
+    const handleWizardBack = () => {
+        if (step === 1) {
+            navigate('/clinica/programas');
+            return;
+        }
+        if (step === 2 && editingExercise) {
+            setEditingExercise(null);
+            return;
+        }
+        if (step === 2) {
+            setStep(1);
+            return;
+        }
+        if (step === 4) {
+            setStep(2);
+        }
+    };
+
+    const handleWizardNext = () => {
+        if (step === 1) {
+            goToStep2();
+            return;
+        }
+        if (step === 2) {
+            setEditingExercise(null);
+            setStep(4);
+        }
+    };
+
+    const canAdvanceStep1 =
+        groups.length > 0
+            ? groups.some((g) => g.exercises.length > 0)
+            : selectedIds.length > 0;
+
     return (
         <ClinicLayout>
             <div className="flex h-full flex-col">
-                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    if (step === 1) {
-                                        navigate('/clinica/programas');
-                                        return;
-                                    }
-                                    if (step === 2 && editingExercise) {
-                                        setEditingExercise(null);
-                                        return;
-                                    }
-                                    if (step === 2) {
-                                        setStep(1);
-                                        return;
-                                    }
-                                    if (step === 4) {
-                                        setStep(2);
-                                    }
-                                }}
-                                className="gap-1 text-muted-foreground hover:text-foreground"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Voltar
-                            </Button>
-                        </div>
-                        <h1 className="mt-2 text-xl font-semibold text-foreground">
-                            {STEP_LABELS[step]}
-                        </h1>
-                    </div>
-                </header>
+                <ProgramWizardNavBar
+                    title={STEP_LABELS[step]}
+                    onBack={handleWizardBack}
+                    onNext={handleWizardNext}
+                    showNext={step === 1 || step === 2}
+                    nextDisabled={step === 1 && !canAdvanceStep1}
+                    progress={step === 2 ? configureProgress : undefined}
+                />
 
                 {hasDraft && draft && (
-                    <div className="flex items-center justify-between border-b border-border bg-muted px-6 py-3 text-sm">
+                    <div className="flex flex-col gap-2 border-b border-border bg-muted px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
                         <span className="text-muted-foreground">
                             Rascunho salvo às{' '}
                             {new Date(draft.savedAt).toLocaleTimeString(
@@ -421,6 +496,7 @@ export default function ProgramNewPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className="cursor-pointer"
                                 onClick={() => {
                                     const d = restoreDraft();
                                     if (d) handleRestoreDraft(d);
@@ -431,6 +507,7 @@ export default function ProgramNewPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
+                                className="cursor-pointer"
                                 onClick={clearDraft}
                             >
                                 Descartar
@@ -454,6 +531,7 @@ export default function ProgramNewPage() {
                             fetchNextPage={fetchNextPage}
                             hasNextPage={hasNextPage}
                             isFetchingNextPage={isFetchingNextPage}
+                            isLoading={isLoadingExercises}
                         />
                     )}
 
@@ -464,10 +542,6 @@ export default function ProgramNewPage() {
                                     groups={groups}
                                     onUpdateGroups={setGroups}
                                     onEditExercise={handleEditExercise}
-                                    onNext={() => {
-                                        setEditingExercise(null);
-                                        setStep(4);
-                                    }}
                                     onBack={() => {
                                         setEditingExercise(null);
                                         setStep(1);
@@ -485,20 +559,36 @@ export default function ProgramNewPage() {
                     )}
 
                     {step === 4 && (
-                        <StepProgramDetails
-                            groups={groups}
-                            initialTitle={initialTitle}
-                            initialMessage={initialMessage}
-                            onBack={() => setStep(2)}
-                            onSave={handleSaveProgram}
-                            isSaving={
-                                createProgram.isPending ||
-                                updateProgram.isPending
-                            }
-                        />
+                        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                            <StepProgramDetails
+                                groups={groups}
+                                initialTitle={initialTitle}
+                                initialMessage={initialMessage}
+                                onSave={handleSaveProgram}
+                                isSaving={
+                                    createProgram.isPending ||
+                                    updateProgram.isPending
+                                }
+                            />
+                        </div>
                     )}
                 </div>
             </div>
+
+            <ProgramShareDialog
+                open={shareOpen}
+                phase={sharePhase}
+                program={shareProgram}
+                errorMessage={shareError}
+                onOpenChange={(open) => {
+                    if (!open && sharePhase === 'saving') return;
+                    setShareOpen(open);
+                    if (!open && sharePhase === 'ready') {
+                        handleShareDone();
+                    }
+                }}
+                onDone={handleShareDone}
+            />
         </ClinicLayout>
     );
 }

@@ -19,11 +19,17 @@ export const apiGoogleCalendarRepository: GoogleCalendarRepository = {
         };
     },
 
-    async getAuthUrl() {
+    async getAuthUrl(returnTo?: string) {
         const { data } = await apiClient.get<{
             data: { authorization_url: string };
-        }>('/clinic/google-calendar/connect');
+        }>('/clinic/google-calendar/connect', {
+            params: returnTo ? { return_to: returnTo } : undefined,
+        });
         return data.data.authorization_url;
+    },
+
+    async pullNow() {
+        await apiClient.post('/clinic/google-calendar/pull');
     },
 
     async disconnect() {

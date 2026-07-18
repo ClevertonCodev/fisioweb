@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -9,10 +8,10 @@ import {
 } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { EditExercisePanel } from '@/components/clinic/program/EditExercisePanel';
+import { ProgramWizardNavBar } from '@/components/clinic/program/ProgramWizardNavBar';
 import { StepConfigureExercises } from '@/components/clinic/program/StepConfigureExercises';
 import { StepProgramDetails } from '@/components/clinic/program/StepProgramDetails';
 import { StepSelectExercises } from '@/components/clinic/program/StepSelectExercises';
-import { Button } from '@/components/ui/button';
 import type {
     Exercise,
     ProgramExercise,
@@ -36,6 +35,7 @@ export default function ProgramEditPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        isLoading: isLoadingExercises,
     } = useInfiniteExercises();
 
     const exercises = useMemo(
@@ -314,6 +314,49 @@ export default function ProgramEditPage() {
             .find((g) => g.id === editingExercise.groupId)
             ?.exercises.find((e) => e.id === editingExercise.exerciseId);
 
+    const configureProgress = useMemo(() => {
+        const total = groups.reduce((sum, g) => sum + g.exercises.length, 0);
+        const configured = groups.reduce(
+            (sum, g) => sum + g.exercises.filter((e) => e.isConfigured).length,
+            0,
+        );
+        return { configured, total };
+    }, [groups]);
+
+    const handleWizardBack = () => {
+        if (step === 2 && editingExercise) {
+            setEditingExercise(null);
+            return;
+        }
+        if (step === 2) {
+            setStep(1);
+            return;
+        }
+        if (step === 1) {
+            navigate(`/clinica/programas/${id}`);
+            return;
+        }
+        if (step === 4) {
+            setStep(2);
+        }
+    };
+
+    const handleWizardNext = () => {
+        if (step === 1) {
+            goToStep2();
+            return;
+        }
+        if (step === 2) {
+            setEditingExercise(null);
+            setStep(4);
+        }
+    };
+
+    const canAdvanceStep1 =
+        groups.length > 0
+            ? groups.some((g) => g.exercises.length > 0)
+            : selectedIds.length > 0;
+
     if (isLoading) {
         return (
             <ClinicLayout>
@@ -329,40 +372,14 @@ export default function ProgramEditPage() {
     return (
         <ClinicLayout>
             <div className="flex h-full flex-col">
-                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    if (step === 2 && editingExercise) {
-                                        setEditingExercise(null);
-                                        return;
-                                    }
-                                    if (step === 2) {
-                                        setStep(1);
-                                        return;
-                                    }
-                                    if (step === 1) {
-                                        navigate(`/clinica/programas/${id}`);
-                                        return;
-                                    }
-                                    if (step === 4) {
-                                        setStep(2);
-                                    }
-                                }}
-                                className="gap-1 text-muted-foreground hover:text-foreground"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Voltar
-                            </Button>
-                        </div>
-                        <h1 className="mt-2 text-xl font-semibold text-foreground">
-                            {STEP_LABELS[step]}
-                        </h1>
-                    </div>
-                </header>
+                <ProgramWizardNavBar
+                    title={STEP_LABELS[step]}
+                    onBack={handleWizardBack}
+                    onNext={handleWizardNext}
+                    showNext={step === 1 || step === 2}
+                    nextDisabled={step === 1 && !canAdvanceStep1}
+                    progress={step === 2 ? configureProgress : undefined}
+                />
 
                 <div className="flex flex-1 overflow-hidden">
                     {step === 1 && (
@@ -379,6 +396,7 @@ export default function ProgramEditPage() {
                             fetchNextPage={fetchNextPage}
                             hasNextPage={hasNextPage}
                             isFetchingNextPage={isFetchingNextPage}
+                            isLoading={isLoadingExercises}
                         />
                     )}
 
@@ -389,10 +407,6 @@ export default function ProgramEditPage() {
                                     groups={groups}
                                     onUpdateGroups={setGroups}
                                     onEditExercise={handleEditExercise}
-                                    onNext={() => {
-                                        setEditingExercise(null);
-                                        setStep(4);
-                                    }}
                                     onBack={() => {
                                         setEditingExercise(null);
                                         setStep(1);
@@ -418,7 +432,6 @@ export default function ProgramEditPage() {
                             initialPatientName={initialPatientName}
                             initialStartDate={initialStartDate}
                             initialEndDate={initialEndDate}
-                            onBack={() => setStep(2)}
                             onSave={handleSaveProgram}
                             isSaving={updateProgram.isPending}
                         />

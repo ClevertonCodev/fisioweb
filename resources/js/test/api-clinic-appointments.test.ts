@@ -33,6 +33,7 @@ function makeApiAppointment(overrides = {}) {
         starts_at: '2026-06-20T13:00:00Z',
         ends_at: '2026-06-20T14:00:00Z',
         status: 'scheduled',
+        source: 'system',
         patient: { id: 3, name: 'João' },
         clinic_user: { id: 5, name: 'Dra. Ana' },
         ...overrides,
@@ -64,6 +65,31 @@ describe('apiClinicAppointmentsRepository.list', () => {
             clinicUserName: 'Dra. Ana',
             status: 'scheduled',
             location: 'Sala 1',
+            source: 'system',
+        });
+    });
+
+    it('mapeia source google e patient_id nulo', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: [
+                    makeApiAppointment({
+                        patient_id: null,
+                        patient: null,
+                        source: 'google',
+                        title: 'PayMEET',
+                    }),
+                ],
+            },
+        });
+
+        const result = await apiClinicAppointmentsRepository.list();
+
+        expect(result[0]).toMatchObject({
+            patientId: '',
+            patientName: '',
+            source: 'google',
+            title: 'PayMEET',
         });
     });
 });

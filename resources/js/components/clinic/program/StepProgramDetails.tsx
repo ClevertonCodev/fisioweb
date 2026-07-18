@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { usePatients } from '@/application/clinic';
 import { Button } from '@/components/ui/button';
@@ -16,10 +16,12 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import type { ProgramGroup } from '@/domain/clinic';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+
+const MOBILE_MAX = 767;
 
 interface StepProgramDetailsProps {
     groups: ProgramGroup[];
@@ -30,7 +32,6 @@ interface StepProgramDetailsProps {
     initialStartDate?: string;
     initialEndDate?: string;
     isSaving?: boolean;
-    onBack: () => void;
     onSave: (details: {
         title: string;
         patientId: number | null;
@@ -50,9 +51,18 @@ export function StepProgramDetails({
     initialStartDate,
     initialEndDate = '',
     isSaving = false,
-    onBack,
     onSave,
 }: StepProgramDetailsProps) {
+    const isMobileFromHook = useIsMobile();
+    const [isMobile, setIsMobile] = useState(
+        () =>
+            typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX,
+    );
+
+    useEffect(() => {
+        setIsMobile(isMobileFromHook);
+    }, [isMobileFromHook]);
+
     const [title, setTitle] = useState(initialTitle);
     const [patientId, setPatientId] = useState<number | null>(initialPatientId);
     const [patientName, setPatientName] = useState(initialPatientName);
@@ -83,25 +93,46 @@ export function StepProgramDetails({
         .map((e) => e.thumbnailUrl);
     const remaining = totalExercises - thumbnails.length;
 
-    return (
-        <div className="flex h-full">
-            <ScrollArea className="flex-1">
-                <div className="mx-auto max-w-xl space-y-6 p-6">
-                    <div className="flex items-center justify-between">
-                        <Button variant="outline" size="sm" onClick={onBack}>
-                            Voltar
-                        </Button>
-                    </div>
+    const saveLabel = isSaving
+        ? 'Salvando...'
+        : patientId
+          ? 'Salvar e enviar programa'
+          : 'Salvar';
 
-                    <div className="space-y-4">
-                        <div>
-                            <Input
-                                placeholder="Título do programa"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="text-base"
-                            />
-                        </div>
+    const summary = (
+        <ProgramSummary
+            thumbnails={thumbnails}
+            remaining={remaining}
+            totalExercises={totalExercises}
+            totalDuration={totalDuration}
+            startDate={startDate}
+            endDate={endDate}
+        />
+    );
+
+    return (
+        <div
+            className={cn(
+                'flex h-full w-full min-w-0 flex-1 overflow-hidden',
+                isMobile ? 'flex-col' : 'flex-row',
+            )}
+        >
+            <div className="min-h-0 w-full min-w-0 flex-1 overflow-y-auto">
+                <div
+                    className={cn(
+                        'w-full space-y-4',
+                        isMobile
+                            ? 'px-3 pb-28 pt-3'
+                            : 'mx-auto max-w-xl space-y-6 p-6',
+                    )}
+                >
+                    <div className="w-full min-w-0 space-y-3">
+                        <Input
+                            placeholder="Título do programa"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="h-12 w-full max-w-none text-base"
+                        />
 
                         <Popover
                             open={patientOpen}
@@ -111,10 +142,11 @@ export function StepProgramDetails({
                                 <Button
                                     variant="outline"
                                     role="combobox"
-                                    className="w-full justify-between font-normal"
+                                    className="h-12 w-full max-w-none cursor-pointer justify-between font-normal"
                                 >
                                     <span
                                         className={cn(
+                                            'truncate',
                                             !patientName &&
                                                 'text-muted-foreground',
                                         )}
@@ -125,7 +157,7 @@ export function StepProgramDetails({
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent
-                                className="w-full p-0"
+                                className="w-[var(--radix-popover-trigger-width)] p-0"
                                 align="start"
                             >
                                 <Command>
@@ -141,7 +173,7 @@ export function StepProgramDetails({
                                                     setPatientName('');
                                                     setPatientOpen(false);
                                                 }}
-                                                className="text-muted-foreground italic"
+                                                className="cursor-pointer text-muted-foreground italic"
                                             >
                                                 Remover paciente
                                             </CommandItem>
@@ -155,6 +187,7 @@ export function StepProgramDetails({
                                                     setPatientName(p.name);
                                                     setPatientOpen(false);
                                                 }}
+                                                className="cursor-pointer"
                                             >
                                                 <Check
                                                     className={cn(
@@ -173,8 +206,8 @@ export function StepProgramDetails({
                             </PopoverContent>
                         </Popover>
 
-                        <div className="flex gap-3">
-                            <div className="flex-1">
+                        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div className="w-full min-w-0">
                                 <label className="mb-1 block text-xs text-muted-foreground">
                                     Início
                                 </label>
@@ -184,9 +217,10 @@ export function StepProgramDetails({
                                     onChange={(e) =>
                                         setStartDate(e.target.value)
                                     }
+                                    className="h-12 w-full max-w-none"
                                 />
                             </div>
-                            <div className="flex-1">
+                            <div className="w-full min-w-0">
                                 <label className="mb-1 block text-xs text-muted-foreground">
                                     Término
                                 </label>
@@ -195,95 +229,144 @@ export function StepProgramDetails({
                                     value={endDate}
                                     min={startDate}
                                     onChange={(e) => setEndDate(e.target.value)}
+                                    className="h-12 w-full max-w-none"
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <div className="mb-2 flex items-center gap-2">
-                                <button className="text-sm text-primary hover:underline">
-                                    + Criar modelo de mensagem
-                                </button>
-                            </div>
+                        <div className="w-full min-w-0">
                             <Textarea
                                 placeholder="Mensagem"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 rows={4}
                                 maxLength={600}
+                                className="w-full max-w-none"
                             />
                             <p className="mt-1 text-right text-xs text-muted-foreground">
                                 {600 - message.length} caracteres restantes
                             </p>
                         </div>
                     </div>
+
+                    {isMobile && (
+                        <div className="w-full rounded-xl border border-border bg-card p-4">
+                            {summary}
+                        </div>
+                    )}
                 </div>
-            </ScrollArea>
+            </div>
 
-            <div className="flex w-72 flex-shrink-0 flex-col border-l border-border bg-card">
-                <div className="space-y-4 p-6">
-                    <h3 className="text-base font-semibold text-foreground">
-                        Resumo do programa
-                    </h3>
-
-                    <div className="flex items-center gap-2">
-                        <div className="flex -space-x-2">
-                            {thumbnails.map((url, i) => (
-                                <div
-                                    key={i}
-                                    className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted"
-                                >
-                                    <img
-                                        src={url}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                            ))}
-                            {remaining > 0 && (
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium text-muted-foreground">
-                                    +{remaining}
-                                </div>
-                            )}
-                        </div>
-                        <span className="ml-2 text-sm text-foreground">
-                            {totalExercises} exercício
-                            {totalExercises !== 1 ? 's' : ''}
-                        </span>
+            {!isMobile && (
+                <div className="flex h-full min-h-0 w-72 shrink-0 flex-col overflow-hidden border-l border-border bg-card">
+                    <div className="min-h-0 flex-1 space-y-4 overflow-auto p-6">
+                        {summary}
                     </div>
-
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                                Duração
-                            </span>
-                            <span className="text-foreground">
-                                {totalDuration} min
-                            </span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                                Acesso disponível por
-                            </span>
-                            <span className="text-foreground">--</span>
-                        </div>
+                    <div className="relative z-10 mt-auto shrink-0 border-t border-border bg-card p-4">
+                        <Button
+                            className="w-full cursor-pointer"
+                            onClick={handleSubmit}
+                            disabled={!title.trim() || isSaving}
+                        >
+                            {saveLabel}
+                        </Button>
                     </div>
                 </div>
+            )}
 
-                <div className="mt-auto border-t border-border p-4">
+            {isMobile && (
+                <div className="shrink-0 border-t border-border bg-card px-3 py-3">
                     <Button
-                        className="w-full"
+                        className="h-12 w-full cursor-pointer"
                         onClick={handleSubmit}
                         disabled={!title.trim() || isSaving}
                     >
-                        {isSaving
-                            ? 'Salvando...'
-                            : patientId
-                              ? 'Salvar e enviar programa'
-                              : 'Salvar'}
+                        {saveLabel}
                     </Button>
                 </div>
-            </div>
+            )}
         </div>
+    );
+}
+
+function accessDurationLabel(startDate: string, endDate: string): string {
+    if (!endDate.trim()) return '--';
+
+    const start = new Date(`${startDate}T00:00:00`);
+    const end = new Date(`${endDate}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return '--';
+    }
+
+    const days = Math.round(
+        (end.getTime() - start.getTime()) / 86_400_000,
+    );
+    if (days <= 0) return '--';
+
+    return `${days} dia${days !== 1 ? 's' : ''}`;
+}
+
+function ProgramSummary({
+    thumbnails,
+    remaining,
+    totalExercises,
+    totalDuration,
+    startDate,
+    endDate,
+}: {
+    thumbnails: (string | null)[];
+    remaining: number;
+    totalExercises: number;
+    totalDuration: number;
+    startDate: string;
+    endDate: string;
+}) {
+    const accessLabel = accessDurationLabel(startDate, endDate);
+
+    return (
+        <>
+            <h3 className="text-base font-semibold text-foreground">
+                Resumo do programa
+            </h3>
+
+            <div className="mt-4 flex items-center gap-2">
+                <div className="flex -space-x-2">
+                    {thumbnails.map((url, i) => (
+                        <div
+                            key={i}
+                            className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted"
+                        >
+                            <img
+                                src={url ?? undefined}
+                                alt=""
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
+                    ))}
+                    {remaining > 0 && (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium text-muted-foreground">
+                            +{remaining}
+                        </div>
+                    )}
+                </div>
+                <span className="ml-2 text-sm text-foreground">
+                    {totalExercises} exercício
+                    {totalExercises !== 1 ? 's' : ''}
+                </span>
+            </div>
+
+            <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">Duração</span>
+                    <span className="text-foreground">{totalDuration} min</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                    <span className="text-muted-foreground">
+                        Acesso disponível por
+                    </span>
+                    <span className="text-foreground">{accessLabel}</span>
+                </div>
+            </div>
+        </>
     );
 }

@@ -1,7 +1,8 @@
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,16 +29,6 @@ export default function ProgramDetailPage() {
     return (
         <AdminLayout>
             <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/admin/programas')}
-                    className="gap-1 text-muted-foreground hover:text-foreground"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Voltar
-                </Button>
-
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
@@ -61,16 +52,24 @@ export default function ProgramDetailPage() {
                             </p>
                         )}
                     </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                            navigate(`/admin/programas/${program.id}/editar`)
-                        }
-                    >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Editar
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <BackButton
+                            to="/admin/programas"
+                            className="shrink-0"
+                        />
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                                navigate(
+                                    `/admin/programas/${program.id}/editar`,
+                                )
+                            }
+                        >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Editar
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Info card */}
@@ -136,7 +135,7 @@ export default function ProgramDetailPage() {
                                             className="flex items-center gap-4 rounded-lg border border-border p-3"
                                         >
                                             {/* Thumbnail */}
-                                            <div className="h-16 w-24 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                                            <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
                                                 {ex.exercise?.videoUrl ? (
                                                     <video
                                                         src={

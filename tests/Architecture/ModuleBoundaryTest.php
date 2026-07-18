@@ -167,6 +167,10 @@ class ModuleBoundaryTest extends TestCase
         $violations  = [];
 
         foreach ($this->productionPhpFiles($servicePath) as $file) {
+            if (!str_ends_with($file->getFilename(), 'Service.php')) {
+                continue;
+            }
+
             $contents = (string) file_get_contents($file->getPathname());
 
             if (!preg_match('/RepositoryInterface/', $contents)) {

@@ -29,7 +29,7 @@ import type {
     AppointmentStatus,
     CalendarEvent,
 } from '@/domain/clinic';
-import { STATUS_COLORS } from '@/domain/clinic';
+import { isTerminalAppointmentStatus, STATUS_COLORS } from '@/domain/clinic';
 
 const CalendarView = lazy(() =>
     import('@/components/clinic/agenda/CalendarView').then((m) => ({
@@ -51,7 +51,24 @@ function toCalendarEvent(apt: Appointment): CalendarEvent {
         backgroundColor: colors.bg,
         borderColor: colors.border,
         textColor: colors.text,
+        editable: !isTerminalAppointmentStatus(apt.status),
         extendedProps: { appointment: apt, status: apt.status },
+    };
+}
+
+function appointmentToWriteDto(
+    apt: Appointment,
+    startsAt: string,
+    endsAt: string,
+): AppointmentWriteDto {
+    return {
+        patientId: apt.source === 'google' ? null : apt.patientId,
+        clinicUserId: apt.clinicUserId,
+        title: apt.title,
+        description: apt.description,
+        location: apt.location,
+        startsAt: new Date(startsAt).toISOString(),
+        endsAt: new Date(endsAt).toISOString(),
     };
 }
 
@@ -187,8 +204,21 @@ export default function AgendaPage() {
             });
             setSelectedAppointment(updated);
             toast.success('Status atualizado.');
-        } catch {
-            toast.error('Não foi possível alterar o status.');
+        } catch (error: unknown) {
+            const message =
+                error &&
+                typeof error === 'object' &&
+                'response' in error &&
+                error.response &&
+                typeof error.response === 'object' &&
+                'data' in error.response &&
+                error.response.data &&
+                typeof error.response.data === 'object' &&
+                'message' in error.response.data &&
+                typeof error.response.data.message === 'string'
+                    ? error.response.data.message
+                    : 'Não foi possível alterar o status.';
+            toast.error(message);
         }
     };
 
@@ -205,35 +235,47 @@ export default function AgendaPage() {
         }
     };
 
-    const handleEventDrop = (id: string, start: string, end: string) => {
+    const persistReschedule = async (
+        id: string,
+        start: string,
+        end: string,
+        successMessage: string,
+    ) => {
+        const apt = appointments.find((a) => a.id === id);
+        if (!apt) {
+            throw new Error('Consulta não encontrada.');
+        }
+        if (isTerminalAppointmentStatus(apt.status)) {
+            throw new Error('Consulta encerrada não pode ser reagendada.');
+        }
+
+        const previous = appointments;
+        const startsAt = new Date(start).toISOString();
+        const endsAt = new Date(end).toISOString();
         setAppointments((prev) =>
             prev.map((a) =>
-                a.id === id
-                    ? {
-                          ...a,
-                          startsAt: new Date(start).toISOString(),
-                          endsAt: new Date(end).toISOString(),
-                      }
-                    : a,
+                a.id === id ? { ...a, startsAt, endsAt } : a,
             ),
         );
-        toast.success('Consulta reposicionada.');
+
+        try {
+            await updateMutation.mutateAsync({
+                id,
+                dto: appointmentToWriteDto(apt, start, end),
+            });
+            toast.success(successMessage);
+        } catch {
+            setAppointments(previous);
+            toast.error('Não foi possível reagendar a consulta.');
+            throw new Error('reschedule_failed');
+        }
     };
 
-    const handleEventResize = (id: string, start: string, end: string) => {
-        setAppointments((prev) =>
-            prev.map((a) =>
-                a.id === id
-                    ? {
-                          ...a,
-                          startsAt: new Date(start).toISOString(),
-                          endsAt: new Date(end).toISOString(),
-                      }
-                    : a,
-            ),
-        );
-        toast.success('Duração da consulta alterada.');
-    };
+    const handleEventDrop = (id: string, start: string, end: string) =>
+        persistReschedule(id, start, end, 'Consulta reposicionada.');
+
+    const handleEventResize = (id: string, start: string, end: string) =>
+        persistReschedule(id, start, end, 'Duração da consulta alterada.');
 
     return (
         <ClinicLayout>
@@ -297,6 +339,7 @@ export default function AgendaPage() {
                 onClose={() => setModalOpen(false)}
                 appointment={selectedAppointment}
                 initialDate={selectedDate}
+                initialPatientId={patientIdFilter}
                 patients={agendaPatients}
                 clinicUsers={clinicUsers}
                 onSubmit={handleSubmit}

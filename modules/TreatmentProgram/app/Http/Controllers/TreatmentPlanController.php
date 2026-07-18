@@ -8,16 +8,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Modules\Pdf\Services\PdfService;
+use Modules\Pdf\Contracts\PdfGeneratorInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
 use Modules\TreatmentProgram\Http\Requests\StoreTreatmentPlanRequest;
 use Modules\TreatmentProgram\Http\Requests\UpdateTreatmentPlanRequest;
+use Modules\TreatmentProgram\Models\TreatmentPlan;
+use Modules\TreatmentProgram\Services\ProgramPdfQrCodeGenerator;
+use Modules\TreatmentProgram\Services\ProgramPdfViewModelBuilder;
 
 class TreatmentPlanController extends Controller
 {
     public function __construct(
         protected TreatmentPlanServiceInterface $treatmentPlanService,
-        protected PdfService $pdfService,
+        protected PdfGeneratorInterface $pdfService,
+        protected ProgramPdfViewModelBuilder $pdfViewModelBuilder,
+        protected ProgramPdfQrCodeGenerator $pdfQrCodeGenerator,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -61,7 +66,7 @@ class TreatmentPlanController extends Controller
         ]);
         $plan = $this->treatmentPlanService->create($data);
 
-        return response()->json(['data' => $plan], 201);
+        return response()->json(['data' => $this->planResponse($plan)], 201);
     }
 
     public function update(UpdateTreatmentPlanRequest $request, int $id): JsonResponse
@@ -74,7 +79,7 @@ class TreatmentPlanController extends Controller
             }
             $plan = $this->treatmentPlanService->update($id, $request->validated());
 
-            return response()->json(['data' => $plan]);
+            return response()->json(['data' => $this->planResponse($plan)]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
         }
@@ -139,15 +144,42 @@ class TreatmentPlanController extends Controller
 
         $plan->load([
             'groups.exercises.exercise.videos',
+            'groups.exercises.exercise.media',
             'exercises.exercise.videos',
+            'exercises.exercise.media',
             'patient',
             'clinic',
+            'clinicUser',
             'physioArea',
             'physioSubarea',
         ]);
 
-        $filename = ValidationHelper::generateSlug($plan->title) . '.pdf';
+        $pdfMeta    = $this->pdfViewModelBuilder->build($plan);
+        $qrImageSrc = $this->pdfQrCodeGenerator->imageSrc($pdfMeta['qrUrl'] ?? null);
+        $filename   = ValidationHelper::generateSlug($plan->title) . '.pdf';
 
-        return $this->pdfService->download('pdf.clinic.treatment.treatment-plan', compact('plan'), $filename);
+        return $this->pdfService->download(
+            'pdf.clinic.treatment.treatment-plan',
+            [
+                'plan'       => $plan,
+                'pdfMeta'    => $pdfMeta,
+                'qrImageSrc' => $qrImageSrc,
+                'groupLabel' => fn (?string $name) => $this->pdfViewModelBuilder->groupDisplayName($name),
+            ],
+            $filename
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function planResponse(TreatmentPlan $plan): array
+    {
+        $plan->loadMissing(['patient', 'clinic', 'groups.exercises.exercise', 'exercises.exercise', 'physioArea', 'physioSubarea']);
+
+        $payload = $plan->toArray();
+        $payload['share_url'] = $this->pdfViewModelBuilder->deepLinkUrl($plan);
+
+        return $payload;
     }
 }

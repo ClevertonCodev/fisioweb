@@ -16,6 +16,14 @@ interface PatientQuestionnaireServiceInterface
 
     public function answer(PatientQuestionnaire $questionnaire, array $answers): PatientQuestionnaire;
 
+    /**
+     * Responde questionário presencial pela clínica (auth clinic).
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function answerForClinicPatient(int $clinicId, int $patientId, int $questionnaireId, array $answers): PatientQuestionnaire;
+
     public function destroy(PatientQuestionnaire $questionnaire): void;
 
     /**

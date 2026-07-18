@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +21,7 @@ import { PatientFormPersonal } from '@/components/clinic/patient/form/PatientFor
 import { PatientFormReferral } from '@/components/clinic/patient/form/PatientFormReferral';
 import { PatientFormSource } from '@/components/clinic/patient/form/PatientFormSource';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -105,21 +105,21 @@ export default function PatientNewPage() {
             >
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="px-6 py-4">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/clinica/pacientes')}
-                            className="mb-4 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                            Voltar
-                        </button>
-                        <h1 className="mb-1 text-2xl font-semibold text-foreground">
-                            Adicionar paciente
-                        </h1>
-                        <p className="mb-4 text-sm text-muted-foreground">
-                            Crie as informações de seu paciente e salve as
-                            alterações
-                        </p>
+                        <div className="mb-4 flex items-start justify-between gap-4">
+                            <div>
+                                <h1 className="mb-1 text-2xl font-semibold text-foreground">
+                                    Adicionar paciente
+                                </h1>
+                                <p className="text-sm text-muted-foreground">
+                                    Crie as informações de seu paciente e salve
+                                    as alterações
+                                </p>
+                            </div>
+                            <BackButton
+                                to="/clinica/pacientes"
+                                className="shrink-0"
+                            />
+                        </div>
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <TabsList className="h-auto flex-wrap gap-0 rounded-none bg-transparent p-0">
                                 {TABS.map((tab) => (

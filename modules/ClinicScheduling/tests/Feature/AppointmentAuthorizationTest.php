@@ -71,6 +71,27 @@ class AppointmentAuthorizationTest extends TestCase
             ->assertJsonPath('data.clinic_user_id', $this->physioB->id);
     }
 
+    public function test_admin_can_book_appointment_for_self(): void
+    {
+        $this->actingAs($this->admin, 'clinic')
+            ->postJson('/api/clinic/appointments', $this->payload(['clinic_user_id' => $this->admin->id]))
+            ->assertCreated()
+            ->assertJsonPath('data.clinic_user_id', $this->admin->id);
+    }
+
+    public function test_cannot_book_for_secretary(): void
+    {
+        $secretary = ClinicUser::factory()->create([
+            'clinic_id' => $this->clinic->id,
+            'role'      => ClinicUser::ROLE_SECRETARY,
+        ]);
+
+        $this->actingAs($this->admin, 'clinic')
+            ->postJson('/api/clinic/appointments', $this->payload(['clinic_user_id' => $secretary->id]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('clinic_user_id');
+    }
+
     public function test_cannot_book_for_physiotherapist_of_another_clinic(): void
     {
         $otherPhysio = ClinicUser::factory()->create(['role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);

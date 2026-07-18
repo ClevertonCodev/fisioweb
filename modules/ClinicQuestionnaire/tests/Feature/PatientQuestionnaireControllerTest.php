@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route as RouteFacade;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+use Modules\ClinicQuestionnaire\Models\QuestionnaireQuestion;
+use Modules\ClinicQuestionnaire\Models\QuestionnaireSection;
 use Modules\ClinicQuestionnaire\Models\QuestionnaireTemplate;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
@@ -175,6 +177,77 @@ class PatientQuestionnaireControllerTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_clinic_can_answer_presencial_questionnaire(): void
+    {
+        $section = QuestionnaireSection::query()->create([
+            'questionnaire_template_id' => $this->template->id,
+            'title'                     => 'Anamnese',
+            'sort_order'                => 0,
+        ]);
+        $question = QuestionnaireQuestion::query()->create([
+            'questionnaire_section_id' => $section->id,
+            'label'                    => 'Qual a queixa?',
+            'type'                     => 'text',
+            'options'                  => null,
+            'scale_min'                => 0,
+            'scale_max'                => 10,
+            'required'                 => true,
+            'sort_order'               => 0,
+        ]);
+
+        $questionnaire = PatientQuestionnaire::factory()
+            ->forPatient($this->patient, $this->clinic)
+            ->create([
+                'questionnaire_template_id' => $this->template->id,
+                'modality'                  => 'presencial',
+                'status'                    => 'pending',
+            ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patient->id}/questionnaires/{$questionnaire->id}/answer", [
+                'answers' => [
+                    ['question_id' => $question->id, 'answer' => 'Dor lombar'],
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'answered');
+    }
+
+    public function test_clinic_cannot_answer_remoto_questionnaire(): void
+    {
+        $section = QuestionnaireSection::query()->create([
+            'questionnaire_template_id' => $this->template->id,
+            'title'                     => 'Anamnese',
+            'sort_order'                => 0,
+        ]);
+        $question = QuestionnaireQuestion::query()->create([
+            'questionnaire_section_id' => $section->id,
+            'label'                    => 'Qual a queixa?',
+            'type'                     => 'text',
+            'options'                  => null,
+            'scale_min'                => 0,
+            'scale_max'                => 10,
+            'required'                 => true,
+            'sort_order'               => 0,
+        ]);
+
+        $questionnaire = PatientQuestionnaire::factory()
+            ->forPatient($this->patient, $this->clinic)
+            ->create([
+                'questionnaire_template_id' => $this->template->id,
+                'modality'                  => 'remoto',
+                'status'                    => 'pending',
+            ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patient->id}/questionnaires/{$questionnaire->id}/answer", [
+                'answers' => [
+                    ['question_id' => $question->id, 'answer' => 'Dor lombar'],
+                ],
+            ])
+            ->assertStatus(422);
+    }
+
     private function createQuestionnaireForPatient(?Patient $patient = null, ?Clinic $clinic = null): PatientQuestionnaire
     {
         $patient = $patient ?? $this->patient;
@@ -244,12 +317,13 @@ class ClinicQuestionnaireRouteCompatibilityTest extends TestCase
     protected function expectedMethodsByUri(): array
     {
         return [
-            'api/clinic/patients/{patient}/questionnaires'                 => ['GET', 'HEAD', 'POST'],
-            'api/clinic/patients/{patient}/questionnaires/{questionnaire}' => ['DELETE', 'GET', 'HEAD'],
-            'api/clinic/questionnaire-templates'                           => ['GET', 'HEAD', 'POST'],
-            'api/clinic/questionnaire-templates/{id}'                      => ['DELETE', 'GET', 'HEAD', 'PUT'],
-            'api/questionnaires/{id}'                                      => ['GET', 'HEAD'],
-            'api/questionnaires/{id}/answer'                               => ['POST'],
+            'api/clinic/patients/{patient}/questionnaires'                          => ['GET', 'HEAD', 'POST'],
+            'api/clinic/patients/{patient}/questionnaires/{questionnaire}'          => ['DELETE', 'GET', 'HEAD'],
+            'api/clinic/patients/{patient}/questionnaires/{questionnaire}/answer'   => ['POST'],
+            'api/clinic/questionnaire-templates'                                    => ['GET', 'HEAD', 'POST'],
+            'api/clinic/questionnaire-templates/{id}'                               => ['DELETE', 'GET', 'HEAD', 'PUT'],
+            'api/questionnaires/{id}'                                               => ['GET', 'HEAD'],
+            'api/questionnaires/{id}/answer'                                        => ['POST'],
         ];
     }
 }

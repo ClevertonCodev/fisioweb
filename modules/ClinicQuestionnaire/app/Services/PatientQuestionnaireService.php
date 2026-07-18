@@ -111,6 +111,25 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
         });
     }
 
+    public function answerForClinicPatient(int $clinicId, int $patientId, int $questionnaireId, array $answers): PatientQuestionnaire
+    {
+        $questionnaire = $this->findForPatient($clinicId, $patientId, $questionnaireId);
+
+        if (is_null($questionnaire)) {
+            throw (new \Illuminate\Database\Eloquent\ModelNotFoundException)->setModel(PatientQuestionnaire::class, [$questionnaireId]);
+        }
+
+        if ((string) $questionnaire->modality !== 'presencial') {
+            throw ValidationException::withMessages([
+                'modality' => ['Somente questionários presenciais podem ser respondidos pela clínica.'],
+            ]);
+        }
+
+        $this->ensurePendingAndNotExpired($questionnaire);
+
+        return $this->answer($questionnaire, $answers);
+    }
+
     public function destroy(PatientQuestionnaire $questionnaire): void
     {
         DB::transaction(function () use ($questionnaire) {

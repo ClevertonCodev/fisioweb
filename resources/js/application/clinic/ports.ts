@@ -368,6 +368,11 @@ export interface PatientQuestionnaireWriteDto {
     expiresAt?: string | null;
 }
 
+export interface PatientQuestionnaireAnswerWriteDto {
+    questionId: number;
+    answer: string | string[] | number;
+}
+
 export interface PatientQuestionnairesRepository {
     listByPatient(patientId: string): Promise<PatientQuestionnaire[]>;
     findById(
@@ -377,6 +382,11 @@ export interface PatientQuestionnairesRepository {
     store(
         patientId: string,
         dto: PatientQuestionnaireWriteDto,
+    ): Promise<PatientQuestionnaire>;
+    answer(
+        patientId: string,
+        questionnaireId: string,
+        answers: PatientQuestionnaireAnswerWriteDto[],
     ): Promise<PatientQuestionnaire>;
     destroy(patientId: string, questionnaireId: string): Promise<void>;
 }

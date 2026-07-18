@@ -13,12 +13,11 @@ import {
     Pencil,
     Plus,
     Search,
-    SlidersHorizontal,
     Trash2,
     Upload,
     User,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
@@ -176,23 +175,50 @@ function RecordCard({
 
 // ─── Main page ──────────────────────────────────────────────────────────────
 
+const TAB_FROM_URL: Record<string, string> = {
+    all: 'all',
+    evolutions: 'evolution',
+    evolution: 'evolution',
+    assessments: 'assessment',
+    assessment: 'assessment',
+    questionnaires: 'questionnaire',
+    questionnaire: 'questionnaire',
+    files: 'files',
+};
+
+const TAB_TO_URL: Record<string, string> = {
+    all: 'all',
+    evolution: 'evolutions',
+    assessment: 'assessments',
+    questionnaire: 'questionnaires',
+    files: 'files',
+};
+
 export default function PatientRecordPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
-    const TAB_MAP: Record<string, string> = {
-        questionnaires: 'questionnaire',
-        evolutions: 'evolution',
-        assessments: 'assessment',
-        files: 'files',
-        all: 'all',
-    };
-    const tabFromUrl = searchParams.get('tab');
-    const resolvedTab = tabFromUrl
-        ? (TAB_MAP[tabFromUrl] ?? tabFromUrl)
-        : 'all';
-    const [activeTab, setActiveTab] = useState(resolvedTab);
+    const activeTab =
+        TAB_FROM_URL[searchParams.get('tab') ?? 'all'] ?? 'all';
+    const setActiveTab = useCallback(
+        (tab: string) => {
+            setSearchParams(
+                (prev) => {
+                    const next = new URLSearchParams(prev);
+                    if (tab === 'all') {
+                        next.delete('tab');
+                    } else {
+                        next.set('tab', TAB_TO_URL[tab] ?? tab);
+                    }
+                    return next;
+                },
+                { replace: true },
+            );
+        },
+        [setSearchParams],
+    );
+    const hasSearch = Boolean(searchTerm.trim());
     const [evolutionDrawerOpen, setEvolutionDrawerOpen] = useState(false);
     const [evolutionToEdit, setEvolutionToEdit] = useState<
         PatientEvolution | undefined
@@ -208,6 +234,9 @@ export default function PatientRecordPage() {
     const [evolutionToDelete, setEvolutionToDelete] = useState<
         PatientEvolution | undefined
     >(undefined);
+    const [evolutionDeleteTitle, setEvolutionDeleteTitle] = useState(
+        'Sessão de Fisioterapia',
+    );
     const [questionnaireViewOpen, setQuestionnaireViewOpen] = useState(false);
     const [questionnaireToView, setQuestionnaireToView] =
         useState<PatientQuestionnaire | null>(null);
@@ -231,6 +260,22 @@ export default function PatientRecordPage() {
         setEvolutionToView(undefined);
         if (ev) openEvolutionDrawer(ev);
     };
+
+    const requestDeleteEvolution = (evolution: PatientEvolution) => {
+        setEvolutionDeleteTitle(
+            evolution.title?.trim() || 'Sessão de Fisioterapia',
+        );
+        setEvolutionToDelete(evolution);
+    };
+
+    const openQuestionnaire = useCallback(
+        (questionnaire: PatientQuestionnaire) => {
+            setQuestionnaireToView(questionnaire);
+            setQuestionnaireViewOpen(true);
+            setActiveTab('questionnaire');
+        },
+        [setActiveTab],
+    );
 
     const {
         data: patient,
@@ -293,8 +338,10 @@ export default function PatientRecordPage() {
 
     const filteredFiles = useMemo(() => {
         if (!lowerSearch) return files ?? [];
-        return (files ?? []).filter((f) =>
-            f.originalName.toLowerCase().includes(lowerSearch),
+        return (files ?? []).filter(
+            (f) =>
+                f.originalName.toLowerCase().includes(lowerSearch) ||
+                (f.name?.toLowerCase().includes(lowerSearch) ?? false),
         );
     }, [files, lowerSearch]);
 
@@ -447,14 +494,6 @@ export default function PatientRecordPage() {
                             className="pl-9"
                         />
                     </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="cursor-pointer gap-2"
-                    >
-                        <SlidersHorizontal className="h-4 w-4" />
-                        Filtros
-                    </Button>
                 </div>
 
                 {/* Tabs */}
@@ -527,6 +566,7 @@ export default function PatientRecordPage() {
                                 searchTerm={searchTerm}
                                 onViewEvolution={openEvolutionViewDrawer}
                                 onEditEvolution={openEvolutionDrawer}
+                                onViewQuestionnaire={openQuestionnaire}
                             />
                         </TabsContent>
 
@@ -540,8 +580,16 @@ export default function PatientRecordPage() {
                             filteredEvolutions.length === 0 ? (
                                 <RecordEmptyState
                                     icon={FileText}
-                                    title="Nenhuma evolução registrada"
-                                    description="Crie uma evolução pelo botão Adicionar para começar o acompanhamento."
+                                    title={
+                                        hasSearch
+                                            ? 'Nenhum resultado encontrado'
+                                            : 'Nenhuma evolução registrada'
+                                    }
+                                    description={
+                                        hasSearch
+                                            ? 'Nenhum registro corresponde à pesquisa.'
+                                            : 'Crie uma evolução pelo botão Adicionar para começar o acompanhamento.'
+                                    }
                                 />
                             ) : (
                                 <div className="mx-auto max-w-3xl space-y-4">
@@ -648,7 +696,7 @@ export default function PatientRecordPage() {
                                                             size="sm"
                                                             className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
                                                             onClick={() =>
-                                                                setEvolutionToDelete(
+                                                                requestDeleteEvolution(
                                                                     ev,
                                                                 )
                                                             }
@@ -675,8 +723,16 @@ export default function PatientRecordPage() {
                             filteredAssessments.length === 0 ? (
                                 <RecordEmptyState
                                     icon={Activity}
-                                    title="Nenhuma avaliação registrada"
-                                    description="Crie uma avaliação pelo botão Adicionar para popular esta aba."
+                                    title={
+                                        hasSearch
+                                            ? 'Nenhum resultado encontrado'
+                                            : 'Nenhuma avaliação registrada'
+                                    }
+                                    description={
+                                        hasSearch
+                                            ? 'Nenhum registro corresponde à pesquisa.'
+                                            : 'Crie uma avaliação pelo botão Adicionar para popular esta aba.'
+                                    }
                                 />
                             ) : (
                                 <div className="mx-auto max-w-3xl space-y-4">
@@ -770,8 +826,16 @@ export default function PatientRecordPage() {
                             filteredQuestionnaires.length === 0 ? (
                                 <RecordEmptyState
                                     icon={ClipboardList}
-                                    title="Nenhum questionário registrado"
-                                    description="Envie um questionário pelo botão Adicionar para popular esta aba."
+                                    title={
+                                        hasSearch
+                                            ? 'Nenhum resultado encontrado'
+                                            : 'Nenhum questionário registrado'
+                                    }
+                                    description={
+                                        hasSearch
+                                            ? 'Nenhum registro corresponde à pesquisa.'
+                                            : 'Envie um questionário pelo botão Adicionar para popular esta aba.'
+                                    }
                                 />
                             ) : (
                                 <div className="mx-auto max-w-3xl space-y-4">
@@ -904,8 +968,16 @@ export default function PatientRecordPage() {
                             filteredFiles.length === 0 ? (
                                 <RecordEmptyState
                                     icon={Paperclip}
-                                    title="Nenhum arquivo registrado"
-                                    description="Adicione arquivos pelo botão Adicionar para popular esta aba."
+                                    title={
+                                        hasSearch
+                                            ? 'Nenhum resultado encontrado'
+                                            : 'Nenhum arquivo registrado'
+                                    }
+                                    description={
+                                        hasSearch
+                                            ? 'Nenhum registro corresponde à pesquisa.'
+                                            : 'Adicione arquivos pelo botão Adicionar para popular esta aba.'
+                                    }
                                 />
                             ) : (
                                 <div className="mx-auto max-w-3xl space-y-4">
@@ -980,33 +1052,20 @@ export default function PatientRecordPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger
-                                                            asChild
-                                                        >
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
-                                                            >
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem
-                                                                className="cursor-pointer gap-2"
-                                                                onClick={() =>
-                                                                    window.open(
-                                                                        file.cdnUrl,
-                                                                        '_blank',
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Download className="h-4 w-4" />
-                                                                Download
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="cursor-pointer gap-1.5"
+                                                        onClick={() =>
+                                                            window.open(
+                                                                file.cdnUrl,
+                                                                '_blank',
+                                                            )
+                                                        }
+                                                    >
+                                                        <Download className="h-3.5 w-3.5" />
+                                                        Download
+                                                    </Button>
                                                 </div>
                                             </CardHeader>
                                         </Card>
@@ -1103,13 +1162,8 @@ export default function PatientRecordPage() {
                         <AlertDialogTitle>Excluir rascunho</AlertDialogTitle>
                         <AlertDialogDescription>
                             Tem certeza que deseja excluir{' '}
-                            <strong>
-                                "
-                                {evolutionToDelete?.title ||
-                                    'Sessão de Fisioterapia'}
-                                "
-                            </strong>
-                            ? Esta ação não pode ser desfeita.
+                            <strong>"{evolutionDeleteTitle}"</strong>? Esta ação
+                            não pode ser desfeita.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

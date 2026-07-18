@@ -6,7 +6,6 @@ import { useSendQuestionnaire } from '@/application/clinic/use-patient-questionn
 import { useQuestionnaireTemplates } from '@/application/clinic/use-questionnaire-templates';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Sheet,
@@ -198,41 +197,38 @@ export function QuestionnaireFormSheet({
                         <div className="space-y-5 py-4">
                             <div className="space-y-2">
                                 <Label>Modalidade</Label>
-                                <RadioGroup
-                                    value={modality}
-                                    onValueChange={(v) =>
-                                        setModality(
-                                            v as 'presencial' | 'remoto',
-                                        )
-                                    }
-                                    className="flex flex-wrap gap-4"
-                                    disabled={isPending}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem
-                                            value="presencial"
-                                            id="q-mod-presencial"
-                                        />
-                                        <Label
-                                            htmlFor="q-mod-presencial"
-                                            className="font-normal"
-                                        >
-                                            Presencial
-                                        </Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem
-                                            value="remoto"
-                                            id="q-mod-remoto"
-                                        />
-                                        <Label
-                                            htmlFor="q-mod-remoto"
-                                            className="font-normal"
-                                        >
-                                            Remoto
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
+                                <div className="flex flex-wrap gap-2">
+                                    <Button
+                                        type="button"
+                                        variant={
+                                            modality === 'presencial'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        disabled={isPending}
+                                        onClick={() =>
+                                            setModality('presencial')
+                                        }
+                                    >
+                                        Presencial
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={
+                                            modality === 'remoto'
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        className="cursor-pointer"
+                                        disabled={isPending}
+                                        onClick={() => setModality('remoto')}
+                                    >
+                                        Remoto
+                                    </Button>
+                                </div>
                             </div>
 
                             <div className="space-y-2">

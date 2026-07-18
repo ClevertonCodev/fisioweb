@@ -24,7 +24,13 @@ class TreatmentProgramEventsTest extends TestCase
 
     public function test_plan_create_activate_complete_archive_and_draft_conversion_dispatch_events(): void
     {
-        Event::fake();
+        Event::fake([
+            TreatmentPlanCreated::class,
+            TreatmentPlanActivated::class,
+            TreatmentPlanCompleted::class,
+            TreatmentPlanArchived::class,
+            ProgramDraftConvertedToTreatmentPlan::class,
+        ]);
 
         [$clinicUser, $patient] = $this->context();
         $this->actingAs($clinicUser, 'clinic');
@@ -95,7 +101,10 @@ class TreatmentProgramEventsTest extends TestCase
 
     public function test_program_draft_upsert_dispatches_created_then_updated_events(): void
     {
-        Event::fake();
+        Event::fake([
+            ProgramDraftCreated::class,
+            ProgramDraftUpdated::class,
+        ]);
 
         [$clinicUser] = $this->context();
         $service      = app(ProgramDraftServiceInterface::class);

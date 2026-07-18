@@ -141,8 +141,7 @@ export default function ClinicRegisterPage() {
                                                         'document',
                                                         '',
                                                         {
-                                                            shouldValidate:
-                                                                false,
+                                                            shouldValidate: false,
                                                         },
                                                     );
                                                 }}

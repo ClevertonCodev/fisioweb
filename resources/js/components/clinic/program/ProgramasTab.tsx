@@ -197,7 +197,7 @@ function ProgramDetail({ id }: { id: number }) {
                 ))}
             </div>
 
-            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:fixed sm:right-6 sm:bottom-6 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
                 <Button
                     size="lg"
                     className="w-full cursor-pointer shadow-lg sm:w-auto"
@@ -357,7 +357,7 @@ function MyProgramDetail({ id }: { id: string }) {
                 ))}
             </div>
 
-            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:fixed sm:right-6 sm:bottom-6 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
                 <Button
                     size="lg"
                     className="w-full cursor-pointer shadow-lg sm:w-auto"

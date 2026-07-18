@@ -50,7 +50,9 @@ export function programClinicRoutes(queryClient: QueryClient): RouteObject[] {
                             perPage: 20,
                         }),
                     getNextPageParam: (
-                        lastPage: Awaited<ReturnType<typeof listExercisesPaginated>>,
+                        lastPage: Awaited<
+                            ReturnType<typeof listExercisesPaginated>
+                        >,
                     ) =>
                         lastPage.currentPage < lastPage.lastPage
                             ? lastPage.currentPage + 1

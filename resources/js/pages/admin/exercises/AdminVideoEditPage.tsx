@@ -1,11 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import {
-    AlertCircle,
-    ImagePlus,
-    Loader2,
-    Upload,
-    X,
-} from 'lucide-react';
+import { AlertCircle, ImagePlus, Loader2, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -53,7 +47,10 @@ function hydrateReferenceSlots(
     metadata: Record<string, unknown> | null | undefined,
 ): [ReferenceImageState, ReferenceImageState] {
     const refs = Array.isArray(metadata?.reference_images)
-        ? (metadata.reference_images as { cdn_url: string; file_path: string }[])
+        ? (metadata.reference_images as {
+              cdn_url: string;
+              file_path: string;
+          }[])
         : [];
 
     return [
@@ -78,8 +75,10 @@ export default function AdminVideoEditPage() {
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
-    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
+    const [referenceImage1, setReferenceImage1] =
+        useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] =
+        useState<ReferenceImageState>(null);
     /** Evita sobrescrever slots enquanto o usuário está trocando imagens localmente */
     const [refsDirty, setRefsDirty] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -110,15 +109,21 @@ export default function AdminVideoEditPage() {
         setReferenceImage2(slot2);
     }, [video, refsDirty]);
 
-    const handleReferenceImage1Change = useCallback((state: ReferenceImageState) => {
-        setRefsDirty(true);
-        setReferenceImage1(state);
-    }, []);
+    const handleReferenceImage1Change = useCallback(
+        (state: ReferenceImageState) => {
+            setRefsDirty(true);
+            setReferenceImage1(state);
+        },
+        [],
+    );
 
-    const handleReferenceImage2Change = useCallback((state: ReferenceImageState) => {
-        setRefsDirty(true);
-        setReferenceImage2(state);
-    }, []);
+    const handleReferenceImage2Change = useCallback(
+        (state: ReferenceImageState) => {
+            setRefsDirty(true);
+            setReferenceImage2(state);
+        },
+        [],
+    );
 
     const clearThumbnail = useCallback(() => {
         setThumbnailFile(null);
@@ -196,7 +201,9 @@ export default function AdminVideoEditPage() {
             ]);
 
             queryClient.setQueryData(['admin', 'video', videoId], synced);
-            await queryClient.invalidateQueries({ queryKey: ['admin', 'videos'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['admin', 'videos'],
+            });
             setRefsDirty(false);
 
             toast.success('Vídeo atualizado.');
@@ -355,8 +362,12 @@ export default function AdminVideoEditPage() {
                             <AdminVideoReferenceImageFields
                                 referenceImage1={referenceImage1}
                                 referenceImage2={referenceImage2}
-                                onReferenceImage1Change={handleReferenceImage1Change}
-                                onReferenceImage2Change={handleReferenceImage2Change}
+                                onReferenceImage1Change={
+                                    handleReferenceImage1Change
+                                }
+                                onReferenceImage2Change={
+                                    handleReferenceImage2Change
+                                }
                             />
 
                             {error && (

@@ -1,4 +1,4 @@
-import { AlertCircle, Check, ChevronLeft, PenLine, Save } from 'lucide-react';
+import { AlertCircle, Check, PenLine, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -346,10 +346,7 @@ export default function AssessmentEditPage() {
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                             {assessment?.status === 'signed' && (
-                                <Badge
-                                    variant="secondary"
-                                    className="text-xs"
-                                >
+                                <Badge variant="secondary" className="text-xs">
                                     Assinada
                                 </Badge>
                             )}

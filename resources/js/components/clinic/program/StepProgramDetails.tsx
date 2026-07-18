@@ -55,8 +55,7 @@ export function StepProgramDetails({
 }: StepProgramDetailsProps) {
     const isMobileFromHook = useIsMobile();
     const [isMobile, setIsMobile] = useState(
-        () =>
-            typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX,
+        () => typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX,
     );
 
     useEffect(() => {
@@ -122,7 +121,7 @@ export function StepProgramDetails({
                     className={cn(
                         'w-full space-y-4',
                         isMobile
-                            ? 'px-3 pb-28 pt-3'
+                            ? 'px-3 pt-3 pb-28'
                             : 'mx-auto max-w-xl space-y-6 p-6',
                     )}
                 >
@@ -298,9 +297,7 @@ function accessDurationLabel(startDate: string, endDate: string): string {
         return '--';
     }
 
-    const days = Math.round(
-        (end.getTime() - start.getTime()) / 86_400_000,
-    );
+    const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
     if (days <= 0) return '--';
 
     return `${days} dia${days !== 1 ? 's' : ''}`;

@@ -33,7 +33,10 @@ export const apiClinicFinanceCategoriesRepository = {
         return data.data.map(mapCategory);
     },
 
-    async create(name: string, type: FinancialTransactionType): Promise<FinancialCategory> {
+    async create(
+        name: string,
+        type: FinancialTransactionType,
+    ): Promise<FinancialCategory> {
         const { data } = await apiClient.post<{ data: ApiCategory }>(
             '/clinic/finances/categories',
             { name, type },

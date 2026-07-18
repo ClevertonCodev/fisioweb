@@ -17,7 +17,10 @@ interface FinanceReportPanelProps {
     hidden: boolean;
 }
 
-export function FinanceReportPanel({ params, hidden }: FinanceReportPanelProps) {
+export function FinanceReportPanel({
+    params,
+    hidden,
+}: FinanceReportPanelProps) {
     const summary = useFinanceReportSummary(params);
     const incomeVsExpense = useFinanceIncomeVsExpense(params);
     const distribution = useFinanceCategoryDistribution(params);

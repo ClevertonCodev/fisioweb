@@ -86,7 +86,7 @@ export default function FinancesCategoriesPage() {
                                 <TableRow>
                                     <TableCell
                                         colSpan={5}
-                                        className="text-muted-foreground text-center"
+                                        className="text-center text-muted-foreground"
                                     >
                                         Carregando…
                                     </TableCell>
@@ -95,7 +95,7 @@ export default function FinancesCategoriesPage() {
                                 <TableRow>
                                     <TableCell
                                         colSpan={5}
-                                        className="text-muted-foreground text-center"
+                                        className="text-center text-muted-foreground"
                                     >
                                         Nenhuma categoria encontrada.
                                     </TableCell>

@@ -74,10 +74,7 @@ export const apiClinicVideosRepository = {
         return { id: d.id as number, status: d.status as string };
     },
 
-    async syncReferenceImages(
-        videoId: number,
-        paths: string[],
-    ): Promise<void> {
+    async syncReferenceImages(videoId: number, paths: string[]): Promise<void> {
         await apiClient.put(`${BASE}/${videoId}/reference-images`, {
             reference_image_paths: paths,
         });

@@ -253,9 +253,7 @@ export default function AgendaPage() {
         const startsAt = new Date(start).toISOString();
         const endsAt = new Date(end).toISOString();
         setAppointments((prev) =>
-            prev.map((a) =>
-                a.id === id ? { ...a, startsAt, endsAt } : a,
-            ),
+            prev.map((a) => (a.id === id ? { ...a, startsAt, endsAt } : a)),
         );
 
         try {

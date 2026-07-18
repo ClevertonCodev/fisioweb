@@ -296,7 +296,7 @@ export default function ExercisesPage({
                             Biblioteca de Exercícios
                         </h1>
                         <div className="flex flex-wrap items-center gap-2">
-                            <div className="relative min-w-0 flex-1 basis-full sm:basis-64 sm:flex-none">
+                            <div className="relative min-w-0 flex-1 basis-full sm:flex-none sm:basis-64">
                                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Pesquisar"
@@ -320,7 +320,9 @@ export default function ExercisesPage({
                                         }
                                         size="sm"
                                         onClick={() =>
-                                            setShowFavoritesOnly((prev) => !prev)
+                                            setShowFavoritesOnly(
+                                                (prev) => !prev,
+                                            )
                                         }
                                         className="cursor-pointer gap-2"
                                         aria-label="Favoritos"

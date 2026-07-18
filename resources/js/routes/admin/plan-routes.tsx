@@ -1,6 +1,11 @@
 import { redirect, type RouteObject } from 'react-router-dom';
 
-import { findPlanById, listFeaturePlans, listFeatures, listPlans } from '@/application/admin';
+import {
+    findPlanById,
+    listFeaturePlans,
+    listFeatures,
+    listPlans,
+} from '@/application/admin';
 import ConfigureFeaturesPage from '@/pages/admin/feature/ConfigureFeaturesPage';
 import PlanEditPage from '@/pages/admin/plan/PlanEditPage';
 import PlanListPage from '@/pages/admin/plan/PlanListPage';
@@ -15,12 +20,16 @@ export const planRoutes: RouteObject[] = [
                 const plans = await listPlans();
                 return { plans, error: null };
             } catch (err) {
-                const res = (err as { response?: { data?: { message?: string } } })?.response?.data;
+                const res = (
+                    err as { response?: { data?: { message?: string } } }
+                )?.response?.data;
                 return {
                     plans: [],
                     error:
                         res?.message ??
-                        (err instanceof Error ? err.message : 'Erro ao carregar planos'),
+                        (err instanceof Error
+                            ? err.message
+                            : 'Erro ao carregar planos'),
                 };
             }
         },
@@ -49,14 +58,18 @@ export const planRoutes: RouteObject[] = [
                 ]);
                 return { featurePlans, plans, features, error: null };
             } catch (err) {
-                const res = (err as { response?: { data?: { message?: string } } })?.response?.data;
+                const res = (
+                    err as { response?: { data?: { message?: string } } }
+                )?.response?.data;
                 return {
                     featurePlans: [],
                     plans: [],
                     features: [],
                     error:
                         res?.message ??
-                        (err instanceof Error ? err.message : 'Erro ao carregar configurações.'),
+                        (err instanceof Error
+                            ? err.message
+                            : 'Erro ao carregar configurações.'),
                 };
             }
         },

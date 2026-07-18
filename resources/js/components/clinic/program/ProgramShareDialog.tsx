@@ -36,9 +36,7 @@ function digitsOnly(phone: string): string {
 }
 
 function buildWhatsAppUrl(program: Program): string | null {
-    const phone = program.patientPhone
-        ? digitsOnly(program.patientPhone)
-        : '';
+    const phone = program.patientPhone ? digitsOnly(program.patientPhone) : '';
     if (!phone) return null;
 
     const link = program.shareUrl ?? '';
@@ -165,7 +163,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!whatsappUrl}
                                 onClick={() => {
                                     if (whatsappUrl) {
@@ -196,7 +194,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!mailtoUrl}
                                 onClick={() => {
                                     if (mailtoUrl) {
@@ -222,7 +220,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!shareUrl}
                                 onClick={handleCopyLink}
                             >
@@ -233,7 +231,9 @@ export function ProgramShareDialog({
                                 )}
                                 <span className="flex min-w-0 flex-1 flex-col items-start text-left">
                                     <span className="text-sm font-medium">
-                                        {copied ? 'Link copiado' : 'Copiar link'}
+                                        {copied
+                                            ? 'Link copiado'
+                                            : 'Copiar link'}
                                     </span>
                                     <span className="w-full truncate text-xs font-normal text-muted-foreground">
                                         {shareUrl ??
@@ -244,10 +244,7 @@ export function ProgramShareDialog({
                         </div>
 
                         <DialogFooter>
-                            <Button
-                                className="cursor-pointer"
-                                onClick={onDone}
-                            >
+                            <Button className="cursor-pointer" onClick={onDone}>
                                 Concluir
                             </Button>
                         </DialogFooter>

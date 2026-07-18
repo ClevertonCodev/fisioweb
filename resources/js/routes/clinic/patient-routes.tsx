@@ -12,6 +12,12 @@ export const patientRoutes: RouteObject[] = [
     { path: '/clinica/pacientes/novo', element: <PatientNewPage /> },
     { path: '/clinica/pacientes/:id', element: <PatientRecordPage /> },
     { path: '/clinica/pacientes/:id/editar', element: <PatientEditPage /> },
-    { path: '/clinica/pacientes/:id/avaliacoes/nova', element: <AssessmentNewPage /> },
-    { path: '/clinica/pacientes/:id/avaliacoes/:assessmentId/editar', element: <AssessmentEditPage /> },
+    {
+        path: '/clinica/pacientes/:id/avaliacoes/nova',
+        element: <AssessmentNewPage />,
+    },
+    {
+        path: '/clinica/pacientes/:id/avaliacoes/:assessmentId/editar',
+        element: <AssessmentEditPage />,
+    },
 ];

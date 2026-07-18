@@ -7,17 +7,24 @@ interface FinanceToggleHiddenProps {
     onToggle: () => void;
 }
 
-export function FinanceToggleHidden({ hidden, onToggle }: FinanceToggleHiddenProps) {
+export function FinanceToggleHidden({
+    hidden,
+    onToggle,
+}: FinanceToggleHiddenProps) {
     return (
         <Button
             variant="outline"
             size="icon"
             onClick={onToggle}
-            className="cursor-pointer shrink-0"
+            className="shrink-0 cursor-pointer"
             aria-pressed={hidden}
             aria-label={hidden ? 'Mostrar valores' : 'Ocultar valores'}
         >
-            {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {hidden ? (
+                <EyeOff className="h-4 w-4" />
+            ) : (
+                <Eye className="h-4 w-4" />
+            )}
         </Button>
     );
 }

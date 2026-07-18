@@ -62,7 +62,7 @@ export function FinanceOpeningBalanceDialog({
                     <DialogHeader>
                         <DialogTitle>Saldo inicial do período</DialogTitle>
                     </DialogHeader>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-muted-foreground">
                         Informe o saldo de abertura para reconciliar o mês.
                     </p>
                     <div className="grid gap-2 py-2">

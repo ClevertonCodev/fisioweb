@@ -3,12 +3,7 @@ import { Bar } from 'react-chartjs-2';
 
 import { useClinicUsers } from '@/application/clinic/use-appointments';
 import { useOccupancyRate } from '@/application/clinic/use-dashboard';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
     SelectContent,
@@ -66,7 +61,8 @@ export function OccupancyRateChart({
                 {
                     label: 'Ocupação',
                     data:
-                        data?.buckets.map((b) => Math.round(b.rate * 100)) ?? [],
+                        data?.buckets.map((b) => Math.round(b.rate * 100)) ??
+                        [],
                     backgroundColor: '#2f6f7e',
                     borderRadius: 4,
                 },
@@ -84,7 +80,9 @@ export function OccupancyRateChart({
                 y: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: { callback: (value: number | string) => `${value}%` },
+                    ticks: {
+                        callback: (value: number | string) => `${value}%`,
+                    },
                 },
             },
         }),
@@ -120,7 +118,9 @@ export function OccupancyRateChart({
                     <span className="text-3xl font-bold text-foreground">
                         {percent}%
                     </span>
-                    <span className="text-muted-foreground">tempo agendado</span>
+                    <span className="text-muted-foreground">
+                        tempo agendado
+                    </span>
                 </div>
                 <Tabs
                     value={granularity}

@@ -50,14 +50,14 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     DEFAULT_FINANCE_FILTERS,
+    PAYMENT_METHOD_LABELS,
+    STATUS_LABELS,
     type FinanceFilters,
     type FinanceTransactionWriteDto,
     type FinancialTransaction,
     type FinancialTransactionStatus,
     type FinancialTransactionType,
     type PaymentMethod,
-    PAYMENT_METHOD_LABELS,
-    STATUS_LABELS,
 } from '@/domain/clinic/finance';
 
 const emptyForm = (): FinanceTransactionWriteDto => ({
@@ -168,7 +168,10 @@ export default function FinancesPage() {
                 <aside className="w-full shrink-0 space-y-4 lg:w-72">
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-semibold">Finanças</h1>
-                        <FinanceToggleHidden hidden={hidden} onToggle={toggle} />
+                        <FinanceToggleHidden
+                            hidden={hidden}
+                            onToggle={toggle}
+                        />
                     </div>
 
                     <FinancePeriodSelector
@@ -224,7 +227,10 @@ export default function FinancesPage() {
                             </div>
                         </div>
 
-                        <TabsContent value="financas" className="mt-4 space-y-4">
+                        <TabsContent
+                            value="financas"
+                            className="mt-4 space-y-4"
+                        >
                             <div className="flex flex-wrap gap-2">
                                 <FinanceSearchInput
                                     value={filters.q}
@@ -239,7 +245,7 @@ export default function FinancesPage() {
                             </div>
 
                             {listError ? (
-                                <p className="text-muted-foreground py-8 text-center text-sm">
+                                <p className="py-8 text-center text-sm text-muted-foreground">
                                     Não foi possível carregar as transações.
                                 </p>
                             ) : listLoading ? (
@@ -431,7 +437,10 @@ export default function FinancesPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {(form.type === 'entrada'
-                                            ? (['recebido', 'pendente'] as const)
+                                            ? ([
+                                                  'recebido',
+                                                  'pendente',
+                                              ] as const)
                                             : (['pago', 'pendente'] as const)
                                         ).map((s) => (
                                             <SelectItem key={s} value={s}>

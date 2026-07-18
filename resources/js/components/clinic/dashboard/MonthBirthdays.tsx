@@ -2,12 +2,7 @@ import { MessageCircle } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Birthday, DashboardBirthdays } from '@/domain/clinic/dashboard';
 
@@ -47,7 +42,8 @@ export function MonthBirthdays({
         <Card>
             <CardHeader>
                 <CardTitle className="text-lg">
-                    {data ? `${data.total} ` : ''}aniversariantes em {MONTH_NAME}
+                    {data ? `${data.total} ` : ''}aniversariantes em{' '}
+                    {MONTH_NAME}
                 </CardTitle>
             </CardHeader>
             <CardContent>

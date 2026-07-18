@@ -117,9 +117,7 @@ export function StepSelectExercises({
         ? totalGroupExercises > 0 || groups.length > 0
         : selectedExercises.length > 0;
 
-    const selectedCount = hasGroups
-        ? totalGroupExercises
-        : selectedIds.length;
+    const selectedCount = hasGroups ? totalGroupExercises : selectedIds.length;
 
     const toggleGroupCollapse = (groupId: string) => {
         setCollapsedGroups((prev) => {
@@ -165,7 +163,7 @@ export function StepSelectExercises({
             <div className="flex min-w-0 flex-1 flex-col">
                 {/* Search & filters */}
                 <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
-                    <div className="relative min-w-0 flex-1 basis-full sm:basis-auto sm:max-w-sm">
+                    <div className="relative min-w-0 flex-1 basis-full sm:max-w-sm sm:basis-auto">
                         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             placeholder="Pesquisar"

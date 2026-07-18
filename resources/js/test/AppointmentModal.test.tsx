@@ -69,9 +69,8 @@ describe('AppointmentModal', () => {
             />,
         );
 
-        const titleInput = await screen.findByPlaceholderText(
-            /avaliação inicial/i,
-        );
+        const titleInput =
+            await screen.findByPlaceholderText(/avaliação inicial/i);
         await user.clear(titleInput);
         await user.type(titleInput, 'Título sujo QA');
 

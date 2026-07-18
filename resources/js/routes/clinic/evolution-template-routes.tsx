@@ -5,7 +5,16 @@ import EvolutionTemplateListPage from '@/pages/clinic/evolution-template/Evoluti
 import EvolutionTemplateNewPage from '@/pages/clinic/evolution-template/EvolutionTemplateNewPage';
 
 export const evolutionTemplateRoutes: RouteObject[] = [
-    { path: '/clinica/templates/evolucoes', element: <EvolutionTemplateListPage /> },
-    { path: '/clinica/templates/evolucoes/novo', element: <EvolutionTemplateNewPage /> },
-    { path: '/clinica/templates/evolucoes/:id/editar', element: <EvolutionTemplateEditPage /> },
+    {
+        path: '/clinica/templates/evolucoes',
+        element: <EvolutionTemplateListPage />,
+    },
+    {
+        path: '/clinica/templates/evolucoes/novo',
+        element: <EvolutionTemplateNewPage />,
+    },
+    {
+        path: '/clinica/templates/evolucoes/:id/editar',
+        element: <EvolutionTemplateEditPage />,
+    },
 ];

@@ -1,6 +1,9 @@
 import { type RouteObject, useParams } from 'react-router-dom';
 
-import { RequireClinicAdmin, RequireClinicUserSelfOrAdmin } from '@/components/clinic/RequireClinicAdmin';
+import {
+    RequireClinicAdmin,
+    RequireClinicUserSelfOrAdmin,
+} from '@/components/clinic/RequireClinicAdmin';
 import { UserEditPage } from '@/pages/clinic/user/UserEditPage';
 import { UserListPage } from '@/pages/clinic/user/UserListPage';
 import { UserNewPage } from '@/pages/clinic/user/UserNewPage';

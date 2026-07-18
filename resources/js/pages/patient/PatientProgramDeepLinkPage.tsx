@@ -34,7 +34,11 @@ export default function PatientProgramDeepLinkPage() {
                     </p>
                 )}
                 <div className="mt-6 flex flex-col gap-2">
-                    <Button asChild variant="default" className="cursor-pointer">
+                    <Button
+                        asChild
+                        variant="default"
+                        className="cursor-pointer"
+                    >
                         <Link to="/clinica/login">
                             Ir para login da clínica
                         </Link>

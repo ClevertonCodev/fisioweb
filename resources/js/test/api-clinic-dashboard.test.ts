@@ -31,7 +31,10 @@ describe('apiClinicDashboardRepository.getSummary', () => {
                         active_patients: 12,
                         appointments_today: 3,
                         active_programs: 5,
-                        available_exercises: { count: 100, categories_count: 8 },
+                        available_exercises: {
+                            count: 100,
+                            categories_count: 8,
+                        },
                     },
                     upcoming_appointments: [
                         {

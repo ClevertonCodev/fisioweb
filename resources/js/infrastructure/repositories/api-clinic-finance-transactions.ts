@@ -59,7 +59,8 @@ function mapTransaction(raw: ApiTransaction): FinancialTransaction {
         category: mapCategory(raw.category),
         type: raw.type as FinancialTransaction['type'],
         status: raw.status as FinancialTransaction['status'],
-        paymentMethod: raw.payment_method as FinancialTransaction['paymentMethod'],
+        paymentMethod:
+            raw.payment_method as FinancialTransaction['paymentMethod'],
         grossAmount: Number(raw.gross_amount),
         feeAmount: Number(raw.fee_amount),
         netAmount: Number(raw.net_amount),
@@ -134,7 +135,9 @@ export const apiClinicFinanceTransactionsRepository = {
         };
     },
 
-    async create(dto: FinanceTransactionWriteDto): Promise<FinancialTransaction> {
+    async create(
+        dto: FinanceTransactionWriteDto,
+    ): Promise<FinancialTransaction> {
         const { data } = await apiClient.post<{ data: ApiTransaction }>(
             '/clinic/finances/transactions',
             toApiWriteDto(dto),

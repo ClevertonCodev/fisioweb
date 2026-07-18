@@ -22,11 +22,7 @@ export default function ClinicLoginPage() {
     const handleSupport = () => {
         if (!supportWhatsapp) return;
         const number = supportWhatsapp.replace(/\D/g, '');
-        window.open(
-            `https://wa.me/${number}`,
-            '_blank',
-            'noopener,noreferrer',
-        );
+        window.open(`https://wa.me/${number}`, '_blank', 'noopener,noreferrer');
     };
 
     const handleLogin = async (e: { preventDefault(): void }) => {

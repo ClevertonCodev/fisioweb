@@ -29,7 +29,7 @@ export function SupportWhatsappButton() {
     return (
         // À esquerda: no canto direito o FAB cobria eventos da Agenda (semana/dia).
         // pointer-events-none no wrapper: só o link recebe clique.
-        <div className="pointer-events-none group fixed bottom-5 left-5 z-40 flex flex-col items-start gap-3">
+        <div className="group pointer-events-none fixed bottom-5 left-5 z-40 flex flex-col items-start gap-3">
             <div className="relative translate-y-1 rounded-2xl border border-border bg-card px-4 py-3 opacity-0 shadow-lg transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
                 <span className="text-sm font-medium whitespace-nowrap text-foreground">
                     Dúvidas? Fale com nosso suporte

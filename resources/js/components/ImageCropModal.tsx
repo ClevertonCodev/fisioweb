@@ -91,7 +91,12 @@ export function ImageCropModal({
 
     const handleConfirm = useCallback(async () => {
         const image = imgRef.current;
-        if (!image || !imageSrc || !completedCrop || completedCrop.width === 0) {
+        if (
+            !image ||
+            !imageSrc ||
+            !completedCrop ||
+            completedCrop.width === 0
+        ) {
             return;
         }
 
@@ -127,13 +132,7 @@ export function ImageCropModal({
         } finally {
             setIsProcessing(false);
         }
-    }, [
-        imageSrc,
-        completedCrop,
-        imageFile,
-        onConfirm,
-        onOpenChange,
-    ]);
+    }, [imageSrc, completedCrop, imageFile, onConfirm, onOpenChange]);
 
     if (!open || !imageFile) return null;
 

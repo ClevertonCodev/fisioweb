@@ -4,6 +4,12 @@ import QuestionnaireTemplateEditPage from '@/pages/clinic/questionnaire-template
 import QuestionnaireTemplateNewPage from '@/pages/clinic/questionnaire-template/QuestionnaireTemplateNewPage';
 
 export const questionnaireTemplateRoutes: RouteObject[] = [
-    { path: '/clinica/questionarios/novo', element: <QuestionnaireTemplateNewPage /> },
-    { path: '/clinica/questionarios/:id/editar', element: <QuestionnaireTemplateEditPage /> },
+    {
+        path: '/clinica/questionarios/novo',
+        element: <QuestionnaireTemplateNewPage />,
+    },
+    {
+        path: '/clinica/questionarios/:id/editar',
+        element: <QuestionnaireTemplateEditPage />,
+    },
 ];

@@ -79,7 +79,9 @@ export function UpcomingAppointments({
         <Card className="min-w-0">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle className="text-lg">Próximas Consultas</CardTitle>
+                    <CardTitle className="text-lg">
+                        Próximas Consultas
+                    </CardTitle>
                     <CardDescription>Agenda de hoje</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
@@ -121,7 +123,8 @@ export function UpcomingAppointments({
                                 </Avatar>
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate font-medium text-foreground">
-                                        {appointment.patientName || 'Sem paciente'}
+                                        {appointment.patientName ||
+                                            'Sem paciente'}
                                     </p>
                                     {appointment.title && (
                                         <p className="truncate text-sm text-muted-foreground">

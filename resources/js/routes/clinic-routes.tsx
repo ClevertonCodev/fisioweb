@@ -24,8 +24,14 @@ export function clinicRoutes(queryClient: QueryClient): RouteObject[] {
     return [
         { path: '/clinica/login', element: <ClinicLoginPage /> },
         { path: '/clinica/criar-conta', element: <ClinicRegisterPage /> },
-        { path: '/clinica/recuperar-senha', element: <ClinicForgotPasswordPage /> },
-        { path: '/clinica/redefinir-senha', element: <ClinicResetPasswordPage /> },
+        {
+            path: '/clinica/recuperar-senha',
+            element: <ClinicForgotPasswordPage />,
+        },
+        {
+            path: '/clinica/redefinir-senha',
+            element: <ClinicResetPasswordPage />,
+        },
         { path: '/clinica/entrar', element: <ImpersonatePage /> },
 
         { path: '/clinica', element: <DashboardPage /> },

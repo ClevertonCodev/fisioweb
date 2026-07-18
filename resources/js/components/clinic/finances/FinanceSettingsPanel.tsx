@@ -25,7 +25,7 @@ export function FinanceSettingsPanel() {
             <CardContent className="space-y-6">
                 <div className="rounded-lg border bg-muted/40 p-4">
                     <h3 className="font-medium">Configurar repasses</h3>
-                    <p className="text-muted-foreground mt-1 text-sm">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Funcionalidade disponível apenas para equipes com plano
                         avançado.
                     </p>
@@ -39,7 +39,7 @@ export function FinanceSettingsPanel() {
                 </div>
                 <div>
                     <h3 className="font-medium">Categorias</h3>
-                    <p className="text-muted-foreground mt-1 text-sm">
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Crie categorias personalizadas ou desative as padrão
                         para esta clínica.
                     </p>

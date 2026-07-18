@@ -2,12 +2,7 @@ import { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 
 import { formatFinanceMoney } from '@/application/clinic/use-finance-values-visibility';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { MonthlyComparisonPoint } from '@/domain/clinic/finance';
 
@@ -60,7 +55,10 @@ export function MonthlyComparisonBarChart({
                 legend: { position: 'bottom' as const },
                 tooltip: {
                     callbacks: {
-                        label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) =>
+                        label: (ctx: {
+                            dataset: { label?: string };
+                            parsed: { y: number };
+                        }) =>
                             `${ctx.dataset.label}: ${hidden ? '•••' : formatFinanceMoney(ctx.parsed.y, false)}`,
                     },
                 },
@@ -70,7 +68,9 @@ export function MonthlyComparisonBarChart({
                     beginAtZero: true,
                     ticks: {
                         callback: (value: number | string) =>
-                            hidden ? '•••' : formatFinanceMoney(Number(value), false),
+                            hidden
+                                ? '•••'
+                                : formatFinanceMoney(Number(value), false),
                     },
                 },
             },
@@ -85,7 +85,7 @@ export function MonthlyComparisonBarChart({
             </CardHeader>
             <CardContent>
                 {isError ? (
-                    <p className="text-muted-foreground py-8 text-center text-sm">
+                    <p className="py-8 text-center text-sm text-muted-foreground">
                         Não foi possível carregar o comparativo.
                     </p>
                 ) : isLoading ? (

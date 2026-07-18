@@ -230,10 +230,7 @@ export function QuestionnaireViewSheet({
                     {options.map((opt) => {
                         const checked = selected.includes(opt);
                         return (
-                            <div
-                                key={opt}
-                                className="flex items-center gap-2"
-                            >
+                            <div key={opt} className="flex items-center gap-2">
                                 <Checkbox
                                     id={`q-${question.id}-${opt}`}
                                     checked={checked}

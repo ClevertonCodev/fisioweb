@@ -48,9 +48,7 @@ interface ApiSummary {
     birthdays: { total: number; items: ApiBirthday[] };
 }
 
-function toUpcoming(
-    raw: ApiUpcomingAppointment,
-): DashboardUpcomingAppointment {
+function toUpcoming(raw: ApiUpcomingAppointment): DashboardUpcomingAppointment {
     return {
         id: String(raw.id),
         patientName: raw.patient_name,
@@ -154,9 +152,9 @@ export const apiClinicDashboardRepository: DashboardRepository = {
     },
 
     async getActivities(): Promise<Activity[]> {
-        const { data } = await apiClient.get<{ data: { items: ApiActivity[] } }>(
-            '/clinic/dashboard/activities',
-        );
+        const { data } = await apiClient.get<{
+            data: { items: ApiActivity[] };
+        }>('/clinic/dashboard/activities');
         return data.data.items.map((a) => ({
             id: String(a.id),
             type: a.type,

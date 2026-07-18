@@ -33,6 +33,8 @@ export interface CalendarEvent {
     backgroundColor: string;
     borderColor: string;
     textColor: string;
+    /** false para status terminais (não arrastar/redimensionar). */
+    editable?: boolean;
     extendedProps: {
         appointment: Appointment;
         status: Appointment['status'];
@@ -74,3 +76,41 @@ export const STATUS_COLORS: Record<
         label: 'Cancelada',
     },
 };
+
+const TERMINAL_STATUSES: AppointmentStatus[] = [
+    'no_show',
+    'completed',
+    'cancelled',
+];
+
+/** Espelha a máquina de estados do backend (AppointmentStatus::canTransitionTo). */
+export function canTransitionAppointmentStatus(
+    from: AppointmentStatus,
+    to: AppointmentStatus,
+    startsAt: string | Date,
+    now: Date = new Date(),
+): boolean {
+    if (from === to) return false;
+    if (TERMINAL_STATUSES.includes(from)) return false;
+
+    const start = startsAt instanceof Date ? startsAt : new Date(startsAt);
+    const requiresStarted = to === 'no_show' || to === 'completed';
+    if (requiresStarted && now < start) return false;
+
+    if (from === 'scheduled') {
+        return (
+            to === 'confirmed' ||
+            to === 'cancelled' ||
+            to === 'no_show' ||
+            to === 'completed'
+        );
+    }
+    if (from === 'confirmed') {
+        return to === 'cancelled' || to === 'no_show' || to === 'completed';
+    }
+    return false;
+}
+
+export function isTerminalAppointmentStatus(status: AppointmentStatus): boolean {
+    return TERMINAL_STATUSES.includes(status);
+}

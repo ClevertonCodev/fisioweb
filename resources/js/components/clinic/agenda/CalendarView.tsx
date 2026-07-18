@@ -13,8 +13,16 @@ interface CalendarViewProps {
     initialDate?: Date;
     onEventClick: (appointment: Appointment) => void;
     onDateClick: (date: Date) => void;
-    onEventDrop: (id: string, start: string, end: string) => void;
-    onEventResize: (id: string, start: string, end: string) => void;
+    onEventDrop: (
+        id: string,
+        start: string,
+        end: string,
+    ) => void | Promise<void>;
+    onEventResize: (
+        id: string,
+        start: string,
+        end: string,
+    ) => void | Promise<void>;
 }
 
 export function CalendarView({
@@ -81,13 +89,29 @@ export function CalendarView({
             dateClick={(info) => {
                 onDateClick(info.date);
             }}
-            eventDrop={(info) => {
+            eventDrop={async (info) => {
                 const apt = info.event.extendedProps.appointment as Appointment;
-                onEventDrop(apt.id, info.event.startStr, info.event.endStr);
+                try {
+                    await onEventDrop(
+                        apt.id,
+                        info.event.startStr,
+                        info.event.endStr,
+                    );
+                } catch {
+                    info.revert();
+                }
             }}
-            eventResize={(info) => {
+            eventResize={async (info) => {
                 const apt = info.event.extendedProps.appointment as Appointment;
-                onEventResize(apt.id, info.event.startStr, info.event.endStr);
+                try {
+                    await onEventResize(
+                        apt.id,
+                        info.event.startStr,
+                        info.event.endStr,
+                    );
+                } catch {
+                    info.revert();
+                }
             }}
         />
     );

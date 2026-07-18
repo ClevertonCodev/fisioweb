@@ -30,7 +30,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Appointment, AppointmentStatus } from '@/domain/clinic';
-import { STATUS_COLORS } from '@/domain/clinic';
+import {
+    canTransitionAppointmentStatus,
+    STATUS_COLORS,
+} from '@/domain/clinic';
 import { htmlToPlainText } from '@/lib/html-to-plain-text';
 
 const STATUS_OPTIONS: AppointmentStatus[] = [
@@ -67,6 +70,8 @@ interface AppointmentModalProps {
     onClose: () => void;
     appointment: Appointment | null;
     initialDate: Date | null;
+    /** Deep-link `?patientId=` — pré-seleciona paciente em Nova Consulta. */
+    initialPatientId?: string;
     patients: { id: string; name: string }[];
     clinicUsers: { id: string; name: string; photoUrl?: string }[];
     onSubmit: (dto: AppointmentWriteDto) => Promise<void> | void;
@@ -94,6 +99,7 @@ export function AppointmentModal({
     onClose,
     appointment,
     initialDate,
+    initialPatientId,
     patients,
     clinicUsers,
     onSubmit,
@@ -108,6 +114,8 @@ export function AppointmentModal({
     const isFromGoogle = appointment?.source === 'google';
     const isFromGoogleRef = useRef(isFromGoogle);
     isFromGoogleRef.current = isFromGoogle;
+    /** Evita resetar o form quando só o status da mesma consulta muda. */
+    const loadedAppointmentIdRef = useRef<string | null>(null);
 
     const form = useForm<FormValues>({
         // Resolver dinâmico: modal permanece montado ao trocar consulta system/google.
@@ -129,8 +137,16 @@ export function AppointmentModal({
     });
 
     useEffect(() => {
-        if (!open) return;
+        if (!open) {
+            loadedAppointmentIdRef.current = null;
+            return;
+        }
         if (appointment) {
+            const alreadyLoaded =
+                loadedAppointmentIdRef.current === appointment.id;
+            loadedAppointmentIdRef.current = appointment.id;
+            if (alreadyLoaded) return;
+
             form.reset({
                 patientId: appointment.patientId,
                 clinicUserId: appointment.clinicUserId,
@@ -148,8 +164,10 @@ export function AppointmentModal({
                 location: appointment.location ?? '',
             });
         } else {
+            if (loadedAppointmentIdRef.current === 'new') return;
+            loadedAppointmentIdRef.current = 'new';
             form.reset({
-                patientId: '',
+                patientId: initialPatientId ?? '',
                 clinicUserId: lockedClinicUserId ?? '',
                 startsAt: formatForInput(initialDate),
                 endsAt: formatForInput(initialDate, 60),
@@ -158,7 +176,26 @@ export function AppointmentModal({
                 location: '',
             });
         }
-    }, [appointment, initialDate, open, form, lockedClinicUserId]);
+    }, [
+        appointment,
+        initialDate,
+        initialPatientId,
+        open,
+        form,
+        lockedClinicUserId,
+    ]);
+
+    const statusOptions = appointment
+        ? STATUS_OPTIONS.filter(
+              (s) =>
+                  s === appointment.status ||
+                  canTransitionAppointmentStatus(
+                      appointment.status,
+                      s,
+                      appointment.startsAt,
+                  ),
+          )
+        : [];
 
     const handleSubmit = async (values: FormValues) => {
         await onSubmit({
@@ -382,10 +419,14 @@ export function AppointmentModal({
                                                 <SelectValue placeholder="Alterar status" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {STATUS_OPTIONS.map((s) => (
+                                                {statusOptions.map((s) => (
                                                     <SelectItem
                                                         key={s}
                                                         value={s}
+                                                        disabled={
+                                                            s ===
+                                                            appointment.status
+                                                        }
                                                     >
                                                         {STATUS_COLORS[s].label}
                                                     </SelectItem>

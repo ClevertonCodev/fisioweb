@@ -18,6 +18,7 @@ import {
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
@@ -99,16 +100,27 @@ export function UserNewPage() {
 
     return (
         <ClinicLayout>
-            <div className="mx-auto max-w-3xl space-y-6 p-6">
-                <div>
-                    <h1 className="text-2xl font-semibold text-foreground">
-                        Novo usuário
-                    </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Preencha os dados para criar um novo usuário da clínica.
-                    </p>
-                </div>
+            <div className="flex h-full flex-col">
+                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+                    <div className="flex items-start justify-between gap-4 px-6 py-4">
+                        <div>
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                Novo usuário
+                            </h1>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Preencha os dados para criar um novo usuário da
+                                clínica.
+                            </p>
+                        </div>
+                        <BackButton
+                            to="/clinica/usuarios"
+                            className="shrink-0"
+                        />
+                    </div>
+                </header>
 
+                <div className="flex-1 overflow-auto p-6">
+                    <div className="mx-auto max-w-3xl space-y-6">
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
@@ -442,6 +454,8 @@ export function UserNewPage() {
                         </Card>
                     </form>
                 </Form>
+                    </div>
+                </div>
             </div>
         </ClinicLayout>
     );

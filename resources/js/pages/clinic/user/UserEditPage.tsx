@@ -22,6 +22,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
 import { Req } from '@/components/clinic/patient/form/shared';
 import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
@@ -155,17 +156,26 @@ function UserEditForm({
         }
     }
 
-    return (
-        <div className="mx-auto max-w-3xl space-y-6 p-6">
-            <div>
-                <h1 className="text-2xl font-semibold text-foreground">
-                    {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
-                </h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Atualize as informações e salve as alterações.
-                </p>
-            </div>
+    const backTo = canManageUsers ? '/clinica/usuarios' : '/clinica';
 
+    return (
+        <div className="flex h-full flex-col">
+            <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
+                <div className="flex items-start justify-between gap-4 px-6 py-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Atualize as informações e salve as alterações.
+                        </p>
+                    </div>
+                    <BackButton to={backTo} className="shrink-0" />
+                </div>
+            </header>
+
+            <div className="flex-1 overflow-auto p-6">
+                <div className="mx-auto max-w-3xl space-y-6">
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
@@ -527,6 +537,8 @@ function UserEditForm({
                     {isOwnProfile && <GoogleCalendarConnection />}
                 </form>
             </Form>
+                </div>
+            </div>
         </div>
     );
 }

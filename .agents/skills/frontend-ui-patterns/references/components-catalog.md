@@ -54,6 +54,7 @@ Legenda: **shadcn** = Radix + Tailwind do projeto | **custom** = específico fis
 | `aspect-ratio.tsx` | shadcn | Proporção fixa (mídia) |
 | `sidebar.tsx` | shadcn | Primitivo sidebar shadcn (layouts usam componentes admin/clinic) |
 | `breadcrumb.tsx` | shadcn | Navegação hierárquica |
+| `back-button.tsx` | **custom** | Voltar do header — `Button outline` + `ArrowLeft` + “Voltar” (borda); props `to` / `onClick` / `label` |
 | `tabs.tsx` | shadcn | Abas de conteúdo |
 | `accordion.tsx` | shadcn | Seções expansíveis |
 | `collapsible.tsx` | shadcn | Mostrar/ocultar bloco |

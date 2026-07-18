@@ -50,6 +50,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -330,23 +331,6 @@ export default function PatientRecordPage() {
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center gap-4 px-6 py-4">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                        navigate('/clinica/pacientes')
-                                    }
-                                    className="h-9 w-9 cursor-pointer"
-                                >
-                                    <ArrowLeft className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom">
-                                Voltar
-                            </TooltipContent>
-                        </Tooltip>
                         <Avatar
                             key={patient?.photoUrl ?? 'no-photo'}
                             className="h-10 w-10"
@@ -400,6 +384,7 @@ export default function PatientRecordPage() {
                                 </Tooltip>
                             </div>
                         </div>
+                        <BackButton to="/clinica/pacientes" />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button className="cursor-pointer gap-2">

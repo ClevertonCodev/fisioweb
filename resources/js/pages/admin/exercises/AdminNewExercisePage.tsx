@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -8,6 +7,7 @@ import {
     useCreateAdminExercise,
 } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import {
     ExerciseForm,
     type ExerciseFormState,
@@ -20,8 +20,6 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-
 const INITIAL_FORM: ExerciseFormState = {
     name: '',
     physio_area_id: '',
@@ -146,18 +144,11 @@ export default function AdminNewExercisePage() {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => navigate(-1)}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
+                        <div className="flex items-center justify-between gap-3">
                             <h1 className="text-2xl font-semibold text-foreground">
                                 Novo Exercício
                             </h1>
+                            <BackButton onClick={() => navigate(-1)} />
                         </div>
                     </div>
                 </header>

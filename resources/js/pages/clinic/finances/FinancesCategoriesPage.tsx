@@ -1,6 +1,5 @@
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import {
     useCreateFinanceCategory,
@@ -9,6 +8,7 @@ import {
     useToggleFinanceCategory,
 } from '@/application/clinic/use-finance-categories';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,26 +57,17 @@ export default function FinancesCategoriesPage() {
         <ClinicLayout>
             <div className="space-y-6 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h1 className="text-2xl font-semibold">Categorias</h1>
                     <div className="flex items-center gap-3">
+                        <BackButton to="/clinica/financas" />
                         <Button
-                            variant="ghost"
-                            size="icon"
                             className="cursor-pointer"
-                            asChild
+                            onClick={() => setDialogOpen(true)}
                         >
-                            <Link to="/clinica/financas" aria-label="Voltar">
-                                <ArrowLeft className="h-4 w-4" />
-                            </Link>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nova categoria
                         </Button>
-                        <h1 className="text-2xl font-semibold">Categorias</h1>
                     </div>
-                    <Button
-                        className="cursor-pointer"
-                        onClick={() => setDialogOpen(true)}
-                    >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nova categoria
-                    </Button>
                 </div>
 
                 <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">

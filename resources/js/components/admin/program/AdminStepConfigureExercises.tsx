@@ -44,7 +44,6 @@ interface AdminStepConfigureExercisesProps {
     onUpdateGroups: (groups: AdminWizardGroup[]) => void;
     onEditExercise: (groupId: number, exerciseId: number) => void;
     onNext: () => void;
-    onBack: () => void;
 }
 
 export function AdminStepConfigureExercises({
@@ -52,7 +51,6 @@ export function AdminStepConfigureExercises({
     onUpdateGroups,
     onEditExercise,
     onNext,
-    onBack,
 }: AdminStepConfigureExercisesProps) {
     const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(
         new Set(),
@@ -161,14 +159,9 @@ export function AdminStepConfigureExercises({
                         />
                     </div>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={onBack}>
-                        Voltar
-                    </Button>
-                    <Button size="sm" onClick={onNext}>
-                        Avançar
-                    </Button>
-                </div>
+                <Button size="sm" className="cursor-pointer" onClick={onNext}>
+                    Avançar
+                </Button>
             </div>
 
             {/* Groups */}

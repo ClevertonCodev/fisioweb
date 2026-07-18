@@ -100,7 +100,6 @@ function renderStep(
 ) {
     const onUpdateGroups = overrides.onUpdateGroups ?? vi.fn();
     const onEditExercise = overrides.onEditExercise ?? vi.fn();
-    const onNext = overrides.onNext ?? vi.fn();
     const onBack = overrides.onBack ?? vi.fn();
 
     const result = render(
@@ -109,36 +108,17 @@ function renderStep(
                 groups={groups}
                 onUpdateGroups={onUpdateGroups}
                 onEditExercise={onEditExercise}
-                onNext={onNext}
                 onBack={onBack}
             />
         </TooltipProvider>,
     );
 
-    return { ...result, onUpdateGroups, onEditExercise, onNext, onBack };
+    return { ...result, onUpdateGroups, onEditExercise, onBack };
 }
 
 /* ── Testes — renderização ── */
 
 describe('StepConfigureExercises — renderização', () => {
-    it('exibe o progresso de exercícios editados', () => {
-        const ex1 = makeExercise({
-            id: 'e1',
-            title: 'Agachamento',
-            isConfigured: true,
-        });
-        const ex2 = makeExercise({
-            id: 'e2',
-            title: 'Flexão',
-            isConfigured: false,
-        });
-        const group = makeGroup({ id: 'g1', exercises: [ex1, ex2] });
-
-        renderStep([group]);
-
-        expect(screen.getByText('1 de 2 editados')).toBeInTheDocument();
-    });
-
     it('exibe o nome do grupo e a contagem de exercícios', () => {
         const ex1 = makeExercise({ id: 'e1', title: 'Agachamento' });
         const group = makeGroup({
@@ -235,7 +215,7 @@ describe('StepConfigureExercises — excluir grupo', () => {
         const group = makeGroup({ id: 'g1', name: 'Grupo A', exercises: [] });
         renderStep([group]);
 
-        // Com 1 grupo vazio, os únicos botões são: Voltar, Avançar, AddGrupo, EditableName, Copy(grupo), Chevron, AddExercicios
+        // Com 1 grupo vazio: AddGrupo, EditableName, Copy(grupo), Chevron, AddExercicios
         // NÃO deve ter trash no header do grupo
         const allButtons = screen.getAllByRole('button');
         const trashButtons = allButtons.filter((btn) =>
@@ -354,28 +334,6 @@ describe('StepConfigureExercises — colapsar grupo', () => {
 /* ── Testes — navegação ── */
 
 describe('StepConfigureExercises — navegação', () => {
-    it('chama onBack ao clicar em "Voltar"', async () => {
-        const user = userEvent.setup();
-        const { onBack } = renderStep([makeGroup({ id: 'g1' })]);
-
-        await user.click(
-            screen.getAllByRole('button', { name: /^voltar$/i })[0],
-        );
-
-        expect(onBack).toHaveBeenCalledOnce();
-    });
-
-    it('chama onNext ao clicar em "Avançar"', async () => {
-        const user = userEvent.setup();
-        const { onNext } = renderStep([makeGroup({ id: 'g1' })]);
-
-        await user.click(
-            screen.getAllByRole('button', { name: /avançar/i })[0],
-        );
-
-        expect(onNext).toHaveBeenCalledOnce();
-    });
-
     it('chama onBack ao clicar em "Adicionar exercícios"', async () => {
         const user = userEvent.setup();
         const { onBack } = renderStep([makeGroup({ id: 'g1' })]);

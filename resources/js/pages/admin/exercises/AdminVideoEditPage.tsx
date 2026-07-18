@@ -1,6 +1,5 @@
 import {
     AlertCircle,
-    ArrowLeft,
     ImagePlus,
     Loader2,
     Upload,
@@ -21,6 +20,7 @@ import {
     type ReferenceImageState,
 } from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -248,20 +248,11 @@ export default function AdminVideoEditPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="flex items-center gap-4 px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="shrink-0"
-                        >
-                            <Link to="/admin/videos">
-                                <ArrowLeft className="size-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <h1 className="text-2xl font-semibold text-foreground">
                             Editar vídeo
                         </h1>
+                        <BackButton to="/admin/videos" className="shrink-0" />
                     </div>
                 </header>
 

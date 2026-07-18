@@ -48,7 +48,6 @@ interface StepConfigureExercisesProps {
     groups: ProgramGroup[];
     onUpdateGroups: (groups: ProgramGroup[]) => void;
     onEditExercise: (groupId: string, exerciseId: string) => void;
-    onNext: () => void;
     onBack: () => void;
 }
 
@@ -56,7 +55,6 @@ export function StepConfigureExercises({
     groups,
     onUpdateGroups,
     onEditExercise,
-    onNext,
     onBack,
 }: StepConfigureExercisesProps) {
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
@@ -69,15 +67,6 @@ export function StepConfigureExercises({
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         }),
-    );
-
-    const totalExercises = groups.reduce(
-        (sum, g) => sum + g.exercises.length,
-        0,
-    );
-    const configuredCount = groups.reduce(
-        (sum, g) => sum + g.exercises.filter((e) => e.isConfigured).length,
-        0,
     );
 
     const toggleGroup = (groupId: string) => {
@@ -254,43 +243,9 @@ export function StepConfigureExercises({
 
     return (
         <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-            {/* Header with progress */}
-            <div className="flex flex-col gap-3 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <span className="shrink-0 text-sm text-muted-foreground">
-                        {configuredCount} de {totalExercises} editados
-                    </span>
-                    <div className="h-2 min-w-0 max-w-40 flex-1 overflow-hidden rounded-full bg-muted">
-                        <div
-                            className="h-full rounded-full bg-primary transition-all"
-                            style={{
-                                width: `${totalExercises ? (configuredCount / totalExercises) * 100 : 0}%`,
-                            }}
-                        />
-                    </div>
-                </div>
-                <div className="hidden shrink-0 gap-2 sm:flex">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="cursor-pointer"
-                        onClick={onBack}
-                    >
-                        Voltar
-                    </Button>
-                    <Button
-                        size="sm"
-                        className="cursor-pointer"
-                        onClick={onNext}
-                    >
-                        Avançar
-                    </Button>
-                </div>
-            </div>
-
             {/* Groups */}
             <ScrollArea className="flex-1">
-                <div className="p-4 pb-24 sm:p-6 sm:pb-6">
+                <div className="p-4 sm:p-6">
                 {/* Add new group */}
                 <button
                     onClick={addGroup}
@@ -474,19 +429,6 @@ export function StepConfigureExercises({
                 </div>
             </ScrollArea>
 
-            {/* Mobile actions */}
-            <div className="fixed inset-x-0 bottom-0 z-20 flex gap-2 border-t border-border bg-card/95 p-3 backdrop-blur sm:hidden">
-                <Button
-                    variant="outline"
-                    className="flex-1 cursor-pointer"
-                    onClick={onBack}
-                >
-                    Voltar
-                </Button>
-                <Button className="flex-1 cursor-pointer" onClick={onNext}>
-                    Avançar
-                </Button>
-            </div>
         </div>
     );
 }

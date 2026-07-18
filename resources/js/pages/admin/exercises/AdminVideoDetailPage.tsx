@@ -1,5 +1,4 @@
 import {
-    ArrowLeft,
     Clock,
     FileText,
     Film,
@@ -12,6 +11,7 @@ import { Link, useParams } from 'react-router-dom';
 import { VIDEO_STATUS_LABELS } from '@/application/admin/exercise-constants';
 import { useAdminVideo } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,27 +67,21 @@ export default function AdminVideoDetailPage() {
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center justify-between gap-4 px-6 py-4">
-                        <div className="flex items-center gap-4">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                asChild
+                        <h1 className="text-2xl font-semibold text-foreground">
+                            Detalhes do vídeo
+                        </h1>
+                        <div className="flex shrink-0 items-center gap-2">
+                            <BackButton
+                                to="/admin/videos"
                                 className="shrink-0"
-                            >
-                                <Link to="/admin/videos">
-                                    <ArrowLeft className="size-4" />
+                            />
+                            <Button asChild size="sm" className="gap-2">
+                                <Link to={`/admin/videos/${video.id}/editar`}>
+                                    <Pencil className="h-4 w-4" />
+                                    Editar
                                 </Link>
                             </Button>
-                            <h1 className="text-2xl font-semibold text-foreground">
-                                Detalhes do vídeo
-                            </h1>
                         </div>
-                        <Button asChild size="sm" className="gap-2">
-                            <Link to={`/admin/videos/${video.id}/editar`}>
-                                <Pencil className="h-4 w-4" />
-                                Editar
-                            </Link>
-                        </Button>
                     </div>
                 </header>
 

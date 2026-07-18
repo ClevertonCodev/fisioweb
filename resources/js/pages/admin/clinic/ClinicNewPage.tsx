@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -9,6 +8,7 @@ import {
     type ClinicFormValues,
 } from '@/application/admin/clinic-schema';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -123,18 +123,11 @@ export default function ClinicNewPage() {
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => navigate(-1)}
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
+                        <div className="flex items-center justify-between gap-3">
                             <h1 className="text-2xl font-semibold text-foreground">
                                 Nova Clínica
                             </h1>
+                            <BackButton onClick={() => navigate(-1)} />
                         </div>
                     </div>
                 </header>

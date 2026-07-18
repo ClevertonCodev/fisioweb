@@ -1,4 +1,3 @@
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,6 +6,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { TemplatePreview } from '@/components/clinic/evolution-template/TemplatePreview';
 import { TemplateSectionBuilder } from '@/components/clinic/evolution-template/TemplateSectionBuilder';
 import type { DraftSection } from '@/components/clinic/evolution-template/types';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -91,16 +91,7 @@ export default function EvolutionTemplateNewPage() {
     return (
         <ClinicLayout>
             <div className="space-y-6 p-6">
-                <div className="space-y-3">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-fit"
-                        onClick={() => navigate(-1)}
-                    >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Voltar
-                    </Button>
+                <div className="flex items-start justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
                             Novo template de evolução
@@ -110,6 +101,10 @@ export default function EvolutionTemplateNewPage() {
                             nas evoluções.
                         </p>
                     </div>
+                    <BackButton
+                        onClick={() => navigate(-1)}
+                        className="w-fit shrink-0"
+                    />
                 </div>
 
                 <div className="grid gap-4">

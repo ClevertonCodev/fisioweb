@@ -9,6 +9,7 @@ import {
     useUpdateAssessment,
 } from '@/application/clinic/use-assessments';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -343,15 +344,6 @@ export default function AssessmentEditPage() {
                 {/* Header */}
                 <div className="space-y-3 border-b border-border bg-card px-4 py-3 sm:px-6 sm:py-4">
                     <div className="flex items-center justify-between gap-2">
-                        <button
-                            onClick={() =>
-                                navigate(`/clinica/pacientes/${patientId}`)
-                            }
-                            className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Voltar
-                        </button>
                         <div className="flex items-center gap-2">
                             {assessment?.status === 'signed' && (
                                 <Badge
@@ -366,6 +358,12 @@ export default function AssessmentEditPage() {
                                     Rascunho
                                 </Badge>
                             )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <BackButton
+                                to={`/clinica/pacientes/${patientId}`}
+                                className="shrink-0"
+                            />
                             {isDraft && (
                                 <div className="hidden shrink-0 gap-2 sm:flex">
                                     <Button

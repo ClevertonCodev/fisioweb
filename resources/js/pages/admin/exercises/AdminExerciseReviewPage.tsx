@@ -1,8 +1,8 @@
-import { ArrowLeft, Check, Loader2, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Check, Loader2, X } from 'lucide-react';
 
 import { usePendingExercises, useReviewExercise } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 
 const difficultyLabels: Record<string, string> = {
@@ -19,20 +19,11 @@ export default function AdminExerciseReviewPage() {
         <AdminLayout>
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="flex items-center gap-4 px-6 py-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="shrink-0"
-                        >
-                            <Link to="/admin/exercicios">
-                                <ArrowLeft className="size-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-between gap-4 px-6 py-4">
                         <h1 className="text-2xl font-semibold text-foreground">
                             Exercícios a revisar
                         </h1>
+                        <BackButton to="/admin/exercicios" className="shrink-0" />
                     </div>
                 </header>
 

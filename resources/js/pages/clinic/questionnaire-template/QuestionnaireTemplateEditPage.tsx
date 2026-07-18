@@ -1,4 +1,4 @@
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -20,6 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -204,17 +205,17 @@ function QuestionnaireTemplateEditForm({
 
     return (
         <div className="space-y-6 p-6">
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-fit"
-                        onClick={onBack}
-                    >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Voltar
-                    </Button>
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-semibold">
+                        Editar questionário
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Atualize as seções e perguntas do questionário.
+                    </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                    <BackButton onClick={onBack} className="w-fit shrink-0" />
                     <Button
                         type="button"
                         variant="outline"
@@ -224,14 +225,6 @@ function QuestionnaireTemplateEditForm({
                         <Trash2 className="h-4 w-4" />
                         Excluir
                     </Button>
-                </div>
-                <div>
-                    <h1 className="text-2xl font-semibold">
-                        Editar questionário
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Atualize as seções e perguntas do questionário.
-                    </p>
                 </div>
             </div>
 

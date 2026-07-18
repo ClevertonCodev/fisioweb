@@ -32,7 +32,6 @@ interface StepProgramDetailsProps {
     initialStartDate?: string;
     initialEndDate?: string;
     isSaving?: boolean;
-    onBack: () => void;
     onSave: (details: {
         title: string;
         patientId: number | null;
@@ -52,7 +51,6 @@ export function StepProgramDetails({
     initialStartDate,
     initialEndDate = '',
     isSaving = false,
-    onBack,
     onSave,
 }: StepProgramDetailsProps) {
     const isMobileFromHook = useIsMobile();
@@ -128,19 +126,6 @@ export function StepProgramDetails({
                             : 'mx-auto max-w-xl space-y-6 p-6',
                     )}
                 >
-                    {!isMobile && (
-                        <div className="flex items-center justify-between">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="cursor-pointer"
-                                onClick={onBack}
-                            >
-                                Voltar
-                            </Button>
-                        </div>
-                    )}
-
                     <div className="w-full min-w-0 space-y-3">
                         <Input
                             placeholder="Título do programa"

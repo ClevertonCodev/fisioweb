@@ -16,6 +16,7 @@ import {
     useCreateAssessment,
 } from '@/application/clinic/use-assessments';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -180,19 +181,14 @@ export default function AssessmentNewPage() {
                     )}
                 >
                     {/* Back + title */}
-                    <div className="px-4 pt-4 pb-2">
-                        <button
-                            onClick={() =>
-                                navigate(`/clinica/pacientes/${patientId}`)
-                            }
-                            className="mb-3 flex cursor-pointer items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Voltar
-                        </button>
+                    <div className="flex items-start justify-between gap-4 px-4 pt-4 pb-2">
                         <h2 className="text-xl font-semibold text-foreground">
                             Avaliações
                         </h2>
+                        <BackButton
+                            to={`/clinica/pacientes/${patientId}`}
+                            className="shrink-0"
+                        />
                     </div>
 
                     {/* Search */}

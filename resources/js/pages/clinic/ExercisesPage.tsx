@@ -64,7 +64,11 @@ export default function ExercisesPage({
     const [showFilters, setShowFilters] = useState(false);
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [filters, setFilters] = useState<Filters>(initialFilters);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
+    // Overrides otimistas de favorito — a lista em si vem sempre do React Query
+    // (evita o bug de exercises=[] ao remontar com cache já aquecido).
+    const [favoriteOverrides, setFavoriteOverrides] = useState<
+        Record<string, boolean>
+    >({});
     const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
         null,
     );
@@ -73,26 +77,23 @@ export default function ExercisesPage({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    const allExercises = useMemo(
-        () => data?.pages.flatMap((p) => p.items) ?? [],
-        [data],
+    const exercises = useMemo(
+        () =>
+            (data?.pages.flatMap((p) => p.items) ?? []).map((exercise) =>
+                exercise.id in favoriteOverrides
+                    ? {
+                          ...exercise,
+                          isFavorite: favoriteOverrides[exercise.id],
+                      }
+                    : exercise,
+            ),
+        [data, favoriteOverrides],
     );
 
     const selectedExercise = useMemo(
         () => exercises.find((e) => e.id === selectedExerciseId) ?? null,
         [exercises, selectedExerciseId],
     );
-
-    // Ajuste durante o render: mescla a lista da API preservando o estado
-    // otimista de favorito dos exercícios já conhecidos.
-    const [lastAllExercises, setLastAllExercises] = useState(allExercises);
-    if (lastAllExercises !== allExercises && allExercises.length > 0) {
-        setLastAllExercises(allExercises);
-        setExercises((prev) => {
-            const prevMap = new Map(prev.map((e) => [e.id, e]));
-            return allExercises.map((e) => prevMap.get(e.id) ?? e);
-        });
-    }
 
     // Infinite scroll via IntersectionObserver
     useEffect(() => {
@@ -231,31 +232,26 @@ export default function ExercisesPage({
     const handleToggleFavorite = (exercise: Exercise) => {
         if (pendingFavoriteIds.has(exercise.id)) return;
 
+        const nextFavorite = !exercise.isFavorite;
         setPendingFavoriteIds((prev) => new Set(prev).add(exercise.id));
-        setExercises((prev) =>
-            prev.map((ex) =>
-                ex.id === exercise.id
-                    ? { ...ex, isFavorite: !ex.isFavorite }
-                    : ex,
-            ),
-        );
+        setFavoriteOverrides((prev) => ({
+            ...prev,
+            [exercise.id]: nextFavorite,
+        }));
 
         toggleFavoriteMutation.mutate(exercise.id, {
             onSuccess: ({ isFavorite }) => {
-                setExercises((prev) =>
-                    prev.map((ex) =>
-                        ex.id === exercise.id ? { ...ex, isFavorite } : ex,
-                    ),
-                );
+                setFavoriteOverrides((prev) => ({
+                    ...prev,
+                    [exercise.id]: isFavorite,
+                }));
             },
             onError: () => {
-                setExercises((prev) =>
-                    prev.map((ex) =>
-                        ex.id === exercise.id
-                            ? { ...ex, isFavorite: exercise.isFavorite }
-                            : ex,
-                    ),
-                );
+                setFavoriteOverrides((prev) => {
+                    const next = { ...prev };
+                    delete next[exercise.id];
+                    return next;
+                });
             },
             onSettled: () => {
                 setPendingFavoriteIds((prev) => {

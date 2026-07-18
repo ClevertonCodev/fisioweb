@@ -663,11 +663,13 @@ export function PatientAllTab({
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
                                 if (evolutionToDelete) {
-                                    onDeleteEvolution
-                                        ? onDeleteEvolution(evolutionToDelete)
-                                        : deleteEvolution(
-                                              String(evolutionToDelete.id),
-                                          );
+                                    if (onDeleteEvolution) {
+                                        onDeleteEvolution(evolutionToDelete);
+                                    } else {
+                                        deleteEvolution(
+                                            String(evolutionToDelete.id),
+                                        );
+                                    }
                                 }
                                 setEvolutionToDelete(null);
                             }}

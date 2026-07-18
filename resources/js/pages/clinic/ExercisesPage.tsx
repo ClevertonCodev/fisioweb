@@ -83,15 +83,16 @@ export default function ExercisesPage({
         [exercises, selectedExerciseId],
     );
 
-    useEffect(() => {
-        if (allExercises.length > 0) {
-            setExercises((prev) => {
-                // Merge: keep optimistic favorite state for already-known exercises
-                const prevMap = new Map(prev.map((e) => [e.id, e]));
-                return allExercises.map((e) => prevMap.get(e.id) ?? e);
-            });
-        }
-    }, [allExercises]);
+    // Ajuste durante o render: mescla a lista da API preservando o estado
+    // otimista de favorito dos exercícios já conhecidos.
+    const [lastAllExercises, setLastAllExercises] = useState(allExercises);
+    if (lastAllExercises !== allExercises && allExercises.length > 0) {
+        setLastAllExercises(allExercises);
+        setExercises((prev) => {
+            const prevMap = new Map(prev.map((e) => [e.id, e]));
+            return allExercises.map((e) => prevMap.get(e.id) ?? e);
+        });
+    }
 
     // Infinite scroll via IntersectionObserver
     useEffect(() => {

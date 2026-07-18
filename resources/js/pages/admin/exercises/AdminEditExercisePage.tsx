@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -55,8 +55,11 @@ export default function AdminEditExercisePage() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    useEffect(() => {
-        if (exercise) {
+    // Ajuste durante o render: o form parte do exercício carregado.
+    const [loadedExercise, setLoadedExercise] = useState<unknown>(null);
+    if (exercise && loadedExercise !== exercise) {
+        setLoadedExercise(exercise);
+        {
             const firstVideo = (
                 exercise.videos as { id: number }[] | undefined
             )?.[0];
@@ -94,7 +97,7 @@ export default function AdminEditExercisePage() {
                 is_active: exercise.is_active,
             });
         }
-    }, [exercise]);
+    }
 
     const setField = (
         field: keyof ExerciseFormState,

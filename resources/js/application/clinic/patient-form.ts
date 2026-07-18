@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// prettier-plugin-organize-imports ordena blocos separados por linha em branco;
+// juntar este import ao do 'zod' faria o prettier reverter a cada format.
+// eslint-disable-next-line import/order
 import type { PatientStatus } from '@/domain/clinic/patient';
 
 // ─── Labels e variants de status (fonte única) ───────────────────────────────

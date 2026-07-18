@@ -32,15 +32,19 @@ function ReferenceImageSlot({
     const inputRef = useRef<HTMLInputElement>(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
 
+    // Ajuste durante o render: o preview acompanha o arquivo selecionado.
+    const file = state?.file ?? null;
+    const [lastFile, setLastFile] = useState(file);
+    if (lastFile !== file) {
+        setLastFile(file);
+        setFilePreviewUrl(file ? URL.createObjectURL(file) : null);
+    }
+
+    // Revoga o blob quando ele deixa de ser exibido.
     useEffect(() => {
-        if (!state?.file) {
-            setFilePreviewUrl(null);
-            return undefined;
-        }
-        const url = URL.createObjectURL(state.file);
-        setFilePreviewUrl(url);
-        return () => URL.revokeObjectURL(url);
-    }, [state?.file]);
+        if (!filePreviewUrl) return undefined;
+        return () => URL.revokeObjectURL(filePreviewUrl);
+    }, [filePreviewUrl]);
 
     const currentUrl = filePreviewUrl ?? state?.url ?? null;
 

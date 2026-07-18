@@ -98,17 +98,19 @@ describe('NewProgramPage com preenchimento via location.state', () => {
                 },
             ],
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useExercisesHook.useExercises>);
 
         vi.spyOn(useProgramsHook, 'useCreateClinicProgram').mockReturnValue({
             mutate: mockMutate,
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useCreateClinicProgram
+        >);
 
         vi.spyOn(usePatientsHook, 'usePatients').mockReturnValue({
             data: { data: [] },
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof usePatientsHook.usePatients>);
     });
 
     const renderComponent = () => {

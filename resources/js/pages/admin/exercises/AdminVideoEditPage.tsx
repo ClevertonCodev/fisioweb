@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, ImagePlus, Loader2, Upload, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -25,11 +25,7 @@ const ACCEPT_THUMB = 'image/jpeg,image/png,image/webp';
 const ALLOWED_THUMB_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_THUMB_SIZE = 5 * 1024 * 1024;
 
-function uploadToPresignedUrl(
-    url: string,
-    file: File,
-    signal?: AbortSignal,
-): Promise<void> {
+function uploadToPresignedUrl(url: string, file: File): Promise<void> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.addEventListener('load', () => {
@@ -87,27 +83,29 @@ export default function AdminVideoEditPage() {
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+    // Ajuste durante o render: trocar de vídeo limpa as edições pendentes.
+    const [lastVideoId, setLastVideoId] = useState(videoId);
+    let refsDirtyNow = refsDirty;
+    if (lastVideoId !== videoId) {
+        setLastVideoId(videoId);
         setRefsDirty(false);
         setThumbnailFile(null);
-    }, [videoId]);
+        refsDirtyNow = false;
+    }
 
-    useEffect(() => {
-        if (!video) {
-            return;
-        }
-
+    // ...e os campos partem do vídeo carregado, sem sobrescrever edição em curso.
+    const [loadedVideo, setLoadedVideo] = useState<unknown>(null);
+    if (video && loadedVideo !== video) {
+        setLoadedVideo(video);
         setOriginalFilename(video.original_filename ?? '');
         setDuration(video.duration != null ? String(video.duration) : '');
 
-        if (refsDirty) {
-            return;
+        if (!refsDirtyNow) {
+            const [slot1, slot2] = hydrateReferenceSlots(video.metadata);
+            setReferenceImage1(slot1);
+            setReferenceImage2(slot2);
         }
-
-        const [slot1, slot2] = hydrateReferenceSlots(video.metadata);
-        setReferenceImage1(slot1);
-        setReferenceImage2(slot2);
-    }, [video, refsDirty]);
+    }
 
     const handleReferenceImage1Change = useCallback(
         (state: ReferenceImageState) => {

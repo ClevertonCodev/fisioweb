@@ -102,7 +102,11 @@ export function AppointmentModal({
     const isCancelled = appointment?.status === 'cancelled';
     const isFromGoogle = appointment?.source === 'google';
     const isFromGoogleRef = useRef(isFromGoogle);
-    isFromGoogleRef.current = isFromGoogle;
+    // Ref não pode ser escrito durante o render. O resolver só lê isso ao validar
+    // (pós-commit), então sincronizar por efeito mantém o valor correto.
+    useEffect(() => {
+        isFromGoogleRef.current = isFromGoogle;
+    }, [isFromGoogle]);
     /** Evita resetar o form quando só o status da mesma consulta muda. */
     const loadedAppointmentIdRef = useRef<string | null>(null);
 

@@ -15,10 +15,13 @@ export function FinanceSearchInput({
     debounceMs = 250,
 }: FinanceSearchInputProps) {
     const [local, setLocal] = useState(value);
-
-    useEffect(() => {
+    // Ajuste de state durante o render (padrão recomendado pelo React) em vez de
+    // efeito: quando o valor controlado muda por fora, o input reflete na hora.
+    const [lastValue, setLastValue] = useState(value);
+    if (lastValue !== value) {
+        setLastValue(value);
         setLocal(value);
-    }, [value]);
+    }
 
     useEffect(() => {
         const timer = window.setTimeout(() => {

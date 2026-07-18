@@ -6,7 +6,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
@@ -161,13 +161,21 @@ export function UserListPage() {
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
 
-    useEffect(() => {
+    // Ajuste durante o render: mudar filtro volta para a página 1, e a página
+    // nunca fica além do total quando a lista encolhe.
+    const filterKey = JSON.stringify([
+        search,
+        roleFilters,
+        statusFilters,
+        masterFilters,
+    ]);
+    const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+    if (lastFilterKey !== filterKey) {
+        setLastFilterKey(filterKey);
         setPage(1);
-    }, [search, roleFilters, statusFilters, masterFilters]);
-
-    useEffect(() => {
-        if (page > totalPages) setPage(totalPages);
-    }, [page, totalPages]);
+    } else if (page > totalPages) {
+        setPage(totalPages);
+    }
 
     const paginated = useMemo(() => {
         const start = (page - 1) * perPage;

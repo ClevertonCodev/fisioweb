@@ -6,7 +6,7 @@ import {
     Mail,
     MessageCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -83,9 +83,12 @@ export function ProgramShareDialog({
     const mailtoUrl = program ? buildMailtoUrl(program) : null;
     const shareUrl = program?.shareUrl ?? null;
 
-    useEffect(() => {
+    // Ajuste durante o render em vez de efeito: reseta o "copiado" ao fechar.
+    const [wasOpen, setWasOpen] = useState(open);
+    if (wasOpen !== open) {
+        setWasOpen(open);
         if (!open) setCopied(false);
-    }, [open]);
+    }
 
     async function handleCopyLink() {
         if (!shareUrl) return;

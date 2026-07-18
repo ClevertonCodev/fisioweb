@@ -88,7 +88,9 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
         vi.spyOn(useProgramsHook, 'useDuplicateClinicProgram').mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useDuplicateClinicProgram
+        >);
 
         vi.spyOn(
             useProgramsHook,
@@ -96,12 +98,16 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
         ).mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useConvertToModelClinicProgram
+        >);
 
         vi.spyOn(useProgramsHook, 'useDeleteClinicProgram').mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useDeleteClinicProgram
+        >);
 
         vi.spyOn(useProgramsHook, 'useClinicPrograms').mockReturnValue({
             data: {
@@ -111,7 +117,7 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
                 perPage: 10,
                 currentPage: 1,
             },
-        } as unknown as ReturnType<typeof useProgramsHook.useClinicPrograms>);
+        } as ReturnType<typeof useProgramsHook.useClinicPrograms>);
     });
 
     function renderPage() {
@@ -160,7 +166,7 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
                 perPage: 10,
                 currentPage: 1,
             },
-        } as unknown as ReturnType<typeof useProgramsHook.useClinicPrograms>);
+        } as ReturnType<typeof useProgramsHook.useClinicPrograms>);
 
         renderPage();
 
@@ -187,7 +193,7 @@ describe('ProgramsAndExercisesPage — aba Histórico', () => {
                 perPage: 10,
                 currentPage: 1,
             },
-        } as unknown as ReturnType<typeof useProgramsHook.useClinicPrograms>);
+        } as ReturnType<typeof useProgramsHook.useClinicPrograms>);
 
         renderPage();
 

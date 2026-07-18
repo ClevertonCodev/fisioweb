@@ -1,5 +1,5 @@
 import { Calendar, CheckSquare, List, Minus, Type } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -76,17 +76,21 @@ export function QuestionnaireViewSheet({
 
     const [drafts, setDrafts] = useState<Record<number, AnswerDraft>>({});
 
-    useEffect(() => {
-        if (!open || !detail) return;
+    // Ajuste durante o render: os rascunhos partem das respostas já salvas,
+    // recalculados quando o sheet abre ou o questionário carregado muda.
+    const [loadedFor, setLoadedFor] = useState<unknown>(null);
+    const draftSource = open ? detail : null;
+    if (draftSource && loadedFor !== draftSource) {
+        setLoadedFor(draftSource);
         const next: Record<number, AnswerDraft> = {};
-        for (const a of detail.answers ?? []) {
+        for (const a of draftSource.answers ?? []) {
             if (a.answer === null || a.answer === undefined) continue;
             next[a.questionnaireQuestionId] = Array.isArray(a.answer)
                 ? a.answer
                 : String(a.answer);
         }
         setDrafts(next);
-    }, [open, detail]);
+    }
 
     const answerMap = useMemo(
         () =>

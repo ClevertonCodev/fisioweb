@@ -112,12 +112,16 @@ describe('ProgramDetailPage', () => {
         vi.spyOn(useProgramsHook, 'useDuplicateClinicProgram').mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useDuplicateClinicProgram
+        >);
 
         vi.spyOn(useProgramsHook, 'useDeleteClinicProgram').mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useDeleteClinicProgram
+        >);
 
         vi.spyOn(
             useProgramsHook,
@@ -125,7 +129,9 @@ describe('ProgramDetailPage', () => {
         ).mockReturnValue({
             mutate: vi.fn(),
             isPending: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useConvertToModelClinicProgram
+        >);
     });
 
     function renderPage() {

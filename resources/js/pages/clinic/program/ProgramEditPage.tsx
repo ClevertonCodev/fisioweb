@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useInfiniteExercises } from '@/application/clinic';
@@ -63,8 +63,8 @@ export default function ProgramEditPage() {
     const [initialStartDate, setInitialStartDate] = useState('');
     const [initialEndDate, setInitialEndDate] = useState('');
 
-    useEffect(() => {
-        if (!program || initialized) return;
+    // Ajuste durante o render: assim que o programa chega, os campos partem dele.
+    if (program && !initialized) {
         setInitialized(true);
 
         setInitialTitle(program.title ?? '');
@@ -107,7 +107,7 @@ export default function ProgramEditPage() {
         setSelectedIds(
             mappedGroups.flatMap((g) => g.exercises.map((e) => e.exerciseId)),
         );
-    }, [program, initialized]);
+    }
 
     const effectiveSelectedIds = useMemo(() => {
         if (groups.length === 0) return selectedIds;

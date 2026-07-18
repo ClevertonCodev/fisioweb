@@ -17,8 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { getCroppedImageBlob } from '@/lib/crop-image';
 
-const ASPECT_VIDEO_THUMBNAIL = 16 / 9;
-
 /** Crop inicial centralizado. Se aspect for informado, respeita a proporção. */
 function buildInitialCrop(
     mediaWidth: number,
@@ -70,16 +68,21 @@ export function ImageCropModal({
     const [isProcessing, setIsProcessing] = useState(false);
     const imgRef = useRef<HTMLImageElement>(null);
 
+    // Ajuste durante o render: o preview acompanha o arquivo aberto no modal.
+    const activeFile = open ? imageFile : null;
+    const [lastFile, setLastFile] = useState(activeFile);
+    if (lastFile !== activeFile) {
+        setLastFile(activeFile);
+        setImageSrc(activeFile ? URL.createObjectURL(activeFile) : null);
+        setCrop(undefined);
+        setCompletedCrop(null);
+    }
+
+    // Revoga o blob quando ele deixa de ser exibido.
     useEffect(() => {
-        if (open && imageFile) {
-            const url = URL.createObjectURL(imageFile);
-            setImageSrc(url);
-            setCrop(undefined);
-            setCompletedCrop(null);
-            return () => URL.revokeObjectURL(url);
-        }
-        setImageSrc(null);
-    }, [open, imageFile]);
+        if (!imageSrc) return undefined;
+        return () => URL.revokeObjectURL(imageSrc);
+    }, [imageSrc]);
 
     const onImageLoad = useCallback(
         (e: React.SyntheticEvent<HTMLImageElement>) => {

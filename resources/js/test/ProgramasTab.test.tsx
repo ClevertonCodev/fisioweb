@@ -48,7 +48,9 @@ describe('ProgramasTab', () => {
             fetchNextPage: vi.fn(),
             hasNextPage: false,
             isFetchingNextPage: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsLibraryHook.useInfiniteClinicProgramsLibrary
+        >);
 
         vi.spyOn(
             useProgramsLibraryHook,
@@ -63,7 +65,9 @@ describe('ProgramasTab', () => {
                 groups: [],
             },
             isLoading: false,
-        } as any);
+        } as ReturnType<
+            typeof useProgramsLibraryHook.useClinicProgramLibraryDetail
+        >);
 
         vi.spyOn(useProgramsHook, 'useInfiniteMyPrograms').mockReturnValue({
             data: {
@@ -95,7 +99,9 @@ describe('ProgramasTab', () => {
             fetchNextPage: vi.fn(),
             hasNextPage: false,
             isFetchingNextPage: false,
-        } as any);
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useInfiniteMyPrograms
+        >);
 
         vi.spyOn(useProgramsHook, 'useClinicProgram').mockReturnValue({
             data: {
@@ -120,7 +126,7 @@ describe('ProgramasTab', () => {
                 ],
             },
             isLoading: false,
-        } as any);
+        } as ReturnType<typeof useProgramsHook.useClinicProgram>);
     });
 
     const renderComponent = () => {

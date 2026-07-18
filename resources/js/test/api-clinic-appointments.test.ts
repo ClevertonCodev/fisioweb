@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { apiClient } from '@/infrastructure/api/client';
 import { apiClinicAppointmentsRepository } from '@/infrastructure/repositories/api-clinic-appointments';
 
 vi.mock('@/infrastructure/api/client', () => ({
@@ -10,8 +11,6 @@ vi.mock('@/infrastructure/api/client', () => ({
         patch: vi.fn(),
     },
 }));
-
-import { apiClient } from '@/infrastructure/api/client';
 
 const mockGet = vi.mocked(apiClient.get);
 const mockPost = vi.mocked(apiClient.post);

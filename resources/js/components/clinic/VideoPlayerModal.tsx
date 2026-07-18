@@ -9,7 +9,7 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,13 +60,16 @@ export function VideoPlayerModal({
         exercise?.videoUrl,
     );
 
-    useEffect(() => {
+    // Ajuste durante o render: fechar o modal zera o estado do player.
+    const [wasOpen, setWasOpen] = useState(open);
+    if (wasOpen !== open) {
+        setWasOpen(open);
         if (!open) {
             setIsPlaying(false);
             setCurrentTime(0);
             setDuration(0);
         }
-    }, [open]);
+    }
 
     const togglePlay = () => {
         const video = videoRef.current;

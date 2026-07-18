@@ -433,8 +433,6 @@ describe('StepSelectExercises — colapsar grupo na sidebar', () => {
         const groupHeader = screen
             .getByText('Aquecimento')
             .closest('[class*="flex items-center"]');
-        const collapseBtn = groupHeader?.querySelector('button');
-
         // O último botão no group header é o collapse
         const headerButtons = groupHeader?.querySelectorAll('button') ?? [];
         const lastBtn = Array.from(headerButtons).pop();

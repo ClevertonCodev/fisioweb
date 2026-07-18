@@ -391,9 +391,12 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
     const listRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    // Ajuste durante o render: trocar de aba volta para a lista no mobile.
+    const [lastSubTab, setLastSubTab] = useState(subTab);
+    if (lastSubTab !== subTab) {
+        setLastSubTab(subTab);
         setMobileShowDetail(false);
-    }, [subTab]);
+    }
 
     const {
         data: libraryData,

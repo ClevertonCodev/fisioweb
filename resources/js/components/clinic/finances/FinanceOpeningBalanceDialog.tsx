@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useUpdateOpeningBalance } from '@/application/clinic/use-finance-transactions';
 import { formatFinanceMoney } from '@/application/clinic/use-finance-values-visibility';
@@ -30,9 +30,12 @@ export function FinanceOpeningBalanceDialog({
     const mutation = useUpdateOpeningBalance();
     const [year, month] = period.split('-').map(Number);
 
-    useEffect(() => {
+    // Ajuste durante o render: o campo acompanha o saldo vindo por prop.
+    const [lastBalance, setLastBalance] = useState(openingBalance);
+    if (lastBalance !== openingBalance) {
+        setLastBalance(openingBalance);
         setAmount(String(openingBalance));
-    }, [openingBalance]);
+    }
 
     const save = async () => {
         await mutation.mutateAsync({

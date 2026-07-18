@@ -43,15 +43,8 @@ class TreatmentPlanController extends Controller
             if ($plan->clinic_id !== (int) $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
-            $plan->load([
-                'groups.exercises.exercise.videos',
-                'exercises.exercise.videos',
-                'patient',
-                'physioArea',
-                'physioSubarea',
-            ]);
 
-            return response()->json(['data' => $plan]);
+            return response()->json(['data' => $this->planResponse($plan)]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
         }
@@ -175,7 +168,15 @@ class TreatmentPlanController extends Controller
      */
     private function planResponse(TreatmentPlan $plan): array
     {
-        $plan->loadMissing(['patient', 'clinic', 'groups.exercises.exercise', 'exercises.exercise', 'physioArea', 'physioSubarea']);
+        $plan->loadMissing([
+            'patient',
+            'clinic',
+            'clinicUser',
+            'groups.exercises.exercise.videos',
+            'exercises.exercise.videos',
+            'physioArea',
+            'physioSubarea',
+        ]);
 
         $payload              = $plan->toArray();
         $payload['share_url'] = $this->pdfViewModelBuilder->deepLinkUrl($plan);

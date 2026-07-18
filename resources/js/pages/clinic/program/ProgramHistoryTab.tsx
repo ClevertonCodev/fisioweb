@@ -3,6 +3,7 @@ import {
     Copy,
     FileDown,
     FileText,
+    Link2,
     MoreVertical,
     Plus,
     Search,
@@ -171,6 +172,7 @@ type ProgramActionsProps = {
     onDuplicate: (id: string) => void;
     onToModel: (id: string) => void;
     onCopyClinicalText: (id: string) => void;
+    onCopyProgramLink: (id: string) => void;
     onDelete: (p: Program) => void;
 };
 
@@ -179,8 +181,11 @@ function ProgramActions({
     onDuplicate,
     onToModel,
     onCopyClinicalText,
+    onCopyProgramLink,
     onDelete,
 }: ProgramActionsProps) {
+    const canCopyLink = Boolean(program.patientId);
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -210,6 +215,15 @@ function ProgramActions({
                     <FileDown className="h-4 w-4" />
                     Baixar PDF
                 </DropdownMenuItem>
+                {canCopyLink && (
+                    <DropdownMenuItem
+                        onClick={() => onCopyProgramLink(program.id)}
+                        className="cursor-pointer gap-2"
+                    >
+                        <Link2 className="h-4 w-4" />
+                        Copiar o link do programa
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                     onClick={() => onToModel(program.id)}
                     className="cursor-pointer gap-2"
@@ -435,6 +449,20 @@ export default function ProgramHistoryTab() {
             toast.success('Texto copiado para a área de transferência.');
         } catch {
             toast.error('Não foi possível copiar o texto.');
+        }
+    }, []);
+
+    const copyProgramLink = useCallback(async (programId: string) => {
+        try {
+            const full = await findClinicProgram(programId);
+            if (!full?.shareUrl) {
+                toast.error('Link de acesso indisponível para este programa.');
+                return;
+            }
+            await navigator.clipboard.writeText(full.shareUrl);
+            toast.success('Link do programa copiado.');
+        } catch {
+            toast.error('Não foi possível copiar o link.');
         }
     }, []);
 
@@ -738,6 +766,7 @@ export default function ProgramHistoryTab() {
                                             onCopyClinicalText={
                                                 copyClinicalText
                                             }
+                                            onCopyProgramLink={copyProgramLink}
                                             onDelete={setProgramToDelete}
                                         />
                                     </TableCell>
@@ -831,6 +860,9 @@ export default function ProgramHistoryTab() {
                                                         onToModel={toModel}
                                                         onCopyClinicalText={
                                                             copyClinicalText
+                                                        }
+                                                        onCopyProgramLink={
+                                                            copyProgramLink
                                                         }
                                                         onDelete={
                                                             setProgramToDelete

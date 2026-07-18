@@ -1,54 +1,30 @@
-import { Link, useParams } from 'react-router-dom';
-
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { useParams } from 'react-router-dom';
 
 /**
- * Landing mínima para deep link do QR no PDF do programa.
- * O identificador na URL é um public_token (UUID), não o id sequencial.
- * Login completo do paciente fica fora do escopo desta feature.
+ * Landing pública do deep link do programa (QR / compartilhamento).
+ * Acessível com ou sem login — a execução completa dos exercícios vem depois.
  */
 export default function PatientProgramDeepLinkPage() {
-    const { clinicSlug } = useParams<{
+    const { clinicSlug, publicToken } = useParams<{
         clinicSlug: string;
         publicToken: string;
     }>();
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 p-6">
-            <Card className="w-full max-w-md p-8 text-center">
-                <h1 className="text-xl font-semibold text-foreground">
-                    Acesso ao programa
-                </h1>
-                <p className="mt-3 text-sm text-muted-foreground">
-                    Para ver seu programa de exercícios, faça login como
-                    paciente na clínica. Se você já tem cadastro, use o app ou
-                    portal da clínica com suas credenciais.
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center">
+            <h1 className="text-2xl font-semibold text-foreground">
+                Chegou!
+            </h1>
+            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+                Página pública do programa de exercícios. Em breve você verá a
+                lista aqui.
+            </p>
+            {(clinicSlug || publicToken) && (
+                <p className="mt-6 font-mono text-xs text-muted-foreground">
+                    {clinicSlug}
+                    {publicToken ? ` · ${publicToken.slice(0, 8)}…` : null}
                 </p>
-                {clinicSlug && (
-                    <p className="mt-4 text-xs text-muted-foreground">
-                        Clínica{' '}
-                        <span className="font-medium text-foreground">
-                            {clinicSlug}
-                        </span>
-                    </p>
-                )}
-                <div className="mt-6 flex flex-col gap-2">
-                    <Button
-                        asChild
-                        variant="default"
-                        className="cursor-pointer"
-                    >
-                        <Link to="/clinica/login">
-                            Ir para login da clínica
-                        </Link>
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                        Em breve: acesso direto ao programa após login do
-                        paciente.
-                    </p>
-                </div>
-            </Card>
+            )}
         </div>
     );
 }

@@ -109,7 +109,15 @@ class PatientServiceTest extends TestCase
             ->andReturnUsing(function (array $arg) use ($clinicUserId) {
                 $this->assertEquals($clinicUserId, $arg['clinic_user_id']);
 
-                return new Patient($arg);
+                // create() faz load('clinicUser') — sem DB neste unitário.
+                $patient = \Mockery::mock(Patient::class)->makePartial();
+                $patient->forceFill($arg);
+                $patient->shouldReceive('load')
+                    ->once()
+                    ->with('clinicUser:id,name')
+                    ->andReturnSelf();
+
+                return $patient;
             });
 
         $this->service->create($this->validData(), 1);

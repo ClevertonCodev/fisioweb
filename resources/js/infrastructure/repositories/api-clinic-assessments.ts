@@ -116,9 +116,7 @@ function toFieldOption(
     return { id: raw.id, label: raw.label, sortOrder: raw.sort_order };
 }
 
-function normalizeFieldType(
-    rawType: string,
-): AssessmentField['fieldType'] {
+function normalizeFieldType(rawType: string): AssessmentField['fieldType'] {
     if (rawType === 'checkbox_multiple') {
         return 'checkbox';
     }

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Activity, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -49,9 +49,11 @@ export default function ClinicRegisterPage() {
         },
     });
 
-    const watchedType = form.watch('typePerson');
-    const watchedName = form.watch('name');
-    const watchedSlug = form.watch('slug');
+    // useWatch (em vez de form.watch) é a API que o React Compiler consegue
+    // memoizar com segurança.
+    const watchedType = useWatch({ control: form.control, name: 'typePerson' });
+    const watchedName = useWatch({ control: form.control, name: 'name' });
+    const watchedSlug = useWatch({ control: form.control, name: 'slug' });
 
     const handleSubmit = form.handleSubmit(() => {
         // Visual-only por enquanto: ainda não há endpoint de auto-cadastro.
@@ -141,8 +143,7 @@ export default function ClinicRegisterPage() {
                                                         'document',
                                                         '',
                                                         {
-                                                            shouldValidate:
-                                                                false,
+                                                            shouldValidate: false,
                                                         },
                                                     );
                                                 }}

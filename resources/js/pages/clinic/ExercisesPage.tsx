@@ -64,7 +64,11 @@ export default function ExercisesPage({
     const [showFilters, setShowFilters] = useState(false);
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [filters, setFilters] = useState<Filters>(initialFilters);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
+    // Overrides otimistas de favorito — a lista em si vem sempre do React Query
+    // (evita o bug de exercises=[] ao remontar com cache já aquecido).
+    const [favoriteOverrides, setFavoriteOverrides] = useState<
+        Record<string, boolean>
+    >({});
     const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
         null,
     );
@@ -73,25 +77,23 @@ export default function ExercisesPage({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    const allExercises = useMemo(
-        () => data?.pages.flatMap((p) => p.items) ?? [],
-        [data],
+    const exercises = useMemo(
+        () =>
+            (data?.pages.flatMap((p) => p.items) ?? []).map((exercise) =>
+                exercise.id in favoriteOverrides
+                    ? {
+                          ...exercise,
+                          isFavorite: favoriteOverrides[exercise.id],
+                      }
+                    : exercise,
+            ),
+        [data, favoriteOverrides],
     );
 
     const selectedExercise = useMemo(
         () => exercises.find((e) => e.id === selectedExerciseId) ?? null,
         [exercises, selectedExerciseId],
     );
-
-    useEffect(() => {
-        if (allExercises.length > 0) {
-            setExercises((prev) => {
-                // Merge: keep optimistic favorite state for already-known exercises
-                const prevMap = new Map(prev.map((e) => [e.id, e]));
-                return allExercises.map((e) => prevMap.get(e.id) ?? e);
-            });
-        }
-    }, [allExercises]);
 
     // Infinite scroll via IntersectionObserver
     useEffect(() => {
@@ -230,31 +232,26 @@ export default function ExercisesPage({
     const handleToggleFavorite = (exercise: Exercise) => {
         if (pendingFavoriteIds.has(exercise.id)) return;
 
+        const nextFavorite = !exercise.isFavorite;
         setPendingFavoriteIds((prev) => new Set(prev).add(exercise.id));
-        setExercises((prev) =>
-            prev.map((ex) =>
-                ex.id === exercise.id
-                    ? { ...ex, isFavorite: !ex.isFavorite }
-                    : ex,
-            ),
-        );
+        setFavoriteOverrides((prev) => ({
+            ...prev,
+            [exercise.id]: nextFavorite,
+        }));
 
         toggleFavoriteMutation.mutate(exercise.id, {
             onSuccess: ({ isFavorite }) => {
-                setExercises((prev) =>
-                    prev.map((ex) =>
-                        ex.id === exercise.id ? { ...ex, isFavorite } : ex,
-                    ),
-                );
+                setFavoriteOverrides((prev) => ({
+                    ...prev,
+                    [exercise.id]: isFavorite,
+                }));
             },
             onError: () => {
-                setExercises((prev) =>
-                    prev.map((ex) =>
-                        ex.id === exercise.id
-                            ? { ...ex, isFavorite: exercise.isFavorite }
-                            : ex,
-                    ),
-                );
+                setFavoriteOverrides((prev) => {
+                    const next = { ...prev };
+                    delete next[exercise.id];
+                    return next;
+                });
             },
             onSettled: () => {
                 setPendingFavoriteIds((prev) => {
@@ -296,7 +293,7 @@ export default function ExercisesPage({
                             Biblioteca de Exercícios
                         </h1>
                         <div className="flex flex-wrap items-center gap-2">
-                            <div className="relative min-w-0 flex-1 basis-full sm:basis-64 sm:flex-none">
+                            <div className="relative min-w-0 flex-1 basis-full sm:flex-none sm:basis-64">
                                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                 <Input
                                     placeholder="Pesquisar"
@@ -320,7 +317,9 @@ export default function ExercisesPage({
                                         }
                                         size="sm"
                                         onClick={() =>
-                                            setShowFavoritesOnly((prev) => !prev)
+                                            setShowFavoritesOnly(
+                                                (prev) => !prev,
+                                            )
                                         }
                                         className="cursor-pointer gap-2"
                                         aria-label="Favoritos"

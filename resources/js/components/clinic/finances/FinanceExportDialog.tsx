@@ -26,8 +26,7 @@ export function FinanceExportDialog() {
     const [open, setOpen] = useState(false);
     const [range, setRange] =
         useState<FinanceExportParams['range']>('current_month');
-    const [format, setFormat] =
-        useState<FinanceExportParams['format']>('csv');
+    const [format, setFormat] = useState<FinanceExportParams['format']>('csv');
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
     const mutation = useFinanceExport();

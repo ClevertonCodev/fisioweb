@@ -49,15 +49,16 @@ export default function AdminVideosPage() {
     const deleteVideo = useDeleteAdminVideo();
     const navigate = useNavigate();
 
+    const videos = data?.data;
     const filteredVideos = useMemo(() => {
-        if (!data?.data || !search.trim()) return data?.data ?? [];
+        if (!videos || !search.trim()) return videos ?? [];
         const q = search.toLowerCase().trim();
-        return data.data.filter(
+        return videos.filter(
             (v) =>
                 (v.original_filename ?? '').toLowerCase().includes(q) ||
                 v.filename.toLowerCase().includes(q),
         );
-    }, [data?.data, search]);
+    }, [videos, search]);
 
     const meta = data?.meta;
     const totalPages = meta?.last_page ?? 1;

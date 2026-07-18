@@ -111,7 +111,9 @@ export function canTransitionAppointmentStatus(
     return false;
 }
 
-export function isTerminalAppointmentStatus(status: AppointmentStatus): boolean {
+export function isTerminalAppointmentStatus(
+    status: AppointmentStatus,
+): boolean {
     return TERMINAL_STATUSES.includes(status);
 }
 

@@ -2,12 +2,7 @@ import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 
 import { formatFinanceMoney } from '@/application/clinic/use-finance-values-visibility';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { CategoryDistributionPoint } from '@/domain/clinic/finance';
 
@@ -51,7 +46,11 @@ export function CategoryDistributionPieChart({
                 legend: { position: 'right' as const },
                 tooltip: {
                     callbacks: {
-                        label: (ctx: { label?: string; parsed: unknown; dataIndex: number }) => {
+                        label: (ctx: {
+                            label?: string;
+                            parsed: unknown;
+                            dataIndex: number;
+                        }) => {
                             const point = data[ctx.dataIndex];
                             const raw = Number(ctx.parsed);
                             const pct = point?.percentage ?? 0;
@@ -71,13 +70,13 @@ export function CategoryDistributionPieChart({
             </CardHeader>
             <CardContent>
                 {isError ? (
-                    <p className="text-muted-foreground py-8 text-center text-sm">
+                    <p className="py-8 text-center text-sm text-muted-foreground">
                         Não foi possível carregar a distribuição.
                     </p>
                 ) : isLoading ? (
                     <Skeleton className="h-64 w-full" />
                 ) : data.length === 0 ? (
-                    <p className="text-muted-foreground py-8 text-center text-sm">
+                    <p className="py-8 text-center text-sm text-muted-foreground">
                         Sem dados para o período.
                     </p>
                 ) : (

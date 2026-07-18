@@ -31,6 +31,8 @@
         <!-- CI usa .env.example (sqlite); "testing" como arquivo não existe. -->
         <env name="DB_CONNECTION" value="sqlite" force="true"/>
         <env name="DB_DATABASE" value=":memory:" force="true"/>
+        <!-- Segredo fixo de teste: CI não roda `php artisan jwt:secret`. -->
+        <env name="JWT_SECRET" value="base64:dGVzdGluZy1qd3Qtc2VjcmV0LWZpc2lvd2ViLTAwMDAwMDAw" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

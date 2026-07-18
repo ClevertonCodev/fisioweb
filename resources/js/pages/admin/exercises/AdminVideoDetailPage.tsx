@@ -1,11 +1,4 @@
-import {
-    Clock,
-    FileText,
-    Film,
-    HardDrive,
-    Pencil,
-    Video,
-} from 'lucide-react';
+import { Clock, FileText, Film, HardDrive, Pencil, Video } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import { VIDEO_STATUS_LABELS } from '@/application/admin/exercise-constants';

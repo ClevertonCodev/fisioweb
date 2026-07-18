@@ -1,12 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
-import {
-    AlertCircle,
-    ImagePlus,
-    Loader2,
-    Upload,
-    X,
-} from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertCircle, ImagePlus, Loader2, Upload, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -31,11 +25,7 @@ const ACCEPT_THUMB = 'image/jpeg,image/png,image/webp';
 const ALLOWED_THUMB_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_THUMB_SIZE = 5 * 1024 * 1024;
 
-function uploadToPresignedUrl(
-    url: string,
-    file: File,
-    signal?: AbortSignal,
-): Promise<void> {
+function uploadToPresignedUrl(url: string, file: File): Promise<void> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.addEventListener('load', () => {
@@ -53,7 +43,10 @@ function hydrateReferenceSlots(
     metadata: Record<string, unknown> | null | undefined,
 ): [ReferenceImageState, ReferenceImageState] {
     const refs = Array.isArray(metadata?.reference_images)
-        ? (metadata.reference_images as { cdn_url: string; file_path: string }[])
+        ? (metadata.reference_images as {
+              cdn_url: string;
+              file_path: string;
+          }[])
         : [];
 
     return [
@@ -78,8 +71,10 @@ export default function AdminVideoEditPage() {
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
-    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
+    const [referenceImage1, setReferenceImage1] =
+        useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] =
+        useState<ReferenceImageState>(null);
     /** Evita sobrescrever slots enquanto o usuário está trocando imagens localmente */
     const [refsDirty, setRefsDirty] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -88,37 +83,45 @@ export default function AdminVideoEditPage() {
     const [cropModalFile, setCropModalFile] = useState<File | null>(null);
     const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
+    // Ajuste durante o render: trocar de vídeo limpa as edições pendentes.
+    const [lastVideoId, setLastVideoId] = useState(videoId);
+    let refsDirtyNow = refsDirty;
+    if (lastVideoId !== videoId) {
+        setLastVideoId(videoId);
         setRefsDirty(false);
         setThumbnailFile(null);
-    }, [videoId]);
+        refsDirtyNow = false;
+    }
 
-    useEffect(() => {
-        if (!video) {
-            return;
-        }
-
+    // ...e os campos partem do vídeo carregado, sem sobrescrever edição em curso.
+    const [loadedVideo, setLoadedVideo] = useState<unknown>(null);
+    if (video && loadedVideo !== video) {
+        setLoadedVideo(video);
         setOriginalFilename(video.original_filename ?? '');
         setDuration(video.duration != null ? String(video.duration) : '');
 
-        if (refsDirty) {
-            return;
+        if (!refsDirtyNow) {
+            const [slot1, slot2] = hydrateReferenceSlots(video.metadata);
+            setReferenceImage1(slot1);
+            setReferenceImage2(slot2);
         }
+    }
 
-        const [slot1, slot2] = hydrateReferenceSlots(video.metadata);
-        setReferenceImage1(slot1);
-        setReferenceImage2(slot2);
-    }, [video, refsDirty]);
+    const handleReferenceImage1Change = useCallback(
+        (state: ReferenceImageState) => {
+            setRefsDirty(true);
+            setReferenceImage1(state);
+        },
+        [],
+    );
 
-    const handleReferenceImage1Change = useCallback((state: ReferenceImageState) => {
-        setRefsDirty(true);
-        setReferenceImage1(state);
-    }, []);
-
-    const handleReferenceImage2Change = useCallback((state: ReferenceImageState) => {
-        setRefsDirty(true);
-        setReferenceImage2(state);
-    }, []);
+    const handleReferenceImage2Change = useCallback(
+        (state: ReferenceImageState) => {
+            setRefsDirty(true);
+            setReferenceImage2(state);
+        },
+        [],
+    );
 
     const clearThumbnail = useCallback(() => {
         setThumbnailFile(null);
@@ -196,7 +199,9 @@ export default function AdminVideoEditPage() {
             ]);
 
             queryClient.setQueryData(['admin', 'video', videoId], synced);
-            await queryClient.invalidateQueries({ queryKey: ['admin', 'videos'] });
+            await queryClient.invalidateQueries({
+                queryKey: ['admin', 'videos'],
+            });
             setRefsDirty(false);
 
             toast.success('Vídeo atualizado.');
@@ -355,8 +360,12 @@ export default function AdminVideoEditPage() {
                             <AdminVideoReferenceImageFields
                                 referenceImage1={referenceImage1}
                                 referenceImage2={referenceImage2}
-                                onReferenceImage1Change={handleReferenceImage1Change}
-                                onReferenceImage2Change={handleReferenceImage2Change}
+                                onReferenceImage1Change={
+                                    handleReferenceImage1Change
+                                }
+                                onReferenceImage2Change={
+                                    handleReferenceImage2Change
+                                }
                             />
 
                             {error && (

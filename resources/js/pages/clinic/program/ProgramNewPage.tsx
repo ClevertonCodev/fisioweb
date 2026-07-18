@@ -27,6 +27,48 @@ import type {
     ProgramStep,
 } from '@/domain/clinic';
 
+/**
+ * Programa recebido via router state (cópia ou edição). Pode chegar no formato
+ * do domain (camelCase) ou cru da API (snake_case), daí os campos alternativos.
+ */
+interface IncomingProgramExercise {
+    id?: string | number;
+    exerciseId?: string | number;
+    exercise?: {
+        id?: string | number;
+        name?: string;
+        thumbnailUrl?: string;
+        videoUrl?: string;
+    };
+    title?: string;
+    thumbnailUrl?: string;
+    videoUrl?: string;
+    days?: number[];
+    daysOfWeek?: number[];
+    period?: ProgramExercise['period'];
+    seriesMin?: number | null;
+    setsMin?: number | null;
+    seriesMax?: number | null;
+    setsMax?: number | null;
+    repetitionsMin?: number | null;
+    repetitions_min?: number | null;
+    repetitionsMax?: number | null;
+    repetitions_max?: number | null;
+    loadMin?: number | null;
+    load_min?: number | null;
+    loadMax?: number | null;
+    load_max?: number | null;
+    restTime?: number | null;
+    rest_time?: number | null;
+    notes?: string | null;
+}
+
+interface IncomingProgramGroup {
+    id?: string | number;
+    name?: string;
+    exercises?: IncomingProgramExercise[];
+}
+
 const NEW_STEP_LABELS: Record<ProgramStep, string> = {
     1: 'Novo programa',
     2: 'Configurar exercícios',
@@ -88,8 +130,16 @@ export default function ProgramNewPage() {
         scheduleSave();
     }, [step, selectedIds, groups, scheduleSave]);
 
-    useEffect(() => {
-        if (initialProgram && initialProgram.groups) {
+    // Ajuste durante o render: o wizard parte do programa recebido por navegação.
+    const [loadedInitialProgram, setLoadedInitialProgram] =
+        useState<unknown>(null);
+    if (
+        initialProgram &&
+        initialProgram.groups &&
+        loadedInitialProgram !== initialProgram
+    ) {
+        setLoadedInitialProgram(initialProgram);
+        {
             clearDraft(); // cópia de programa tem prioridade sobre rascunho
             setInitialTitle(
                 initialProgram.title
@@ -103,38 +153,48 @@ export default function ProgramNewPage() {
             );
 
             const mappedGroups: ProgramGroup[] = initialProgram.groups.map(
-                (group: any) => ({
-                    id: group.id?.toString() || Math.random().toString(),
-                    name: group.name,
-                    exercises: (group.exercises || []).map((ex: any) => {
-                        const exerciseId =
-                            ex.exerciseId?.toString() ||
-                            ex.exercise?.id?.toString();
-                        return {
-                            id: ex.id?.toString() || Math.random().toString(),
-                            exerciseId: exerciseId,
-                            title: ex.title || ex.exercise?.name || '',
-                            thumbnailUrl:
-                                ex.thumbnailUrl ||
-                                ex.exercise?.thumbnailUrl ||
-                                '',
-                            videoUrl:
-                                ex.videoUrl || ex.exercise?.videoUrl || '',
-                            days: ex.days || ex.daysOfWeek || [],
-                            period: ex.period || null,
-                            seriesMin: ex.seriesMin ?? ex.setsMin ?? null,
-                            seriesMax: ex.seriesMax ?? ex.setsMax ?? null,
-                            repetitionsMin:
-                                ex.repetitionsMin ?? ex.repetitions_min ?? null,
-                            repetitionsMax:
-                                ex.repetitionsMax ?? ex.repetitions_max ?? null,
-                            loadMin: ex.loadMin ?? ex.load_min ?? null,
-                            loadMax: ex.loadMax ?? ex.load_max ?? null,
-                            restTime: ex.restTime ?? ex.rest_time ?? null,
-                            notes: ex.notes ?? null,
-                            isConfigured: true,
-                        };
-                    }),
+                (group: IncomingProgramGroup, groupIndex: number) => ({
+                    // Sem id vindo da origem, cai para a posição: estável entre
+                    // renders, ao contrário de Math.random().
+                    id: group.id?.toString() || `grupo-${groupIndex}`,
+                    name: group.name ?? '',
+                    exercises: (group.exercises || []).map(
+                        (ex: IncomingProgramExercise, exIndex: number) => {
+                            const exerciseId =
+                                ex.exerciseId?.toString() ||
+                                ex.exercise?.id?.toString();
+                            return {
+                                id:
+                                    ex.id?.toString() ||
+                                    `grupo-${groupIndex}-ex-${exIndex}`,
+                                exerciseId: exerciseId ?? '',
+                                title: ex.title || ex.exercise?.name || '',
+                                thumbnailUrl:
+                                    ex.thumbnailUrl ||
+                                    ex.exercise?.thumbnailUrl ||
+                                    '',
+                                videoUrl:
+                                    ex.videoUrl || ex.exercise?.videoUrl || '',
+                                days: ex.days || ex.daysOfWeek || [],
+                                period: ex.period || null,
+                                seriesMin: ex.seriesMin ?? ex.setsMin ?? null,
+                                seriesMax: ex.seriesMax ?? ex.setsMax ?? null,
+                                repetitionsMin:
+                                    ex.repetitionsMin ??
+                                    ex.repetitions_min ??
+                                    null,
+                                repetitionsMax:
+                                    ex.repetitionsMax ??
+                                    ex.repetitions_max ??
+                                    null,
+                                loadMin: ex.loadMin ?? ex.load_min ?? null,
+                                loadMax: ex.loadMax ?? ex.load_max ?? null,
+                                restTime: ex.restTime ?? ex.rest_time ?? null,
+                                notes: ex.notes ?? null,
+                                isConfigured: true,
+                            };
+                        },
+                    ),
                 }),
             );
 
@@ -149,7 +209,7 @@ export default function ProgramNewPage() {
                 setStep(2);
             }
         }
-    }, [initialProgram]); // eslint-disable-line react-hooks/exhaustive-deps
+    }
 
     const handleRestoreDraft = (d: ProgramDraft) => {
         setStep(d.step);

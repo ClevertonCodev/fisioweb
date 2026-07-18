@@ -10,34 +10,35 @@ export function useMediaReady(
 ) {
     const [ready, setReady] = useState(false);
 
-    useEffect(() => {
+    // Ajuste durante o render: trocar de mídia volta ao estado "carregando".
+    const mediaKey = `${thumbnailUrl ?? ''}|${videoUrl ?? ''}`;
+    const [lastMediaKey, setLastMediaKey] = useState(mediaKey);
+    if (lastMediaKey !== mediaKey) {
+        setLastMediaKey(mediaKey);
         setReady(false);
+    }
 
-        if (!thumbnailUrl && !videoUrl) {
-            setReady(true);
-            return undefined;
-        }
+    useEffect(() => {
+        if (!thumbnailUrl) return undefined;
 
-        if (thumbnailUrl) {
-            let cancelled = false;
-            const img = new Image();
-            img.onload = () => {
-                if (!cancelled) setReady(true);
-            };
-            img.onerror = () => {
-                if (!cancelled) setReady(true);
-            };
-            img.src = thumbnailUrl;
-            return () => {
-                cancelled = true;
-            };
-        }
+        let cancelled = false;
+        const img = new Image();
+        img.onload = () => {
+            if (!cancelled) setReady(true);
+        };
+        img.onerror = () => {
+            if (!cancelled) setReady(true);
+        };
+        img.src = thumbnailUrl;
 
-        return undefined;
-    }, [thumbnailUrl, videoUrl]);
+        return () => {
+            cancelled = true;
+        };
+    }, [thumbnailUrl]);
 
     return {
-        ready,
+        // Sem mídia nenhuma não há o que esperar: derivado, não guardado em state.
+        ready: ready || (!thumbnailUrl && !videoUrl),
         markReady: () => setReady(true),
     };
 }

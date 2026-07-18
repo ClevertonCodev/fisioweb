@@ -64,12 +64,14 @@ function normalizeUser(raw: {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [state, setState] = useState<AuthState>({
+    const [state, setState] = useState<AuthState>(() => ({
         user: null,
         guard: null,
         isAuthenticated: false,
-        isLoading: true,
-    });
+        // Sem sessão salva não há nada a restaurar: já nasce fora do loading,
+        // em vez de renderizar "carregando" e corrigir num efeito.
+        isLoading: !!getStoredAuth(),
+    }));
 
     const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const refreshSessionRef = useRef<() => Promise<void>>(() =>
@@ -177,10 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Restore session from localStorage on mount
     useEffect(() => {
         const auth = getStoredAuth();
-        if (!auth) {
-            setState((s) => ({ ...s, isLoading: false }));
-            return;
-        }
+        if (!auth) return;
         apiClient
             .get<{
                 id: number;

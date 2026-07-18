@@ -126,7 +126,7 @@ export function ExerciseCard({
                                 <button
                                     onClick={handleFullscreen}
                                     aria-label="Ver em tela cheia"
-                                    className="absolute right-2 bottom-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-white opacity-0 drop-shadow-md transition-opacity duration-200 hover:bg-black/30 group-hover:opacity-100"
+                                    className="absolute right-2 bottom-2 z-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-white opacity-0 drop-shadow-md transition-opacity duration-200 group-hover:opacity-100 hover:bg-black/30"
                                 >
                                     <Maximize className="h-4 w-4" />
                                 </button>

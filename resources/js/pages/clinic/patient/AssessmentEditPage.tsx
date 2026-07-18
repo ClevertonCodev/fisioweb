@@ -1,5 +1,5 @@
-import { AlertCircle, Check, ChevronLeft, PenLine, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertCircle, Check, PenLine, Save } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -272,9 +272,10 @@ export default function AssessmentEditPage() {
         Map<number, Set<number>>
     >(new Map());
 
-    // Initialize form state from loaded assessment
-    useEffect(() => {
-        if (!assessment) return;
+    // Ajuste durante o render: o formulário parte da avaliação carregada.
+    const [loadedAssessment, setLoadedAssessment] = useState<unknown>(null);
+    if (assessment && loadedAssessment !== assessment) {
+        setLoadedAssessment(assessment);
         const newAnswers = new Map<number, string>();
         for (const a of assessment.answers) {
             if (a.value !== null) newAnswers.set(a.fieldId, a.value);
@@ -287,7 +288,7 @@ export default function AssessmentEditPage() {
         }
         setAnswers(newAnswers);
         setSelectedOptions(newOptions);
-    }, [assessment]);
+    }
 
     function handleAnswerChange(fieldId: number, value: string) {
         setAnswers((prev) => new Map(prev).set(fieldId, value));
@@ -297,7 +298,11 @@ export default function AssessmentEditPage() {
         setSelectedOptions((prev) => {
             const next = new Map(prev);
             const set = new Set(next.get(fieldId) ?? []);
-            set.has(optionId) ? set.delete(optionId) : set.add(optionId);
+            if (set.has(optionId)) {
+                set.delete(optionId);
+            } else {
+                set.add(optionId);
+            }
             next.set(fieldId, set);
             return next;
         });
@@ -346,10 +351,7 @@ export default function AssessmentEditPage() {
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                             {assessment?.status === 'signed' && (
-                                <Badge
-                                    variant="secondary"
-                                    className="text-xs"
-                                >
+                                <Badge variant="secondary" className="text-xs">
                                     Assinada
                                 </Badge>
                             )}

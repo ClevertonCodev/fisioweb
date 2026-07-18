@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useProgramDraft } from '@/application/clinic/use-program-draft';
+import type { ProgramGroup } from '@/domain/clinic';
 
 const getMock = vi.fn();
 const saveMock = vi.fn();
@@ -90,10 +91,10 @@ describe('useProgramDraft', () => {
         getMock.mockResolvedValueOnce(null);
         saveMock.mockResolvedValueOnce(undefined);
 
-        const groups = [{ id: 'g1', name: 'Grupo 1', exercises: [] }];
-        const { result } = renderHook(() =>
-            useProgramDraft(2, ['10'], groups as any),
-        );
+        const groups: ProgramGroup[] = [
+            { id: 'g1', name: 'Grupo 1', exercises: [] },
+        ];
+        const { result } = renderHook(() => useProgramDraft(2, ['10'], groups));
 
         act(() => {
             result.current.scheduleSave();

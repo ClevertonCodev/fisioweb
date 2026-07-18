@@ -59,6 +59,7 @@ export function useToggleExerciseFavorite() {
             apiClinicExercisesRepository.toggleFavorite(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['exercises'] });
+            queryClient.invalidateQueries({ queryKey: ['exercises-infinite'] });
         },
     });
 }

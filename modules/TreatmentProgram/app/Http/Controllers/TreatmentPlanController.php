@@ -177,7 +177,7 @@ class TreatmentPlanController extends Controller
     {
         $plan->loadMissing(['patient', 'clinic', 'groups.exercises.exercise', 'exercises.exercise', 'physioArea', 'physioSubarea']);
 
-        $payload = $plan->toArray();
+        $payload              = $plan->toArray();
         $payload['share_url'] = $this->pdfViewModelBuilder->deepLinkUrl($plan);
 
         return $payload;

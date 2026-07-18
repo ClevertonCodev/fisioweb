@@ -48,7 +48,9 @@ export const apiClinicFinanceReportRepository = {
     async getMonthlyComparison(): Promise<MonthlyComparisonPoint[]> {
         const { data } = await apiClient.get<{
             data: MonthlyComparisonPoint[];
-        }>('/clinic/finances/reports/monthly-comparison', { params: { months: 12 } });
+        }>('/clinic/finances/reports/monthly-comparison', {
+            params: { months: 12 },
+        });
         return data.data;
     },
 

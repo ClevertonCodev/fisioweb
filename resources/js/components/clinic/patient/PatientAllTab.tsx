@@ -310,323 +310,337 @@ export function PatientAllTab({
                 <div className="absolute top-6 bottom-0 left-[11px] hidden w-0.5 bg-border sm:block" />
 
                 <div className="space-y-4">
-                {filteredTimeline.map((entry) => {
-                    const dateStr = entry.date.toLocaleDateString('pt-BR');
+                    {filteredTimeline.map((entry) => {
+                        const dateStr = entry.date.toLocaleDateString('pt-BR');
 
-                    // 1. AVALIAÇÃO
-                    if (entry.type === 'assessment') {
-                        const a = entry.data;
-                        return (
-                            <TimelineCard
-                                key={entry.id}
-                                icon={Activity}
-                                title={a.template.name}
-                                date={dateStr}
-                                badge={
-                                    a.status === 'signed'
-                                        ? 'Assinada'
-                                        : 'Rascunho'
-                                }
-                                badgeVariant={
-                                    a.status === 'signed' ? 'active' : 'neutral'
-                                }
-                                actions={
-                                    <DropdownMenuItem
-                                        className="cursor-pointer gap-2"
+                        // 1. AVALIAÇÃO
+                        if (entry.type === 'assessment') {
+                            const a = entry.data;
+                            return (
+                                <TimelineCard
+                                    key={entry.id}
+                                    icon={Activity}
+                                    title={a.template.name}
+                                    date={dateStr}
+                                    badge={
+                                        a.status === 'signed'
+                                            ? 'Assinada'
+                                            : 'Rascunho'
+                                    }
+                                    badgeVariant={
+                                        a.status === 'signed'
+                                            ? 'active'
+                                            : 'neutral'
+                                    }
+                                    actions={
+                                        <DropdownMenuItem
+                                            className="cursor-pointer gap-2"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`,
+                                                )
+                                            }
+                                        >
+                                            <Edit2 className="h-4 w-4" />
+                                            {a.status === 'draft'
+                                                ? 'Editar rascunho'
+                                                : 'Ver avaliação'}
+                                        </DropdownMenuItem>
+                                    }
+                                >
+                                    {a.clinicUser && (
+                                        <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Avatar className="h-5 w-5">
+                                                <AvatarFallback className="bg-muted text-[9px]">
+                                                    {a.clinicUser.name[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span>
+                                                Por{' '}
+                                                <span className="font-medium text-foreground">
+                                                    {a.clinicUser.name}
+                                                </span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="cursor-pointer gap-1.5"
                                         onClick={() =>
                                             navigate(
                                                 `/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`,
                                             )
                                         }
                                     >
-                                        <Edit2 className="h-4 w-4" />
+                                        <Edit2 className="h-3.5 w-3.5" />
                                         {a.status === 'draft'
-                                            ? 'Editar rascunho'
+                                            ? 'Editar'
                                             : 'Ver avaliação'}
-                                    </DropdownMenuItem>
-                                }
-                            >
-                                {a.clinicUser && (
-                                    <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Avatar className="h-5 w-5">
-                                            <AvatarFallback className="bg-muted text-[9px]">
-                                                {a.clinicUser.name[0]}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span>
-                                            Por{' '}
-                                            <span className="font-medium text-foreground">
-                                                {a.clinicUser.name}
-                                            </span>
-                                        </span>
-                                    </div>
-                                )}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="cursor-pointer gap-1.5"
-                                    onClick={() =>
-                                        navigate(
-                                            `/clinica/pacientes/${patientId}/avaliacoes/${a.id}/editar`,
-                                        )
+                                    </Button>
+                                </TimelineCard>
+                            );
+                        }
+
+                        // 2. EVOLUÇÃO
+                        if (entry.type === 'evolution') {
+                            const e = entry.data;
+                            return (
+                                <TimelineCard
+                                    key={entry.id}
+                                    icon={FileText}
+                                    title={e.title || 'Sessão de Fisioterapia'}
+                                    date={dateStr}
+                                    badge={
+                                        e.status === 'signed'
+                                            ? 'Assinada'
+                                            : 'Rascunho'
+                                    }
+                                    badgeVariant={
+                                        e.status === 'signed'
+                                            ? 'active'
+                                            : 'neutral'
+                                    }
+                                    actions={
+                                        <>
+                                            <DropdownMenuItem
+                                                className="cursor-pointer gap-2"
+                                                onClick={() =>
+                                                    onViewEvolution?.(e)
+                                                }
+                                            >
+                                                <FileText className="h-4 w-4" />
+                                                {e.status === 'signed'
+                                                    ? 'Ver evolução'
+                                                    : 'Visualizar texto'}
+                                            </DropdownMenuItem>
+                                            {e.status === 'draft' ? (
+                                                <>
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer gap-2"
+                                                        onClick={() =>
+                                                            onEditEvolution?.(e)
+                                                        }
+                                                    >
+                                                        <Edit2 className="h-4 w-4" />
+                                                        Editar rascunho
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                                                        onClick={() =>
+                                                            requestDeleteEvolution(
+                                                                e,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Excluir rascunho
+                                                    </DropdownMenuItem>
+                                                </>
+                                            ) : null}
+                                        </>
                                     }
                                 >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                    {a.status === 'draft'
-                                        ? 'Editar'
-                                        : 'Ver avaliação'}
-                                </Button>
-                            </TimelineCard>
-                        );
-                    }
-
-                    // 2. EVOLUÇÃO
-                    if (entry.type === 'evolution') {
-                        const e = entry.data;
-                        return (
-                            <TimelineCard
-                                key={entry.id}
-                                icon={FileText}
-                                title={e.title || 'Sessão de Fisioterapia'}
-                                date={dateStr}
-                                badge={
-                                    e.status === 'signed'
-                                        ? 'Assinada'
-                                        : 'Rascunho'
-                                }
-                                badgeVariant={
-                                    e.status === 'signed' ? 'active' : 'neutral'
-                                }
-                                actions={
-                                    <>
-                                        <DropdownMenuItem
-                                            className="cursor-pointer gap-2"
-                                            onClick={() => onViewEvolution?.(e)}
+                                    <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                                        {e.generatedText ||
+                                            e.notes ||
+                                            'Sem texto preenchido.'}
+                                    </p>
+                                    {e.clinicUser && (
+                                        <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Avatar className="h-5 w-5">
+                                                <AvatarFallback className="bg-muted text-[9px]">
+                                                    {e.clinicUser.name[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span>
+                                                Criado por{' '}
+                                                <span className="font-medium text-foreground">
+                                                    {e.clinicUser.name}
+                                                </span>
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="cursor-pointer gap-1.5"
+                                            onClick={() =>
+                                                e.status === 'signed'
+                                                    ? onViewEvolution?.(e)
+                                                    : onEditEvolution?.(e)
+                                            }
                                         >
-                                            <FileText className="h-4 w-4" />
+                                            <FileText className="h-3.5 w-3.5" />
                                             {e.status === 'signed'
                                                 ? 'Ver evolução'
-                                                : 'Visualizar texto'}
-                                        </DropdownMenuItem>
-                                        {e.status === 'draft' ? (
+                                                : 'Editar rascunho'}
+                                        </Button>
+                                        {e.status === 'draft' && (
                                             <>
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer gap-2"
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="cursor-pointer gap-1.5"
                                                     onClick={() =>
-                                                        onEditEvolution?.(e)
+                                                        onViewEvolution?.(e)
                                                     }
                                                 >
-                                                    <Edit2 className="h-4 w-4" />
-                                                    Editar rascunho
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+                                                    <FileText className="h-3.5 w-3.5" />
+                                                    Visualizar texto
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
                                                     onClick={() =>
                                                         requestDeleteEvolution(
                                                             e,
                                                         )
                                                     }
                                                 >
-                                                    <Trash2 className="h-4 w-4" />
+                                                    <Trash2 className="h-3.5 w-3.5" />
                                                     Excluir rascunho
-                                                </DropdownMenuItem>
+                                                </Button>
                                             </>
-                                        ) : null}
-                                    </>
-                                }
-                            >
-                                <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                                    {e.generatedText ||
-                                        e.notes ||
-                                        'Sem texto preenchido.'}
-                                </p>
-                                {e.clinicUser && (
+                                        )}
+                                    </div>
+                                </TimelineCard>
+                            );
+                        }
+
+                        // 3. ARQUIVO
+                        if (entry.type === 'file') {
+                            const f = entry.data;
+                            const isImage = f.mimeType?.startsWith('image/');
+                            return (
+                                <TimelineCard
+                                    key={entry.id}
+                                    icon={isImage ? ImageIcon : FileText}
+                                    iconUrl={isImage ? f.cdnUrl : undefined}
+                                    title={f.name ?? f.originalName}
+                                    date={dateStr}
+                                    actions={
+                                        <DropdownMenuItem
+                                            className="cursor-pointer gap-2"
+                                            onClick={() =>
+                                                window.open(f.cdnUrl, '_blank')
+                                            }
+                                        >
+                                            <Download className="h-4 w-4" />
+                                            Download
+                                        </DropdownMenuItem>
+                                    }
+                                >
                                     <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Avatar className="h-5 w-5">
-                                            <AvatarFallback className="bg-muted text-[9px]">
-                                                {e.clinicUser.name[0]}
-                                            </AvatarFallback>
-                                        </Avatar>
                                         <span>
-                                            Criado por{' '}
-                                            <span className="font-medium text-foreground">
-                                                {e.clinicUser.name}
-                                            </span>
+                                            {(f.size / 1024).toFixed(1)} kb
+                                        </span>
+                                        <span>•</span>
+                                        <span>
+                                            Upload via{' '}
+                                            {f.clinicUser?.name || 'Sistema'}
                                         </span>
                                     </div>
-                                )}
-                                <div className="flex items-center gap-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         className="cursor-pointer gap-1.5"
                                         onClick={() =>
-                                            e.status === 'signed'
-                                                ? onViewEvolution?.(e)
-                                                : onEditEvolution?.(e)
-                                        }
-                                    >
-                                        <FileText className="h-3.5 w-3.5" />
-                                        {e.status === 'signed'
-                                            ? 'Ver evolução'
-                                            : 'Editar rascunho'}
-                                    </Button>
-                                    {e.status === 'draft' && (
-                                        <>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer gap-1.5"
-                                                onClick={() =>
-                                                    onViewEvolution?.(e)
-                                                }
-                                            >
-                                                <FileText className="h-3.5 w-3.5" />
-                                                Visualizar texto
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="cursor-pointer gap-1.5 text-destructive hover:text-destructive"
-                                                onClick={() =>
-                                                    requestDeleteEvolution(e)
-                                                }
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                                Excluir rascunho
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                            </TimelineCard>
-                        );
-                    }
-
-                    // 3. ARQUIVO
-                    if (entry.type === 'file') {
-                        const f = entry.data;
-                        const isImage = f.mimeType?.startsWith('image/');
-                        return (
-                            <TimelineCard
-                                key={entry.id}
-                                icon={isImage ? ImageIcon : FileText}
-                                iconUrl={isImage ? f.cdnUrl : undefined}
-                                title={f.name ?? f.originalName}
-                                date={dateStr}
-                                actions={
-                                    <DropdownMenuItem
-                                        className="cursor-pointer gap-2"
-                                        onClick={() =>
                                             window.open(f.cdnUrl, '_blank')
                                         }
                                     >
-                                        <Download className="h-4 w-4" />
-                                        Download
-                                    </DropdownMenuItem>
-                                }
-                            >
-                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>{(f.size / 1024).toFixed(1)} kb</span>
-                                    <span>•</span>
-                                    <span>
-                                        Upload via{' '}
-                                        {f.clinicUser?.name || 'Sistema'}
-                                    </span>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="cursor-pointer gap-1.5"
-                                    onClick={() =>
-                                        window.open(f.cdnUrl, '_blank')
+                                        <Download className="h-3.5 w-3.5" />
+                                        Download arquivo
+                                    </Button>
+                                </TimelineCard>
+                            );
+                        }
+
+                        // 4. QUESTIONÁRIO
+                        if (entry.type === 'questionnaire') {
+                            const q = entry.data;
+                            const templateTitle = q.template?.title ?? null;
+                            const returnTo = encodeURIComponent(
+                                `/clinica/pacientes/${patientId}?tab=questionnaires`,
+                            );
+                            return (
+                                <TimelineCard
+                                    key={entry.id}
+                                    icon={ClipboardList}
+                                    title={
+                                        templateTitle ?? '[Template excluído]'
+                                    }
+                                    date={dateStr}
+                                    badge={
+                                        q.status === 'answered'
+                                            ? 'Respondido'
+                                            : q.status === 'expired'
+                                              ? 'Expirado'
+                                              : 'Pendente'
+                                    }
+                                    badgeVariant={
+                                        q.status === 'answered'
+                                            ? 'active'
+                                            : q.status === 'expired'
+                                              ? 'danger'
+                                              : 'neutral'
+                                    }
+                                    actions={
+                                        <>
+                                            {templateTitle && (
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer gap-2"
+                                                    onClick={() =>
+                                                        navigate(
+                                                            `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
+                                                        )
+                                                    }
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                    Editar template
+                                                </DropdownMenuItem>
+                                            )}
+                                            {q.status !== 'answered' && (
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer gap-2 text-destructive"
+                                                    onClick={() =>
+                                                        setQuestionnaireToDelete(
+                                                            q,
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Excluir
+                                                </DropdownMenuItem>
+                                            )}
+                                        </>
                                     }
                                 >
-                                    <Download className="h-3.5 w-3.5" />
-                                    Download arquivo
-                                </Button>
-                            </TimelineCard>
-                        );
-                    }
+                                    <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                        <span>Modalidade: {q.modality}</span>
+                                        <span>•</span>
+                                        <span>
+                                            Enviado por{' '}
+                                            {q.clinicUser?.name || 'Sistema'}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="cursor-pointer gap-1.5"
+                                        onClick={() => onViewQuestionnaire?.(q)}
+                                    >
+                                        <ClipboardList className="h-3.5 w-3.5" />
+                                        Ver questionário
+                                    </Button>
+                                </TimelineCard>
+                            );
+                        }
 
-                    // 4. QUESTIONÁRIO
-                    if (entry.type === 'questionnaire') {
-                        const q = entry.data;
-                        const templateTitle = q.template?.title ?? null;
-                        const returnTo = encodeURIComponent(
-                            `/clinica/pacientes/${patientId}?tab=questionnaires`,
-                        );
-                        return (
-                            <TimelineCard
-                                key={entry.id}
-                                icon={ClipboardList}
-                                title={templateTitle ?? '[Template excluído]'}
-                                date={dateStr}
-                                badge={
-                                    q.status === 'answered'
-                                        ? 'Respondido'
-                                        : q.status === 'expired'
-                                          ? 'Expirado'
-                                          : 'Pendente'
-                                }
-                                badgeVariant={
-                                    q.status === 'answered'
-                                        ? 'active'
-                                        : q.status === 'expired'
-                                          ? 'danger'
-                                          : 'neutral'
-                                }
-                                actions={
-                                    <>
-                                        {templateTitle && (
-                                            <DropdownMenuItem
-                                                className="cursor-pointer gap-2"
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/clinica/questionarios/${q.questionnaireTemplateId}/editar?returnTo=${returnTo}`,
-                                                    )
-                                                }
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                                Editar template
-                                            </DropdownMenuItem>
-                                        )}
-                                        {q.status !== 'answered' && (
-                                            <DropdownMenuItem
-                                                className="cursor-pointer gap-2 text-destructive"
-                                                onClick={() =>
-                                                    setQuestionnaireToDelete(q)
-                                                }
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                                Excluir
-                                            </DropdownMenuItem>
-                                        )}
-                                    </>
-                                }
-                            >
-                                <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>Modalidade: {q.modality}</span>
-                                    <span>•</span>
-                                    <span>
-                                        Enviado por{' '}
-                                        {q.clinicUser?.name || 'Sistema'}
-                                    </span>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="cursor-pointer gap-1.5"
-                                    onClick={() => onViewQuestionnaire?.(q)}
-                                >
-                                    <ClipboardList className="h-3.5 w-3.5" />
-                                    Ver questionário
-                                </Button>
-                            </TimelineCard>
-                        );
-                    }
-
-                    return null;
-                })}
+                        return null;
+                    })}
                 </div>
             </div>
 
@@ -649,11 +663,13 @@ export function PatientAllTab({
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => {
                                 if (evolutionToDelete) {
-                                    onDeleteEvolution
-                                        ? onDeleteEvolution(evolutionToDelete)
-                                        : deleteEvolution(
-                                              String(evolutionToDelete.id),
-                                          );
+                                    if (onDeleteEvolution) {
+                                        onDeleteEvolution(evolutionToDelete);
+                                    } else {
+                                        deleteEvolution(
+                                            String(evolutionToDelete.id),
+                                        );
+                                    }
                                 }
                                 setEvolutionToDelete(null);
                             }}

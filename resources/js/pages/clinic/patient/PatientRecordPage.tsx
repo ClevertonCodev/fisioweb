@@ -199,8 +199,7 @@ export default function PatientRecordPage() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
-    const activeTab =
-        TAB_FROM_URL[searchParams.get('tab') ?? 'all'] ?? 'all';
+    const activeTab = TAB_FROM_URL[searchParams.get('tab') ?? 'all'] ?? 'all';
     const setActiveTab = useCallback(
         (tab: string) => {
             setSearchParams(
@@ -644,10 +643,7 @@ export default function PatientRecordPage() {
                                                     <span>
                                                         Criado por{' '}
                                                         <span className="font-medium text-foreground">
-                                                            {
-                                                                ev.clinicUser
-                                                                    .name
-                                                            }
+                                                            {ev.clinicUser.name}
                                                         </span>
                                                     </span>
                                                 </div>
@@ -785,10 +781,7 @@ export default function PatientRecordPage() {
                                                     <span>
                                                         Por{' '}
                                                         <span className="font-medium text-foreground">
-                                                            {
-                                                                a.clinicUser
-                                                                    .name
-                                                            }
+                                                            {a.clinicUser.name}
                                                         </span>
                                                     </span>
                                                 </div>
@@ -918,8 +911,7 @@ export default function PatientRecordPage() {
                                                         </>
                                                     )}
                                                     <span>
-                                                        Modalidade:{' '}
-                                                        {q.modality}
+                                                        Modalidade: {q.modality}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -1027,7 +1019,9 @@ export default function PatientRecordPage() {
                                                                 {(
                                                                     file.size /
                                                                     1024
-                                                                ).toFixed(1)}{' '}
+                                                                ).toFixed(
+                                                                    1,
+                                                                )}{' '}
                                                                 kb
                                                             </span>
                                                             <span>•</span>

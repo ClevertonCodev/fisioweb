@@ -6,7 +6,7 @@ import {
     Mail,
     MessageCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -36,9 +36,7 @@ function digitsOnly(phone: string): string {
 }
 
 function buildWhatsAppUrl(program: Program): string | null {
-    const phone = program.patientPhone
-        ? digitsOnly(program.patientPhone)
-        : '';
+    const phone = program.patientPhone ? digitsOnly(program.patientPhone) : '';
     if (!phone) return null;
 
     const link = program.shareUrl ?? '';
@@ -85,9 +83,12 @@ export function ProgramShareDialog({
     const mailtoUrl = program ? buildMailtoUrl(program) : null;
     const shareUrl = program?.shareUrl ?? null;
 
-    useEffect(() => {
+    // Ajuste durante o render em vez de efeito: reseta o "copiado" ao fechar.
+    const [wasOpen, setWasOpen] = useState(open);
+    if (wasOpen !== open) {
+        setWasOpen(open);
         if (!open) setCopied(false);
-    }, [open]);
+    }
 
     async function handleCopyLink() {
         if (!shareUrl) return;
@@ -165,7 +166,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!whatsappUrl}
                                 onClick={() => {
                                     if (whatsappUrl) {
@@ -196,7 +197,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!mailtoUrl}
                                 onClick={() => {
                                     if (mailtoUrl) {
@@ -222,7 +223,7 @@ export function ProgramShareDialog({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 whitespace-normal px-3 py-2.5"
+                                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
                                 disabled={!shareUrl}
                                 onClick={handleCopyLink}
                             >
@@ -233,7 +234,9 @@ export function ProgramShareDialog({
                                 )}
                                 <span className="flex min-w-0 flex-1 flex-col items-start text-left">
                                     <span className="text-sm font-medium">
-                                        {copied ? 'Link copiado' : 'Copiar link'}
+                                        {copied
+                                            ? 'Link copiado'
+                                            : 'Copiar link'}
                                     </span>
                                     <span className="w-full truncate text-xs font-normal text-muted-foreground">
                                         {shareUrl ??
@@ -244,10 +247,7 @@ export function ProgramShareDialog({
                         </div>
 
                         <DialogFooter>
-                            <Button
-                                className="cursor-pointer"
-                                onClick={onDone}
-                            >
+                            <Button className="cursor-pointer" onClick={onDone}>
                                 Concluir
                             </Button>
                         </DialogFooter>

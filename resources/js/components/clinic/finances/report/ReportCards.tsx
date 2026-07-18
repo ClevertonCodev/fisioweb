@@ -1,12 +1,7 @@
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 
 import { formatFinanceMoney } from '@/application/clinic/use-finance-values-visibility';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ReportSummary } from '@/domain/clinic/finance';
 
@@ -20,7 +15,7 @@ interface ReportCardsProps {
 function VariationBadge({ value }: { value: number | null }) {
     if (value === null) {
         return (
-            <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                 <Minus className="h-3 w-3" /> —
             </span>
         );
@@ -48,7 +43,7 @@ export function ReportCards({
 }: ReportCardsProps) {
     if (isError) {
         return (
-            <p className="text-muted-foreground py-4 text-center text-sm">
+            <p className="py-4 text-center text-sm text-muted-foreground">
                 Não foi possível carregar os totais do relatório.
             </p>
         );
@@ -99,7 +94,7 @@ export function ReportCards({
                             {formatFinanceMoney(card.value, hidden)}
                         </p>
                         <div className="mt-2">
-                            <span className="text-muted-foreground text-xs">
+                            <span className="text-xs text-muted-foreground">
                                 vs. mês anterior{' '}
                             </span>
                             <VariationBadge value={card.variation} />

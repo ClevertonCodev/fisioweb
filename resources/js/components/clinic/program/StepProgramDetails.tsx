@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { usePatients } from '@/application/clinic';
 import { Button } from '@/components/ui/button';
@@ -20,8 +20,6 @@ import { Textarea } from '@/components/ui/textarea';
 import type { ProgramGroup } from '@/domain/clinic';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-
-const MOBILE_MAX = 767;
 
 interface StepProgramDetailsProps {
     groups: ProgramGroup[];
@@ -53,15 +51,9 @@ export function StepProgramDetails({
     isSaving = false,
     onSave,
 }: StepProgramDetailsProps) {
-    const isMobileFromHook = useIsMobile();
-    const [isMobile, setIsMobile] = useState(
-        () =>
-            typeof window !== 'undefined' && window.innerWidth <= MOBILE_MAX,
-    );
-
-    useEffect(() => {
-        setIsMobile(isMobileFromHook);
-    }, [isMobileFromHook]);
+    // useIsMobile já entrega o valor certo no primeiro render; espelhar isso em
+    // state local só criava um render extra.
+    const isMobile = useIsMobile();
 
     const [title, setTitle] = useState(initialTitle);
     const [patientId, setPatientId] = useState<number | null>(initialPatientId);
@@ -122,7 +114,7 @@ export function StepProgramDetails({
                     className={cn(
                         'w-full space-y-4',
                         isMobile
-                            ? 'px-3 pb-28 pt-3'
+                            ? 'px-3 pt-3 pb-28'
                             : 'mx-auto max-w-xl space-y-6 p-6',
                     )}
                 >
@@ -298,9 +290,7 @@ function accessDurationLabel(startDate: string, endDate: string): string {
         return '--';
     }
 
-    const days = Math.round(
-        (end.getTime() - start.getTime()) / 86_400_000,
-    );
+    const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
     if (days <= 0) return '--';
 
     return `${days} dia${days !== 1 ? 's' : ''}`;

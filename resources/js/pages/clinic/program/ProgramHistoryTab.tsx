@@ -10,7 +10,7 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -338,22 +338,18 @@ export default function ProgramHistoryTab() {
         search: searchPrograms || undefined,
         status: apiStatus,
     });
-    const previousPageRef = useRef(currentPage);
     const [isPaginationLoading, setIsPaginationLoading] = useState(false);
     const showSkeleton = isLoading || isPaginationLoading;
 
-    useEffect(() => {
-        if (currentPage !== previousPageRef.current) {
-            setIsPaginationLoading(true);
-        }
-    }, [currentPage]);
-
-    useEffect(() => {
-        if (!isFetching) {
-            setIsPaginationLoading(false);
-            previousPageRef.current = currentPage;
-        }
-    }, [currentPage, isFetching]);
+    // Ajuste durante o render: liga o loading ao trocar de página e desliga
+    // quando o fetch termina.
+    const [lastPage, setLastPage] = useState(currentPage);
+    if (lastPage !== currentPage) {
+        setLastPage(currentPage);
+        setIsPaginationLoading(true);
+    } else if (!isFetching && isPaginationLoading) {
+        setIsPaginationLoading(false);
+    }
 
     const { data: clinicUsers = [] } = useClinicProfessionals();
 

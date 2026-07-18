@@ -132,18 +132,22 @@ export default function AgendaPage() {
         [filteredAppointments],
     );
 
+    // Date.now() não pode ser lido durante o render (resultado instável). Como
+    // initialDate só é consumido na montagem do calendário, fixar o instante uma
+    // única vez é o comportamento correto.
+    const [now] = useState(() => Date.now());
+
     const calendarInitialDate = useMemo(() => {
         if (!patientIdFilter || filteredAppointments.length === 0) {
             return undefined;
         }
-        const now = Date.now();
         const upcoming = filteredAppointments
             .map((a) => new Date(a.startsAt))
             .filter((d) => !Number.isNaN(d.getTime()))
             .sort((a, b) => a.getTime() - b.getTime());
         const next = upcoming.find((d) => d.getTime() >= now);
         return next ?? upcoming[0];
-    }, [patientIdFilter, filteredAppointments]);
+    }, [now, patientIdFilter, filteredAppointments]);
 
     const filteredPatientName = useMemo(() => {
         if (!patientIdFilter) return undefined;
@@ -253,9 +257,7 @@ export default function AgendaPage() {
         const startsAt = new Date(start).toISOString();
         const endsAt = new Date(end).toISOString();
         setAppointments((prev) =>
-            prev.map((a) =>
-                a.id === id ? { ...a, startsAt, endsAt } : a,
-            ),
+            prev.map((a) => (a.id === id ? { ...a, startsAt, endsAt } : a)),
         );
 
         try {

@@ -1,12 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { formatFinanceMoney } from '@/application/clinic/use-finance-values-visibility';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
     SelectContent,
@@ -58,13 +53,9 @@ export function CategoryBreakdownTable({
             const av = a[sortKey];
             const bv = b[sortKey];
             if (typeof av === 'string' && typeof bv === 'string') {
-                return sortAsc
-                    ? av.localeCompare(bv)
-                    : bv.localeCompare(av);
+                return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
             }
-            return sortAsc
-                ? Number(av) - Number(bv)
-                : Number(bv) - Number(av);
+            return sortAsc ? Number(av) - Number(bv) : Number(bv) - Number(av);
         });
     }, [data, typeFilter, sortKey, sortAsc]);
 
@@ -79,7 +70,9 @@ export function CategoryBreakdownTable({
     return (
         <Card>
             <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-                <CardTitle className="text-lg">Detalhamento por categoria</CardTitle>
+                <CardTitle className="text-lg">
+                    Detalhamento por categoria
+                </CardTitle>
                 <Select
                     value={typeFilter}
                     onValueChange={(v) =>
@@ -98,7 +91,7 @@ export function CategoryBreakdownTable({
             </CardHeader>
             <CardContent>
                 {isError ? (
-                    <p className="text-muted-foreground py-4 text-center text-sm">
+                    <p className="py-4 text-center text-sm text-muted-foreground">
                         Não foi possível carregar o detalhamento.
                     </p>
                 ) : isLoading ? (
@@ -153,7 +146,7 @@ export function CategoryBreakdownTable({
                                     <TableRow>
                                         <TableCell
                                             colSpan={4}
-                                            className="text-muted-foreground text-center"
+                                            className="text-center text-muted-foreground"
                                         >
                                             Sem dados para o período.
                                         </TableCell>

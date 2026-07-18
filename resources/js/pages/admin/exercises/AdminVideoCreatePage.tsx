@@ -32,8 +32,10 @@ export default function AdminVideoCreatePage() {
         usePresignedUpload();
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-    const [referenceImage1, setReferenceImage1] = useState<ReferenceImageState>(null);
-    const [referenceImage2, setReferenceImage2] = useState<ReferenceImageState>(null);
+    const [referenceImage1, setReferenceImage1] =
+        useState<ReferenceImageState>(null);
+    const [referenceImage2, setReferenceImage2] =
+        useState<ReferenceImageState>(null);
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
     const [dragOver, setDragOver] = useState(false);

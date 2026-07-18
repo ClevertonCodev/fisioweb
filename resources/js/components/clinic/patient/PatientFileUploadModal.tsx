@@ -119,7 +119,7 @@ export function PatientFileUploadModal({
         } catch {
             // feedback via useUploadPatientFile onError
         }
-    }, [file, patientId, mutateAsync, handleOpenChange]);
+    }, [file, name, patientId, mutateAsync, handleOpenChange]);
 
     const clearFile = useCallback(() => {
         setFile(null);

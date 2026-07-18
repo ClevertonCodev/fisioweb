@@ -57,7 +57,19 @@ export default [
         files: ['**/*.{ts,tsx}'],
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'dist', 'build', 'coverage', '*.min.js'],
+        ignores: [
+            'vendor',
+            'node_modules',
+            'public',
+            'bootstrap/ssr',
+            'dist',
+            'build',
+            'coverage',
+            '*.min.js',
+            // O frontend vive só em resources/js. Módulos são backend PHP —
+            // no máximo view de e-mail/PDF, nunca JS/TS.
+            'modules',
+        ],
     },
     prettier,
 ];

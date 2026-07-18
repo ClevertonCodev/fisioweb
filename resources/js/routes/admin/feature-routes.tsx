@@ -14,12 +14,16 @@ export const featureRoutes: RouteObject[] = [
                 const features = await listFeatures();
                 return { features, error: null };
             } catch (err) {
-                const res = (err as { response?: { data?: { message?: string } } })?.response?.data;
+                const res = (
+                    err as { response?: { data?: { message?: string } } }
+                )?.response?.data;
                 return {
                     features: [],
                     error:
                         res?.message ??
-                        (err instanceof Error ? err.message : 'Erro ao carregar funcionalidades'),
+                        (err instanceof Error
+                            ? err.message
+                            : 'Erro ao carregar funcionalidades'),
                 };
             }
         },

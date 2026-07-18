@@ -246,189 +246,195 @@ export function StepConfigureExercises({
             {/* Groups */}
             <ScrollArea className="flex-1">
                 <div className="p-4 sm:p-6">
-                {/* Add new group */}
-                <button
-                    onClick={addGroup}
-                    className="mb-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
-                >
-                    <List className="h-5 w-5" />
-                    <span className="text-sm font-medium">
-                        Adicionar novo grupo
-                    </span>
-                </button>
+                    {/* Add new group */}
+                    <button
+                        onClick={addGroup}
+                        className="mb-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
+                    >
+                        <List className="h-5 w-5" />
+                        <span className="text-sm font-medium">
+                            Adicionar novo grupo
+                        </span>
+                    </button>
 
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCorners}
-                    onDragStart={handleDragStart}
-                    onDragOver={handleDragOver}
-                    onDragEnd={handleDragEnd}
-                >
-                    <div className="space-y-6">
-                        {groups.map((group) => {
-                            const isCollapsed = collapsedGroups.has(group.id);
-                            return (
-                                <div key={group.id} className="space-y-2">
-                                    {/* Group header */}
-                                    <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-                                        <div className="min-w-0 truncate">
-                                            <EditableGroupName
-                                                name={group.name}
-                                                onRename={(n) =>
-                                                    renameGroup(group.id, n)
-                                                }
-                                            />
-                                        </div>
-                                        <Badge
-                                            variant="secondary"
-                                            className="shrink-0 text-xs"
-                                        >
-                                            {group.exercises.length}
-                                        </Badge>
-                                        <div className="flex-1" />
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 shrink-0 cursor-pointer"
-                                                    onClick={() =>
-                                                        duplicateGroup(group.id)
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCorners}
+                        onDragStart={handleDragStart}
+                        onDragOver={handleDragOver}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <div className="space-y-6">
+                            {groups.map((group) => {
+                                const isCollapsed = collapsedGroups.has(
+                                    group.id,
+                                );
+                                return (
+                                    <div key={group.id} className="space-y-2">
+                                        {/* Group header */}
+                                        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                                            <div className="min-w-0 truncate">
+                                                <EditableGroupName
+                                                    name={group.name}
+                                                    onRename={(n) =>
+                                                        renameGroup(group.id, n)
                                                     }
-                                                >
-                                                    <Copy className="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                Duplicar grupo
-                                            </TooltipContent>
-                                        </Tooltip>
-                                        {groups.length > 1 && (
+                                                />
+                                            </div>
+                                            <Badge
+                                                variant="secondary"
+                                                className="shrink-0 text-xs"
+                                            >
+                                                {group.exercises.length}
+                                            </Badge>
+                                            <div className="flex-1" />
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+                                                        className="h-8 w-8 shrink-0 cursor-pointer"
                                                         onClick={() =>
-                                                            deleteGroup(
+                                                            duplicateGroup(
                                                                 group.id,
                                                             )
                                                         }
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        <Copy className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    Excluir grupo
+                                                    Duplicar grupo
                                                 </TooltipContent>
                                             </Tooltip>
-                                        )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 shrink-0 cursor-pointer"
-                                            onClick={() =>
-                                                toggleGroup(group.id)
-                                            }
-                                        >
-                                            {isCollapsed ? (
-                                                <ChevronDown className="h-4 w-4" />
-                                            ) : (
-                                                <ChevronUp className="h-4 w-4" />
+                                            {groups.length > 1 && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 shrink-0 cursor-pointer text-muted-foreground hover:text-destructive"
+                                                            onClick={() =>
+                                                                deleteGroup(
+                                                                    group.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        Excluir grupo
+                                                    </TooltipContent>
+                                                </Tooltip>
                                             )}
-                                        </Button>
-                                    </div>
-
-                                    {/* Exercises */}
-                                    {!isCollapsed && (
-                                        <DroppableGroupContainer id={group.id}>
-                                            <SortableContext
-                                                items={group.exercises.map(
-                                                    (e) => e.id,
-                                                )}
-                                                strategy={
-                                                    verticalListSortingStrategy
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 shrink-0 cursor-pointer"
+                                                onClick={() =>
+                                                    toggleGroup(group.id)
                                                 }
                                             >
-                                                <div className="space-y-3">
-                                                    {group.exercises.map(
-                                                        (exercise) => (
-                                                            <SortableExerciseRow
-                                                                key={
-                                                                    exercise.id
-                                                                }
-                                                                exercise={
-                                                                    exercise
-                                                                }
-                                                                groupId={
-                                                                    group.id
-                                                                }
-                                                                onEdit={
-                                                                    onEditExercise
-                                                                }
-                                                                onRemove={
-                                                                    removeExercise
-                                                                }
-                                                                onDuplicate={
-                                                                    duplicateExercise
-                                                                }
-                                                            />
-                                                        ),
-                                                    )}
-                                                    {group.exercises.length ===
-                                                        0 && (
-                                                        <div className="flex items-center justify-center rounded-lg border-2 border-dashed py-8 text-sm text-muted-foreground">
-                                                            Arraste exercícios
-                                                            para este grupo
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </SortableContext>
-                                        </DroppableGroupContainer>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                                {isCollapsed ? (
+                                                    <ChevronDown className="h-4 w-4" />
+                                                ) : (
+                                                    <ChevronUp className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        </div>
 
-                    <DragOverlay dropAnimation={null}>
-                        {activeExercise && (
-                            <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 opacity-90 shadow-lg">
-                                <GripVertical className="h-5 w-5 text-muted-foreground/50" />
-                                <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                                    <img
-                                        src={activeExercise.thumbnailUrl}
-                                        alt=""
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-foreground">
-                                        {activeExercise.title}
-                                    </p>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {formatFrequency(activeExercise)}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </DragOverlay>
-                </DndContext>
+                                        {/* Exercises */}
+                                        {!isCollapsed && (
+                                            <DroppableGroupContainer
+                                                id={group.id}
+                                            >
+                                                <SortableContext
+                                                    items={group.exercises.map(
+                                                        (e) => e.id,
+                                                    )}
+                                                    strategy={
+                                                        verticalListSortingStrategy
+                                                    }
+                                                >
+                                                    <div className="space-y-3">
+                                                        {group.exercises.map(
+                                                            (exercise) => (
+                                                                <SortableExerciseRow
+                                                                    key={
+                                                                        exercise.id
+                                                                    }
+                                                                    exercise={
+                                                                        exercise
+                                                                    }
+                                                                    groupId={
+                                                                        group.id
+                                                                    }
+                                                                    onEdit={
+                                                                        onEditExercise
+                                                                    }
+                                                                    onRemove={
+                                                                        removeExercise
+                                                                    }
+                                                                    onDuplicate={
+                                                                        duplicateExercise
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
+                                                        {group.exercises
+                                                            .length === 0 && (
+                                                            <div className="flex items-center justify-center rounded-lg border-2 border-dashed py-8 text-sm text-muted-foreground">
+                                                                Arraste
+                                                                exercícios para
+                                                                este grupo
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </SortableContext>
+                                            </DroppableGroupContainer>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
 
-                {/* Add more exercises */}
-                <button
-                    onClick={onBack}
-                    className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
-                >
-                    <CirclePlus className="h-5 w-5" />
-                    <span className="text-sm font-medium">
-                        Adicionar exercícios
-                    </span>
-                </button>
+                        <DragOverlay dropAnimation={null}>
+                            {activeExercise && (
+                                <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 opacity-90 shadow-lg">
+                                    <GripVertical className="h-5 w-5 text-muted-foreground/50" />
+                                    <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                                        <img
+                                            src={activeExercise.thumbnailUrl}
+                                            alt=""
+                                            className="h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-medium text-foreground">
+                                            {activeExercise.title}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {formatFrequency(activeExercise)}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </DragOverlay>
+                    </DndContext>
+
+                    {/* Add more exercises */}
+                    <button
+                        onClick={onBack}
+                        className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed py-4 text-muted-foreground transition-colors hover:border-muted-foreground hover:text-foreground"
+                    >
+                        <CirclePlus className="h-5 w-5" />
+                        <span className="text-sm font-medium">
+                            Adicionar exercícios
+                        </span>
+                    </button>
                 </div>
             </ScrollArea>
-
         </div>
     );
 }

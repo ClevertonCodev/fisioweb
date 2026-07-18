@@ -1,5 +1,7 @@
+import type { AxiosResponse } from 'axios';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { apiClient } from '@/infrastructure/api/client';
 import { programDraftRepository } from '@/infrastructure/repositories/api-clinic-program-draft';
 
 vi.mock('@/infrastructure/api/client', () => ({
@@ -9,8 +11,6 @@ vi.mock('@/infrastructure/api/client', () => ({
         delete: vi.fn(),
     },
 }));
-
-import { apiClient } from '@/infrastructure/api/client';
 
 const mockGet = vi.mocked(apiClient.get);
 const mockPut = vi.mocked(apiClient.put);
@@ -31,7 +31,7 @@ describe('programDraftRepository', () => {
                     savedAt: 1711840000000,
                 },
             },
-        } as any);
+        } as unknown as AxiosResponse);
 
         const result = await programDraftRepository.get();
 
@@ -53,7 +53,7 @@ describe('programDraftRepository', () => {
                     savedAt: 1,
                 },
             },
-        } as any);
+        } as unknown as AxiosResponse);
 
         await expect(programDraftRepository.get()).resolves.toBeNull();
     });
@@ -65,7 +65,7 @@ describe('programDraftRepository', () => {
     });
 
     it('save envia draft para backend', async () => {
-        mockPut.mockResolvedValueOnce({} as any);
+        mockPut.mockResolvedValueOnce({} as unknown as AxiosResponse);
 
         const draft = {
             step: 3 as const,
@@ -80,7 +80,7 @@ describe('programDraftRepository', () => {
     });
 
     it('discard chama delete no endpoint', async () => {
-        mockDelete.mockResolvedValueOnce({} as any);
+        mockDelete.mockResolvedValueOnce({} as unknown as AxiosResponse);
 
         await programDraftRepository.discard();
 

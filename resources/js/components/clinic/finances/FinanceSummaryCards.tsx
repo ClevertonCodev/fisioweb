@@ -16,7 +16,7 @@ export function FinanceSummaryCards({
     return (
         <div className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
             <div>
-                <p className="text-muted-foreground text-xs">Entradas</p>
+                <p className="text-xs text-muted-foreground">Entradas</p>
                 <p className="text-sm text-emerald-600">
                     Recebido{' '}
                     <FinanceMoneyDisplay
@@ -24,7 +24,7 @@ export function FinanceSummaryCards({
                         hidden={hidden}
                     />
                 </p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                     Pendente{' '}
                     <FinanceMoneyDisplay
                         value={summary?.income.pending ?? 0}
@@ -33,7 +33,7 @@ export function FinanceSummaryCards({
                 </p>
             </div>
             <div className="border-t pt-3">
-                <p className="text-muted-foreground text-xs">Saídas</p>
+                <p className="text-xs text-muted-foreground">Saídas</p>
                 <p className="text-sm text-destructive">
                     Pago{' '}
                     <FinanceMoneyDisplay
@@ -41,7 +41,7 @@ export function FinanceSummaryCards({
                         hidden={hidden}
                     />
                 </p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                     Pendente{' '}
                     <FinanceMoneyDisplay
                         value={summary?.expense.pending ?? 0}
@@ -50,7 +50,7 @@ export function FinanceSummaryCards({
                 </p>
             </div>
             <div className="border-t pt-3">
-                <p className="text-muted-foreground text-xs">Saldo geral</p>
+                <p className="text-xs text-muted-foreground">Saldo geral</p>
                 <p className="font-medium">
                     Disponível{' '}
                     <FinanceMoneyDisplay
@@ -58,7 +58,7 @@ export function FinanceSummaryCards({
                         hidden={hidden}
                     />
                 </p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                     Saldo inicial{' '}
                     <FinanceOpeningBalanceDialog
                         period={period}
@@ -66,7 +66,7 @@ export function FinanceSummaryCards({
                         hidden={hidden}
                     />
                 </p>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-xs text-muted-foreground">
                     Previsto{' '}
                     <FinanceMoneyDisplay
                         value={summary?.forecast ?? 0}

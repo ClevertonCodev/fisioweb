@@ -58,7 +58,9 @@ export default function FinancesTrashPage() {
                                     size="sm"
                                     variant="outline"
                                     className="cursor-pointer"
-                                    onClick={() => restoreMutation.mutate(row.id)}
+                                    onClick={() =>
+                                        restoreMutation.mutate(row.id)
+                                    }
                                 >
                                     Restaurar
                                 </Button>

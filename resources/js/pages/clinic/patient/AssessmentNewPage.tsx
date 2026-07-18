@@ -93,7 +93,7 @@ function FieldPreview({ field }: { field: AssessmentField }) {
                         <span className="shrink-0 text-xs font-bold text-muted-foreground">
                             {letters[i]}.
                         </span>
-                        <span className="min-w-0 flex-1 break-words text-xs">
+                        <span className="min-w-0 flex-1 text-xs break-words">
                             {opt.label}
                         </span>
                     </div>

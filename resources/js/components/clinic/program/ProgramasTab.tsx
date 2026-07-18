@@ -197,7 +197,7 @@ function ProgramDetail({ id }: { id: number }) {
                 ))}
             </div>
 
-            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:fixed sm:right-6 sm:bottom-6 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
                 <Button
                     size="lg"
                     className="w-full cursor-pointer shadow-lg sm:w-auto"
@@ -357,7 +357,7 @@ function MyProgramDetail({ id }: { id: string }) {
                 ))}
             </div>
 
-            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:fixed sm:right-6 sm:bottom-6">
+            <div className="border-t border-border bg-card/80 p-4 backdrop-blur sm:fixed sm:right-6 sm:bottom-6 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
                 <Button
                     size="lg"
                     className="w-full cursor-pointer shadow-lg sm:w-auto"
@@ -391,9 +391,12 @@ export function ProgramasTab({ subTab }: ProgramasTabProps) {
     const listRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    // Ajuste durante o render: trocar de aba volta para a lista no mobile.
+    const [lastSubTab, setLastSubTab] = useState(subTab);
+    if (lastSubTab !== subTab) {
+        setLastSubTab(subTab);
         setMobileShowDetail(false);
-    }, [subTab]);
+    }
 
     const {
         data: libraryData,

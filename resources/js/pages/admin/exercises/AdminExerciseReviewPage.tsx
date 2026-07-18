@@ -23,7 +23,10 @@ export default function AdminExerciseReviewPage() {
                         <h1 className="text-2xl font-semibold text-foreground">
                             Exercícios a revisar
                         </h1>
-                        <BackButton to="/admin/exercicios" className="shrink-0" />
+                        <BackButton
+                            to="/admin/exercicios"
+                            className="shrink-0"
+                        />
                     </div>
                 </header>
 

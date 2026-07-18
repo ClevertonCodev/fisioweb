@@ -191,9 +191,7 @@ function PatientActions({
                 <DropdownMenuItem
                     className="cursor-pointer gap-2"
                     onClick={() =>
-                        onNavigate(
-                            `/clinica/pacientes/${patient.id}/editar`,
-                        )
+                        onNavigate(`/clinica/pacientes/${patient.id}/editar`)
                     }
                 >
                     <Pencil className="h-4 w-4" />
@@ -234,9 +232,7 @@ function PatientActions({
                 <DropdownMenuItem
                     className="cursor-pointer gap-2"
                     onClick={() =>
-                        onNavigate(
-                            `/clinica/agenda?patientId=${patient.id}`,
-                        )
+                        onNavigate(`/clinica/agenda?patientId=${patient.id}`)
                     }
                 >
                     <Calendar className="h-4 w-4" />

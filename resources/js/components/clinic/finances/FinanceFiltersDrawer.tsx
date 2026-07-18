@@ -1,5 +1,5 @@
 import { Filter } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useFinanceCategories } from '@/application/clinic/use-finance-categories';
 import { Button } from '@/components/ui/button';
@@ -41,9 +41,12 @@ export function FinanceFiltersDrawer({
     const [draft, setDraft] = useState<FinanceFilters>(filters);
     const { data: categories = [] } = useFinanceCategories();
 
-    useEffect(() => {
+    // Ajuste durante o render: ao abrir, o rascunho parte dos filtros aplicados.
+    const [lastOpen, setLastOpen] = useState(open);
+    if (lastOpen !== open) {
+        setLastOpen(open);
         if (open) setDraft(filters);
-    }, [open, filters]);
+    }
 
     const apply = () => {
         onApply(draft);

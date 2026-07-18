@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -74,7 +74,10 @@ export function UserNewPage() {
         },
     });
 
-    const documentKind = form.watch('documentKind');
+    const documentKind = useWatch({
+        control: form.control,
+        name: 'documentKind',
+    });
 
     async function onSubmit(values: ClinicUserNewFormValues) {
         try {

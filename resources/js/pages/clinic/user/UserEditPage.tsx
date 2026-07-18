@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -124,7 +124,10 @@ function UserEditForm({
         defaultValues,
     });
 
-    const documentKind = form.watch('documentKind');
+    const documentKind = useWatch({
+        control: form.control,
+        name: 'documentKind',
+    });
 
     async function onSubmit(values: ClinicUserEditFormValues) {
         const payload: ClinicUserUpdateDto = {

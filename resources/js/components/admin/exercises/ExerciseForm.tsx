@@ -89,7 +89,10 @@ export function ExerciseForm({
     onSubmit,
 }: ExerciseFormProps) {
     const navigate = useNavigate();
-    const videos = (options?.videos ?? []) as VideoOption[];
+    const videos = useMemo(
+        () => (options?.videos ?? []) as VideoOption[],
+        [options?.videos],
+    );
     const videoOptions = useMemo<SelectOption[]>(
         () =>
             videos.map((v) => ({

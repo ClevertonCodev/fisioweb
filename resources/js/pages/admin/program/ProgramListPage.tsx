@@ -44,7 +44,10 @@ export default function ProgramListPage() {
         isLoading,
         isError,
     } = useAdminPrograms({ perPage: 200 });
-    const programs: AdminProgram[] = programsData?.data ?? [];
+    const programs: AdminProgram[] = useMemo(
+        () => programsData?.data ?? [],
+        [programsData?.data],
+    );
 
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');

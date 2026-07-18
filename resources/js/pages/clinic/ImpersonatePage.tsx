@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +11,14 @@ export default function ImpersonatePage() {
     const [searchParams] = useSearchParams();
     const { setUser } = useAuth();
 
+    // A chave é consumida (e removida) uma única vez. O ref garante isso mesmo
+    // com as dependências declaradas corretamente.
+    const consumedRef = useRef(false);
+
     useEffect(() => {
+        if (consumedRef.current) return;
+        consumedRef.current = true;
+
         const key = searchParams.get('key');
 
         if (!key || !key.startsWith(IMPERSONATE_KEY_PREFIX)) {
@@ -43,7 +50,7 @@ export default function ImpersonatePage() {
         } catch {
             navigate('/clinica/login', { replace: true });
         }
-    }, []);
+    }, [navigate, searchParams, setUser]);
 
     return null;
 }

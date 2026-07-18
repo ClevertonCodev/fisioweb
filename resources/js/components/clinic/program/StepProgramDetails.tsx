@@ -235,14 +235,6 @@ export function StepProgramDetails({
                         </div>
 
                         <div className="w-full min-w-0">
-                            <div className="mb-2 flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    className="cursor-pointer text-sm text-primary hover:underline"
-                                >
-                                    + Criar modelo de mensagem
-                                </button>
-                            </div>
                             <Textarea
                                 placeholder="Mensagem"
                                 value={message}

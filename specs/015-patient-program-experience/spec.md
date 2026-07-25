@@ -10,7 +10,7 @@
 
 **Input**: User description: "Agora que o frontend da experiência do paciente (lista, detalhe, execução, feedback e conclusão de programa de exercícios) existe com dados mockados, implementar o backend que liga essas telas à fonte de verdade — listar programas do paciente, abrir detalhe por token público, registrar visualização, iniciar/salvar execução (séries e cargas), reportar exercícios não finalizados, enviar feedback e concluir o programa — com isolamento multi-tenant, guard do paciente e fronteiras de módulo limpas. Referência de produto: fluxo Vedius Paciente e `prompt-patient-program-experience.md`."
 
-**Correção de produto (2026-07-25)**: "Copiar o link do programa" deve copiar `/{clinicSlug}/paciente/programas/{publicToken}`. Abrir esse link sem login leva a `/detalhe-programa?id={publicToken}`. O paciente **pode ver o programa sem fazer login**.
+**Correção de produto (2026-07-25)**: "Copiar o link do programa" deve copiar `/{clinicSlug}/paciente/programas/{publicToken}`. Abrir esse link sem login mostra o detalhe **nessa mesma URL**. O paciente **pode ver o programa sem fazer login**. A API devolve `clinic_slug` a partir do token.
 
 ## Overview
 
@@ -19,10 +19,9 @@ O SPA do paciente já possui o fluxo completo de visualização e execução de 
 1. Na área da **clínica**, “Copiar o link do programa” copia a URL estável do deep link, no formato  
    `{origem}/{clinicSlug}/paciente/programas/{publicToken}`  
    (ex.: `http://localhost:8000/clinica-cleverton/paciente/programas/ba08c3d4-78ce-4e25-8ace-b0bcd1b77550`).
-2. Ao **abrir** esse deep link **sem estar logado**, o paciente é conduzido à tela de detalhe em  
-   `/detalhe-programa?id={publicToken}`  
-   (ex.: `http://localhost:8000/detalhe-programa?id=ba08c3d4-78ce-4e25-8ace-b0bcd1b77550`) e **consegue ver o programa**.
-3. Lista, execução, feedback e conclusão permanecem ações do **paciente autenticado** (dono do programa na clínica).
+2. Ao **abrir** esse deep link **sem estar logado**, o paciente vê o detalhe na mesma URL  
+   (ex.: `http://localhost:8000/clinica-cleverton/paciente/programas/ba08c3d4-78ce-4e25-8ace-b0bcd1b77550`).
+3. Lista, execução, feedback e conclusão permanecem ações do **paciente autenticado** (dono do programa na clínica); todas as rotas SPA incluem `clinicSlug`.
 
 O valor de negócio é permitir que o paciente (e quem recebe o link) **consulte** o programa prescrito sem barreira de login, e que o paciente autenticado execute em casa com rastreio de visualização, cargas, exercícios não feitos, feedback e conclusão.
 
@@ -41,7 +40,7 @@ Esta especificação descreve **o que** o sistema deve oferecer e **por quê**; 
 ### Session 2026-07-25 (acesso e link)
 
 - Q: O que “Copiar o link do programa” deve colocar na área de transferência? → A: A URL do deep link `{origem}/{clinicSlug}/paciente/programas/{publicToken}` (não `/detalhe-programa`).
-- Q: O que acontece ao abrir esse deep link sem login? → A: O fluxo abre o detalhe em `/detalhe-programa?id={publicToken}` e o conteúdo do programa é visível **sem autenticação**.
+- Q: O que acontece ao abrir esse deep link sem login? → A: O detalhe abre na URL canônica `/{clinicSlug}/paciente/programas/{publicToken}` **sem autenticação** (API pública pelo token).
 - Q: O paciente precisa estar logado para ver o programa? → A: **Não** — leitura do detalhe (e o necessário para renderizar a tela de detalhe) é pública via token. Login continua necessário para listar “meus programas”, executar, enviar feedback e concluir.
 - Q: O `clinicSlug` no deep link precisa bater com a clínica do plano? → A: No v1 o slug no path é **cosmético**; a resolução do programa é só pelo `publicToken`. A clínica copia sempre o slug correto no “Copiar o link”.
 
@@ -49,15 +48,15 @@ Esta especificação descreve **o que** o sistema deve oferecer e **por quê**; 
 
 ### User Story 1 - Abrir o detalhe pelo deep link (com ou sem login) (Priority: P1)
 
-Uma pessoa abre o link do programa compartilhado pela clínica (`/{clinicSlug}/paciente/programas/{publicToken}`). Se não estiver autenticada como paciente, o sistema a leva para `/detalhe-programa?id={publicToken}` e mostra o detalhe completo do programa (nome, profissional, status, período, mensagem, grupos/exercícios e ações disponíveis conforme o estado). Se já estiver autenticada como o paciente dono, o mesmo conteúdo é apresentado (pode permanecer no deep link ou no detalhe legado — o importante é o conteúdo correto). Ao abrir, o sistema pode registrar visualização quando houver identidade de paciente; se o registro falhar, o detalhe continua utilizável.
+Uma pessoa abre o link do programa compartilhado pela clínica (`/{clinicSlug}/paciente/programas/{publicToken}`). Com ou sem login, vê o detalhe completo nessa URL (nome, profissional, status, período, mensagem, grupos/exercícios e ações). A API resolve o programa (e `clinic_slug`) pelo token. Ao abrir, o sistema pode registrar visualização quando houver identidade de paciente; se o registro falhar, o detalhe continua utilizável.
 
 **Why this priority**: É a entrada do QR/compartilhamento; o produto exige ver o programa **sem login**.
 
-**Independent Test**: Com um programa ativo válido e token conhecido, abrir o deep link em sessão anônima e confirmar redirecionamento para `/detalhe-programa?id={token}` com conteúdo correto; repetir com paciente dono autenticado e confirmar o mesmo conteúdo.
+**Independent Test**: Abrir o deep link em sessão anônima e confirmar detalhe na URL canônica; repetir com paciente dono autenticado.
 
 **Acceptance Scenarios**:
 
-1. **Given** um programa ativo com token público válido, **When** alguém abre `/{clinicSlug}/paciente/programas/{publicToken}` **sem login**, **Then** é conduzido a `/detalhe-programa?id={publicToken}` e vê o detalhe completo (nome, profissional, status, datas, mensagem, grupos, exercícios, prescrições e flags de outcome).
+1. **Given** um programa ativo com token público válido, **When** alguém abre `/{clinicSlug}/paciente/programas/{publicToken}` **sem login**, **Then** vê o detalhe completo nessa URL (nome, profissional, status, datas, mensagem, grupos, exercícios, prescrições e flags de outcome).
 2. **Given** o mesmo token, **When** o detalhe é solicitado sem autenticação (leitura pública), **Then** o sistema devolve os dados necessários para renderizar a tela de detalhe.
 3. **Given** o paciente dono autenticado, **When** abre o mesmo deep link ou o detalhe pelo token, **Then** recebe o mesmo conteúdo do programa e, se aplicável, registra visualização de forma idempotente.
 4. **Given** falha temporária ao registrar a visualização (paciente autenticado), **When** continua na tela, **Then** o detalhe permanece utilizável.
@@ -77,7 +76,7 @@ Na área da clínica, o profissional usa “Copiar o link do programa”. O sist
 **Acceptance Scenarios**:
 
 1. **Given** um programa com `clinicSlug` e `publicToken` válidos, **When** o usuário da clínica copia o link do programa, **Then** o texto copiado é `{origem}/{clinicSlug}/paciente/programas/{publicToken}` (ex.: `http://localhost:8000/clinica-cleverton/paciente/programas/ba08c3d4-78ce-4e25-8ace-b0bcd1b77550`).
-2. **Given** a ação de copiar, **When** o link é obtido, **Then** o texto **não** é `/detalhe-programa?id=…` (essa URL é só o destino de abertura sem login / rota legada de detalhe).
+2. **Given** a ação de copiar, **When** o link é obtido, **Then** o texto é exatamente o deep link com `clinicSlug` + `publicToken`.
 3. **Given** programa sem token público disponível, **When** tenta copiar, **Then** o sistema informa indisponibilidade e não copia URL inválida.
 
 ---
@@ -182,8 +181,8 @@ Após a execução (completa ou parcial) ou a conclusão manual, o paciente **au
 - **FR-003**: O status apresentado ao paciente MUST distinguir, no mínimo: disponível, disponível a partir de uma data, indisponível (ex.: data de início), concluído e inativo.
 - **FR-004**: Programas em rascunho ou não destinados ao paciente MUST NOT aparecer na listagem nem ser legíveis pelo token público.
 - **FR-005**: O sistema MUST permitir obter o detalhe completo de um programa pelo token público **sem exigir login**, incluindo grupos ordenados, exercícios (identificador, nome, mídia quando houver, notas, dias, período) e prescrição (séries, repetições, carga, descanso, duração, manter, intensidade quando existirem).
-- **FR-005a**: Abrir o deep link `/{clinicSlug}/paciente/programas/{publicToken}` sem sessão de paciente MUST conduzir o usuário a `/detalhe-programa?id={publicToken}` com o detalhe utilizável.
-- **FR-005b**: Na área da clínica, “Copiar o link do programa” MUST copiar `{origem}/{clinicSlug}/paciente/programas/{publicToken}` (não `/detalhe-programa?id=…`).
+- **FR-005a**: Abrir o deep link `/{clinicSlug}/paciente/programas/{publicToken}` sem sessão de paciente MUST mostrar o detalhe utilizável nessa URL (sem redirecionar para rota legada).
+- **FR-005b**: Na área da clínica, “Copiar o link do programa” MUST copiar `{origem}/{clinicSlug}/paciente/programas/{publicToken}`.
 - **FR-006**: O detalhe MUST incluir as flags que indicam se as dimensões de outcome dor, dificuldade e satisfação estão habilitadas para aquele programa.
 - **FR-007**: Quando houver paciente autenticado dono do programa, o sistema MUST registrar a visualização ao solicitar esse registro; falha no registro MUST NOT impedir o uso do detalhe. Visitante anônimo MUST poder ver o detalhe mesmo sem registro de visualização autenticado.
 - **FR-008**: O sistema MUST permitir iniciar uma execução de programa disponível apenas para o paciente autenticado dono do programa.
@@ -207,7 +206,7 @@ Após a execução (completa ou parcial) ou a conclusão manual, o paciente **au
 
 - **Programa do paciente**: plano de exercícios atribuído a um paciente em uma clínica, identificado publicamente por token opaco; possui nome, status, período, profissional, mensagem, flags de outcome, grupos e exercícios. O token é o segredo de compartilhamento para leitura.
 - **Deep link do programa**: URL canônica de compartilhamento `/{clinicSlug}/paciente/programas/{publicToken}` — o que a clínica copia.
-- **Rota de detalhe sem login**: `/detalhe-programa?id={publicToken}` — destino de abertura quando não há sessão de paciente.
+- **Rota de detalhe sem login**: `/{clinicSlug}/paciente/programas/{publicToken}` — mesma URL do compartilhamento.
 - **Grupo de exercícios**: bloco nomeado dentro do programa contendo exercícios ordenados.
 - **Exercício prescrito**: item com mídia opcional, notas, dias/período e parâmetros de prescrição (séries, repetições, carga, descanso, etc.).
 - **Visualização**: registro de que o paciente autenticado abriu/viu o programa.
@@ -222,7 +221,7 @@ Após a execução (completa ou parcial) ou a conclusão manual, o paciente **au
 ### Measurable Outcomes
 
 - **SC-001**: 100% dos programas retornados na listagem de um paciente autenticado pertencem exclusivamente a esse paciente e à clínica do contexto (verificado por testes de isolamento).
-- **SC-002**: Visitante **sem login** abre um deep link válido e, via `/detalhe-programa?id={token}`, obtém todos os dados necessários para renderizar a tela de detalhe em uma leitura bem-sucedida.
+- **SC-002**: Visitante **sem login** abre um deep link válido `/{clinicSlug}/paciente/programas/{token}` e obtém todos os dados necessários para renderizar a tela de detalhe em uma leitura bem-sucedida.
 - **SC-002a**: “Copiar o link do programa” na clínica produz exatamente `{origem}/{clinicSlug}/paciente/programas/{publicToken}` em 100% dos casos de teste do link.
 - **SC-003**: Em fluxo feliz (paciente autenticado), o paciente consegue iniciar execução, registrar pelo menos uma série com carga, enviar feedback das dimensões habilitadas e, na etapa seguinte, concluir — com todos os fatos persistidos e visíveis em leitura subsequente, e com status concluído apenas após a etapa de conclusão.
 - **SC-004**: Tentativas cross-patient e cross-clinic em listagem, view autenticada, execução, feedback e conclusão resultam em negação em 100% dos casos de teste de segurança da feature; detalhe anônimo só funciona para o token correto.
@@ -234,8 +233,8 @@ Após a execução (completa ou parcial) ou a conclusão manual, o paciente **au
 
 - Login/autenticação do paciente na clínica e as rotas de deep link / detalhe já existem no SPA; esta feature não refaz onboarding, PIN, reCAPTCHA nem seleção de profissional.
 - **Ver o programa não exige login**; **agir** (listar meus programas, executar, feedback, concluir) exige login do paciente dono.
-- A URL copiada pela clínica é sempre o deep link com `clinicSlug` + `publicToken`; `/detalhe-programa?id=` é o destino de abertura sem login / rota legada de detalhe — não o texto do “Copiar”.
-- No v1, `clinicSlug` no deep link não é validado contra o plano; só o `publicToken` resolve o conteúdo.
+- A URL copiada e a URL de abertura são a mesma: deep link com `clinicSlug` + `publicToken`.
+- O token resolve o programa na API; a resposta inclui `clinic_slug`. Se o slug da URL divergir, o SPA pode realinhar para o slug correto.
 - A prescrição (programa, grupos, exercícios, token público, flags de outcome, `patient_viewed` / contador de conclusões) já é criada/gerida na área da clínica; esta feature consome e atualiza o lado paciente.
 - Programas em rascunho não são visíveis nem executáveis pelo paciente (nem anonimamente).
 - “Concluir manualmente” é permitido para programa disponível e segue para feedback e, em seguida, conclusão (duas etapas), sem exigir séries — com paciente autenticado.

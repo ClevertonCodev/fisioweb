@@ -10,7 +10,7 @@ Entregar a **API paciente** que substitui os mocks do SPA (lista autenticada, **
 
 **Produto — link e acesso**:
 - “Copiar o link do programa” (clínica) → `{app.url}/{clinicSlug}/paciente/programas/{publicToken}`
-- Abrir deep link **sem login** → SPA em `/detalhe-programa?id={publicToken}` com detalhe visível
+- Abrir deep link **sem login** → SPA em `/{clinicSlug}/paciente/programas/{publicToken}` com detalhe visível
 - **Ver programa não exige login**; listar/executar/feedback/concluir exigem JWT `patient` do dono
 
 **Abordagem modular** (`architecture-paradigm-modular-monolith`):

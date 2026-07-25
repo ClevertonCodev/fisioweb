@@ -1,39 +1,35 @@
 import { RouteObject } from 'react-router-dom';
-import PatientProgramListPage from '@/pages/patient/program/PatientProgramListPage';
-import PatientProgramDetailPage from '@/pages/patient/program/PatientProgramDetailPage';
+
 import PatientExerciseDetailPage from '@/pages/patient/program/PatientExerciseDetailPage';
+import PatientProgramDetailPage from '@/pages/patient/program/PatientProgramDetailPage';
 import PatientProgramExecutionPage from '@/pages/patient/program/PatientProgramExecutionPage';
 import PatientProgramFeedbackPage from '@/pages/patient/program/PatientProgramFeedbackPage';
+import PatientProgramListPage from '@/pages/patient/program/PatientProgramListPage';
 import PatientProgramSuccessPage from '@/pages/patient/program/PatientProgramSuccessPage';
-import PatientProgramDeepLinkPage from '@/pages/patient/PatientProgramDeepLinkPage';
 
 export const patientProgramRoutes: RouteObject[] = [
     {
-        path: '/:clinicSlug/paciente/programas/:publicToken',
-        element: <PatientProgramDeepLinkPage />,
-    },
-    {
-        path: '/lista-programas',
+        path: '/:clinicSlug/paciente/programas',
         element: <PatientProgramListPage />,
     },
     {
-        path: '/detalhe-programa',
+        path: '/:clinicSlug/paciente/programas/:publicToken',
         element: <PatientProgramDetailPage />,
     },
     {
-        path: '/detalhe-exercicio',
+        path: '/:clinicSlug/paciente/programas/:publicToken/exercicios/:exerciseId',
         element: <PatientExerciseDetailPage />,
     },
     {
-        path: '/execucao-programa',
+        path: '/:clinicSlug/paciente/programas/:publicToken/executar',
         element: <PatientProgramExecutionPage />,
     },
     {
-        path: '/avaliacao-programa',
+        path: '/:clinicSlug/paciente/programas/:publicToken/executar/feedback',
         element: <PatientProgramFeedbackPage />,
     },
     {
-        path: '/sucesso-programa',
+        path: '/:clinicSlug/paciente/programas/:publicToken/executar/concluido',
         element: <PatientProgramSuccessPage />,
     },
 ];

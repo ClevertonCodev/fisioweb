@@ -1,6 +1,6 @@
 import { apiClient, clearStoredAuth, setStoredAuth } from './client';
 
-export type AuthGuard = 'admin' | 'clinic';
+export type AuthGuard = 'admin' | 'clinic' | 'patient';
 
 export interface LoginCredentials {
     email: string;

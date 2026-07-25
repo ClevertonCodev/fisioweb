@@ -117,6 +117,7 @@ TreatmentPlanExecution 0..1──* TreatmentPlanFeedback
 
 ## Ownership & tenancy
 
-- Todas as queries patient: `clinic_id = auth.clinic_id` AND `patient_id = auth.id` AND resolve plan by `public_token`.
-- Cross-tenant / cross-patient → 404 (sem vazar existência).
+- **Leitura pública (GET detalhe)**: resolve só por `public_token` de plano **não-draft** (e elegível para compartilhamento). **Não** exige JWT nem `patient_id` no request. Quem possui o token vê aquele programa (compartilhamento intencional).
+- **Lista e escritas** (view, execução, unfinished, feedback, complete): `clinic_id = auth.clinic_id` AND `patient_id = auth.id` AND resolve plan by `public_token` do dono. Cross-tenant / cross-patient → 404 (sem vazar existência).
 - Escrita só em tabelas deste módulo; sem escrever em `patients` / `clinics`.
+- Token inválido / draft → 404 na leitura pública (sem vazar outros programas).

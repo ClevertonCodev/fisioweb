@@ -6,7 +6,12 @@
 
 ## Summary
 
-Entregar a **API paciente** que substitui os mocks do SPA (lista, detalhe por `public_token`, visualização, execução com retomada/séries/última carga, feedback e conclusão idempotente), com isolamento `clinic_id` + `patient_id`.
+Entregar a **API paciente** que substitui os mocks do SPA (lista autenticada, **detalhe público por `public_token`**, visualização, execução com retomada/séries/última carga, feedback e conclusão idempotente).
+
+**Produto — link e acesso**:
+- “Copiar o link do programa” (clínica) → `{app.url}/{clinicSlug}/paciente/programas/{publicToken}`
+- Abrir deep link **sem login** → SPA em `/detalhe-programa?id={publicToken}` com detalhe visível
+- **Ver programa não exige login**; listar/executar/feedback/concluir exigem JWT `patient` do dono
 
 **Abordagem modular** (`architecture-paradigm-modular-monolith`):
 
@@ -77,14 +82,14 @@ specs/015-patient-program-experience/
 │   ├── patient-programs-rest.md
 │   └── module-boundaries.md
 ├── checklists/requirements.md
-└── tasks.md                 # /speckit-tasks (ainda não)
+└── tasks.md                 # /speckit-tasks
 ```
 
 ### Source Code (repository root)
 
 ```text
 modules/TreatmentProgram/
-├── routes/patient.php                                    # NOVO — prefix patient/programs, auth:patient
+├── routes/patient.php                                    # NOVO — prefix patient/programs; GET {token} PÚBLICO; resto auth:patient
 ├── app/Providers/…                                       # registrar rotas patient + binds
 ├── database/migrations/
 │   ├── …_add_outcome_flags_to_clinic_treatment_plans.php # NOVO

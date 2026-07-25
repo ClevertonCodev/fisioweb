@@ -4,11 +4,11 @@
 
 ## R1 — Módulo dono da API e dos dados de engajamento
 
-**Decision**: `TreatmentProgram` é dono da API `/api/patient/programs/*`, das migrations de engajamento e das regras de view/execução/feedback/conclusão. `Patient` permanece dono apenas de auth JWT.
+**Decision**: `TreatmentProgram` é dono da API `/api/patient/programs/*`, das migrations de engajamento e das regras de view/execução/feedback/conclusão. `Patient` permanece dono apenas de auth JWT. **`GET …/programs/{publicToken}` é público** (sem `auth:patient`); demais rotas exigem JWT. Share URL da clínica = deep link `/{clinicSlug}/paciente/programas/{token}`; SPA sem sessão redireciona para `/detalhe-programa?id={token}`.
 
 **Rationale**:
 - Prescrição (`clinic_treatment_plans` + groups/exercises/`public_token`/`patient_viewed_at`/`patient_completed_count`) já é ownership do TreatmentProgram (ADR-010).
-- Precedente: Media expõe `routes/patient.php` sob `auth:patient` sem mover dados para o módulo Patient.
+- Precedente: Media expõe `routes/patient.php` sob `auth:patient` sem mover dados para o módulo Patient. **Diferença desta feature**: só o `GET …/programs/{publicToken}` é público; demais rotas seguem `auth:patient`.
 - Evita Patient importar Models/Repositories de TreatmentProgram (cheiro proibido pela skill de monólito modular).
 
 **Alternatives considered**:

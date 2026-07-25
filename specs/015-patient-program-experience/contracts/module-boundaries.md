@@ -17,11 +17,16 @@
 ## Allowed collaboration
 
 ```text
-SPA (apiClient, guard patient)
+SPA (sem JWT)
+  → GET /api/patient/programs/{publicToken}   // detalhe público
+      → GetPatientProgramDetailService
+          → findByPublicToken (não-draft)
+
+SPA (apiClient, guard patient quando autenticado)
   → HTTP TreatmentProgram PatientProgramController
       → UseCase/Service (TreatmentProgram)
           → RepositoryInterface (TreatmentProgram)
-          → auth('patient')->user()  // identity
+          → auth('patient')->user()  // identity nas rotas autenticadas
           → PatientServiceInterface  // ONLY if extra patient read needed
 ```
 

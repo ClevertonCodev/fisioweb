@@ -3,8 +3,8 @@
 **Feature**: `015-patient-program-experience`  
 **Base**: `/api/patient/programs`  
 **Auth**:
-- **Público (sem JWT)**: `GET /{publicToken}` — leitura do detalhe por token (ver programa sem login).
-- **JWT guard `patient`**: listagem, view, execução, unfinished, feedback, complete.
+- **Público (sem JWT, chave = `publicToken` UUID)**: detalhe, view, executions, series, unfinished, feedback, complete.
+- **JWT guard `patient`**: só listagem (`GET /`).
 **Isolation**:
 - Detalhe público: resolve só por `public_token` de plano **não-draft** (não exige `patient_id` no request).
 - Demais rotas: `patient_id` + `clinic_id` do JWT; `{publicToken}` = `clinic_treatment_plans.public_token` (UUID) do dono.

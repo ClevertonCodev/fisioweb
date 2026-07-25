@@ -21,6 +21,7 @@ class RouteServiceProvider extends ServiceProvider
             ->name('api.')
             ->group(function () {
                 require module_path($this->name, '/routes/clinic.php');
+                require module_path($this->name, '/routes/patient.php');
             });
     }
 }

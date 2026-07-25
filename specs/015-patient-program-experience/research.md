@@ -4,7 +4,7 @@
 
 ## R1 — Módulo dono da API e dos dados de engajamento
 
-**Decision**: `TreatmentProgram` é dono da API `/api/patient/programs/*`, das migrations de engajamento e das regras de view/execução/feedback/conclusão. `Patient` permanece dono apenas de auth JWT. **`GET …/programs/{publicToken}` é público** (sem `auth:patient`); demais rotas exigem JWT. Share URL da clínica = deep link `/{clinicSlug}/paciente/programas/{token}`; SPA sem sessão redireciona para `/detalhe-programa?id={token}`.
+**Decision**: `TreatmentProgram` é dono da API `/api/patient/programs/*`, das migrations de engajamento e das regras de view/execução/feedback/conclusão. `Patient` permanece dono apenas de auth JWT. **`GET …/programs/{publicToken}` é público** (sem `auth:patient`); demais rotas exigem JWT. Share URL da clínica = deep link `/{clinicSlug}/paciente/programas/{token}`; SPA sem sessão abre o detalhe nessa URL (API pública pelo token).
 
 **Rationale**:
 - Prescrição (`clinic_treatment_plans` + groups/exercises/`public_token`/`patient_viewed_at`/`patient_completed_count`) já é ownership do TreatmentProgram (ADR-010).

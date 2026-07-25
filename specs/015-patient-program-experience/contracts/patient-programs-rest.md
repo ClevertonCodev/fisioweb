@@ -10,7 +10,7 @@
 - Demais rotas: `patient_id` + `clinic_id` do JWT; `{publicToken}` = `clinic_treatment_plans.public_token` (UUID) do dono.
 
 **Share URL (clínica — “Copiar o link”)**: `{app.url}/{clinicSlug}/paciente/programas/{publicToken}`  
-**Abertura sem login (SPA)**: deep link → `/detalhe-programa?id={publicToken}`
+**Abertura sem login (SPA)**: deep link `/{clinicSlug}/paciente/programas/{publicToken}` (detalhe público; API resolve clínica pelo token / `clinic_slug`)
 
 Envelope de sucesso alinhado ao projeto: preferir `{ "data": … }` onde já for padrão patient/clinic.
 
@@ -30,6 +30,7 @@ Lista programas elegíveis do paciente autenticado (exclui draft).
 | `name` | string | `title` |
 | `professional_name` | string | clinic user |
 | `clinic_name` | string\|null | |
+| `clinic_slug` | string\|null | slug para rotas SPA |
 | `start_date` | date string\|null | ISO date |
 | `end_date` | date string\|null | |
 | `status` | enum | `available\|scheduled\|unavailable\|completed\|inactive` |

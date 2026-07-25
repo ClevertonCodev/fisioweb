@@ -63,12 +63,12 @@ npm run test -- --filter=patient-program   # se houver testes
 composer run dev                           # ou npm run dev + artisan serve
 ```
 
-1. **Sem login**: abrir `$APP_URL/$CLINIC_SLUG/paciente/programas/$PUBLIC_TOKEN` → redireciona para `/detalhe-programa?id=$PUBLIC_TOKEN` e mostra o programa  
-2. Na clínica: “Copiar o link do programa” → clipboard = deep link com `clinicSlug` (não `/detalhe-programa`)  
+1. **Sem login**: abrir `$APP_URL/$CLINIC_SLUG/paciente/programas/$PUBLIC_TOKEN` → detalhe público (API pelo token; `clinic_slug` vem na resposta)  
+2. Na clínica: “Copiar o link” → `$APP_URL/$CLINIC_SLUG/paciente/programas/$PUBLIC_TOKEN`  
 3. Login paciente da clínica do seed  
-4. Abrir `/$CLINIC_SLUG/paciente/programas` — lista real (sem mock)  
-5. Iniciar exercícios → registrar carga → (opcional) não finalizados → feedback → conclusão → sucesso  
-6. Confirmar que mutações `/api/patient/*` enviam Bearer do guard `patient`; GET detalhe funciona sem Bearer  
+4. Abrir `/$CLINIC_SLUG/paciente/programas` — lista  
+5. Fluxo: detalhe → executar → feedback → concluído (sempre com clinicSlug na URL)  
+6. GET detalhe sem Bearer; mutações com Bearer `patient`  
 
 ## Architecture checklist (manual review)
 

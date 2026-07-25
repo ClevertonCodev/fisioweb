@@ -10,9 +10,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { adminRoutes } from '@/routes/admin-routes';
 import { clinicRoutes } from '@/routes/clinic-routes';
+import { patientProgramRoutes } from '@/routes/patient/program-routes';
 
 import NotFound from './pages/NotFound';
-import PatientProgramDeepLinkPage from './pages/patient/PatientProgramDeepLinkPage';
 
 const queryClient = new QueryClient();
 
@@ -21,10 +21,7 @@ const router = createBrowserRouter(
         { path: '/', element: <Navigate to="/clinica/login" replace /> },
         ...clinicRoutes(queryClient),
         adminRoutes,
-        {
-            path: '/:clinicSlug/paciente/programas/:publicToken',
-            element: <PatientProgramDeepLinkPage />,
-        },
+        ...patientProgramRoutes,
         { path: '*', element: <NotFound /> },
     ],
     {

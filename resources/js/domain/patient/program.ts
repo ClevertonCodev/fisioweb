@@ -17,6 +17,7 @@ export interface ExercisePrescription {
 export interface PatientExercise {
     id: string;
     name: string;
+    description?: string;
     videoUrl?: string;
     thumbnailUrl?: string;
     notes?: string;

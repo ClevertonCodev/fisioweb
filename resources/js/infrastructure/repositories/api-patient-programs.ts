@@ -23,6 +23,7 @@ interface ApiPrescription {
 interface ApiExercise {
     id: number | string;
     name: string;
+    description?: string | null;
     video_url?: string | null;
     thumbnail_url?: string | null;
     notes?: string | null;
@@ -131,6 +132,7 @@ function mapExercise(raw: ApiExercise): PatientExercise {
     return {
         id: String(raw.id),
         name: raw.name,
+        description: raw.description ?? undefined,
         videoUrl: raw.video_url ?? undefined,
         thumbnailUrl: raw.thumbnail_url ?? undefined,
         notes: raw.notes ?? undefined,

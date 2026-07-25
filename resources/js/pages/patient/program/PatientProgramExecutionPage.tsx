@@ -168,7 +168,7 @@ export default function PatientProgramExecutionPage() {
                             <iframe
                                 src={exercise.videoUrl}
                                 className="absolute inset-0 z-10 h-full w-full border-0"
-                                allow="autoplay; fullscreen; picture-in-picture"
+                                allow="fullscreen; picture-in-picture"
                                 allowFullScreen
                             ></iframe>
                         ) : (
@@ -247,10 +247,21 @@ export default function PatientProgramExecutionPage() {
                             </div>
                         )}
 
+                        {exercise.description && (
+                            <div className="mt-8 space-y-2">
+                                <h4 className="font-semibold text-slate-900">
+                                    Descrição
+                                </h4>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
+                                    {exercise.description}
+                                </p>
+                            </div>
+                        )}
+
                         {exercise.notes && (
                             <div className="mt-8 space-y-2">
                                 <h4 className="font-semibold text-slate-900">
-                                    Orientações:
+                                    Orientações do fisioterapeuta
                                 </h4>
                                 <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
                                     {exercise.notes}

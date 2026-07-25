@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
                 'clinic_id' => $clinic->id,
                 'name'      => 'Cleverton',
                 'password'  => '12345678',
-                'document'  => '85628325023',
+                'document'  => '123456-F',
                 'role'      => ClinicUser::ROLE_ADMIN,
                 'mestre'    => ClinicUser::MESTRE_YES,
                 'status'    => ClinicUser::STATUS_ACTIVE,

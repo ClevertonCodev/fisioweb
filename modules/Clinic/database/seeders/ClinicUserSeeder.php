@@ -34,22 +34,25 @@ class ClinicUserSeeder extends Seeder
 
         $extras = [
             [
-                'name'   => 'Dra. Ana Paula Ferreira',
-                'email'  => 'ana.paula@fisioelite.com',
-                'role'   => ClinicUser::ROLE_PHYSIOTHERAPIST,
-                'mestre' => ClinicUser::MESTRE_NO,
+                'name'     => 'Dra. Ana Paula Ferreira',
+                'email'    => 'ana.paula@fisioelite.com',
+                'role'     => ClinicUser::ROLE_PHYSIOTHERAPIST,
+                'mestre'   => ClinicUser::MESTRE_NO,
+                'document' => '654321-F', // CREFITO: fisioterapeuta
             ],
             [
-                'name'   => 'Carlos Administrador',
-                'email'  => 'carlos.admin@fisioelite.com',
-                'role'   => ClinicUser::ROLE_ADMIN,
-                'mestre' => ClinicUser::MESTRE_NO,
+                'name'     => 'Carlos Administrador',
+                'email'    => 'carlos.admin@fisioelite.com',
+                'role'     => ClinicUser::ROLE_ADMIN,
+                'mestre'   => ClinicUser::MESTRE_NO,
+                'document' => '12345678901', // CPF
             ],
             [
-                'name'   => 'Mariana Secretária',
-                'email'  => 'mariana.secretaria@fisioelite.com',
-                'role'   => ClinicUser::ROLE_SECRETARY,
-                'mestre' => ClinicUser::MESTRE_NO,
+                'name'     => 'Mariana Secretária',
+                'email'    => 'mariana.secretaria@fisioelite.com',
+                'role'     => ClinicUser::ROLE_SECRETARY,
+                'mestre'   => ClinicUser::MESTRE_NO,
+                'document' => '12345678901', // CPF
             ],
         ];
 
@@ -60,7 +63,7 @@ class ClinicUserSeeder extends Seeder
                     'clinic_id' => $clinic->id,
                     'name'      => $data['name'],
                     'password'  => $devPassword,
-                    'document'  => '12345678901',
+                    'document'  => $data['document'],
                     'role'      => $data['role'],
                     'mestre'    => $data['mestre'],
                     'status'    => ClinicUser::STATUS_ACTIVE,

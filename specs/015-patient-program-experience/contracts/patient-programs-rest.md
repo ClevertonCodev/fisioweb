@@ -2,12 +2,19 @@
 
 **Feature**: `015-patient-program-experience`  
 **Base**: `/api/patient/programs`  
-**Auth**: `Authorization: Bearer` JWT guard `patient`  
-**Isolation**: sempre `patient_id` + `clinic_id` do token; `{publicToken}` = `clinic_treatment_plans.public_token` (UUID)
+**Auth**:
+- **Público (sem JWT)**: `GET /{publicToken}` — leitura do detalhe por token (ver programa sem login).
+- **JWT guard `patient`**: listagem, view, execução, unfinished, feedback, complete.
+**Isolation**:
+- Detalhe público: resolve só por `public_token` de plano **não-draft** (não exige `patient_id` no request).
+- Demais rotas: `patient_id` + `clinic_id` do JWT; `{publicToken}` = `clinic_treatment_plans.public_token` (UUID) do dono.
+
+**Share URL (clínica — “Copiar o link”)**: `{app.url}/{clinicSlug}/paciente/programas/{publicToken}`  
+**Abertura sem login (SPA)**: deep link → `/detalhe-programa?id={publicToken}`
 
 Envelope de sucesso alinhado ao projeto: preferir `{ "data": … }` onde já for padrão patient/clinic.
 
-Erros: `401` não autenticado; `404` token inexistente / outro paciente / outra clínica / draft; `422` validação; `409` opcional para estado inválido de execução (ou `422` com mensagem).
+Erros: `401` não autenticado (rotas autenticadas); `404` token inexistente / draft / (rotas auth) outro paciente / outra clínica; `422` validação; `409` opcional para estado inválido de execução (ou `422` com mensagem).
 
 ---
 
@@ -32,7 +39,8 @@ Lista programas elegíveis do paciente autenticado (exclui draft).
 
 ## GET `/api/patient/programs/{publicToken}`
 
-Detalhe completo.
+Detalhe completo. **Sem autenticação** (público por token).  
+`current_execution` / `last_loads` só quando houver JWT do paciente dono; anônimo → `current_execution: null`.
 
 **Response `200`** — `data`:
 

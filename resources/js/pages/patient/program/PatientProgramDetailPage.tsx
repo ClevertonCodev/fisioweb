@@ -171,18 +171,29 @@ export default function PatientProgramDetailPage() {
                 </div>
 
                 <div className="mb-8 flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#217b7e] text-lg font-medium text-white">
-                        {program.professionalName.charAt(0)}
-                    </div>
+                    {program.professionalPhotoUrl ? (
+                        <img
+                            src={program.professionalPhotoUrl}
+                            alt={program.professionalName}
+                            className="h-12 w-12 shrink-0 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#217b7e] text-lg font-medium text-white">
+                            {program.professionalName.charAt(0)}
+                        </div>
+                    )}
                     <div>
                         <p className="font-medium text-slate-900">
                             {program.professionalName}
                         </p>
-                        {program.clinicName && (
-                            <p className="text-sm text-slate-500">
-                                {program.clinicName}
-                            </p>
-                        )}
+                        <p className="text-sm text-slate-500">
+                            Fisioterapeuta
+                            {program.professionalRegistration &&
+                                /[A-Za-zÀ-ÿ]/u.test(
+                                    program.professionalRegistration,
+                                ) &&
+                                ` (CREFITO: ${program.professionalRegistration})`}
+                        </p>
                     </div>
                 </div>
 

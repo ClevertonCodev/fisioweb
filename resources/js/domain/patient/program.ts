@@ -35,6 +35,8 @@ export interface PatientProgram {
     publicToken: string;
     name: string;
     professionalName: string;
+    professionalPhotoUrl?: string;
+    professionalRegistration?: string;
     clinicName?: string;
     /** Slug da clínica — usado nas rotas canônicas */
     clinicSlug?: string;

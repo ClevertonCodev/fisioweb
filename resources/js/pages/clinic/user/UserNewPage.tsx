@@ -461,7 +461,7 @@ export function UserNewPage() {
                                                                 <Input
                                                                     {...field}
                                                                     autoComplete="off"
-                                                                    placeholder="Ex.: MG-123456 ou SP 123456-G"
+                                                                    placeholder="Ex.: 123456-F"
                                                                 />
                                                             </FormControl>
                                                         ) : (
@@ -488,7 +488,7 @@ export function UserNewPage() {
                                                                 'Informe um CNPJ válido (14 dígitos).'}
                                                             {documentKind ===
                                                                 'crefito' &&
-                                                                'Informe o registro no conselho (UF em letras + número).'}
+                                                                'Informe o registro no conselho (ex.: 123456-F).'}
                                                         </FormDescription>
                                                         <FormMessage />
                                                     </FormItem>

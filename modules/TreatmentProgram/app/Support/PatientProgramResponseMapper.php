@@ -105,6 +105,7 @@ class PatientProgramResponseMapper
         return [
             'id'             => $planExercise->id,
             'name'           => $catalog?->name ?? '',
+            'description'    => $catalog?->description,
             'video_url'      => $video?->cdn_url ?? $video?->url,
             'thumbnail_url'  => $video?->thumbnail_url,
             'notes'          => $planExercise->notes,

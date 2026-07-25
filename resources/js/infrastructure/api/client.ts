@@ -13,12 +13,16 @@ function inferGuardFromApiUrl(url?: string): AuthGuard | null {
     if (!url) return null;
     if (url.startsWith('/admin/') || url === '/admin') return 'admin';
     if (url.startsWith('/clinic/') || url === '/clinic') return 'clinic';
+    if (url.startsWith('/patient/') || url === '/patient') return 'patient';
     return null;
 }
 
 function inferGuardFromPath(path: string): AuthGuard | null {
     if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/clinica')) return 'clinic';
+    if (path.includes('/paciente')) {
+        return 'patient';
+    }
     return null;
 }
 
@@ -62,7 +66,7 @@ export function getStoredAuth(
     }
 
     // Fallback: return any available session
-    for (const g of ['admin', 'clinic'] as AuthGuard[]) {
+    for (const g of ['admin', 'clinic', 'patient'] as AuthGuard[]) {
         const token = localStorage.getItem(tokenKey(g));
         if (token) return { token, guard: g };
     }
@@ -99,6 +103,7 @@ export function clearStoredAuth(guard?: AuthGuard): void {
     } else {
         localStorage.removeItem(tokenKey('admin'));
         localStorage.removeItem(tokenKey('clinic'));
+        localStorage.removeItem(tokenKey('patient'));
         localStorage.removeItem(AUTH_GUARD_KEY);
         sessionStorage.removeItem(SESSION_TOKEN_KEY);
         sessionStorage.removeItem(SESSION_GUARD_KEY);
@@ -106,8 +111,15 @@ export function clearStoredAuth(guard?: AuthGuard): void {
 }
 
 function redirectToLogin(guard: AuthGuard): void {
-    const path = guard === 'admin' ? '/admin/login' : '/clinica/login';
-    window.location.href = path;
+    if (guard === 'admin') {
+        window.location.href = '/admin/login';
+        return;
+    }
+    if (guard === 'clinic') {
+        window.location.href = '/clinica/login';
+        return;
+    }
+    // Patient: sem tela de login dedicada no SPA ainda — não redireciona para clínica
 }
 
 export const apiClient = axios.create({
@@ -145,6 +157,9 @@ apiClient.interceptors.response.use(
 
         const auth = urlGuard ? getStoredAuth(urlGuard) : getStoredAuth();
         if (!auth) {
+            if (urlGuard === 'patient') {
+                return Promise.reject(error);
+            }
             redirectToLogin(urlGuard ?? 'clinic');
             return Promise.reject(error);
         }

@@ -1,16 +1,24 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Loader2, ArrowLeft, PlayCircle } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import { patientProgramExecutePath } from '@/application/patient/patient-program-paths';
 import { usePatientProgram } from '@/application/patient/use-patient-program';
 import { Button } from '@/components/ui/button';
-import { Loader2, ArrowLeft, PlayCircle } from 'lucide-react';
 import { PatientExercise } from '@/domain/patient/program';
 
 export default function PatientExerciseDetailPage() {
-    const [searchParams] = useSearchParams();
-    const publicToken = searchParams.get('id');
-    const exerciseId = searchParams.get('exerciseId');
+    const {
+        clinicSlug = '',
+        publicToken = '',
+        exerciseId = '',
+    } = useParams<{
+        clinicSlug: string;
+        publicToken: string;
+        exerciseId: string;
+    }>();
     const navigate = useNavigate();
 
-    const { data: program, isLoading } = usePatientProgram(publicToken || '');
+    const { data: program, isLoading } = usePatientProgram(publicToken);
 
     if (isLoading) {
         return (
@@ -137,7 +145,15 @@ export default function PatientExerciseDetailPage() {
                     </Button>
                     <Button 
                         className="w-2/3 bg-[#0175C2] hover:bg-[#0165a8]" 
-                        onClick={() => navigate(`/execucao-programa?id=${publicToken}&startAt=${exercise.id}`)}
+                        onClick={() =>
+                            navigate(
+                                patientProgramExecutePath(
+                                    clinicSlug || program.clinicSlug || '',
+                                    publicToken,
+                                    exercise.id,
+                                ),
+                            )
+                        }
                     >
                         <PlayCircle className="mr-2 h-5 w-5" />
                         Iniciar exercícios

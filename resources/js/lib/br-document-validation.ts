@@ -46,15 +46,25 @@ export function isValidCnpj(raw: string): boolean {
     return Number(cnpj[12]) === dv1 && Number(cnpj[13]) === dv2;
 }
 
-/** Registro profissional (CREFITO): UF (2 letras) + número, separadores opcionais. */
+/**
+ * Registro profissional (CREFITO). Aceita:
+ * - formato real: número + sufixo de categoria (F = fisioterapeuta, TO = terapeuta
+ *   ocupacional), com região e prefixo "CREFITO" opcionais.
+ *   Ex.: `123456-F`, `12345-TO`, `3/12345-F`, `CREFITO-3/12345-F`.
+ * - formato legado com UF em letras + número (ex.: `MG-123456`, `SP 123456-G`),
+ *   mantido para não invalidar cadastros antigos.
+ */
 export function isValidCrefitoRegistration(raw: string): boolean {
     const s = raw.trim();
-    if (s.length < 6 || s.length > 30) return false;
+    if (s.length < 3 || s.length > 30) return false;
     if (!/[A-Za-zÀ-ÿ]/u.test(s)) return false;
     const compact = s.replace(/\s+/g, '');
-    return /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u.test(
-        compact,
-    );
+
+    const realFormat = /^(?:CREFITO)?-?(?:\d{1,2}\/)?\d{3,6}-?[A-Za-z]{1,3}$/i;
+    const legacyUfFormat =
+        /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u;
+
+    return realFormat.test(compact) || legacyUfFormat.test(compact);
 }
 
 export type ClinicUserDocumentKind = 'cpf' | 'cnpj' | 'crefito';

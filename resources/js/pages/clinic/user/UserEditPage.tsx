@@ -539,7 +539,7 @@ function UserEditForm({
                                                             <Input
                                                                 {...field}
                                                                 autoComplete="off"
-                                                                placeholder="Ex.: MG-123456 ou SP 123456-G"
+                                                                placeholder="Ex.: 123456-F"
                                                             />
                                                         </FormControl>
                                                     ) : (
@@ -566,7 +566,7 @@ function UserEditForm({
                                                             'Informe um CNPJ válido (14 dígitos).'}
                                                         {documentKind ===
                                                             'crefito' &&
-                                                            'Informe o registro no conselho (UF em letras + número).'}
+                                                            'Informe o registro no conselho (ex.: 123456-F).'}
                                                     </FormDescription>
                                                     <FormMessage />
                                                 </FormItem>

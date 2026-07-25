@@ -41,6 +41,8 @@ interface ApiProgram {
     public_token: string;
     name: string;
     professional_name: string;
+    professional_photo_url?: string | null;
+    professional_registration?: string | null;
     clinic_name?: string | null;
     clinic_slug?: string | null;
     start_date?: string | null;
@@ -156,6 +158,8 @@ function mapProgram(raw: ApiProgram): PatientProgram {
         publicToken: raw.public_token,
         name: raw.name,
         professionalName: raw.professional_name,
+        professionalPhotoUrl: raw.professional_photo_url ?? undefined,
+        professionalRegistration: raw.professional_registration ?? undefined,
         clinicName: raw.clinic_name ?? undefined,
         clinicSlug: raw.clinic_slug ?? undefined,
         startDate: raw.start_date ?? '',

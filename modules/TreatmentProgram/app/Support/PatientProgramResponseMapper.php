@@ -20,12 +20,16 @@ class PatientProgramResponseMapper
         $plan->loadMissing(['clinicUser', 'clinic']);
         $plan->loadCount('exercises');
 
+        $professional = $plan->clinicUser;
+
         return [
-            'public_token'      => $plan->public_token,
-            'name'              => $plan->title,
-            'professional_name' => $plan->clinicUser?->name ?? '',
-            'clinic_name'       => $plan->clinic?->name,
-            'clinic_slug'       => $plan->clinic?->slug,
+            'public_token'              => $plan->public_token,
+            'name'                      => $plan->title,
+            'professional_name'         => $professional?->name ?? '',
+            'professional_photo_url'    => $professional?->photo_url,
+            'professional_registration' => $professional?->document,
+            'clinic_name'               => $plan->clinic?->name,
+            'clinic_slug'               => $plan->clinic?->slug,
             'start_date'        => $plan->start_date?->toDateString(),
             'end_date'          => $plan->end_date?->toDateString(),
             'status'            => $this->statusMapper->map($plan),

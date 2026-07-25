@@ -1,0 +1,95 @@
+import { PatientProgram } from '@/domain/patient/program';
+
+export const mockPrograms: PatientProgram[] = [
+    {
+        publicToken: '70719c3e-a404-4518-b548-fc50ed8a412f',
+        name: 'Teste',
+        professionalName: 'Jarian Rodrigues Pereira de Freitas',
+        clinicName: 'Fisioterapeuta (CREFITO: 361424-F)',
+        startDate: '2026-04-01',
+        endDate: '2026-07-31',
+        status: 'available',
+        message: 'Faça os exercícios com cuidado e respeite seus limites.',
+        outcomePainEnabled: true,
+        outcomeDifficultyEnabled: true,
+        outcomeSatisfactionEnabled: true,
+        groups: [
+            {
+                id: 'g1',
+                name: 'grupo 1',
+                exercises: [
+                    {
+                        id: 'e1',
+                        name: 'Abaixamento do lábio inferior',
+                        videoUrl: 'https://player.vimeo.com/video/76979871?loop=1&muted=1',
+                        thumbnailUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop',
+                        notes: 'Descrição: Inicie sentado com as costas retas, de frente para um espelho e com o rosto relaxado. Em seguida, puxe o lábio inferior para baixo até que você consiga ver seus dentes. Mantenha a posição, depois relaxe e repita. Neste exercício você deverá sentir a musculatura do lábio inferior e pescoço trabalhando.',
+                        days: ['Segunda', 'Quinta', 'Domingo'],
+                        period: ['Manhã', 'Tarde', 'Noite'],
+                        prescription: {
+                            seriesMin: 1,
+                            seriesMax: 3,
+                            repetitionsMin: 5,
+                            repetitionsMax: 8,
+                            intensity: 'Leve',
+                        },
+                    },
+                    {
+                        id: 'e2',
+                        name: 'Abdominal alicate + abre e fecha pernas com cones',
+                        videoUrl: 'https://player.vimeo.com/video/76979871?loop=1&muted=1',
+                        thumbnailUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop',
+                        notes: 'Mantenha a postura.',
+                        days: ['Segunda'],
+                        period: ['Manhã'],
+                        prescription: {
+                            maintainFor: 5,
+                            restTime: 5,
+                            intensity: 'Muito leve',
+                        },
+                    },
+                ],
+            },
+            {
+                id: 'g2',
+                name: 'grupo 2',
+                exercises: [
+                    {
+                        id: 'e3',
+                        name: 'Abdominal bicicleta unilateral',
+                        videoUrl: 'https://player.vimeo.com/video/76979871?loop=1&muted=1',
+                        thumbnailUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop',
+                        notes: 'adad',
+                        days: ['Todos os dias'],
+                        period: ['Tarde'],
+                        prescription: {
+                            seriesMin: 1,
+                            seriesMax: 5,
+                            repetitionsMin: 7,
+                            repetitionsMax: 14,
+                            intensity: 'Muito leve',
+                        },
+                    },
+                    {
+                        id: 'e4',
+                        name: 'Abdominal canivete alternado com apoio nos cotovelos',
+                        videoUrl: 'https://player.vimeo.com/video/76979871?loop=1&muted=1',
+                        thumbnailUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop',
+                        notes: 'adad',
+                        days: ['Segunda', 'Sexta', 'Domingo'],
+                        period: ['Noite'],
+                        prescription: {
+                            seriesMin: 2,
+                            seriesMax: 5,
+                            repetitionsMin: 4,
+                            repetitionsMax: 5,
+                            loadMin: 3,
+                            loadMax: 10,
+                            intensity: 'Muito leve',
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+];

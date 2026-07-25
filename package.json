@@ -110,5 +110,10 @@
         "typescript-eslint": "^8.23.0",
         "vite": "^7.0.7",
         "vitest": "^4.1.0"
+    },
+    "allowScripts": {
+        "esbuild@0.28.1": true,
+        "msw@2.13.5": true,
+        "unrs-resolver@1.11.1": true
     }
 }

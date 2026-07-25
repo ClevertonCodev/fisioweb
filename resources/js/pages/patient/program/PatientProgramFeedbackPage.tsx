@@ -1,18 +1,30 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usePatientProgram, useSubmitProgramFeedback, useCompleteProgram } from '@/application/patient/use-patient-program';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeft, Star } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import {
+    patientProgramsListPath,
+    patientProgramSuccessPath,
+} from '@/application/patient/patient-program-paths';
+import {
+    usePatientProgram,
+    useSubmitProgramFeedback,
+    useCompleteProgram,
+} from '@/application/patient/use-patient-program';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function PatientProgramFeedbackPage() {
-    const [searchParams] = useSearchParams();
-    const publicToken = searchParams.get('id');
+    const { clinicSlug = '', publicToken = '' } = useParams<{
+        clinicSlug: string;
+        publicToken: string;
+    }>();
     const navigate = useNavigate();
 
-    const { data: program, isLoading } = usePatientProgram(publicToken || '');
-    const { mutateAsync: submitFeedback, isPending: isSubmitting } = useSubmitProgramFeedback();
+    const { data: program, isLoading } = usePatientProgram(publicToken);
+    const { mutateAsync: submitFeedback, isPending: isSubmitting } =
+        useSubmitProgramFeedback();
     const { mutateAsync: completeProgram } = useCompleteProgram();
 
     const [pain, setPain] = useState(0);
@@ -21,6 +33,8 @@ export default function PatientProgramFeedbackPage() {
     const [difficultyNotes, setDifficultyNotes] = useState('');
     const [rating, setRating] = useState(0);
     const [ratingNotes, setRatingNotes] = useState('');
+
+    const slug = clinicSlug || program?.clinicSlug || '';
 
     if (isLoading) {
         return (
@@ -35,7 +49,14 @@ export default function PatientProgramFeedbackPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 text-center">
                 <p className="text-destructive">Programa não encontrado.</p>
-                <Button className="mt-4" onClick={() => navigate('/lista-programas')}>Voltar</Button>
+                <Button
+                    className="mt-4"
+                    onClick={() =>
+                        navigate(slug ? patientProgramsListPath(slug) : '/')
+                    }
+                >
+                    Voltar
+                </Button>
             </div>
         );
     }
@@ -46,17 +67,21 @@ export default function PatientProgramFeedbackPage() {
         try {
             await submitFeedback({
                 publicToken,
-                feedback: {
-                    pain,
-                    painNotes,
-                    difficulty,
-                    difficultyNotes,
-                    rating,
-                    ratingNotes,
-                }
+                executionId: program.currentExecutionId,
+                pain,
+                painNotes,
+                difficulty,
+                difficultyNotes,
+                ratingStars: rating,
+                ratingNotes,
+                outcomePainEnabled: program.outcomePainEnabled,
+                outcomeDifficultyEnabled: program.outcomeDifficultyEnabled,
+                outcomeSatisfactionEnabled: program.outcomeSatisfactionEnabled,
             });
             await completeProgram(publicToken);
-            navigate('/sucesso-programa');
+            if (slug) {
+                navigate(patientProgramSuccessPath(slug, publicToken));
+            }
         } catch (error) {
             console.error('Failed to submit feedback', error);
         }

@@ -36,12 +36,17 @@ export interface PatientProgram {
     name: string;
     professionalName: string;
     clinicName?: string;
+    /** Slug da clínica — usado nas rotas canônicas */
+    clinicSlug?: string;
     startDate: string;
     endDate: string;
     status: 'available' | 'scheduled' | 'unavailable' | 'completed' | 'inactive';
     message?: string;
     groups: PatientProgramGroup[];
+    /** Presente na listagem; no detalhe pode ser derivado de groups */
+    exerciseCount?: number;
     outcomePainEnabled: boolean;
     outcomeDifficultyEnabled: boolean;
     outcomeSatisfactionEnabled: boolean;
+    currentExecutionId?: string | null;
 }

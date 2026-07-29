@@ -171,7 +171,7 @@ class FinancialDemoSeeder extends Seeder
 
     private function seedOpeningBalances(Clinic $clinic, ClinicUser $admin): void
     {
-        $now = Carbon::now();
+        $now = Carbon::now()->startOfMonth();
 
         for ($offset = 11; $offset >= 0; $offset--) {
             $period = $now->copy()->subMonths($offset);

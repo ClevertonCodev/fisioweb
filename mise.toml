@@ -1,0 +1,31 @@
+# Infra CLIs for fisioweb.
+#
+# Deliberately narrow: this pins only the tools the deploy path needs.
+# PHP/Node are NOT pinned here because the local development loop is
+# Sail (see compose.yaml) — adding a host toolchain would be a second,
+# competing way to run the app.
+#
+# Setup:
+#   mise install
+#
+# Nix is not here either: it runs inside a Docker harness
+# (infra/nix/nix.sh), which is why infra/SETUP.md lists Docker rather
+# than nix as a prerequisite.
+
+[tools]
+# Decrypts secrets/* and infra/tofu/credentials.env using the age key at
+# ~/.config/sops/age/keys.txt — see .sops.yaml. Pinned to the minor:
+# sops owns the on-disk format of every encrypted file in this repo, so
+# a major bump is a migration, not an upgrade.
+sops = "3.13"
+
+# infra/tofu/main.tf requires >= 1.10.0 (S3 native lockfile + state
+# encryption). Pinned to a tested minor rather than "latest" — tofu
+# writes the state that describes production.
+opentofu = "1.12"
+
+# Not required by any script (sops decrypts age files natively), but
+# `age-keygen` needs to exist when you generate or rotate the operator
+# key that .sops.yaml refers to, and `age` itself is what decrypts a
+# database backup during a restore.
+age = "1.3"

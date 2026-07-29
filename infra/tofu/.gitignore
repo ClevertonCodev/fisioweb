@@ -1,0 +1,29 @@
+.terraform/
+
+# NOTE: .terraform.lock.hcl is deliberately NOT ignored. It pins
+# provider versions + checksums, so committing it is what makes
+# `tofu init` reproducible across machines. OpenTofu itself tells you
+# to commit it.
+
+*.tfstate
+*.tfstate.*
+
+# Manual state snapshots taken before risky operations (e.g. backend migrations).
+# Convention: tfstate-backup-<timestamp>.json
+tfstate-backup-*.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Plaintext .env. The canonical credentials file is credentials.env
+# (committed, sops-encrypted). This entry is a sanity net in case anyone
+# decrypts to a sibling plaintext file.
+.env
+
+# direnv local trust marker
+.direnv/

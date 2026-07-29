@@ -7,6 +7,29 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Infraestrutura e deploy
+
+A infraestrutura de produção (Hetzner Cloud + NixOS + Cloudflare R2) vive
+em [`infra/`](infra/README.md).
+
+| Documento | Para quê |
+| --- | --- |
+| [infra/SETUP.md](infra/SETUP.md) | Instalar do zero, passo a passo |
+| [infra/DEPLOY.md](infra/DEPLOY.md) | Publicar, ver logs, resolver problemas |
+| [infra/DOMINIO.md](infra/DOMINIO.md) | Ligar domínio e HTTPS |
+
+Dia a dia:
+
+```bash
+./infra/nix/deploy.sh --ref main        # publicar
+./infra/nix/artisan.sh migrate --force  # comando do Laravel no servidor
+```
+
+O deploy é sempre rodado da máquina de quem opera — não há publicação
+automática pelo GitHub. Os workflows do CI só rodam lint e testes.
+
+---
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

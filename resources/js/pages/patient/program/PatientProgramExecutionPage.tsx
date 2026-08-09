@@ -1,7 +1,6 @@
 import {
     Activity,
     AlertCircle,
-    ArrowLeft,
     Clock,
     Flame,
     Layers,
@@ -282,23 +281,12 @@ export default function PatientProgramExecutionPage() {
 
     return (
         <div className="flex h-screen flex-col bg-background">
-            <PatientNavbar />
-            <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card/80 px-4 backdrop-blur md:px-8">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => navigate(-1)}
-                >
-                    <ArrowLeft className="mr-1.5 h-4 w-4" /> Sair
-                </Button>
-                <p className="truncate font-serif text-sm text-muted-foreground">
-                    {program.name}
-                </p>
-                <span className="font-mono text-xs text-muted-foreground tabular-nums">
-                    {currentIndex + 1}/{exercises.length}
-                </span>
-            </header>
+            <PatientNavbar
+                title={program.name}
+                current={currentIndex + 1}
+                total={exercises.length}
+                onBack={() => navigate(-1)}
+            />
 
             <div className="scrollbar-thin flex-1 overflow-y-auto">
                 <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-6 md:px-8 lg:grid-cols-[220px_1fr] lg:gap-12 lg:py-10">

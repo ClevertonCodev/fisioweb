@@ -217,7 +217,7 @@ export default function PatientProgramDetailPage() {
                                 patientProgramExecutePath(slug, publicToken),
                             )
                         }
-                        disabled={program.status === 'completed' || !slug}
+                        disabled={!slug}
                     >
                         <Play className="mr-2 h-5 w-5 fill-current" />
                         Iniciar exercícios
@@ -231,7 +231,7 @@ export default function PatientProgramDetailPage() {
                                 patientProgramFeedbackPath(slug, publicToken),
                             )
                         }
-                        disabled={program.status === 'completed' || !slug}
+                        disabled={!slug}
                     >
                         Marcar exercícios como feitos
                     </Button>

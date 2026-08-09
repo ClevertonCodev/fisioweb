@@ -106,18 +106,22 @@ Teste filtrado: `vendor/bin/phpunit --filter=NomeDoTest`
 
 ## Plano ativo
 
-**Feature atual**: `specs/014-program-pdf-download/`
+**Feature atual**: `specs/016-patient-login-area/`
 
 | Artefato | Path |
 |----------|------|
-| Spec | `specs/014-program-pdf-download/spec.md` |
-| Plan | `specs/014-program-pdf-download/plan.md` |
-| Research | `specs/014-program-pdf-download/research.md` |
-| Data model | `specs/014-program-pdf-download/data-model.md` |
-| Quickstart | `specs/014-program-pdf-download/quickstart.md` |
-| Contracts | `specs/014-program-pdf-download/contracts/` |
-| Tasks | `specs/014-program-pdf-download/tasks.md` *(gerar com `/speckit-tasks`)* |
-| Checklist | `specs/014-program-pdf-download/checklists/requirements.md` |
+| Spec | `specs/016-patient-login-area/spec.md` |
+| Plan | `specs/016-patient-login-area/plan.md` |
+| Research | `specs/016-patient-login-area/research.md` |
+| Data model | `specs/016-patient-login-area/data-model.md` |
+| Quickstart | `specs/016-patient-login-area/quickstart.md` |
+| Contracts | `specs/016-patient-login-area/contracts/` |
+| Tasks | `specs/016-patient-login-area/tasks.md` *(gerar com `/speckit-tasks`)* |
+| Checklist | `specs/016-patient-login-area/checklists/requirements.md` |
+
+**Atenção nesta feature**: `modules/Patient/.../AuthController::login` descarta hoje a senha
+digitada (`'password' => $cpf`), de modo que conhecer o CPF autentica o paciente. A correção
+é o núcleo do plano — ver `contracts/patient-auth-rest.md` §2. Ela **não** exige migration.
 
 **Antes de implementar:** leia `plan.md` + `tasks.md` da feature ativa e a skill correspondente ao escopo.
 <!-- SPECKIT END -->

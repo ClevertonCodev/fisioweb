@@ -21,6 +21,7 @@ import {
     useSaveProgramSeries,
     useStartOrResumeExecution,
 } from '@/application/patient/use-patient-program';
+import { PatientNavbar } from '@/components/PatientNavbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -281,6 +282,7 @@ export default function PatientProgramExecutionPage() {
 
     return (
         <div className="flex h-screen flex-col bg-background">
+            <PatientNavbar />
             <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card/80 px-4 backdrop-blur md:px-8">
                 <Button
                     variant="ghost"

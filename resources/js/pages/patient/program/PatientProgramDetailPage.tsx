@@ -1,4 +1,15 @@
-import { Activity, Calendar, Clock, Loader2, Play } from 'lucide-react';
+import {
+    Activity,
+    Calendar,
+    Clock,
+    Loader2,
+    Play,
+    Check,
+    CheckCircle2,
+    ShieldCheck,
+    UserCheck,
+    ChevronDown,
+} from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -12,6 +23,7 @@ import {
     usePatientProgram,
     useRegisterProgramView,
 } from '@/application/patient/use-patient-program';
+import { PatientNavbar } from '@/components/PatientNavbar';
 import {
     Accordion,
     AccordionContent,
@@ -138,79 +150,119 @@ export default function PatientProgramDetailPage() {
     };
 
     return (
-        <div className="scrollbar-thin h-screen overflow-y-auto bg-background">
-            <main className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-10">
-                <header className="mb-8">
-                    <p className="text-[11px] font-semibold tracking-wider text-primary uppercase">
-                        Programa
-                    </p>
-                    <h1 className="mt-1 font-serif text-3xl leading-tight font-semibold text-foreground md:text-4xl">
-                        {program.name}
-                    </h1>
+        <div className="scrollbar-thin h-screen overflow-y-auto bg-background transition-colors duration-200 flex flex-col">
+            <PatientNavbar />
+            <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8 space-y-6 flex-1 w-full">
+                
+                {/* Program Header Info */}
+                <div className="space-y-6">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold tracking-widest text-primary uppercase font-mono bg-accent/60 px-2.5 py-0.5 rounded-md border border-primary/10">
+                                Programa
+                            </span>
+                        </div>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4" />
-                            <span>
-                                <span className="font-mono font-medium text-foreground">
-                                    {totalExercises}
-                                </span>{' '}
-                                exercícios
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>2 – 12 minutos</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span className="tabular-nums">
-                                {program.startDate
-                                    ? new Date(
-                                          program.startDate,
-                                      ).toLocaleDateString('pt-BR')
-                                    : '—'}{' '}
-                                –{' '}
-                                {program.endDate
-                                    ? new Date(
-                                          program.endDate,
-                                      ).toLocaleDateString('pt-BR')
-                                    : '—'}
-                            </span>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight leading-tight">
+                            {program.name}
+                        </h1>
+
+                        <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs sm:text-sm text-muted-foreground pt-1">
+                            <div className="flex items-center gap-1.5 font-medium">
+                                <Activity className="w-4 h-4 text-primary" />
+                                <span>{totalExercises} exercícios</span>
+                            </div>
+
+                            <span className="text-border hidden sm:inline">•</span>
+
+                            <div className="flex items-center gap-1.5 font-medium">
+                                <Clock className="w-4 h-4 text-primary" />
+                                <span>2 – 12 minutos</span>
+                            </div>
+
+                            <span className="text-border hidden sm:inline">•</span>
+
+                            <div className="flex items-center gap-1.5 font-medium">
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span>
+                                    {program.startDate
+                                        ? new Date(
+                                              program.startDate,
+                                          ).toLocaleDateString('pt-BR')
+                                        : '—'}{' '}
+                                    –{' '}
+                                    {program.endDate
+                                        ? new Date(
+                                              program.endDate,
+                                          ).toLocaleDateString('pt-BR')
+                                        : '—'}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </header>
 
-                <div className="mb-8 flex items-center gap-4 rounded-2xl border border-border bg-muted/40 p-4">
-                    {program.professionalPhotoUrl ? (
-                        <img
-                            src={program.professionalPhotoUrl}
-                            alt={program.professionalName}
-                            className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-primary/20"
-                        />
-                    ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-medium text-primary-foreground">
-                            {program.professionalName.charAt(0)}
+                    {/* Physiotherapist Card */}
+                    <div className="p-4 sm:p-4.5 rounded-xl bg-card border border-border shadow-xs hover:shadow-sm transition-all flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3.5">
+                            <div className="relative">
+                                {program.professionalPhotoUrl ? (
+                                    <img
+                                        src={program.professionalPhotoUrl}
+                                        alt={program.professionalName}
+                                        className="w-12 h-12 rounded-full object-cover border-2 border-background ring-2 ring-primary/20 shadow-xs"
+                                    />
+                                ) : (
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-medium text-primary-foreground border-2 border-background ring-2 ring-primary/20 shadow-xs">
+                                        {program.professionalName.charAt(0)}
+                                    </div>
+                                )}
+                                <div
+                                    className="absolute -bottom-0.5 -right-0.5 bg-primary text-primary-foreground p-0.5 rounded-full border border-card"
+                                    title="Profissional Verificado"
+                                >
+                                    <ShieldCheck className="w-3 h-3" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5">
+                                    <h3 className="font-semibold text-foreground text-sm sm:text-base leading-snug">
+                                        {program.professionalName}
+                                    </h3>
+                                    <UserCheck className="w-3.5 h-3.5 text-primary" />
+                                </div>
+                                <p className="text-xs text-muted-foreground font-medium">
+                                    Fisioterapeuta
+                                    {program.professionalRegistration &&
+                                        /[A-Za-zÀ-ÿ]/u.test(
+                                            program.professionalRegistration,
+                                        ) &&
+                                        ` · CREFITO ${program.professionalRegistration}`}
+                                </p>
+                            </div>
                         </div>
-                    )}
-                    <div>
-                        <p className="font-medium text-foreground">
-                            {program.professionalName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Fisioterapeuta
-                            {program.professionalRegistration &&
-                                /[A-Za-zÀ-ÿ]/u.test(
-                                    program.professionalRegistration,
-                                ) &&
-                                ` · CREFITO ${program.professionalRegistration}`}
-                        </p>
+                    </div>
+
+                    {/* Overall Progress Bar */}
+                    <div className="space-y-2 bg-secondary/50 p-3.5 rounded-xl border border-border/60">
+                        <div className="flex items-center justify-between text-xs font-medium">
+                            <span className="text-muted-foreground">Progresso do programa</span>
+                            <span className="text-foreground font-bold">
+                                0 de {totalExercises} concluídos (0%)
+                            </span>
+                        </div>
+                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-primary transition-all duration-500 rounded-full"
+                                style={{ width: '0%' }}
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div className="mb-10 flex flex-col gap-3">
-                    <Button
-                        className="h-12 w-full text-base font-semibold"
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                    <button
                         onClick={() =>
                             slug &&
                             navigate(
@@ -218,13 +270,15 @@ export default function PatientProgramDetailPage() {
                             )
                         }
                         disabled={!slug}
+                        className="w-full relative group overflow-hidden py-3.5 px-6 rounded-xl bg-primary text-primary-foreground font-semibold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg hover:bg-primary/95 transition-all duration-200 cursor-pointer border border-primary/20 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Play className="mr-2 h-5 w-5 fill-current" />
-                        Iniciar exercícios
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="h-12 w-full text-base font-medium"
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center transition-transform group-hover:scale-110">
+                            <Play className="w-3.5 h-3.5 fill-current text-primary-foreground ml-0.5" />
+                        </div>
+                        <span>Iniciar exercícios</span>
+                    </button>
+
+                    <button
                         onClick={() =>
                             slug &&
                             navigate(
@@ -232,97 +286,137 @@ export default function PatientProgramDetailPage() {
                             )
                         }
                         disabled={!slug}
+                        className="w-full py-3 px-6 rounded-xl bg-card hover:bg-secondary text-foreground font-medium text-xs sm:text-sm flex items-center justify-center gap-2 border border-border shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Marcar exercícios como feitos
-                    </Button>
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>Marcar exercícios como feitos</span>
+                    </button>
                 </div>
 
-                <Accordion
-                    type="multiple"
-                    defaultValue={program.groups.map((g) => g.id)}
-                    className="w-full space-y-4"
-                >
-                    {program.groups.map((group) => (
-                        <AccordionItem
-                            key={group.id}
-                            value={group.id}
-                            className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs"
-                        >
-                            <AccordionTrigger className="px-5 py-4 hover:no-underline">
-                                <div className="flex w-full items-center justify-between pr-4">
-                                    <span className="font-serif text-lg font-semibold text-foreground">
-                                        {group.name}
-                                    </span>
-                                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-accent px-2 font-mono text-xs font-medium text-accent-foreground">
-                                        {group.exercises.length}
-                                    </span>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-3 pt-0 pb-3">
-                                <div className="flex flex-col gap-2">
-                                    {group.exercises.map((exercise) => (
-                                        <button
-                                            key={exercise.id}
-                                            type="button"
-                                            className="flex w-full cursor-pointer flex-col gap-4 rounded-xl p-2 text-left transition-colors hover:bg-accent/50 sm:flex-row"
-                                            onClick={() =>
-                                                slug &&
-                                                navigate(
-                                                    patientExerciseDetailPath(
-                                                        slug,
-                                                        publicToken,
-                                                        exercise.id,
-                                                    ),
-                                                )
-                                            }
-                                        >
-                                            <div className="relative flex h-32 w-full shrink-0 overflow-hidden rounded-md sm:w-40">
-                                                <div className="w-1/3 bg-primary"></div>
-                                                <div className="w-2/3 bg-muted">
-                                                    {exercise.thumbnailUrl && (
-                                                        <img
-                                                            src={
-                                                                exercise.thumbnailUrl
-                                                            }
-                                                            alt={exercise.name}
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <Play className="h-10 w-10 fill-white text-white opacity-90 drop-shadow-md" />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-1 flex-col justify-center">
-                                                <h3 className="font-semibold text-foreground">
-                                                    {exercise.name}
-                                                </h3>
-                                                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                                    {formatPrescription(
-                                                        exercise,
-                                                    )}
-                                                </p>
-                                                {exercise.notes && (
-                                                    <p className="mt-2 text-sm text-foreground/80">
-                                                        <span className="font-semibold">
-                                                            Orientações:
-                                                        </span>{' '}
-                                                        {exercise.notes.replace(
-                                                            'Descrição: ',
-                                                            '',
+                {/* 2 Groups Accordion with Inline Exercise Cards */}
+                <div className="pt-2">
+                    <Accordion
+                        type="multiple"
+                        defaultValue={program.groups.map((g) => g.id)}
+                        className="space-y-4"
+                    >
+                        {program.groups.map((group) => (
+                            <AccordionItem
+                                key={group.id}
+                                value={group.id}
+                                className="rounded-2xl bg-card border border-border shadow-2xs overflow-hidden transition-all duration-200"
+                            >
+                                <AccordionTrigger className="p-4 sm:p-5 hover:bg-secondary/40 transition-colors group hover:no-underline">
+                                    <div className="flex w-full items-center justify-between pr-4">
+                                        <span className="font-serif font-bold text-lg sm:text-xl text-foreground leading-none">
+                                            {group.name}
+                                        </span>
+                                        <div className="w-6 h-6 rounded-full bg-accent/80 text-accent-foreground text-xs font-sans font-bold flex items-center justify-center border border-primary/10">
+                                            {group.exercises.length}
+                                        </div>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-3 sm:px-4 pt-1 pb-3 sm:pb-4 border-t border-border/50 bg-background/50">
+                                    <div className="flex flex-col gap-3 mt-3">
+                                        {group.exercises.map((exercise) => (
+                                            <div
+                                                key={exercise.id}
+                                                className="rounded-xl border bg-card hover:bg-secondary/30 border-border shadow-2xs transition-all duration-300 overflow-hidden"
+                                            >
+                                                <div className="p-3 sm:p-3.5 flex items-center gap-3.5 sm:gap-4">
+                                                    <div
+                                                        onClick={() =>
+                                                            slug &&
+                                                            navigate(
+                                                                patientExerciseDetailPath(
+                                                                    slug,
+                                                                    publicToken,
+                                                                    exercise.id,
+                                                                ),
+                                                            )
+                                                        }
+                                                        className="relative w-28 sm:w-32 h-20 sm:h-22 rounded-lg overflow-hidden shrink-0 bg-muted cursor-pointer group/thumb"
+                                                    >
+                                                        {exercise.thumbnailUrl && (
+                                                            <img
+                                                                src={
+                                                                    exercise.thumbnailUrl
+                                                                }
+                                                                alt={exercise.name}
+                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-105"
+                                                            />
                                                         )}
-                                                    </p>
-                                                )}
+                                                        <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-primary" />
+                                                        <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/30 flex items-center justify-center transition-colors">
+                                                            <div className="w-8 h-8 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
+                                                                <Play className="w-4 h-4 fill-current ml-0.5" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0 space-y-1">
+                                                        <h4
+                                                            onClick={() =>
+                                                                slug &&
+                                                                navigate(
+                                                                    patientExerciseDetailPath(
+                                                                        slug,
+                                                                        publicToken,
+                                                                        exercise.id,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            className="font-semibold text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors text-foreground"
+                                                        >
+                                                            {exercise.name}
+                                                        </h4>
+                                                        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                                                            {formatPrescription(
+                                                                exercise,
+                                                            )}
+                                                        </p>
+                                                        {exercise.notes && (
+                                                            <p className="text-xs text-foreground/80 mt-1 line-clamp-1">
+                                                                <span className="font-semibold">
+                                                                    Orientações:
+                                                                </span>{' '}
+                                                                {exercise.notes.replace(
+                                                                    'Descrição: ',
+                                                                    '',
+                                                                )}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="shrink-0 flex items-center gap-2">
+                                                        <button
+                                                            onClick={() =>
+                                                                slug &&
+                                                                navigate(
+                                                                    patientExerciseDetailPath(
+                                                                        slug,
+                                                                        publicToken,
+                                                                        exercise.id,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            title="Ver exercício"
+                                                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer border bg-card hover:bg-accent hover:border-primary/30 text-muted-foreground border-border"
+                                                        >
+                                                            <Check className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </div>
             </main>
         </div>
     );
 }
+

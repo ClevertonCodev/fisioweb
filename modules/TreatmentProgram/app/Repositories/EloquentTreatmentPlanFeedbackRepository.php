@@ -23,11 +23,9 @@ class EloquentTreatmentPlanFeedbackRepository implements TreatmentPlanFeedbackRe
             ->where('patient_id', $patientId);
 
         if (!is_null($executionId)) {
-            // Aceita feedback ligado à execução ou "concluir manualmente" sem execution_id
-            $query->where(function ($q) use ($executionId) {
-                $q->where('execution_id', $executionId)
-                    ->orWhereNull('execution_id');
-            });
+            $query->where('execution_id', $executionId);
+        } else {
+            $query->whereNull('execution_id');
         }
 
         return $query->exists();

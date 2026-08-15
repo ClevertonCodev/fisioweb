@@ -1,14 +1,13 @@
 import {
     Activity,
+    ArrowLeft,
     Calendar,
+    Check,
+    CheckCircle2,
     Clock,
     Loader2,
     Play,
-    Check,
-    CheckCircle2,
-    ShieldCheck,
     UserCheck,
-    ChevronDown,
 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -31,6 +30,7 @@ import {
     AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { VideoThumb } from '@/components/VideoThumb';
 import { PatientExercise } from '@/domain/patient/program';
 
 export default function PatientProgramDetailPage() {
@@ -150,40 +150,54 @@ export default function PatientProgramDetailPage() {
     };
 
     return (
-        <div className="scrollbar-thin h-screen overflow-y-auto bg-background transition-colors duration-200 flex flex-col">
+        <div className="scrollbar-thin flex h-screen flex-col overflow-y-auto bg-background transition-colors duration-200">
             <PatientNavbar />
-            <main className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8 space-y-6 flex-1 w-full">
-                
+            <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+                {slug && (
+                    <button
+                        type="button"
+                        onClick={() => navigate(listPath)}
+                        className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Meus programas
+                    </button>
+                )}
+
                 {/* Program Header Info */}
                 <div className="space-y-6">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold tracking-widest text-primary uppercase font-mono bg-accent/60 px-2.5 py-0.5 rounded-md border border-primary/10">
+                            <span className="rounded-md border border-primary/10 bg-accent/60 px-2.5 py-0.5 font-mono text-[11px] font-bold tracking-widest text-primary uppercase">
                                 Programa
                             </span>
                         </div>
 
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-foreground tracking-tight leading-tight">
+                        <h1 className="font-serif text-2xl leading-tight font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
                             {program.name}
                         </h1>
 
-                        <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs sm:text-sm text-muted-foreground pt-1">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 text-xs text-muted-foreground sm:text-sm">
                             <div className="flex items-center gap-1.5 font-medium">
-                                <Activity className="w-4 h-4 text-primary" />
+                                <Activity className="h-4 w-4 text-primary" />
                                 <span>{totalExercises} exercícios</span>
                             </div>
 
-                            <span className="text-border hidden sm:inline">•</span>
+                            <span className="hidden text-border sm:inline">
+                                •
+                            </span>
 
                             <div className="flex items-center gap-1.5 font-medium">
-                                <Clock className="w-4 h-4 text-primary" />
+                                <Clock className="h-4 w-4 text-primary" />
                                 <span>2 – 12 minutos</span>
                             </div>
 
-                            <span className="text-border hidden sm:inline">•</span>
+                            <span className="hidden text-border sm:inline">
+                                •
+                            </span>
 
                             <div className="flex items-center gap-1.5 font-medium">
-                                <Calendar className="w-4 h-4 text-primary" />
+                                <Calendar className="h-4 w-4 text-primary" />
                                 <span>
                                     {program.startDate
                                         ? new Date(
@@ -202,36 +216,28 @@ export default function PatientProgramDetailPage() {
                     </div>
 
                     {/* Physiotherapist Card */}
-                    <div className="p-4 sm:p-4.5 rounded-xl bg-card border border-border shadow-xs hover:shadow-sm transition-all flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-xs transition-all hover:shadow-sm sm:p-4.5">
                         <div className="flex items-center gap-3.5">
-                            <div className="relative">
-                                {program.professionalPhotoUrl ? (
-                                    <img
-                                        src={program.professionalPhotoUrl}
-                                        alt={program.professionalName}
-                                        className="w-12 h-12 rounded-full object-cover border-2 border-background ring-2 ring-primary/20 shadow-xs"
-                                    />
-                                ) : (
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-medium text-primary-foreground border-2 border-background ring-2 ring-primary/20 shadow-xs">
-                                        {program.professionalName.charAt(0)}
-                                    </div>
-                                )}
-                                <div
-                                    className="absolute -bottom-0.5 -right-0.5 bg-primary text-primary-foreground p-0.5 rounded-full border border-card"
-                                    title="Profissional Verificado"
-                                >
-                                    <ShieldCheck className="w-3 h-3" />
+                            {program.professionalPhotoUrl ? (
+                                <img
+                                    src={program.professionalPhotoUrl}
+                                    alt={program.professionalName}
+                                    className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-xs ring-2 ring-primary/20"
+                                />
+                            ) : (
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-background bg-primary text-lg font-medium text-primary-foreground shadow-xs ring-2 ring-primary/20">
+                                    {program.professionalName.charAt(0)}
                                 </div>
-                            </div>
+                            )}
 
                             <div className="space-y-0.5">
                                 <div className="flex items-center gap-1.5">
-                                    <h3 className="font-semibold text-foreground text-sm sm:text-base leading-snug">
+                                    <h3 className="text-sm leading-snug font-semibold text-foreground sm:text-base">
                                         {program.professionalName}
                                     </h3>
-                                    <UserCheck className="w-3.5 h-3.5 text-primary" />
+                                    <UserCheck className="h-3.5 w-3.5 text-primary" />
                                 </div>
-                                <p className="text-xs text-muted-foreground font-medium">
+                                <p className="text-xs font-medium text-muted-foreground">
                                     Fisioterapeuta
                                     {program.professionalRegistration &&
                                         /[A-Za-zÀ-ÿ]/u.test(
@@ -244,16 +250,18 @@ export default function PatientProgramDetailPage() {
                     </div>
 
                     {/* Overall Progress Bar */}
-                    <div className="space-y-2 bg-secondary/50 p-3.5 rounded-xl border border-border/60">
+                    <div className="space-y-2 rounded-xl border border-border/60 bg-secondary/50 p-3.5">
                         <div className="flex items-center justify-between text-xs font-medium">
-                            <span className="text-muted-foreground">Progresso do programa</span>
-                            <span className="text-foreground font-bold">
+                            <span className="text-muted-foreground">
+                                Progresso do programa
+                            </span>
+                            <span className="font-bold text-foreground">
                                 0 de {totalExercises} concluídos (0%)
                             </span>
                         </div>
-                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                                className="h-full bg-primary transition-all duration-500 rounded-full"
+                                className="h-full rounded-full bg-primary transition-all duration-500"
                                 style={{ width: '0%' }}
                             />
                         </div>
@@ -270,10 +278,10 @@ export default function PatientProgramDetailPage() {
                             )
                         }
                         disabled={!slug}
-                        className="w-full relative group overflow-hidden py-3.5 px-6 rounded-xl bg-primary text-primary-foreground font-semibold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg hover:bg-primary/95 transition-all duration-200 cursor-pointer border border-primary/20 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-primary/20 bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/95 hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
                     >
-                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <Play className="w-3.5 h-3.5 fill-current text-primary-foreground ml-0.5" />
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:scale-110">
+                            <Play className="ml-0.5 h-3.5 w-3.5 fill-current text-primary-foreground" />
                         </div>
                         <span>Iniciar exercícios</span>
                     </button>
@@ -286,9 +294,9 @@ export default function PatientProgramDetailPage() {
                             )
                         }
                         disabled={!slug}
-                        className="w-full py-3 px-6 rounded-xl bg-card hover:bg-secondary text-foreground font-medium text-xs sm:text-sm flex items-center justify-center gap-2 border border-border shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-xs font-medium text-foreground shadow-2xs transition-all hover:bg-secondary hover:shadow-xs active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
                     >
-                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                         <span>Marcar exercícios como feitos</span>
                     </button>
                 </div>
@@ -304,57 +312,40 @@ export default function PatientProgramDetailPage() {
                             <AccordionItem
                                 key={group.id}
                                 value={group.id}
-                                className="rounded-2xl bg-card border border-border shadow-2xs overflow-hidden transition-all duration-200"
+                                className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs transition-all duration-200"
                             >
-                                <AccordionTrigger className="p-4 sm:p-5 hover:bg-secondary/40 transition-colors group hover:no-underline">
+                                <AccordionTrigger className="group p-4 transition-colors hover:bg-secondary/40 hover:no-underline sm:p-5">
                                     <div className="flex w-full items-center justify-between pr-4">
-                                        <span className="font-serif font-bold text-lg sm:text-xl text-foreground leading-none">
+                                        <span className="font-serif text-lg leading-none font-bold text-foreground sm:text-xl">
                                             {group.name}
                                         </span>
-                                        <div className="w-6 h-6 rounded-full bg-accent/80 text-accent-foreground text-xs font-sans font-bold flex items-center justify-center border border-primary/10">
+                                        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/10 bg-accent/80 font-sans text-xs font-bold text-accent-foreground">
                                             {group.exercises.length}
                                         </div>
                                     </div>
                                 </AccordionTrigger>
-                                <AccordionContent className="px-3 sm:px-4 pt-1 pb-3 sm:pb-4 border-t border-border/50 bg-background/50">
-                                    <div className="flex flex-col gap-3 mt-3">
+                                <AccordionContent className="border-t border-border/50 bg-background/50 px-3 pt-1 pb-3 sm:px-4 sm:pb-4">
+                                    <div className="mt-3 flex flex-col gap-3">
                                         {group.exercises.map((exercise) => (
                                             <div
                                                 key={exercise.id}
-                                                className="rounded-xl border bg-card hover:bg-secondary/30 border-border shadow-2xs transition-all duration-300 overflow-hidden"
+                                                className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs transition-all duration-300 hover:bg-secondary/30"
                                             >
-                                                <div className="p-3 sm:p-3.5 flex items-center gap-3.5 sm:gap-4">
-                                                    <div
-                                                        onClick={() =>
-                                                            slug &&
-                                                            navigate(
-                                                                patientExerciseDetailPath(
-                                                                    slug,
-                                                                    publicToken,
-                                                                    exercise.id,
-                                                                ),
-                                                            )
-                                                        }
-                                                        className="relative w-28 sm:w-32 h-20 sm:h-22 rounded-lg overflow-hidden shrink-0 bg-muted cursor-pointer group/thumb"
-                                                    >
-                                                        {exercise.thumbnailUrl && (
-                                                            <img
-                                                                src={
-                                                                    exercise.thumbnailUrl
-                                                                }
-                                                                alt={exercise.name}
-                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-105"
-                                                            />
-                                                        )}
-                                                        <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-primary" />
-                                                        <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/30 flex items-center justify-center transition-colors">
-                                                            <div className="w-8 h-8 rounded-full bg-white/90 text-primary flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
-                                                                <Play className="w-4 h-4 fill-current ml-0.5" />
-                                                            </div>
-                                                        </div>
+                                                <div className="flex items-center gap-3.5 p-3 sm:gap-4 sm:p-3.5">
+                                                    {/* Padrão do sistema (ProgramasTab/StepConfigureExercises):
+                                                        quadrado + VideoThumb com play inline. */}
+                                                    <div className="group relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-24">
+                                                        <VideoThumb
+                                                            videoUrl={
+                                                                exercise.videoUrl
+                                                            }
+                                                            thumbnailUrl={
+                                                                exercise.thumbnailUrl
+                                                            }
+                                                        />
                                                     </div>
 
-                                                    <div className="flex-1 min-w-0 space-y-1">
+                                                    <div className="min-w-0 flex-1 space-y-1">
                                                         <h4
                                                             onClick={() =>
                                                                 slug &&
@@ -366,17 +357,17 @@ export default function PatientProgramDetailPage() {
                                                                     ),
                                                                 )
                                                             }
-                                                            className="font-semibold text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors text-foreground"
+                                                            className="cursor-pointer text-sm leading-tight font-semibold text-foreground transition-colors hover:text-primary sm:text-base"
                                                         >
                                                             {exercise.name}
                                                         </h4>
-                                                        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
+                                                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
                                                             {formatPrescription(
                                                                 exercise,
                                                             )}
                                                         </p>
                                                         {exercise.notes && (
-                                                            <p className="text-xs text-foreground/80 mt-1 line-clamp-1">
+                                                            <p className="mt-1 line-clamp-1 text-xs text-foreground/80">
                                                                 <span className="font-semibold">
                                                                     Orientações:
                                                                 </span>{' '}
@@ -388,7 +379,7 @@ export default function PatientProgramDetailPage() {
                                                         )}
                                                     </div>
 
-                                                    <div className="shrink-0 flex items-center gap-2">
+                                                    <div className="flex shrink-0 items-center gap-2">
                                                         <button
                                                             onClick={() =>
                                                                 slug &&
@@ -401,9 +392,9 @@ export default function PatientProgramDetailPage() {
                                                                 )
                                                             }
                                                             title="Ver exercício"
-                                                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer border bg-card hover:bg-accent hover:border-primary/30 text-muted-foreground border-border"
+                                                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-all hover:border-primary/30 hover:bg-accent sm:h-9 sm:w-9"
                                                         >
-                                                            <Check className="w-4 h-4" />
+                                                            <Check className="h-4 w-4" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -419,4 +410,3 @@ export default function PatientProgramDetailPage() {
         </div>
     );
 }
-

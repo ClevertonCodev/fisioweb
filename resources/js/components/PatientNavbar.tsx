@@ -1,13 +1,34 @@
-import { Activity, ArrowLeft, LogIn, Moon, Sun } from 'lucide-react';
+import { Activity, ArrowLeft, LogIn, LogOut, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
+import { patientLoginPathWithNext } from '@/application/patient/patient-auth-paths';
+import {
+    isPatientProgramsListPath,
+    patientProgramsListPath,
+} from '@/application/patient/patient-program-paths';
 import { Button } from '@/components/ui/button';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from '@/components/ui/avatar';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { useAuth } from '@/contexts/AuthContext';
+import { isPatientAreaPath } from '@/infrastructure/api/client';
+import { cn } from '@/lib/utils';
 
 interface PatientNavbarProps {
     title?: string;
     current?: number;
     total?: number;
     onBack?: () => void;
+    /** Oculta "Entrar"/menu — usado na própria tela de login. */
+    hideAuthAction?: boolean;
 }
 
 export function PatientNavbar({
@@ -15,9 +36,13 @@ export function PatientNavbar({
     current,
     total,
     onBack,
+    hideAuthAction = false,
 }: PatientNavbarProps) {
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { clinicSlug } = useParams<{ clinicSlug?: string }>();
+    const { isAuthenticated, guard, user, logout, isLoading } = useAuth();
 
     useEffect(() => {
         if (isDarkMode) {
@@ -28,27 +53,71 @@ export function PatientNavbar({
     }, [isDarkMode]);
 
     const isContextMode = !!title;
+    const isPatientArea = isPatientAreaPath(location.pathname);
+    const isPatientLogged = isAuthenticated && guard === 'patient';
+    const isRestoringSession = isLoading && isPatientArea;
+    const isOnProgramList =
+        !!clinicSlug && isPatientProgramsListPath(location.pathname);
+
+    const goToProgramList = () => {
+        if (clinicSlug) {
+            navigate(patientProgramsListPath(clinicSlug));
+        }
+    };
+
+    const goToLogin = () => {
+        // Registra de onde o paciente veio, para voltar depois de entrar.
+        const current = `${location.pathname}${location.search}`;
+        navigate(patientLoginPathWithNext(clinicSlug, current));
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout('patient');
+        } finally {
+            navigate(
+                clinicSlug
+                    ? `/${clinicSlug}/paciente/programas`
+                    : '/paciente/login',
+                { replace: true },
+            );
+        }
+    };
+
+    const firstName = user?.name?.split(' ')[0] ?? 'Paciente';
 
     return (
-        <header className="sticky top-0 z-30 border-b border-border bg-card/80 backdrop-blur-md transition-colors shadow-2xs">
-            <div className="mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {/* Logo/Brand (sempre visível) */}
-                    <div className="flex items-center gap-3 shrink-0">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-                            <Activity className="w-5.5 h-5.5 stroke-[2.2]" />
+        <header className="sticky top-0 z-30 border-b border-border bg-card/80 shadow-2xs backdrop-blur-md transition-colors">
+            <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    {/* Logo/Brand — leva à lista quando fora dela */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (!isOnProgramList) goToProgramList();
+                        }}
+                        disabled={isOnProgramList || !clinicSlug}
+                        aria-label={
+                            isOnProgramList
+                                ? 'FisioKine'
+                                : 'Ir para meus programas'
+                        }
+                        className={cn(
+                            'flex shrink-0 items-center gap-3 rounded-xl border-0 bg-transparent p-0 text-left',
+                            !isOnProgramList &&
+                                clinicSlug &&
+                                'cursor-pointer transition-colors hover:opacity-80',
+                        )}
+                    >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-xs">
+                            <Activity className="h-5.5 w-5.5 stroke-[2.2]" />
                         </div>
                         <div className="hidden sm:block">
-                            <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-foreground tracking-tight text-base font-sans">
-                                    FisioKine
-                                </span>
-                                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                                    Paciente
-                                </span>
-                            </div>
+                            <span className="font-sans text-base font-semibold tracking-tight text-foreground">
+                                FisioKine
+                            </span>
                         </div>
-                    </div>
+                    </button>
 
                     {/* Context Mode: Back button + Title (centro) */}
                     {isContextMode && (
@@ -71,12 +140,12 @@ export function PatientNavbar({
                 </div>
 
                 {/* Actions (direita) */}
-                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                     {/* Counter */}
                     {isContextMode &&
                         current !== undefined &&
                         total !== undefined && (
-                            <span className="font-mono text-xs text-muted-foreground tabular-nums hidden sm:inline">
+                            <span className="hidden font-mono text-xs text-muted-foreground tabular-nums sm:inline">
                                 {current}/{total}
                             </span>
                         )}
@@ -85,23 +154,78 @@ export function PatientNavbar({
                     <button
                         onClick={() => setIsDarkMode(!isDarkMode)}
                         title={isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
-                        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all cursor-pointer"
+                        className="cursor-pointer rounded-lg border border-transparent p-2 text-muted-foreground transition-all hover:border-border hover:bg-secondary hover:text-foreground"
                     >
                         {isDarkMode ? (
-                            <Sun className="w-4.5 h-4.5" />
+                            <Sun className="h-4.5 w-4.5" />
                         ) : (
-                            <Moon className="w-4.5 h-4.5" />
+                            <Moon className="h-4.5 w-4.5" />
                         )}
                     </button>
 
-                    {/* Login Button */}
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors shadow-xs cursor-pointer"
-                    >
-                        <LogIn className="w-4 h-4" />
-                        <span className="hidden sm:inline">Entrar</span>
-                    </button>
+                    {hideAuthAction ? null : isRestoringSession ? (
+                        <div
+                            aria-hidden
+                            className="h-9 w-24 animate-pulse rounded-lg bg-muted"
+                        />
+                    ) : isPatientLogged ? (
+                        /* Sessão ativa — painel flutuante usa bg-popover,
+                           nunca as cores escuras da sidebar. */
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <button
+                                    aria-label="Menu do paciente"
+                                    className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                                >
+                                    <Avatar className="h-6 w-6">
+                                        {user.photoUrl ? (
+                                            <AvatarImage
+                                                src={user.photoUrl}
+                                                alt={user.name}
+                                            />
+                                        ) : null}
+                                        <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
+                                            {firstName.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <span className="hidden max-w-[8rem] truncate sm:inline">
+                                        {firstName}
+                                    </span>
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                className="w-56 bg-popover p-1.5"
+                            >
+                                <div className="px-2.5 py-2">
+                                    <p className="truncate text-sm font-medium text-foreground">
+                                        {user?.name}
+                                    </p>
+                                    {user?.email && (
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {user.email}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="my-1 h-px bg-border" />
+                                <button
+                                    onClick={() => void handleLogout()}
+                                    className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-accent"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    Sair
+                                </button>
+                            </PopoverContent>
+                        </Popover>
+                    ) : (
+                        <button
+                            onClick={goToLogin}
+                            className="flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+                        >
+                            <LogIn className="h-4 w-4" />
+                            <span className="hidden sm:inline">Entrar</span>
+                        </button>
+                    )}
                 </div>
             </div>
         </header>

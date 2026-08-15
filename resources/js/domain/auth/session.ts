@@ -8,6 +8,8 @@ export interface User {
     role?: ClinicRole;
     photoUrl?: string;
     clinicId?: string | number;
+    /** Slug da clínica — preenchido na sessão do guard `patient`. */
+    clinicSlug?: string;
     mestre?: 0 | 1;
 }
 

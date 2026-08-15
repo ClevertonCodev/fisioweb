@@ -17,3 +17,4 @@ export { apiClinicProgramsLibraryRepository } from './api-clinic-programs-librar
 export { apiClinicUsersRepository } from './api-clinic-users';
 export { apiClinicVideosRepository } from './api-clinic-videos';
 export { apiGoogleCalendarRepository } from './api-google-calendar';
+export { apiPatientAuthRepository } from './api-patient-auth';

@@ -1,6 +1,6 @@
 import { ArrowLeft, Loader2, Star } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import {
     patientProgramsListPath,
@@ -21,6 +21,14 @@ export default function PatientProgramFeedbackPage() {
         publicToken: string;
     }>();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const finishState = location.state as {
+        completed?: boolean;
+        executionId?: string;
+    } | null;
+    const completedOnFinish = finishState?.completed === true;
+    const executionIdFromFinish = finishState?.executionId;
 
     const { data: program, isLoading } = usePatientProgram(publicToken);
     const { mutateAsync: submitFeedback, isPending: isSubmitting } =
@@ -73,20 +81,30 @@ export default function PatientProgramFeedbackPage() {
         if (!publicToken) return;
 
         try {
-            await submitFeedback({
-                publicToken,
-                executionId: program.currentExecutionId,
-                pain,
-                painNotes,
-                difficulty,
-                difficultyNotes,
-                ratingStars: rating,
-                ratingNotes,
-                outcomePainEnabled: program.outcomePainEnabled,
-                outcomeDifficultyEnabled: program.outcomeDifficultyEnabled,
-                outcomeSatisfactionEnabled: program.outcomeSatisfactionEnabled,
-            });
-            await completeProgram(publicToken);
+            if (sections.length > 0) {
+                await submitFeedback({
+                    publicToken,
+                    executionId:
+                        executionIdFromFinish ??
+                        program.currentExecutionId,
+                    pain,
+                    painNotes,
+                    difficulty,
+                    difficultyNotes,
+                    ratingStars: rating,
+                    ratingNotes,
+                    outcomePainEnabled: program.outcomePainEnabled,
+                    outcomeDifficultyEnabled:
+                        program.outcomeDifficultyEnabled,
+                    outcomeSatisfactionEnabled:
+                        program.outcomeSatisfactionEnabled,
+                });
+            }
+
+            if (!completedOnFinish) {
+                await completeProgram(publicToken);
+            }
+
             if (slug) {
                 navigate(patientProgramSuccessPath(slug, publicToken));
             }
@@ -288,7 +306,7 @@ export default function PatientProgramFeedbackPage() {
                 <div className="mx-auto max-w-2xl px-4 py-3 md:px-8">
                     <Button
                         className="h-12 w-full text-base font-semibold"
-                        onClick={handleSubmit}
+                        onClick={() => void handleSubmit()}
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? (

@@ -23,6 +23,8 @@ import {
     apiClient,
     clearStoredAuth,
     getStoredAuth,
+    getStoredAuthForPage,
+    setPatientClinicSlug,
 } from '@/infrastructure/api/client';
 
 const WARN_BEFORE_MS = 5 * 60 * 1000; // 5 minutos antes de expirar
@@ -50,8 +52,15 @@ function normalizeUser(raw: {
     role?: string;
     photo_url?: string | null;
     clinic_id?: number;
+    clinic_slug?: string | null;
     mestre?: number;
 }): User {
+    const clinicSlug = raw.clinic_slug ?? undefined;
+
+    if (clinicSlug) {
+        setPatientClinicSlug(clinicSlug);
+    }
+
     return {
         id: raw.id,
         name: raw.name,
@@ -59,6 +68,7 @@ function normalizeUser(raw: {
         role: raw.role as User['role'],
         photoUrl: raw.photo_url ?? undefined,
         clinicId: raw.clinic_id,
+        clinicSlug,
         mestre: raw.mestre === 1 ? 1 : 0,
     };
 }
@@ -70,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: false,
         // Sem sessão salva não há nada a restaurar: já nasce fora do loading,
         // em vez de renderizar "carregando" e corrigir num efeito.
-        isLoading: !!getStoredAuth(),
+        isLoading: !!getStoredAuthForPage(),
     }));
 
     const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -178,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Restore session from localStorage on mount
     useEffect(() => {
-        const auth = getStoredAuth();
+        const auth = getStoredAuthForPage();
         if (!auth) return;
         apiClient
             .get<{
@@ -188,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 role?: string;
                 photo_url?: string | null;
                 clinic_id?: number;
+                clinic_slug?: string | null;
                 mestre?: number;
             }>(`/${auth.guard}/auth/me`)
             .then(({ data }) => {

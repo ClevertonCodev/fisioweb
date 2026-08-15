@@ -15,7 +15,6 @@ import { patientProgramRoutes } from '@/routes/patient/program-routes';
 
 import NotFound from './pages/NotFound';
 
-/** `/login` é legado: mantém favoritos antigos funcionando, com a query. */
 function LegacyLoginRedirect() {
     return <Navigate to={`/paciente/login${window.location.search}`} replace />;
 }

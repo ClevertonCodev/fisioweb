@@ -38,7 +38,6 @@ export default function PatientExerciseDetailPage() {
         );
     }
 
-    // Find the exercise
     let exercise: PatientExercise | undefined;
     for (const group of program.groups) {
         const found = group.exercises.find(e => e.id === exerciseId);

@@ -12,9 +12,6 @@ class RegisterPatientProgramViewService
     ) {}
 
     /**
-     * Marca visualização pelo public_token (sem login).
-     * O token já identifica o programa/paciente dono.
-     *
      * @return array{viewed: bool}
      */
     public function execute(string $publicToken): array

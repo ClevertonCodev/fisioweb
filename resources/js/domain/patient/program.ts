@@ -7,7 +7,7 @@ export interface ExercisePrescription {
     repetitionsMax?: number;
     loadMin?: number;
     loadMax?: number;
-    restTime?: number; // in seconds
+    restTime?: number;
     intensity?: Intensity;
     durationMin?: number;
     durationMax?: number;
@@ -39,14 +39,12 @@ export interface PatientProgram {
     professionalPhotoUrl?: string;
     professionalRegistration?: string;
     clinicName?: string;
-    /** Slug da clínica — usado nas rotas canônicas */
     clinicSlug?: string;
     startDate: string;
     endDate: string;
     status: 'available' | 'scheduled' | 'unavailable' | 'completed' | 'inactive';
     message?: string;
     groups: PatientProgramGroup[];
-    /** Presente na listagem; no detalhe pode ser derivado de groups */
     exerciseCount?: number;
     outcomePainEnabled: boolean;
     outcomeDifficultyEnabled: boolean;

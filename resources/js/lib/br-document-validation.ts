@@ -1,5 +1,3 @@
-/** Alinhado a `ValidationHelper::validateCpf` / `validateCnpj` / identificação CREFITO (PHP). */
-
 export function isValidCpf(raw: string): boolean {
     const cpf = raw.replace(/\D/g, '');
     if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -46,14 +44,6 @@ export function isValidCnpj(raw: string): boolean {
     return Number(cnpj[12]) === dv1 && Number(cnpj[13]) === dv2;
 }
 
-/**
- * Registro profissional (CREFITO). Aceita:
- * - formato real: número + sufixo de categoria (F = fisioterapeuta, TO = terapeuta
- *   ocupacional), com região e prefixo "CREFITO" opcionais.
- *   Ex.: `123456-F`, `12345-TO`, `3/12345-F`, `CREFITO-3/12345-F`.
- * - formato legado com UF em letras + número (ex.: `MG-123456`, `SP 123456-G`),
- *   mantido para não invalidar cadastros antigos.
- */
 export function isValidCrefitoRegistration(raw: string): boolean {
     const s = raw.trim();
     if (s.length < 3 || s.length > 30) return false;
@@ -69,7 +59,6 @@ export function isValidCrefitoRegistration(raw: string): boolean {
 
 export type ClinicUserDocumentKind = 'cpf' | 'cnpj' | 'crefito';
 
-/** Melhor esforço para pré-selecionar o tipo na edição. */
 export function inferClinicUserDocumentKind(
     raw: string | undefined | null,
 ): ClinicUserDocumentKind {

@@ -55,7 +55,6 @@ export default function PatientProgramDetailPage() {
         }
     }, [publicToken, program, registerView]);
 
-    // Alinha URL se o slug da API for o correto (token define a clínica)
     useEffect(() => {
         if (!program?.clinicSlug || !publicToken) return;
         if (paramSlug && paramSlug !== program.clinicSlug) {
@@ -164,7 +163,7 @@ export default function PatientProgramDetailPage() {
                     </button>
                 )}
 
-                {/* Program Header Info */}
+
                 <div className="space-y-6">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
@@ -215,7 +214,6 @@ export default function PatientProgramDetailPage() {
                         </div>
                     </div>
 
-                    {/* Physiotherapist Card */}
                     <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-xs transition-all hover:shadow-sm sm:p-4.5">
                         <div className="flex items-center gap-3.5">
                             {program.professionalPhotoUrl ? (
@@ -249,7 +247,6 @@ export default function PatientProgramDetailPage() {
                         </div>
                     </div>
 
-                    {/* Overall Progress Bar */}
                     <div className="space-y-2 rounded-xl border border-border/60 bg-secondary/50 p-3.5">
                         <div className="flex items-center justify-between text-xs font-medium">
                             <span className="text-muted-foreground">
@@ -268,7 +265,6 @@ export default function PatientProgramDetailPage() {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="space-y-3">
                     <button
                         onClick={() =>
@@ -301,7 +297,6 @@ export default function PatientProgramDetailPage() {
                     </button>
                 </div>
 
-                {/* 2 Groups Accordion with Inline Exercise Cards */}
                 <div className="pt-2">
                     <Accordion
                         type="multiple"
@@ -332,8 +327,6 @@ export default function PatientProgramDetailPage() {
                                                 className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs transition-all duration-300 hover:bg-secondary/30"
                                             >
                                                 <div className="flex items-center gap-3.5 p-3 sm:gap-4 sm:p-3.5">
-                                                    {/* Padrão do sistema (ProgramasTab/StepConfigureExercises):
-                                                        quadrado + VideoThumb com play inline. */}
                                                     <div className="group relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-24">
                                                         <VideoThumb
                                                             videoUrl={

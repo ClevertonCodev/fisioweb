@@ -1,5 +1,3 @@
-/** Entidades puras da autenticação do paciente. */
-
 export interface PatientIdentity {
     id: string;
     name: string;
@@ -13,10 +11,6 @@ export interface ClinicOption {
     slug: string | null;
 }
 
-/**
- * A clínica chega como id (escolhida na lista) ou como slug (vinda da URL).
- * Um dos dois é obrigatório.
- */
 export interface PatientLoginCredentials {
     identifier: string;
     password: string;

@@ -37,18 +37,8 @@ class PatientServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
-    /**
-     * Limites das rotas públicas de autenticação do paciente.
-     *
-     * A senha padrão do paciente deriva de um dado semipúblico (o CPF), o que
-     * torna a tela de login um alvo natural de tentativa em massa. Sem limite,
-     * `find-clinics` ainda funcionaria como varredura de CPFs válidos.
-     */
     protected function registerRateLimiters(): void
     {
-        // O limite do login vive no AuthController — ver a nota lá sobre por
-        // que o middleware `throttle` não serve quando o sucesso precisa
-        // zerar a contagem.
         RateLimiter::for('patient-find-clinics', function (Request $request) {
             return Limit::perMinute(10)->by((string) $request->ip());
         });

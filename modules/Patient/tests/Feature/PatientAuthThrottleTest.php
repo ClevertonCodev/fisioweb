@@ -22,7 +22,6 @@ class PatientAuthThrottleTest extends TestCase
     {
         parent::setUp();
 
-        // O cache array é por instância de app, mas limpar explicitamente
         // evita que a ordem dos testes influencie o resultado.
         RateLimiter::clear('cpf:' . self::CPF . '|127.0.0.1');
     }
@@ -48,7 +47,6 @@ class PatientAuthThrottleTest extends TestCase
             'clinic_id'  => $patient->clinic_id,
         ];
 
-        // Limite é 5/min.
         for ($i = 1; $i <= 5; $i++) {
             $this->postJson(self::LOGIN, $payload)->assertStatus(401);
         }
@@ -72,14 +70,12 @@ class PatientAuthThrottleTest extends TestCase
             'clinic_id'  => $patient->clinic_id,
         ];
 
-        // Consome 4 das 5 tentativas.
         for ($i = 1; $i <= 4; $i++) {
             $this->postJson(self::LOGIN, $errado)->assertStatus(401);
         }
 
         $this->postJson(self::LOGIN, $certo)->assertStatus(200);
 
-        // Com a contagem zerada, ainda há tentativas disponíveis.
         for ($i = 1; $i <= 5; $i++) {
             $this->postJson(self::LOGIN, $errado)->assertStatus(401);
         }
@@ -103,8 +99,6 @@ class PatientAuthThrottleTest extends TestCase
             'clinic_id'  => $patient->clinic_id,
         ])->assertStatus(429);
 
-        // Outro identificador do mesmo IP não deve estar bloqueado — caso
-        // contrário um atacante derrubaria o login inteiro de uma vez.
         $this->postJson(self::LOGIN, [
             'identifier' => '99999999999',
             'password'   => 'errada',
@@ -114,7 +108,6 @@ class PatientAuthThrottleTest extends TestCase
 
     public function test_find_clinics_bloqueia_apos_o_limite(): void
     {
-        // Limite é 10/min por IP — impede varredura de CPFs válidos.
         for ($i = 1; $i <= 10; $i++) {
             $this->postJson(self::FIND_CLINICS, ['identifier' => '0000000000' . $i])
                 ->assertStatus(200);

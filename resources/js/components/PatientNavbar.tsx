@@ -27,7 +27,6 @@ interface PatientNavbarProps {
     current?: number;
     total?: number;
     onBack?: () => void;
-    /** Oculta "Entrar"/menu — usado na própria tela de login. */
     hideAuthAction?: boolean;
 }
 
@@ -66,7 +65,6 @@ export function PatientNavbar({
     };
 
     const goToLogin = () => {
-        // Registra de onde o paciente veio, para voltar depois de entrar.
         const current = `${location.pathname}${location.search}`;
         navigate(patientLoginPathWithNext(clinicSlug, current));
     };
@@ -90,7 +88,6 @@ export function PatientNavbar({
         <header className="sticky top-0 z-30 border-b border-border bg-card/80 shadow-2xs backdrop-blur-md transition-colors">
             <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                    {/* Logo/Brand — leva à lista quando fora dela */}
                     <button
                         type="button"
                         onClick={() => {
@@ -119,7 +116,6 @@ export function PatientNavbar({
                         </div>
                     </button>
 
-                    {/* Context Mode: Back button + Title (centro) */}
                     {isContextMode && (
                         <>
                             <Button
@@ -139,9 +135,7 @@ export function PatientNavbar({
                     )}
                 </div>
 
-                {/* Actions (direita) */}
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                    {/* Counter */}
                     {isContextMode &&
                         current !== undefined &&
                         total !== undefined && (
@@ -150,7 +144,6 @@ export function PatientNavbar({
                             </span>
                         )}
 
-                    {/* Dark Mode Toggle */}
                     <button
                         onClick={() => setIsDarkMode(!isDarkMode)}
                         title={isDarkMode ? 'Modo Claro' : 'Modo Escuro'}
@@ -169,8 +162,6 @@ export function PatientNavbar({
                             className="h-9 w-24 animate-pulse rounded-lg bg-muted"
                         />
                     ) : isPatientLogged ? (
-                        /* Sessão ativa — painel flutuante usa bg-popover,
-                           nunca as cores escuras da sidebar. */
                         <Popover>
                             <PopoverTrigger asChild>
                                 <button

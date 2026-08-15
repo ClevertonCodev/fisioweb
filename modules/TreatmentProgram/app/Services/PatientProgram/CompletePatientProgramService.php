@@ -27,26 +27,44 @@ class CompletePatientProgramService
         $plan      = $this->resolvePlan($publicToken);
         $patientId = (int) $plan->patient_id;
 
-        if ($plan->patient_completed_count > 0) {
-            return [
-                'already_completed'       => true,
-                'patient_completed_count' => (int) $plan->patient_completed_count,
-            ];
-        }
-
         $inProgress = $this->executionRepository->findInProgress((int) $plan->id, $patientId);
 
-        if ($this->requiresFeedback($plan) && !$this->feedbackRepository->hasFeedbackForCycle(
-            (int) $plan->id,
-            $patientId,
-            $inProgress?->id,
-        )) {
+        if (is_null($inProgress)) {
+            if (!$this->requiresFeedback($plan)) {
+                return $this->completeWithoutExecution($plan);
+            }
+
+            if ($this->feedbackRepository->hasFeedbackForCycle(
+                (int) $plan->id,
+                $patientId,
+                null,
+            )) {
+                return $this->completeManualFeedbackCycle($plan);
+            }
+
+            if ($plan->patient_completed_count > 0) {
+                return [
+                    'already_completed'       => true,
+                    'patient_completed_count' => (int) $plan->patient_completed_count,
+                ];
+            }
+
             throw ValidationException::withMessages([
                 'feedback' => ['Envie o feedback antes de concluir o programa.'],
             ]);
         }
 
-        return DB::transaction(function () use ($plan, $inProgress) {
+        return $this->finalizeExecution($plan, $inProgress);
+    }
+
+    /**
+     * Conclusão via atalho de feedback sem execução iniciada (primeira vez).
+     *
+     * @return array<string, mixed>
+     */
+    private function completeManualFeedbackCycle(TreatmentPlan $plan): array
+    {
+        return DB::transaction(function () use ($plan) {
             $plan->refresh();
 
             if ($plan->patient_completed_count > 0) {
@@ -58,12 +76,35 @@ class CompletePatientProgramService
 
             $completedAt = now();
 
-            if (!is_null($inProgress)) {
-                $this->executionRepository->update((int) $inProgress->id, [
-                    'status'       => TreatmentPlanExecution::STATUS_COMPLETED,
-                    'completed_at' => $completedAt,
-                ]);
+            $plan->patient_completed_count = 1;
+            $plan->save();
+
+            return [
+                'already_completed'       => false,
+                'patient_completed_count' => 1,
+                'completed_at'            => $completedAt->toIso8601String(),
+            ];
+        });
+    }
+
+    /**
+     * Atalho sem execução — só na primeira conclusão de programas sem feedback.
+     *
+     * @return array<string, mixed>
+     */
+    private function completeWithoutExecution(TreatmentPlan $plan): array
+    {
+        return DB::transaction(function () use ($plan) {
+            $plan->refresh();
+
+            if ($plan->patient_completed_count > 0) {
+                return [
+                    'already_completed'       => true,
+                    'patient_completed_count' => (int) $plan->patient_completed_count,
+                ];
             }
+
+            $completedAt = now();
 
             $plan->patient_completed_count = 1;
             $plan->save();
@@ -71,6 +112,42 @@ class CompletePatientProgramService
             return [
                 'already_completed'       => false,
                 'patient_completed_count' => 1,
+                'completed_at'            => $completedAt->toIso8601String(),
+            ];
+        });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function finalizeExecution(
+        TreatmentPlan $plan,
+        TreatmentPlanExecution $execution,
+    ): array {
+        return DB::transaction(function () use ($plan, $execution) {
+            $plan->refresh();
+            $execution->refresh();
+
+            if ($execution->status === TreatmentPlanExecution::STATUS_COMPLETED) {
+                return [
+                    'already_completed'       => true,
+                    'patient_completed_count' => (int) $plan->patient_completed_count,
+                ];
+            }
+
+            $completedAt = now();
+
+            $this->executionRepository->update((int) $execution->id, [
+                'status'       => TreatmentPlanExecution::STATUS_COMPLETED,
+                'completed_at' => $completedAt,
+            ]);
+
+            $plan->patient_completed_count = (int) $plan->patient_completed_count + 1;
+            $plan->save();
+
+            return [
+                'already_completed'       => false,
+                'patient_completed_count' => (int) $plan->patient_completed_count,
                 'completed_at'            => $completedAt->toIso8601String(),
             ];
         });

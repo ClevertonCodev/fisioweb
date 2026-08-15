@@ -3,7 +3,20 @@ import axios from 'axios';
 import { refresh, type AuthGuard } from './auth.service';
 
 const AUTH_GUARD_KEY = 'auth_guard';
+const PATIENT_CLINIC_SLUG_KEY = 'patient_clinic_slug';
 const tokenKey = (guard: AuthGuard) => `auth_token_${guard}`;
+
+export function getPatientClinicSlug(): string | null {
+    return localStorage.getItem(PATIENT_CLINIC_SLUG_KEY);
+}
+
+export function setPatientClinicSlug(slug: string): void {
+    localStorage.setItem(PATIENT_CLINIC_SLUG_KEY, slug);
+}
+
+export function clearPatientClinicSlug(): void {
+    localStorage.removeItem(PATIENT_CLINIC_SLUG_KEY);
+}
 
 // sessionStorage keys — isolated per tab (used for impersonation)
 const SESSION_TOKEN_KEY = 'auth_token';
@@ -17,13 +30,42 @@ function inferGuardFromApiUrl(url?: string): AuthGuard | null {
     return null;
 }
 
+/**
+ * Requisições de paciente que podem receber 401 sem que isso signifique
+ * "sessão expirada" — nessas, redirecionar para o login é errado.
+ */
+function isPublicPatientRequest(url?: string): boolean {
+    if (!url) return false;
+
+    // Credencial inválida no próprio login: redirecionar criaria laço.
+    if (url.startsWith('/patient/auth/')) return true;
+
+    // Programa por token público (feature 015) continua anônimo.
+    if (/^\/patient\/programs\/[^/]+/.test(url)) return true;
+
+    return false;
+}
+
+export function isPatientAreaPath(path: string): boolean {
+    return path.startsWith('/paciente') || path.includes('/paciente/');
+}
+
 function inferGuardFromPath(path: string): AuthGuard | null {
     if (path.startsWith('/admin')) return 'admin';
+    // `/clinica-cleverton/paciente/...` também começa com `/clinica` — paciente
+    // precisa ser detectado antes do guard da clínica.
+    if (isPatientAreaPath(path)) return 'patient';
     if (path.startsWith('/clinica')) return 'clinic';
-    if (path.includes('/paciente')) {
-        return 'patient';
-    }
     return null;
+}
+
+/** Sessão a restaurar na carga da página — prioriza o guard do contexto atual. */
+export function getStoredAuthForPage(): { token: string; guard: AuthGuard } | null {
+    if (isPatientAreaPath(window.location.pathname)) {
+        return getStoredAuth('patient') ?? getStoredAuth();
+    }
+
+    return getStoredAuth();
 }
 
 /** Migrates old single-key format (auth_token / auth_guard) to per-guard keys. */
@@ -92,6 +134,9 @@ export function setSessionAuth(token: string, guard: string): void {
 export function clearStoredAuth(guard?: AuthGuard): void {
     if (guard) {
         localStorage.removeItem(tokenKey(guard));
+        if (guard === 'patient') {
+            clearPatientClinicSlug();
+        }
         if (localStorage.getItem(AUTH_GUARD_KEY) === guard) {
             localStorage.removeItem(AUTH_GUARD_KEY);
         }
@@ -105,6 +150,7 @@ export function clearStoredAuth(guard?: AuthGuard): void {
         localStorage.removeItem(tokenKey('clinic'));
         localStorage.removeItem(tokenKey('patient'));
         localStorage.removeItem(AUTH_GUARD_KEY);
+        clearPatientClinicSlug();
         sessionStorage.removeItem(SESSION_TOKEN_KEY);
         sessionStorage.removeItem(SESSION_GUARD_KEY);
     }
@@ -119,7 +165,15 @@ function redirectToLogin(guard: AuthGuard): void {
         window.location.href = '/clinica/login';
         return;
     }
-    // Patient: sem tela de login dedicada no SPA ainda — não redireciona para clínica
+
+    // Paciente: leva ao login da área do paciente preservando o destino.
+    // O slug, quando existe, é o primeiro segmento de /{slug}/paciente/...
+    const path = window.location.pathname;
+    const slugMatch = path.match(/^\/([^/]+)\/paciente(?:\/|$)/);
+    const base = slugMatch ? `/${slugMatch[1]}/paciente/login` : '/paciente/login';
+    const next = encodeURIComponent(`${path}${window.location.search}`);
+
+    window.location.href = `${base}?next=${next}`;
 }
 
 export const apiClient = axios.create({
@@ -157,7 +211,9 @@ apiClient.interceptors.response.use(
 
         const auth = urlGuard ? getStoredAuth(urlGuard) : getStoredAuth();
         if (!auth) {
-            if (urlGuard === 'patient') {
+            // A leitura pública do programa por token continua anônima: só
+            // redireciona quando a requisição exigia sessão de paciente.
+            if (urlGuard === 'patient' && isPublicPatientRequest(originalRequest.url)) {
                 return Promise.reject(error);
             }
             redirectToLogin(urlGuard ?? 'clinic');

@@ -96,7 +96,7 @@ class PatientProgramExecutionTest extends TestCase
             ->assertJsonPath('data.unfinished_exercise_ids', [$planExercise->id]);
     }
 
-    public function test_completed_program_cannot_start_execution(): void
+    public function test_program_with_prior_completions_allows_new_execution(): void
     {
         $patient          = $this->createPatient();
         ['plan' => $plan] = $this->createActiveProgram($patient, [
@@ -105,7 +105,9 @@ class PatientProgramExecutionTest extends TestCase
 
         $this->actingAs($patient, 'patient')
             ->postJson("/api/patient/programs/{$plan->public_token}/executions")
-            ->assertUnprocessable();
+            ->assertOk()
+            ->assertJsonPath('data.resumed', false)
+            ->assertJsonPath('data.status', TreatmentPlanExecution::STATUS_IN_PROGRESS);
     }
 
     public function test_last_load_falls_back_to_previous_completed_execution(): void

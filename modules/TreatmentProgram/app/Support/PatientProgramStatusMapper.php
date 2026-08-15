@@ -23,7 +23,7 @@ class PatientProgramStatusMapper
             return self::STATUS_INACTIVE;
         }
 
-        if ($plan->patient_completed_count > 0 || $plan->status === TreatmentPlan::STATUS_COMPLETED) {
+        if ($plan->status === TreatmentPlan::STATUS_COMPLETED) {
             return self::STATUS_COMPLETED;
         }
 

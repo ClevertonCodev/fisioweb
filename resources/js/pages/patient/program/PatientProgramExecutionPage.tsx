@@ -16,6 +16,7 @@ import {
     patientProgramsListPath,
 } from '@/application/patient/patient-program-paths';
 import {
+    useCompleteProgram,
     usePatientProgram,
     useSaveProgramSeries,
     useStartOrResumeExecution,
@@ -52,6 +53,8 @@ export default function PatientProgramExecutionPage() {
     } = usePatientProgram(publicToken || '');
     const { mutateAsync: startExecution } = useStartOrResumeExecution();
     const { mutateAsync: saveSeries } = useSaveProgramSeries();
+    const { mutateAsync: completeProgram, isPending: isCompleting } =
+        useCompleteProgram();
 
     const [executionId, setExecutionId] = useState<string | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -251,8 +254,20 @@ export default function PatientProgramExecutionPage() {
             setLoad('');
         } else {
             const slug = clinicSlug || program.clinicSlug || '';
-            if (slug) {
-                navigate(patientProgramFeedbackPath(slug, publicToken));
+            if (!slug || !publicToken) return;
+
+            const id = await ensureExecutionId();
+
+            try {
+                await completeProgram(publicToken);
+                navigate(patientProgramFeedbackPath(slug, publicToken), {
+                    state: {
+                        completed: true,
+                        executionId: id ?? undefined,
+                    },
+                });
+            } catch {
+                // Falha silenciosa: paciente pode tentar de novo pelo detalhe
             }
         }
     };
@@ -432,8 +447,16 @@ export default function PatientProgramExecutionPage() {
                     <Button
                         className="h-12 flex-1 text-base font-semibold"
                         onClick={() => void handleNextSeries()}
+                        disabled={isCompleting}
                     >
-                        {primaryLabel}
+                        {isCompleting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Finalizando…
+                            </>
+                        ) : (
+                            primaryLabel
+                        )}
                     </Button>
                 </div>
             </div>

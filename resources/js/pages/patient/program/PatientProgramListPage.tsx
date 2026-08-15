@@ -1,11 +1,54 @@
-import { Loader2, RefreshCw, Activity } from 'lucide-react';
+import { Activity, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { patientProgramDetailPath } from '@/application/patient/patient-program-paths';
 import { usePatientPrograms } from '@/application/patient/use-patient-program';
-import { Badge } from '@/components/ui/badge';
+import { PatientNavbar } from '@/components/PatientNavbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/status-badge';
+import type { PatientProgram } from '@/domain/patient/program';
+
+function PatientProgramStatusBadge({
+    status,
+}: {
+    status: PatientProgram['status'];
+}) {
+    switch (status) {
+        case 'available':
+            return (
+                <StatusBadge variant="active" className="shrink-0 whitespace-nowrap">
+                    Disponível
+                </StatusBadge>
+            );
+        case 'scheduled':
+            return (
+                <StatusBadge variant="warning" className="shrink-0 whitespace-nowrap">
+                    Disponível em breve
+                </StatusBadge>
+            );
+        case 'unavailable':
+            return (
+                <StatusBadge variant="neutral" className="shrink-0 whitespace-nowrap">
+                    Indisponível
+                </StatusBadge>
+            );
+        case 'completed':
+            return (
+                <StatusBadge variant="success" className="shrink-0 whitespace-nowrap">
+                    Concluído
+                </StatusBadge>
+            );
+        case 'inactive':
+            return (
+                <StatusBadge variant="neutral" className="shrink-0 whitespace-nowrap">
+                    Inativo
+                </StatusBadge>
+            );
+        default:
+            return null;
+    }
+}
 
 export default function PatientProgramListPage() {
     const { clinicSlug = '' } = useParams<{ clinicSlug: string }>();
@@ -13,55 +56,38 @@ export default function PatientProgramListPage() {
         usePatientPrograms();
     const navigate = useNavigate();
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'available':
-                return (
-                    <Badge className="bg-green-500 hover:bg-green-600">
-                        Disponível
-                    </Badge>
-                );
-            case 'scheduled':
-                return <Badge variant="secondary">Disponível em breve</Badge>;
-            case 'unavailable':
-                return <Badge variant="destructive">Indisponível</Badge>;
-            case 'completed':
-                return (
-                    <Badge
-                        variant="outline"
-                        className="border-green-500 text-green-600"
-                    >
-                        Concluído
-                    </Badge>
-                );
-            case 'inactive':
-                return <Badge variant="secondary">Inativo</Badge>;
-            default:
-                return null;
-        }
-    };
-
     return (
-        <div className="flex h-screen flex-col overflow-y-auto bg-slate-50 pb-20">
-            <header className="sticky top-0 z-10 flex items-center justify-between bg-primary px-4 py-4 text-primary-foreground shadow-md">
-                <h1 className="text-lg font-semibold">Meus programas</h1>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-primary-foreground hover:bg-primary/90"
-                    onClick={() => refetch()}
-                    disabled={isRefetching}
-                >
-                    <RefreshCw
-                        className={`h-5 w-5 ${isRefetching ? 'animate-spin' : ''}`}
-                    />
-                </Button>
-            </header>
+        <div className="scrollbar-thin flex h-screen flex-col overflow-y-auto bg-background transition-colors duration-200">
+            <PatientNavbar />
 
-            <main className="flex-1 p-4">
+            <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-3">
+                        <span className="inline-flex rounded-md border border-primary/10 bg-accent/60 px-2.5 py-0.5 font-mono text-[11px] font-bold tracking-widest text-primary uppercase">
+                            Programas
+                        </span>
+                        <h1 className="font-serif text-2xl leading-tight font-bold tracking-tight text-foreground sm:text-3xl">
+                            Meus programas
+                        </h1>
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 cursor-pointer"
+                        onClick={() => refetch()}
+                        disabled={isRefetching}
+                        aria-label="Atualizar lista"
+                    >
+                        <RefreshCw
+                            className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`}
+                        />
+                    </Button>
+                </div>
+
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <Loader2 className="mb-4 h-8 w-8 animate-spin" />
+                        <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
                         <p>Carregando programas. Aguarde...</p>
                     </div>
                 ) : !programs || programs.length === 0 ? (
@@ -101,14 +127,16 @@ export default function PatientProgramListPage() {
                                 >
                                     <CardContent className="p-4">
                                         <div className="mb-2 flex items-start justify-between gap-2">
-                                            <h2 className="font-semibold text-slate-900">
+                                            <h2 className="font-semibold text-foreground">
                                                 {program.name}
                                             </h2>
-                                            {getStatusBadge(program.status)}
+                                            <PatientProgramStatusBadge
+                                                status={program.status}
+                                            />
                                         </div>
 
-                                        <div className="mb-3 flex items-center text-sm text-slate-600">
-                                            <Activity className="mr-1.5 h-4 w-4" />
+                                        <div className="mb-3 flex items-center text-sm text-muted-foreground">
+                                            <Activity className="mr-1.5 h-4 w-4 text-primary" />
                                             <span>
                                                 {totalExercises}{' '}
                                                 {totalExercises === 1
@@ -117,7 +145,7 @@ export default function PatientProgramListPage() {
                                             </span>
                                         </div>
 
-                                        <div className="text-xs text-slate-500">
+                                        <div className="text-xs text-muted-foreground">
                                             <p>
                                                 Profissional:{' '}
                                                 {program.professionalName}

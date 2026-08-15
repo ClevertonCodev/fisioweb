@@ -59,7 +59,6 @@ class PatientIdentifierTest extends TestCase
 
     public function test_cpf_invalido_nao_e_rejeitado_apenas_normalizado(): void
     {
-        // Rejeitar CPF matematicamente inválido revelaria, pela diferença de
         // mensagem, quais valores sequer chegam a ser consultados.
         $identifier = PatientIdentifier::fromInput('000.000.000-00');
 

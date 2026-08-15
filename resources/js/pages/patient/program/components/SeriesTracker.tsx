@@ -7,10 +7,6 @@ interface SeriesTrackerProps {
     current: number;
 }
 
-/**
- * Indicador de séries da sessão atual — bolinhas grandes, legíveis para o
- * paciente. Preenche até a série corrente.
- */
 function SeriesTrackerComponent({ total, current }: SeriesTrackerProps) {
     return (
         <div className="flex items-center gap-3">

@@ -18,7 +18,6 @@ export function clearPatientClinicSlug(): void {
     localStorage.removeItem(PATIENT_CLINIC_SLUG_KEY);
 }
 
-// sessionStorage keys — isolated per tab (used for impersonation)
 const SESSION_TOKEN_KEY = 'auth_token';
 const SESSION_GUARD_KEY = 'auth_guard';
 
@@ -30,17 +29,11 @@ function inferGuardFromApiUrl(url?: string): AuthGuard | null {
     return null;
 }
 
-/**
- * Requisições de paciente que podem receber 401 sem que isso signifique
- * "sessão expirada" — nessas, redirecionar para o login é errado.
- */
 function isPublicPatientRequest(url?: string): boolean {
     if (!url) return false;
 
-    // Credencial inválida no próprio login: redirecionar criaria laço.
     if (url.startsWith('/patient/auth/')) return true;
 
-    // Programa por token público (feature 015) continua anônimo.
     if (/^\/patient\/programs\/[^/]+/.test(url)) return true;
 
     return false;
@@ -52,14 +45,11 @@ export function isPatientAreaPath(path: string): boolean {
 
 function inferGuardFromPath(path: string): AuthGuard | null {
     if (path.startsWith('/admin')) return 'admin';
-    // `/clinica-cleverton/paciente/...` também começa com `/clinica` — paciente
-    // precisa ser detectado antes do guard da clínica.
     if (isPatientAreaPath(path)) return 'patient';
     if (path.startsWith('/clinica')) return 'clinic';
     return null;
 }
 
-/** Sessão a restaurar na carga da página — prioriza o guard do contexto atual. */
 export function getStoredAuthForPage(): { token: string; guard: AuthGuard } | null {
     if (isPatientAreaPath(window.location.pathname)) {
         return getStoredAuth('patient') ?? getStoredAuth();
@@ -68,7 +58,6 @@ export function getStoredAuthForPage(): { token: string; guard: AuthGuard } | nu
     return getStoredAuth();
 }
 
-/** Migrates old single-key format (auth_token / auth_guard) to per-guard keys. */
 function migrateOldAuthKeys(): void {
     const oldToken = localStorage.getItem('auth_token');
     const oldGuard = localStorage.getItem('auth_guard');
@@ -82,7 +71,6 @@ function migrateOldAuthKeys(): void {
 export function getStoredAuth(
     guard?: AuthGuard,
 ): { token: string; guard: AuthGuard } | null {
-    // sessionStorage priority — used for impersonation in a new tab
     const sessionToken = sessionStorage.getItem(SESSION_TOKEN_KEY);
     const sessionGuard = sessionStorage.getItem(
         SESSION_GUARD_KEY,
@@ -100,14 +88,12 @@ export function getStoredAuth(
         return { token, guard };
     }
 
-    // Infer guard from current page path
     const pathGuard = inferGuardFromPath(window.location.pathname);
     if (pathGuard) {
         const token = localStorage.getItem(tokenKey(pathGuard));
         if (token) return { token, guard: pathGuard };
     }
 
-    // Fallback: return any available session
     for (const g of ['admin', 'clinic', 'patient'] as AuthGuard[]) {
         const token = localStorage.getItem(tokenKey(g));
         if (token) return { token, guard: g };
@@ -121,16 +107,11 @@ export function setStoredAuth(token: string, guard: AuthGuard): void {
     localStorage.setItem(AUTH_GUARD_KEY, guard);
 }
 
-/** Stores auth only in sessionStorage (isolated per tab, used for impersonation). */
 export function setSessionAuth(token: string, guard: string): void {
     sessionStorage.setItem(SESSION_TOKEN_KEY, token);
     sessionStorage.setItem(SESSION_GUARD_KEY, guard);
 }
 
-/**
- * Clears stored auth for a specific guard only, leaving other guards intact.
- * If no guard is provided, clears everything.
- */
 export function clearStoredAuth(guard?: AuthGuard): void {
     if (guard) {
         localStorage.removeItem(tokenKey(guard));
@@ -166,8 +147,6 @@ function redirectToLogin(guard: AuthGuard): void {
         return;
     }
 
-    // Paciente: leva ao login da área do paciente preservando o destino.
-    // O slug, quando existe, é o primeiro segmento de /{slug}/paciente/...
     const path = window.location.pathname;
     const slugMatch = path.match(/^\/([^/]+)\/paciente(?:\/|$)/);
     const base = slugMatch ? `/${slugMatch[1]}/paciente/login` : '/paciente/login';
@@ -211,8 +190,6 @@ apiClient.interceptors.response.use(
 
         const auth = urlGuard ? getStoredAuth(urlGuard) : getStoredAuth();
         if (!auth) {
-            // A leitura pública do programa por token continua anônima: só
-            // redireciona quando a requisição exigia sessão de paciente.
             if (urlGuard === 'patient' && isPublicPatientRequest(originalRequest.url)) {
                 return Promise.reject(error);
             }

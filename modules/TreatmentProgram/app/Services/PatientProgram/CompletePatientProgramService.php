@@ -58,8 +58,6 @@ class CompletePatientProgramService
     }
 
     /**
-     * Conclusão via atalho de feedback sem execução iniciada (primeira vez).
-     *
      * @return array<string, mixed>
      */
     private function completeManualFeedbackCycle(TreatmentPlan $plan): array
@@ -88,8 +86,6 @@ class CompletePatientProgramService
     }
 
     /**
-     * Atalho sem execução — só na primeira conclusão de programas sem feedback.
-     *
      * @return array<string, mixed>
      */
     private function completeWithoutExecution(TreatmentPlan $plan): array

@@ -4,12 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Modules\TreatmentProgram\Http\Controllers\Patient\PatientProgramController;
 
 Route::prefix('patient/programs')->name('patient.programs.')->group(function () {
-    // Lista ainda exige JWT (não há token de programa na URL).
     Route::middleware('auth:patient')->group(function () {
         Route::get('/', [PatientProgramController::class, 'index'])->name('index');
     });
 
-    // Capacidade pelo public_token (UUID difícil de adivinhar) — sem login.
     Route::get('{publicToken}', [PatientProgramController::class, 'show'])->name('show');
     Route::post('{publicToken}/view', [PatientProgramController::class, 'view'])->name('view');
     Route::post('{publicToken}/executions', [PatientProgramController::class, 'startExecution'])->name('executions.start');

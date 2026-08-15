@@ -13,10 +13,6 @@ interface SessionTrackProps {
     currentIndex: number;
 }
 
-/**
- * Trilha vertical da sessão (desktop). Mostra a sequência real dos exercícios:
- * concluídos com check, atual destacado, próximos apagados.
- */
 function SessionTrackComponent({ items, currentIndex }: SessionTrackProps) {
     return (
         <ol className="relative">

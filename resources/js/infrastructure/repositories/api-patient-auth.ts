@@ -32,12 +32,6 @@ function mapClinicOption(api: ApiClinicOption): ClinicOption {
 }
 
 export const apiPatientAuthRepository = {
-    /**
-     * Clínicas em que o identificador possui cadastro.
-     *
-     * Lista vazia é resposta legítima e não distingue "não existe" de "existe
-     * mas não é elegível" — a UI trata os dois com a mesma mensagem.
-     */
     async findClinics(identifier: string): Promise<ClinicOption[]> {
         const { data } = await apiClient.post<{ data: ApiClinicOption[] }>(
             '/patient/auth/find-clinics',
@@ -53,8 +47,6 @@ export const apiPatientAuthRepository = {
             {
                 identifier: credentials.identifier,
                 password: credentials.password,
-                // Envia o que existir. `Number('')` seria 0 e nenhuma clínica
-                // tem id 0 — por isso o id só vai quando é de fato um id.
                 ...(credentials.clinicId
                     ? { clinic_id: Number(credentials.clinicId) }
                     : {}),

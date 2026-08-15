@@ -21,7 +21,6 @@ class PatientLoginTest extends TestCase
     {
         parent::setUp();
 
-        // Sem isso um teste envenena o seguinte pelo limiter compartilhado.
         RateLimiter::clear('cpf:' . self::CPF . '|127.0.0.1');
     }
 
@@ -30,7 +29,6 @@ class PatientLoginTest extends TestCase
         $clinic = $overrides['clinic'] ?? Clinic::factory()->create();
         unset($overrides['clinic']);
 
-        // Espelha PatientService::create — senha padrão é o CPF.
         return Patient::factory()->create(array_merge([
             'clinic_id' => $clinic->id,
             'cpf'       => self::CPF,
@@ -41,7 +39,6 @@ class PatientLoginTest extends TestCase
         ], $overrides));
     }
 
-    // ---------------------------------------------------------------- SC-005
 
     public function test_senha_incorreta_e_recusada(): void
     {
@@ -73,7 +70,6 @@ class PatientLoginTest extends TestCase
 
     public function test_login_sem_campo_de_senha_e_rejeitado(): void
     {
-        // O exploit antigo: conhecer o CPF bastava.
         $patient = $this->makePatient();
 
         $this->postJson(self::ENDPOINT, [
@@ -82,11 +78,9 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(422);
     }
 
-    // ------------------------------------------- tolerância de máscara na senha
 
     public function test_senha_com_mascara_autentica_quando_a_senha_e_o_cpf(): void
     {
-        // O sistema exibe o CPF mascarado em todas as telas; o paciente digita
         // como vê. Sem essa tolerância ele fica travado, e não há recuperação
         // de senha no v1.
         $patient = $this->makePatient();
@@ -111,7 +105,6 @@ class PatientLoginTest extends TestCase
 
     public function test_senha_personalizada_com_pontuacao_tem_precedencia(): void
     {
-        // A tentativa exata vem primeiro: quem trocou a senha para algo com
         // pontuação não é afetado pela normalização.
         $patient = $this->makePatient(['password' => 'a.b-c.1-2']);
 
@@ -133,11 +126,9 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(401);
     }
 
-    // ------------------------------------------------- clínica por slug (R5)
 
     public function test_autentica_com_clinic_slug_em_vez_de_clinic_id(): void
     {
-        // Caminho do deep link: o paciente conhece o slug, não o id.
         $clinic  = Clinic::factory()->create(['slug' => 'clinica-cleverton']);
         $patient = $this->makePatient(['clinic' => $clinic]);
 
@@ -191,7 +182,6 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(422);
     }
 
-    // ---------------------------------------------------------------- SC-004
 
     public static function identifierProvider(): array
     {
@@ -218,7 +208,6 @@ class PatientLoginTest extends TestCase
         $this->assertSame($patient->id, $response->json('user.id'));
     }
 
-    // ------------------------------------------------------------ R8 / Val.4
 
     public static function ineligibleProvider(): array
     {
@@ -244,7 +233,6 @@ class PatientLoginTest extends TestCase
 
     public function test_paciente_com_alta_continua_autenticando(): void
     {
-        // Alta é desfecho positivo — é quando o paciente ainda quer rever
         // o programa que fez.
         $patient = $this->makePatient(['status' => Patient::STATUS_ALTA]);
 
@@ -268,7 +256,6 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(401);
     }
 
-    // ---------------------------------------------------------------- SC-006
 
     public function test_falhas_sao_indistinguiveis(): void
     {
@@ -300,7 +287,6 @@ class PatientLoginTest extends TestCase
         $this->assertSame($inexistente->json(), $clinicaInexistente->json());
     }
 
-    // ---------------------------------------------------------------- SC-003
 
     public function test_mesmo_cpf_em_duas_clinicas_autentica_identidades_distintas(): void
     {
@@ -332,7 +318,6 @@ class PatientLoginTest extends TestCase
         $this->assertNotSame($respostaA->json('user.id'), $respostaB->json('user.id'));
     }
 
-    // ---------------------------------------------------------------- SC-012
 
     public function test_senha_nao_aparece_na_resposta(): void
     {
@@ -347,7 +332,6 @@ class PatientLoginTest extends TestCase
         $response->assertStatus(200);
         $this->assertArrayNotHasKey('password', $response->json('user'));
 
-        // Nem o hash nem a senha em claro podem sair no corpo da resposta.
         $this->assertStringNotContainsString('password', $response->getContent());
         $this->assertStringNotContainsString($patient->getAuthPassword(), $response->getContent());
     }

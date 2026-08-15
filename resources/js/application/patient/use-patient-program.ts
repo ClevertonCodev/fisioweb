@@ -29,12 +29,9 @@ export function usePatientProgram(publicToken: string) {
 export function useRegisterProgramView() {
     return useMutation({
         mutationFn: async (publicToken: string) => {
-            // Público: token do programa basta para marcar "Visualizado" na clínica
             try {
                 await registerPatientProgramView(publicToken);
-            } catch {
-                // Não bloqueia UX do detalhe (SC-005)
-            }
+            } catch {}
         },
     });
 }

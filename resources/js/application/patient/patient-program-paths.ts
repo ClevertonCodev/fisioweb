@@ -1,5 +1,3 @@
-/** Paths canônicos da área paciente (sempre com clinicSlug). */
-
 export function patientProgramsListPath(clinicSlug: string): string {
     if (!clinicSlug) {
         throw new Error('patientProgramsListPath requires a clinic slug');
@@ -50,7 +48,6 @@ export function isPatientProgramsListPath(path: string): boolean {
     return /^\/[^/]+\/paciente\/programas\/?$/.test(path);
 }
 
-/** Detalhe, execução, feedback etc. — qualquer rota abaixo da lista. */
 export function isPatientProgramSubPath(path: string): boolean {
     return /^\/[^/]+\/paciente\/programas\/.+/.test(path);
 }

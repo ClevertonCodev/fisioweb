@@ -8,10 +8,6 @@ interface MetricTileProps {
     unit?: string;
 }
 
-/**
- * Bloco compacto de métrica da prescrição. Número em Space Mono (fonte de dados
- * do design system) para dar identidade tipográfica ao painel.
- */
 function MetricTileComponent({
     icon: Icon,
     label,

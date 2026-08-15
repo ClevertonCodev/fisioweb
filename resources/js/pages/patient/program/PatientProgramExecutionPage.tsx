@@ -239,7 +239,6 @@ export default function PatientProgramExecutionPage() {
                 ],
             });
         } catch {
-            // Continua o wizard
         }
     };
 
@@ -266,9 +265,7 @@ export default function PatientProgramExecutionPage() {
                         executionId: id ?? undefined,
                     },
                 });
-            } catch {
-                // Falha silenciosa: paciente pode tentar de novo pelo detalhe
-            }
+            } catch {}
         }
     };
 
@@ -305,7 +302,6 @@ export default function PatientProgramExecutionPage() {
 
             <div className="scrollbar-thin flex-1 overflow-y-auto">
                 <div className="mx-auto grid w-full max-w-5xl gap-8 px-4 py-6 md:px-8 lg:grid-cols-[220px_1fr] lg:gap-12 lg:py-10">
-                    {/* Trilha da sessão — signature (desktop) */}
                     <aside className="hidden lg:block">
                         <div className="sticky top-10">
                             <p className="mb-4 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
@@ -318,9 +314,7 @@ export default function PatientProgramExecutionPage() {
                         </div>
                     </aside>
 
-                    {/* Palco principal */}
                     <main className="min-w-0">
-                        {/* Progresso compacto (mobile) */}
                         <div className="mb-5 flex gap-1 lg:hidden">
                             {exercises.map((e, i) => (
                                 <span
@@ -347,7 +341,6 @@ export default function PatientProgramExecutionPage() {
                             </p>
                         )}
 
-                        {/* Media stage com brilho teal (signature) */}
                         <div className="relative mt-6">
                             <div
                                 aria-hidden
@@ -372,14 +365,12 @@ export default function PatientProgramExecutionPage() {
                             </div>
                         </div>
 
-                        {/* Painel de métricas (números em mono) */}
                         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                             {metrics.map((metric) => (
                                 <MetricTile key={metric.label} {...metric} />
                             ))}
                         </div>
 
-                        {/* Série atual */}
                         <div className="mt-6">
                             <SeriesTracker
                                 total={totalSeries}
@@ -434,7 +425,6 @@ export default function PatientProgramExecutionPage() {
                 </div>
             </div>
 
-            {/* Barra de ação fixa */}
             <div className="shrink-0 border-t border-border bg-card/90 backdrop-blur">
                 <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-3 md:px-8 lg:pl-[calc(220px+3rem+2rem)]">
                     <Button

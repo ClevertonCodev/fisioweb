@@ -7,7 +7,6 @@ import type {
 } from '@/domain/patient/auth';
 import { apiPatientAuthRepository } from '@/infrastructure/repositories/api-patient-auth';
 
-/** Passo de descoberta: quais clínicas conhecem este identificador. */
 export function useFindPatientClinics() {
     return useMutation<ClinicOption[], unknown, string>({
         mutationFn: (identifier: string) =>
@@ -15,7 +14,6 @@ export function useFindPatientClinics() {
     });
 }
 
-/** Autentica e sincroniza o estado global de sessão no guard `patient`. */
 export function usePatientLogin() {
     const { setUser } = useAuth();
 
@@ -37,14 +35,6 @@ export function usePatientLogin() {
     });
 }
 
-/**
- * Traduz a falha do login para o texto exibido ao paciente.
- *
- * Credencial inválida e identificador inexistente compartilham a mesma
- * mensagem de propósito — distinguir revelaria a existência do cadastro.
- * O 429 é a exceção: informar a espera não revela nada e orienta quem é
- * legítimo.
- */
 export function patientLoginErrorMessage(error: unknown): string {
     const status =
         error && typeof error === 'object' && 'response' in error

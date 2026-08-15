@@ -50,7 +50,6 @@ export default function PatientLoginPage() {
 
     const next = searchParams.get('next');
 
-    // Com slug na URL a clínica já é conhecida: login em uma etapa só.
     const [step, setStep] = useState<Step>(
         clinicSlug ? 'credentials' : 'identifier',
     );
@@ -73,14 +72,12 @@ export default function PatientLoginPage() {
     const resolveClinicSlug = (): string =>
         clinicSlug ?? user?.clinicSlug ?? getPatientClinicSlug() ?? '';
 
-    // Paciente já autenticado não vê o formulário de novo.
     useEffect(() => {
         if (!isAuthenticated || guard !== 'patient') return;
 
         const slug = resolveClinicSlug();
         const dest = patientPostLoginPath(next, slug);
 
-        // Sem slug não há lista de programas — evita `//paciente/programas`.
         if (dest !== '/paciente/login') {
             navigate(dest, { replace: true });
         }
@@ -95,7 +92,6 @@ export default function PatientLoginPage() {
     const genericFailure =
         'Não encontramos essa combinação. Confira seus dados e tente de novo.';
 
-    /** Passo 1 — descobre as clínicas do identificador. */
     const handleIdentifierSubmit = async () => {
         const valid = await form.trigger('identifier');
         if (!valid) return;
@@ -107,8 +103,6 @@ export default function PatientLoginPage() {
                 form.getValues('identifier'),
             );
 
-            // Lista vazia recebe a MESMA mensagem do erro de credencial:
-            // distinguir revelaria a existência do cadastro.
             if (found.length === 0) {
                 setError(genericFailure);
                 return;
@@ -134,7 +128,6 @@ export default function PatientLoginPage() {
         setStep('credentials');
     };
 
-    /** Volta preservando o que já foi digitado (estado do RHF, não remontagem). */
     const handleBack = () => {
         setError(null);
         if (step === 'credentials' && !clinicSlug) {
@@ -148,13 +141,11 @@ export default function PatientLoginPage() {
         navigate(-1);
     };
 
-    /** Passo final — autentica. */
     const handleLogin = form.handleSubmit(async (values) => {
         setError(null);
 
         const clinicId = selectedClinic?.id;
 
-        // Sem clínica escolhida e sem slug não há como autenticar.
         if (!clinicId && !clinicSlug) {
             setStep('identifier');
             return;
@@ -164,8 +155,6 @@ export default function PatientLoginPage() {
             const result = await login.mutateAsync({
                 identifier: values.identifier,
                 password: values.password,
-                // No contexto de slug não há clínica escolhida: quem resolve
-                // o id é o backend, a partir do slug.
                 clinicId: clinicId ?? null,
                 clinicSlug: clinicId ? null : (clinicSlug ?? null),
             });
@@ -191,7 +180,6 @@ export default function PatientLoginPage() {
             <PatientNavbar hideAuthAction />
 
             <main className="relative flex flex-1 items-center justify-center overflow-hidden px-4 py-10">
-                {/* Acento decorativo — apenas tokens */}
                 <div
                     aria-hidden
                     className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background"
@@ -214,8 +202,6 @@ export default function PatientLoginPage() {
                     </div>
 
                     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
-                        {/* A clínica é informação de segurança: o paciente
-                            precisa vê-la antes de digitar a senha. */}
                         {step === 'credentials' && clinicLabel && (
                             <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 px-3.5 py-3">
                                 <Building2 className="h-4 w-4 shrink-0 text-primary" />
@@ -285,9 +271,6 @@ export default function PatientLoginPage() {
                                                 <FormLabel className="text-sm font-medium text-foreground">
                                                     CPF ou e-mail
                                                 </FormLabel>
-                                                {/* FormControl precisa envolver
-                                                    o Input diretamente: é ele
-                                                    que recebe o id do label. */}
                                                 <div className="relative">
                                                     <UserRound className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                                     <FormControl>
@@ -357,8 +340,6 @@ export default function PatientLoginPage() {
                                                         </button>
                                                     </div>
                                                     <FormMessage />
-                                                    {/* Neutro de propósito: quem não tem
-                                                        CPF recebe o e-mail como senha padrão. */}
                                                     <p className="pt-0.5 text-xs text-muted-foreground">
                                                         Senha inicial fornecida
                                                         pela clínica —

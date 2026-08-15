@@ -78,8 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: null,
         guard: null,
         isAuthenticated: false,
-        // Sem sessão salva não há nada a restaurar: já nasce fora do loading,
-        // em vez de renderizar "carregando" e corrigir num efeito.
         isLoading: !!getStoredAuthForPage(),
     }));
 
@@ -174,19 +172,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [state.guard, scheduleExpiryWarning]);
 
-    // Manter ref sempre atualizada para uso dentro do toast
     useEffect(() => {
         refreshSessionRef.current = refreshSession;
     }, [refreshSession]);
 
-    // Limpar timer no unmount
     useEffect(() => {
         return () => {
             if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
         };
     }, []);
 
-    // Restore session from localStorage on mount
     useEffect(() => {
         const auth = getStoredAuthForPage();
         if (!auth) return;

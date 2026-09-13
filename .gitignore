@@ -37,4 +37,5 @@ yarn-error.log
 /.cursor/skills/speckit-*
 /.specify
 /.claude/skills/speckit-*
+/.claude/settings.local.json
 /.agents/skills/speckit-*

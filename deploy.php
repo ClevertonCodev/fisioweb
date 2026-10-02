@@ -24,12 +24,8 @@ set('application', 'fisioweb');
 set('repository', 'git@github.com:ClevertonCodev/fisioweb.git');
 set('branch', 'main');
 set('keep_releases', 5);
-
-// Pastas de ferramentas de desenvolvimento que não precisam ir para o servidor.
 set('clear_paths', ['.agents', '.claude', '.cursor']);
-
 set('bin/php', '/usr/bin/php8.5');
-// O PHP-FPM roda como o mesmo usuário do deploy (ver provision.sh).
 set('http_user', 'fisioweb');
 
 host('production')
@@ -39,7 +35,6 @@ host('production')
     // O servidor clona o GitHub usando a sua chave SSH local (ssh-add).
     ->setForwardAgent(true);
 
-// O Vite lê as variáveis VITE_* do .env compartilhado durante o build.
 task('build:assets', function () {
     run('cd {{release_path}} && {{bin/npm}} run build');
 })->desc('Gera os assets do frontend');

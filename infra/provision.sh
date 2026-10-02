@@ -71,6 +71,8 @@ log "Usuário $DEPLOY_USER (dono da aplicação e de quem faz o deploy)"
 if ! id "$DEPLOY_USER" &>/dev/null; then
     adduser --disabled-password --gecos "" "$DEPLOY_USER"
 fi
+# Grupo adm: permite ao log-viewer ler /var/log/nginx (arquivos www-data:adm 640).
+usermod -aG adm "$DEPLOY_USER"
 install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh"
 AUTH_KEYS="/home/$DEPLOY_USER/.ssh/authorized_keys"
 touch "$AUTH_KEYS"

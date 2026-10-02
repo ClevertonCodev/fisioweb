@@ -163,6 +163,7 @@ return [
     'include_files' => [
         '*.log',
         '**/*.log',
+        '/var/log/nginx/*' => 'Nginx',
     ],
 
     /*

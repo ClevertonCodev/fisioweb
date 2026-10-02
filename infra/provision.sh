@@ -88,6 +88,14 @@ if ! grep -q github.com "$KNOWN_HOSTS" 2>/dev/null; then
     chown "$DEPLOY_USER:$DEPLOY_USER" "$KNOWN_HOSTS"
 fi
 
+# Ao entrar por SSH, cai direto na pasta da aplicação. O .bashrc do Ubuntu
+# só roda em sessão interativa, então não afeta os comandos do deploy.
+BASHRC="/home/$DEPLOY_USER/.bashrc"
+if ! grep -q "cd $APP_DIR" "$BASHRC" 2>/dev/null; then
+    printf '\n# Entra direto na pasta da aplicação\ncd %s 2>/dev/null\n' "$APP_DIR" >> "$BASHRC"
+    chown "$DEPLOY_USER:$DEPLOY_USER" "$BASHRC"
+fi
+
 # ---------------------------------------------------------------------------
 log "SSH: sem senha, só chave"
 # ---------------------------------------------------------------------------
@@ -231,6 +239,8 @@ systemctl restart "$KV_SERVICE"
 log "Estrutura de pastas do Deployer + .env"
 # ---------------------------------------------------------------------------
 install -d -o "$DEPLOY_USER" -g "$DEPLOY_USER" "$APP_DIR" "$APP_DIR/shared"
+# A pasta pode ter sido criada pelo root (ao restaurar o .env de outro servidor).
+chown "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR" "$APP_DIR/shared"
 ENV_FILE="$APP_DIR/shared/.env"
 
 if [[ -f "$ENV_FILE" ]]; then

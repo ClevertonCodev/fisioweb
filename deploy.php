@@ -20,6 +20,9 @@ set('repository', 'git@github.com:ClevertonCodev/fisioweb.git');
 set('branch', 'main');
 set('keep_releases', 5);
 
+// Pastas de ferramentas de desenvolvimento que não precisam ir para o servidor.
+set('clear_paths', ['.agents', '.claude', '.cursor']);
+
 set('bin/php', '/usr/bin/php8.5');
 // O PHP-FPM roda como o mesmo usuário do deploy (ver provision.sh).
 set('http_user', 'fisioweb');
@@ -41,6 +44,7 @@ task('fisioweb:restart', function () {
     run('sudo systemctl restart fisioweb-queue');
 })->desc('Recarrega o PHP-FPM e reinicia o worker da fila');
 
+after('deploy:update_code', 'deploy:clear_paths');
 after('deploy:vendors', 'npm:install');
 after('npm:install', 'build:assets');
 after('deploy:symlink', 'fisioweb:restart');

@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureLogViewer(): void
     {
         LogViewer::auth(function ($request) {
-            return !app()->isProduction();
+            return true;
         });
     }
 }

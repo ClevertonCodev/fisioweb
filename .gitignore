@@ -38,3 +38,12 @@ yarn-error.log
 /.specify
 /.claude/skills/speckit-*
 /.agents/skills/speckit-*
+
+# tarefas delegadas ao Cursor (skill cursor-dev)
+/tasks/cursor/
+
+# ai-harness: evidência, revisão e trabalho adiado ficam fora do git
+/.ai-workbench/*/evidence/
+/.ai-workbench/*/review/
+/.ai-workbench/DEFERRED.md
+/.ai-workbench/*/DEFERRED.md

@@ -22,14 +22,14 @@ Cobre as histórias 9, 12, 16 e 17 do plano.
 
 ## Critérios de Aceite
 
-- [ ] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra em AppointmentController, TreatmentPlanController e ProgramDraftController.
-- [ ] Toda comparação estrita de `clinic_id` nesses controllers converte o lado do model para `int`.
-- [ ] Todos os testes de `modules/ClinicScheduling/tests` e `modules/TreatmentProgram/tests` continuam verdes sem alteração, incluindo:
-  - [ ] `AppointmentAuthorizationTest`, `AppointmentIndexVisibilityTest` e `AppointmentStoreTest`;
-  - [ ] `TreatmentPlanControllerTest`, `TreatmentPlanPdfDownloadTest` e `ProgramDraftControllerTest`.
-- [ ] O `ModuleBoundaryTest` de `ClinicScheduling` e `TreatmentProgram` e o `TreatmentProgramRouteCompatibilityTest` continuam verdes.
-- [ ] Um usuário de outra clínica não vê nem altera consultas, planos de tratamento ou rascunhos desta clínica.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra em AppointmentController, TreatmentPlanController e ProgramDraftController.
+- [x] Toda comparação estrita de `clinic_id` nesses controllers converte o lado do model para `int`.
+- [x] Todos os testes de `modules/ClinicScheduling/tests` e `modules/TreatmentProgram/tests` continuam verdes sem alteração, incluindo:
+  - [x] `AppointmentAuthorizationTest`, `AppointmentIndexVisibilityTest` e `AppointmentStoreTest`;
+  - [x] `TreatmentPlanControllerTest`, `TreatmentPlanPdfDownloadTest` e `ProgramDraftControllerTest`.
+- [x] O `ModuleBoundaryTest` de `ClinicScheduling` e `TreatmentProgram` e o `TreatmentProgramRouteCompatibilityTest` continuam verdes.
+- [x] Um usuário de outra clínica não vê nem altera consultas, planos de tratamento ou rascunhos desta clínica.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

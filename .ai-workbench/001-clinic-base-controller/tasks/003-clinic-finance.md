@@ -27,12 +27,12 @@ Cobre as histórias 8, 16, 17 e 18 do plano.
 
 ## Critérios de Aceite
 
-- [ ] Os testes novos de outra clínica para categorias, lançamentos (incluindo lixeira e restauração), resumo, relatórios, saldo inicial e exportação existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração.
-- [ ] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra nos controllers de `ClinicFinance`.
-- [ ] Todos os testes atuais de `modules/ClinicFinance/tests` continuam verdes sem alteração.
-- [ ] O `ModuleBoundaryTest` de `ClinicFinance` continua verde.
-- [ ] Um usuário de outra clínica não vê, não altera e não exporta nenhum dado financeiro desta clínica.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [ ] Os testes novos de outra clínica para categorias, lançamentos (incluindo lixeira e restauração), resumo, relatórios, saldo inicial e exportação existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração. (pendente: depende de como o usuário commitar — os testes foram escritos e confirmados verdes no código antigo antes de cada migração; ver sugestão de commits)
+- [x] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra nos controllers de `ClinicFinance`.
+- [x] Todos os testes atuais de `modules/ClinicFinance/tests` continuam verdes sem alteração.
+- [x] O `ModuleBoundaryTest` de `ClinicFinance` continua verde.
+- [x] Um usuário de outra clínica não vê, não altera e não exporta nenhum dado financeiro desta clínica.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

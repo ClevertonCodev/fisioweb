@@ -2,15 +2,14 @@
 
 namespace Modules\ClinicQuestionnaire\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateServiceInterface;
 use Modules\ClinicQuestionnaire\Http\Requests\StoreQuestionnaireTemplateRequest;
 use Modules\ClinicQuestionnaire\Http\Requests\UpdateQuestionnaireTemplateRequest;
 
-class QuestionnaireTemplateController extends Controller
+class QuestionnaireTemplateController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected QuestionnaireTemplateServiceInterface $templateService,
@@ -18,23 +17,23 @@ class QuestionnaireTemplateController extends Controller
 
     public function index(): JsonResponse
     {
-        $clinicId  = Auth::guard('clinic')->user()->clinic_id;
-        $templates = $this->templateService->listForClinic((int) $clinicId);
+        $clinicId  = $this->clinicId();
+        $templates = $this->templateService->listForClinic($clinicId);
 
         return response()->json(['data' => $templates]);
     }
 
     public function store(StoreQuestionnaireTemplateRequest $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $template = $this->templateService->create($request->validated(), (int) $clinicId);
+        $clinicId = $this->clinicId();
+        $template = $this->templateService->create($request->validated(), $clinicId);
 
         return response()->json(['data' => $template], 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
             $template = $this->templateService->find($id);
@@ -42,7 +41,7 @@ class QuestionnaireTemplateController extends Controller
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
-        if ((int) $template->clinic_id !== (int) $clinicId) {
+        if ((int) $template->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
@@ -51,7 +50,7 @@ class QuestionnaireTemplateController extends Controller
 
     public function update(UpdateQuestionnaireTemplateRequest $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
             $template = $this->templateService->find($id);
@@ -59,7 +58,7 @@ class QuestionnaireTemplateController extends Controller
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
-        if ((int) $template->clinic_id !== (int) $clinicId) {
+        if ((int) $template->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
@@ -70,7 +69,7 @@ class QuestionnaireTemplateController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
             $template = $this->templateService->find($id);
@@ -78,7 +77,7 @@ class QuestionnaireTemplateController extends Controller
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
-        if ((int) $template->clinic_id !== (int) $clinicId) {
+        if ((int) $template->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 

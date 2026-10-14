@@ -2,11 +2,10 @@
 
 namespace Modules\ClinicalRecord\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Modules\ClinicalRecord\Contracts\EvolutionServiceInterface;
 use Modules\ClinicalRecord\Http\Requests\StoreEvolutionRequest;
@@ -15,7 +14,7 @@ use Modules\ClinicalRecord\Models\PatientEvolution;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Pdf\Contracts\PdfGeneratorInterface;
 
-class EvolutionController extends Controller
+class EvolutionController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected EvolutionServiceInterface $evolutionService,
@@ -25,14 +24,14 @@ class EvolutionController extends Controller
 
     public function indexByPatient(int $patient): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
-        $data = $this->evolutionService->listByPatient((int) $clinicId, $patient);
+        $data = $this->evolutionService->listByPatient($clinicId, $patient);
 
         return response()->json(['data' => $data]);
     }
@@ -41,19 +40,18 @@ class EvolutionController extends Controller
     {
         $this->authorize('create', PatientEvolution::class);
 
-        $clinicUser = Auth::guard('clinic')->user();
-        $clinicId   = $clinicUser->clinic_id;
+        $clinicId   = $this->clinicId();
         $found      = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
         $evolution = $this->evolutionService->create(
             $request->validated(),
-            (int) $clinicId,
+            $clinicId,
             $patient,
-            (int) $clinicUser->id,
+            $this->clinicUserId(),
         );
 
         return response()->json(['data' => $evolution], 201);
@@ -61,10 +59,10 @@ class EvolutionController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }
@@ -74,10 +72,10 @@ class EvolutionController extends Controller
 
     public function update(UpdateEvolutionRequest $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }
@@ -91,10 +89,10 @@ class EvolutionController extends Controller
 
     public function generateText(Request $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }
@@ -111,28 +109,27 @@ class EvolutionController extends Controller
 
     public function sign(int $id): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-        $clinicId   = $clinicUser->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }
 
         $this->authorize('sign', $evolution);
 
-        $evolution = $this->evolutionService->sign($evolution, (int) $clinicUser->id);
+        $evolution = $this->evolutionService->sign($evolution, $this->clinicUserId());
 
         return response()->json(['data' => $evolution]);
     }
 
     public function downloadPdf(int $id)
     {
-        $clinicId  = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }
@@ -146,10 +143,10 @@ class EvolutionController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $evolution = $this->evolutionService->findForClinic($id, (int) $clinicId);
+            $evolution = $this->evolutionService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Evolução não encontrada.'], 404);
         }

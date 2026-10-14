@@ -21,11 +21,11 @@ Cobre as histórias 13, 16, 17 e 18 do plano.
 
 ## Critérios de Aceite
 
-- [ ] Os testes novos de isolamento de conexão (status, pull e disconnect) existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração.
-- [ ] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra no GoogleCalendarController.
-- [ ] `GoogleCalendarConnectionTest` e `GoogleCalendarArchitectureTest` continuam verdes sem alteração.
-- [ ] Um usuário de outra clínica não vê, não sincroniza e não desconecta a conta Google de um usuário desta clínica.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [ ] Os testes novos de isolamento de conexão (status, pull e disconnect) existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração. (pendente: depende de como o usuário commitar — os testes foram escritos e confirmados verdes no código antigo antes de cada migração; ver sugestão de commits)
+- [x] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra no GoogleCalendarController.
+- [x] `GoogleCalendarConnectionTest` e `GoogleCalendarArchitectureTest` continuam verdes sem alteração.
+- [x] Um usuário de outra clínica não vê, não sincroniza e não desconecta a conta Google de um usuário desta clínica.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

@@ -21,14 +21,14 @@ Cobre as histórias 11, 16, 17 e 18 do plano.
 
 ## Critérios de Aceite
 
-- [ ] Os testes novos de outra clínica para modelos de questionário existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração.
-- [ ] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra em QuestionnaireTemplateController e PatientQuestionnaireController.
-- [ ] Continuam verdes sem alteração:
-  - [ ] `PatientQuestionnaireControllerTest`;
-  - [ ] o `ModuleBoundaryTest` de `ClinicQuestionnaire`;
-  - [ ] o teste que obriga os controllers do módulo a depender de interfaces de Service.
-- [ ] Um usuário de outra clínica não vê, não altera e não responde questionários desta clínica.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [ ] Os testes novos de outra clínica para modelos de questionário existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração. (pendente: depende de como o usuário commitar — os testes foram escritos e confirmados verdes no código antigo antes de cada migração; ver sugestão de commits)
+- [x] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra em QuestionnaireTemplateController e PatientQuestionnaireController.
+- [x] Continuam verdes sem alteração:
+  - [x] `PatientQuestionnaireControllerTest`;
+  - [x] o `ModuleBoundaryTest` de `ClinicQuestionnaire`;
+  - [x] o teste que obriga os controllers do módulo a depender de interfaces de Service.
+- [x] Um usuário de outra clínica não vê, não altera e não responde questionários desta clínica.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

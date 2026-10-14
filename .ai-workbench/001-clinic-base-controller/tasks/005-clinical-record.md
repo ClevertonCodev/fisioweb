@@ -30,12 +30,12 @@ Cobre as histórias 10, 16, 17 e 18 do plano.
 
 ## Critérios de Aceite
 
-- [ ] Os testes novos de outra clínica para avaliações, evoluções (incluindo assinatura, geração de texto e PDF) e modelos de evolução existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração.
-- [ ] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra nos controllers de `ClinicalRecord`.
-- [ ] Os testes atuais continuam verdes sem alteração: `PatientFileControllerTest`, `ClinicalRecordRouteCompatibilityTest` e o `ModuleBoundaryTest` de `ClinicalRecord`.
-- [ ] Um usuário de outra clínica não vê, não altera, não assina e não gera PDF de nenhum registro clínico desta clínica.
-- [ ] Os modelos de evolução de sistema continuam visíveis para todas as clínicas.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [ ] Os testes novos de outra clínica para avaliações, evoluções (incluindo assinatura, geração de texto e PDF) e modelos de evolução existem e passam **antes** da migração. O commit de teste vem antes do commit de refatoração. (pendente: depende de como o usuário commitar — os testes foram escritos e confirmados verdes no código antigo antes de cada migração; ver sugestão de commits)
+- [x] Nenhum `Auth::guard('clinic')` ou `auth('clinic')` sobra nos controllers de `ClinicalRecord`.
+- [x] Os testes atuais continuam verdes sem alteração: `PatientFileControllerTest`, `ClinicalRecordRouteCompatibilityTest` e o `ModuleBoundaryTest` de `ClinicalRecord`.
+- [x] Um usuário de outra clínica não vê, não altera, não assina e não gera PDF de nenhum registro clínico desta clínica.
+- [x] Os modelos de evolução de sistema continuam visíveis para todas as clínicas.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

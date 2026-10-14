@@ -2,10 +2,9 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
 use Modules\Clinic\Http\Requests\OccupancyRateRequest;
@@ -14,7 +13,7 @@ use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Services\DashboardScope;
 use Modules\Clinic\Services\OccupancyRateService;
 
-class DashboardController extends Controller
+class DashboardController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected DashboardServiceInterface $dashboardService,
@@ -27,7 +26,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $user  = Auth::guard('clinic')->user();
+        $user  = $this->clinicUser();
         $scope = $request->query('scope');
 
         return response()->json([
@@ -41,7 +40,7 @@ class DashboardController extends Controller
      */
     public function occupancyRate(OccupancyRateRequest $request, OccupancyRateService $service): JsonResponse
     {
-        $user        = Auth::guard('clinic')->user();
+        $user        = $this->clinicUser();
         $granularity = $request->validated('granularity');
         $targetId    = $this->resolveOccupancyUser($user, $request->validated('clinic_user_id'));
 
@@ -57,7 +56,7 @@ class DashboardController extends Controller
      */
     public function patientAcquisition(PatientAcquisitionRequest $request): JsonResponse
     {
-        $user  = Auth::guard('clinic')->user();
+        $user  = $this->clinicUser();
         $scope = DashboardScope::fromUser($user, $request->validated('scope'));
 
         return response()->json([
@@ -70,13 +69,13 @@ class DashboardController extends Controller
      */
     public function activities(): JsonResponse
     {
-        $user = Auth::guard('clinic')->user();
+        $user = $this->clinicUser();
         abort_if($user->isPhysiotherapist(), 403);
 
         $tz = $user->clinic?->timezone ?: config('app.timezone');
 
         return response()->json([
-            'data' => ['items' => $this->dashboardRepository->recentActivities($user->clinic_id, $tz)],
+            'data' => ['items' => $this->dashboardRepository->recentActivities($this->clinicId(), $tz)],
         ]);
     }
 

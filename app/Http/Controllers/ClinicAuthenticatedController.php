@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 
 abstract class ClinicAuthenticatedController extends Controller
 {
+    /**
+     * @return \Modules\Clinic\Models\ClinicUser
+     */
     protected function clinicUser(): Authenticatable
     {
         $user = Auth::guard('clinic')->user();

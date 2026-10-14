@@ -2,17 +2,16 @@
 
 namespace Modules\ClinicScheduling\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
 use Modules\ClinicScheduling\Http\Requests\StoreAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentStatusRequest;
 use Modules\ClinicScheduling\Models\Appointment;
 
-class AppointmentController extends Controller
+class AppointmentController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected AppointmentServiceInterface $appointmentService,
@@ -22,7 +21,7 @@ class AppointmentController extends Controller
     {
         $this->authorize('viewAny', Appointment::class);
 
-        $user    = Auth::guard('clinic')->user();
+        $user    = $this->clinicUser();
         $filters = $request->only(['from', 'to', 'clinic_user_id', 'status']);
 
         $appointments = $this->appointmentService->listForUser($user, $filters);
@@ -35,7 +34,7 @@ class AppointmentController extends Controller
         $this->authorize('create', Appointment::class);
 
         $data = array_merge($request->validated(), [
-            'clinic_id' => Auth::guard('clinic')->user()->clinic_id,
+            'clinic_id' => $this->clinicId(),
         ]);
 
         $appointment = $this->appointmentService->create($data);
@@ -87,8 +86,6 @@ class AppointmentController extends Controller
      */
     private function authorizeClinic(Appointment $appointment): void
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-
-        abort_if((int) $appointment->clinic_id !== (int) $clinicId, 404, 'Consulta não encontrada.');
+        abort_if((int) $appointment->clinic_id !== $this->clinicId(), 404, 'Consulta não encontrada.');
     }
 }

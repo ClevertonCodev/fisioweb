@@ -2,15 +2,14 @@
 
 namespace Modules\ClinicFinance\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicFinance\Contracts\FinancialCategoryServiceInterface;
 use Modules\ClinicFinance\Http\Requests\StoreFinancialCategoryRequest;
 use Modules\ClinicFinance\Models\FinancialCategory;
 
-class FinancialCategoryController extends Controller
+class FinancialCategoryController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected FinancialCategoryServiceInterface $categoryService,
@@ -20,7 +19,7 @@ class FinancialCategoryController extends Controller
     {
         $this->authorize('viewAny', FinancialCategory::class);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $type     = $request->query('type');
 
         return response()->json([
@@ -32,7 +31,7 @@ class FinancialCategoryController extends Controller
     {
         $this->authorize('create', FinancialCategory::class);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $category = $this->categoryService->create($clinicId, $request->validated());
 
         return response()->json(['data' => $category], 201);
@@ -42,7 +41,7 @@ class FinancialCategoryController extends Controller
     {
         $this->authorize('update', $category);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $updated  = $this->categoryService->toggle($clinicId, $category);
 
         return response()->json(['data' => ['id' => $updated->id, 'active' => true]]);
@@ -52,7 +51,7 @@ class FinancialCategoryController extends Controller
     {
         $this->authorize('delete', $category);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $this->categoryService->delete($clinicId, $category);
 
         return response()->json(null, 204);

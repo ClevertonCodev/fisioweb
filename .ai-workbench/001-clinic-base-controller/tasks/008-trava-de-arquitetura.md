@@ -27,13 +27,14 @@ Cobre as histórias 14 e 15 do plano.
 
 ## Critérios de Aceite
 
-- [ ] O teste passa com o código depois das tarefas 001 a 007.
-- [ ] Ao colocar `Auth::guard('clinic')->user()` em qualquer controller de um dos 7 módulos, o teste falha e aponta o arquivo e a linha.
-- [ ] As exceções ficam numa lista explícita e curta no teste, cada uma com o motivo.
-- [ ] O teste da fixture prova que as três formas de acesso ao guard são detectadas.
-- [ ] `php artisan test tests/Architecture` passa por inteiro.
-- [ ] Um usuário de outra clínica não vê nem altera nada: não se aplica diretamente, porque esta tarefa não muda comportamento. O critério é cumprido pelos testes Feature das tarefas 001 a 007, que continuam verdes.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] O teste passa com o código depois das tarefas 001 a 007.
+- [x] Ao colocar `Auth::guard('clinic')->user()` em qualquer controller de um dos 7 módulos, o teste falha e aponta o arquivo e a linha.
+- [x] As exceções ficam numa lista explícita e curta no teste, cada uma com o motivo.
+  - **Nota de implementação:** a lista ficou só com o `Admin\ClinicController` (impersonação). O `AuthController` e o `PasswordResetController` do Clinic não acessam o guard pelos padrões proibidos (usam `guardName()` do controller base de autenticação), então listá-los criaria exceções obsoletas — e o teste `test_allowed_exceptions_still_exist` falha justamente nesse caso. A detecção também cobre `->user('clinic')`.
+- [x] O teste da fixture prova que as três formas de acesso ao guard são detectadas.
+- [x] `php artisan test tests/Architecture` passa por inteiro.
+- [x] Um usuário de outra clínica não vê nem altera nada: não se aplica diretamente, porque esta tarefa não muda comportamento. O critério é cumprido pelos testes Feature das tarefas 001 a 007, que continuam verdes.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 

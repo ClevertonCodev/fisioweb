@@ -3,11 +3,10 @@
 namespace Modules\TreatmentProgram\Http\Controllers;
 
 use App\Helpers\ValidationHelper;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\Pdf\Contracts\PdfGeneratorInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
 use Modules\TreatmentProgram\Http\Requests\StoreTreatmentPlanRequest;
@@ -16,7 +15,7 @@ use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Services\ProgramPdfQrCodeGenerator;
 use Modules\TreatmentProgram\Services\ProgramPdfViewModelBuilder;
 
-class TreatmentPlanController extends Controller
+class TreatmentPlanController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected TreatmentPlanServiceInterface $treatmentPlanService,
@@ -27,7 +26,7 @@ class TreatmentPlanController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $filters  = $request->only(['search', 'status', 'patient_id', 'physio_area_id', 'without_patient']);
         $perPage  = $request->integer('per_page', 15);
         $data     = $this->treatmentPlanService->list($clinicId, $filters, $perPage);
@@ -37,10 +36,10 @@ class TreatmentPlanController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         try {
             $plan = $this->treatmentPlanService->find($id);
-            if ($plan->clinic_id !== (int) $clinicId) {
+            if ((int) $plan->clinic_id !== $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
 
@@ -52,10 +51,9 @@ class TreatmentPlanController extends Controller
 
     public function store(StoreTreatmentPlanRequest $request): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-        $data       = array_merge($request->validated(), [
-            'clinic_id'      => $clinicUser->clinic_id,
-            'clinic_user_id' => $clinicUser->id,
+        $data = array_merge($request->validated(), [
+            'clinic_id'      => $this->clinicId(),
+            'clinic_user_id' => $this->clinicUserId(),
         ]);
         $plan = $this->treatmentPlanService->create($data);
 
@@ -64,10 +62,10 @@ class TreatmentPlanController extends Controller
 
     public function update(UpdateTreatmentPlanRequest $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         try {
             $plan = $this->treatmentPlanService->find($id);
-            if ($plan->clinic_id !== (int) $clinicId) {
+            if ((int) $plan->clinic_id !== $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
             $plan = $this->treatmentPlanService->update($id, $request->validated());
@@ -80,10 +78,10 @@ class TreatmentPlanController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         try {
             $plan = $this->treatmentPlanService->find($id);
-            if ($plan->clinic_id !== (int) $clinicId) {
+            if ((int) $plan->clinic_id !== $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
             $this->authorize('delete', $plan);
@@ -97,10 +95,10 @@ class TreatmentPlanController extends Controller
 
     public function duplicate(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         try {
             $plan = $this->treatmentPlanService->find($id);
-            if ($plan->clinic_id !== (int) $clinicId) {
+            if ((int) $plan->clinic_id !== $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
             $newPlan = $this->treatmentPlanService->duplicate($id);
@@ -113,10 +111,10 @@ class TreatmentPlanController extends Controller
 
     public function toModel(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         try {
             $plan = $this->treatmentPlanService->find($id);
-            if ($plan->clinic_id !== (int) $clinicId) {
+            if ((int) $plan->clinic_id !== $clinicId) {
                 return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
             }
             $newPlan = $this->treatmentPlanService->toModel($id);
@@ -129,9 +127,9 @@ class TreatmentPlanController extends Controller
 
     public function downloadPdf(int $id)
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $plan     = $this->treatmentPlanService->find($id);
-        if ($plan->clinic_id !== (int) $clinicId) {
+        if ((int) $plan->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
         }
 

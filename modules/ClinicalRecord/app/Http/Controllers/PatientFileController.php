@@ -2,16 +2,15 @@
 
 namespace Modules\ClinicalRecord\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicalRecord\Contracts\PatientFileServiceInterface;
 use Modules\ClinicalRecord\Http\Requests\StorePatientFileRequest;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
-class PatientFileController extends Controller
+class PatientFileController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected PatientFileServiceInterface $patientFileService,
@@ -21,7 +20,7 @@ class PatientFileController extends Controller
 
     public function index(int $patient): JsonResponse
     {
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
         if (!$found || (int) $found->clinic_id !== $clinicId) {
@@ -35,19 +34,19 @@ class PatientFileController extends Controller
 
     public function store(StorePatientFileRequest $request, int $patient): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
+        $clinicId   = $this->clinicId();
         $found      = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicUser->clinic_id) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
         $uploaded = $this->fileService->uploadFile($request->file('file'), 'patients/files');
 
         $file = $this->patientFileService->store(
-            (int) $clinicUser->clinic_id,
+            $clinicId,
             $patient,
-            (int) $clinicUser->id,
+            $this->clinicUserId(),
             $uploaded,
             $request->input('name'),
         );
@@ -57,7 +56,7 @@ class PatientFileController extends Controller
 
     public function destroy(int $patient, int $file): JsonResponse
     {
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
         if (!$found || (int) $found->clinic_id !== $clinicId) {

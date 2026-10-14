@@ -2,17 +2,16 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Http\Requests\StoreClinicUserRequest;
 use Modules\Clinic\Http\Requests\UpdateClinicUserRequest;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 
-class ClinicUserController extends Controller
+class ClinicUserController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected ClinicUserServiceInterface $clinicUserService,
@@ -23,10 +22,10 @@ class ClinicUserController extends Controller
 
     public function professionals(): JsonResponse
     {
-        $authUser = Auth::guard('clinic')->user();
+        $authUser = $this->clinicUser();
 
         $query = ClinicUser::query()
-            ->where('clinic_id', $authUser->clinic_id)
+            ->where('clinic_id', $this->clinicId())
             ->where('status', ClinicUser::STATUS_ACTIVE)
             ->whereIn('role', ClinicUser::ATTENDABLE_ROLES);
 
@@ -42,8 +41,7 @@ class ClinicUserController extends Controller
 
     public function index(): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $users    = $this->clinicUserService->listForClinic((int) $clinicId);
+        $users = $this->clinicUserService->listForClinic($this->clinicId());
 
         return response()->json(['data' => $users]);
     }
@@ -55,8 +53,7 @@ class ClinicUserController extends Controller
 
     public function store(StoreClinicUserRequest $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $user     = $this->clinicUserService->create($request->validated(), (int) $clinicId);
+        $user = $this->clinicUserService->create($request->validated(), $this->clinicId());
 
         return response()->json(['data' => $user], 201);
     }
@@ -72,9 +69,9 @@ class ClinicUserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
-        if ((int) $user->clinic_id !== (int) $clinicId) {
+        if ((int) $user->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Usuário não encontrado.'], 404);
         }
 
@@ -92,9 +89,9 @@ class ClinicUserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
-        if ((int) $user->clinic_id !== (int) $clinicId) {
+        if ((int) $user->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Usuário não encontrado.'], 404);
         }
 

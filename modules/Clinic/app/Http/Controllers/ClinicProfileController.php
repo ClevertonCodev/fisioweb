@@ -2,15 +2,14 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
 use Modules\Clinic\Http\Requests\UpdateClinicProfileRequest;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 
-class ClinicProfileController extends Controller
+class ClinicProfileController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected ClinicServiceInterface $clinicService,
@@ -18,13 +17,13 @@ class ClinicProfileController extends Controller
 
     public function show(): JsonResponse
     {
-        $user = Auth::guard('clinic')->user();
+        $user = $this->clinicUser();
 
         if (!$user instanceof ClinicUser || !$user->isAdmin()) {
             return response()->json(['message' => 'Acesso não autorizado.'], 403);
         }
 
-        $clinic = $this->clinicService->findById((int) $user->clinic_id);
+        $clinic = $this->clinicService->findById($this->clinicId());
         $clinic->load('plan:id,name');
 
         return response()->json([
@@ -34,10 +33,8 @@ class ClinicProfileController extends Controller
 
     public function update(UpdateClinicProfileRequest $request): JsonResponse
     {
-        $user = Auth::guard('clinic')->user();
-
         $clinic = $this->clinicService->update(
-            (int) $user->clinic_id,
+            $this->clinicId(),
             $request->validated(),
         );
 

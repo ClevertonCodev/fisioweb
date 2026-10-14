@@ -2,17 +2,16 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Http\Requests\SubmitExerciseRequest;
 use Modules\Clinic\Models\ExerciseFavorite;
 
-class ExerciseController extends Controller
+class ExerciseController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected ExerciseServiceInterface $exerciseService,
@@ -21,9 +20,8 @@ class ExerciseController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-        $clinicId   = (int) $clinicUser->clinic_id;
-        $filters    = $request->only([
+        $clinicId = $this->clinicId();
+        $filters  = $request->only([
             'search', 'physio_area_id', 'physio_subarea_id',
             'body_region_id', 'difficulty_level', 'movement_form', 'is_active',
         ]);
@@ -32,7 +30,7 @@ class ExerciseController extends Controller
 
         $perPage     = $request->integer('per_page', 15);
         $result      = $this->exerciseService->list($filters, $perPage);
-        $favoriteIds = ExerciseFavorite::where('clinic_user_id', $clinicUser->id)->pluck('exercise_id')->all();
+        $favoriteIds = ExerciseFavorite::where('clinic_user_id', $this->clinicUserId())->pluck('exercise_id')->all();
         $result->getCollection()->transform(function ($item) use ($favoriteIds, $clinicId) {
             $item->is_favorite       = in_array($item->id, $favoriteIds);
             $item->is_own_submission = $item->isOwnedByClinic($clinicId);
@@ -55,12 +53,10 @@ class ExerciseController extends Controller
 
     public function store(SubmitExerciseRequest $request): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-
         $exercise = $this->submissionService->submit(
             $request->validated(),
-            (int) $clinicUser->clinic_id,
-            (int) $clinicUser->id,
+            $this->clinicId(),
+            $this->clinicUserId(),
         );
 
         $exercise->is_favorite       = false;
@@ -71,7 +67,7 @@ class ExerciseController extends Controller
 
     public function toggleFavorite(int $id): JsonResponse
     {
-        $clinicUserId = Auth::guard('clinic')->id();
+        $clinicUserId = $this->clinicUserId();
         $exercise     = Exercise::find($id);
 
         if (!$exercise) {
@@ -97,7 +93,7 @@ class ExerciseController extends Controller
 
     public function favorites(Request $request): JsonResponse
     {
-        $clinicUserId = Auth::guard('clinic')->id();
+        $clinicUserId = $this->clinicUserId();
         $ids          = ExerciseFavorite::where('clinic_user_id', $clinicUserId)->pluck('exercise_id');
         $exercises    = Exercise::with(['physioArea', 'physioSubarea', 'bodyRegion', 'videos'])
             ->whereIn('id', $ids)

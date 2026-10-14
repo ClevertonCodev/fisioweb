@@ -447,7 +447,7 @@ Sem Policy `delete` no backend, qualquer um chama o endpoint via curl. Sempre **
 
 ### 5. Usar `auth()->user()` em vez de `Auth::guard('clinic')->user()`
 
-`auth()` retorna o guard "default". Em rotas `clinic/*` com JWT custom, isso pode ser `null` ou o guard errado. Use **sempre** `Auth::guard('clinic')->user()` ou `Auth::guard('admin')->user()` explícito.
+`auth()` retorna o guard "default". Em rotas `clinic/*` com JWT custom, isso pode ser `null` ou o guard errado. Use **sempre** o guard explícito: em controller de clínica, estenda `App\Http\Controllers\ClinicAuthenticatedController` e use `$this->clinicUser()` / `$this->clinicId()` / `$this->clinicUserId()`; fora de controller (FormRequest, Policy), `Auth::guard('clinic')->user()` ou `$this->user('clinic')`; no admin, `Auth::guard('admin')->user()`.
 
 ### 6. Esconder no frontend e deixar o usuário descobrir 403
 

@@ -285,6 +285,8 @@ class <Entity>Controller extends Controller
 }
 ```
 
+> **Rota `auth:clinic`:** o controller estende `App\Http\Controllers\ClinicAuthenticatedController` (em vez de `Illuminate\Routing\Controller`) e lê a identidade por `$this->clinicId()` / `$this->clinicUserId()` / `$this->clinicUser()`. Ex.: `$this->service->list($this->clinicId(), $filters, $perPage)`.
+
 ### FormRequest
 
 ```php
@@ -355,7 +357,8 @@ $this->app->bind(<Entity>ServiceInterface::class, <Entity>Service::class);
 - Null: `is_null()` / `!is_null()` — nunca `=== null` / `!== null`.
 - String vazia: `empty()` / `!empty()` — nunca `=== ''` / `!== ''`.
 - Filtros: `!empty($filters['x'])` para strings, `array_key_exists('x', $filters)` para booleanos.
-- `Auth::guard('admin')` ou `Auth::guard('clinic')` — nunca `Auth::user()` sem guard.
+- Controller de rota `auth:clinic` estende `App\Http\Controllers\ClinicAuthenticatedController` e usa `$this->clinicUser()`, `$this->clinicId()` (int) e `$this->clinicUserId()` (int) — nunca `Auth::guard('clinic')` direto. Comparação estrita com `clinic_id` de model converte o lado do model: `(int) $model->clinic_id !== $this->clinicId()`.
+- Fora do guard `clinic`: `Auth::guard('admin')` explícito — nunca `Auth::user()` sem guard.
 
 ## Antipadrões proibidos
 

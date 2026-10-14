@@ -12,9 +12,7 @@ export default function PatientProgramDeepLinkPage() {
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center">
-            <h1 className="text-2xl font-semibold text-foreground">
-                Chegou!
-            </h1>
+            <h1 className="text-2xl font-semibold text-foreground">Chegou!</h1>
             <p className="mt-3 max-w-sm text-sm text-muted-foreground">
                 Página pública do programa de exercícios. Em breve você verá a
                 lista aqui.

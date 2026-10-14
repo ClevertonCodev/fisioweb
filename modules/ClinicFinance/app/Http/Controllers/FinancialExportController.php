@@ -2,13 +2,12 @@
 
 namespace Modules\ClinicFinance\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Modules\ClinicFinance\Contracts\FinanceExportServiceInterface;
 use Modules\ClinicFinance\Http\Requests\ExportFinancialTransactionsRequest;
 use Modules\ClinicFinance\Models\FinancialTransaction;
 
-class FinancialExportController extends Controller
+class FinancialExportController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected FinanceExportServiceInterface $exportService,
@@ -18,7 +17,7 @@ class FinancialExportController extends Controller
     {
         $this->authorize('viewAny', FinancialTransaction::class);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         return $this->exportService->export($clinicId, $request->validated());
     }

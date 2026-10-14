@@ -69,6 +69,8 @@ export default [
             // O frontend vive só em resources/js. Módulos são backend PHP —
             // no máximo view de e-mail/PDF, nunca JS/TS.
             'modules',
+            // Skills e ferramentas do Claude Code (scripts Node .cjs), não código do app.
+            '.claude',
         ],
     },
     prettier,

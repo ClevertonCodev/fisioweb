@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Orientação para Cursor neste repositório. **Detalhes vivem nas skills em `.claude/skills/`** — este arquivo aponta para onde olhar.
+Orientação para Cursor neste repositório. **Detalhes vivem nas skills em `.cursor/skills/`** — este arquivo aponta para onde olhar.
 
 ## Project Overview
 
@@ -82,49 +82,49 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em `.claude/skills/`. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/` (templates + exemplos detalhados).
+Skills vivem em `.cursor/skills/`. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/` (templates + exemplos detalhados).
 
 ### Backend
 | Vou fazer | Skill |
 |-----------|-------|
-| SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | [`backend-clean-code`](.claude/skills/backend-clean-code/SKILL.md) |
-| Fronteira entre módulos backend, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md) |
-| Criar recurso CRUD (Controller + Service + Repository + Contract + Request + Route) | [`backend-module`](.claude/skills/backend-module/SKILL.md) |
-| Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.claude/skills/laravel-eloquent/SKILL.md) |
-| Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.claude/skills/laravel-queues/SKILL.md) |
-| Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.claude/skills/php-modern/SKILL.md) |
-| Testes PHPUnit + Mockery + Laravel fakes | [`php-testing`](.claude/skills/php-testing/SKILL.md) |
+| SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | [`backend-clean-code`](.cursor/skills/backend-clean-code/SKILL.md) |
+| Fronteira entre módulos backend, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.cursor/skills/architecture-paradigm-modular-monolith/SKILL.md) |
+| Criar recurso CRUD (Controller + Service + Repository + Contract + Request + Route) | [`backend-module`](.cursor/skills/backend-module/SKILL.md) |
+| Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.cursor/skills/laravel-eloquent/SKILL.md) |
+| Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.cursor/skills/laravel-queues/SKILL.md) |
+| Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.cursor/skills/php-modern/SKILL.md) |
+| Testes PHPUnit + Mockery + Laravel fakes | [`php-testing`](.cursor/skills/php-testing/SKILL.md) |
 
 ### Frontend
 | Vou fazer | Skill |
 |-----------|-------|
-| Estrutura DDD (domain → application → infra → page → route) | [`frontend-ddd`](.claude/skills/frontend-ddd/SKILL.md) |
-| Hooks customizados, performance, React 19 (useActionState, useOptimistic, use()) | [`frontend-react`](.claude/skills/frontend-react/SKILL.md) |
-| Testes Vitest + React Testing Library | [`frontend-testing`](.claude/skills/frontend-testing/SKILL.md) |
-| **UI: componentes, cores, sidebar, popover, cursor, layouts** | [`frontend-ui-patterns`](.claude/skills/frontend-ui-patterns/SKILL.md) |
-| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, Poppins, dark mode)** | [`design-system`](.claude/skills/design-system/SKILL.md) |
-| ListPage com DataTable, Forms RHF+Zod, Dialog, componentes custom | [`forms-shadcn`](.claude/skills/forms-shadcn/SKILL.md) |
-| Usar `apiClient`, criar Repository, JWT multi-guard, impersonation | [`api-client`](.claude/skills/api-client/SKILL.md) |
+| Estrutura DDD (domain → application → infra → page → route) | [`frontend-ddd`](.cursor/skills/frontend-ddd/SKILL.md) |
+| Hooks customizados, performance, React 19 (useActionState, useOptimistic, use()) | [`frontend-react`](.cursor/skills/frontend-react/SKILL.md) |
+| Testes Vitest + React Testing Library | [`frontend-testing`](.cursor/skills/frontend-testing/SKILL.md) |
+| **UI: componentes, cores, sidebar, popover, cursor, layouts** | [`frontend-ui-patterns`](.cursor/skills/frontend-ui-patterns/SKILL.md) |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, Poppins, dark mode)** | [`design-system`](.cursor/skills/design-system/SKILL.md) |
+| ListPage com DataTable, Forms RHF+Zod, Dialog, componentes custom | [`forms-shadcn`](.cursor/skills/forms-shadcn/SKILL.md) |
+| Usar `apiClient`, criar Repository, JWT multi-guard, impersonation | [`api-client`](.cursor/skills/api-client/SKILL.md) |
 
 ### Cross-cutting
 | Vou fazer | Skill |
 |-----------|-------|
-| Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.claude/skills/security/SKILL.md) |
-| Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.claude/skills/prototype/SKILL.md) |
+| Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
+| Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
 
 ## Princípios não-negociáveis
 
 1. **Backend é fonte de verdade.** Frontend nunca decide autorização efetiva, validação de segurança, ou regra de negócio crítica. Frontend esconde para UX; backend protege para valer.
-2. **Backend limpo por padrão.** Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla. Veja [`backend-clean-code`](.claude/skills/backend-clean-code/SKILL.md).
-3. **Monólito modular no backend.** Módulos não importam internals de outros módulos para regra de negócio. Veja [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md).
-4. **Camadas separadas no frontend.** Loader chama `application/`, nunca `infrastructure/`. Página não importa `apiClient`. Veja [`frontend-ddd`](.claude/skills/frontend-ddd/SKILL.md).
-5. **`apiClient` é o único caminho HTTP.** Sem `fetch` direto. Veja [`api-client`](.claude/skills/api-client/SKILL.md).
+2. **Backend limpo por padrão.** Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla. Veja [`backend-clean-code`](.cursor/skills/backend-clean-code/SKILL.md).
+3. **Monólito modular no backend.** Módulos não importam internals de outros módulos para regra de negócio. Veja [`architecture-paradigm-modular-monolith`](.cursor/skills/architecture-paradigm-modular-monolith/SKILL.md).
+4. **Camadas separadas no frontend.** Loader chama `application/`, nunca `infrastructure/`. Página não importa `apiClient`. Veja [`frontend-ddd`](.cursor/skills/frontend-ddd/SKILL.md).
+5. **`apiClient` é o único caminho HTTP.** Sem `fetch` direto. Veja [`api-client`](.cursor/skills/api-client/SKILL.md).
 6. **Domain puro.** `domain/` só tem entidade em camelCase, sem `_at`, sem `ApiXxx`, sem `WriteDto`, sem constantes de UI.
-7. **Form com 2+ campos → RHF + Zod.** Algumas pages legadas usam `useState` (ex.: `FeatureNewPage`) — não copiar. Veja [`frontend-ddd/references/forms.md`](.claude/skills/frontend-ddd/references/forms.md).
+7. **Form com 2+ campos → RHF + Zod.** Algumas pages legadas usam `useState` (ex.: `FeatureNewPage`) — não copiar. Veja [`frontend-ddd/references/forms.md`](.cursor/skills/frontend-ddd/references/forms.md).
 
 ## Code Style
 
-- **PHP:** Laravel Pint (`./vendor/bin/pint`). Sem `declare(strict_types=1)` por convenção atual — ver [`php-modern`](.claude/skills/php-modern/SKILL.md). Null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
+- **PHP:** Laravel Pint (`./vendor/bin/pint`). Sem `declare(strict_types=1)` por convenção atual — ver [`php-modern`](.cursor/skills/php-modern/SKILL.md). Null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
 - **JS/TS:** Prettier (4 espaços, single quotes, organized imports), ESLint, TypeScript strict.
 - **Tipos:** entidades de negócio só em `domain/`. Sem `any` novo sem justificativa.
 
@@ -141,7 +141,7 @@ before implementing tasks for the active feature.
 <!-- BEGIN ai-harness -->
 ## Ciclo de trabalho
 
-Cada etapa tem uma skill em `.claude/skills/`, e cada uma diz qual é a próxima:
+Cada etapa tem uma skill em `.cursor/skills/`, e cada uma diz qual é a próxima:
 
 `especificar` (opcional: cria `.ai-workbench/NNN-<slug>/` com `spec.md`, no
 estilo do `/speckit-specify`; o usuário revisa) → `refinar` →

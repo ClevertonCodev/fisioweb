@@ -1,6 +1,6 @@
 import { CatalogRow, CatalogSection } from './CatalogSection';
 
-const PRIMARY = ['10', '20', '30', '40', '50', '60', '80', '100', '120'];
+const PRIMARY = ['10', '20', '30', '40', '50', '60', '70', '80', '100', '120'];
 const GRAY = [
     '10',
     '15',

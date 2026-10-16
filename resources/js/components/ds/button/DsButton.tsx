@@ -20,8 +20,9 @@ const buttonVariants = cva(
             variant: {
                 primary: [
                     'bg-ds-primary-80 text-ds-primary-10 enabled:hover:bg-ds-primary-100 enabled:active:bg-ds-primary-120',
-                    // Dark: primary-80 de fundo tem contraste 3.55:1; primary-100 passa no AAA.
-                    'ds-dark:bg-ds-primary-100 ds-dark:enabled:hover:bg-ds-primary-120 ds-dark:enabled:active:bg-ds-primary-120',
+                    // Dark: a marca continua de fundo (branco 5.9:1) e o hover clareia
+                    // para primary-70 (branco 4.6:1), como na paleta fisioweb.
+                    'ds-dark:bg-ds-primary-80 ds-dark:enabled:hover:bg-ds-primary-70 ds-dark:enabled:active:bg-ds-primary-100',
                 ],
                 secondary: [
                     'border-ds-primary-80 bg-transparent text-ds-primary-80',

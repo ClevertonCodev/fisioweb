@@ -148,7 +148,7 @@ export function DsPagination({
                                 className={dsCn(
                                     PAGE_BTN,
                                     item === current
-                                        ? 'border-ds-primary-80 bg-ds-primary-80 font-semibold text-ds-white ds-dark:border-ds-primary-60 ds-dark:bg-ds-primary-60'
+                                        ? 'border-ds-primary-80 bg-ds-primary-80 font-semibold text-ds-white ds-dark:border-ds-primary-70 ds-dark:bg-ds-primary-70'
                                         : PAGE_BTN_HOVER,
                                 )}
                             >

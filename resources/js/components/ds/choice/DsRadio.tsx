@@ -92,7 +92,7 @@ export function DsRadio({
                     value={String(value)}
                     disabled={disabled}
                     {...choiceAria(uid, label, description)}
-                    className="mt-px grid size-5 min-w-5 cursor-pointer place-items-center rounded-full border-[1.5px] border-ds-gray-40 bg-ds-surface-default transition-[background,border-color] duration-[120ms] outline-none focus-visible:shadow-ds-focus data-[state=checked]:border-ds-primary-80 data-[state=checked]:bg-ds-primary-80 ds-dark:border-white/35 ds-dark:data-[state=checked]:border-ds-primary-60 ds-dark:data-[state=checked]:bg-ds-primary-60"
+                    className="mt-px grid size-5 min-w-5 cursor-pointer place-items-center rounded-full border-[1.5px] border-ds-gray-40 bg-ds-surface-default transition-[background,border-color] duration-[120ms] outline-none focus-visible:shadow-ds-focus data-[state=checked]:border-ds-primary-80 data-[state=checked]:bg-ds-primary-80 ds-dark:border-white/35 ds-dark:data-[state=checked]:border-ds-primary-70 ds-dark:data-[state=checked]:bg-ds-primary-70"
                 >
                     <RadioGroupPrimitive.Indicator className="size-2 rounded-full bg-ds-white" />
                 </RadioGroupPrimitive.Item>

@@ -35,6 +35,7 @@ Nunca misture as duas numa mesma tela, e nunca altere `components/ui` para parec
 4. **Tela v2 rola no próprio contêiner.** `html` e `body` da v1 têm `overflow: hidden` e o `#root` tem `height: 100%`. A raiz da tela v2 precisa de `h-full overflow-y-auto` (veja `pages/dev/DesignSystemPage.tsx`).
 5. **Ícones lucide como elemento**: `icon={<Plus />}`. O DS Vue usava strings Phosphor (`ph-plus`).
 6. **Fonte**: os componentes aplicam `font-ds` (Poppins) na própria raiz. Uma tela v2 põe `font-ds` no contêiner raiz.
+7. **Paleta fisioweb (azul `#4B62A1`)**: `primary-80` é a marca (fundo de botão, selecionado no claro), `primary-100` o hover no claro, `primary-70` o hover e o preenchimento de selecionado no escuro (branco por cima passa no AA), `primary-60` o texto da marca no escuro e `primary-20` o brand-soft. Texto na cor da marca precisa de `ds-dark:text-ds-primary-60`, porque `primary-80` sobre o card escuro fica em 2,8:1. Prefira os tokens semânticos (`content-brand`, `surface-brand-subtle`), que já trocam sozinhos.
 
 ## API em relação ao DS Vue
 

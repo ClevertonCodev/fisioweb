@@ -7,29 +7,32 @@
    ============================================================ */
 
 :root {
-    /* --- Paleta primária (marca) --- */
-    --ds-color-primary-10: #f7f6fd;
-    --ds-color-primary-20: #e6e3f8;
-    --ds-color-primary-30: #d5d1f4;
-    --ds-color-primary-40: #c4bfef;
-    --ds-color-primary-50: #b3aceb;
-    --ds-color-primary-60: #a29ae6;
-    --ds-color-primary-80: #8075dd;
-    --ds-color-primary-100: #554e93;
-    --ds-color-primary-120: #443e76;
+    /* --- Paleta primária (marca fisioweb: azul #4B62A1) ---
+       80 = marca, 100 = hover no claro, 70 = hover no escuro,
+       20 = brand-soft, 60 = texto da marca no escuro. */
+    --ds-color-primary-10: #f4f6fb;
+    --ds-color-primary-20: #e6ebf6;
+    --ds-color-primary-30: #d3dbef;
+    --ds-color-primary-40: #c0cce8;
+    --ds-color-primary-50: #afbee3;
+    --ds-color-primary-60: #9daedd;
+    --ds-color-primary-70: #5b73b4;
+    --ds-color-primary-80: #4b62a1;
+    --ds-color-primary-100: #3d5189;
+    --ds-color-primary-120: #2c3a63;
 
-    /* --- Neutros --- */
-    --ds-color-gray-10: #fcfcfc;
-    --ds-color-gray-15: #fafafa;
-    --ds-color-gray-20: #f7f7f7;
-    --ds-color-gray-25: #e9e9e9;
-    --ds-color-gray-30: #d4d4d4;
-    --ds-color-gray-40: #c4c4c4;
-    --ds-color-gray-50: #9c9ba0;
-    --ds-color-gray-60: #7f7f85;
-    --ds-color-gray-70: #60676e;
-    --ds-color-gray-80: #2a2933;
-    --ds-color-gray-100: #222129;
+    /* --- Neutros (frios, a partir do ink #1A1A2F) --- */
+    --ds-color-gray-10: #fafbfd;
+    --ds-color-gray-15: #f7f8fc;
+    --ds-color-gray-20: #f4f6fb;
+    --ds-color-gray-25: #e9ecf4;
+    --ds-color-gray-30: #dce0ec;
+    --ds-color-gray-40: #c4c8d8;
+    --ds-color-gray-50: #7b7f96;
+    --ds-color-gray-60: #5a5d73;
+    --ds-color-gray-70: #474a60;
+    --ds-color-gray-80: #2e3047;
+    --ds-color-gray-100: #1a1a2f;
     --ds-color-white: #ffffff;
     --ds-color-black: #000000;
 
@@ -83,9 +86,9 @@
     );
 
     /* --- Bordas --- */
-    --ds-border-subtle: #eeeeee;
+    --ds-border-subtle: #e9ecf4;
     --ds-border-brand-subtle: var(--ds-color-primary-30);
-    --ds-border-strong: #8b98a5;
+    --ds-border-strong: #8a93ad;
     --ds-border-default: var(--ds-color-gray-30);
     --ds-border: 1px solid var(--ds-border-default);
 
@@ -146,7 +149,7 @@
     --ds-content-subtle: var(--ds-color-gray-50);
     --ds-content-brand: var(--ds-color-primary-100);
     --ds-content-danger: var(--ds-danger-120);
-    --ds-content-on-brand: var(--ds-color-primary-10);
+    --ds-content-on-brand: var(--ds-color-white);
     --ds-content-on-inverse: var(--ds-color-gray-10);
 
     /* --- Badges --- */
@@ -252,10 +255,10 @@
     --ds-radius-full: 9999px;
 
     /* --- Sombras --- */
-    --ds-shadow-xs: 0 1px 2px rgba(34, 33, 41, 0.05);
-    --ds-shadow-sm: 0 1px 3px rgba(34, 33, 41, 0.07);
-    --ds-shadow-md: 0 2px 6px rgba(34, 33, 41, 0.08);
-    --ds-shadow-focus: 0 0 0 3px rgba(128, 117, 221, 0.18);
+    --ds-shadow-xs: 0 1px 2px rgba(26, 26, 47, 0.05);
+    --ds-shadow-sm: 0 1px 3px rgba(26, 26, 47, 0.07);
+    --ds-shadow-md: 0 2px 6px rgba(26, 26, 47, 0.08);
+    --ds-shadow-focus: 0 0 0 3px rgba(75, 98, 161, 0.22);
     --ds-shadow-focus-success: 0 0 0 3px rgba(40, 115, 80, 0.14);
     --ds-shadow-focus-danger: 0 0 0 3px rgba(129, 39, 41, 0.14);
 
@@ -268,25 +271,27 @@
    ============================================================ */
 /* Preso ao <html>: o Toaster do sonner também põe data-theme no <ol>. */
 :root[data-theme='dark'] {
-    --ds-surface-body: #17161e;
-    --ds-surface-default: #222129;
-    --ds-surface-raised: #222129;
-    --ds-surface-subtle: #1d1c25;
-    --ds-surface-brand-subtle: rgba(128, 117, 221, 0.14);
-    --ds-surface-disabled: #2a2933;
+    /* Fundo da página mais escuro que os cards (cards "sobem"). */
+    --ds-surface-body: #13131f;
+    --ds-surface-default: #1c1d2e;
+    --ds-surface-raised: #1c1d2e;
+    --ds-surface-subtle: #171826;
+    --ds-surface-brand-subtle: #26304f;
+    --ds-surface-disabled: #26283b;
 
-    --ds-content-primary: #f7f7f7;
-    --ds-content-secondary: #d4d4d4;
-    --ds-content-muted: #9c9ba0;
-    --ds-content-subtle: #7f7f85;
+    --ds-content-primary: #f1f2f7;
+    --ds-content-secondary: #d0d2de;
+    --ds-content-muted: #a6a9bd;
+    --ds-content-subtle: #7e8199;
     --ds-content-brand: var(--ds-color-primary-60);
 
-    --ds-border-subtle: rgba(255, 255, 255, 0.08);
-    --ds-border: 1px solid rgba(255, 255, 255, 0.1);
-    --ds-border-brand-subtle: rgba(128, 117, 221, 0.25);
+    --ds-border-subtle: #2e3047;
+    --ds-border-default: #2e3047;
+    --ds-border: 1px solid #2e3047;
+    --ds-border-brand-subtle: rgba(157, 174, 221, 0.28);
 
-    --ds-surface-inverse: #111018;
-    --ds-content-on-inverse: #f0f0f0;
+    --ds-surface-inverse: #0e0e18;
+    --ds-content-on-inverse: #f1f2f7;
 
     --ds-status-info-surface: rgba(31, 125, 180, 0.12);
     --ds-status-info-border: rgba(31, 125, 180, 0.3);
@@ -305,7 +310,7 @@
     --ds-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
     --ds-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4);
 
-    --ds-shadow-focus: 0 0 0 3px rgba(162, 154, 230, 0.35);
+    --ds-shadow-focus: 0 0 0 3px rgba(157, 174, 221, 0.35);
     --ds-shadow-focus-success: 0 0 0 3px rgba(86, 185, 122, 0.28);
     --ds-shadow-focus-danger: 0 0 0 3px rgba(242, 74, 76, 0.28);
 }
@@ -322,6 +327,7 @@
     --color-ds-primary-40: var(--ds-color-primary-40);
     --color-ds-primary-50: var(--ds-color-primary-50);
     --color-ds-primary-60: var(--ds-color-primary-60);
+    --color-ds-primary-70: var(--ds-color-primary-70);
     --color-ds-primary-80: var(--ds-color-primary-80);
     --color-ds-primary-100: var(--ds-color-primary-100);
     --color-ds-primary-120: var(--ds-color-primary-120);

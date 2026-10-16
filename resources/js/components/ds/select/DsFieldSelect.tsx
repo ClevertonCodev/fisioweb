@@ -489,7 +489,7 @@ export function FieldSelectCore({
                                     close();
                                     onClose?.();
                                 }}
-                                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-ds-md border-none bg-transparent px-2 py-1.5 font-ds text-ds-body-xs font-medium whitespace-nowrap text-ds-primary-80 transition-[background] duration-[120ms] hover:bg-ds-surface-brand-subtle"
+                                className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-ds-md border-none bg-transparent px-2 py-1.5 font-ds text-ds-body-xs font-medium whitespace-nowrap text-ds-primary-80 transition-[background] duration-[120ms] hover:bg-ds-surface-brand-subtle ds-dark:text-ds-primary-60"
                             >
                                 <Plus aria-hidden="true" className="size-4" />
                                 {footerLinkLabel}

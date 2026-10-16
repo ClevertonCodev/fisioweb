@@ -285,7 +285,7 @@ function DayButton({ day, modifiers, className, ...props }: DayButtonProps) {
                 'flex size-9 cursor-pointer items-center justify-center rounded-ds-md border-none bg-transparent p-0 font-ds text-ds-body-compact text-ds-content-primary transition-[background,color] duration-100 outline-none hover:bg-ds-surface-subtle focus-visible:shadow-ds-focus',
                 outside && 'text-ds-border-subtle',
                 disabled &&
-                    'cursor-not-allowed text-[#d4d4d8] hover:bg-transparent ds-dark:text-ds-gray-70',
+                    'cursor-not-allowed text-ds-gray-40 hover:bg-transparent ds-dark:text-ds-gray-70',
                 today &&
                     'font-bold text-ds-primary-100 ds-dark:text-ds-primary-60',
                 inRange &&

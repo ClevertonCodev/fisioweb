@@ -48,7 +48,7 @@ export function DsSwitch({
                     onCheckedChange={toggle}
                     onBlur={onBlur}
                     {...choiceAria(uid, label, description)}
-                    className="mt-0.5 flex h-[26px] w-[46px] min-w-[46px] cursor-pointer items-center self-start rounded-ds-pill bg-ds-border-subtle p-[3px] transition-[background] duration-[180ms] outline-none focus-visible:shadow-ds-focus data-[state=checked]:bg-ds-primary-80 ds-dark:bg-white/22 ds-dark:data-[state=checked]:bg-ds-primary-60"
+                    className="mt-0.5 flex h-[26px] w-[46px] min-w-[46px] cursor-pointer items-center self-start rounded-ds-pill bg-ds-border-subtle p-[3px] transition-[background] duration-[180ms] outline-none focus-visible:shadow-ds-focus data-[state=checked]:bg-ds-primary-80 ds-dark:bg-white/22 ds-dark:data-[state=checked]:bg-ds-primary-70"
                 >
                     <SwitchPrimitive.Thumb className="block size-5 rounded-full bg-ds-white shadow-ds-xs transition-transform duration-[180ms] data-[state=checked]:translate-x-5" />
                 </SwitchPrimitive.Root>

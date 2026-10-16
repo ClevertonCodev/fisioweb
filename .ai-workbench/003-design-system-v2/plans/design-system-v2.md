@@ -152,4 +152,5 @@ Registrados depois do plano. A skill `design-system` também traz cada um.
 - **Tema escuro:** fonte única (store com `useSyncExternalStore`), com o seletor `:root[data-theme='dark']`.
 - **Tokens:** `--ds-surface-raised` ganhou valor no escuro (no Vue ficava branco).
 - **DsTable:** a ordenação vai de asc para desc e depois para sem ordem (no Vue alternava só entre asc e desc). Isso fica para o usuário confirmar.
+- **Paleta (2026-10-16, pedido do usuário):** a paleta roxa herdada do DS Vue foi trocada pela paleta fisioweb (marca azul `#4B62A1`, ink `#1A1A2F`, neutros frios e superfícies escuras `#13131F`/`#1C1D2E`). A escala primária ganhou o degrau `70` (`#5B73B4`), usado no hover e nos selecionados do escuro. A fonte (Poppins) e os raios não mudaram, por decisão do usuário. Com isso, as cores deixam de ser 1:1 com o Vue; a comparação em `tokens-vue-x-react.md` vale para nomes e estrutura, não para os valores de cor.
 - **Configuração:** o `vitest.config.ts` exclui `.claude/**`, porque os `.test.cjs` da skill `security-audit` quebravam o `npm run test` já na `main`.

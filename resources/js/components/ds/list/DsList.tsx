@@ -17,7 +17,7 @@ export interface ListItem {
 export interface ListProps {
     items: ListItem[];
     mode?: ListMode;
-    /** Modo kv: valor customizado por item (no Vue, um slot com o nome do key). */
+    /** Modo kv: valor customizado por item. */
     renderValue?: (item: ListItem, index: number) => ReactNode;
     className?: string;
 }

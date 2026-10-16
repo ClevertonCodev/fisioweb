@@ -18,7 +18,7 @@ export interface SelectProps extends Omit<
     SelectHTMLAttributes<HTMLSelectElement>,
     'value' | 'defaultValue' | 'size' | 'multiple'
 > {
-    /** Valor controlado (no Vue: modelValue). */
+    /** Valor controlado. */
     value?: SelectValue;
     defaultValue?: SelectValue;
     onValueChange?: (value: string | string[]) => void;
@@ -60,7 +60,7 @@ export interface FieldSelectProps {
     multiDisplay?: 'labels' | 'count';
     /** No modo multi, tira da lista os itens já escolhidos. */
     hideSelectedInMenu?: boolean;
-    /** Slot icon-left do Vue. */
+    /** Ícone à esquerda do campo. */
     iconLeft?: ReactNode;
     id?: string;
     name?: string;

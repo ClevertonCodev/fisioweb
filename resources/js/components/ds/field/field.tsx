@@ -4,9 +4,6 @@ import type { ReactNode } from 'react';
 
 import { dsCn } from '../utils/ds-cn';
 
-// Peças compartilhadas pelos campos do DS (no Vue, cada .vue repetia o mesmo SCSS:
-// .ds-control, .ds-control__label, .ds-field, .ds-control__helper).
-
 export type FieldState = 'default' | 'success' | 'error';
 export type FieldSize = 'md' | 'sm';
 

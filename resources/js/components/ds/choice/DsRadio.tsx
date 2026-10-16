@@ -11,7 +11,7 @@ import type { RadioGroupProps, RadioProps, RadioValue } from './types';
 const RadioValuesContext = createContext<Map<string, RadioValue> | null>(null);
 
 /**
- * Grupo de DsRadio. No Vue não havia grupo (cada radio recebia modelValue); aqui o
+ * Grupo de DsRadio. Grupo de
  * grupo guarda o valor selecionado e dá a navegação por setas.
  */
 export function DsRadioGroup({

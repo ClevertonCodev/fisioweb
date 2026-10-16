@@ -20,8 +20,6 @@ const buttonVariants = cva(
             variant: {
                 primary: [
                     'bg-ds-primary-80 text-ds-primary-10 enabled:hover:bg-ds-primary-100 enabled:active:bg-ds-primary-120',
-                    // Dark: a marca continua de fundo (branco 5.9:1) e o hover clareia
-                    // para primary-70 (branco 4.6:1), como na paleta fisioweb.
                     'ds-dark:bg-ds-primary-80 ds-dark:enabled:hover:bg-ds-primary-70 ds-dark:enabled:active:bg-ds-primary-100',
                 ],
                 secondary: [
@@ -75,7 +73,6 @@ const buttonVariants = cva(
             },
         },
         compoundVariants: [
-            // Só ícone: área mínima de toque quadrada.
             { iconOnly: true, size: 'sm', className: 'p-2' },
             { iconOnly: true, size: 'md', className: 'p-3' },
             { iconOnly: true, size: 'lg', className: 'p-4' },
@@ -108,7 +105,6 @@ export function DsButton({
     const spinner = (
         <LoaderCircle className="animate-spin" aria-hidden="true" />
     );
-    // No Vue o slot do ícone gira durante o loading; aqui o spinner ocupa o lugar dele.
     const leadingIcon =
         iconPosition === 'left' || isIconOnly
             ? loading
@@ -152,7 +148,6 @@ export function DsButton({
 
     if (!isIconOnly) return button;
 
-    // Botão só de ícone sempre ganha tooltip reforçando a ação (texto = tooltip ?? label).
     return (
         <DsTooltip
             asChild

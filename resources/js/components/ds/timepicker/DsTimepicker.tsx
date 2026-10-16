@@ -27,7 +27,7 @@ export interface DsTimepickerProps {
 
 type Column = 'hour' | 'minute';
 
-/** Rola a lista para deixar o item marcado no meio, como no Vue. */
+/** Rola a lista para deixar o item marcado no meio,  */
 function centerSelected(list: HTMLElement | null) {
     const selected = list?.querySelector<HTMLElement>('[aria-selected="true"]');
     if (!selected || !list) return;
@@ -76,7 +76,6 @@ export function DsTimepicker({
     const [activeHour, setActiveHour] = useState(0);
     const [activeMinute, setActiveMinute] = useState(0);
 
-    // O "change" do Vue é o evento nativo (texto confirmado ao sair do campo),
     // que o onChange do React não expõe; por isso o listener direto no input.
     const onChangeRef = useRef(onChange);
     useEffect(() => {

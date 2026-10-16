@@ -2,7 +2,7 @@ import type { FocusEventHandler, ReactNode, Ref } from 'react';
 
 export interface CheckboxProps {
     /**
-     * Estado marcado (no Vue: modelValue). Boolean para um checkbox sozinho, ou a
+     * Estado marcado. Boolean para um checkbox sozinho, ou a
      * lista de valores marcados no modo grupo (junto com `value`).
      */
     checked?: boolean | string[];
@@ -18,7 +18,7 @@ export interface CheckboxProps {
     name?: string;
     id?: string;
     className?: string;
-    /** Slot default do Vue, usado quando não há label. */
+    /** Conteúdo quando não há label. */
     children?: ReactNode;
     ref?: Ref<HTMLButtonElement>;
 }
@@ -26,7 +26,7 @@ export interface CheckboxProps {
 export type RadioValue = string | number;
 
 export interface RadioGroupProps {
-    /** Valor selecionado (no Vue cada DsRadio recebia modelValue). */
+    /** Valor selecionado no grupo. */
     value?: RadioValue;
     defaultValue?: RadioValue;
     onValueChange?: (value: RadioValue) => void;

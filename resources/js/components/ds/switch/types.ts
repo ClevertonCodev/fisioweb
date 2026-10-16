@@ -1,7 +1,7 @@
 import type { FocusEventHandler, ReactNode, Ref } from 'react';
 
 export interface SwitchProps {
-    /** Ligado/desligado (no Vue: modelValue). */
+    /** Ligado/desligado. */
     checked?: boolean;
     onCheckedChange?: (checked: boolean) => void;
     /** Repassado ao controle; o React Hook Form usa para o modo onBlur/onTouched. */
@@ -12,7 +12,7 @@ export interface SwitchProps {
     name?: string;
     id?: string;
     className?: string;
-    /** Slot default do Vue, usado quando não há label nem description. */
+    /** Conteúdo quando não há label nem description. */
     children?: ReactNode;
     ref?: Ref<HTMLButtonElement>;
 }

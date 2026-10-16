@@ -1,6 +1,5 @@
 import type { MoneyCurrency } from './types';
 
-// Mesmas regras do v-money3 usado no DS Vue: separador de milhar ".", decimal ","
 // e 2 casas, para qualquer moeda. A digitação entra pelos centavos (como numa
 // maquininha): "9990" vira 99,90.
 

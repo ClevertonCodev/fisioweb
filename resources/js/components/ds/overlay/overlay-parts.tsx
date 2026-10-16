@@ -5,16 +5,16 @@ import { useRef } from 'react';
 
 import { dsCn } from '../utils/ds-cn';
 
-/** Props comuns ao DsModal e ao DsDrawer (o `v-model` do Vue vira `open` + `onOpenChange`). */
+/** Props comuns ao DsModal e ao DsDrawer (o controlado vira `open` + `onOpenChange`). */
 export interface OverlayCommonProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
-    /** Equivale ao emit `close` do Vue: chamado sempre que o overlay fecha. */
+    /** Equivale ao ao fechar: chamado sempre que o overlay fecha. */
     onClose?: () => void;
     title?: string;
     meta?: string;
     closeOnBackdrop?: boolean;
-    /** Slot `footer` do Vue (ações). Sem ele, o rodapé não é renderizado. */
+    /** `footer` (ações). Sem ele, o rodapé não é renderizado. */
     footer?: ReactNode;
     children?: ReactNode;
 }
@@ -32,7 +32,7 @@ export function overlayOpenChangeHandler(
 
 /**
  * Com closeOnBackdrop=false, o clique fora não fecha. O Esc continua fechando,
- * como no Vue.
+ *
  */
 export function backdropGuard(closeOnBackdrop: boolean) {
     return closeOnBackdrop

@@ -9,7 +9,7 @@ export interface PhoneFieldProps extends Omit<
     'value' | 'defaultValue' | 'type' | 'onChange'
 > {
     /**
-     * Número formatado (no Vue: modelValue). Com seletor de país vem no formato
+     * Número formatado. Com seletor de país vem no formato
      * internacional ("+55 84 99999-9999"); sem seletor, no nacional ("(84) 99999-9999").
      */
     value?: string;
@@ -27,7 +27,7 @@ export interface PhoneFieldProps extends Omit<
 }
 
 export interface CountrySelectProps {
-    /** Código ISO do país (no Vue: modelValue). */
+    /** Código ISO do país. */
     value?: string;
     onValueChange?: (value: string) => void;
     label?: string;

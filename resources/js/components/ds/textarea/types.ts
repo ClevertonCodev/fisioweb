@@ -6,7 +6,7 @@ export interface TextareaProps extends Omit<
     TextareaHTMLAttributes<HTMLTextAreaElement>,
     'value' | 'readOnly' | 'maxLength'
 > {
-    /** Valor controlado (no Vue: modelValue). */
+    /** Valor controlado. */
     value?: string;
     onValueChange?: (value: string) => void;
     label?: string;

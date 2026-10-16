@@ -23,13 +23,13 @@ export interface DatepickerTriggerState {
 
 export interface DatepickerProps {
     /**
-     * Valor (no Vue: modelValue). `Date` no modo single, `DateRange` no range.
+     * Valor. `Date` no modo single, `DateRange` no range.
      * Sem `value`, o componente guarda a escolha sozinho.
      */
     value?: DatepickerValue;
     /**
      * Single: chamado ao clicar no dia. Range: só no "Aplicar", com o intervalo
-     * como estiver (pode vir com `end: null`, igual ao Vue).
+     * como estiver (pode vir com `end: null`).
      */
     onValueChange?: (value: DatepickerValue) => void;
     mode?: DatepickerMode;
@@ -39,7 +39,7 @@ export interface DatepickerProps {
     disabled?: boolean;
     /** Atalhos da lateral (só no range). Vazio usa os atalhos padrão. */
     presets?: DatepickerPreset[];
-    /** Conteúdo do gatilho (no Vue: slot `trigger` com `{ label, open }`). */
+    /** Conteúdo do gatilho. */
     trigger?: (state: DatepickerTriggerState) => ReactNode;
     id?: string;
     className?: string;

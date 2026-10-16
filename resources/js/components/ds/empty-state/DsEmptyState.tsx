@@ -14,7 +14,7 @@ export interface EmptyStateProps {
     title?: string;
     description?: string;
     icon?: ReactNode;
-    /** Slot `action` do Vue. */
+    /** Ações ou conteúdo extra (`action`). */
     action?: ReactNode;
     className?: string;
 }
@@ -70,7 +70,7 @@ export function DsEmptyState({
                     'mb-2 grid size-12 place-items-center rounded-full bg-ds-surface-brand-subtle text-ds-primary-80 [&_svg]:size-6',
                     variant === 'error' && 'bg-ds-danger-10 text-ds-danger-80',
                     neutral && 'bg-ds-gray-50/12 text-ds-gray-50',
-                    // Marca no escuro: #4B62A1 some no brand-soft escuro.
+
                     variant !== 'error' &&
                         !neutral &&
                         'ds-dark:text-ds-primary-60',

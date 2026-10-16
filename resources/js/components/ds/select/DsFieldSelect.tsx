@@ -167,7 +167,6 @@ export function FieldSelectCore({
         triggerLabel = selectedOption?.label ?? placeholder;
     }
 
-    // Como o watch(query) do Vue: avisa só quando o termo muda de fato.
     function updateQuery(next: string) {
         setActive(-1);
         if (next === query) return;

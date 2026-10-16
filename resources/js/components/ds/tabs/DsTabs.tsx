@@ -15,13 +15,13 @@ export interface Tab {
 
 export interface TabsProps {
     tabs: Tab[];
-    /** Aba ativa (no Vue: modelValue). Sem valor, a primeira aba. */
+    /** Aba ativa. Sem valor, a primeira aba. */
     value?: string;
     onValueChange?: (key: string) => void;
     size?: TabsSize;
     className?: string;
     'aria-label'?: string;
-    /** Painéis opcionais (DsTabsPanel). O DS Vue só tinha a barra de abas. */
+    /** Painéis opcionais (DsTabsPanel).  */
     children?: ReactNode;
 }
 

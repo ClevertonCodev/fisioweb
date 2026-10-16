@@ -18,7 +18,7 @@ export interface DropdownItem {
 
 export interface DropdownProps {
     items: DropdownItem[];
-    /** Chave escolhida (text/radio) ou lista de chaves (checkbox). No Vue: modelValue. */
+    /** Chave escolhida (text/radio) ou lista de chaves (checkbox). */
     value?: string | string[];
     onValueChange?: (value: string | string[]) => void;
     mode?: DropdownMode;
@@ -30,7 +30,7 @@ export interface DropdownProps {
     /** Largura mínima do menu em px. Sem ela, a largura do gatilho. */
     menuWidth?: number;
     menuAlign?: 'left' | 'right';
-    /** Nome acessível do gatilho (no Vue a prop existia sem uso). */
+    /** Nome acessível do gatilho. */
     label?: string;
     /** Ícone do gatilho (ex.: <Filter /> do lucide). */
     icon?: ReactNode;

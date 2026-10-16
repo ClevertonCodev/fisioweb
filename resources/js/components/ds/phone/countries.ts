@@ -1,6 +1,5 @@
 import type { SelectOption } from '../select/types';
 
-// Código ISO 3166-1 alfa-2 → DDI. No DS Vue a lista vinha de outro app da
 // Paytour (fora deste repositório) e o DDI, do vue-tel-input.
 const DIAL_CODES =
     'AD376 AE971 AF93 AG1 AI1 AL355 AM374 AO244 AR54 AS1 AT43 AU61 AW297 AX358 AZ994 ' +

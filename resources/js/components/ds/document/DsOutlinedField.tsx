@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { dsCn } from '../utils/ds-cn';
 
 /**
- * Moldura com o rótulo sobre a borda (document-field.scss do Vue), usada pelos
+ * Moldura com o rótulo sobre a borda (moldura outlined), usada pelos
  * campos de documento e pelo DsPhoneField.
  */
 export function DsOutlinedField({

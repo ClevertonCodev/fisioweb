@@ -16,11 +16,11 @@ export interface CardProps extends Omit<
     variant?: CardVariant;
     compact?: boolean;
     horizontal?: boolean;
-    /** Slot `media` do Vue (imagem no topo ou à esquerda). */
+    /** Conteúdo de `media`. */
     media?: ReactNode;
-    /** Slot `header` do Vue (h3 e p ganham o estilo de título e subtítulo). */
+    /** Conteúdo de `header`. */
     header?: ReactNode;
-    /** Slot `corner` do Vue (ações no canto do cabeçalho). */
+    /** Conteúdo de `corner`. */
     corner?: ReactNode;
     footer?: ReactNode;
     children?: ReactNode;

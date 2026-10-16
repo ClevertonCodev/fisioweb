@@ -21,7 +21,7 @@ export interface ButtonProps extends Omit<
     variant?: ButtonVariant;
     size?: ButtonSize;
     iconPosition?: ButtonIconPosition;
-    /** Ícone (ex.: <Plus /> do lucide). Equivale ao slot `icon` do Vue. */
+    /** Ícone (ex.: <Plus /> do lucide). Equivale ao slot `icon`. */
     icon?: ReactNode;
     disabled?: boolean;
     loading?: boolean;

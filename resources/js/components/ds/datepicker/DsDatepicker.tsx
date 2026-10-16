@@ -49,8 +49,6 @@ const MONTHS_FULL = [
 ];
 const WEEKDAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
-// ── Datas ──
-
 /** Data inválida (ex.: `new Date('')`) vale como vazia. */
 function validDate(d: Date | null | undefined): Date | null {
     return d && !Number.isNaN(d.getTime()) ? d : null;
@@ -160,8 +158,6 @@ function defaultPresets(): DatepickerPreset[] {
     ];
 }
 
-// ── Rascunho (seleção ainda não confirmada) ──
-
 interface Draft {
     single: Date | null;
     start: Date | null;
@@ -177,7 +173,7 @@ const EMPTY_DRAFT: Draft = {
     selecting: false,
 };
 
-/** Como o initFromModel do Vue: zera e lê do valor confirmado. */
+/** Reinicia o rascunho a partir do valor confirmado. */
 function draftFrom(
     value: DatepickerValue | undefined,
     mode: DatepickerProps['mode'],
@@ -202,12 +198,10 @@ function monthFrom(
     return null;
 }
 
-// ── Peças do calendário (fora do componente para não remontar a cada render) ──
-
 const navClass =
     'flex size-7 cursor-pointer items-center justify-center rounded-ds-md border-none bg-transparent font-ds text-ds-content-muted enabled:hover:bg-ds-surface-subtle enabled:hover:text-ds-content-primary disabled:cursor-not-allowed disabled:opacity-35 focus-visible:shadow-ds-focus focus-visible:outline-none';
 
-/** Cabeçalho do mês: seta anterior no primeiro, próxima no último (igual ao Vue). */
+/** Cabeçalho do mês: seta anterior no primeiro, próxima no último. */
 function MonthCaption({
     calendarMonth,
     displayIndex,
@@ -349,8 +343,6 @@ export function DsDatepicker({
     );
     const [hover, setHover] = useState<Date | null>(null);
 
-    // Como o watch(modelValue) do Vue: quando o valor confirmado muda, o
-    // rascunho é refeito a partir dele.
     const [synced, setSynced] = useState(committed);
     if (!sameValue(synced, committed)) {
         setSynced(committed);
@@ -468,7 +460,6 @@ export function DsDatepicker({
         setOpen(false);
     }
 
-    // ── Rótulo do gatilho (segue o rascunho, como no Vue) ──
     let label = placeholder;
     if (mode === 'single') {
         if (draft.single) label = fmtDate(draft.single);
@@ -480,7 +471,6 @@ export function DsDatepicker({
         label = `${fmtDate(draft.start)} — ...`;
     }
 
-    // ── Estados dos dias ──
     const rangeEdge = draft.end ?? hover;
     function inRange(d: Date) {
         if (mode !== 'range' || !draft.start || !rangeEdge) return false;

@@ -15,11 +15,11 @@ export interface AlertProps {
     dismissible?: boolean;
     /** Ícone no lugar do padrão da variante. */
     icon?: ReactNode;
-    /** Slot `actions` do Vue (só no modo rich). */
+    /** Conteúdo de `actions`. */
     actions?: ReactNode;
     onDismiss?: () => void;
     className?: string;
-    /** Descrição (slot default do Vue). */
+    /** Texto de descrição. */
     children?: ReactNode;
 }
 
@@ -30,7 +30,6 @@ const DEFAULT_ICONS: Record<AlertVariant, ReactNode> = {
     danger: <TriangleAlert />,
 };
 
-// Cores por variante em variáveis locais, como no Vue (--ds-v2-alert-*).
 // No dark, as variáveis passam para os tokens semânticos de status.
 const VARIANT_VARS: Record<AlertVariant, string> = {
     info: '[--alert-surface:var(--ds-color-info-surface)] [--alert-border:var(--ds-color-info-border)] [--alert-content:var(--ds-color-info-content)] ds-dark:[--alert-surface:var(--ds-status-info-surface)] ds-dark:[--alert-border:var(--ds-status-info-border)] ds-dark:[--alert-content:var(--ds-status-info-content)]',

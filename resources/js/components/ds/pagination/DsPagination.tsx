@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { dsCn } from '../utils/ds-cn';
 
 export interface PaginationProps {
-    /** Página atual (no Vue: modelValue). */
+    /** Página atual. */
     page?: number;
     onPageChange?: (page: number) => void;
     total: number;
@@ -46,7 +46,6 @@ export function DsPagination({
     itemLabel = 'itens',
     className,
 }: PaginationProps) {
-    // `total` NaN/Infinity (ex.: `Number(meta?.total)`) vale 0; `perPage` mínimo 1.
     const total =
         Number.isFinite(rawTotal) && rawTotal > 0 ? Math.trunc(rawTotal) : 0;
     const perPage =
@@ -54,10 +53,7 @@ export function DsPagination({
             ? Math.trunc(rawPerPage)
             : 1;
     const totalPages = Math.max(1, Math.ceil(total / perPage));
-    // `page` não numérico (lixo vindo da URL) vale como 1; decimal é truncado.
     const requested = Number.isFinite(page) ? Math.trunc(page) : 1;
-    // Com `total` 0 a lista pode estar só carregando: não corrige a página do
-    // pai (a tela mostra a 1 até o total chegar).
     const current =
         total > 0 ? Math.min(Math.max(1, requested), totalPages) : 1;
     const from = (current - 1) * perPage + 1;
@@ -68,9 +64,6 @@ export function DsPagination({
             ? `${format(from)}–${format(to)} de ${format(total)} ${itemLabel}`
             : `0 de 0 ${itemLabel}`;
 
-    // `page` fora do intervalo: avisa o pai da página corrigida. Só com `total`
-    // conhecido (enquanto carrega, total 0 não diz nada) e só quando os dois
-    // diferem, então um pai que aceita a correção não entra em loop.
     useEffect(() => {
         if (total > 0 && current !== page) onPageChange?.(current);
     }, [total, current, page, onPageChange]);

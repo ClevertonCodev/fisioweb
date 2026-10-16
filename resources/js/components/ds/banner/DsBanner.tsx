@@ -13,7 +13,7 @@ export interface BannerProps {
     variant?: BannerVariant;
     ctaLabel?: string;
     dismissible?: boolean;
-    /** Slot `actions` do Vue. */
+    /** Ações ou conteúdo extra (`actions`). */
     actions?: ReactNode;
     onCta?: () => void;
     onDismiss?: () => void;

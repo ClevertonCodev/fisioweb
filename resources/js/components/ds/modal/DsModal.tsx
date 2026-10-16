@@ -59,7 +59,6 @@ export function DsModal({
                 <DialogPrimitive.Content
                     aria-modal="true"
                     data-size={size}
-                    // Sem meta não há descrição; avisa o Radix para não reclamar.
                     {...(meta ? {} : { 'aria-describedby': undefined })}
                     onInteractOutside={backdropGuard(closeOnBackdrop)}
                     {...returnFocus}

@@ -14,10 +14,10 @@ export interface MoneyInputProps extends Omit<
     | 'autoComplete'
     | 'onChange'
 > {
-    /** Valor numérico controlado (no Vue: modelValue). */
+    /** Valor numérico controlado. */
     value?: number | null;
     defaultValue?: number | null;
-    /** Novo valor numérico (no Vue: update:modelValue). */
+    /** Novo valor numérico. */
     onValueChange?: (value: number | null) => void;
     currency?: MoneyCurrency;
     label?: string;

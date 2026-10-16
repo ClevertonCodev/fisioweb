@@ -1,4 +1,3 @@
-// Máscaras e validações de documento do DS. No Vue as máscaras vinham da
 // biblioteca maska; aqui são funções puras com a mesma semântica:
 // "#" é dígito, "*" é letra ou dígito, qualquer outro caractere é literal e só
 // entra quando ainda há caractere para depois dele.

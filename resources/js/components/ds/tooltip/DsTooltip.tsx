@@ -22,7 +22,7 @@ export function DsTooltip({
     }
 
     return (
-        // disableHoverableContent: o balão não segura o ponteiro (no Vue é pointer-events: none).
+        // disableHoverableContent: balão não interativo.
         <TooltipPrimitive.Provider
             delayDuration={0}
             skipDelayDuration={0}

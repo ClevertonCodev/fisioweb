@@ -1,6 +1,6 @@
 import { COUNTRY_DIAL_CODES } from './countries';
 
-// Formatação de telefone do DS. O DS Vue usava o vue-tel-input (libphonenumber).
+// Formatação de telefone do DS.
 // Aqui o Brasil tem o formato completo; os demais países usam DDI + dígitos em
 // grupos de 3 (o último com até 4), sem depender de biblioteca.
 
@@ -68,7 +68,7 @@ export function nationalDigitsOf(value: string, country: string): string {
     return digits.startsWith(dial) ? digits.slice(dial.length) : digits;
 }
 
-/** Mesma regra do DS Vue: "Número inválido" ou "" (vazio também é ""). */
+/** Mesma regra  */
 export function getPhoneValidationError(value: string): string {
     const trimmed = value.trim();
     if (!trimmed) return '';

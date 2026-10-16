@@ -211,7 +211,6 @@ export function DsTable<T extends object = Record<string, unknown>>({
             );
     }, [rowKey, rowKeys.missing, rowKeys.repeated]);
 
-    // Seleção
     const [selected, setSelected] = useState<Set<unknown>>(() => new Set());
 
     const isBlocked = (row: T) => disableSelectionCb?.(row) ?? false;
@@ -221,8 +220,7 @@ export function DsTable<T extends object = Record<string, unknown>>({
     const selectableRows = rows.filter((row) => !isBlocked(row));
     const selectedRows = rows.filter(isRowSelected);
 
-    // Linha que sai de `rows`, ou passa a ser bloqueada, sai da seleção (o watch
-    // do Vue), ajustado no render. Assim ela não volta marcada depois.
+    // Linha removida ou bloqueada sai da seleção (ajuste síncrono no render).
     const kept = new Set(selectedRows.map(keyOf));
     if (kept.size !== selected.size) setSelected(kept);
 
@@ -247,7 +245,6 @@ export function DsTable<T extends object = Record<string, unknown>>({
         setSelected(next);
     }
 
-    // Ordenação
     const [sort, setSort] = useState<{ col: string; dir: SortDirection }>({
         col: '',
         dir: 'none',

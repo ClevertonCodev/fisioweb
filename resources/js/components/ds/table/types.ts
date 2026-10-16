@@ -24,7 +24,7 @@ export interface TableAction<T = Record<string, unknown>> {
     active?: (row: T) => boolean;
     /** Rótulo enquanto a ação está ativa. Cai em `label`. */
     activeLabel?: string;
-    /** Mantido do Vue: a tabela não abre confirmação, quem usa decide. */
+    /** a tabela não abre confirmação, quem usa decide. */
     confirmationLabel?: string;
     /** Quando informado, a ação só aparece se devolver true para a linha. */
     visible?: (row: T) => boolean;
@@ -43,13 +43,13 @@ export interface TableBulkAction<T = Record<string, unknown>> {
     key: string;
     label: string;
     icon?: ReactNode;
-    /** Mantido do Vue: a tabela só avisa a ação, sem confirmação. */
+    /** a tabela só avisa a ação, sem confirmação. */
     confirmationLabel?: string;
     /** Quando informado, a ação só aparece se devolver true para as linhas selecionadas. */
     visible?: (rows: T[]) => boolean;
 }
 
-/** Conteúdo próprio de uma célula (slot com o nome da coluna no Vue). */
+/** Conteúdo customizado de célula (chave = `key` da coluna). */
 export type TableCellRenderer<T> = (ctx: {
     row: T;
     value: string;
@@ -73,11 +73,11 @@ export type TableProps<T = Record<string, unknown>> = TableRowKeyProp<T> & {
     emptyLabel?: string;
     /** Quando devolve true, a linha não pode ser selecionada. */
     disableSelectionCb?: (item: T) => boolean;
-    /** Evento `sort` do Vue. Ciclo por coluna: asc → desc → none. */
+    /** Ciclo por coluna: asc → desc → none. */
     onSort?: (column: string, direction: SortDirection) => void;
-    /** Evento `bulk-action` do Vue. */
+    /** */
     onBulkAction?: (key: string, selectedRows: T[]) => void;
-    /** Slots por coluna do Vue: a chave é o `key` da coluna. */
+    /** a chave é o `key` da coluna. */
     cells?: Partial<Record<string, TableCellRenderer<T>>>;
     className?: string;
 };

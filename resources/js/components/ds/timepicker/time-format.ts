@@ -1,4 +1,3 @@
-// Regras do DsTimepicker do Vue. O valor é texto "HH:MM" (24h); enquanto o
 // usuário digita, pode ficar incompleto ("09", "09:3") ou fora da faixa ("99:99"):
 // a máscara só arruma os dígitos, quem valida é o formulário.
 

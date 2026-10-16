@@ -11,7 +11,7 @@ export interface CollapseItem {
     key: string;
     title: string;
     subtitle?: string;
-    /** Conteúdo do item aberto (no Vue, um slot com o nome do key). */
+    /** Conteúdo do item aberto. */
     content?: ReactNode;
 }
 
@@ -19,7 +19,7 @@ export interface CollapseProps {
     items?: CollapseItem[];
     /**
      * Item aberto. `undefined` = não controlado; qualquer outro valor
-     * (inclusive `null`) = controlado pelo pai, como no Vue.
+     * (inclusive `null`) = controlado pelo pai,
      */
     value?: string | null;
     onValueChange?: (key: string | null) => void;

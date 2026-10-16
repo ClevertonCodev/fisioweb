@@ -15,9 +15,9 @@ export interface InputProps extends Omit<
     InputHTMLAttributes<HTMLInputElement>,
     'type' | 'size' | 'value' | 'readOnly' | 'autoComplete'
 > {
-    /** Valor controlado (no Vue: modelValue). Sem ele, o campo é não controlado (ex.: register do RHF). */
+    /** Valor controlado. Sem ele, o campo é não controlado (ex.: register do RHF). */
     value?: string;
-    /** Novo valor a cada digitação (no Vue: update:modelValue). */
+    /** Novo valor a cada digitação. */
     onValueChange?: (value: string) => void;
     label?: string;
     helper?: ReactNode;
@@ -30,9 +30,9 @@ export interface InputProps extends Omit<
     name?: string;
     id?: string;
     autocomplete?: string;
-    /** Slot icon-left do Vue. */
+    /** Ícone à esquerda do campo. */
     iconLeft?: ReactNode;
-    /** Slot icon-right do Vue. */
+    /** Ícone à direita do campo. */
     iconRight?: ReactNode;
     onEnterPressed?: () => void;
     onCleared?: () => void;

@@ -2,8 +2,6 @@ import type { ReactNode } from 'react';
 
 import { dsCn } from '../utils/ds-cn';
 
-// Rótulo compartilhado por checkbox, radio e switch (.ds-choice no Vue).
-
 export function choiceIds(id: string) {
     return { titleId: `${id}-title`, descriptionId: `${id}-description` };
 }

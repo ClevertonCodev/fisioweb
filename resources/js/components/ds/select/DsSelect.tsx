@@ -14,7 +14,7 @@ import { dsCn } from '../utils/ds-cn';
 
 import type { SelectProps } from './types';
 
-/** Select nativo do DS (como no Vue): funciona com register e aceita multiple. */
+/** Select nativo do DS: funciona com register e aceita multiple. */
 export function DsSelect({
     value,
     defaultValue,
@@ -43,7 +43,7 @@ export function DsSelect({
             : Array.isArray(v)
               ? v.map(String)
               : String(v);
-    // Sem valor nenhum, o placeholder fica selecionado (no Vue: :selected="!modelValue").
+    // Sem valor nenhum, o placeholder fica selecionado.
     const nativeDefault =
         value === undefined && defaultValue === undefined && !multiple
             ? ''

@@ -18,7 +18,7 @@ import {
 import type { PhoneFieldProps } from './types';
 
 /**
- * Telefone com seletor de país (no Vue: vue-tel-input). Com seletor, emite o
+ * Telefone com seletor de país. Com seletor, emite o
  * número internacional e o campo mostra só a parte nacional; sem seletor, usa o
  * formato nacional brasileiro.
  */

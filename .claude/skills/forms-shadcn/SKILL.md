@@ -1,6 +1,6 @@
 ---
 name: forms-shadcn
-description: Componentes shadcn/ui + custom do fisioweb — DataTable com paginação, Form (RHF integration), MoneyInput, CpfCnpjInput, Select com Portal, Dialog. Use ao montar listagem com filtros + tabela, formulário New/Edit com validação, modal de confirmação, ou layout admin/clinic. Codifica padrões reais como o envelope `[data]` em DataTable, columns fora do JSX, paginação controlada por estado, totalCount e emptyMessage obrigatórios.
+description: Componentes shadcn/ui + custom das telas v1 do fisioweb — DataTable com paginação, Form (RHF integration), MoneyInput, CpfCnpjInput, Select com Portal, Dialog. Use ao montar listagem com filtros + tabela, formulário New/Edit com validação, modal de confirmação, ou layout admin/clinic de uma tela v1. Tela v2 (nova) usa a skill design-system (DsTable, DsMoneyInput, DsCnpjField, DsModal). Codifica padrões reais como o envelope `[data]` em DataTable, columns fora do JSX, paginação controlada por estado, totalCount e emptyMessage obrigatórios.
 metadata:
   domain: ui
   triggers: shadcn, DataTable, Form, Dialog, Select, Input, MoneyInput, CpfCnpjInput, AdminLayout, ClinicLayout, sonner, toast, lucide
@@ -14,6 +14,8 @@ metadata:
 Padrões de UI específicos do projeto. Stack: **shadcn/ui (Radix)** + **Tailwind** + **lucide-react** + **sonner** (toasts) + componentes custom do projeto.
 
 ## Quando usar
+
+> **Só para telas v1** (as que já existem). Tela v2 (nova) usa `@/components/ds` e a skill [`design-system`](../design-system/SKILL.md), com `DsTable`, `DsMoneyInput`, `DsCnpjField`, `DsModal` e `DsPagination` no lugar dos componentes daqui. Não misture as duas bibliotecas na mesma tela; o padrão de formulário (RHF + Zod) vale para as duas.
 
 - Montando ListPage com filtros + tabela + paginação.
 - Montando NewPage/EditPage com formulário.

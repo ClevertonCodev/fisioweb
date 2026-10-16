@@ -1,0 +1,467 @@
+/* ============================================================
+   fisioweb DS (versão 2) — tokens de runtime
+   Só para telas v2. Nada aqui sobrescreve o tema shadcn da v1:
+   todas as variáveis usam o prefixo --ds-* e os utilitários Tailwind
+   usam o namespace "ds" (bg-ds-*, text-ds-*, font-ds, rounded-ds-*...).
+   Dark mode: data-theme="dark" no <html> (DsThemeToggle).
+   ============================================================ */
+
+:root {
+    /* --- Paleta primária (marca) --- */
+    --ds-color-primary-10: #f7f6fd;
+    --ds-color-primary-20: #e6e3f8;
+    --ds-color-primary-30: #d5d1f4;
+    --ds-color-primary-40: #c4bfef;
+    --ds-color-primary-50: #b3aceb;
+    --ds-color-primary-60: #a29ae6;
+    --ds-color-primary-80: #8075dd;
+    --ds-color-primary-100: #554e93;
+    --ds-color-primary-120: #443e76;
+
+    /* --- Neutros --- */
+    --ds-color-gray-10: #fcfcfc;
+    --ds-color-gray-15: #fafafa;
+    --ds-color-gray-20: #f7f7f7;
+    --ds-color-gray-25: #e9e9e9;
+    --ds-color-gray-30: #d4d4d4;
+    --ds-color-gray-40: #c4c4c4;
+    --ds-color-gray-50: #9c9ba0;
+    --ds-color-gray-60: #7f7f85;
+    --ds-color-gray-70: #60676e;
+    --ds-color-gray-80: #2a2933;
+    --ds-color-gray-100: #222129;
+    --ds-color-white: #ffffff;
+    --ds-color-black: #000000;
+
+    /* --- Escalas de status (valores de compilação do DS) --- */
+    --ds-color-info-10: #eef8fe;
+    --ds-color-info-30: #cde8f8;
+    --ds-color-info-120: #1f7db4;
+    --ds-color-success-10: #f3fcf8;
+    --ds-color-success-30: #c3f2dc;
+    --ds-color-success-50: #93e8c0;
+    --ds-color-success-80: #4bd896;
+    --ds-color-success-100: #3cad78;
+    --ds-color-success-120: #287350;
+    --ds-color-warning-10: #fff7f0;
+    --ds-color-warning-30: #ffd8b5;
+    --ds-color-warning-50: #ffb87a;
+    --ds-color-warning-80: #ff8922;
+    --ds-color-warning-100: #cc6e1b;
+    --ds-color-warning-120: #884912;
+    --ds-color-danger-10: #fef3f3;
+    --ds-color-danger-30: #fbc3c3;
+    --ds-color-danger-50: #f79294;
+    --ds-color-danger-80: #f24a4c;
+    --ds-color-danger-100: #c23b3d;
+    --ds-color-danger-120: #812729;
+
+    /* Papéis de status fixos (não mudam no dark) */
+    --ds-color-info-surface: var(--ds-color-info-10);
+    --ds-color-info-border: var(--ds-color-info-30);
+    --ds-color-info-content: var(--ds-color-info-120);
+    --ds-color-success-surface: var(--ds-color-success-10);
+    --ds-color-success-border: var(--ds-color-success-30);
+    --ds-color-success-content: var(--ds-color-success-120);
+    --ds-color-warning-surface: var(--ds-color-warning-10);
+    --ds-color-warning-border: var(--ds-color-warning-30);
+    --ds-color-warning-content: var(--ds-color-warning-120);
+    --ds-color-danger-surface: var(--ds-color-danger-10);
+    --ds-color-danger-border: var(--ds-color-danger-30);
+    --ds-color-danger-content: var(--ds-color-danger-120);
+
+    /* --- Gradientes de marca --- */
+    --ds-gradient-brand: linear-gradient(
+        135deg,
+        var(--ds-color-primary-80) 0%,
+        var(--ds-color-primary-120) 100%
+    );
+    --ds-gradient-brand-subtle: linear-gradient(
+        135deg,
+        var(--ds-color-primary-10) 0%,
+        var(--ds-color-primary-30) 100%
+    );
+
+    /* --- Bordas --- */
+    --ds-border-subtle: #eeeeee;
+    --ds-border-brand-subtle: var(--ds-color-primary-30);
+    --ds-border-strong: #8b98a5;
+    --ds-border-default: var(--ds-color-gray-30);
+    --ds-border: 1px solid var(--ds-border-default);
+
+    /* --- Status (pesos crus de runtime) --- */
+    --ds-info-10: #eef8fe;
+    --ds-info-30: #cde8f8;
+    --ds-info-80: #5fb6e4;
+    --ds-info-120: #1f7db4;
+    --ds-success-10: #f3fcf8;
+    --ds-success-20: #d1fae5;
+    --ds-success-30: #c3f2dc;
+    --ds-success-80: #56b97a;
+    --ds-success-100: #065f46;
+    --ds-success-120: #287350;
+    --ds-warning-10: #fff7f0;
+    --ds-warning-20: #fef3c7;
+    --ds-warning-30: #ffd8b5;
+    --ds-warning-60: #d97706;
+    --ds-warning-80: #e7ce6a;
+    --ds-warning-100: #78350f;
+    --ds-warning-120: #884912;
+    --ds-danger-10: #fef3f3;
+    --ds-danger-20: #fee2e2;
+    --ds-danger-30: #fbc3c3;
+    --ds-danger-50: #f79294;
+    --ds-danger-80: #f24a4c;
+    --ds-danger-100: #c23b3d;
+    --ds-danger-120: #812729;
+
+    /* --- Status (papéis semânticos, mudam no dark) --- */
+    --ds-status-info-surface: var(--ds-info-10);
+    --ds-status-info-border: var(--ds-info-30);
+    --ds-status-info-content: var(--ds-info-120);
+    --ds-status-success-surface: var(--ds-success-10);
+    --ds-status-success-border: var(--ds-success-30);
+    --ds-status-success-content: var(--ds-success-120);
+    --ds-status-warning-surface: var(--ds-warning-10);
+    --ds-status-warning-border: var(--ds-warning-30);
+    --ds-status-warning-content: var(--ds-warning-120);
+    --ds-status-danger-surface: var(--ds-danger-10);
+    --ds-status-danger-border: var(--ds-danger-30);
+    --ds-status-danger-content: var(--ds-danger-120);
+
+    /* --- Surface --- */
+    --ds-surface-body: var(--ds-color-gray-20);
+    --ds-surface-default: var(--ds-color-white);
+    --ds-surface-raised: var(--ds-color-white);
+    --ds-surface-subtle: var(--ds-color-gray-10);
+    --ds-surface-brand: var(--ds-gradient-brand);
+    --ds-surface-brand-subtle: var(--ds-color-primary-10);
+    --ds-surface-inverse: var(--ds-color-gray-100);
+    --ds-surface-disabled: var(--ds-color-gray-20);
+
+    /* --- Content --- */
+    --ds-content-primary: var(--ds-color-gray-100);
+    --ds-content-secondary: var(--ds-color-gray-80);
+    --ds-content-muted: var(--ds-color-gray-60);
+    --ds-content-subtle: var(--ds-color-gray-50);
+    --ds-content-brand: var(--ds-color-primary-100);
+    --ds-content-danger: var(--ds-danger-120);
+    --ds-content-on-brand: var(--ds-color-primary-10);
+    --ds-content-on-inverse: var(--ds-color-gray-10);
+
+    /* --- Badges --- */
+    --ds-badge-pending-surface: #fff2e6;
+    --ds-badge-pending-content: #8a5410;
+    --ds-badge-progress-surface: #e8f6fd;
+    --ds-badge-progress-content: #0e63a6;
+    --ds-badge-submitted-surface: #f0e9ff;
+    --ds-badge-submitted-content: #5b36c9;
+    --ds-badge-review-surface: #fff7d9;
+    --ds-badge-review-content: #7e6410;
+    --ds-badge-success-surface: #e3fbef;
+    --ds-badge-success-content: #1c7342;
+    --ds-badge-failed-surface: #fdebeb;
+    --ds-badge-failed-content: #b82e2e;
+    --ds-badge-expired-surface: #eeeeee;
+    --ds-badge-expired-content: #6a6a6a;
+    --ds-badge-awaiting-surface: #f7f6ea;
+    --ds-badge-awaiting-content: #6e6838;
+    --ds-badge-refunded-surface: #fbebed;
+    --ds-badge-refunded-content: #900c3f;
+
+    /* --- Charts --- */
+    /* Paleta semântica — preferencial. Escolha a cor pelo papel do dado. */
+    --ds-chart-accent: var(--ds-color-primary-80);
+    --ds-chart-comparison: var(--ds-color-gray-50);
+    --ds-chart-positive: #56b97a;
+    --ds-chart-negative: #db5a4e;
+    --ds-chart-attention: #e7ce6a;
+    --ds-chart-info: #5fb6e4;
+    --ds-chart-neutral: var(--ds-color-gray-30);
+    /* Paleta categórica — só quando não há semântica. */
+    --ds-chart-c1: #5b6cd6;
+    --ds-chart-c2: #8e7be0;
+    --ds-chart-c3: #5fb6e4;
+    --ds-chart-c4: #56b97a;
+    --ds-chart-c5: #a9d472;
+    --ds-chart-c6: #e7ce6a;
+    --ds-chart-c7: #db5a4e;
+    --ds-chart-c8: #8c9098;
+    /* Legado — não usar em código novo */
+    --ds-chart-blue: #5e6edb;
+    --ds-chart-blue-strong: #3f43c9;
+    --ds-chart-mint: #66d1be;
+    --ds-chart-sky: #a8dff0;
+    --ds-chart-lilac: #b7a3ec;
+    --ds-chart-pink: #d78bda;
+    --ds-chart-coral: #f48c8b;
+    --ds-chart-peach: #f6ad9e;
+    --ds-chart-green: #bfe8c8;
+
+    /* --- Tipografia --- */
+    --ds-font-family-base:
+        'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    --ds-font-family-mono:
+        'Geist Mono', 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
+    --ds-font-size-micro: 0.625rem;
+    --ds-font-size-caption: 0.75rem;
+    --ds-font-size-body-compact: 0.8125rem;
+    --ds-font-size-body-xs: 0.875rem;
+    --ds-font-size-body-emphasis: 0.9375rem;
+    --ds-font-size-body-sm: 1rem;
+    --ds-font-size-body-md: 1.125rem;
+    --ds-font-size-body-lg: 1.25rem;
+    --ds-font-size-eyebrow: 1rem;
+    --ds-font-size-page-title: 1.625rem;
+    --ds-font-size-h4: 1.5rem;
+    --ds-font-size-h3: 2rem;
+    --ds-font-size-h2: 3rem;
+    --ds-font-size-h1: 3.5rem;
+    --ds-heading-h1-ls: -1.12px;
+    --ds-heading-h2-ls: -0.96px;
+    --ds-heading-h3-ls: -0.64px;
+    --ds-heading-h4-ls: -0.48px;
+    --ds-page-title-ls: -0.4px;
+    --ds-line-height-heading: 1.4;
+    --ds-line-height-base: 1.5;
+
+    /* --- Espaçamento (base 4px, igual à escala padrão do Tailwind) --- */
+    --ds-space-0: 0;
+    --ds-space-1: 0.25rem;
+    --ds-gap-tight: 0.375rem;
+    --ds-space-2: 0.5rem;
+    --ds-gap-compact: 0.625rem;
+    --ds-filter-chip-padding-block: 0.3125rem;
+    --ds-space-3: 0.75rem;
+    --ds-space-4: 1rem;
+    --ds-space-5: 1.25rem;
+    --ds-space-6: 1.5rem;
+    --ds-space-8: 2rem;
+    --ds-space-10: 2.5rem;
+    --ds-space-12: 3rem;
+    --ds-space-16: 4rem;
+
+    /* --- Raios --- */
+    --ds-radius-xs: 4px;
+    --ds-radius-sm: 6px;
+    --ds-radius-md: 8px;
+    --ds-radius-lg: 12px;
+    --ds-radius-xl: 16px;
+    --ds-radius-2xl: 24px;
+    --ds-radius-pill: 999px;
+    --ds-radius-full: 9999px;
+
+    /* --- Sombras --- */
+    --ds-shadow-xs: 0 1px 2px rgba(34, 33, 41, 0.05);
+    --ds-shadow-sm: 0 1px 3px rgba(34, 33, 41, 0.07);
+    --ds-shadow-md: 0 2px 6px rgba(34, 33, 41, 0.08);
+    --ds-shadow-focus: 0 0 0 3px rgba(128, 117, 221, 0.18);
+    --ds-shadow-focus-success: 0 0 0 3px rgba(40, 115, 80, 0.14);
+    --ds-shadow-focus-danger: 0 0 0 3px rgba(129, 39, 41, 0.14);
+
+    --ds-overlay-backdrop: rgba(0, 0, 0, 0.52);
+}
+
+/* ============================================================
+   Dark mode — data-theme="dark" no <html>.
+   Só os tokens semânticos mudam; a paleta crua continua igual.
+   ============================================================ */
+/* Preso ao <html>: o Toaster do sonner também põe data-theme no <ol>. */
+:root[data-theme='dark'] {
+    --ds-surface-body: #17161e;
+    --ds-surface-default: #222129;
+    --ds-surface-raised: #222129;
+    --ds-surface-subtle: #1d1c25;
+    --ds-surface-brand-subtle: rgba(128, 117, 221, 0.14);
+    --ds-surface-disabled: #2a2933;
+
+    --ds-content-primary: #f7f7f7;
+    --ds-content-secondary: #d4d4d4;
+    --ds-content-muted: #9c9ba0;
+    --ds-content-subtle: #7f7f85;
+    --ds-content-brand: var(--ds-color-primary-60);
+
+    --ds-border-subtle: rgba(255, 255, 255, 0.08);
+    --ds-border: 1px solid rgba(255, 255, 255, 0.1);
+    --ds-border-brand-subtle: rgba(128, 117, 221, 0.25);
+
+    --ds-surface-inverse: #111018;
+    --ds-content-on-inverse: #f0f0f0;
+
+    --ds-status-info-surface: rgba(31, 125, 180, 0.12);
+    --ds-status-info-border: rgba(31, 125, 180, 0.3);
+    --ds-status-info-content: #5fb6e4;
+    --ds-status-success-surface: rgba(40, 115, 80, 0.12);
+    --ds-status-success-border: rgba(40, 115, 80, 0.3);
+    --ds-status-success-content: #56b97a;
+    --ds-status-warning-surface: rgba(136, 73, 18, 0.12);
+    --ds-status-warning-border: rgba(136, 73, 18, 0.3);
+    --ds-status-warning-content: #e7ce6a;
+    --ds-status-danger-surface: rgba(129, 39, 41, 0.12);
+    --ds-status-danger-border: rgba(129, 39, 41, 0.3);
+    --ds-status-danger-content: #f24a4c;
+
+    --ds-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --ds-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --ds-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+    --ds-shadow-focus: 0 0 0 3px rgba(162, 154, 230, 0.35);
+    --ds-shadow-focus-success: 0 0 0 3px rgba(86, 185, 122, 0.28);
+    --ds-shadow-focus-danger: 0 0 0 3px rgba(242, 74, 76, 0.28);
+}
+
+/* Variante ds-dark: aplica a classe só com data-theme="dark" no <html>.
+   :where mantém a especificidade da classe base (disabled: continua ganhando). */
+@custom-variant ds-dark (&:where(:root[data-theme="dark"], :root[data-theme="dark"] *));
+
+/* Utilitários Tailwind do DS (namespace "ds"). */
+@theme inline {
+    --color-ds-primary-10: var(--ds-color-primary-10);
+    --color-ds-primary-20: var(--ds-color-primary-20);
+    --color-ds-primary-30: var(--ds-color-primary-30);
+    --color-ds-primary-40: var(--ds-color-primary-40);
+    --color-ds-primary-50: var(--ds-color-primary-50);
+    --color-ds-primary-60: var(--ds-color-primary-60);
+    --color-ds-primary-80: var(--ds-color-primary-80);
+    --color-ds-primary-100: var(--ds-color-primary-100);
+    --color-ds-primary-120: var(--ds-color-primary-120);
+
+    --color-ds-gray-10: var(--ds-color-gray-10);
+    --color-ds-gray-15: var(--ds-color-gray-15);
+    --color-ds-gray-20: var(--ds-color-gray-20);
+    --color-ds-gray-25: var(--ds-color-gray-25);
+    --color-ds-gray-30: var(--ds-color-gray-30);
+    --color-ds-gray-40: var(--ds-color-gray-40);
+    --color-ds-gray-50: var(--ds-color-gray-50);
+    --color-ds-gray-60: var(--ds-color-gray-60);
+    --color-ds-gray-70: var(--ds-color-gray-70);
+    --color-ds-gray-80: var(--ds-color-gray-80);
+    --color-ds-gray-100: var(--ds-color-gray-100);
+    --color-ds-white: var(--ds-color-white);
+    --color-ds-black: var(--ds-color-black);
+
+    --color-ds-info-10: var(--ds-color-info-10);
+    --color-ds-info-30: var(--ds-color-info-30);
+    --color-ds-info-120: var(--ds-color-info-120);
+    --color-ds-success-10: var(--ds-color-success-10);
+    --color-ds-success-30: var(--ds-color-success-30);
+    --color-ds-success-50: var(--ds-color-success-50);
+    --color-ds-success-80: var(--ds-color-success-80);
+    --color-ds-success-100: var(--ds-color-success-100);
+    --color-ds-success-120: var(--ds-color-success-120);
+    --color-ds-warning-10: var(--ds-color-warning-10);
+    --color-ds-warning-30: var(--ds-color-warning-30);
+    --color-ds-warning-50: var(--ds-color-warning-50);
+    --color-ds-warning-80: var(--ds-color-warning-80);
+    --color-ds-warning-100: var(--ds-color-warning-100);
+    --color-ds-warning-120: var(--ds-color-warning-120);
+    --color-ds-danger-10: var(--ds-color-danger-10);
+    --color-ds-danger-30: var(--ds-color-danger-30);
+    --color-ds-danger-50: var(--ds-color-danger-50);
+    --color-ds-danger-80: var(--ds-color-danger-80);
+    --color-ds-danger-100: var(--ds-color-danger-100);
+    --color-ds-danger-120: var(--ds-color-danger-120);
+
+    --color-ds-status-info-surface: var(--ds-status-info-surface);
+    --color-ds-status-info-border: var(--ds-status-info-border);
+    --color-ds-status-info-content: var(--ds-status-info-content);
+    --color-ds-status-success-surface: var(--ds-status-success-surface);
+    --color-ds-status-success-border: var(--ds-status-success-border);
+    --color-ds-status-success-content: var(--ds-status-success-content);
+    --color-ds-status-warning-surface: var(--ds-status-warning-surface);
+    --color-ds-status-warning-border: var(--ds-status-warning-border);
+    --color-ds-status-warning-content: var(--ds-status-warning-content);
+    --color-ds-status-danger-surface: var(--ds-status-danger-surface);
+    --color-ds-status-danger-border: var(--ds-status-danger-border);
+    --color-ds-status-danger-content: var(--ds-status-danger-content);
+
+    --color-ds-surface-body: var(--ds-surface-body);
+    --color-ds-surface-default: var(--ds-surface-default);
+    --color-ds-surface-raised: var(--ds-surface-raised);
+    --color-ds-surface-subtle: var(--ds-surface-subtle);
+    --color-ds-surface-brand-subtle: var(--ds-surface-brand-subtle);
+    --color-ds-surface-inverse: var(--ds-surface-inverse);
+    --color-ds-surface-disabled: var(--ds-surface-disabled);
+
+    --color-ds-content-primary: var(--ds-content-primary);
+    --color-ds-content-secondary: var(--ds-content-secondary);
+    --color-ds-content-muted: var(--ds-content-muted);
+    --color-ds-content-subtle: var(--ds-content-subtle);
+    --color-ds-content-brand: var(--ds-content-brand);
+    --color-ds-content-danger: var(--ds-content-danger);
+    --color-ds-content-on-brand: var(--ds-content-on-brand);
+    --color-ds-content-on-inverse: var(--ds-content-on-inverse);
+
+    --color-ds-border-subtle: var(--ds-border-subtle);
+    --color-ds-border-default: var(--ds-border-default);
+    --color-ds-border-brand-subtle: var(--ds-border-brand-subtle);
+    --color-ds-border-strong: var(--ds-border-strong);
+
+    --color-ds-badge-pending-surface: var(--ds-badge-pending-surface);
+    --color-ds-badge-pending-content: var(--ds-badge-pending-content);
+    --color-ds-badge-progress-surface: var(--ds-badge-progress-surface);
+    --color-ds-badge-progress-content: var(--ds-badge-progress-content);
+    --color-ds-badge-submitted-surface: var(--ds-badge-submitted-surface);
+    --color-ds-badge-submitted-content: var(--ds-badge-submitted-content);
+    --color-ds-badge-review-surface: var(--ds-badge-review-surface);
+    --color-ds-badge-review-content: var(--ds-badge-review-content);
+    --color-ds-badge-success-surface: var(--ds-badge-success-surface);
+    --color-ds-badge-success-content: var(--ds-badge-success-content);
+    --color-ds-badge-failed-surface: var(--ds-badge-failed-surface);
+    --color-ds-badge-failed-content: var(--ds-badge-failed-content);
+    --color-ds-badge-expired-surface: var(--ds-badge-expired-surface);
+    --color-ds-badge-expired-content: var(--ds-badge-expired-content);
+    --color-ds-badge-awaiting-surface: var(--ds-badge-awaiting-surface);
+    --color-ds-badge-awaiting-content: var(--ds-badge-awaiting-content);
+    --color-ds-badge-refunded-surface: var(--ds-badge-refunded-surface);
+    --color-ds-badge-refunded-content: var(--ds-badge-refunded-content);
+
+    --font-ds: var(--ds-font-family-base);
+    --font-ds-mono: var(--ds-font-family-mono);
+
+    --text-ds-micro: var(--ds-font-size-micro);
+    --text-ds-caption: var(--ds-font-size-caption);
+    --text-ds-body-compact: var(--ds-font-size-body-compact);
+    --text-ds-body-xs: var(--ds-font-size-body-xs);
+    --text-ds-body-emphasis: var(--ds-font-size-body-emphasis);
+    --text-ds-body-sm: var(--ds-font-size-body-sm);
+    --text-ds-body-md: var(--ds-font-size-body-md);
+    --text-ds-body-lg: var(--ds-font-size-body-lg);
+    --text-ds-eyebrow: var(--ds-font-size-eyebrow);
+    --text-ds-page-title: var(--ds-font-size-page-title);
+    --text-ds-h4: var(--ds-font-size-h4);
+    --text-ds-h3: var(--ds-font-size-h3);
+    --text-ds-h2: var(--ds-font-size-h2);
+    --text-ds-h1: var(--ds-font-size-h1);
+
+    --radius-ds-xs: var(--ds-radius-xs);
+    --radius-ds-sm: var(--ds-radius-sm);
+    --radius-ds-md: var(--ds-radius-md);
+    --radius-ds-lg: var(--ds-radius-lg);
+    --radius-ds-xl: var(--ds-radius-xl);
+    --radius-ds-2xl: var(--ds-radius-2xl);
+    --radius-ds-pill: var(--ds-radius-pill);
+    --radius-ds-full: var(--ds-radius-full);
+
+    --shadow-ds-xs: var(--ds-shadow-xs);
+    --shadow-ds-sm: var(--ds-shadow-sm);
+    --shadow-ds-md: var(--ds-shadow-md);
+    --shadow-ds-focus: var(--ds-shadow-focus);
+    --shadow-ds-focus-success: var(--ds-shadow-focus-success);
+    --shadow-ds-focus-danger: var(--ds-shadow-focus-danger);
+
+    --breakpoint-ds-sm: 600px;
+    --breakpoint-ds-md: 1024px;
+    --breakpoint-ds-lg: 1440px;
+    --breakpoint-ds-xl: 1920px;
+}
+
+/* Animações do DS */
+@keyframes ds-kpi-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

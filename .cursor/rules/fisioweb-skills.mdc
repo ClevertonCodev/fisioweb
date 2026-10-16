@@ -30,8 +30,9 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | DDD (domain → application → infra → page → route) | `frontend-ddd` |
 | Hooks, performance, React 19 | `frontend-react` |
 | Testes Vitest + RTL | `frontend-testing` |
-| **Componentes, cores, sidebar, popover, cursor** | **`frontend-ui-patterns`** |
-| DataTable, Forms RHF+Zod, Dialog | `forms-shadcn` |
+| **Componentes, cores, sidebar, popover, cursor (telas v1)** | **`frontend-ui-patterns`** |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, dark mode)** | **`design-system`** |
+| DataTable, Forms RHF+Zod, Dialog (telas v1) | `forms-shadcn` |
 | apiClient, Repository, JWT multi-guard | `api-client` |
 
 ### Cross-cutting

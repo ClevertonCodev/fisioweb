@@ -52,8 +52,9 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 | DDD (domain → application → infra → page → route) | `frontend-ddd` |
 | Hooks, performance, React 19 | `frontend-react` |
 | Testes Vitest + RTL | `frontend-testing` |
-| **Componentes, cores, sidebar, popover, cursor** | **`frontend-ui-patterns`** |
-| DataTable, Forms RHF+Zod, Dialog | `forms-shadcn` |
+| **Componentes, cores, sidebar, popover, cursor (telas v1)** | **`frontend-ui-patterns`** |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, dark mode)** | **`design-system`** |
+| DataTable, Forms RHF+Zod, Dialog (telas v1) | `forms-shadcn` |
 | apiClient, Repository, JWT multi-guard | `api-client` |
 
 ### Cross-cutting
@@ -70,7 +71,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 5. **HTTP só via `apiClient`:** guards JWT inferidos pela URL (`/admin/*` → admin, `/clinic/*` → clinic).
 6. **`domain/` puro:** camelCase, sem `_at`, sem `ApiXxx`, sem WriteDto, sem constantes de UI.
 7. **Form com 2+ campos → RHF + Zod** (não copiar pages legadas com `useState`).
-8. **UI:** tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`.
+8. **UI:** telas v1 com tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`. Telas v2 usam `@/components/ds` — ver `design-system`; nunca as duas bibliotecas na mesma tela.
 9. **PHP:** Laravel Pint; sem `declare(strict_types=1)` por convenção atual; Controller → Service → Repository → Model; null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
 
 ## Stack

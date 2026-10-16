@@ -10,6 +10,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { adminRoutes } from '@/routes/admin-routes';
 import { clinicRoutes } from '@/routes/clinic-routes';
+import { devRoutes } from '@/routes/dev-routes';
 
 import NotFound from './pages/NotFound';
 import PatientProgramDeepLinkPage from './pages/patient/PatientProgramDeepLinkPage';
@@ -25,6 +26,7 @@ const router = createBrowserRouter(
             path: '/:clinicSlug/paciente/programas/:publicToken',
             element: <PatientProgramDeepLinkPage />,
         },
+        ...devRoutes,
         { path: '*', element: <NotFound /> },
     ],
     {

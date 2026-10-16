@@ -7,7 +7,7 @@ description: Projetar e evoluir somente o backend Laravel do fisioweb como monol
 
 Use esta skill como criterio arquitetural para o backend antes de implementar features que atravessam mais de um modulo Laravel. O objetivo e manter um unico deploy backend, mas tratar `modules/<Module>` como bounded contexts com contratos explicitos e minimo conhecimento interno entre si.
 
-Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `frontend-ddd`, `forms-shadcn`, `frontend-react`, `frontend-ui-patterns`, `frontend-testing` e `api-client`.
+Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `frontend-ddd`, `forms-shadcn`, `frontend-react`, `frontend-ui-patterns` (telas v1), `design-system` (telas v2), `frontend-testing` e `api-client`.
 
 ## Principios
 

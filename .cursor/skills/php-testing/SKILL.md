@@ -6,7 +6,7 @@ metadata:
   triggers: phpunit, pest, test, teste, mockery, refreshDatabase, factory, actingAs, assertion, composer test
   scope: implementation
   output-format: code
-  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, php-modern
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, php-modern
 ---
 
 # PHP Testing (fisioweb)
@@ -74,7 +74,7 @@ modules/<Module>/tests/
 | Templates completos (Unit Service, Feature Controller, Data Provider, Mockery, fakes do Laravel) | [`references/testing-quality.md`](references/testing-quality.md) | Implementar testes |
 | Testes alinhados a SOLID e separação de camadas | [`../backend-clean-code/SKILL.md`](../backend-clean-code/SKILL.md) | Definir o que mockar e onde testar regra |
 | Teste de contrato/evento entre módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir o que deve ser protegido |
-| Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Entender estrutura do código sob teste |
+| Padrão de módulo Laravel | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Entender estrutura do código sob teste |
 | Tipos modernos (Enum/DTO/VO) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Testar Enums e DTOs |
 | Eloquent (Factory, scopes, observers) | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Testar Model/Scope/Observer |
 | Queues (`Queue::fake`, `assertPushed`) | [`../laravel-queues/SKILL.md`](../laravel-queues/SKILL.md) | Testar dispatch de Job |

@@ -44,7 +44,7 @@ CERTO:   teste1 → código1,  teste2 → código2,  teste3 → código3
   `.ai-workbench/NNN-<slug>/` só com o `README.md` e use `000-<slug>` como
   tarefa (seção "Pasta de trabalho" da Definição de Pronto).
 - Carregue as skills da área (tabela "Skill Map" do `CLAUDE.md`), por exemplo
-  `backend-module` + `security` + `php-testing` para endpoint novo, ou
+  `architecture-paradigm-modular-monolith` + `backend-clean-code` + `security` + `php-testing` para endpoint novo, ou
   `frontend-ddd` + `forms-shadcn` + `frontend-testing` para tela v1 (para tela v2, `design-system` no lugar de `forms-shadcn`).
 - Sem branch da tarefa, sugira `feat/<slug>` (ou `bugfix/<slug>`) a partir da
   `main` e espere o usuário confirmar.

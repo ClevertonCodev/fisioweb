@@ -88,8 +88,7 @@ Skills vivem em `.claude/skills/`. Cada uma tem `SKILL.md` (resumo + decisão r�
 | Vou fazer | Skill |
 |-----------|-------|
 | SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | [`backend-clean-code`](.claude/skills/backend-clean-code/SKILL.md) |
-| Fronteira entre módulos backend, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md) |
-| Criar recurso CRUD (Controller + Service + Repository + Contract + Request + Route) | [`backend-module`](.claude/skills/backend-module/SKILL.md) |
+| Fronteira entre módulos backend, CRUD dentro do módulo, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md) |
 | Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.claude/skills/laravel-eloquent/SKILL.md) |
 | Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.claude/skills/laravel-queues/SKILL.md) |
 | Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.claude/skills/php-modern/SKILL.md) |

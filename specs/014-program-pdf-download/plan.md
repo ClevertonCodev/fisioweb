@@ -31,7 +31,7 @@ Abordagem: endpoint PDF já existe (`GET …/treatment-plans/{id}/pdf`); redesen
 - Sem envio WhatsApp/e-mail do PDF
 - Anotações só impressas; máx. 3 meses
 - Backend fonte de verdade; `apiClient` único HTTP; fronteiras modulares (Admin dono de `ExerciseMedia`; TreatmentProgram orquestra PDF; Pdf via contrato)
-- Skills aplicadas: `frontend-ddd`, `frontend-ui-patterns`, `frontend-react`, `forms-shadcn`, `api-client`, `frontend-testing`, `backend-module`, `backend-clean-code`, `architecture-paradigm-modular-monolith`, `laravel-eloquent`, `php-modern`, `php-testing`, `security`
+- Skills aplicadas: `frontend-ddd`, `frontend-ui-patterns`, `frontend-react`, `forms-shadcn`, `api-client`, `frontend-testing`, `backend-clean-code`, `architecture-paradigm-modular-monolith`, `laravel-eloquent`, `php-modern`, `php-testing`, `security`
 
 **Scale/Scope**: 1 endpoint PDF existente + redesign blade; 1–2 endpoints admin de reference images; deep link paciente mínimo; 2 páginas clinic (enable download) + AdminVideo Create/Edit; seeds já populam imagens
 

@@ -51,7 +51,7 @@ Essa é a base da regra "fisio vê só os pacientes dele" (tarefa 013).
   - `modules/Clinic/app/Contracts/Public/ClinicUserGoogleConnectionReadServiceInterface.php` (contrato público de leitura do Clinic);
   - `modules/Clinic/tests/Feature/ProfessionalsListTest.php` (endpoint de profissionais);
   - `resources/js/test/api-clinic-patients.test.ts`.
-- **Skills:** `architecture-paradigm-modular-monolith`, `backend-module`, `forms-shadcn`, `frontend-ddd`, `frontend-testing`, `php-testing`
+- **Skills:** `architecture-paradigm-modular-monolith`, `backend-clean-code`, `forms-shadcn`, `frontend-ddd`, `frontend-testing`, `php-testing`
 - Paciente é dado pessoal (LGPD). A migration só zera uma referência e não apaga dado do paciente.
 
 ## Como testar na mão

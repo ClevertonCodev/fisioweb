@@ -6,7 +6,7 @@ metadata:
   triggers: PHP, PHP 8.2, PHP 8.3, enum, readonly, DTO, value object, match, never, strict types, Eloquent, Laravel
   scope: implementation
   output-format: code
-  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, php-testing
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, php-testing
 ---
 
 # PHP Modern (fisioweb)
@@ -15,7 +15,7 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 
 ## Quando usar
 
-- Criando Service/Repository novo em `modules/<Module>/` (ver skill [`backend-module`](../backend-module/SKILL.md)).
+- Criando Service/Repository novo em `modules/<Module>/` (ver skills [`architecture-paradigm-modular-monolith`](../architecture-paradigm-modular-monolith/SKILL.md) e [`backend-clean-code`](../backend-clean-code/SKILL.md)).
 - Modelando entidade nova com status/tipo que hoje seria um conjunto de constantes.
 - Recebendo payload complexo em Service e querendo tipar (substituir `array $data` por DTO). Para decidir se DTO/Service/Repository estão no lugar certo, carregue [`backend-clean-code`](../backend-clean-code/SKILL.md).
 - Modelando conceito de domínio (Duration, Score, Money) — Value Object readonly.
@@ -58,7 +58,7 @@ Recursos PHP 8.2+ aplicados ao padrão Service/Repository deste projeto Laravel 
 | Features PHP 8.2+ adaptadas ao fisioweb | [`references/php-features.md`](references/php-features.md) | Tipos, enums, readonly, match, never, callable |
 | DTO/Enum/VO atravessa módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir contrato público e estabilidade |
 | SOLID, DTO por camada e inversão de dependência | [`../backend-clean-code/SKILL.md`](../backend-clean-code/SKILL.md) | Decidir onde colocar regra e como tipar sem acoplar |
-| Padrão de módulo Laravel | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Criar novo recurso CRUD |
+| Padrão de módulo Laravel | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Criar novo recurso CRUD |
 | Testes (PHPUnit + Mockery) | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | Escrever testes para o código novo |
 
 ## Output esperado

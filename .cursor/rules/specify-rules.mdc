@@ -39,8 +39,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 ### Backend
 | Tarefa | Skill |
 |--------|-------|
-| Fronteira entre módulos, contrato público, eventos, ADR | `architecture-paradigm-modular-monolith` |
-| CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
+| Fronteira entre módulos, CRUD no módulo, contrato público, eventos, ADR | `architecture-paradigm-modular-monolith` |
 | Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
 | Job async (WhatsApp, PDF, R2, e-mail) | `laravel-queues` |
 | Enum, DTO readonly, Value Object, match | `php-modern` |

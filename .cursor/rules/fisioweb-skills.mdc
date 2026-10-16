@@ -17,8 +17,7 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | Tarefa | Skill |
 |--------|-------|
 | SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | `backend-clean-code` |
-| Fronteira entre módulos backend, contrato público, evento, ADR, extração futura | `architecture-paradigm-modular-monolith` |
-| CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
+| Fronteira entre módulos backend, CRUD no módulo, contrato público, evento, ADR, extração futura | `architecture-paradigm-modular-monolith` |
 | Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
 | Job async (WhatsApp, PDF, R2, e-mail) | `laravel-queues` |
 | Enum, DTO readonly, Value Object, match | `php-modern` |

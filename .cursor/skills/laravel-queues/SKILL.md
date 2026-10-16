@@ -6,7 +6,7 @@ metadata:
   triggers: job, queue, fila, async, dispatch, ShouldQueue, retry, backoff, Bus, Horizon, afterCommit, WhatsApp, PDF
   scope: implementation
   output-format: code
-  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, laravel-eloquent, php-testing
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, laravel-eloquent, php-testing
 ---
 
 # Laravel Queues (fisioweb)
@@ -64,7 +64,7 @@ Padrão de Jobs/Queue do projeto. Referência real: `modules/WhatsApp/app/Jobs/S
 | Evento/listener atravessa módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Definir evento, payload e módulo consumidor |
 | Disparar Job de Observer | [`../laravel-eloquent/SKILL.md`](../laravel-eloquent/SKILL.md) | Reagir a evento de Model |
 | Testar Job dispatch | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | `Queue::fake()` + `assertPushed` |
-| Estrutura de módulo | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Localização do Job no módulo |
+| Estrutura de módulo | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Localização do Job no módulo |
 
 ## Output esperado
 

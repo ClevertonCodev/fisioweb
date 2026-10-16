@@ -80,7 +80,7 @@ Sem caminho de arquivo e sem trecho de código.
 
 - **Branch:** `feat/{slug}` (ou `bugfix/{slug}` para bug)
 - **Exemplo no código:** {1 ou 2 arquivos que já fazem algo parecido}
-- **Skills:** {as skills de `.claude/skills/` que cobrem esta fatia}
+- **Skills:** {as skills de `.claude/skills/` / `.cursor/skills/` que cobrem esta fatia}
 
 ## Como testar na mão
 

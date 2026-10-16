@@ -13,7 +13,7 @@ Porta para React (Tailwind + Radix) os 35 componentes e os tokens do design syst
     - `vitest.config.ts`: exclui `.claude/**`, porque os `.test.cjs` da skill `security-audit` usam `node:test` e quebravam o `npm run test` já na `main`;
     - skills `frontend-ui-patterns`, `forms-shadcn`, `implementar-tarefa` e `architecture-paradigm-modular-monolith` (em `.claude/`, `.agents/` e, onde não é atalho, `.cursor/skills/`): passam a dizer que valem só para a v1, ou apontam a `design-system` para a v2;
     - `.cursor/rules/frontend-ui-patterns.mdc`, `fisioweb-skills.mdc` e `specify-rules.mdc`, e `specs/_shared/frontend-ui-patterns.md`: mesma ressalva v1 × v2;
-    - `.cursor/skills/design-system`: atalho para `.claude/skills/design-system`.
+    - `design-system` em `.claude/skills/` e `.cursor/skills/` (ambas canônicas; `bash bin/verificar-skills.sh`).
   - **Fora do git, só local:** `CLAUDE.md` e `docs/ai-harness/DEFINITION_OF_DONE.md` ganharam a regra v1 × v2.
   - **Temporário:** as exclusões da pasta Vue no `eslint.config.js` e no `.gitignore` foram desfeitas quando a pasta foi apagada.
 

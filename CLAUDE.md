@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Orientação para Claude Code neste repositório. **Detalhes vivem nas skills em `.claude/skills/`** — este arquivo aponta para onde olhar.
+Orientação para Claude Code neste repositório. **Detalhes vivem nas skills em `.claude/skills/` e `.cursor/skills/`** (mesmo conteúdo; ambas canônicas) — este arquivo aponta para onde olhar.
 
 ## Project Overview
 
@@ -82,7 +82,7 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em `.claude/skills/`. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/` (templates + exemplos detalhados).
+Skills vivem em **`.claude/skills/`** (Claude Code) e **`.cursor/skills/`** (Cursor). **As duas árvores são canônicas** — sem symlink entre elas. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/`. Ao criar ou alterar uma skill, atualize **os dois** caminhos e rode `bash bin/verificar-skills.sh`.
 
 ### Backend
 | Vou fazer | Skill |
@@ -140,7 +140,7 @@ before implementing tasks for the active feature.
 <!-- BEGIN ai-harness -->
 ## Ciclo de trabalho
 
-Cada etapa tem uma skill em `.claude/skills/`, e cada uma diz qual é a próxima:
+Cada etapa tem uma skill em `.claude/skills/` / `.cursor/skills/`, e cada uma diz qual é a próxima:
 
 `especificar` (opcional: cria `.ai-workbench/NNN-<slug>/` com `spec.md`, no
 estilo do `/speckit-specify`; o usuário revisa) → `refinar` →

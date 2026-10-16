@@ -5,13 +5,13 @@ alwaysApply: true
 <!-- SPECKIT START -->
 # Fisioweb — Spec Kit Context
 
-Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md`, skills em `.claude/skills/` e mapa resumido em `.cursor/rules/fisioweb-skills.mdc`.
+Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md` / `AGENTS.md`, skills em `.claude/skills/` e `.cursor/skills/` (ambas canônicas) e mapa em `.cursor/rules/fisioweb-skills.mdc`.
 
 | Arquivo | Conteúdo |
 |---------|----------|
 | `CLAUDE.md` / `AGENTS.md` | Overview, stack, comandos, princípios não-negociáveis |
 | `.cursor/rules/fisioweb-skills.mdc` | Skill map — **consultar antes de implementar** |
-| `.claude/skills/` | Skills detalhadas por tarefa (backend, frontend, security, speckit-*) |
+| `.claude/skills/` e `.cursor/skills/` | Skills detalhadas (mesmo conteúdo; atualizar as duas; `bash bin/verificar-skills.sh`) |
 | `.specify/memory/constitution.md` | Princípios Spec Kit (local; template se ainda não ratificado) |
 | `specs/_shared/` | Artefatos compartilhados entre features (ex.: UI patterns) |
 | `specs/*/` | Spec, plan, tasks e contratos da feature ativa |
@@ -34,7 +34,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 
 ## Skills — consultar sempre (conforme escopo)
 
-**Leia o `SKILL.md` relevante antes de codar.** Skills em `.cursor/skills/<nome>/` (symlink para `.claude/skills/`).
+**Leia o `SKILL.md` relevante antes de codar.** Cursor: `.cursor/skills/<nome>/`. Claude Code: `.claude/skills/<nome>/`. Ambas canônicas — mantenha iguais (`bash bin/verificar-skills.sh`).
 
 ### Backend
 | Tarefa | Skill |

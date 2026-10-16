@@ -1,6 +1,6 @@
 # Frontend UI Patterns — artefato compartilhado (Spec Kit)
 
-**Versão:** 1.0 | **Skill canônica:** `.claude/skills/frontend-ui-patterns/`
+**Versão:** 1.0 | **Skills canônicas:** `.claude/skills/frontend-ui-patterns/` e `.cursor/skills/frontend-ui-patterns/`
 
 Toda feature com interface v1 no SPA **deve** consultar este documento (ou a skill) antes da implementação de UI.
 

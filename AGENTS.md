@@ -23,6 +23,9 @@ npm run format
 composer run test     # PHPUnit (backend)
 npm run test          # Vitest (frontend)
 npm run test:watch
+
+# Skills (após editar .claude/skills/ e .cursor/skills/)
+bash bin/verificar-skills.sh
 ```
 
 ## Initial Setup
@@ -82,7 +85,7 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em `.cursor/skills/`. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/` (templates + exemplos detalhados).
+Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude Code). **As duas árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os dois** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`.
 
 ### Backend
 | Vou fazer | Skill |
@@ -140,7 +143,7 @@ before implementing tasks for the active feature.
 <!-- BEGIN ai-harness -->
 ## Ciclo de trabalho
 
-Cada etapa tem uma skill em `.cursor/skills/`, e cada uma diz qual é a próxima:
+Cada etapa tem uma skill em `.cursor/skills/` / `.claude/skills/`, e cada uma diz qual é a próxima:
 
 `especificar` (opcional: cria `.ai-workbench/NNN-<slug>/` com `spec.md`, no
 estilo do `/speckit-specify`; o usuário revisa) → `refinar` →

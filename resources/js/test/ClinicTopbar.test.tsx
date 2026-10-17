@@ -258,7 +258,9 @@ describe('ClinicLayout', () => {
         ).toBeInTheDocument();
         expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
         expect(screen.getByText('conteúdo da página')).toBeInTheDocument();
-        expect(document.querySelector('.bg-background')).toBeTruthy();
+        const shell = document.querySelector('.bg-background');
+        expect(shell).toBeTruthy();
+        expect(shell).toHaveClass('font-ds');
         expect(
             document.querySelector('.bg-ds-surface-body'),
         ).not.toBeInTheDocument();

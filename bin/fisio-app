@@ -1,0 +1,914 @@
+#!/usr/bin/env bash
+# Ambiente Docker isolado por pasta de trabalho (checkout ou worktree).
+#
+# Tarefa nova, do começo ao fim:
+#   bin/fisio-app new agenda-semanal  cria ../fisioweb-agenda-semanal (worktree + branch feat/agenda-semanal), sobe o
+#                                     ambiente, compila o front e abre o editor e o navegador: é só começar a codar
+#                                     (new bugfix/nome usa a branch bugfix/nome; se a pasta já existe, só sobe e abre)
+#   bin/fisio-app remove agenda-semanal  apaga o ambiente e a pasta da tarefa, de qualquer lugar (a branch fica);
+#                                     de dentro da pasta, basta "remove"
+#
+# Dentro de uma pasta:
+#   up              sobe PHP, Postgres e a fila e roda as migrations (o banco inicial entra só na criação)
+#   url | open      endereços e porta do Postgres | abre no navegador a URL "abrir" da configuração
+#   test [args]     php artisan test dentro do container, ex.: --filter=PatientTest
+#   verificar       bin/verificar.sh (roda no Mac; o PHPUnit usa SQLite em memória)
+#   exec <cmd>      qualquer comando dentro do container; artisan <cmd>: php artisan dentro do container
+#   migrate         migrations no banco deste ambiente
+#   watch           desenvolvimento: Vite ao vivo numa porta livre só desta tarefa (Ctrl+C para)
+#   build           front compilado (npm run build), o que o navegador usa fora do watch
+#   psql            cliente do Postgres; db: endereço para abrir num cliente
+#   db-copiar       APAGA o banco deste ambiente e copia o do checkout principal (DB_* do .env dele)
+#   db-import <arquivo.sql[.gz]>   APAGA o banco deste ambiente e importa o arquivo
+#   reset           APAGA o banco deste ambiente e roda migrate:fresh --seed
+#   status | logs | list   containers desta pasta | log do PHP (logs queue: fila) | todos os ambientes (e AMBIENTES.md)
+#   stop            para os containers (o banco fica)
+#   down            derruba e APAGA o banco deste ambiente
+#   install         cria o comando fisio-app em ~/.local/bin, para usar em branches que ainda não têm este script
+#
+# Portas: o Docker escolhe; ficam anotadas no AMBIENTE.md da pasta e no AMBIENTES.md do checkout principal.
+# Configuração: docker/fisio-app.json (seu, fora do git); modelo comentado no fisio-app.example.json.
+set -euo pipefail
+unset CDPATH
+
+# --- Onde está a infraestrutura e onde está o código -------------------------
+# A infraestrutura (compose, Dockerfile) vem da pasta deste script; o código, da
+# pasta onde o comando roda. Assim uma worktree de uma branch que ainda não tem
+# estes arquivos também sobe.
+caminho_real() {
+    local f="$1" dir
+    while [ -L "$f" ]; do
+        dir="$(cd -P "$(dirname "$f")" && pwd)"
+        f="$(readlink "$f")"
+        case "$f" in /*) ;; *) f="$dir/$f" ;; esac
+    done
+    [ -e "$f" ] || return 1
+    echo "$(cd -P "$(dirname "$f")" && pwd)/$(basename "$f")"
+}
+script="$(caminho_real "${BASH_SOURCE[0]}")"
+
+# Um ponto de entrada só: com o fisio-app instalado (install), quem manda é ele, e
+# o bin/fisio-app de uma worktree só repassa. Sem isso, uma worktree com outra
+# versão deste script recriava o mesmo ambiente com outro compose.
+if [ -z "${FISIO_APP_DELEGADO:-}" ] && command -v fisio-app >/dev/null 2>&1; then
+    instalado="$(caminho_real "$(command -v fisio-app)" || true)"
+    if [ -n "$instalado" ] && [ "$instalado" != "$script" ] && [ -x "$instalado" ] \
+        && grep -q FISIO_APP_DELEGADO "$instalado" 2>/dev/null; then
+        FISIO_APP_DELEGADO=1 exec "$instalado" "$@"
+    fi
+fi
+infra="$(cd -P "$(dirname "$script")/../docker" && pwd)"
+compose_file="$infra/compose.yml"
+imagem="fisioweb-dev-local:php8.5"
+
+erro() { echo "$*" >&2; exit 1; }
+
+raiz="$(git rev-parse --show-toplevel 2>/dev/null)" || erro "Rode de dentro de uma pasta do fisioweb."
+[ -f "$raiz/artisan" ] && [ -d "$raiz/modules" ] || erro "$raiz não parece ser um checkout do fisioweb."
+# O checkout principal é sempre o primeiro da lista de worktrees.
+principal="$(git -C "$raiz" worktree list --porcelain | sed -n '1s/^worktree //p')"
+
+# O nome do projeto no Docker sai do nome da pasta: duas pastas, dois projetos, com
+# rede, banco e containers separados. O checkout principal ganha "-principal" porque
+# "fisioweb" já é o projeto do compose_pgsql.yaml (o Postgres de quem roda o Laravel
+# no Mac): um "down" com esse nome apagaria aquele banco.
+nome_do_ambiente() {
+    local n
+    n="$(basename "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g; s/^[^a-z0-9]+//')"
+    n="${n:-fisioweb}"
+    if [ "$1" = "$principal" ]; then n="$n-principal"; fi
+    echo "$n"
+}
+
+export AMBIENTE_NOME="$(nome_do_ambiente "$raiz")"
+export AMBIENTE_UID="$(id -u)"
+export AMBIENTE_GID="$(id -g)"
+export AMBIENTE_CODIGO="$raiz"
+export AMBIENTE_GIT="$(git -C "$raiz" rev-parse --path-format=absolute --git-common-dir)"
+# Fica dentro do .git desta pasta: nunca entra num commit e some junto com a worktree.
+dir_ambiente="$(git -C "$raiz" rev-parse --path-format=absolute --git-path fisio-app)"
+export AMBIENTE_ENV="$dir_ambiente/container.env"
+
+# --- Configuração -------------------------------------------------------------------
+# Só o docker/fisio-app.json (seu, fora do git) é lido; o fisio-app.example.json é só
+# modelo para copiar. Sem o arquivo, valem os padrões deste script. Linhas que começam
+# com // são comentário (o exemplo vem comentado).
+config="$infra/fisio-app.json"
+
+ler_config() {
+    # node e não plutil/jq: o node já é preciso para o front.
+    node -e '
+        const fs = require("fs");
+        if (!fs.existsSync(process.argv[1])) process.exit(0);
+        const texto = fs.readFileSync(process.argv[1], "utf8")
+            .split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+        let c;
+        try {
+            c = JSON.parse(texto);
+        } catch (e) {
+            process.stderr.write("Aviso: " + process.argv[1] + " está com erro (" + e.message + "); usando os padrões.\n");
+            process.exit(0);
+        }
+        const v = c[process.argv[2]];
+        if (v !== undefined) process.stdout.write(String(v));
+    ' "$config" "$1" || true
+}
+
+pastas_do_repositorio() { git -C "$principal" worktree list --porcelain | sed -n 's/^worktree //p'; }
+
+url_de_abrir() {
+    local modelo
+    modelo="$(ler_config abrir)"
+    [ -n "$modelo" ] || modelo="http://localhost:{porta}/clinica/login"
+    echo "${modelo//\{porta\}/$1}"
+}
+
+# Valor de uma chave num .env, sem espaços nem aspas em volta.
+valor_no_env() {
+    [ -f "$2" ] || return 0
+    sed -n -E "s/^[[:space:]]*(export[[:space:]]+)?$1[[:space:]]*=[[:space:]]*//p" "$2" | tail -1 \
+        | sed -E "s/[[:space:]]+\$//; s/^\"(.*)\"\$/\\1/; s/^'(.*)'\$/\\1/"
+}
+
+# --- Portas ------------------------------------------------------------------------
+# O Docker escolhe uma porta livre para cada container quando ele é criado. Elas
+# são lidas dele na hora, nunca guardadas: podem mudar se o ambiente for recriado.
+porta_de() {
+    local c
+    c="$(docker ps -q --filter "label=com.docker.compose.project=$1" --filter "label=com.docker.compose.service=$2" 2>/dev/null | head -1)"
+    [ -n "$c" ] || return 0
+    docker port "$c" "$3" 2>/dev/null | head -1 | sed 's/.*://'
+}
+
+ler_portas() {
+    WEB_PORT="$(porta_de "$1" web 8000)"
+    DB_PORT="$(porta_de "$1" db 5432)"
+}
+
+precisa_estar_de_pe() {
+    ler_portas "$AMBIENTE_NOME"
+    [ -n "$WEB_PORT" ] || erro "Ambiente '$AMBIENTE_NOME' não está de pé. Rode: fisio-app up"
+}
+
+dc() { docker compose -f "$compose_file" "$@"; }
+
+# Se conectar, a porta está em uso. Testa também ::1, onde escuta um Vite iniciado
+# com "localhost" no Mac.
+porta_em_uso() {
+    (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null || (exec 3<>"/dev/tcp/::1/$1") 2>/dev/null
+}
+
+abrir_no_navegador() {
+    # No Linux, "open" pode ser outro programa (openvt).
+    if [ "$(uname)" = "Darwin" ]; then
+        open "$1"
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$1" >/dev/null 2>&1
+    else
+        echo "Abra no navegador: $1"
+    fi
+}
+
+tty_flag() { if [ -t 0 ] && [ -t 1 ]; then echo ""; else echo "-T"; fi; }
+
+no_web() {
+    # shellcheck disable=SC2046
+    dc exec $(tty_flag) web "$@"
+}
+
+psql_ambiente() { dc exec -T db psql -U fisioweb -d fisioweb -v ON_ERROR_STOP=1 -q "$@"; }
+
+# --- Arquivos .env -----------------------------------------------------------
+# Chaves que o ambiente sempre define, venha o que vier do .env principal.
+chaves_fixas='APP_ENV|APP_URL|DB_CONNECTION|DB_HOST|DB_PORT|DB_DATABASE|DB_USERNAME|DB_PASSWORD|DB_URL|SESSION_DRIVER|SESSION_COOKIE|SESSION_DOMAIN|QUEUE_CONNECTION|CACHE_STORE'
+# Desligadas por padrão, porque falam com gente de verdade: "manter_env" libera.
+chaves_desligadas='MAIL_MAILER|WHATSAPP_ENABLED'
+
+manter_env() { ler_config manter_env | tr -d ' '; }
+
+# O .env do checkout principal, sem as chaves fixas e com o que fala com gente de
+# verdade desligado: WhatsApp, credenciais do Twilio vazias e e-mail no log. Só as
+# chaves de "manter_env" passam com o valor real. Valores que começam pela APP_URL do
+# principal (o GOOGLE_REDIRECT_URI, por exemplo) passam a usar a URL deste ambiente.
+filtrar_env_principal() {
+    local url_principal
+    url_principal="$(valor_no_env APP_URL "$principal/.env")"
+    # Só passam linhas em branco e linhas CHAVE=valor reconhecidas. Comentários,
+    # linhas que não entende e valores de várias linhas ficam de fora.
+    awk -v fixas="^($chaves_fixas)$" -v desligadas="^($chaves_desligadas)$" -v manter=",$(manter_env)," \
+        -v url_velha="${url_principal%/}" -v url_nova="$1" '
+        aspa != "" {
+            if (index($0, aspa) > 0) aspa = ""
+            next
+        }
+        /^[[:space:]]*$/ { print; next }
+        {
+            linha = $0
+            sub(/^[[:space:]]+/, "", linha)
+            sub(/^export[[:space:]]+/, "", linha)
+            if (match(linha, /^[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=/) == 0) next
+            chave = substr(linha, 1, RLENGTH - 1)
+            sub(/[[:space:]]+$/, "", chave)
+            valor = substr(linha, RLENGTH + 1)
+            sub(/^[[:space:]]+/, "", valor)
+            sub(/[[:space:]]+$/, "", valor)
+            q = substr(valor, 1, 1)
+            if ((q == "\"" || q == "\047") && index(substr(valor, 2), q) == 0) {
+                aspa = q
+                next
+            }
+            if (chave ~ fixas) next
+            if (index(manter, "," chave ",") > 0) { print chave "=" valor; next }
+            if (chave ~ desligadas) next
+            if (chave ~ /^TWILIO_/) { print chave "="; next }
+            if (url_velha != "") {
+                v = valor
+                if (q != "\"" && q != "\047") q = ""
+                if (q != "") v = substr(v, 2)
+                resto = substr(v, length(url_velha) + 1)
+                c = substr(resto, 1, 1)
+                if (index(v, url_velha) == 1 && (c == "" || c == "/" || c == q)) valor = q url_nova resto
+            }
+            print chave "=" valor
+        }
+    ' "$principal/.env"
+}
+
+# Um .env completo: o do principal filtrado mais o bloco deste ambiente.
+# $1: host do Postgres, $2: porta dele, $3: APP_URL.
+conteudo_env() {
+    local manter chave
+    manter=",$(manter_env),"
+    echo "# Gerado pelo bin/fisio-app a cada up. Não edite: mude o .env de $principal."
+    filtrar_env_principal "$3"
+    cat <<EOF
+
+# --- bin/fisio-app ---
+APP_ENV=local
+APP_URL=$3
+DB_CONNECTION=pgsql
+DB_HOST=$1
+DB_PORT=$2
+DB_DATABASE=fisioweb
+DB_USERNAME=fisioweb
+DB_PASSWORD=fisioweb
+# Cookies não separam por porta: cada ambiente tem o seu, senão dois ambientes em
+# localhost derrubam a sessão um do outro.
+SESSION_DRIVER=database
+SESSION_COOKIE=$(echo "$AMBIENTE_NOME" | tr -c 'a-z0-9\n' '_')_session
+SESSION_DOMAIN=null
+# Fila como em produção: os jobs vão para a tabela jobs e o container "queue"
+# processa. Ver: fisio-app logs queue.
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+EOF
+    for chave in MAIL_MAILER WHATSAPP_ENABLED; do
+        case "$manter" in *",$chave,"*) continue ;; esac
+        case "$chave" in
+            MAIL_MAILER) echo "# E-mail vai para o storage/logs/laravel.log. Para enviar de verdade: manter_env." && echo "MAIL_MAILER=log" ;;
+            WHATSAPP_ENABLED) echo "# Nada de WhatsApp para pacientes de verdade. Para ligar: manter_env." && echo "WHATSAPP_ENABLED=false" ;;
+        esac
+    done
+}
+
+# $1: porta do PHP, $2: porta do Postgres no Mac (vazias com o ambiente parado).
+gerar_envs() {
+    local url="http://localhost"
+    [ -z "${1:-}" ] || url="http://localhost:$1"
+    [ -f "$principal/.env" ] || erro "Falta o $principal/.env: o ambiente é montado a partir dele (cp .env.example .env)."
+    mkdir -p "$dir_ambiente"
+    # ">" reescreve o mesmo arquivo: o container continua vendo o que está montado.
+    conteudo_env db 5432 "$url" > "$AMBIENTE_ENV"
+    chmod 600 "$AMBIENTE_ENV"
+
+    # O .env do checkout principal é seu e nunca muda. Numa worktree, o .env do Mac
+    # é o mesmo do container, mas com o Postgres pela porta que o Docker deu: assim
+    # php artisan, tinker e o PHPUnit no Mac também usam o banco desta pasta. Com o
+    # ambiente parado, aponta para um host que não existe, para não cair noutro banco.
+    [ "$raiz" != "$principal" ] || return 0
+    if [ -e "$raiz/.env" ] && ! head -1 "$raiz/.env" | grep -q 'bin/fisio-app'; then
+        echo "Aviso: $raiz/.env não foi gerado pelo fisio-app; não mexi nele." >&2
+        return 0
+    fi
+    if [ -n "${2:-}" ]; then
+        conteudo_env 127.0.0.1 "$2" "$url" > "$raiz/.env"
+    else
+        conteudo_env ambiente-parado.invalid 5432 "$url" > "$raiz/.env"
+    fi
+    chmod 600 "$raiz/.env"
+}
+
+# --- Banco ---------------------------------------------------------------------
+tabelas_no_banco() {
+    psql_ambiente -tA -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'"
+}
+
+esvaziar_banco() {
+    psql_ambiente -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+}
+
+importar() {
+    local arquivo="$1"
+    echo "Importando $(basename "$arquivo") no banco deste ambiente..."
+    esvaziar_banco
+    if [[ "$arquivo" == *.gz ]]; then
+        gunzip -c "$arquivo" | psql_ambiente
+    else
+        psql_ambiente < "$arquivo"
+    fi
+}
+
+# Copia o banco que o .env do checkout principal usa. pg_dump do container do
+# Postgres deste ambiente, que tem a mesma versão do servidor.
+copiar_banco_principal() {
+    local env_principal="$principal/.env" conexao host porta banco usuario senha
+    conexao="$(valor_no_env DB_CONNECTION "$env_principal")"
+    [ "$conexao" = "pgsql" ] || erro "O .env de $principal usa DB_CONNECTION=$conexao; o db-copiar só copia Postgres."
+    host="$(valor_no_env DB_HOST "$env_principal")"
+    porta="$(valor_no_env DB_PORT "$env_principal")"
+    banco="$(valor_no_env DB_DATABASE "$env_principal")"
+    usuario="$(valor_no_env DB_USERNAME "$env_principal")"
+    senha="$(valor_no_env DB_PASSWORD "$env_principal")"
+    case "$host" in "" | 127.0.0.1 | localhost) host=host.docker.internal ;; esac
+    echo "Copiando o banco $banco de $host:${porta:-5432} (o do checkout principal)..."
+    esvaziar_banco
+    dc exec -T -e PGPASSWORD="$senha" db pg_dump -h "$host" -p "${porta:-5432}" -U "$usuario" -d "$banco" \
+        --no-owner --no-privileges | psql_ambiente
+}
+
+migrar() {
+    echo "Migrations..."
+    dc exec -T web php artisan migrate --force
+}
+
+# Só na criação (banco sem nenhuma tabela): "banco_inicial" da configuração.
+preparar_banco() {
+    local inicial
+    if [ "$(tabelas_no_banco)" != "0" ]; then
+        migrar
+        return 0
+    fi
+    inicial="$(ler_config banco_inicial)"
+    case "${inicial:-seed}" in
+        seed)
+            echo "Banco novo: migrations + DatabaseSeeder..."
+            dc exec -T web php artisan migrate --seed --force
+            ;;
+        vazio) migrar ;;
+        copiar)
+            copiar_banco_principal
+            migrar
+            ;;
+        *)
+            [ -f "$inicial" ] || erro "banco_inicial: arquivo não encontrado: $inicial"
+            importar "$inicial"
+            migrar
+            ;;
+    esac
+}
+
+# --- Dependências que o git não traz ---------------------------------------------
+# Clone do APFS (cp -c): instantâneo e não ocupa espaço até um lado mudar.
+clonar() {
+    local origem="$principal/$1" destino="$raiz/$1"
+    [ -e "$origem" ] && [ ! -e "$destino" ] || return 0
+    # Só o que a branch ignora: o resto o git já traz.
+    git -C "$raiz" check-ignore -q "$1" || { [ -d "$origem" ] && git -C "$raiz" check-ignore -q "$1/"; } || return 0
+    mkdir -p "$(dirname "$destino")"
+    cp -cR "$origem" "$destino" 2>/dev/null || cp -R "$origem" "$destino"
+}
+
+trazer_dependencias() {
+    [ "$raiz" != "$principal" ] || return 0
+    echo "Copiando vendor, node_modules e front compilado de $principal..."
+    local d
+    for d in vendor node_modules public/build .claude/settings.local.json .vscode .idea; do
+        clonar "$d"
+    done
+}
+
+# npm ci quando o package-lock.json desta pasta não é o do node_modules copiado.
+# npm ci, nunca npm install: o install altera o package-lock.json.
+garantir_node_modules() {
+    local hash marca="$dir_ambiente/package-lock.sha"
+    hash="$(shasum "$raiz/package-lock.json" | cut -d' ' -f1)"
+    if [ -d "$raiz/node_modules" ] && { [ "$(cat "$marca" 2>/dev/null || true)" = "$hash" ] \
+        || cmp -s "$raiz/package-lock.json" "$principal/package-lock.json"; }; then
+        return 0
+    fi
+    (cd "$raiz" && npm ci)
+    mkdir -p "$dir_ambiente"
+    echo "$hash" > "$marca"
+}
+
+# O que fica fora do git em .ai-workbench (evidência, revisão, DEFERRED.md) só existe
+# nesta pasta: antes de apagá-la, vai para o checkout principal.
+salvar_ai_workbench() {
+    local lista
+    lista="$(mktemp "${TMPDIR:-/tmp}/ai-workbench.XXXXXX")"
+    {
+        git -C "$raiz" ls-files --others --ignored --exclude-standard -- .ai-workbench
+        git -C "$raiz" ls-files --others --exclude-standard -- .ai-workbench
+    } | sort -u > "$lista"
+    if [ -s "$lista" ]; then
+        echo "Levando para $principal o que estava fora do git em .ai-workbench:"
+        sed 's/^/  /' "$lista"
+        (cd "$raiz" && tar cf - -T "$lista") | (cd "$principal" && tar xf -)
+    fi
+    rm -f "$lista"
+}
+
+# --- Registro: AMBIENTE.md em cada pasta e AMBIENTES.md no checkout principal --------
+# Para achar porta, banco e senha depois de fechar o terminal e o navegador.
+# Reescritos a cada up, url e list com as portas que o Docker deu naquela hora.
+registrar() {
+    local agora branch
+    ler_portas "$AMBIENTE_NOME"
+    agora="$(date '+%d/%m/%Y %H:%M')"
+    branch="$(git -C "$raiz" rev-parse --abbrev-ref HEAD)"
+    cat > "$raiz/AMBIENTE.md" <<EOF
+# Ambiente \`$AMBIENTE_NOME\`
+
+Atualizado em $agora. As portas são as que o Docker escolheu para este ambiente
+e mudam se ele for recriado (\`down\` + \`up\`) ou se o Docker reiniciar. Na dúvida,
+\`fisio-app url\` lê de novo e reescreve este arquivo.
+Todos os ambientes: \`$principal/AMBIENTES.md\` ou \`fisio-app list\`.
+
+| | |
+|---|---|
+| Pasta | \`$raiz\` |
+| Branch | \`$branch\` |
+| Projeto no Docker | \`$AMBIENTE_NOME\` (containers \`$AMBIENTE_NOME-web-1\`, \`-db-1\`, \`-queue-1\`) |
+
+## Navegador
+
+| | |
+|---|---|
+| Abrir | $(url_de_abrir "$WEB_PORT") |
+| Clínica | http://localhost:$WEB_PORT/clinica/login |
+| Admin | http://localhost:$WEB_PORT/admin |
+| Logs | http://localhost:$WEB_PORT/log-viewer |
+
+Com o banco do seeder, os usuários são os do \`database/seeders/DatabaseSeeder.php\`.
+
+## Postgres (TablePlus, DBeaver)
+
+| | |
+|---|---|
+| Host | \`127.0.0.1\` |
+| Porta | \`$DB_PORT\` |
+| Usuário / senha | \`fisioweb\` / \`fisioweb\` |
+| Banco | \`fisioweb\` (o PHPUnit usa SQLite em memória, não toca nele) |
+| URL | \`postgresql://fisioweb:fisioweb@127.0.0.1:$DB_PORT/fisioweb\` |
+| Terminal | \`fisio-app psql\` |
+
+## De dentro dos containers
+
+PHP escuta na \`8000\`; Postgres é \`db:5432\`.
+EOF
+    registrar_todos
+}
+
+registrar_todos() {
+    # Locais: sem isso, as portas da última pasta da lista sobrescreviam as do ambiente atual.
+    local pasta n branch WEB_PORT DB_PORT
+    {
+        echo "# Ambientes Docker do fisioweb"
+        echo
+        echo "Atualizado em $(date '+%d/%m/%Y %H:%M'). Detalhes de cada um no \`AMBIENTE.md\` da pasta."
+        echo
+        echo "| Ambiente | Branch | Estado | Abrir | Postgres | Pasta |"
+        echo "|---|---|---|---|---|---|"
+        while IFS= read -r pasta; do
+            n="$(nome_do_ambiente "$pasta")"
+            branch="$(git -C "$pasta" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+            ler_portas "$n"
+            if [ -n "$WEB_PORT" ]; then
+                echo "| $n | \`$branch\` | no ar | $(url_de_abrir "$WEB_PORT") | \`127.0.0.1:$DB_PORT\` | \`$pasta\` |"
+            else
+                echo "| $n | \`$branch\` | parado | — | — | \`$pasta\` |"
+            fi
+        done < <(pastas_do_repositorio)
+        echo
+        echo "Postgres: usuário \`fisioweb\`, senha \`fisioweb\`, banco \`fisioweb\`."
+    } > "$principal/AMBIENTES.md"
+}
+
+# O que este script cria não pode aparecer como arquivo novo no git status, nem numa
+# branch antiga, que não ignora esses arquivos no .gitignore dela. O info/exclude é
+# do repositório, então vale para todas as worktrees.
+ignorar_no_git() {
+    local exclude padrao
+    exclude="$(git -C "$raiz" rev-parse --path-format=absolute --git-common-dir)/info/exclude"
+    mkdir -p "$(dirname "$exclude")"
+    touch "$exclude"
+    # Sem quebra de linha no fim, o próximo padrão grudaria na última linha.
+    if [ -s "$exclude" ] && [ -n "$(tail -c 1 "$exclude")" ]; then
+        echo >> "$exclude"
+    fi
+    for padrao in /CLAUDE.local.md /AMBIENTE.md /AMBIENTES.md /docker/fisio-app.json /.cursor/rules/ambiente-docker.mdc; do
+        grep -qxF "$padrao" "$exclude" || echo "$padrao" >> "$exclude"
+    done
+}
+
+# Instruções para o agente desta pasta, também em branches antigas, que ainda
+# não têm a seção de Docker no CLAUDE.md. Vão em dois lugares: o Claude Code lê
+# o CLAUDE.local.md e o agente do Cursor, as regras em .cursor/rules/.
+escrever_instrucoes() {
+    [ "$raiz" != "$principal" ] || return 0
+    local texto
+    texto="$(instrucoes_do_ambiente)"
+    printf '%s\n' "$texto" > "$raiz/CLAUDE.local.md"
+    mkdir -p "$raiz/.cursor/rules"
+    {
+        printf '%s\n' "---" "description: Ambiente Docker desta worktree e comandos para testar" "alwaysApply: true" "---" ""
+        printf '%s\n' "$texto"
+    } > "$raiz/.cursor/rules/ambiente-docker.mdc"
+}
+
+instrucoes_do_ambiente() {
+    cat <<EOF
+# Ambiente desta pasta: \`$AMBIENTE_NOME\` (Docker)
+
+Esta pasta é uma worktree só desta tarefa. Outras tarefas rodam ao lado, com
+outros agentes, cada uma com seus próprios containers e banco.
+
+PHP, Postgres e a fila rodam no Docker, pelo \`fisio-app\` (o mesmo
+\`bin/fisio-app\`, instalado em \`~/.local/bin\`). O \`.env\` desta pasta é gerado
+pelo \`fisio-app\` e aponta para o Postgres dela: \`php artisan\`, \`composer run test\`
+e \`bash bin/verificar.sh\` funcionam no Mac normalmente. Os comandos do CLAUDE.md viram:
+
+| No CLAUDE.md | Aqui |
+|---|---|
+| \`composer run dev\` | não rode: o PHP e a fila já estão no ar no Docker (\`fisio-app url\`) |
+| \`php artisan migrate\` | \`fisio-app migrate\` |
+| \`php artisan ...\` que precisa do servidor ou da fila | \`fisio-app artisan ...\` |
+| \`npm run build\` | \`fisio-app build\` (o navegador usa o front compilado) |
+| Postgres | \`fisio-app psql\` |
+
+## Ver no navegador
+
+\`fisio-app url\` mostra os endereços e o \`AMBIENTE.md\` desta pasta tem portas e
+banco. Nunca escreva uma porta à mão: o Docker escolhe e ela pode mudar quando o
+ambiente é recriado.
+
+O front é servido compilado. Depois de mudar código do front, compile com
+\`fisio-app build\`. Não rode \`fisio-app watch\` nem \`npm run dev\`: não terminam
+(o watch é para o usuário, no terminal dele).
+
+## Não mexa em outros ambientes
+
+- Use só \`fisio-app\` de dentro desta pasta. Nunca rode \`docker compose\` direto
+  nem pare, derrube ou apague containers de outro projeto.
+- Não rode \`fisio-app down\`, \`remove\`, \`reset\`, \`db-copiar\`, \`db-import\`, \`new\`
+  nem \`install\` sem o usuário pedir: apagam o banco desta pasta (e o \`remove\`, a pasta).
+- O que fica fora do git em \`.ai-workbench/\` (evidência, revisão, DEFERRED.md) vai
+  para o checkout principal ($principal) no \`fisio-app remove\`.
+EOF
+}
+
+# Mata o processo e todos os filhos dele (o build chama npm, que chama node).
+matar_arvore() {
+    local filho
+    for filho in $(pgrep -P "$1" 2>/dev/null); do
+        matar_arvore "$filho"
+    done
+    kill "$1" 2>/dev/null || true
+}
+
+# Abre a pasta da tarefa no editor escolhido:
+# - "nenhum" ou vazio: o terminal do sistema, só o shell, na pasta;
+# - "terminal": janela nova do Terminal na pasta, com o claude;
+# - "tmux": janela nova do tmux (ou sessão com o nome da tarefa) na pasta, com o claude;
+# - um comando do PATH (cursor, code...): "<comando> -n <pasta>";
+# - senão, no Mac, o aplicativo com esse nome ("Visual Studio Code", "PhpStorm").
+# O editor não herda as variáveis deste processo, senão o terminal dele não
+# repassaria ao fisio-app instalado.
+sem_variaveis() {
+    env -u FISIO_APP_DELEGADO -u AMBIENTE_NOME -u AMBIENTE_CODIGO -u AMBIENTE_ENV \
+        -u AMBIENTE_GIT -u AMBIENTE_UID -u AMBIENTE_GID "$@"
+}
+
+abrir_editor() {
+    local editor="$1" destino="$2" lancador sessao
+    case "$editor" in
+        "" | nenhum) abrir_terminal_na_pasta "$destino" ;;
+        terminal)
+            if [ "$(uname)" != "Darwin" ]; then
+                echo "Abra um terminal e rode: cd $destino && claude"
+                return 0
+            fi
+            # Um .command abre numa janela nova do Terminal sem pedir permissão de automação.
+            lancador="$(git -C "$destino" rev-parse --path-format=absolute --git-path fisio-app)/abrir-claude.command"
+            mkdir -p "$(dirname "$lancador")"
+            printf '#!/bin/bash\ncd %q && exec claude\n' "$destino" > "$lancador"
+            chmod +x "$lancador"
+            open -a Terminal "$lancador"
+            ;;
+        tmux)
+            if ! command -v tmux >/dev/null 2>&1; then
+                echo "tmux não está instalado (no Mac: brew install tmux). Abra à mão: cd $destino && claude"
+                return 0
+            fi
+            sessao="$(nome_do_ambiente "$destino")"
+            if [ -n "${TMUX:-}" ]; then
+                # Já dentro do tmux: uma janela nova na sessão atual.
+                sem_variaveis tmux new-window -n "$sessao" -c "$destino" claude
+                echo "Janela '$sessao' aberta no tmux, com o claude."
+                return 0
+            fi
+            # Fora do tmux: uma sessão com o nome da tarefa (o claude continua rodando se
+            # o terminal fechar; volte com "tmux attach -t $sessao").
+            if ! tmux has-session -t "=$sessao" 2>/dev/null; then
+                sem_variaveis tmux new-session -d -s "$sessao" -n "$sessao" -c "$destino" claude
+            fi
+            if [ "$(uname)" = "Darwin" ]; then
+                lancador="$(git -C "$destino" rev-parse --path-format=absolute --git-path fisio-app)/abrir-tmux.command"
+                mkdir -p "$(dirname "$lancador")"
+                printf '#!/bin/bash\nexec tmux attach -t %q\n' "=$sessao" > "$lancador"
+                chmod +x "$lancador"
+                open -a Terminal "$lancador"
+            else
+                echo "Sessão tmux '$sessao' com o claude: tmux attach -t $sessao"
+            fi
+            ;;
+        *)
+            if command -v "$editor" >/dev/null 2>&1; then
+                sem_variaveis "$editor" -n "$destino"
+            elif [ "$(uname)" = "Darwin" ] && open -Ra "$editor" 2>/dev/null; then
+                open -na "$editor" "$destino"
+            else
+                echo "Editor '$editor' não encontrado; abra a pasta à mão."
+            fi
+            ;;
+    esac
+}
+
+# Terminal do sistema na pasta, só o shell.
+abrir_terminal_na_pasta() {
+    local t
+    if [ "$(uname)" = "Darwin" ]; then
+        open -a Terminal "$1"
+        return 0
+    fi
+    for t in x-terminal-emulator gnome-terminal konsole xfce4-terminal xterm; do
+        command -v "$t" >/dev/null 2>&1 || continue
+        case "$t" in
+            gnome-terminal | xfce4-terminal) "$t" --working-directory="$1" >/dev/null 2>&1 & ;;
+            konsole) konsole --workdir "$1" >/dev/null 2>&1 & ;;
+            *) (cd "$1" && "$t" >/dev/null 2>&1 &) ;;
+        esac
+        return 0
+    done
+    echo "Nenhum terminal gráfico encontrado. Entre na pasta: cd $1"
+}
+
+# --- Comandos ------------------------------------------------------------------
+comando="${1:-}"
+[ $# -gt 0 ] && shift
+
+case "$comando" in
+    new)
+        tarefa="${1:?informe a tarefa, ex.: fisio-app new agenda-semanal ou fisio-app new bugfix/nome}"
+        # Com "/" o nome já é a branch (bugfix/teste); sem, vira feat/<nome>.
+        case "$tarefa" in
+            */*) branch="${2:-$tarefa}" ;;
+            *) branch="${2:-feat/$tarefa}" ;;
+        esac
+        git check-ref-format --branch "$branch" >/dev/null 2>&1 || erro "Nome de branch inválido: $branch"
+        slug="$(echo "$tarefa" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g')"
+        destino="$(dirname "$principal")/$(basename "$principal")-$slug"
+
+        if [ -e "$destino" ]; then
+            # Pasta já criada (por um new anterior ou à mão): só sobe e abre.
+            git -C "$principal" worktree list --porcelain | grep -qxF "worktree $destino" \
+                || erro "$destino já existe e não é uma worktree deste repositório. Use outro nome."
+            branch_atual="$(git -C "$destino" rev-parse --abbrev-ref HEAD)"
+            echo "A tarefa já existe: $destino (branch $branch_atual). Subindo o ambiente dela."
+            if [ "$branch_atual" != "$branch" ]; then
+                echo "Atenção: você pediu a branch $branch, mas a pasta está na $branch_atual."
+            fi
+        else
+            git -C "$principal" fetch -q origin main "$branch" 2>/dev/null || git -C "$principal" fetch -q origin main || true
+            if git -C "$principal" show-ref --verify --quiet "refs/heads/$branch"; then
+                git -C "$principal" worktree add "$destino" "$branch"
+            elif git -C "$principal" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+                git -C "$principal" worktree add --track -b "$branch" "$destino" "origin/$branch"
+            else
+                base="main"
+                git -C "$principal" show-ref --verify --quiet refs/remotes/origin/main && base="origin/main"
+                # --no-track: sem isso a branch nova seguiria a main, e um git push sem
+                # argumentos tentaria publicar nela.
+                git -C "$principal" worktree add --no-track -b "$branch" "$destino" "$base"
+            fi
+        fi
+
+        (cd "$destino" && "$script" up --com-front)
+
+        (cd "$destino" && "$script" open) || true
+        # Editor: FISIO_APP_EDITOR, depois "editor" da configuração; sem nenhum dos
+        # dois, o terminal do sistema na pasta.
+        editor="${FISIO_APP_EDITOR:-$(ler_config editor)}"
+        abrir_editor "$editor" "$destino"
+        echo
+        echo "Pronto para codar em $destino"
+        echo "Portas e banco: $destino/AMBIENTE.md"
+        ;;
+
+    up)
+        ignorar_no_git
+        trazer_dependencias
+        escrever_instrucoes
+        # Com o ambiente já de pé, mantém as portas dele no .env.
+        ler_portas "$AMBIENTE_NOME"
+        gerar_envs "$WEB_PORT" "$DB_PORT"
+
+        # No new, o front compila no Mac enquanto o banco sobe: o front copiado do
+        # checkout principal pode ser de outra branch.
+        front_pid=""
+        if [ "${1:-}" = "--com-front" ]; then
+            log_front="$dir_ambiente/front.log"
+            echo "Compilando o front desta branch em paralelo (log: $log_front)..."
+            ("$script" build > "$log_front" 2>&1) &
+            front_pid=$!
+            # Só se o build ainda for um job deste processo (o PID pode ter sido reaproveitado).
+            trap '[ -z "$front_pid" ] || ! jobs -p | grep -qx "$front_pid" || matar_arvore "$front_pid"' EXIT
+        fi
+
+        if ! docker image inspect "$imagem" >/dev/null 2>&1; then
+            echo "Construindo a imagem $imagem (só na primeira vez, uns 2 minutos)..."
+            dc build web
+        fi
+        dc up -d --wait db web
+        ler_portas "$AMBIENTE_NOME"
+        gerar_envs "$WEB_PORT" "$DB_PORT"
+        # Rápido quando o vendor já bate com o composer.lock desta branch.
+        dc exec -T web composer install --no-interaction --no-progress --quiet
+        preparar_banco
+        # Depois das migrations (a tabela jobs precisa existir) e reiniciado para ler a
+        # APP_URL nova: o worker só lê o .env quando começa.
+        dc up -d queue
+        dc restart queue >/dev/null
+
+        if [ -n "$front_pid" ]; then
+            trap - EXIT
+            if wait "$front_pid"; then
+                echo "Front compilado."
+            else
+                echo "O build do front falhou (o app sobe com o front copiado). Veja: $log_front" >&2
+            fi
+        fi
+
+        echo
+        echo "Ambiente '$AMBIENTE_NOME' pronto."
+        "$script" url
+        ;;
+    url)
+        precisa_estar_de_pe
+        registrar
+        echo "  Abrir:    $(url_de_abrir "$WEB_PORT")"
+        echo "  Clínica:  http://localhost:$WEB_PORT/clinica/login"
+        echo "  Admin:    http://localhost:$WEB_PORT/admin"
+        echo "  Postgres: 127.0.0.1:$DB_PORT (fisioweb / fisioweb, banco fisioweb)"
+        echo "  Tudo:     $raiz/AMBIENTE.md"
+        ;;
+    open)
+        precisa_estar_de_pe
+        abrir_no_navegador "$(url_de_abrir "$WEB_PORT")"
+        ;;
+    test)
+        dc exec -T web php artisan test "$@"
+        ;;
+    verificar)
+        (cd "$raiz" && bash bin/verificar.sh "$@")
+        ;;
+    exec)
+        [ $# -gt 0 ] || erro "Informe o comando, ex.: fisio-app exec php -v"
+        no_web "$@"
+        ;;
+    artisan)
+        no_web php artisan "$@"
+        ;;
+    migrate)
+        migrar
+        ;;
+    build)
+        garantir_node_modules
+        (cd "$raiz" && npm run build)
+        echo
+        echo "Front compilado em $raiz/public/build."
+        ;;
+    watch)
+        # Desenvolvimento: o Vite roda no Mac e escreve o public/hot desta pasta; o
+        # Laravel do container lê esse arquivo e o navegador carrega o front direto
+        # do Vite. Cada tarefa precisa de um Vite numa porta diferente.
+        precisa_estar_de_pe
+        garantir_node_modules
+        vite_porta=5173
+        while porta_em_uso "$vite_porta"; do
+            vite_porta=$((vite_porta + 1))
+        done
+        # O Vite apaga o public/hot quando sai; se ele morrer sem isso, o Laravel
+        # continuaria procurando um Vite que não existe e a tela ficaria em branco.
+        trap 'rm -f "$raiz/public/hot"' EXIT
+        echo "==> Vite ao vivo na porta $vite_porta: $(url_de_abrir "$WEB_PORT")"
+        echo "Ctrl+C para parar (o navegador volta para o front compilado)."
+        (cd "$raiz" && ./node_modules/.bin/vite --port "$vite_porta" --host 127.0.0.1 --strictPort)
+        ;;
+    psql)
+        # shellcheck disable=SC2046
+        dc exec $(tty_flag) db psql -U fisioweb fisioweb
+        ;;
+    db)
+        precisa_estar_de_pe
+        echo "postgresql://fisioweb:fisioweb@127.0.0.1:$DB_PORT/fisioweb"
+        ;;
+    db-copiar)
+        [ "$raiz" != "$principal" ] || erro "Esta é a pasta principal: não há de onde copiar."
+        copiar_banco_principal
+        migrar
+        ;;
+    db-import)
+        arquivo="${1:?informe o arquivo .sql ou .sql.gz}"
+        [ -f "$arquivo" ] || erro "Arquivo não encontrado: $arquivo"
+        importar "$arquivo"
+        migrar
+        ;;
+    reset)
+        dc exec -T web php artisan migrate:fresh --seed --force
+        ;;
+    status)
+        dc ps
+        ;;
+    logs)
+        dc logs -f --tail=100 "${1:-web}"
+        ;;
+    list)
+        registrar_todos
+        cat "$principal/AMBIENTES.md"
+        ;;
+    stop)
+        dc stop
+        gerar_envs
+        registrar_todos
+        ;;
+    down)
+        dc down -v --remove-orphans
+        gerar_envs
+        registrar_todos
+        ;;
+    remove)
+        alvo=""
+        forcar=""
+        for arg in "$@"; do
+            case "$arg" in
+                --force) forcar="--force" ;;
+                *) alvo="$arg" ;;
+            esac
+        done
+        # Com nome (o mesmo do new, o da pasta ou o caminho), apaga de qualquer lugar.
+        if [ -n "$alvo" ]; then
+            pasta=""
+            for candidata in "$alvo" "$(dirname "$principal")/$alvo" \
+                "$(dirname "$principal")/$(basename "$principal")-$(echo "$alvo" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g')"; do
+                [ -d "$candidata" ] || continue
+                candidata="$(cd "$candidata" && pwd -P)"
+                # Só a raiz de uma worktree conta: "remove resources" de dentro de uma
+                # tarefa não pode apagar a tarefa inteira.
+                if pastas_do_repositorio | grep -qxF "$candidata"; then
+                    pasta="$candidata"
+                    break
+                fi
+            done
+            [ -n "$pasta" ] || erro "Tarefa '$alvo' não encontrada. Veja as que existem: fisio-app list"
+            cd "$pasta"
+            exec "$script" remove $forcar
+        fi
+
+        [ "$raiz" != "$principal" ] || erro "Esta é a pasta principal; o remove só apaga worktrees. Diga qual: fisio-app remove <tarefa>"
+        # Os commits ficam na branch, que não é apagada; só o que não foi commitado se perde.
+        if [ -z "$forcar" ] && [ -n "$(git -C "$raiz" status --porcelain)" ]; then
+            echo "Há mudanças não commitadas em $raiz:" >&2
+            git -C "$raiz" status --short >&2
+            erro "Commite o que quer guardar, ou apague mesmo assim: fisio-app remove $(basename "$raiz") --force"
+        fi
+        dc down -v --remove-orphans
+        salvar_ai_workbench
+        git -C "$principal" worktree remove --force "$raiz"
+        registrar_todos
+        echo "Worktree $raiz removida. A branch continua no git."
+        ;;
+    install)
+        # Sempre o do checkout principal: rodado de uma worktree, o link quebraria
+        # quando ela fosse removida.
+        alvo_install="$principal/bin/fisio-app"
+        [ -x "$alvo_install" ] || erro "$alvo_install não existe: ponha o checkout principal numa branch que tenha o script."
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$alvo_install" "$HOME/.local/bin/fisio-app"
+        echo "Comando fisio-app -> $alvo_install"
+        ;;
+    *)
+        awk 'NR > 1 && !/^#/ { exit } NR > 1' "$script" | sed 's/^# \{0,1\}//'
+        exit 1
+        ;;
+esac

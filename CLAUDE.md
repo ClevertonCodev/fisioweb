@@ -25,6 +25,14 @@ npm run test          # Vitest (frontend)
 npm run test:watch
 ```
 
+## Várias tarefas ao mesmo tempo (Docker por worktree)
+
+`bin/fisio-app` dá a cada pasta (checkout ou `git worktree`) o próprio PHP,
+Postgres e fila no Docker, com portas sorteadas: `fisio-app new <tarefa>` cria a
+worktree `../fisioweb-<tarefa>` e sobe tudo; `fisio-app remove <tarefa>` apaga.
+Numa worktree, o `CLAUDE.local.md` da pasta diz como testar e ver no navegador.
+Detalhes em [`docker/README.md`](docker/README.md).
+
 ## Initial Setup
 
 ```bash

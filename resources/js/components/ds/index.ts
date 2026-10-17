@@ -170,6 +170,12 @@ export type {
     DrawerSize,
 } from './drawer/DsDrawer';
 
+export { DsFilterChips } from './filter-chips/DsFilterChips';
+export type {
+    FilterChip,
+    FilterChipsProps,
+} from './filter-chips/DsFilterChips';
+
 export { DsDropdown } from './dropdown/DsDropdown';
 export type {
     DropdownItem,

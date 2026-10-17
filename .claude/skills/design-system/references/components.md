@@ -35,6 +35,7 @@ Tudo é importado de `@/components/ds`. As variantes, estados e exemplos vivos f
 | Componente | Props principais |
 |---|---|
 | `DsBadge` | `variant` (`default`, `primary`, `info`, `success`, `warning`, `danger`, `new`), `dot`, `icon`, `children` |
+| `DsFilterChips` | `chips` (`key`, `label`, `value`; mostra "Rótulo: valor"), `onRemove(chip)`, `onClear` (com ele aparece "Limpar filtros"), `clearLabel`. Vai logo abaixo da linha de filtros; sem chips não renderiza nada. A lista tem `aria-label="Filtros aplicados"` e cada × é "Remover filtro <texto>". |
 | `DsAlert` | `variant` (`info`, `success`, `warning`, `danger`), `mode` (`compact`, `rich`), `title`, `time`, `actions`, `icon`, `dismissible`, `onDismiss`, `children`. Usa `role="alert"`. |
 | `DsBanner` | `title`, `description`, `variant` (`brand`, `info`, `warning`), `ctaLabel`, `onCta`, `actions`, `dismissible` (padrão `true`), `onDismiss`. Usa `role="status"`. |
 | `DsEmptyState` | `variant` (`empty`, `no-results`, `no-permission`, `error`), `title`, `description`, `icon`, `action`. Tem textos padrão por variante. |

@@ -36,4 +36,10 @@ class PatientPolicy
     {
         return $user->isSecretary();
     }
+
+    /** Mesma regra de quem inativa; admin passa pelo Gate::before. */
+    public function reactivate(ClinicUser $user, Patient $patient): bool
+    {
+        return $user->isSecretary() && (int) $user->clinic_id === (int) $patient->clinic_id;
+    }
 }

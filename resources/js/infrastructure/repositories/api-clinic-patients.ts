@@ -23,6 +23,7 @@ interface ApiPatientDto {
     status?: string;
     diagnosis?: string | null;
     photo_url?: string;
+    is_active?: boolean;
     clinic_user?: ApiClinicUserDto;
     cpf?: string;
     is_foreign?: boolean;
@@ -66,6 +67,7 @@ function toEntity(raw: ApiPatientDto): Patient {
         status: (raw.status as PatientStatus) ?? 'em_tratamento',
         diagnosis: raw.diagnosis ?? '',
         photoUrl: raw.photo_url ?? undefined,
+        isActive: raw.is_active ?? true,
     };
 }
 
@@ -120,7 +122,6 @@ function toApiUpdatePayload(dto: PatientUpdateDto): Record<string, unknown> {
         insurance: dto.insurance,
         insurance_number: dto.insuranceNumber,
         referral_source: dto.referralSource,
-        is_active: dto.isActive,
     };
 }
 
@@ -150,7 +151,6 @@ function toApiPayload(dto: PatientWriteDto): Record<string, unknown> {
         insurance: dto.insurance,
         insurance_number: dto.insuranceNumber,
         referral_source: dto.referralSource,
-        is_active: dto.isActive,
     };
 }
 
@@ -213,9 +213,18 @@ export const apiClinicPatientsRepository: PatientsRepository = {
     },
 
     async bulkInactivate(ids: string[]) {
-        await apiClient.post('/clinic/patients/bulk-inactivate', {
-            ids: ids.map(Number),
-        });
+        const res = await apiClient.post<{ count?: number }>(
+            '/clinic/patients/bulk-inactivate',
+            { ids: ids.map(Number) },
+        );
+        return res.data.count ?? 0;
+    },
+
+    async reactivate(id: string) {
+        const res = await apiClient.post<{ data: ApiPatientDto }>(
+            `/clinic/patients/${id}/reactivate`,
+        );
+        return toEntity(res.data.data);
     },
 
     async uploadPhoto(id: string, file: File) {

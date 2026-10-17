@@ -16,6 +16,7 @@ export interface Patient {
     status: PatientStatus;
     diagnosis: string;
     photoUrl?: string;
+    isActive: boolean;
 }
 
 /** Detalhe completo do paciente — usado no formulário de edição */

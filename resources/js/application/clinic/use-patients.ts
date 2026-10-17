@@ -72,6 +72,16 @@ export function useBulkInactivatePatients() {
     });
 }
 
+export function useReactivatePatient() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => apiClinicPatientsRepository.reactivate(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['patients'] });
+        },
+    });
+}
+
 export function useUploadPatientPhoto() {
     const queryClient = useQueryClient();
     return useMutation({

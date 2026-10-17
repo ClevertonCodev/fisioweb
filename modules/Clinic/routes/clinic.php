@@ -24,6 +24,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::post('bulk-inactivate', [PatientController::class, 'bulkInactivate'])->name('bulk-inactivate');
+        Route::post('{id}/reactivate', [PatientController::class, 'reactivate'])->name('reactivate');
         Route::get('{id}', [PatientController::class, 'show'])->name('show');
         Route::post('/', [PatientController::class, 'store'])->name('store');
         Route::put('{id}', [PatientController::class, 'update'])->name('update');

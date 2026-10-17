@@ -69,4 +69,9 @@ class PatientService implements PatientServiceInterface
     {
         return $this->repository->bulkInactivate($clinicId, $ids);
     }
+
+    public function reactivate(int $clinicId, int $id): ?Patient
+    {
+        return $this->repository->reactivate($clinicId, $id);
+    }
 }

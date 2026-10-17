@@ -1,12 +1,14 @@
 import { CalendarCheck, Plus, Star } from 'lucide-react';
+import { useState } from 'react';
 
-import type { AlertVariant, BadgeVariant } from '@/components/ds';
+import type { AlertVariant, BadgeVariant, FilterChip } from '@/components/ds';
 import {
     DsAlert,
     DsBadge,
     DsBanner,
     DsButton,
     DsEmptyState,
+    DsFilterChips,
 } from '@/components/ds';
 
 import { CatalogRow, CatalogSection } from './CatalogSection';
@@ -22,7 +24,16 @@ const BADGES: BadgeVariant[] = [
 ];
 const ALERTS: AlertVariant[] = ['info', 'success', 'warning', 'danger'];
 
+// Dados fictícios, só para o catálogo.
+const FILTROS: FilterChip[] = [
+    { key: 'status', label: 'Status', value: 'Em tratamento' },
+    { key: 'situacao', label: 'Situação', value: 'Ativos' },
+    { key: 'profissional', label: 'Profissional', value: 'Dra. Ana Paula' },
+];
+
 export function FeedbackSection() {
+    const [filtros, setFiltros] = useState(FILTROS);
+
     return (
         <CatalogSection
             id="feedback"
@@ -41,6 +52,25 @@ export function FeedbackSection() {
                 <DsBadge variant="primary" icon={<Star />}>
                     Favorito
                 </DsBadge>
+            </CatalogRow>
+            <CatalogRow label="Filtros aplicados">
+                <DsFilterChips
+                    chips={filtros}
+                    onRemove={(chip) =>
+                        setFiltros((prev) =>
+                            prev.filter((f) => f.key !== chip.key),
+                        )
+                    }
+                    onClear={() => setFiltros([])}
+                />
+                {filtros.length === 0 && (
+                    <DsButton
+                        size="sm"
+                        variant="secondary"
+                        label="Restaurar exemplo"
+                        onClick={() => setFiltros(FILTROS)}
+                    />
+                )}
             </CatalogRow>
             <CatalogRow label="Alert (compact)">
                 <div className="flex w-full flex-col gap-3">

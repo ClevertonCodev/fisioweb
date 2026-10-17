@@ -1,8 +1,10 @@
 /**
  * PROTÓTIPO (descartável): aba Histórico de Programas no DS v2, na rota real
  * /clinica/programas/historico. A casca (cabeçalho, abas, busca, filtros,
- * chips e paginação) é a da lista de pacientes v2; só a lista muda:
- * ?variant=O (tela atual v1), A (cartões), B (tabela), C (linha do tempo).
+ * chips e paginação) é a da lista de pacientes v2, com cartões iguais aos
+ * de pacientes. ?variant=O mostra a tela atual (v1), A esta (escolhida).
+ * As variantes descartadas (B tabela, C linha do tempo) estão no commit
+ * que criou o protótipo.
  *
  * Os dados são reais (até 200 programas); busca, filtros e paginação são
  * locais. Na tela de verdade, viram parâmetros da API.
@@ -40,8 +42,6 @@ import {
     type HistoryFilters,
 } from './shared';
 import { VariantA } from './VariantA';
-import { VariantB } from './VariantB';
-import { VariantC } from './VariantC';
 import { HISTORY_VARIANTS } from './variants';
 
 const NEW_PROGRAM_PATH = '/clinica/programas/novo';
@@ -66,21 +66,16 @@ function totalLabel(total: number, filtered: boolean): string {
     return `${total} ${noun} no histórico`;
 }
 
-function Skeletons({ variant }: { variant: string }) {
-    const card = variant === 'A';
+function Skeletons() {
     return (
         <div
             aria-label="Carregando programas"
-            className={
-                card
-                    ? 'grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4'
-                    : 'flex flex-col gap-3'
-            }
+            className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4"
         >
-            {Array.from({ length: card ? 8 : 6 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
                 <div
                     key={i}
-                    className={`${card ? 'h-64' : 'h-20'} animate-pulse rounded-ds-xl bg-ds-surface-subtle`}
+                    className="h-64 animate-pulse rounded-ds-xl bg-ds-surface-subtle"
                 />
             ))}
         </div>
@@ -159,8 +154,6 @@ export default function ProgramHistoryPrototype({
     };
 
     const newProgram = () => navigate(NEW_PROGRAM_PATH);
-
-    const List = { A: VariantA, B: VariantB, C: VariantC }[variant] ?? VariantA;
 
     return (
         <ClinicLayout>
@@ -296,7 +289,7 @@ export default function ProgramHistoryPrototype({
                         </section>
 
                         {isLoading ? (
-                            <Skeletons variant={variant} />
+                            <Skeletons />
                         ) : isError ? (
                             <DsEmptyState
                                 variant="error"
@@ -332,7 +325,7 @@ export default function ProgramHistoryPrototype({
                                 }
                             />
                         ) : (
-                            <List programs={pageItems} onAction={run} />
+                            <VariantA programs={pageItems} onAction={run} />
                         )}
 
                         <DsPagination

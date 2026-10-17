@@ -1,7 +1,8 @@
-import { Activity, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,9 +65,7 @@ export default function ClinicLoginPage() {
             <div className="relative z-10 w-full max-w-md">
                 {/* Logo */}
                 <div className="mb-8 flex flex-col items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-sm shadow-primary/10">
-                        <Activity className="h-7 w-7 text-primary" />
-                    </div>
+                    <AppLogo className="h-14 w-14" />
                     <span className="text-2xl font-bold tracking-tight text-foreground">
                         FisioClinic
                     </span>

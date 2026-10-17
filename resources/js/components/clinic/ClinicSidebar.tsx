@@ -1,5 +1,4 @@
 import {
-    Activity,
     Calendar,
     ChevronLeft,
     ChevronRight,
@@ -15,6 +14,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
+import { AppLogo } from '@/components/AppLogo';
 import { ClinicUserDropdown } from '@/components/clinic/ClinicUserDropdown';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -119,9 +119,7 @@ function SidebarContent({
         <>
             <div className="flex items-center justify-between border-b border-sidebar-border p-4">
                 <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-                        <Activity className="h-5 w-5 text-sidebar-primary-foreground" />
-                    </div>
+                    <AppLogo tone="inverse" className="h-8 w-8" />
                     {!collapsed && (
                         <span className="font-semibold text-sidebar-foreground">
                             FisioElite
@@ -190,9 +188,7 @@ export function ClinicSidebar() {
                         </SheetContent>
                     </Sheet>
                     <div className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-sidebar-primary">
-                            <Activity className="h-4 w-4 text-sidebar-primary-foreground" />
-                        </div>
+                        <AppLogo tone="inverse" className="h-7 w-7" />
                         <span className="text-sm font-semibold text-sidebar-foreground">
                             FisioElite
                         </span>

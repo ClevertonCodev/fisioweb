@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Activity, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import {
     clinicRegisterSchema,
     type ClinicRegisterValues,
 } from '@/application/clinic/register-schema';
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
@@ -78,9 +79,7 @@ export default function ClinicRegisterPage() {
             <div className="relative z-10 mx-auto flex min-h-full w-full max-w-lg flex-col justify-center px-4 py-12">
                 {/* Logo */}
                 <div className="mb-8 flex flex-col items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-sm shadow-primary/10">
-                        <Activity className="h-7 w-7 text-primary" />
-                    </div>
+                    <AppLogo className="h-14 w-14" />
                     <span className="text-2xl font-bold tracking-tight text-foreground">
                         FisioClinic
                     </span>

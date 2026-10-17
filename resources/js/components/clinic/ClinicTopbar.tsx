@@ -1,5 +1,4 @@
 import {
-    Activity,
     Calendar,
     DollarSign,
     Dumbbell,
@@ -15,6 +14,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { can } from '@/application/clinic/permissions';
+import { AppLogo } from '@/components/AppLogo';
 import {
     DsButton,
     DsDrawer,
@@ -126,9 +126,7 @@ export function ClinicTopbar() {
                         className="flex shrink-0 items-center gap-2.5"
                         aria-label="FisioElite — início"
                     >
-                        <div className="flex size-10 items-center justify-center rounded-ds-xl bg-ds-primary-80 text-ds-white">
-                            <Activity className="size-5" />
-                        </div>
+                        <AppLogo className="size-10 ds-dark:text-ds-white" />
                         <div className="hidden leading-tight lg:block">
                             <p className="text-ds-body-sm font-semibold text-ds-primary-80 ds-dark:text-ds-white">
                                 FisioElite

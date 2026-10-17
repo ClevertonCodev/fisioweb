@@ -1,8 +1,9 @@
-import { Activity, Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import loginBg from '@/assets/login-bg.jpg';
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resetPassword } from '@/infrastructure/api/auth.service';
@@ -77,9 +78,7 @@ export default function ClinicResetPasswordPage() {
             {/* Left side - Form */}
             <div className="flex w-full flex-col items-center justify-center bg-card px-8 py-12 md:w-[440px] lg:w-[480px]">
                 <div className="mb-8 flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10">
-                        <Activity className="h-5 w-5 text-primary" />
-                    </div>
+                    <AppLogo className="h-10 w-10" />
                     <span className="text-xl font-bold tracking-tight text-foreground">
                         FisioClinic
                     </span>

@@ -10,6 +10,13 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import ProgramHistoryPrototype from './program-history-prototype/ProgramHistoryPrototype';
+import { HISTORY_VARIANTS } from './program-history-prototype/variants';
 
 function deriveActiveTab(pathname: string): string {
     if (pathname.includes('/exercicios')) return 'exercicios';
@@ -22,6 +29,9 @@ export default function ProgramListPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const activeTab = deriveActiveTab(location.pathname);
+    // PROTÓTIPO: Histórico v2 por ?variant= (O = esta tela v1).
+    const historyVariant = usePrototypeVariant(HISTORY_VARIANTS, 'A');
+    const historyPrototype = import.meta.env.DEV && activeTab === 'historico';
 
     const handleTabChange = (value: string) => {
         switch (value) {
@@ -45,8 +55,18 @@ export default function ProgramListPage() {
         }
     };
 
+    if (historyPrototype && historyVariant !== 'O') {
+        return <ProgramHistoryPrototype variant={historyVariant} />;
+    }
+
     return (
         <ClinicLayout>
+            {historyPrototype && (
+                <PrototypeSwitcher
+                    variants={HISTORY_VARIANTS}
+                    current={historyVariant}
+                />
+            )}
             <div className="flex h-full flex-col">
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">

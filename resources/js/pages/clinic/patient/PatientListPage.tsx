@@ -47,6 +47,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Patient, PatientStatus } from '@/domain/clinic/patient';
+import PatientListPrototype from '@/pages/clinic/patient/patient-list-prototype/PatientListPrototype';
 
 const COLUMNS: DataTableColumn[] = [
     { title: '', key: 'check', className: 'w-10' },
@@ -257,7 +258,7 @@ function PatientActions({
     );
 }
 
-export default function PatientListPage() {
+export function PatientListOriginal() {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -892,5 +893,13 @@ export default function PatientListPage() {
                 </div>
             </div>
         </ClinicLayout>
+    );
+}
+
+export default function PatientListPage() {
+    return import.meta.env.DEV ? (
+        <PatientListPrototype />
+    ) : (
+        <PatientListOriginal />
     );
 }

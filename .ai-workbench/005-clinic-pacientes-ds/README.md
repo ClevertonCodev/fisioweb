@@ -11,6 +11,13 @@ o backend como único caminho para ativar ou inativar paciente.
   (controller, Policy, FormRequests, rota); SPA `pages/clinic/patient`,
   `domain/clinic`, `application/clinic`, `infrastructure/repositories`
 
+## Decisões (ADRs)
+
+- [014 · Situação do paciente só por endpoints próprios, com Policy](../../docs/adr/014-situacao-do-paciente-so-por-endpoints-proprios.md)
+- [015 · Busca, filtros e paginação da lista na URL](../../docs/adr/015-estado-da-lista-de-pacientes-na-url.md)
+- [016 · A lista v2 (cartões C2) substitui a v1 de vez](../../docs/adr/016-lista-de-pacientes-v2-substitui-a-v1.md)
+- [017 · Ação sem permissão aparece desabilitada, com o motivo](../../docs/adr/017-acao-sem-permissao-visivel-e-desabilitada.md)
+
 ## Tarefas
 
 | Tarefa | Status | Issue | PR |

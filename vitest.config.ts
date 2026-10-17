@@ -5,8 +5,8 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         setupFiles: ['./resources/js/test/setup.ts'],
-        // .claude: scripts das skills, testados com node:test e não com Vitest.
-        exclude: [...configDefaults.exclude, '.claude/**'],
+        // Skills: scripts testados com node:test, não com Vitest.
+        exclude: [...configDefaults.exclude, '.claude/**', '.cursor/skills/**'],
     },
     resolve: {
         alias: {

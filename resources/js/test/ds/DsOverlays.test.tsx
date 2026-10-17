@@ -203,6 +203,18 @@ describe('DsDrawer', () => {
         expect(dialog).toHaveAttribute('data-size', 'md');
     });
 
+    it('placement left marca o drawer à esquerda', () => {
+        render(
+            <DsDrawer open title="Menu" placement="left" size="sm">
+                Corpo
+            </DsDrawer>,
+        );
+
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveAttribute('data-placement', 'left');
+        expect(dialog).toHaveClass('left-0');
+    });
+
     it('placement, size, meta, footer e surfaceClass', () => {
         render(
             <DsDrawer

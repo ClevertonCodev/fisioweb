@@ -47,6 +47,23 @@ describe('DsInput', () => {
         expect(screen.getByLabelText('E-mail')).toBeInTheDocument();
     });
 
+    it('required põe o asterisco vermelho no rótulo e marca o input', () => {
+        render(<DsInput label="Nome" required />);
+
+        // O asterisco é aria-hidden: o nome acessível continua "Nome".
+        const input = screen.getByRole('textbox', { name: 'Nome' });
+        expect(input).toBeRequired();
+        const star = screen.getByText('*');
+        expect(star).toHaveAttribute('aria-hidden', 'true');
+        expect(star).toHaveClass('text-ds-status-danger-content');
+    });
+
+    it('sem required, o rótulo não tem asterisco', () => {
+        render(<DsInput label="Apelido" />);
+
+        expect(screen.queryByText('*')).toBeNull();
+    });
+
     it('não renderiza label quando a prop não é passada', () => {
         const { container } = render(<DsInput />);
 

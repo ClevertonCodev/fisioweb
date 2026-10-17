@@ -121,6 +121,17 @@ describe('DsFieldSelect', () => {
         delete (Element.prototype as Partial<Element>).scrollIntoView;
     });
 
+    it('required põe o asterisco vermelho no rótulo e aria-required no gatilho', () => {
+        render(<DsFieldSelect options={options} label="Categoria" required />);
+
+        expect(
+            screen.getByRole('button', { name: /Categoria/ }),
+        ).toHaveAttribute('aria-required', 'true');
+        expect(screen.getByText('*')).toHaveClass(
+            'text-ds-status-danger-content',
+        );
+    });
+
     it('opção disabled não é escolhida', async () => {
         const onValueChange = vi.fn();
         const user = userEvent.setup();

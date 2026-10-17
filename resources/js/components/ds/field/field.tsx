@@ -30,10 +30,13 @@ export function DsFieldControl({
 export function DsFieldLabel({
     htmlFor,
     disabled,
+    required,
     children,
 }: {
     htmlFor: string;
     disabled?: boolean;
+    /** Asterisco vermelho, como no DsOutlinedField. */
+    required?: boolean;
     children: ReactNode;
 }) {
     return (
@@ -45,6 +48,17 @@ export function DsFieldLabel({
             )}
         >
             {children}
+            {required && (
+                <span
+                    aria-hidden="true"
+                    className={dsCn(
+                        'ml-0.5 text-ds-status-danger-content',
+                        disabled && 'text-ds-content-subtle',
+                    )}
+                >
+                    *
+                </span>
+            )}
         </label>
     );
 }

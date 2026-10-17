@@ -69,6 +69,7 @@ export function FieldSelectCore({
     state = 'default',
     size = 'md',
     disabled = false,
+    required = false,
     hideApplyButton = false,
     footerLinkLabel,
     multiDisplay = 'labels',
@@ -561,7 +562,11 @@ export function FieldSelectCore({
         <DsFieldControl state={state} className={className}>
             {label && (
                 <span id={labelId} className="contents">
-                    <DsFieldLabel htmlFor={uid} disabled={disabled}>
+                    <DsFieldLabel
+                        htmlFor={uid}
+                        disabled={disabled}
+                        required={required}
+                    >
                         {label}
                     </DsFieldLabel>
                 </span>
@@ -604,6 +609,7 @@ export function FieldSelectCore({
                                     valueId,
                                 )}
                                 aria-describedby={helper ? helperId : undefined}
+                                aria-required={required || undefined}
                                 aria-invalid={state === 'error' || undefined}
                                 onFocus={markFocused}
                                 onBlur={handleTriggerBlur}

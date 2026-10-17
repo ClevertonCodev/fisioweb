@@ -11,7 +11,7 @@ interface ClinicLayoutProps {
 export function ClinicLayout({ children }: ClinicLayoutProps) {
     return (
         <TooltipProvider>
-            <div className="flex h-screen w-full flex-col bg-background">
+            <div className="flex h-screen w-full flex-col bg-background font-ds">
                 <ClinicTopbar />
                 <main className="min-h-0 flex-1 overflow-auto">{children}</main>
             </div>

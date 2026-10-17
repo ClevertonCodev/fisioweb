@@ -42,12 +42,12 @@ export function DsKpi({
     label,
     value,
     delta,
-    trend = 'neutral',
+    trend,
     icon,
     loading = false,
     className,
 }: KpiProps) {
-    const trendInfo = TREND[trend];
+    const trendInfo = trend ? TREND[trend] : undefined;
 
     return (
         <div
@@ -89,13 +89,17 @@ export function DsKpi({
                     data-trend={trend}
                     className={dsCn(
                         'inline-flex items-center gap-1 text-[0.8125rem] font-medium [&_svg]:size-3.5',
-                        trendInfo.className,
+                        trendInfo?.className ?? 'text-ds-content-muted',
                     )}
                 >
-                    <span aria-hidden="true" className="contents">
-                        {trendInfo.icon}
-                    </span>
-                    <span className="sr-only">{trendInfo.text}</span>
+                    {trendInfo ? (
+                        <>
+                            <span aria-hidden="true" className="contents">
+                                {trendInfo.icon}
+                            </span>
+                            <span className="sr-only">{trendInfo.text}</span>
+                        </>
+                    ) : null}
                     <span>{delta}</span>
                 </div>
             )}

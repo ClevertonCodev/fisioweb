@@ -15,21 +15,21 @@ describe('parsePatientListFilters: busca, página e itens por página', () => {
     it('URL vazia dá os filtros padrão', () => {
         expect(parse('')).toEqual(DEFAULT_PATIENT_LIST_FILTERS);
         expect(DEFAULT_PATIENT_LIST_FILTERS.page).toBe(1);
-        expect(DEFAULT_PATIENT_LIST_FILTERS.perPage).toBe(15);
+        expect(DEFAULT_PATIENT_LIST_FILTERS.perPage).toBe(16);
     });
 
     it('lê q, page e per_page', () => {
-        expect(parse('q=maria&page=2&per_page=30')).toMatchObject({
+        expect(parse('q=maria&page=2&per_page=32')).toMatchObject({
             search: 'maria',
             page: 2,
-            perPage: 30,
+            perPage: 32,
         });
     });
 
-    it.each(['200', '10', 'abc', '0', '-15', '30.5'])(
-        'per_page=%s fora de 15/30/50 cai para 15',
+    it.each(['200', '10', '15', '30', '48', 'abc', '0', '-16', '32.5'])(
+        'per_page=%s fora de 16/32/50 cai para 16',
         (value) => {
-            expect(parse(`per_page=${value}`).perPage).toBe(15);
+            expect(parse(`per_page=${value}`).perPage).toBe(16);
         },
     );
 
@@ -59,11 +59,11 @@ describe('serializePatientListFilters', () => {
             ...DEFAULT_PATIENT_LIST_FILTERS,
             search: 'maria',
             page: 2,
-            perPage: 30,
+            perPage: 32,
         });
         expect(params.get('q')).toBe('maria');
         expect(params.get('page')).toBe('2');
-        expect(params.get('per_page')).toBe('30');
+        expect(params.get('per_page')).toBe('32');
     });
 
     it('ida e volta pela URL devolve os mesmos filtros', () => {
@@ -182,7 +182,7 @@ describe('toPatientListParams', () => {
             }),
         ).toEqual({
             page: 1,
-            perPage: 15,
+            perPage: 16,
             search: 'ana',
             isActive: false,
             statuses: ['alta'],
@@ -195,7 +195,7 @@ describe('toPatientListParams', () => {
     it('ativos e inativos e listas vazias não vão para a API', () => {
         expect(toPatientListParams(DEFAULT_PATIENT_LIST_FILTERS)).toEqual({
             page: 1,
-            perPage: 15,
+            perPage: 16,
             search: undefined,
             isActive: undefined,
             statuses: undefined,

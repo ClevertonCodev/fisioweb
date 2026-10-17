@@ -36,7 +36,7 @@ describe('patientListChips', () => {
         expect(
             chipTexts(
                 filters({
-                    perPage: 30,
+                    perPage: 32,
                     professionalIds: ['3'],
                     statuses: ['alta', 'em_tratamento'],
                     situation: 'inativos',
@@ -50,7 +50,7 @@ describe('patientListChips', () => {
             'Status: Alta',
             'Status: Em tratamento',
             'Profissional: Ana',
-            'Itens por página: 30',
+            'Itens por página: 32',
         ]);
     });
 
@@ -79,7 +79,7 @@ describe('patientListChips', () => {
 
 describe('removePatientListChip', () => {
     const all = filters({
-        perPage: 30,
+        perPage: 32,
         professionalIds: ['3', '9'],
         statuses: ['alta', 'obito'],
         situation: 'ativos',
@@ -115,8 +115,8 @@ describe('removePatientListChip', () => {
         expect(remove('situation')).toEqual({ ...all, situation: 'todos' });
     });
 
-    it('remover itens por página volta para 15', () => {
-        expect(remove('perPage')).toEqual({ ...all, perPage: 15 });
+    it('remover itens por página volta para 16', () => {
+        expect(remove('perPage')).toEqual({ ...all, perPage: 16 });
     });
 });
 

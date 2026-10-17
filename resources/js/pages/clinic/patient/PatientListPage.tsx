@@ -73,7 +73,7 @@ function CardSkeletons() {
     return (
         <div
             aria-label="Carregando pacientes"
-            className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4"
+            className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4"
         >
             {Array.from({ length: 8 }).map((_, i) => (
                 <div
@@ -338,7 +338,7 @@ export default function PatientListPage() {
                         ) : (
                             <ul
                                 aria-label="Pacientes"
-                                className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4"
+                                className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4"
                             >
                                 {patients.map((p) => (
                                     <li key={p.id}>

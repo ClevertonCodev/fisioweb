@@ -22,6 +22,7 @@ import type {
 } from '@/domain/clinic';
 import { isTerminalAppointmentStatus, STATUS_COLORS } from '@/domain/clinic';
 import AgendaPrototype from '@/pages/clinic/agenda-prototype/AgendaPrototype';
+import { AppointmentModalPrototype } from '@/pages/clinic/agenda-prototype/modal/AppointmentModalPrototype';
 import { VariantOriginal } from '@/pages/clinic/agenda-prototype/VariantOriginal';
 
 /** Referência estável para evitar novo array a cada render (loop de re-render). */
@@ -284,6 +285,22 @@ export default function AgendaPage() {
         onNewConsulta: handleNewConsulta,
     };
 
+    const modalProps = {
+        open: modalOpen,
+        onClose: () => setModalOpen(false),
+        appointment: selectedAppointment,
+        initialDate: selectedDate,
+        initialPatientId: patientIdFilter,
+        patients: agendaPatients,
+        clinicUsers,
+        onSubmit: handleSubmit,
+        isSubmitting: createMutation.isPending || updateMutation.isPending,
+        lockedClinicUserId,
+        onStatusChange: handleStatusChange,
+        onCancelAppointment: handleCancelAppointment,
+        isMutatingStatus: statusMutation.isPending || cancelMutation.isPending,
+    };
+
     return (
         <ClinicLayout>
             {import.meta.env.DEV ? (
@@ -292,25 +309,14 @@ export default function AgendaPage() {
                 <VariantOriginal {...viewProps} />
             )}
 
-            <AppointmentModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                appointment={selectedAppointment}
-                initialDate={selectedDate}
-                initialPatientId={patientIdFilter}
-                patients={agendaPatients}
-                clinicUsers={clinicUsers}
-                onSubmit={handleSubmit}
-                isSubmitting={
-                    createMutation.isPending || updateMutation.isPending
-                }
-                lockedClinicUserId={lockedClinicUserId}
-                onStatusChange={handleStatusChange}
-                onCancelAppointment={handleCancelAppointment}
-                isMutatingStatus={
-                    statusMutation.isPending || cancelMutation.isPending
-                }
-            />
+            {import.meta.env.DEV ? (
+                <AppointmentModalPrototype
+                    {...modalProps}
+                    allAppointments={appointments}
+                />
+            ) : (
+                <AppointmentModal {...modalProps} />
+            )}
         </ClinicLayout>
     );
 }

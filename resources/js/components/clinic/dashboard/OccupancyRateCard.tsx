@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useClinicUsers } from '@/application/clinic/use-appointments';
 import { useOccupancyRate } from '@/application/clinic/use-dashboard';
@@ -25,16 +25,13 @@ export function OccupancyRateCard({
     const { user } = useAuth();
     const [granularity, setGranularity] =
         useState<OccupancyGranularity>('daily');
-    const [selectedUserId, setSelectedUserId] = useState<string | undefined>(
-        canChooseProfessional && user ? String(user.id) : undefined,
-    );
+    const [chosenUserId, setChosenUserId] = useState<string | undefined>();
     const { data: professionals = [] } = useClinicUsers();
 
-    useEffect(() => {
-        if (!selectedUserId && canChooseProfessional && user) {
-            setSelectedUserId(String(user.id));
-        }
-    }, [canChooseProfessional, selectedUserId, user]);
+    // Derivado, não copiado: a sessão pode hidratar depois do primeiro render.
+    const selectedUserId =
+        chosenUserId ??
+        (canChooseProfessional && user ? String(user.id) : undefined);
 
     const occupancy = useOccupancyRate(granularity, selectedUserId);
     const occupancyPercent = occupancy.data
@@ -71,7 +68,7 @@ export function OccupancyRateCard({
                         value={selectedUserId}
                         options={options}
                         onValueChange={(value) =>
-                            setSelectedUserId(
+                            setChosenUserId(
                                 Array.isArray(value) ? value[0] : value,
                             )
                         }
@@ -111,7 +108,8 @@ function OccupancyColumns({ buckets }: { buckets: OccupancyBucket[] }) {
         <div className="flex h-48 items-end gap-1 pt-4 sm:gap-2">
             {buckets.map((bucket) => {
                 const percent = Math.round(bucket.rate * 100);
-                const barHeight = percent === 0 ? 0 : Math.max(percent, 8);
+                const barHeight =
+                    percent === 0 ? 0 : Math.min(Math.max(percent, 8), 100);
                 const tooltip = `${bucket.label} · ${percent}% ocupado`;
 
                 return (

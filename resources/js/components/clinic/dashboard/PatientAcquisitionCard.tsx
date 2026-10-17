@@ -1,5 +1,5 @@
 import { usePatientAcquisition } from '@/application/clinic/use-dashboard';
-import { DsCard, DsEmptyState, dsCn } from '@/components/ds';
+import { DsCard, DsEmptyState } from '@/components/ds';
 import type { DashboardScope } from '@/domain/clinic/dashboard';
 
 import { sourceLabel } from './dashboard-format';
@@ -54,11 +54,7 @@ export function PatientAcquisitionCard({ scope }: { scope: DashboardScope }) {
                                         <dt className="text-ds-caption text-ds-content-muted">
                                             {year}
                                         </dt>
-                                        <dd
-                                            className={dsCn(
-                                                'm-0 text-ds-body-xs font-medium text-ds-content-primary',
-                                            )}
-                                        >
+                                        <dd className="m-0 text-ds-body-xs font-medium text-ds-content-primary">
                                             {item.perYear[String(year)] ?? 0}
                                         </dd>
                                     </div>

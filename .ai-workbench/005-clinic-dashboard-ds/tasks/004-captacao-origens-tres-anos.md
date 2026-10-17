@@ -17,12 +17,12 @@ A captação ainda não está no dashboard v2. O gráfico antigo empilhava os an
 
 ## Critérios de Aceite
 
-- [ ] Cada origem devolvida mostra total, percentual e os três anos da API.
-- [ ] Com o toggle de escopo (admin), “Somente meus” refaz a captação com `scope=mine`.
-- [ ] Sem Chart.js neste bloco; só DS.
-- [ ] Teste de UI: fixture com `years` e `perYear`; cada origem renderiza os três anos.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (PHPUnit de captação já existentes; a tela só consome o hook isolado).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Cada origem devolvida mostra total, percentual e os três anos da API.
+- [x] Com o toggle de escopo (admin), “Somente meus” refaz a captação com `scope=mine`.
+- [x] Sem Chart.js neste bloco; só DS.
+- [x] Teste de UI: fixture com `years` e `perYear`; cada origem renderiza os três anos.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (PHPUnit de captação já existentes; a tela só consome o hook isolado).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

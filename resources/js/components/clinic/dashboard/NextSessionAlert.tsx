@@ -11,15 +11,17 @@ import {
 
 export function NextSessionAlert({
     appointment,
+    now,
 }: {
     appointment: DashboardUpcomingAppointment;
+    now: Date;
 }) {
     const navigate = useNavigate();
 
     return (
         <article className="overflow-hidden rounded-ds-xl bg-[image:var(--ds-gradient-brand)] p-6 text-ds-white shadow-ds-md ds-dark:bg-[image:linear-gradient(135deg,var(--ds-color-primary-60)_0%,var(--ds-color-primary-100)_100%)]">
             <p className="text-ds-caption tracking-wide text-ds-white/75">
-                {nextSessionTimingLabel(appointment.startsAt)}
+                {nextSessionTimingLabel(appointment.startsAt, now)}
             </p>
             <div className="mt-4 flex items-center gap-4">
                 <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-ds-full bg-ds-white/20 text-ds-body-sm font-semibold">

@@ -19,15 +19,16 @@ Quem abre `/clinica` ainda cai no protótipo (dev) ou no dashboard shadcn (produ
 
 ## Critérios de Aceite
 
-- [ ] `/clinica` renderiza o casco v2 em qualquer ambiente: cumprimento, data em caixa normal, quatro KPIs e atalhos.
-- [ ] A página do dashboard não importa `components/ui`.
-- [ ] Admin vê o toggle de escopo; ao escolher “Somente meus”, o summary é pedido com `scope=mine`.
-- [ ] Fisioterapeuta não vê o toggle.
-- [ ] Cada atalho navega para a rota certa (paciente novo, agenda, programa novo, exercícios).
-- [ ] Há estado de carregamento e de erro do summary, visíveis sem o restante da página sumir.
-- [ ] Agenda, pacientes, programas e finanças continuam como estão.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (prova: os testes PHPUnit existentes do dashboard; a tela só consome o hook já isolado).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] `/clinica` renderiza o casco v2 em qualquer ambiente: cumprimento, data em caixa normal, quatro KPIs e atalhos.
+- [x] A página do dashboard não importa `components/ui`.
+- [x] Admin vê o toggle de escopo; ao escolher “Somente meus”, o summary é pedido com `scope=mine`.
+- [x] Fisioterapeuta não vê o toggle.
+- [x] Cada atalho navega para a rota certa (paciente novo, agenda, programa novo, exercícios).
+- [x] Há estado de carregamento e de erro do summary, visíveis sem o restante da página sumir.
+- [x] O botão "Atualizar dados" pede de novo todos os blocos do dashboard (decisão de 2026-10-17).
+- [x] Agenda, pacientes, programas e finanças continuam como estão.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (prova: os testes PHPUnit existentes do dashboard; a tela só consome o hook já isolado).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

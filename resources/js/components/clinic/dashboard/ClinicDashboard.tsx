@@ -4,15 +4,17 @@ import {
     Dumbbell,
     FileText,
     MessageCircle,
+    RefreshCw,
     Users,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { useRefreshDashboard } from '@/application/clinic/use-dashboard';
 import {
     DsBadge,
     DsButton,
     DsCard,
-    dsCn,
     DsEmptyState,
     DsKpi,
 } from '@/components/ds';
@@ -24,10 +26,12 @@ import type {
 } from '@/domain/clinic/dashboard';
 
 import {
+    firstName,
     formatTime,
     formatToday,
     initials,
-    MONTH_NAME,
+    monthName,
+    pickNextSession,
     statusBadgeVariant,
     statusLabel,
     whatsappUrl,
@@ -71,12 +75,13 @@ const QUICK_ACTIONS: {
     },
 ];
 
-export interface ClinicDashboardProps {
+interface ClinicDashboardProps {
     data?: DashboardSummary;
     isLoading: boolean;
     isError: boolean;
     scope: DashboardScope;
     onScopeChange: (scope: DashboardScope) => void;
+    now: Date;
 }
 
 function InitialsAvatar({ name, src }: { name: string; src?: string }) {
@@ -110,10 +115,7 @@ function BirthdayAction({ birthday }: { birthday: Birthday }) {
             href={whatsappUrl(birthday)}
             target="_blank"
             rel="noopener noreferrer"
-            className={dsCn(
-                'inline-flex cursor-pointer items-center gap-2 rounded-ds-md border border-ds-primary-80 px-3 py-2 font-ds text-ds-caption font-medium text-ds-primary-80 no-underline',
-                'hover:bg-ds-surface-brand-subtle ds-dark:border-ds-primary-60 ds-dark:text-ds-primary-60',
-            )}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-ds-md border border-ds-primary-80 px-3 py-2 font-ds text-ds-caption font-medium text-ds-primary-80 no-underline hover:bg-ds-surface-brand-subtle ds-dark:border-ds-primary-60 ds-dark:text-ds-primary-60"
         >
             <MessageCircle className="size-4" />
             Mensagem
@@ -127,55 +129,83 @@ export function ClinicDashboard({
     isError,
     scope,
     onScopeChange,
+    now,
 }: ClinicDashboardProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const firstName = user?.name?.split(' ')[0] ?? '';
-    const canToggleScope = data?.viewer.canToggleScope ?? false;
-    const nextSession = data?.upcomingAppointments[0];
+    const month = monthName(now);
+    const greetingName = firstName(user?.name ?? '');
+    // Flags da última resposta boa: trocar o escopo (ou falhar ao trocar) não esconde os controles.
+    const [viewer, setViewer] = useState(data?.viewer);
+    const refreshDashboard = useRefreshDashboard();
+    const [refreshing, setRefreshing] = useState(false);
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await refreshDashboard();
+        } finally {
+            setRefreshing(false);
+        }
+    };
+    if (data && data.viewer !== viewer) {
+        setViewer(data.viewer);
+    }
+    const canToggleScope = viewer?.canToggleScope ?? false;
+    const nextSession = data
+        ? pickNextSession(data.upcomingAppointments, now)
+        : undefined;
 
     return (
-        <div
-            className={dsCn(
-                'h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary',
-            )}
-        >
+        <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
             <div className="mx-auto max-w-[1600px] space-y-6 px-4 py-6 sm:px-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <p className="flex items-center gap-2 text-ds-body-sm text-ds-content-muted">
                             <Clock className="size-4" />
-                            {formatToday()}
+                            {formatToday(now)}
                         </p>
                         <h1 className="mt-1 text-ds-page-title font-semibold text-ds-content-primary">
-                            {firstName
-                                ? `Bem-vindo de volta, ${firstName}`
+                            {greetingName
+                                ? `Bem-vindo de volta, ${greetingName}`
                                 : 'Bem-vindo de volta'}
                         </h1>
                         <p className="mt-1 text-ds-body-sm text-ds-content-muted">
                             Resumo da clínica hoje.
                         </p>
                     </div>
-                    {canToggleScope ? (
-                        <div className="flex rounded-ds-lg border border-ds-border-subtle bg-ds-surface-default p-1">
-                            {(
-                                [
-                                    ['clinic', 'Toda a clínica'],
-                                    ['mine', 'Somente meus'],
-                                ] as const
-                            ).map(([value, label]) => (
-                                <DsButton
-                                    key={value}
-                                    size="sm"
-                                    variant={
-                                        scope === value ? 'primary' : 'tertiary'
-                                    }
-                                    label={label}
-                                    onClick={() => onScopeChange(value)}
-                                />
-                            ))}
-                        </div>
-                    ) : null}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <DsButton
+                            size="sm"
+                            variant="secondary"
+                            label="Atualizar dados"
+                            icon={<RefreshCw />}
+                            iconPosition="left"
+                            disabled={refreshing}
+                            onClick={handleRefresh}
+                        />
+                        {canToggleScope ? (
+                            <div className="flex rounded-ds-lg border border-ds-border-subtle bg-ds-surface-default p-1">
+                                {(
+                                    [
+                                        ['clinic', 'Toda a clínica'],
+                                        ['mine', 'Somente meus'],
+                                    ] as const
+                                ).map(([value, label]) => (
+                                    <DsButton
+                                        key={value}
+                                        size="sm"
+                                        variant={
+                                            scope === value
+                                                ? 'primary'
+                                                : 'tertiary'
+                                        }
+                                        label={label}
+                                        onClick={() => onScopeChange(value)}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
 
                 {isError ? (
@@ -186,7 +216,7 @@ export function ClinicDashboard({
                 ) : null}
 
                 {nextSession ? (
-                    <NextSessionAlert appointment={nextSession} />
+                    <NextSessionAlert appointment={nextSession} now={now} />
                 ) : null}
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -339,7 +369,7 @@ export function ClinicDashboard({
                                     {data ? `${data.birthdays.total} ` : ''}
                                     aniversariantes
                                 </h3>
-                                <p>Em {MONTH_NAME}</p>
+                                <p>Em {month}</p>
                             </>
                         }
                     >
@@ -372,7 +402,7 @@ export function ClinicDashboard({
                                                 {birthday.name}
                                             </p>
                                             <p className="text-ds-caption text-ds-content-muted">
-                                                {birthday.day} de {MONTH_NAME}
+                                                {birthday.day} de {month}
                                             </p>
                                         </div>
                                         <BirthdayAction birthday={birthday} />
@@ -385,23 +415,21 @@ export function ClinicDashboard({
 
                 <OccupancyRateCard
                     canChooseProfessional={
-                        data?.viewer.canChooseProfessional ?? false
+                        viewer?.canChooseProfessional ?? false
                     }
                 />
 
                 <PatientAcquisitionCard scope={scope} />
 
                 <RecentActivitiesCard
-                    enabled={data?.viewer.canViewActivities ?? false}
+                    enabled={viewer?.canViewActivities ?? false}
                 />
 
                 <p className="flex items-center gap-2 text-ds-caption text-ds-content-muted">
                     <Clock className="size-3.5" />
                     <Link
                         to="/clinica/agenda"
-                        className={dsCn(
-                            'text-ds-content-brand hover:underline ds-dark:text-ds-primary-60',
-                        )}
+                        className="text-ds-content-brand hover:underline ds-dark:text-ds-primary-60"
                     >
                         Abrir a agenda completa
                     </Link>

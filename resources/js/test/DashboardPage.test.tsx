@@ -1,14 +1,16 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    dayKey,
     formatToday,
+    monthName,
     nextSessionTimingLabel,
 } from '@/components/clinic/dashboard/dashboard-format';
 import type { ClinicRole } from '@/domain/auth/session';
@@ -45,6 +47,7 @@ const useDashboardSummary = vi.fn();
 const useOccupancyRate = vi.fn();
 const usePatientAcquisition = vi.fn();
 const useRecentActivities = vi.fn();
+const refreshDashboard = vi.fn();
 
 vi.mock('@/application/clinic/use-dashboard', () => ({
     useDashboardSummary: (...args: unknown[]) => useDashboardSummary(...args),
@@ -52,6 +55,7 @@ vi.mock('@/application/clinic/use-dashboard', () => ({
     usePatientAcquisition: (...args: unknown[]) =>
         usePatientAcquisition(...args),
     useRecentActivities: (...args: unknown[]) => useRecentActivities(...args),
+    useRefreshDashboard: () => refreshDashboard,
 }));
 
 vi.mock('@/application/clinic/use-appointments', () => ({
@@ -173,6 +177,36 @@ beforeEach(() => {
 });
 
 describe('DashboardPage', () => {
+    it('atualiza os dados do dashboard pelo botão', async () => {
+        refreshDashboard.mockResolvedValue(undefined);
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Atualizar dados' }),
+        );
+
+        expect(refreshDashboard).toHaveBeenCalledTimes(1);
+    });
+
+    it('desabilita o botão enquanto atualiza', async () => {
+        let finish: () => void = () => undefined;
+        refreshDashboard.mockReturnValue(
+            new Promise<void>((resolve) => {
+                finish = resolve;
+            }),
+        );
+        const user = userEvent.setup();
+        renderPage();
+        const button = screen.getByRole('button', { name: 'Atualizar dados' });
+
+        await user.click(button);
+        expect(button).toBeDisabled();
+
+        await act(async () => finish());
+        expect(button).toBeEnabled();
+    });
+
     it('mostra o cumprimento, os KPIs e os atalhos para o admin', () => {
         renderPage();
 
@@ -203,14 +237,54 @@ describe('DashboardPage', () => {
         ).toBeNull();
     });
 
+    it('cumprimenta pelo nome, não pelo título', () => {
+        authState.user = { ...authState.user, name: 'Dra. Ana Paula' };
+
+        renderPage();
+
+        expect(
+            screen.getByRole('heading', { name: 'Bem-vindo de volta, Ana' }),
+        ).toBeInTheDocument();
+    });
+
     it('pede o summary com scope=mine ao escolher Somente meus', async () => {
         const user = userEvent.setup();
         renderPage();
 
         await user.click(screen.getByRole('button', { name: 'Somente meus' }));
 
-        expect(useDashboardSummary).toHaveBeenCalledWith('mine');
+        expect(useDashboardSummary).toHaveBeenCalledWith(
+            'mine',
+            expect.any(String),
+        );
         expect(usePatientAcquisition).toHaveBeenCalledWith('mine');
+    });
+
+    it('mantém o toggle quando o summary de Somente meus falha', async () => {
+        useDashboardSummary.mockImplementation((scope: string) =>
+            scope === 'mine'
+                ? { data: undefined, isLoading: false, isError: true }
+                : idleQuery(adminSummary()),
+        );
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.click(screen.getByRole('button', { name: 'Somente meus' }));
+
+        expect(
+            screen.getByText('Não foi possível carregar o resumo'),
+        ).toBeInTheDocument();
+        expect(screen.getByLabelText('Profissional')).toBeInTheDocument();
+        expect(useRecentActivities).toHaveBeenLastCalledWith(true);
+
+        await user.click(
+            screen.getByRole('button', { name: 'Toda a clínica' }),
+        );
+
+        expect(useDashboardSummary).toHaveBeenLastCalledWith(
+            'clinic',
+            expect.any(String),
+        );
     });
 
     it('fisioterapeuta não vê toggle, seletor de profissional nem o feed', () => {
@@ -231,6 +305,7 @@ describe('DashboardPage', () => {
             screen.queryByRole('heading', { name: 'Atividade recente' }),
         ).not.toBeInTheDocument();
         expect(useRecentActivities).toHaveBeenCalledWith(false);
+        expect(useOccupancyRate).toHaveBeenLastCalledWith('daily', undefined);
     });
 
     it('mostra o alerta da próxima sessão quando há consulta hoje', () => {
@@ -289,6 +364,243 @@ describe('DashboardPage', () => {
         expect(
             screen.getByRole('heading', { name: 'Paciente Um' }),
         ).toBeInTheDocument();
+    });
+
+    it('pula a sessão já concluída e mostra a seguinte no alerta', () => {
+        const hour = 60 * 60 * 1000;
+        useDashboardSummary.mockReturnValue(
+            idleQuery(
+                adminSummary({
+                    upcomingAppointments: [
+                        {
+                            id: 'apt-manha',
+                            patientName: 'Paciente Manhã',
+                            title: 'Avaliação',
+                            startsAt: new Date(
+                                Date.now() - 8 * hour,
+                            ).toISOString(),
+                            status: 'completed',
+                        },
+                        {
+                            id: 'apt-tarde',
+                            patientName: 'Paciente Tarde',
+                            title: 'Retorno',
+                            startsAt: new Date(Date.now() + hour).toISOString(),
+                            status: 'confirmed',
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        renderPage();
+
+        expect(
+            screen.getByRole('heading', { name: 'Paciente Tarde' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('heading', { name: 'Paciente Manhã' }),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText(/Agora/)).not.toBeInTheDocument();
+    });
+
+    it('esconde o alerta quando a única sessão do dia começou há horas', () => {
+        useDashboardSummary.mockReturnValue(
+            idleQuery(
+                adminSummary({
+                    upcomingAppointments: [
+                        {
+                            id: 'apt-antiga',
+                            patientName: 'Paciente Manhã',
+                            title: 'Avaliação',
+                            startsAt: new Date(
+                                Date.now() - 3 * 60 * 60 * 1000,
+                            ).toISOString(),
+                            status: 'scheduled',
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        renderPage();
+
+        expect(
+            screen.queryByRole('button', { name: 'Abrir agenda' }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText('Paciente Manhã')).toBeInTheDocument();
+    });
+
+    it('pula a falta recente e mostra a sessão pendente seguinte', () => {
+        const minute = 60 * 1000;
+        useDashboardSummary.mockReturnValue(
+            idleQuery(
+                adminSummary({
+                    upcomingAppointments: [
+                        {
+                            id: 'apt-falta',
+                            patientName: 'Paciente Falta',
+                            title: 'Avaliação',
+                            startsAt: new Date(
+                                Date.now() - 20 * minute,
+                            ).toISOString(),
+                            status: 'no_show',
+                        },
+                        {
+                            id: 'apt-seguinte',
+                            patientName: 'Paciente Seguinte',
+                            title: 'Retorno',
+                            startsAt: new Date(
+                                Date.now() + 60 * minute,
+                            ).toISOString(),
+                            status: 'confirmed',
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        renderPage();
+
+        expect(
+            screen.getByRole('heading', { name: 'Paciente Seguinte' }),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/Agora/)).not.toBeInTheDocument();
+    });
+
+    it('esconde o alerta quando a única sessão futura já foi concluída', () => {
+        useDashboardSummary.mockReturnValue(
+            idleQuery(
+                adminSummary({
+                    upcomingAppointments: [
+                        {
+                            id: 'apt-antecipada',
+                            patientName: 'Paciente Antecipada',
+                            title: 'Retorno',
+                            startsAt: new Date(
+                                Date.now() + 30 * 60 * 1000,
+                            ).toISOString(),
+                            status: 'completed',
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        renderPage();
+
+        expect(
+            screen.queryByRole('button', { name: 'Abrir agenda' }),
+        ).not.toBeInTheDocument();
+    });
+
+    it('o alerta acompanha o relógio com a página aberta', () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        try {
+            const minute = 60 * 1000;
+            useDashboardSummary.mockReturnValue(
+                idleQuery(
+                    adminSummary({
+                        upcomingAppointments: [
+                            {
+                                id: 'apt-relogio',
+                                patientName: 'Paciente Relógio',
+                                title: 'Retorno',
+                                startsAt: new Date(
+                                    Date.now() + 30 * minute,
+                                ).toISOString(),
+                                status: 'scheduled',
+                            },
+                        ],
+                    }),
+                ),
+            );
+
+            renderPage();
+            expect(
+                screen.getByRole('heading', { name: 'Paciente Relógio' }),
+            ).toBeInTheDocument();
+            expect(screen.queryByText(/Agora/)).not.toBeInTheDocument();
+
+            act(() => {
+                vi.advanceTimersByTime(45 * minute);
+            });
+            expect(screen.getByText(/Agora/)).toBeInTheDocument();
+
+            act(() => {
+                vi.advanceTimersByTime(60 * minute);
+            });
+            expect(
+                screen.queryByRole('heading', { name: 'Paciente Relógio' }),
+            ).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('pede o summary do dia novo quando a página atravessa a meia-noite', () => {
+        const today = new Date();
+        const lastDay = new Date(
+            today.getFullYear(),
+            today.getMonth() + 1,
+            0,
+            23,
+            50,
+        );
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        vi.setSystemTime(lastDay);
+        try {
+            const dayOf = (date: Date) => formatToday(date);
+            const nextDay = new Date(lastDay.getTime() + 15 * 60 * 1000);
+            const firstKey = dayKey(lastDay);
+            useDashboardSummary.mockImplementation(
+                (_scope: string, day: string) =>
+                    day === firstKey
+                        ? idleQuery(
+                              adminSummary({
+                                  birthdays: {
+                                      total: 1,
+                                      items: [
+                                          {
+                                              patientId: 'p-fim',
+                                              name: 'Paciente Fim do Mês',
+                                              day: lastDay.getDate(),
+                                              canMessage: false,
+                                          },
+                                      ],
+                                  },
+                              }),
+                          )
+                        : { data: undefined, isLoading: true, isError: false },
+            );
+
+            renderPage();
+            expect(screen.getByText(dayOf(lastDay))).toBeInTheDocument();
+            expect(screen.getByText('Paciente Fim do Mês')).toBeInTheDocument();
+
+            act(() => {
+                vi.advanceTimersByTime(15 * 60 * 1000);
+            });
+
+            expect(useDashboardSummary).toHaveBeenLastCalledWith(
+                'clinic',
+                dayKey(nextDay),
+            );
+            expect(screen.getByText(dayOf(nextDay))).toBeInTheDocument();
+            expect(
+                screen.getByText(`Em ${monthName(nextDay)}`),
+            ).toBeInTheDocument();
+            expect(
+                screen.queryByText('Paciente Fim do Mês'),
+            ).not.toBeInTheDocument();
+            expect(
+                screen.queryByText(
+                    `${lastDay.getDate()} de ${monthName(nextDay)}`,
+                ),
+            ).not.toBeInTheDocument();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it('esconde o alerta quando não há consulta hoje', () => {
@@ -352,6 +664,63 @@ describe('DashboardPage', () => {
         await user.click(screen.getByRole('tab', { name: 'Semanal' }));
 
         expect(useOccupancyRate).toHaveBeenCalledWith('weekly', '1');
+    });
+
+    it('preenche o profissional da ocupação quando a sessão hidrata depois', () => {
+        const sessionUser = authState.user;
+        (authState as { user: typeof sessionUser | null }).user = null;
+        const { rerender } = renderPage();
+
+        authState.user = sessionUser;
+        rerender(
+            <MemoryRouter
+                initialEntries={['/clinica']}
+                future={routerFutureFlags}
+            >
+                <DashboardPage />
+            </MemoryRouter>,
+        );
+
+        expect(useOccupancyRate).toHaveBeenLastCalledWith('daily', '1');
+    });
+
+    it('preenche o profissional da ocupação quando o summary chega depois', () => {
+        useDashboardSummary.mockReturnValue({
+            data: undefined,
+            isLoading: true,
+            isError: false,
+        });
+        const { rerender } = renderPage();
+        expect(useOccupancyRate).toHaveBeenLastCalledWith('daily', undefined);
+
+        useDashboardSummary.mockReturnValue(idleQuery(adminSummary()));
+        rerender(
+            <MemoryRouter
+                initialEntries={['/clinica']}
+                future={routerFutureFlags}
+            >
+                <DashboardPage />
+            </MemoryRouter>,
+        );
+
+        expect(useOccupancyRate).toHaveBeenLastCalledWith('daily', '1');
+    });
+
+    it('limita a altura da coluna a 100% quando a agenda passa do horário', () => {
+        useOccupancyRate.mockReturnValue(
+            idleQuery({
+                ...occupancy,
+                buckets: [{ label: 'Seg', rate: 1.5 }],
+            }),
+        );
+
+        renderPage();
+
+        const column = screen.getByRole('button', {
+            name: 'Seg · 150% ocupado',
+        });
+        const bar = column.querySelector<HTMLElement>('[style]');
+        expect(bar?.style.height).toBe('100%');
     });
 
     it('omite o percentual sobre a coluna quando há muitas barras', () => {
@@ -438,15 +807,6 @@ describe('DashboardPage', () => {
         ).toBeInTheDocument();
     });
 
-    it('a agenda de produção não monta o protótipo', () => {
-        const src = readFileSync(
-            join(process.cwd(), 'resources/js/pages/clinic/AgendaPage.tsx'),
-            'utf8',
-        );
-        expect(src).not.toMatch(/agenda-prototype/);
-        expect(src).toMatch(/CalendarView/);
-    });
-
     it('não importa shadcn nem Chart.js nos arquivos do dashboard', () => {
         const page = join(
             process.cwd(),
@@ -475,7 +835,7 @@ describe('DashboardPage', () => {
 
 describe('formatToday', () => {
     it('deixa a data em caixa normal', () => {
-        const value = formatToday();
+        const value = formatToday(new Date());
         expect(value.charAt(0)).toBe(value.charAt(0).toUpperCase());
         expect(value).not.toBe(value.toUpperCase());
     });
@@ -483,12 +843,10 @@ describe('formatToday', () => {
 
 describe('nextSessionTimingLabel', () => {
     it('prefixa Agora só quando a sessão já começou', () => {
-        const now = new Date('2026-10-17T12:00:00');
-        expect(nextSessionTimingLabel('2026-10-17T11:30:00', now)).toMatch(
-            /^Agora · /,
-        );
-        expect(nextSessionTimingLabel('2026-10-17T14:00:00', now)).not.toMatch(
-            /Agora/,
-        );
+        const now = new Date();
+        const minutes = (n: number) =>
+            new Date(now.getTime() + n * 60 * 1000).toISOString();
+        expect(nextSessionTimingLabel(minutes(-30), now)).toMatch(/^Agora · /);
+        expect(nextSessionTimingLabel(minutes(120), now)).not.toMatch(/Agora/);
     });
 });

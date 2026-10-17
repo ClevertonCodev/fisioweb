@@ -3,9 +3,13 @@ import {
     STATUS_COLORS,
     type AppointmentStatus,
 } from '@/domain/clinic/appointment';
-import type { Birthday, OccupancyGranularity } from '@/domain/clinic/dashboard';
+import type {
+    Birthday,
+    DashboardUpcomingAppointment,
+    OccupancyGranularity,
+} from '@/domain/clinic/dashboard';
 
-export const SOURCE_LABELS: Record<string, string> = {
+const SOURCE_LABELS: Record<string, string> = {
     indicacao_medica: 'Indicação médica',
     indicacao_amigo: 'Indicação de amigo',
     redes_sociais: 'Redes sociais',
@@ -22,9 +26,15 @@ export const OCCUPANCY_GRANULARITIES: {
     { value: 'monthly', label: 'Mensal' },
 ];
 
-export const MONTH_NAME = new Date().toLocaleDateString('pt-BR', {
-    month: 'long',
-});
+/** Dia local (aaaa-mm-dd): o summary do backend vale para "hoje" e "este mês". */
+export function dayKey(date: Date): string {
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function monthName(date: Date): string {
+    return date.toLocaleDateString('pt-BR', { month: 'long' });
+}
 
 export function initials(name: string): string {
     return (
@@ -38,6 +48,12 @@ export function initials(name: string): string {
     );
 }
 
+const NAME_TITLE = /^(dra?|prof|profa|sr|sra)\.?$/i;
+
+export function firstName(name: string): string {
+    return name.split(' ').find((part) => part && !NAME_TITLE.test(part)) ?? '';
+}
+
 export function formatTime(iso: string): string {
     return new Date(iso).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -45,10 +61,23 @@ export function formatTime(iso: string): string {
     });
 }
 
-export function nextSessionTimingLabel(
-    startsAt: string,
-    now: Date = new Date(),
-): string {
+// O payload não traz o fim da sessão: até 60 min do início ela conta como em andamento.
+const IN_PROGRESS_WINDOW_MS = 60 * 60 * 1000;
+const PENDING_STATUSES: string[] = ['scheduled', 'confirmed'];
+
+export function pickNextSession(
+    appointments: DashboardUpcomingAppointment[],
+    now: Date,
+): DashboardUpcomingAppointment | undefined {
+    const cutoff = now.getTime() - IN_PROGRESS_WINDOW_MS;
+    return appointments.find(
+        (item) =>
+            PENDING_STATUSES.includes(item.status) &&
+            new Date(item.startsAt).getTime() > cutoff,
+    );
+}
+
+export function nextSessionTimingLabel(startsAt: string, now: Date): string {
     const time = formatTime(startsAt);
     if (new Date(startsAt).getTime() <= now.getTime()) {
         return `Agora · ${time}`;
@@ -56,8 +85,8 @@ export function nextSessionTimingLabel(
     return time;
 }
 
-export function formatToday(): string {
-    const raw = new Date().toLocaleDateString('pt-BR', {
+export function formatToday(now: Date): string {
+    const raw = now.toLocaleDateString('pt-BR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',

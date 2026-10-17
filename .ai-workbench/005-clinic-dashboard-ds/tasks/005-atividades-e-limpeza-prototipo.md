@@ -16,13 +16,13 @@ Falta o feed de atividade recente e sobra o rascunho: switcher, variantes B/C/O 
 
 ## Critérios de Aceite
 
-- [ ] Admin (ou quem `canViewActivities`) vê o feed de atividade recente.
-- [ ] Fisioterapeuta não vê o feed e o teste garante que a query de atividades não dispara.
-- [ ] `/clinica` não tem barra de protótipo nem responde a `?variant=`.
-- [ ] A página do dashboard não importa `components/ui` nem Chart.js; os arquivos do protótipo desta tela foram removidos.
-- [ ] Agenda, pacientes, programas e finanças continuam v1.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (PHPUnit de atividades já existentes).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Admin (ou quem `canViewActivities`) vê o feed de atividade recente.
+- [x] Fisioterapeuta não vê o feed e o teste garante que a query de atividades não dispara.
+- [x] `/clinica` não tem barra de protótipo nem responde a `?variant=`.
+- [x] A página do dashboard não importa `components/ui` nem Chart.js; os arquivos do protótipo desta tela foram removidos.
+- [x] Agenda, pacientes, programas e finanças continuam v1.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (PHPUnit de atividades já existentes).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

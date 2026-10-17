@@ -12,26 +12,25 @@ import {
     usePatientNewPrototype,
 } from './shared';
 import { VariantA } from './VariantA';
-import { VariantB } from './VariantB';
-import { VariantC } from './VariantC';
-import { VariantD } from './VariantD';
 
 /**
  * PROTOTYPE (throwaway) — cadastro de paciente no design system v2, trocado
  * por `?variant=` na rota real `/clinica/pacientes/novo` (só em dev).
  *
  * O Original — tela atual (shadcn v1), para comparar.
- * A Abas — a organização de hoje, no DS, com erro marcado na aba.
- * B Página única + índice — seções em cartões e índice lateral fixo.
- * C Assistente em etapas — Quem é → Contato → Complementos → Revisão.
- * D Cadastro rápido — só o essencial à vista, o resto recolhido, prévia ao lado.
+ * A Abas (escolhida) — largura toda (até 1920px); painel lateral com a foto
+ *   (recorte), a situação e os obrigatórios; abas com os campos em colunas
+ *   conforme o espaço; "Próxima aba" e "Concluir cadastro" só liberam com os
+ *   obrigatórios válidos.
+ *
+ * Descartadas (ficam no commit anterior): B página única + índice,
+ * C assistente em etapas, D cadastro rápido.
  *
  * Os campos e a validação são os reais (patientFormSchema). O envio é stub:
  * mostra o payload que iria para a API e não grava nada.
  */
 export default function PatientNewPrototype() {
     const variant = usePrototypeVariant(PATIENT_NEW_PROTOTYPE_VARIANTS, 'A');
-    // Um formulário por variante: trocar de variante começa do zero.
     return (
         <>
             {variant === 'O' ? (
@@ -42,7 +41,7 @@ export default function PatientNewPrototype() {
                         className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary"
                         data-prototype-variant={variant}
                     >
-                        <VariantHost key={variant} variant={variant} />
+                        <VariantHost />
                     </div>
                 </ClinicLayout>
             )}
@@ -54,14 +53,11 @@ export default function PatientNewPrototype() {
     );
 }
 
-function VariantHost({ variant }: { variant: string }) {
+function VariantHost() {
     const state = usePatientNewPrototype();
     return (
         <>
-            {variant === 'A' && <VariantA state={state} />}
-            {variant === 'B' && <VariantB state={state} />}
-            {variant === 'C' && <VariantC state={state} />}
-            {variant === 'D' && <VariantD state={state} />}
+            <VariantA state={state} />
             <PayloadModal state={state} />
         </>
     );

@@ -11,10 +11,10 @@ import listPlugin from '@fullcalendar/list';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { ArrowLeft, ArrowRight, CalendarPlus, Settings } from 'lucide-react';
-import { useCallback, useState, type Ref } from 'react';
+import { useCallback, useState, type ReactNode, type Ref } from 'react';
 
 import { DsButton, DsDropdown, dsCn } from '@/components/ds';
-import type { Appointment, AppointmentStatus } from '@/domain/clinic';
+import type { Appointment } from '@/domain/clinic';
 import { isTerminalAppointmentStatus } from '@/domain/clinic';
 
 import {
@@ -40,19 +40,6 @@ const VIEW_ITEMS: { key: ViewId; label: string }[] = [
     { key: 'dayGridMonth', label: 'Mês' },
 ];
 
-/**
- * Bloco sólido por status, com paleta do DS (texto branco passa no AA em
- * todos). Fica igual no claro e no escuro, como na referência.
- */
-export const SOLID: Record<AppointmentStatus, string> = {
-    scheduled: 'var(--ds-color-primary-80)',
-    confirmed: 'var(--ds-color-success-120)',
-    no_show: 'var(--ds-color-danger-120)',
-    completed:
-        'color-mix(in srgb, var(--ds-chart-c2) 80%, var(--ds-color-black))',
-    cancelled: 'var(--ds-color-danger-50)',
-};
-
 // Opções estáveis fora do componente: objeto novo a cada render faz o
 // FullCalendar reaplicar opções e disparar datesSet em loop.
 const PLUGINS = [timeGridPlugin, dayGridPlugin, listPlugin, interactionPlugin];
@@ -72,28 +59,21 @@ const BUSINESS_HOURS = {
 const WEEKENDS_HIDDEN = [0, 6];
 const NO_HIDDEN_DAYS: number[] = [];
 
-export type EventTone = 'solid' | 'soft';
-
 /**
- * Evento do calendário largo. `solid` = bloco cheio da D; `soft` = superfície
- * suave com faixa de status da A (classe `ds-ev-soft` no CSS).
+ * Consulta no formato da A: fundo suave + faixa de status (classe
+ * `ds-ev-soft` no CSS) e texto na cor do status.
  */
-export function toWideEvent(apt: Appointment, tone: EventTone): EventInput {
-    const soft = DS_STATUS[apt.status];
+export function toWideEvent(apt: Appointment): EventInput {
+    const tone = DS_STATUS[apt.status];
     return {
         id: apt.id,
         title: apt.patientName || apt.title || 'Consulta',
         start: apt.startsAt,
         end: apt.endsAt,
-        backgroundColor: tone === 'solid' ? SOLID[apt.status] : soft.surface,
-        borderColor: tone === 'solid' ? 'transparent' : soft.accent,
-        textColor:
-            tone === 'soft'
-                ? soft.content
-                : apt.status === 'cancelled'
-                  ? 'var(--ds-color-danger-120)'
-                  : 'var(--ds-color-white)',
-        classNames: tone === 'soft' ? ['ds-ev-soft'] : [],
+        backgroundColor: tone.surface,
+        borderColor: tone.accent,
+        textColor: tone.content,
+        classNames: ['ds-ev-soft'],
         editable:
             !isTerminalAppointmentStatus(apt.status) &&
             !apt.id.startsWith(DEMO_PREFIX),
@@ -108,6 +88,8 @@ interface WideAgendaSectionProps {
     filteredPatientName?: string;
     /** Quando presente, "Nova consulta" fica à direita da linha do título. */
     onNewConsulta?: () => void;
+    /** Conteúdo antes do "Hoje" (ex.: botão que abre a coluna). */
+    toolbarStart?: ReactNode;
     calendarKey: string;
     calendarInitialDate?: Date;
     onNavigate: (action: 'today' | 'prev' | 'next') => void;
@@ -120,8 +102,7 @@ interface WideAgendaSectionProps {
 
 /**
  * PROTOTYPE — título, barra (Hoje ← → mês, visão, exibição) e o FullCalendar
- * em altura total da variante D. Usado pela D (eventos sólidos) e pela A
- * (eventos suaves).
+ * em altura total.
  */
 export function WideAgendaSection({
     calendarRef,
@@ -129,6 +110,7 @@ export function WideAgendaSection({
     events,
     filteredPatientName,
     onNewConsulta,
+    toolbarStart,
     calendarKey,
     calendarInitialDate,
     onNavigate,
@@ -139,7 +121,7 @@ export function WideAgendaSection({
     onEventResize,
 }: WideAgendaSectionProps) {
     const [view, setView] = useState<ViewId>('timeGridWeek');
-    const [showWeekends, setShowWeekends] = useState(false);
+    const [showWeekends, setShowWeekends] = useState(true);
     const [scrollTime] = useState(() => {
         const hour = Math.min(Math.max(new Date().getHours() - 1, 6), 18);
         return `${String(hour).padStart(2, '0')}:00:00`;
@@ -172,6 +154,7 @@ export function WideAgendaSection({
                         )}
                     </div>
                     <div className="flex items-center gap-2">
+                        {toolbarStart}
                         <DsButton
                             variant="secondary"
                             label="Hoje"
@@ -201,6 +184,7 @@ export function WideAgendaSection({
                 <div className="flex flex-col items-stretch gap-3">
                     {onNewConsulta && (
                         <DsButton
+                            iconPosition="left"
                             size="lg"
                             icon={<CalendarPlus />}
                             label="Nova consulta"

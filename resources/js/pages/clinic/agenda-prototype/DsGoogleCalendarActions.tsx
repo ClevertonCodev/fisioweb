@@ -77,6 +77,7 @@ export function DsGoogleCalendarActions({
                     />
                 ) : (
                     <DsButton
+                        iconPosition="left"
                         variant="secondary"
                         size="sm"
                         icon={<CalendarCheck />}
@@ -110,6 +111,7 @@ export function DsGoogleCalendarActions({
             <div className="space-y-2">
                 {connected ? (
                     <DsButton
+                        iconPosition="left"
                         variant="secondary"
                         size="full"
                         icon={<CalendarX />}
@@ -120,6 +122,7 @@ export function DsGoogleCalendarActions({
                     />
                 ) : (
                     <DsButton
+                        iconPosition="left"
                         variant="primary"
                         size="full"
                         icon={<CalendarCheck />}
@@ -132,6 +135,7 @@ export function DsGoogleCalendarActions({
                     />
                 )}
                 <DsButton
+                    iconPosition="left"
                     variant="tertiary"
                     size="full"
                     icon={<CalendarSync />}

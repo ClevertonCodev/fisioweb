@@ -193,26 +193,12 @@ export function AgendaRail({
 
             <section>
                 <div className="flex items-baseline gap-2">
-                    <span className="text-ds-h4 font-semibold">{total}</span>
+                    <span className="text-ds-body-sm font-semibold">
+                        {total}
+                    </span>
                     <span className="text-ds-body-sm text-ds-content-secondary">
                         {total === 1 ? 'Consulta' : 'Consultas'} no período
                     </span>
-                </div>
-                <div className="mt-3 flex h-2 w-full gap-0.5 overflow-hidden rounded-ds-full bg-ds-surface-subtle">
-                    {total > 0 &&
-                        STATUS_ORDER.filter((s) => rail.counts[s] > 0).map(
-                            (s) => (
-                                <div
-                                    key={s}
-                                    title={`${statusLabel(s)}: ${rail.counts[s]}`}
-                                    className="h-full rounded-ds-full transition-[width]"
-                                    style={{
-                                        width: `${(rail.counts[s] / total) * 100}%`,
-                                        background: statusSwatch[s].accent,
-                                    }}
-                                />
-                            ),
-                        )}
                 </div>
                 <ul className="mt-3 space-y-1.5">
                     {STATUS_ORDER.map((s) => (

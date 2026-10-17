@@ -31,6 +31,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PatientNewPrototype from '@/pages/clinic/patient/patient-new-prototype/PatientNewPrototype';
 
 const TABS = [
     { value: 'dados-pessoais', label: 'Dados pessoais' },
@@ -41,7 +42,7 @@ const TABS = [
     { value: 'como-conheceu', label: 'Como me conheceu?' },
 ];
 
-export default function PatientNewPage() {
+export function PatientNewOriginal() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dados-pessoais');
     const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -229,5 +230,13 @@ export default function PatientNewPage() {
                 </div>
             </form>
         </ClinicLayout>
+    );
+}
+
+export default function PatientNewPage() {
+    return import.meta.env.DEV ? (
+        <PatientNewPrototype />
+    ) : (
+        <PatientNewOriginal />
     );
 }

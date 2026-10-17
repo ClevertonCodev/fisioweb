@@ -130,6 +130,16 @@ describe('DsKpi', () => {
         expect(container.querySelector('[data-trend]')).toBeNull();
     });
 
+    it('delta sem tendência não mostra ícone de alta ou queda', () => {
+        render(<DsKpi label="Exercícios" value={40} delta="6 categorias" />);
+
+        expect(screen.getByText('6 categorias')).toBeInTheDocument();
+        expect(
+            screen.getByText('6 categorias').closest('[data-trend]'),
+        ).toBeNull();
+        expect(screen.queryByText('Estável')).not.toBeInTheDocument();
+    });
+
     it('loading mostra o esqueleto no lugar do valor', () => {
         render(<DsKpi label="Sessões" value={42} loading />);
 

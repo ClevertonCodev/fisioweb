@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type {
     DashboardScope,
@@ -11,11 +11,12 @@ const repository = apiClinicDashboardRepository;
 /**
  * Agregado inicial do dashboard (cards + próximas consultas + flags de papel).
  * `scope` só tem efeito para admin ("clinic" | "mine"); demais papéis são
- * resolvidos pelo backend (fonte de verdade).
+ * resolvidos pelo backend (fonte de verdade). `day` (dia local) entra na
+ * chave para a tela aberta pedir o summary de novo quando o dia vira.
  */
-export function useDashboardSummary(scope?: DashboardScope) {
+export function useDashboardSummary(scope?: DashboardScope, day?: string) {
     return useQuery({
-        queryKey: ['dashboard', 'summary', scope ?? 'clinic'],
+        queryKey: ['dashboard', 'summary', scope ?? 'clinic', day],
         queryFn: () => repository.getSummary(scope),
     });
 }
@@ -53,4 +54,13 @@ export function usePatientAcquisition(scope?: DashboardScope) {
         queryKey: ['dashboard', 'patientAcquisition', scope ?? 'clinic'],
         queryFn: () => repository.getPatientAcquisition(scope),
     });
+}
+
+/**
+ * Pede de novo todos os blocos do dashboard. O botão "Atualizar dados" cobre
+ * a tela aberta cujo relógio ou fuso não vira o dia junto com o da clínica.
+ */
+export function useRefreshDashboard() {
+    const queryClient = useQueryClient();
+    return () => queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 }

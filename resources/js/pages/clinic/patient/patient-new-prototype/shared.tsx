@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Camera, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ArrowLeft, Plus } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 import {
     Controller,
     useForm,
@@ -25,11 +25,8 @@ import {
     DsInput,
     DsModal,
     DsPhoneField,
-    DsRadio,
-    DsRadioGroup,
     DsSwitch,
     DsTextarea,
-    dsCn,
     getPhoneValidationError,
     type SelectOption,
 } from '@/components/ds';
@@ -46,9 +43,6 @@ import { DateField } from './DateField';
 export const PATIENT_NEW_PROTOTYPE_VARIANTS: readonly PrototypeVariant[] = [
     { key: 'O', name: 'Original v1' },
     { key: 'A', name: 'Abas' },
-    { key: 'B', name: 'Página única + índice' },
-    { key: 'C', name: 'Assistente em etapas' },
-    { key: 'D', name: 'Cadastro rápido' },
 ];
 
 export const PATIENTS_PATH = '/clinica/pacientes';
@@ -217,22 +211,6 @@ const UF_OPTIONS: SelectOption[] = [
     'TO',
 ].map((uf) => ({ value: uf, label: uf }));
 
-export function optionLabel(
-    options: SelectOption[],
-    value: string,
-): string | undefined {
-    return options.find((o) => o.value === value)?.label;
-}
-
-export const LABELS = {
-    status: STATUS_OPTIONS,
-    marital: MARITAL_OPTIONS,
-    sex: SEX_OPTIONS,
-    gender: GENDER_OPTIONS,
-    education: EDUCATION_OPTIONS,
-    source: SOURCE_OPTIONS,
-};
-
 // ─── Hook do formulário (stub no envio) ──────────────────────────────────────
 
 /** O schema real + a validação de telefone do DsPhoneField. */
@@ -368,172 +346,6 @@ export function SectionTitle({
     );
 }
 
-// ─── Foto ────────────────────────────────────────────────────────────────────
-
-const PHOTO_MIMES: readonly string[] = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-];
-const PHOTO_MAX = 2 * 1024 * 1024;
-
-function initialsOf(name: string): string {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return '';
-    const first = parts[0]?.[0] ?? '';
-    const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : '';
-    return (first + last).toUpperCase();
-}
-
-function usePhotoPreview(photo: File | null): string | null {
-    const preview = useMemo(
-        () => (photo ? URL.createObjectURL(photo) : null),
-        [photo],
-    );
-    useEffect(
-        () => () => {
-            if (preview) URL.revokeObjectURL(preview);
-        },
-        [preview],
-    );
-    return preview;
-}
-
-/** Só a bolinha (foto ou iniciais), sem botões. */
-export function AvatarPreview({
-    state,
-    size = 44,
-}: {
-    state: PrototypeState;
-    size?: number;
-}) {
-    const preview = usePhotoPreview(state.photo);
-    const initials = initialsOf(state.form.watch('name'));
-    return (
-        <span
-            aria-hidden="true"
-            className="flex shrink-0 items-center justify-center overflow-hidden rounded-ds-full bg-ds-surface-brand-subtle font-semibold text-ds-content-brand ds-dark:text-ds-primary-60"
-            style={{ width: size, height: size, fontSize: size * 0.38 }}
-        >
-            {preview ? (
-                <img src={preview} alt="" className="size-full object-cover" />
-            ) : (
-                initials || '?'
-            )}
-        </span>
-    );
-}
-
-/** Foto do paciente. Protótipo: sem o recorte da tela atual. */
-export function PhotoField({
-    state,
-    size = 96,
-    layout = 'row',
-}: {
-    state: PrototypeState;
-    size?: number;
-    layout?: 'row' | 'stack';
-}) {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [error, setError] = useState<string | null>(null);
-    const name = state.form.watch('name');
-    const preview = usePhotoPreview(state.photo);
-
-    const pick = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setError(null);
-        const file = e.target.files?.[0];
-        e.target.value = '';
-        if (!file) return;
-        if (!PHOTO_MIMES.includes(file.type)) {
-            setError('Use JPEG, PNG ou WebP.');
-            return;
-        }
-        if (file.size > PHOTO_MAX) {
-            setError('A foto não pode passar de 2 MB.');
-            return;
-        }
-        state.setPhoto(file);
-    };
-
-    const initials = initialsOf(name);
-
-    return (
-        <div
-            className={dsCn(
-                'flex gap-4',
-                layout === 'row'
-                    ? 'items-center'
-                    : 'flex-col items-center text-center',
-            )}
-        >
-            <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                aria-label="Escolher foto do paciente"
-                className="group relative flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-ds-full border border-dashed border-ds-border-default bg-ds-surface-brand-subtle font-semibold text-ds-content-brand transition-colors hover:border-ds-primary-60 focus-visible:shadow-ds-focus focus-visible:outline-0 ds-dark:text-ds-primary-60"
-                style={{ width: size, height: size, fontSize: size * 0.34 }}
-            >
-                {preview ? (
-                    <img
-                        src={preview}
-                        alt=""
-                        className="size-full object-cover"
-                    />
-                ) : initials ? (
-                    initials
-                ) : (
-                    <Camera className="size-[38%] text-ds-content-subtle" />
-                )}
-                <span className="absolute inset-0 flex items-center justify-center bg-ds-black/40 text-ds-white opacity-0 transition-opacity group-hover:opacity-100">
-                    <Camera className="size-6" />
-                </span>
-            </button>
-            <div className="flex flex-col gap-1.5">
-                <div
-                    className={dsCn(
-                        'flex flex-wrap gap-2',
-                        layout === 'stack' && 'justify-center',
-                    )}
-                >
-                    <DsButton
-                        variant="secondary"
-                        size="sm"
-                        label={state.photo ? 'Trocar foto' : 'Escolher foto'}
-                        onClick={() => inputRef.current?.click()}
-                    />
-                    {state.photo && (
-                        <DsButton
-                            variant="destructive-tertiary"
-                            size="sm"
-                            iconPosition="left"
-                            icon={<Trash2 />}
-                            label="Remover"
-                            onClick={() => state.setPhoto(null)}
-                        />
-                    )}
-                </div>
-                <span
-                    className={dsCn(
-                        'text-ds-caption',
-                        error
-                            ? 'text-ds-status-danger-content'
-                            : 'text-ds-content-muted',
-                    )}
-                >
-                    {error ?? 'JPEG, PNG ou WebP, até 2 MB. Opcional.'}
-                </span>
-            </div>
-            <input
-                ref={inputRef}
-                type="file"
-                accept={PHOTO_MIMES.join(',')}
-                className="hidden"
-                onChange={pick}
-            />
-        </div>
-    );
-}
-
 // ─── Encaixe dos campos de rótulo na borda (DsCpfField, DsPhoneField) ───────
 
 /**
@@ -612,49 +424,13 @@ export function SelectField({
 
 // ─── Status ──────────────────────────────────────────────────────────────────
 
-export function StatusField({
-    form,
-    as = 'select',
-}: {
-    form: Form;
-    as?: 'select' | 'radio';
-}) {
-    if (as === 'select') {
-        return (
-            <SelectField
-                form={form}
-                name="status"
-                label="Situação do tratamento"
-                options={STATUS_OPTIONS}
-            />
-        );
-    }
+export function StatusField({ form }: { form: Form }) {
     return (
-        <Controller
-            control={form.control}
+        <SelectField
+            form={form}
             name="status"
-            render={({ field }) => (
-                <div className="flex flex-col gap-2">
-                    <span className="text-ds-body-xs font-medium text-ds-content-secondary">
-                        Situação do tratamento
-                    </span>
-                    <DsRadioGroup
-                        aria-label="Situação do tratamento"
-                        orientation="horizontal"
-                        value={field.value}
-                        onValueChange={(v) => field.onChange(String(v))}
-                        onBlur={field.onBlur}
-                    >
-                        {STATUS_OPTIONS.map((o) => (
-                            <DsRadio
-                                key={o.value}
-                                value={String(o.value)}
-                                label={o.label}
-                            />
-                        ))}
-                    </DsRadioGroup>
-                </div>
-            )}
+            label="Situação do tratamento"
+            options={STATUS_OPTIONS}
         />
     );
 }
@@ -680,15 +456,7 @@ export function ageFromIso(iso: string): number | null {
  */
 const GRID = 'grid gap-5 @xl:grid-cols-2 @5xl:grid-cols-3';
 
-export function IdentityFields({
-    form,
-    showForeign = true,
-    showNickname = true,
-}: {
-    form: Form;
-    showForeign?: boolean;
-    showNickname?: boolean;
-}) {
+export function IdentityFields({ form }: { form: Form }) {
     const {
         register,
         control,
@@ -710,50 +478,44 @@ export function IdentityFields({
                     helper={errors.name?.message}
                 />
             </div>
-            {showNickname && (
-                <>
-                    <DsInput
-                        label="Apelido"
-                        placeholder="Opcional"
-                        {...register('apelido')}
-                    />
-                    <Controller
-                        control={control}
-                        name="use_apelido"
-                        render={({ field }) => (
-                            <div className="self-center">
-                                <DsSwitch
-                                    label="Usar apelido no sistema"
-                                    description="Aparece no lugar do nome nas telas"
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                />
-                            </div>
-                        )}
-                    />
-                </>
-            )}
-            {showForeign && (
-                <Controller
-                    control={control}
-                    name="is_foreign"
-                    render={({ field }) => (
-                        <div className="self-center @xl:col-span-2 @5xl:col-span-1">
-                            <DsSwitch
-                                label="Pessoa estrangeira"
-                                description="Troca o CPF por outro documento"
-                                checked={field.value}
-                                onCheckedChange={(v) => {
-                                    field.onChange(v);
-                                    setValue('cpf', '');
-                                }}
-                                onBlur={field.onBlur}
-                            />
-                        </div>
-                    )}
-                />
-            )}
+            <DsInput
+                label="Apelido"
+                placeholder="Opcional"
+                {...register('apelido')}
+            />
+            <Controller
+                control={control}
+                name="use_apelido"
+                render={({ field }) => (
+                    <div className="self-center">
+                        <DsSwitch
+                            label="Usar apelido no sistema"
+                            description="Aparece no lugar do nome nas telas"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            onBlur={field.onBlur}
+                        />
+                    </div>
+                )}
+            />
+            <Controller
+                control={control}
+                name="is_foreign"
+                render={({ field }) => (
+                    <div className="self-center @xl:col-span-2 @5xl:col-span-1">
+                        <DsSwitch
+                            label="Pessoa estrangeira"
+                            description="Troca o CPF por outro documento"
+                            checked={field.value}
+                            onCheckedChange={(v) => {
+                                field.onChange(v);
+                                setValue('cpf', '');
+                            }}
+                            onBlur={field.onBlur}
+                        />
+                    </div>
+                )}
+            />
             {isForeign ? (
                 <DsInput
                     key="doc"
@@ -1125,7 +887,7 @@ export function ReferralFields() {
     );
 }
 
-/** Uma seção inteira pela chave (usado pelas variantes A e B). */
+/** Uma seção inteira pela chave. A foto e a situação ficam no painel lateral. */
 export function SectionFields({
     section,
     state,
@@ -1136,17 +898,7 @@ export function SectionFields({
     const { form } = state;
     switch (section) {
         case 'identificacao':
-            return (
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-wrap items-center justify-between gap-5">
-                        <PhotoField state={state} />
-                        <div className="w-full sm:w-56">
-                            <StatusField form={form} />
-                        </div>
-                    </div>
-                    <IdentityFields form={form} />
-                </div>
-            );
+            return <IdentityFields form={form} />;
         case 'perfil':
             return <ProfileFields form={form} />;
         case 'contato':

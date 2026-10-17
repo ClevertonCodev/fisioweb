@@ -1,5 +1,4 @@
-import { Plus } from 'lucide-react';
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -14,15 +13,7 @@ import {
     useUpdateAppointmentStatus,
 } from '@/application/clinic';
 import { AppointmentModal } from '@/components/clinic/agenda/AppointmentModal';
-import { CalendarSidebar } from '@/components/clinic/agenda/CalendarSidebar';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useAuth } from '@/contexts/AuthContext';
 import type {
     Appointment,
@@ -30,12 +21,9 @@ import type {
     CalendarEvent,
 } from '@/domain/clinic';
 import { isTerminalAppointmentStatus, STATUS_COLORS } from '@/domain/clinic';
-
-const CalendarView = lazy(() =>
-    import('@/components/clinic/agenda/CalendarView').then((m) => ({
-        default: m.CalendarView,
-    })),
-);
+import AgendaPrototype from '@/pages/clinic/agenda-prototype/AgendaPrototype';
+import { AppointmentModalPrototype } from '@/pages/clinic/agenda-prototype/modal/AppointmentModalPrototype';
+import { VariantOriginal } from '@/pages/clinic/agenda-prototype/VariantOriginal';
 
 /** Referência estável para evitar novo array a cada render (loop de re-render). */
 const EMPTY_APPOINTMENTS: Appointment[] = [];
@@ -279,82 +267,56 @@ export default function AgendaPage() {
     const handleEventResize = (id: string, start: string, end: string) =>
         persistReschedule(id, start, end, 'Duração da consulta alterada.');
 
+    const viewProps = {
+        appointments: filteredAppointments,
+        events,
+        clinicUsers,
+        selectedUserId,
+        onUserChange: setSelectedUserId,
+        filteredPatientName,
+        calendarKey: patientIdFilter
+            ? `patient-${patientIdFilter}-${calendarInitialDate?.toISOString() ?? 'empty'}`
+            : 'all',
+        calendarInitialDate,
+        onEventClick: handleEventClick,
+        onDateClick: handleDateClick,
+        onEventDrop: handleEventDrop,
+        onEventResize: handleEventResize,
+        onNewConsulta: handleNewConsulta,
+    };
+
+    const modalProps = {
+        open: modalOpen,
+        onClose: () => setModalOpen(false),
+        appointment: selectedAppointment,
+        initialDate: selectedDate,
+        initialPatientId: patientIdFilter,
+        patients: agendaPatients,
+        clinicUsers,
+        onSubmit: handleSubmit,
+        isSubmitting: createMutation.isPending || updateMutation.isPending,
+        lockedClinicUserId,
+        onStatusChange: handleStatusChange,
+        onCancelAppointment: handleCancelAppointment,
+        isMutatingStatus: statusMutation.isPending || cancelMutation.isPending,
+    };
+
     return (
         <ClinicLayout>
-            <div className="flex h-full flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                    <div className="min-w-0">
-                        <h1 className="text-xl font-semibold text-foreground">
-                            Agenda
-                        </h1>
-                        {filteredPatientName && (
-                            <p className="truncate text-sm text-muted-foreground">
-                                Agendamentos de {filteredPatientName}
-                            </p>
-                        )}
-                    </div>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={handleNewConsulta}>
-                                <Plus className="h-4 w-4" />
-                                Nova Consulta
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Agendar nova consulta</TooltipContent>
-                    </Tooltip>
-                </div>
+            {import.meta.env.DEV ? (
+                <AgendaPrototype {...viewProps} />
+            ) : (
+                <VariantOriginal {...viewProps} />
+            )}
 
-                {/* Content */}
-                <div className="flex flex-1 overflow-hidden">
-                    <CalendarSidebar
-                        clinicUsers={clinicUsers}
-                        selectedUserId={selectedUserId}
-                        onUserChange={setSelectedUserId}
-                    />
-                    <div className="flex-1 overflow-auto p-4">
-                        <Suspense
-                            fallback={
-                                <Skeleton className="h-[600px] w-full rounded-lg" />
-                            }
-                        >
-                            <CalendarView
-                                key={
-                                    patientIdFilter
-                                        ? `patient-${patientIdFilter}-${calendarInitialDate?.toISOString() ?? 'empty'}`
-                                        : 'all'
-                                }
-                                events={events}
-                                initialDate={calendarInitialDate}
-                                onEventClick={handleEventClick}
-                                onDateClick={handleDateClick}
-                                onEventDrop={handleEventDrop}
-                                onEventResize={handleEventResize}
-                            />
-                        </Suspense>
-                    </div>
-                </div>
-            </div>
-
-            <AppointmentModal
-                open={modalOpen}
-                onClose={() => setModalOpen(false)}
-                appointment={selectedAppointment}
-                initialDate={selectedDate}
-                initialPatientId={patientIdFilter}
-                patients={agendaPatients}
-                clinicUsers={clinicUsers}
-                onSubmit={handleSubmit}
-                isSubmitting={
-                    createMutation.isPending || updateMutation.isPending
-                }
-                lockedClinicUserId={lockedClinicUserId}
-                onStatusChange={handleStatusChange}
-                onCancelAppointment={handleCancelAppointment}
-                isMutatingStatus={
-                    statusMutation.isPending || cancelMutation.isPending
-                }
-            />
+            {import.meta.env.DEV ? (
+                <AppointmentModalPrototype
+                    {...modalProps}
+                    allAppointments={appointments}
+                />
+            ) : (
+                <AppointmentModal {...modalProps} />
+            )}
         </ClinicLayout>
     );
 }

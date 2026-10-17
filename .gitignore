@@ -38,3 +38,10 @@ yarn-error.log
 /.ai-workbench/*/review/
 /.ai-workbench/DEFERRED.md
 /.ai-workbench/*/DEFERRED.md
+
+# bin/fisio-app: configuração pessoal (o modelo é o docker/fisio-app.example.json) e arquivos gerados
+/docker/fisio-app.json
+/AMBIENTE.md
+/AMBIENTES.md
+/CLAUDE.local.md
+/.cursor/rules/ambiente-docker.mdc

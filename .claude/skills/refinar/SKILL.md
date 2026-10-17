@@ -18,7 +18,7 @@ decisões de que outras dependem.
   hoje, procure no repositório: módulos em `modules/`, telas em
   `resources/js/pages/`, ADRs em `docs/adr/`, docs em `docs/`, as features
   anteriores em `.ai-workbench/*/` (`README.md` e `plans/`) e as skills em
-  `.claude/skills/`.
+  `.claude/skills/` ou `.cursor/skills/` (ambas canônicas).
 - Pergunte o que só o usuário sabe: o que a clínica, o fisioterapeuta ou o
   paciente precisa, o que fica fora, qual comportamento é o certo quando há
   dúvida.

@@ -13,8 +13,8 @@ usuário de novo**: se ainda há decisão em aberto, volte para a skill `refinar
 1. **Conheça o terreno.** Explore o código da área que vai mudar, se ainda não
    explorou. Use o vocabulário que o código já usa (`Clinic`, `ClinicUser`,
    `Patient`, `TreatmentPlan`, `Appointment`, `Exercise`...). Leia o ADR de
-   `docs/adr/` e as skills de `.claude/skills/` que cobrem a área (tabela
-   "Skill Map" do `CLAUDE.md`).
+   `docs/adr/` e as skills de `.claude/skills/` / `.cursor/skills/` que cobrem a
+   área (tabela "Skill Map" do `CLAUDE.md` / `AGENTS.md`).
 
 2. **Desenhe as camadas** que vão mudar, como o fisioweb é organizado:
    - **Backend** (módulo dono em `modules/<Modulo>/`): migration, Model,

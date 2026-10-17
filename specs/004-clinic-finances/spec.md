@@ -223,7 +223,7 @@ A usuária abre as **Configurações** da página e define preferências da clí
 - O escopo desta feature é exclusivamente o contexto **clinic** (guard JWT `clinic`); não há página equivalente no contexto admin nesta versão.
 - A moeda é fixa em **BRL** (R$), formato pt-BR; não há suporte multi-moeda.
 - A página reaproveita o design system do fisioweb (shadcn/ui + Tailwind + paleta atual), conforme orientações da skill `frontend-ui-patterns`, em vez de replicar literalmente o visual do screenshot de referência.
-- Cards, gráficos e tabela são consumidos via API REST do módulo Clinic, seguindo o padrão Service → Repository → Controller já adotado (skill `backend-module`).
+- Cards, gráficos e tabela são consumidos via API REST do módulo Clinic, seguindo o padrão Service → Repository → Controller já adotado (`architecture-paradigm-modular-monolith` + `backend-clean-code`).
 - O frontend segue o padrão DDD do projeto (`domain/`, `application/`, `infrastructure/`, `pages/clinic/finances/`) e os hooks de dados usam TanStack Query.
 - Repasses para equipe e split de recebíveis ficam **fora do escopo desta versão** — apenas o estado promocional é exibido nas configurações.
 - Suporte a **transações recorrentes / parceladas** não está no escopo desta versão (pode entrar em uma feature futura); cada lançamento é manual ou avulso.

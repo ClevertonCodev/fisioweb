@@ -43,4 +43,4 @@
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
 - A skill `frontend-ui-patterns` deve ser consultada no `/speckit-plan` para guiar componentes/cores em vez de copiar o visual da imagem de referência.
-- Skill `backend-module` orienta a estrutura backend (Controller → Service → Repository) e `frontend-ddd` orienta a estrutura frontend.
+- Skills `architecture-paradigm-modular-monolith` e `backend-clean-code` orientam a estrutura backend (Controller → Service → Repository) e `frontend-ddd` orienta a estrutura frontend.

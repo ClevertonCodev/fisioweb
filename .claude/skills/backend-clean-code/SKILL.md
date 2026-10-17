@@ -5,7 +5,7 @@ description: Aplicar Clean Code, SOLID, inversao de dependencia e separacao de r
 
 # Backend Clean Code
 
-Use esta skill como regra transversal de qualidade para codigo PHP/Laravel em `modules/*`. Ela complementa `backend-module`, `php-modern`, `laravel-eloquent`, `laravel-queues`, `security` e `architecture-paradigm-modular-monolith`.
+Use esta skill como regra transversal de qualidade para codigo PHP/Laravel em `modules/*`. Ela complementa `php-modern`, `laravel-eloquent`, `laravel-queues`, `security` e `architecture-paradigm-modular-monolith`.
 
 ## Regra De Ouro
 
@@ -183,4 +183,4 @@ Listeners ficam no modulo da consequencia: `SendReservationEmail`, `GenerateAffi
 | Checklist e exemplos SOLID Laravel | [`references/solid-laravel.md`](references/solid-laravel.md) | Revisar/refatorar classe, avaliar onde colocar regra, ou corrigir controller/service/repository gordo |
 | Fronteiras entre modulos | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Qualquer dependencia entre `modules/*` |
 | DTO, Enum, Value Object | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Criar tipos PHP modernos |
-| Estrutura CRUD do modulo | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Criar recurso CRUD completo |
+| Estrutura e fronteira do modulo | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Criar recurso CRUD completo em `modules/*` |

@@ -1,8 +1,10 @@
 # Frontend UI Patterns — artefato compartilhado (Spec Kit)
 
-**Versão:** 1.0 | **Skill canônica:** `.claude/skills/frontend-ui-patterns/`
+**Versão:** 1.0 | **Skills canônicas:** `.claude/skills/frontend-ui-patterns/` e `.cursor/skills/frontend-ui-patterns/`
 
-Toda feature com interface no SPA **deve** consultar este documento (ou a skill) antes da implementação de UI.
+Toda feature com interface v1 no SPA **deve** consultar este documento (ou a skill) antes da implementação de UI.
+
+> **Só para telas v1.** Tela v2 usa o design system `@/components/ds` e a skill `.claude/skills/design-system/` (tokens `--ds-*`, sem `AdminLayout`/`ClinicLayout` obrigatório). Nunca as duas bibliotecas na mesma tela.
 
 ## Quando referenciar no spec/plan/tasks
 

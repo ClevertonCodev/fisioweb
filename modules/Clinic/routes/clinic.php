@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\ClinicProfileController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
+use Modules\Clinic\Http\Controllers\ClinicUserPreferenceController;
 use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
@@ -15,6 +16,9 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
 
     Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
     Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
+
+    Route::get('me/preferences', [ClinicUserPreferenceController::class, 'index'])->name('clinic.me.preferences.index');
+    Route::put('me/preferences/{key}', [ClinicUserPreferenceController::class, 'update'])->name('clinic.me.preferences.update');
 
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
     Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');

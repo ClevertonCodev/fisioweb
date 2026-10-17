@@ -6,6 +6,7 @@ use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
+use Modules\ClinicScheduling\Http\Requests\PatientHistoryRequest;
 use Modules\ClinicScheduling\Http\Requests\StoreAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentStatusRequest;
@@ -27,6 +28,24 @@ class AppointmentController extends ClinicAuthenticatedController
         $appointments = $this->appointmentService->listForUser($user, $filters);
 
         return response()->json(['data' => $appointments]);
+    }
+
+    public function patientHistory(PatientHistoryRequest $request, int $patient): JsonResponse
+    {
+        $this->authorize('viewAny', Appointment::class);
+
+        $history = $this->appointmentService->historyForPatient($this->clinicUser(), $patient, $request->perPage());
+
+        return response()->json([
+            'data' => $history->through(fn (Appointment $appointment) => [
+                'id'               => $appointment->id,
+                'starts_at'        => $appointment->starts_at?->toIso8601String(),
+                'ends_at'          => $appointment->ends_at?->toIso8601String(),
+                'title'            => $appointment->title,
+                'clinic_user_name' => $appointment->clinicUser?->name,
+                'status'           => $appointment->status->value,
+            ]),
+        ]);
     }
 
     public function store(StoreAppointmentRequest $request): JsonResponse

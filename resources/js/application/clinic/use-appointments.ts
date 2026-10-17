@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from '@tanstack/react-query';
 
 import type {
     AppointmentListParams,
@@ -6,6 +11,8 @@ import type {
 } from '@/application/clinic/ports';
 import type { AppointmentStatus } from '@/domain/clinic';
 import { apiClinicAppointmentsRepository } from '@/infrastructure/repositories';
+
+import { nextHistoryPage } from './patient-history-pages';
 
 const repository = apiClinicAppointmentsRepository;
 
@@ -30,10 +37,37 @@ export function useAgendaPatients() {
     });
 }
 
+/**
+ * Histórico completo do paciente (qualquer profissional), paginado da
+ * consulta mais recente para a mais antiga. Página `null` = sem acesso.
+ */
+export function usePatientAppointmentHistory(
+    patientId: string | null,
+    /** Na chave: o cache de uma sessão não aparece para outro usuário. */
+    userId: string | undefined,
+) {
+    return useInfiniteQuery({
+        queryKey: ['appointments', 'history', userId, patientId],
+        queryFn: ({ pageParam }) =>
+            repository.patientHistory(patientId as string, pageParam),
+        initialPageParam: 1,
+        getNextPageParam: nextHistoryPage,
+        enabled: !!patientId,
+        retry: false,
+    });
+}
+
 function useInvalidateAppointments() {
     const queryClient = useQueryClient();
     return () =>
-        queryClient.invalidateQueries({ queryKey: ['appointments', 'list'] });
+        Promise.all([
+            queryClient.invalidateQueries({
+                queryKey: ['appointments', 'list'],
+            }),
+            queryClient.invalidateQueries({
+                queryKey: ['appointments', 'history'],
+            }),
+        ]);
 }
 
 export function useCreateAppointment() {

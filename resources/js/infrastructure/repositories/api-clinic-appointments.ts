@@ -1,10 +1,16 @@
+import { isAxiosError } from 'axios';
+
 import type {
     AgendaProfessional,
     AppointmentListParams,
     AppointmentsRepository,
     AppointmentWriteDto,
+    PatientAppointmentHistoryPage,
 } from '@/application/clinic/ports';
-import type { Appointment } from '@/domain/clinic';
+import type {
+    Appointment,
+    PatientAppointmentHistoryItem,
+} from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiNamedDto {
@@ -47,6 +53,28 @@ function toEntity(raw: ApiAppointmentDto): Appointment {
         status: raw.status,
         location: raw.location,
         source: raw.source === 'google' ? 'google' : 'system',
+    };
+}
+
+interface ApiPatientHistoryDto {
+    id: number;
+    starts_at: string;
+    ends_at: string;
+    title: string | null;
+    clinic_user_name: string | null;
+    status: Appointment['status'];
+}
+
+function toHistoryItem(
+    raw: ApiPatientHistoryDto,
+): PatientAppointmentHistoryItem {
+    return {
+        id: String(raw.id),
+        startsAt: raw.starts_at,
+        endsAt: raw.ends_at,
+        title: raw.title,
+        clinicUserName: raw.clinic_user_name ?? '',
+        status: raw.status,
     };
 }
 
@@ -133,5 +161,36 @@ export const apiClinicAppointmentsRepository: AppointmentsRepository = {
             `/clinic/appointments/${id}/cancel`,
         );
         return toEntity(data.data);
+    },
+
+    async patientHistory(
+        patientId: string,
+        page: number,
+    ): Promise<PatientAppointmentHistoryPage | null> {
+        try {
+            const { data } = await apiClient.get<{
+                data: {
+                    data: ApiPatientHistoryDto[];
+                    total: number;
+                    per_page: number;
+                    current_page: number;
+                    last_page: number;
+                };
+            }>(`/clinic/patients/${patientId}/appointments`, {
+                params: { page },
+            });
+            return {
+                items: data.data.data.map(toHistoryItem),
+                total: data.data.total,
+                perPage: data.data.per_page,
+                currentPage: data.data.current_page,
+                lastPage: data.data.last_page,
+            };
+        } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 };

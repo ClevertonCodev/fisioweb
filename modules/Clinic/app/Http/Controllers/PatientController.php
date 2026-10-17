@@ -63,6 +63,27 @@ class PatientController extends ClinicAuthenticatedController
         ]);
     }
 
+    public function reactivate(int $id): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+        $patient  = $this->patientService->find($id);
+
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        $this->authorize('reactivate', $patient);
+
+        $reactivated = $this->patientService->reactivate($clinicId, $id);
+
+        // Apagado entre a checagem acima e o update.
+        if (is_null($reactivated)) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        return response()->json(['data' => $reactivated]);
+    }
+
     public function show(int $id): JsonResponse
     {
         $clinicId = $this->clinicId();

@@ -41,7 +41,6 @@ export interface PatientWriteDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
-    isActive?: boolean;
 }
 
 /** DTO de atualização de paciente — sem senha (application concern, camelCase) */
@@ -69,7 +68,6 @@ export interface PatientUpdateDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
-    isActive?: boolean;
 }
 
 export interface PatientListParams {
@@ -101,7 +99,9 @@ export interface PatientsRepository {
     update(id: string, dto: PatientUpdateDto): Promise<Patient>;
     uploadPhoto(id: string, file: File): Promise<Patient>;
     deletePhoto(id: string): Promise<Patient>;
-    bulkInactivate(ids: string[]): Promise<void>;
+    /** Devolve quantos pacientes foram inativados. */
+    bulkInactivate(ids: string[]): Promise<number>;
+    reactivate(id: string): Promise<Patient>;
 }
 
 export interface ExerciseListParams {

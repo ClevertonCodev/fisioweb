@@ -83,6 +83,24 @@ class PatientClinicIsolationTest extends TestCase
         $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_url' => 'https://cdn.example.com/b.jpg']);
     }
 
+    public function test_reactivate_reaches_own_patient_and_not_another_clinic_patient(): void
+    {
+        $this->patientA->update(['is_active' => false]);
+        $this->patientB->update(['is_active' => false]);
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientB->id}/reactivate")
+            ->assertNotFound()
+            ->assertJsonMissingPath('data');
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/reactivate")
+            ->assertOk();
+
+        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'is_active' => true]);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'is_active' => false]);
+    }
+
     public function test_bulk_inactivate_only_reaches_own_clinic_patients(): void
     {
         $this->actingAs($this->adminA, 'clinic')

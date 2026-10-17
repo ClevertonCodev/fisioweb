@@ -101,6 +101,17 @@ class PatientRepository implements PatientRepositoryInterface
             ->update(['is_active' => false]);
     }
 
+    public function reactivate(int $clinicId, int $id): ?Patient
+    {
+        Patient::where('clinic_id', $clinicId)
+            ->whereKey($id)
+            ->update(['is_active' => true]);
+
+        return Patient::with('clinicUser:id,name')
+            ->where('clinic_id', $clinicId)
+            ->find($id);
+    }
+
     public function create(array $data): Patient
     {
         return Patient::create($data);

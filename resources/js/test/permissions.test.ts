@@ -77,6 +77,21 @@ describe('can.bulkInactivate', () => {
     });
 });
 
+describe('can.reactivate', () => {
+    it('permite admin e secretary', () => {
+        expect(can.reactivate('admin')).toBe(true);
+        expect(can.reactivate('secretary')).toBe(true);
+    });
+
+    it('nega physiotherapist', () => {
+        expect(can.reactivate('physiotherapist')).toBe(false);
+    });
+
+    it('nega quando role é undefined', () => {
+        expect(can.reactivate(undefined)).toBe(false);
+    });
+});
+
 describe('can.manageClinicalRecords', () => {
     it('permite admin e physiotherapist', () => {
         expect(can.manageClinicalRecords('admin')).toBe(true);

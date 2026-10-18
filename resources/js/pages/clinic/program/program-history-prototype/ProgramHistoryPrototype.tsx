@@ -18,6 +18,7 @@ import { useClinicPrograms } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
     DsButton,
+    dsCn,
     DsDrawer,
     DsDropdown,
     DsEmptyState,
@@ -27,6 +28,7 @@ import {
     DsTabs,
 } from '@/components/ds';
 import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
 
 import {
     activeFilterCount,
@@ -88,6 +90,7 @@ export default function ProgramHistoryPrototype({
     variant: string;
 }) {
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
     const [searchParams, setSearchParams] = useSearchParams();
     const patientId = searchParams.get('patientId');
 
@@ -160,12 +163,13 @@ export default function ProgramHistoryPrototype({
             <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
                 <div className="px-4 py-6 sm:px-6 sm:py-8">
                     <div className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-col gap-6">
-                        <header className="flex flex-wrap items-center gap-4">
-                            <div className="mr-auto">
-                                <h1 className="text-ds-page-title">
+                        {/* No celular, "Criar programa" (com texto) desce para a largura toda. */}
+                        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                            <div className="min-w-0 sm:mr-auto">
+                                <h1 className="text-ds-body-lg font-medium sm:text-ds-page-title sm:font-normal">
                                     Programas e exercícios
                                 </h1>
-                                <p className="mt-1 text-ds-body-sm text-ds-content-secondary">
+                                <p className="mt-0.5 text-ds-caption text-ds-content-secondary sm:mt-1 sm:text-ds-body-sm">
                                     {isLoading
                                         ? 'Carregando programas…'
                                         : totalLabel(
@@ -174,33 +178,26 @@ export default function ProgramHistoryPrototype({
                                           )}
                                 </p>
                             </div>
-                            <div className="sm:hidden">
-                                <DsButton
-                                    iconPosition="only"
-                                    icon={<Plus />}
-                                    label="Criar programa"
-                                    onClick={newProgram}
-                                />
-                            </div>
-                            <div className="hidden sm:block">
-                                <DsButton
-                                    iconPosition="left"
-                                    icon={<Plus />}
-                                    label="Criar programa"
-                                    onClick={newProgram}
-                                />
-                            </div>
+                            <DsButton
+                                size={isMobile ? 'full' : 'md'}
+                                iconPosition="left"
+                                icon={<Plus />}
+                                label="Criar programa"
+                                onClick={newProgram}
+                            />
                         </header>
 
                         <section
                             aria-label="Seções, busca e filtros"
-                            className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs"
+                            className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-3 shadow-ds-xs sm:p-4"
                         >
-                            {/* Abas no topo da caixa, separadas dos filtros por uma linha. */}
-                            <div className="-mx-4 border-b border-ds-border-subtle px-4 pb-4">
+                            {/* Abas no topo da caixa, separadas dos filtros por uma linha.
+                                No celular, compactas e quase até a borda para caberem as três. */}
+                            <div className="-mx-3 border-b border-ds-border-subtle px-1.5 pb-3 sm:-mx-4 sm:px-4 sm:pb-4">
                                 <div className="w-full max-w-md">
                                     <DsTabs
                                         aria-label="Seções de programas"
+                                        size={isMobile ? 'sm' : 'md'}
                                         tabs={TABS}
                                         value="historico"
                                         onValueChange={(key) => {
@@ -212,12 +209,16 @@ export default function ProgramHistoryPrototype({
                                     />
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="min-w-0 flex-1 basis-65">
+                            <div className="flex items-center gap-2 sm:gap-3 md:flex-wrap">
+                                <div className="min-w-0 flex-1 md:basis-65">
                                     <DsInput
                                         type="search"
                                         aria-label="Pesquisar programas"
-                                        placeholder="Pesquisar por paciente, programa ou profissional"
+                                        placeholder={
+                                            isMobile
+                                                ? 'Pesquisar programa'
+                                                : 'Pesquisar por paciente, programa ou profissional'
+                                        }
                                         iconLeft={<Search />}
                                         value={filters.search}
                                         onValueChange={(search) =>
@@ -256,7 +257,9 @@ export default function ProgramHistoryPrototype({
                                                 ? 'primary'
                                                 : 'secondary'
                                         }
-                                        iconPosition="left"
+                                        iconPosition={
+                                            isMobile ? 'only' : 'left'
+                                        }
                                         icon={<SlidersHorizontal />}
                                         label={
                                             filterCount > 0
@@ -267,7 +270,13 @@ export default function ProgramHistoryPrototype({
                                     />
                                 </div>
                             </div>
-                            <div className="flex min-h-8 items-center">
+                            <div
+                                className={dsCn(
+                                    'flex min-h-8 items-center',
+                                    // No celular, sem filtro não ocupa espaço.
+                                    chips.length === 0 && 'max-sm:hidden',
+                                )}
+                            >
                                 {chips.length > 0 ? (
                                     <DsFilterChips
                                         chips={chips}

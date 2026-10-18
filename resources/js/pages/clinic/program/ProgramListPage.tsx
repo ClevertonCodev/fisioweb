@@ -19,6 +19,8 @@ import ExerciseLibraryPrototype from './exercise-library-prototype/ExerciseLibra
 import { LIBRARY_VARIANTS } from './exercise-library-prototype/variants';
 import ProgramHistoryPrototype from './program-history-prototype/ProgramHistoryPrototype';
 import { HISTORY_VARIANTS } from './program-history-prototype/variants';
+import ProgramModelsPrototype from './program-models-prototype/ProgramModelsPrototype';
+import { MODELS_VARIANTS } from './program-models-prototype/variants';
 
 function deriveActiveTab(pathname: string): string {
     if (pathname.includes('/exercicios')) return 'exercicios';
@@ -37,6 +39,9 @@ export default function ProgramListPage() {
     // PROTÓTIPO: Exercícios v2 por ?variant= (O = esta tela v1).
     const libraryVariant = usePrototypeVariant(LIBRARY_VARIANTS, 'D');
     const libraryPrototype = import.meta.env.DEV && activeTab === 'exercicios';
+    // PROTÓTIPO: Programas (modelos) v2 por ?variant= (O = esta tela v1).
+    const modelsVariant = usePrototypeVariant(MODELS_VARIANTS, 'C');
+    const modelsPrototype = import.meta.env.DEV && activeTab === 'programas';
 
     const handleTabChange = (value: string) => {
         switch (value) {
@@ -66,6 +71,9 @@ export default function ProgramListPage() {
     if (libraryPrototype && libraryVariant !== 'O') {
         return <ExerciseLibraryPrototype variant={libraryVariant} />;
     }
+    if (modelsPrototype && modelsVariant !== 'O') {
+        return <ProgramModelsPrototype variant={modelsVariant} />;
+    }
 
     return (
         <ClinicLayout>
@@ -79,6 +87,12 @@ export default function ProgramListPage() {
                 <PrototypeSwitcher
                     variants={LIBRARY_VARIANTS}
                     current={libraryVariant}
+                />
+            )}
+            {modelsPrototype && (
+                <PrototypeSwitcher
+                    variants={MODELS_VARIANTS}
+                    current={modelsVariant}
                 />
             )}
             <div className="flex h-full flex-col">

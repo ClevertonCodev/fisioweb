@@ -52,7 +52,8 @@ export function CardVideo({
     topRight,
     bottomLeft,
 }: {
-    exercise: Exercise;
+    /** Só título e mídia: serve também para o exercício de um modelo. */
+    exercise: Pick<Exercise, 'title' | 'videoUrl' | 'thumbnailUrl'>;
     onOpen?: () => void;
     className?: string;
     topLeft?: ReactNode;

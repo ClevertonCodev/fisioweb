@@ -15,6 +15,8 @@ import {
     usePrototypeVariant,
 } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
 
+import ExerciseLibraryPrototype from './exercise-library-prototype/ExerciseLibraryPrototype';
+import { LIBRARY_VARIANTS } from './exercise-library-prototype/variants';
 import ProgramHistoryPrototype from './program-history-prototype/ProgramHistoryPrototype';
 import { HISTORY_VARIANTS } from './program-history-prototype/variants';
 
@@ -32,6 +34,9 @@ export default function ProgramListPage() {
     // PROTÓTIPO: Histórico v2 por ?variant= (O = esta tela v1).
     const historyVariant = usePrototypeVariant(HISTORY_VARIANTS, 'A');
     const historyPrototype = import.meta.env.DEV && activeTab === 'historico';
+    // PROTÓTIPO: Exercícios v2 por ?variant= (O = esta tela v1).
+    const libraryVariant = usePrototypeVariant(LIBRARY_VARIANTS, 'D');
+    const libraryPrototype = import.meta.env.DEV && activeTab === 'exercicios';
 
     const handleTabChange = (value: string) => {
         switch (value) {
@@ -58,6 +63,9 @@ export default function ProgramListPage() {
     if (historyPrototype && historyVariant !== 'O') {
         return <ProgramHistoryPrototype variant={historyVariant} />;
     }
+    if (libraryPrototype && libraryVariant !== 'O') {
+        return <ExerciseLibraryPrototype variant={libraryVariant} />;
+    }
 
     return (
         <ClinicLayout>
@@ -65,6 +73,12 @@ export default function ProgramListPage() {
                 <PrototypeSwitcher
                     variants={HISTORY_VARIANTS}
                     current={historyVariant}
+                />
+            )}
+            {libraryPrototype && (
+                <PrototypeSwitcher
+                    variants={LIBRARY_VARIANTS}
+                    current={libraryVariant}
                 />
             )}
             <div className="flex h-full flex-col">

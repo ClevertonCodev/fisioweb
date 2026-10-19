@@ -36,8 +36,30 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import type { FinancialTransactionType } from '@/domain/clinic/finance';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import { FINANCE_VARIANTS } from './finance-prototype/data';
+import FinancePrototype from './finance-prototype/FinancePrototype';
+
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela de Finanças
+ * no DS v2 (finance-prototype), na seção categorias das Configurações; O = esta
+ * tela. Desligado nos testes (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function FinancesCategoriesPage() {
+    const variant = usePrototypeVariant(FINANCE_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <FinancePrototype variant={variant} focus="categorias" />;
+    }
+    return <FinancesCategoriesPageV1 />;
+}
+
+function FinancesCategoriesPageV1() {
     const { data: categories = [], isLoading } = useFinanceCategories();
     const createMutation = useCreateFinanceCategory();
     const toggleMutation = useToggleFinanceCategory();
@@ -218,6 +240,9 @@ export default function FinancesCategoriesPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={FINANCE_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

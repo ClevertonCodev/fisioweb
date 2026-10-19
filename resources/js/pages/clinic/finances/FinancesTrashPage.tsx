@@ -12,8 +12,30 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { TableCell, TableRow } from '@/components/ui/table';
 import type { FinancialTransaction } from '@/domain/clinic/finance';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import { FINANCE_VARIANTS } from './finance-prototype/data';
+import FinancePrototype from './finance-prototype/FinancePrototype';
+
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela de Finanças
+ * no DS v2 (finance-prototype), na seção lixeira das Configurações; O = esta
+ * tela. Desligado nos testes (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function FinancesTrashPage() {
+    const variant = usePrototypeVariant(FINANCE_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <FinancePrototype variant={variant} focus="lixeira" />;
+    }
+    return <FinancesTrashPageV1 />;
+}
+
+function FinancesTrashPageV1() {
     const { hidden } = useFinanceValuesVisibility();
     const { data } = useFinanceTrash({ page: 1, perPage: 25 });
     const restoreMutation = useRestoreFinanceTransaction();
@@ -69,6 +91,9 @@ export default function FinancesTrashPage() {
                     )}
                 </DataTable>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={FINANCE_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

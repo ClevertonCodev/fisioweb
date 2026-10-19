@@ -59,6 +59,13 @@ import {
     type FinancialTransactionType,
     type PaymentMethod,
 } from '@/domain/clinic/finance';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import { FINANCE_VARIANTS } from './finance-prototype/data';
+import FinancePrototype from './finance-prototype/FinancePrototype';
 
 const emptyForm = (): FinanceTransactionWriteDto => ({
     date: new Date().toISOString().slice(0, 10),
@@ -72,7 +79,22 @@ const emptyForm = (): FinanceTransactionWriteDto => ({
     notes: '',
 });
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela de Finanças
+ * no DS v2 (finance-prototype); O = esta
+ * tela. Desligado nos testes (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function FinancesPage() {
+    const variant = usePrototypeVariant(FINANCE_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <FinancePrototype variant={variant} />;
+    }
+    return <FinancesPageV1 />;
+}
+
+function FinancesPageV1() {
     const [period, setPeriod] = useState(currentFinancePeriod());
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState<10 | 25 | 50>(25);
@@ -553,6 +575,9 @@ export default function FinancesPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={FINANCE_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

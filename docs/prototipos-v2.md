@@ -105,3 +105,15 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Código de 6 dígitos por e-mail para trocar a senha, mandado a quem está logado.
   - [ ] Assinatura só para fisioterapeuta ou administrador com CREFITO.
   - [ ] Corrigir o CPF inválido da Dra. Ana Paula no seed (trava o salvar na v1 também).
+
+## Finanças
+
+- [ ] **Finanças** — `/clinica/financas` (abas por `?aba=lancamentos|relatorio|configuracoes`; `/clinica/financas/categorias` e `/lixeira` abrem Configurações na seção certa)
+  - Lançamentos na variante C, "Calendário de caixa": o mês em grade, cada dia com o que entrou e saiu; o dia escolhido lista os lançamentos ao lado; embaixo, a receber e a pagar, com os atrasados marcados e um botão para dar baixa.
+  - Comuns: resumo do mês (disponível em destaque, saldo inicial editável), lançamento (entrada × saída, categorias mais usadas em chips, taxa da maquininha com o líquido), exportar (Excel, PDF, CSV), relatório (dia a dia, 12 meses, por categoria e tabela) e configurações (categorias, saldo inicial, lixeira, repasses).
+  - Código: `resources/js/pages/clinic/finances/finance-prototype/`
+  - [ ] Buscar o mês inteiro por outro caminho: a lista da API pagina em no máximo 50, e o protótipo busca 2 páginas (até 100).
+  - [ ] Dar baixa (recebido/pago) direto na lista de pendências: hoje só editando o lançamento.
+  - [ ] A % do `category-breakdown` é sobre entradas + saídas; o relatório recalcula por tipo. Decidir se a API passa a mandar por tipo.
+  - [ ] Cores dos gráficos: entradas `--ds-chart-c1` (azul) e saídas `--ds-chart-negative` (vermelho), validadas para daltonismo nos dois temas; verde + vermelho falha.
+  - [ ] Lançar, editar, excluir, dar baixa, restaurar, mexer em categoria e salvar o saldo inicial são stub (exportar já é real).

@@ -2,8 +2,11 @@
 
 namespace Modules\Clinic\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
@@ -53,6 +56,7 @@ class ClinicServiceProvider extends ServiceProvider
 
         $this->registerPolicies();
         $this->registerGateBefore();
+        $this->registerAuthRateLimiters();
     }
 
     /**
@@ -77,6 +81,33 @@ class ClinicServiceProvider extends ServiceProvider
     {
         Gate::policy(Patient::class, PatientPolicy::class);
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
+    }
+
+    /**
+     * Limites das rotas públicas de autenticação da clínica: login por e-mail
+     * e IP (um e-mail travado não trava os outros), senha por rota e IP.
+     */
+    protected function registerAuthRateLimiters(): void
+    {
+        // Repassa Retry-After e X-RateLimit-* que o throttle monta.
+        $tooMany = fn (Request $request, array $headers) => response()->json([
+            'message' => 'Muitas tentativas. Aguarde um minuto e tente de novo.',
+        ], 429, $headers);
+
+        // O limitador roda antes da validação: e-mail que não é texto vira
+        // chave vazia e segue para o 422 do FormRequest.
+        RateLimiter::for('clinic-login', function (Request $request) use ($tooMany) {
+            $email = $request->input('email');
+
+            return Limit::perMinute(5)
+                ->by((is_string($email) ? mb_strtolower($email) : '') . '|' . $request->ip())
+                ->response($tooMany);
+        });
+
+        // Uma conta por rota: pedir links não gasta as tentativas de redefinir.
+        RateLimiter::for('clinic-password', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->path() . '|' . $request->ip())
+            ->response($tooMany));
     }
 
     protected function registerGateBefore(): void

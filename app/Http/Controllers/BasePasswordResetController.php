@@ -30,19 +30,16 @@ abstract class BasePasswordResetController extends Controller
                 . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
         });
 
-        $status = Password::broker($this->brokerName())->sendResetLink(
+        Password::broker($this->brokerName())->sendResetLink(
             $request->only('email')
         );
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => 'E-mail de recuperação enviado. Verifique sua caixa de entrada.']);
-        }
-
-        if ($status === Password::RESET_THROTTLED) {
-            return response()->json(['message' => 'Aguarde antes de solicitar um novo e-mail de recuperação.'], 429);
-        }
-
-        return response()->json(['message' => 'Não foi possível enviar o e-mail de recuperação.'], 400);
+        // A resposta é a mesma com ou sem conta, e também quando o broker
+        // segura um novo pedido (isso só acontece com quem tem conta): assim
+        // a rota não revela quem tem acesso.
+        return response()->json([
+            'message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.',
+        ]);
     }
 
     protected function handleResetPassword(Request $request): JsonResponse
@@ -58,10 +55,9 @@ abstract class BasePasswordResetController extends Controller
             return response()->json(['message' => 'Senha redefinida com sucesso.']);
         }
 
-        if ($status === Password::INVALID_TOKEN) {
-            return response()->json(['message' => 'Token inválido ou expirado.'], 422);
-        }
-
-        return response()->json(['message' => 'Não foi possível redefinir a senha.'], 422);
+        // Token errado e e-mail sem conta respondem igual (o broker só diz
+        // "token inválido" quando a conta existe): a rota não revela quem
+        // tem acesso.
+        return response()->json(['message' => 'Link inválido ou expirado. Peça um novo link.'], 422);
     }
 }

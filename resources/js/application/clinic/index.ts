@@ -1,3 +1,4 @@
+export * from './clinic-password';
 export * from './clinic-profile-form';
 export * from './download-program-pdf';
 export * from './format-program-clinical-record-text';

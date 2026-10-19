@@ -2,6 +2,7 @@
 
 namespace Modules\Admin\Tests\Feature;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -27,19 +28,22 @@ class PasswordResetTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJson(['message' => 'E-mail de recuperação enviado. Verifique sua caixa de entrada.']);
+            ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
 
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
     }
 
-    public function test_forgot_password_returns_400_for_unknown_email(): void
+    /** Sem conta, a resposta é a mesma: não revela quem tem acesso. */
+    public function test_forgot_password_answers_the_same_for_unknown_email(): void
     {
         $response = $this->postJson('/api/admin/auth/forgot-password', [
             'email' => 'notfound@example.com',
         ]);
 
-        $response->assertStatus(400)
-            ->assertJson(['message' => 'Não foi possível enviar o e-mail de recuperação.']);
+        $response->assertOk()
+            ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
+
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'notfound@example.com']);
     }
 
     public function test_forgot_password_requires_email(): void
@@ -60,20 +64,24 @@ class PasswordResetTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
-    public function test_forgot_password_returns_429_when_throttled(): void
+    /**
+     * O broker segura um novo pedido por 60 s só para quem tem conta; a
+     * resposta continua a mesma para não revelar a conta, e nada é reenviado.
+     */
+    public function test_forgot_password_answers_the_same_when_the_broker_throttles(): void
     {
         Notification::fake();
 
         $user = User::factory()->create();
 
-        // Primeira solicitação gera o token
         $this->postJson('/api/admin/auth/forgot-password', ['email' => $user->email]);
 
-        // Segunda solicitação imediata deve ser bloqueada pelo throttle
         $response = $this->postJson('/api/admin/auth/forgot-password', ['email' => $user->email]);
 
-        $response->assertStatus(429)
-            ->assertJson(['message' => 'Aguarde antes de solicitar um novo e-mail de recuperação.']);
+        $response->assertOk()
+            ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
+
+        Notification::assertSentToTimes($user, ResetPassword::class, 1);
     }
 
     // -----------------------------------------------------------------------
@@ -110,7 +118,29 @@ class PasswordResetTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-            ->assertJson(['message' => 'Token inválido ou expirado.']);
+            ->assertJson(['message' => 'Link inválido ou expirado. Peça um novo link.']);
+    }
+
+    /**
+     * Token errado com e-mail sem conta responde igual a token errado com
+     * e-mail que tem conta: a rota não revela quem tem acesso.
+     */
+    public function test_reset_password_answers_the_same_with_or_without_an_account(): void
+    {
+        $user    = User::factory()->create();
+        $payload = fn (string $email) => [
+            'token'                 => 'invalid-token',
+            'email'                 => $email,
+            'password'              => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
+        ];
+
+        $withAccount    = $this->postJson('/api/admin/auth/reset-password', $payload($user->email));
+        $withoutAccount = $this->postJson('/api/admin/auth/reset-password', $payload('ninguem@example.com'));
+
+        $withAccount->assertUnprocessable();
+        $withoutAccount->assertUnprocessable();
+        $this->assertSame($withAccount->json(), $withoutAccount->json());
     }
 
     public function test_reset_password_requires_all_fields(): void

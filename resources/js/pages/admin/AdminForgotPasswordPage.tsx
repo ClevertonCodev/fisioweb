@@ -63,7 +63,8 @@ export default function AdminForgotPasswordPage() {
                 {success ? (
                     <div className="w-full space-y-4">
                         <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-center text-sm text-green-700 dark:text-green-400">
-                            E-mail de recuperação enviado. Verifique sua caixa
+                            Se houver uma conta com este e-mail, enviamos um
+                            link para criar uma senha nova. Verifique sua caixa
                             de entrada.
                         </div>
                         <Button

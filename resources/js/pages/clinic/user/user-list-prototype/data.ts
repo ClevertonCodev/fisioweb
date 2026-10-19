@@ -65,7 +65,12 @@ export const CAPABILITIES: {
     {
         key: 'sign',
         label: 'Assinar documentos',
-        access: { admin: true, physiotherapist: true, secretary: false },
+        // Assina quem atende: administrador só com CREFITO.
+        access: {
+            admin: 'Com CREFITO',
+            physiotherapist: true,
+            secretary: false,
+        },
     },
     {
         key: 'reactivate',

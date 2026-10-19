@@ -30,8 +30,30 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SlugInput } from '@/components/ui/slug-input';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import RegisterPrototype from './register-prototype/RegisterPrototype';
+import { REGISTER_VARIANTS } from './register-prototype/shared';
+
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (register-prototype); O = esta tela. Desligado nos testes (o Vitest roda
+ * com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function ClinicRegisterPage() {
+    const variant = usePrototypeVariant(REGISTER_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <RegisterPrototype variant={variant} />;
+    }
+    return <ClinicRegisterPageV1 />;
+}
+
+function ClinicRegisterPageV1() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -381,6 +403,9 @@ export default function ClinicRegisterPage() {
                     </p>
                 </div>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={REGISTER_VARIANTS} current="O" />
+            )}
         </div>
     );
 }

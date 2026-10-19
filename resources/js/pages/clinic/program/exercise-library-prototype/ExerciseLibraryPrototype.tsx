@@ -54,8 +54,11 @@ function countLabel(n: number, filtered: boolean): string {
 
 export default function ExerciseLibraryPrototype({
     variant,
+    menu = false,
 }: {
     variant: string;
+    /** /clinica/exercicios (menu de cima): sem as abas de Programas. */
+    menu?: boolean;
 }) {
     const navigate = useNavigate();
     const isMobile = useIsMobile();
@@ -146,7 +149,7 @@ export default function ExerciseLibraryPrototype({
             emptyState={emptyState}
             canSubmit={canSubmit}
             onSubmit={() => navigate(SUBMIT_PATH)}
-            tabs={tabs}
+            tabs={menu ? undefined : tabs}
         />
     );
 
@@ -160,7 +163,9 @@ export default function ExerciseLibraryPrototype({
                         <header className="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <div className="min-w-0 sm:mr-auto">
                                 <h1 className="text-ds-body-lg font-medium sm:text-ds-page-title sm:font-normal">
-                                    Programas e exercícios
+                                    {menu
+                                        ? 'Exercícios'
+                                        : 'Programas e exercícios'}
                                 </h1>
                                 <p className="mt-0.5 text-ds-caption text-ds-content-secondary sm:mt-1 sm:text-ds-body-sm">
                                     {isLoading

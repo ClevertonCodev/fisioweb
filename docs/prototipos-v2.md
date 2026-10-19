@@ -4,6 +4,8 @@ Telas do design system v2 já prototipadas e escolhidas na branch `feat/clinic-p
 
 Marque `[x]` na tela quando a v2 de verdade (com testes) substituir a v1 e a pasta `*-prototype` sair do código. Os subitens são o que a implementação precisa resolver além de copiar o visual; marque cada um quando estiver resolvido.
 
+Toda tela v2 usa a largura máxima do DS: `mx-auto max-w-(--breakpoint-ds-xl)` (1920px), como a lista de pacientes.
+
 O protótipo é referência, não código de produção: a tela real é reescrita seguindo o ciclo do projeto (`refinar` → `escrever-plano` → `criar-tarefas` → `implementar-tarefa` → `revisao-adversaria`).
 
 ---
@@ -24,6 +26,7 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Mandar os filtros para a API, que já aceita `search`, `physio_area_id`, `physio_subarea_id`, `body_region_id`, `difficulty_level` e `movement_form`; hoje o front filtra só o que já carregou.
   - [ ] Filtro de favoritos e de origem (catálogo × enviados pela clínica) na API.
   - [ ] "Usar em novo programa" e "Usar em novo modelo" são stub.
+  - `/clinica/exercicios` (menu de cima) mostra a mesma biblioteca D, sem as abas de Programas (`menu` no `ExerciseLibraryPrototype`).
 
 - [ ] **Enviar exercício** — `/clinica/exercicios/enviar`
   - Variante A, "Seções + prévia ao lado": vídeo, informações e fotos do PDF, com prévia da biblioteca e checklist.
@@ -44,6 +47,11 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] A escolha de exercícios usa o mesmo componente da biblioteca (`selection`).
   - [ ] "Voltar" é um botão do mesmo tamanho, ao lado do "Avançar"; início e término em dois calendários separados.
 
+- [ ] **Detalhe do programa** — `/clinica/programas/:id`
+  - Variante A, "Painel do programa": paciente, situação e validade em barra; números (exercícios, dias que faltam, vezes que completou, quando abriu); blocos com cada exercício em cartão, a dose em pedaços e o vídeo num modal.
+  - Código: `resources/js/pages/clinic/program/program-detail-prototype/`
+  - [ ] PDF, texto do prontuário e copiar link já são reais; WhatsApp, duplicar, transformar em modelo e excluir são stub.
+
 ## Pacientes
 
 - [ ] **Prontuário do paciente** — `/clinica/pacientes/:id`
@@ -62,6 +70,14 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Área (especialidade) e indicação pelo diagnóstico vindas do cadastro do modelo; hoje são deduzidas do nome.
   - [ ] Decidir o "Enviar link": a avaliação respondida pelo paciente não existe no backend (só o questionário tem link).
   - [ ] "Responder agora" é stub no protótipo (na v1, cria a avaliação e abre o formulário).
+
+- [ ] **Responder avaliação** — `/clinica/pacientes/:id/avaliacoes/:assessmentId/editar`
+  - Variante C, "Ficha e laudo": o formulário de um lado e, do outro, a folha como sairia impressa (cabeçalho do paciente, uma linha por resposta, a escala em pontos e a linha de assinatura), montada enquanto se responde. Assinada, a tela vira só a folha; no celular, "Preencher" e "Laudo" em abas.
+  - Código: `resources/js/pages/clinic/patient/assessment-answer-prototype/`
+  - [ ] Todas as avaliações do seed estão assinadas; `?rascunho=1` ("Ver como rascunho") libera os campos só no protótipo. Apagar esse atalho na implementação.
+  - [ ] "Baixar PDF" da avaliação não existe no backend.
+  - [ ] Seed com texto em campo de número (ex.: "Sem alterações dignas de nota." em campo `number`): corrigir o seed e validar o tipo no backend.
+  - [ ] Salvar rascunho e assinar são stub.
 
 - [ ] **Nova evolução** — no prontuário, botão "Nova evolução" (`?nova=evolucao`)
   - Variante B, "Folha da evolução": o modelo de um lado e, do outro, a folha como fica no prontuário (cabeçalho, texto montado ao vivo, notas e linha de assinatura); "Com modelo" e "Texto livre" num seletor; "Repetir a sessão" reaproveita a anterior.
@@ -117,3 +133,37 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] A % do `category-breakdown` é sobre entradas + saídas; o relatório recalcula por tipo. Decidir se a API passa a mandar por tipo.
   - [ ] Cores dos gráficos: entradas `--ds-chart-c1` (azul) e saídas `--ds-chart-negative` (vermelho), validadas para daltonismo nos dois temas; verde + vermelho falha.
   - [ ] Lançar, editar, excluir, dar baixa, restaurar, mexer em categoria e salvar o saldo inicial são stub (exportar já é real).
+
+## Modelos de evolução
+
+- [ ] **Lista de modelos de evolução** — `/clinica/templates/evolucoes`
+  - Variante A, "Cartões com prévia": cada modelo em cartão com as seções em miniatura; "Experimentar" abre a gaveta onde se tocam os itens e aparece o texto do prontuário; o do sistema tem "Duplicar" no lugar de "Editar".
+  - Código: `resources/js/pages/clinic/evolution-template/evolution-template-prototype/ListPrototype.tsx`
+  - Decisões: [ADR 020](adr/020-modelos-de-evolucao-v2-acesso-e-editor.md).
+  - [ ] **Link para a tela:** hoje nenhum menu leva a ela. Pôr no menu da conta e na gaveta "Nova evolução" ("Gerenciar modelos").
+  - [ ] **Ativar e desativar** numa rota própria: o "Ativo" da v1 não grava (`is_active` é ignorado) e reenvia as seções, o que apaga a marcação das evoluções.
+  - [ ] Apagar os modelos "Exemplo" (`DEMO_TEMPLATES`, rotas `/exemploN`).
+
+- [ ] **Criar e editar modelo de evolução** — `/clinica/templates/evolucoes/novo` e `/:id/editar`
+  - Variante A, "Montar e ver ao vivo": seções em cartões, um item por linha (nome no botão, texto do prontuário, se pede complemento) e, ao lado, o modelo funcionando.
+  - Código: `resources/js/pages/clinic/evolution-template/evolution-template-prototype/EditorPrototype.tsx` e `EditorA.tsx`
+  - Decisões: [ADR 020](adr/020-modelos-de-evolucao-v2-acesso-e-editor.md).
+  - [ ] **Antes de tudo:** editar um modelo apaga e recria os itens, e o `cascadeOnDelete` apaga os itens marcados das evoluções feitas com ele (até as assinadas). Sincronizar por id e trocar a FK para `restrictOnDelete`.
+  - [ ] Modelo do sistema salva como cópia da clínica.
+  - [ ] Formulário em RHF + Zod; salvar é stub.
+
+## Clínica
+
+- [ ] **Dados da clínica** — `/clinica/dados`
+  - Variante A, "Cartão de visita ao vivo": identidade, contato, endereço e conta em cartões; ao lado, onde os dados aparecem para o paciente (topo do PDF do programa, sugestão de mensagem com o link, endereço do link, que não muda).
+  - Código: `resources/js/pages/clinic/clinic-data/clinic-data-prototype/`
+  - [ ] Só o mestre edita (`can.editClinicData`); `?mestre=0` simula quem não é mestre no protótipo.
+  - [ ] O PDF do programa usa nome e e-mail do profissional e só o telefone da clínica; sem telefone, sai sem contato.
+  - [ ] A clínica 1 do seed é PJ com documento de 11 dígitos ("CNPJ incompleto"): corrigir o seed.
+  - [ ] Situação fica só para leitura (na v1 o mestre muda); decidir se continua assim. Salvar é stub.
+
+- [ ] **Criar conta** — `/clinica/criar-conta`
+  - Variante A, "Três passos": o mesmo cartão do login em três passos (clínica, acesso, endereço dos links), com força da senha e resumo antes de criar.
+  - Código: `resources/js/pages/clinic/register-prototype/`
+  - [ ] O auto-cadastro não existe no backend (a v1 também só avisa); criar a conta é stub.
+  - [ ] Conferir no backend se o endereço (slug) está livre; o protótipo só marca `clinica-cleverton` como usado.

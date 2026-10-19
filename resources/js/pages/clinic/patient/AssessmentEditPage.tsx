@@ -19,6 +19,13 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import type { AssessmentField, AssessmentSection } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import AssessmentAnswerPrototype from './assessment-answer-prototype/AssessmentAnswerPrototype';
+import { ANSWER_VARIANTS } from './assessment-answer-prototype/shared';
 
 interface TextFieldProps {
     field: AssessmentField;
@@ -252,7 +259,22 @@ function SectionCard({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (assessment-answer-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function AssessmentEditPage() {
+    const variant = usePrototypeVariant(ANSWER_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <AssessmentAnswerPrototype variant={variant} />;
+    }
+    return <AssessmentEditPageV1 />;
+}
+
+function AssessmentEditPageV1() {
     const { id: patientId, assessmentId } = useParams<{
         id: string;
         assessmentId: string;
@@ -465,6 +487,9 @@ export default function AssessmentEditPage() {
                     </div>
                 )}
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={ANSWER_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

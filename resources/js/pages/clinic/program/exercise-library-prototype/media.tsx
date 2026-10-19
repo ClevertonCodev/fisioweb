@@ -4,9 +4,11 @@
  * são stub.
  */
 import {
+    Check,
     Maximize,
     Pause,
     Play,
+    Plus,
     SkipBack,
     SkipForward,
     Star,
@@ -534,8 +536,53 @@ export interface VariantProps {
     isLoading: boolean;
     /** Erro ou lista vazia já decidida (null = há resultados). */
     emptyState: ReactNode;
-    canSubmit: boolean;
-    onSubmit: () => void;
-    /** Abas Histórico/Exercícios/Programas (a D põe dentro da caixa de filtros). */
-    tabs: ReactNode;
+    canSubmit?: boolean;
+    onSubmit?: () => void;
+    /**
+     * Topo da caixa de filtros: as abas Histórico/Exercícios/Programas na
+     * biblioteca; no assistente de programa, o grupo que recebe os exercícios.
+     */
+    tabs?: ReactNode;
+    /** Modo seleção (assistente de programa): marcar exercícios no cartão e no modal. */
+    selection?: LibrarySelection;
+}
+
+export interface LibrarySelection {
+    isSelected: (e: Exercise) => boolean;
+    onToggle: (e: Exercise) => void;
+}
+
+/** Círculo de marcar no canto do vídeo (modo seleção). */
+export function SelectToggle({
+    exercise,
+    selected,
+    onToggle,
+}: {
+    exercise: Exercise;
+    selected: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            aria-pressed={selected}
+            aria-label={
+                selected
+                    ? `Tirar ${exercise.title} do programa`
+                    : `Adicionar ${exercise.title} ao programa`
+            }
+            onClick={(ev) => {
+                ev.stopPropagation();
+                onToggle();
+            }}
+            className={dsCn(
+                'flex size-8 cursor-pointer items-center justify-center rounded-ds-full border-2 shadow-ds-sm outline-0 transition-[background,transform] hover:scale-110 focus-visible:shadow-ds-focus [&_svg]:size-4',
+                selected
+                    ? 'border-ds-primary-80 bg-ds-primary-80 text-white ds-dark:border-ds-primary-70 ds-dark:bg-ds-primary-70'
+                    : 'border-white bg-black/30 text-white backdrop-blur-sm',
+            )}
+        >
+            {selected ? <Check /> : <Plus />}
+        </button>
+    );
 }

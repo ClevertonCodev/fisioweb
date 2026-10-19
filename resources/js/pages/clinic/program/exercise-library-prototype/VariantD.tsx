@@ -5,6 +5,10 @@
  * play do tamanho da referência e, embaixo, título em duas linhas +
  * estrela, especialidade e região. Rolagem infinita como na v1 (20 por
  * vez, sem paginação). O modal tem os botões de usar o exercício.
+ *
+ * Com `selection` (assistente de programa), o cartão ganha o círculo de
+ * marcar e o contorno de escolhido, e o modal troca as ações por
+ * "Adicionar ao programa".
  */
 import {
     Gauge,
@@ -19,7 +23,12 @@ import { useState } from 'react';
 import { DsButton, dsCn, DsDrawer, DsInput } from '@/components/ds';
 
 import { ExerciseModal } from './ExerciseModal';
-import { CardVideo, FavoriteButton, type VariantProps } from './media';
+import {
+    CardVideo,
+    FavoriteButton,
+    SelectToggle,
+    type VariantProps,
+} from './media';
 import {
     ActiveChips,
     CardSkeletons,
@@ -42,7 +51,8 @@ const GRID =
 const BAR_FACETS: FacetKey[] = ['specialty', 'bodyRegion', 'difficulty'];
 
 export function VariantD(props: VariantProps) {
-    const { filtered, all, filters, onChange, onToggleFavorite } = props;
+    const { filtered, all, filters, onChange, onToggleFavorite, selection } =
+        props;
     const [openId, setOpenId] = useState<string | null>(null);
     const [drawer, setDrawer] = useState(false);
     const open = all.find((e) => e.id === openId) ?? null;
@@ -58,9 +68,11 @@ export function VariantD(props: VariantProps) {
                 className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-3 shadow-ds-xs sm:p-4"
             >
                 {/* No celular, as abas vão quase até a borda para caberem as três. */}
-                <div className="-mx-3 border-b border-ds-border-subtle px-1.5 pb-3 sm:-mx-4 sm:px-4 sm:pb-4">
-                    {props.tabs}
-                </div>
+                {props.tabs && (
+                    <div className="-mx-3 border-b border-ds-border-subtle px-1.5 pb-3 sm:-mx-4 sm:px-4 sm:pb-4">
+                        {props.tabs}
+                    </div>
+                )}
                 <div className="flex items-center gap-2 sm:gap-3 md:flex-wrap">
                     <div className="min-w-0 flex-1 md:basis-65">
                         <DsInput
@@ -136,37 +148,60 @@ export function VariantD(props: VariantProps) {
                 (props.emptyState ?? (
                     <>
                         <ul aria-label="Exercícios" className={GRID}>
-                            {visible.map((e) => (
-                                <li key={e.id}>
-                                    <div
-                                        onClick={() => setOpenId(e.id)}
-                                        className="group/card cursor-pointer"
-                                    >
-                                        <CardVideo
-                                            exercise={e}
-                                            onOpen={() => setOpenId(e.id)}
-                                            className="aspect-square rounded-ds-lg shadow-ds-xs"
-                                        />
-                                        <div className="mt-3 flex items-start gap-2">
-                                            <div className="min-w-0 flex-1">
-                                                <h3 className="line-clamp-2 text-ds-body-xs leading-snug font-medium text-ds-content-primary group-hover/card:text-ds-content-brand ds-dark:group-hover/card:text-ds-primary-60">
-                                                    {e.title}
-                                                </h3>
-                                                <p className="mt-1 truncate text-ds-caption text-ds-content-muted">
-                                                    {subtitleOf(e)}
-                                                </p>
-                                            </div>
-                                            <div className="-mt-1.5 -mr-1.5">
-                                                <FavoriteButton
-                                                    exercise={e}
-                                                    onToggle={onToggleFavorite}
-                                                    look="plain"
-                                                />
+                            {visible.map((e) => {
+                                const picked =
+                                    selection?.isSelected(e) ?? false;
+                                return (
+                                    <li key={e.id}>
+                                        <div
+                                            onClick={() => setOpenId(e.id)}
+                                            className="group/card cursor-pointer"
+                                        >
+                                            <CardVideo
+                                                exercise={e}
+                                                onOpen={() => setOpenId(e.id)}
+                                                className={dsCn(
+                                                    'aspect-square rounded-ds-lg shadow-ds-xs',
+                                                    picked &&
+                                                        'ring-3 ring-ds-primary-80 ring-offset-2 ring-offset-ds-surface-body ds-dark:ring-ds-primary-60',
+                                                )}
+                                                topRight={
+                                                    selection && (
+                                                        <SelectToggle
+                                                            exercise={e}
+                                                            selected={picked}
+                                                            onToggle={() =>
+                                                                selection.onToggle(
+                                                                    e,
+                                                                )
+                                                            }
+                                                        />
+                                                    )
+                                                }
+                                            />
+                                            <div className="mt-3 flex items-start gap-2">
+                                                <div className="min-w-0 flex-1">
+                                                    <h3 className="line-clamp-2 text-ds-body-xs leading-snug font-medium text-ds-content-primary group-hover/card:text-ds-content-brand ds-dark:group-hover/card:text-ds-primary-60">
+                                                        {e.title}
+                                                    </h3>
+                                                    <p className="mt-1 truncate text-ds-caption text-ds-content-muted">
+                                                        {subtitleOf(e)}
+                                                    </p>
+                                                </div>
+                                                <div className="-mt-1.5 -mr-1.5">
+                                                    <FavoriteButton
+                                                        exercise={e}
+                                                        onToggle={
+                                                            onToggleFavorite
+                                                        }
+                                                        look="plain"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </li>
-                            ))}
+                                    </li>
+                                );
+                            })}
                         </ul>
                         {sentinel}
                     </>
@@ -201,6 +236,7 @@ export function VariantD(props: VariantProps) {
                 exercise={open}
                 onClose={() => setOpenId(null)}
                 onToggleFavorite={onToggleFavorite}
+                selection={selection}
             />
         </>
     );

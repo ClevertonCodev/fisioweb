@@ -8,11 +8,13 @@
 import {
     Activity,
     ArrowLeftRight,
+    Check,
     Clock,
     Dumbbell,
     Link2,
     ListOrdered,
     PersonStanding,
+    Plus,
     Repeat,
     Star,
     Stethoscope,
@@ -33,6 +35,7 @@ import {
     ExercisePlayerModal,
     ReviewBadge,
     useExerciseActions,
+    type LibrarySelection,
 } from './media';
 import { useIsMobile } from './use-media-query';
 
@@ -45,6 +48,8 @@ interface ModalProps {
     exercise: Exercise | null;
     onClose: () => void;
     onToggleFavorite: (e: Exercise) => void;
+    /** No assistente de programa: o rodapé vira "Adicionar ao programa". */
+    selection?: LibrarySelection;
 }
 
 // ---------------------------------------------------------------- conteúdo
@@ -189,10 +194,43 @@ function Badges({ exercise: e }: { exercise: Exercise }) {
     );
 }
 
+/** No assistente: marcar ou tirar o exercício do programa. */
+function SelectionFooter({
+    exercise,
+    selection,
+}: {
+    exercise: Exercise;
+    selection: LibrarySelection;
+}) {
+    const isMobile = useIsMobile();
+    const picked = selection.isSelected(exercise);
+    return (
+        <div className="flex w-full justify-end">
+            <DsButton
+                size={isMobile ? 'full' : 'md'}
+                variant={picked ? 'secondary' : 'primary'}
+                iconPosition="left"
+                icon={picked ? <Check /> : <Plus />}
+                label={picked ? 'No programa · tirar' : 'Adicionar ao programa'}
+                onClick={() => selection.onToggle(exercise)}
+            />
+        </div>
+    );
+}
+
 /** Rodapé: só as ações de usar o exercício (o favorito fica no corpo). */
-function Footer({ exercise }: { exercise: Exercise }) {
+function Footer({
+    exercise,
+    selection,
+}: {
+    exercise: Exercise;
+    selection?: LibrarySelection;
+}) {
     const { startProgram, startModel } = useExerciseActions();
     const isMobile = useIsMobile();
+    if (selection) {
+        return <SelectionFooter exercise={exercise} selection={selection} />;
+    }
     return (
         // No celular, os dois lado a lado, na largura toda, com rótulo curto.
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end sm:gap-3">
@@ -223,7 +261,12 @@ function Footer({ exercise }: { exercise: Exercise }) {
  * os passos numerados; e a ficha técnica como lateral. Em telas menores a
  * ficha desce para baixo. O rodapé fica só com as ações de usar.
  */
-function ModalA({ exercise: e, onClose, onToggleFavorite }: ModalProps) {
+function ModalA({
+    exercise: e,
+    onClose,
+    onToggleFavorite,
+    selection,
+}: ModalProps) {
     const isMobile = useIsMobile();
     const shell = {
         open: e !== null,
@@ -234,7 +277,7 @@ function ModalA({ exercise: e, onClose, onToggleFavorite }: ModalProps) {
             e && !isMobile
                 ? [e.bodyArea, e.bodyRegion].filter(Boolean).join(' · ')
                 : undefined,
-        footer: e && <Footer exercise={e} />,
+        footer: e && <Footer exercise={e} selection={selection} />,
     };
     const body = e && (
         <div className="grid gap-6 sm:grid-cols-[256px_minmax(0,1fr)] lg:grid-cols-[256px_minmax(0,1fr)_300px] lg:gap-8">

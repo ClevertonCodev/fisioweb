@@ -49,6 +49,13 @@ import { TableCell, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import UserListPrototype from './user-list-prototype/UserListPrototype';
+import { USERS_VARIANTS } from './user-list-prototype/variants';
 
 const ROLE_LABELS: Record<ClinicRole, string> = {
     admin: 'Administrador',
@@ -107,7 +114,22 @@ function UserTableSkeleton({ rows = 6 }: { rows?: number }) {
     );
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (user-list-prototype); O = esta tela. Desligado nos testes (o Vitest
+ * roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export function UserListPage() {
+    const variant = usePrototypeVariant(USERS_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <UserListPrototype variant={variant} />;
+    }
+    return <UserListPageV1 />;
+}
+
+function UserListPageV1() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const role = user?.role as ClinicRole | undefined;
@@ -559,6 +581,9 @@ export function UserListPage() {
                 </div>
             </div>
 
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={USERS_VARIANTS} current="O" />
+            )}
             <AlertDialog
                 open={!!targetDelete}
                 onOpenChange={(open) => !open && setTargetDelete(null)}

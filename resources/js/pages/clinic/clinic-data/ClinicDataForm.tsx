@@ -1,479 +1,197 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Lock, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import {
     clinicProfileFormSchema,
     clinicProfileFormToUpdateDto,
-    clinicProfileToFormValues,
     type ClinicProfileFormValues,
 } from '@/application/clinic/clinic-profile-form';
 import { can } from '@/application/clinic/permissions';
-import {
-    useClinicProfile,
-    useUpdateClinicProfile,
-} from '@/application/clinic/use-clinic-profile';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PhoneInput } from '@/components/ui/phone-input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { SlugInput } from '@/components/ui/slug-input';
+import { useUpdateClinicProfile } from '@/application/clinic/use-clinic-profile';
+import { DsAlert, DsBadge, DsButton } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
+import type { ClinicProfile } from '@/domain/clinic/clinic-profile';
 
-export function ClinicDataForm() {
+import {
+    CLINIC_STATUS_LABEL,
+    clinicPatientProgramLinkPreview,
+    presentClinicProfileFormValues,
+} from './clinic-data-ui';
+import {
+    AddressFields,
+    ContactFields,
+    IdentityFields,
+} from './ClinicDataFields';
+import { PatientViewPreview } from './PatientViewPreview';
+
+function Card({
+    title,
+    children,
+}: {
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section className="flex flex-col gap-4 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs">
+            <h2 className="text-ds-body-sm font-semibold">{title}</h2>
+            {children}
+        </section>
+    );
+}
+
+export function ClinicDataForm({ profile }: { profile: ClinicProfile }) {
     const { user } = useAuth();
     const canEdit = can.editClinicData(user?.mestre);
-    const { data: profile, isLoading, isError } = useClinicProfile();
     const updateProfile = useUpdateClinicProfile();
-
     const form = useForm<ClinicProfileFormValues>({
         resolver: zodResolver(clinicProfileFormSchema),
         mode: 'onTouched',
-        defaultValues: {
-            name: '',
-            typePerson: 'PJ',
-            document: '',
-            email: '',
-            phone: '',
-            status: '1',
-            slug: '',
-            planId: '',
-            zipCode: '',
-            address: '',
-            number: '',
-            city: '',
-            state: '',
-        },
+        defaultValues: presentClinicProfileFormValues(profile),
     });
+    const {
+        control,
+        register,
+        handleSubmit,
+        reset,
+        setValue,
+        watch,
+        formState: { errors, isDirty },
+    } = form;
 
     useEffect(() => {
-        if (profile) {
-            form.reset(clinicProfileToFormValues(profile));
-        }
-    }, [profile, form]);
+        reset(presentClinicProfileFormValues(profile));
+    }, [profile, reset]);
 
-    const watchedType = useWatch({ control: form.control, name: 'typePerson' });
-    const watchedName = useWatch({ control: form.control, name: 'name' });
-    const watchedDoc = useWatch({ control: form.control, name: 'document' });
-    const watchedEmail = useWatch({ control: form.control, name: 'email' });
-    const watchedSlug = useWatch({ control: form.control, name: 'slug' });
-
-    const requiredDocLen = watchedType === 'PJ' ? 14 : 11;
-    const isFormReady = Boolean(
-        watchedName?.trim() &&
-        watchedType &&
-        watchedDoc?.length === requiredDocLen &&
-        watchedEmail?.trim(),
+    const name = useWatch({ control, name: 'name' }) ?? '';
+    const phone = useWatch({ control, name: 'phone' }) ?? '';
+    const patientLink = clinicPatientProgramLinkPreview(
+        window.location.host,
+        profile.slug,
     );
+    const status = CLINIC_STATUS_LABEL[String(profile.status)];
 
     const onSubmit = (values: ClinicProfileFormValues) => {
-        updateProfile.mutate(clinicProfileFormToUpdateDto(values));
+        updateProfile.mutate(
+            clinicProfileFormToUpdateDto(values, profile.status),
+        );
     };
 
-    const handleCancel = () => {
-        if (profile) {
-            form.reset(clinicProfileToFormValues(profile));
-        }
+    const fields = {
+        canEdit,
+        control,
+        errors,
+        register,
+        setValue,
+        watch,
     };
-
-    if (isLoading) {
-        return (
-            <div className="p-6">
-                <Skeleton className="mb-6 h-9 w-64" />
-                <Card className="mx-auto max-w-4xl">
-                    <CardContent className="space-y-4 p-6">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (isError || !profile) {
-        return (
-            <div className="p-6 text-destructive">
-                Não foi possível carregar os dados da clínica.
-            </div>
-        );
-    }
 
     return (
-        <div className="flex h-full flex-col">
-            <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                <div className="space-y-1 px-6 py-4">
-                    <h1 className="text-2xl font-semibold text-foreground">
-                        Dados da clínica
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        ID da clínica: {profile.id}
-                        {!canEdit && (
-                            <span className="ml-2 text-muted-foreground">
-                                · Somente visualização (apenas o usuário mestre
-                                pode editar)
-                            </span>
-                        )}
-                    </p>
-                </div>
-            </header>
-
-            <div className="flex-1 overflow-auto p-6">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <Card className="mx-auto max-w-4xl">
-                            <CardContent className="space-y-8 p-6">
-                                <section className="space-y-4">
-                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
-                                        Informações Básicas
-                                    </h2>
-                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                        <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        Nome da Clínica{' '}
-                                                        <span className="text-destructive">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            disabled={!canEdit}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="typePerson"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        Tipo de Pessoa{' '}
-                                                        <span className="text-destructive">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <Select
-                                                        value={field.value}
-                                                        onValueChange={(v) => {
-                                                            field.onChange(v);
-                                                            if (canEdit) {
-                                                                form.setValue(
-                                                                    'document',
-                                                                    '',
-                                                                    {
-                                                                        shouldValidate: false,
-                                                                    },
-                                                                );
-                                                            }
-                                                        }}
-                                                        disabled={!canEdit}
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="PF">
-                                                                Pessoa Física
-                                                            </SelectItem>
-                                                            <SelectItem value="PJ">
-                                                                Pessoa Jurídica
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="document"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        CPF/CNPJ{' '}
-                                                        <span className="text-destructive">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <FormControl>
-                                                        <CpfCnpjInput
-                                                            type={
-                                                                watchedType ===
-                                                                'PJ'
-                                                                    ? 'cnpj'
-                                                                    : 'cpf'
-                                                            }
-                                                            value={field.value}
-                                                            onChange={(raw) =>
-                                                                field.onChange(
-                                                                    raw,
-                                                                )
-                                                            }
-                                                            onBlur={
-                                                                field.onBlur
-                                                            }
-                                                            disabled={!canEdit}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        E-mail{' '}
-                                                        <span className="text-destructive">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <FormControl>
-                                                        <Input
-                                                            type="email"
-                                                            {...field}
-                                                            disabled={!canEdit}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="phone"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        Telefone
-                                                    </Label>
-                                                    <FormControl>
-                                                        <PhoneInput
-                                                            value={
-                                                                field.value ??
-                                                                ''
-                                                            }
-                                                            onChange={(raw) =>
-                                                                field.onChange(
-                                                                    raw,
-                                                                )
-                                                            }
-                                                            onBlur={
-                                                                field.onBlur
-                                                            }
-                                                            disabled={!canEdit}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="status"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <Label className="text-foreground">
-                                                        Status{' '}
-                                                        <span className="text-destructive">
-                                                            *
-                                                        </span>
-                                                    </Label>
-                                                    <Select
-                                                        value={field.value}
-                                                        onValueChange={
-                                                            field.onChange
-                                                        }
-                                                        disabled={!canEdit}
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="1">
-                                                                Ativo
-                                                            </SelectItem>
-                                                            <SelectItem value="0">
-                                                                Inativo
-                                                            </SelectItem>
-                                                            <SelectItem value="-1">
-                                                                Cancelado
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
+        <form
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-ds-surface-body font-ds text-ds-content-primary"
+        >
+            <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="mx-auto flex w-full max-w-(--breakpoint-ds-xl) flex-col gap-5 px-4 py-6 lg:px-8">
+                    <header>
+                        <h1 className="text-ds-h4 font-semibold">
+                            Dados da clínica
+                        </h1>
+                        <p className="text-ds-body-xs text-ds-content-secondary">
+                            O que identifica a clínica para pacientes e no
+                            sistema.
+                        </p>
+                    </header>
+                    {!canEdit && (
+                        <DsAlert
+                            variant="info"
+                            title="Só leitura"
+                            icon={<Lock />}
+                        >
+                            Só o usuário mestre da clínica muda estes dados.
+                        </DsAlert>
+                    )}
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+                        <div className="flex min-w-0 flex-col gap-4">
+                            <Card title="Identidade">
+                                <IdentityFields {...fields} />
+                            </Card>
+                            <Card title="Contato">
+                                <ContactFields {...fields} />
+                            </Card>
+                            <Card title="Endereço">
+                                <AddressFields {...fields} />
+                            </Card>
+                            <Card title="Conta">
+                                <dl className="grid grid-cols-1 gap-3 text-ds-body-xs sm:grid-cols-3">
                                     <div>
-                                        <SlugInput
-                                            value={watchedSlug}
-                                            onChange={(slug) =>
-                                                form.setValue('slug', slug, {
-                                                    shouldValidate: false,
-                                                })
-                                            }
-                                            required
-                                            readOnly
-                                        />
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            A URL da clínica só pode ser
-                                            alterada pelo suporte do sistema.
-                                        </p>
+                                        <dt className="text-ds-caption text-ds-content-muted">
+                                            Situação
+                                        </dt>
+                                        <dd className="mt-1">
+                                            {status && (
+                                                <DsBadge
+                                                    variant={status.variant}
+                                                    dot
+                                                >
+                                                    {status.label}
+                                                </DsBadge>
+                                            )}
+                                        </dd>
                                     </div>
-                                </section>
-
-                                <section className="space-y-4">
-                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
-                                        Plano
-                                    </h2>
-                                    <div className="max-w-md">
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                Plano
-                                            </Label>
-                                            <Input
-                                                value={
-                                                    profile.planName ??
-                                                    'Nenhum plano associado'
-                                                }
-                                                disabled
-                                                readOnly
-                                                className="bg-muted/50"
-                                            />
-                                            <p className="text-xs text-muted-foreground">
-                                                O plano só pode ser alterado
-                                                pelo suporte do sistema.
-                                            </p>
-                                        </div>
+                                    <div>
+                                        <dt className="text-ds-caption text-ds-content-muted">
+                                            Plano
+                                        </dt>
+                                        <dd className="mt-1 font-medium">
+                                            {profile.planName ?? '—'}
+                                        </dd>
                                     </div>
-                                </section>
-
-                                <section className="space-y-4">
-                                    <h2 className="border-b border-border pb-2 text-lg font-semibold text-foreground">
-                                        Endereço
-                                    </h2>
-                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                CEP
-                                            </Label>
-                                            <Input
-                                                placeholder="00000-000"
-                                                disabled={!canEdit}
-                                                {...form.register('zipCode')}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                Endereço
-                                            </Label>
-                                            <Input
-                                                placeholder="Rua, avenida, etc."
-                                                disabled={!canEdit}
-                                                {...form.register('address')}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                Número
-                                            </Label>
-                                            <Input
-                                                placeholder="Número"
-                                                disabled={!canEdit}
-                                                {...form.register('number')}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                Cidade
-                                            </Label>
-                                            <Input
-                                                placeholder="Nome da cidade"
-                                                disabled={!canEdit}
-                                                {...form.register('city')}
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-foreground">
-                                                Estado
-                                            </Label>
-                                            <Input
-                                                placeholder="UF"
-                                                maxLength={2}
-                                                disabled={!canEdit}
-                                                {...form.register('state')}
-                                            />
-                                        </div>
+                                    <div>
+                                        <dt className="text-ds-caption text-ds-content-muted">
+                                            Código da clínica
+                                        </dt>
+                                        <dd className="mt-1 font-ds-mono">
+                                            #{profile.id}
+                                        </dd>
                                     </div>
-                                </section>
-
-                                {canEdit && (
-                                    <div className="flex justify-end gap-3 border-t border-border pt-4">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={handleCancel}
-                                        >
-                                            Cancelar
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            disabled={
-                                                !isFormReady ||
-                                                updateProfile.isPending
-                                            }
-                                        >
-                                            {updateProfile.isPending
-                                                ? 'Salvando...'
-                                                : 'Salvar alterações'}
-                                        </Button>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </form>
-                </Form>
+                                </dl>
+                            </Card>
+                        </div>
+                        <PatientViewPreview
+                            name={name}
+                            phone={phone}
+                            patientLink={patientLink}
+                        />
+                    </div>
+                </div>
             </div>
-        </div>
+            {canEdit && (
+                <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-ds-border-subtle bg-ds-surface-default px-4 py-3 lg:px-8">
+                    <span className="mr-auto text-ds-caption text-ds-content-muted">
+                        {isDirty ? 'Alterações não salvas' : 'Tudo salvo'}
+                    </span>
+                    <DsButton
+                        type="button"
+                        variant="secondary"
+                        label="Descartar"
+                        disabled={!isDirty}
+                        onClick={() =>
+                            reset(presentClinicProfileFormValues(profile))
+                        }
+                    />
+                    <DsButton
+                        type="submit"
+                        iconPosition="left"
+                        icon={<Save />}
+                        label="Salvar"
+                        disabled={!isDirty}
+                        loading={updateProfile.isPending}
+                    />
+                </footer>
+            )}
+        </form>
     );
 }

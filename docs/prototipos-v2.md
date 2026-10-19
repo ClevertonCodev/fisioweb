@@ -154,13 +154,13 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 
 ## Clínica
 
-- [ ] **Dados da clínica** — `/clinica/dados`
+- [x] **Dados da clínica** — `/clinica/dados`
   - Variante A, "Cartão de visita ao vivo": identidade, contato, endereço e conta em cartões; ao lado, onde os dados aparecem para o paciente (topo do PDF do programa, sugestão de mensagem com o link, endereço do link, que não muda).
-  - Código: `resources/js/pages/clinic/clinic-data/clinic-data-prototype/`
-  - [ ] Só o mestre edita (`can.editClinicData`); `?mestre=0` simula quem não é mestre no protótipo.
-  - [ ] O PDF do programa usa nome e e-mail do profissional e só o telefone da clínica; sem telefone, sai sem contato.
-  - [ ] A clínica 1 do seed é PJ com documento de 11 dígitos ("CNPJ incompleto"): corrigir o seed.
-  - [ ] Situação fica só para leitura (na v1 o mestre muda); decidir se continua assim. Salvar é stub.
+  - Código: `resources/js/pages/clinic/clinic-data/` (v2 no lugar da v1; pasta `clinic-data-prototype/` removida)
+  - [x] Só o mestre edita (`can.editClinicData`); quem não é mestre vê alerta de só leitura.
+  - [x] O PDF do programa usa nome e e-mail do profissional e só o telefone da clínica; sem telefone, sai sem contato.
+  - [x] A clínica 1 do seed é PJ com CNPJ válido de 14 dígitos.
+  - [x] Situação fica só para leitura (na v1 o mestre muda). Salvar grava no `PUT /api/clinic/profile`.
 
 - [ ] **Criar conta** — `/clinica/criar-conta`
   - Variante A, "Três passos": o mesmo cartão do login em três passos (clínica, acesso, endereço dos links), com força da senha e resumo antes de criar.

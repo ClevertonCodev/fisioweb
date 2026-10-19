@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'clevertonsantoscodev@gmail.com'],
             [
                 'name'     => 'Clínica Cleverton',
-                'document' => '85628325023',
+                'document' => '11222333000181',
                 'slug'     => 'clinica-cleverton',
                 'plan_id'  => $plans['Premium'],
             ]

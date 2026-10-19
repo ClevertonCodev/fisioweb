@@ -24,7 +24,8 @@ export function useUpdateClinicProfile() {
     return useMutation({
         mutationFn: (dto: ClinicProfileUpdateDto) =>
             apiClinicProfileRepository.update(dto),
-        onSuccess: () => {
+        onSuccess: (data) => {
+            queryClient.setQueryData(QUERY_KEY, data);
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Dados da clínica atualizados com sucesso.');
         },

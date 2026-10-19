@@ -12,6 +12,13 @@ import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import QuestionnaireNewPrototype from './questionnaire-new-prototype/QuestionnaireNewPrototype';
+import { NEW_QUESTIONNAIRE_VARIANTS } from './questionnaire-new-prototype/shared';
 
 function validate(title: string, sections: DraftSection[]): string | null {
     if (!title.trim()) return 'Informe o título do questionário.';
@@ -35,7 +42,22 @@ function validate(title: string, sections: DraftSection[]): string | null {
     return null;
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (questionnaire-new-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function QuestionnaireTemplateNewPage() {
+    const variant = usePrototypeVariant(NEW_QUESTIONNAIRE_VARIANTS, 'C');
+    if (PROTOTYPE && variant !== 'O') {
+        return <QuestionnaireNewPrototype variant={variant} />;
+    }
+    return <QuestionnaireTemplateNewPageV1 />;
+}
+
+function QuestionnaireTemplateNewPageV1() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const returnTo = searchParams.get('returnTo');
@@ -136,6 +158,12 @@ export default function QuestionnaireTemplateNewPage() {
                         : 'Salvar questionário'}
                 </Button>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher
+                    variants={NEW_QUESTIONNAIRE_VARIANTS}
+                    current="O"
+                />
+            )}
         </ClinicLayout>
     );
 }

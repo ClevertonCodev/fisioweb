@@ -28,6 +28,13 @@ import {
 } from '@/components/ui/tooltip';
 import type { AssessmentField, AssessmentSection } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import AssessmentNewPrototype from './assessment-new-prototype/AssessmentNewPrototype';
+import { ASSESSMENT_VARIANTS } from './assessment-new-prototype/shared';
 
 function FieldPreview({ field }: { field: AssessmentField }) {
     if (field.fieldType === 'textarea') {
@@ -129,7 +136,22 @@ function SectionPreview({ section }: { section: AssessmentSection }) {
     );
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (assessment-new-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function AssessmentNewPage() {
+    const variant = usePrototypeVariant(ASSESSMENT_VARIANTS, 'B');
+    if (PROTOTYPE && variant !== 'O') {
+        return <AssessmentNewPrototype variant={variant} />;
+    }
+    return <AssessmentNewPageV1 />;
+}
+
+function AssessmentNewPageV1() {
     const { id: patientId } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -428,6 +450,9 @@ export default function AssessmentNewPage() {
                     )}
                 </div>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={ASSESSMENT_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

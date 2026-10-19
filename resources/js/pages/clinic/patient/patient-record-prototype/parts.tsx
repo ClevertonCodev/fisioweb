@@ -18,7 +18,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
@@ -158,10 +158,23 @@ export const QUICK_ACTIONS: {
     },
 ];
 
+/** Abrir nova evolução ou envio de arquivo: ?nova= (ver PatientRecordPrototype). */
+export const NEW_PARAM = 'nova';
+
 export function useQuickAction(patientId: string) {
     const navigate = useNavigate();
+    const [, setSearchParams] = useSearchParams();
     return (action: QuickAction) => {
         switch (action) {
+            case 'evolucao':
+            case 'arquivo':
+            case 'questionario':
+                setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set(NEW_PARAM, action);
+                    return next;
+                });
+                return;
             case 'avaliacao':
                 navigate(`/clinica/pacientes/${patientId}/avaliacoes/nova`);
                 return;

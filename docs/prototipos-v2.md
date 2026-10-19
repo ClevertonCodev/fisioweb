@@ -54,7 +54,39 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Front repassando `patient_id` para a API de programas (o backend já filtra).
   - [ ] Números do painel numa função pura em `application/clinic`, com teste.
   - [ ] Para o fisioterapeuta, deixar claro que os números são das consultas dele com o paciente.
-  - [ ] Nova evolução, enviar questionário ou arquivo, agendar e WhatsApp são stub.
+  - [ ] Agendar e WhatsApp são stub. Nova evolução, enviar arquivo e enviar questionário têm protótipo próprio (abaixo).
+
+- [ ] **Nova avaliação** — `/clinica/pacientes/:id/avaliacoes/nova`
+  - Variante B, "Prévia para experimentar": lista de modelos por área, já aberta no modelo indicado pelo diagnóstico; a prévia é o formulário de verdade (escala, texto, opções) para mexer antes de começar; índice das seções ao lado.
+  - Código: `resources/js/pages/clinic/patient/assessment-new-prototype/`
+  - [ ] Área (especialidade) e indicação pelo diagnóstico vindas do cadastro do modelo; hoje são deduzidas do nome.
+  - [ ] Decidir o "Enviar link": a avaliação respondida pelo paciente não existe no backend (só o questionário tem link).
+  - [ ] "Responder agora" é stub no protótipo (na v1, cria a avaliação e abre o formulário).
+
+- [ ] **Nova evolução** — no prontuário, botão "Nova evolução" (`?nova=evolucao`)
+  - Variante B, "Folha da evolução": o modelo de um lado e, do outro, a folha como fica no prontuário (cabeçalho, texto montado ao vivo, notas e linha de assinatura); "Com modelo" e "Texto livre" num seletor; "Repetir a sessão" reaproveita a anterior.
+  - Código: `resources/js/pages/clinic/patient/patient-record-prototype/new-evolution/`
+  - [ ] O texto do modelo é montado no front no mesmo formato do backend (`EvolutionService::generateText`); na tela real, usar o endpoint de gerar texto ou manter as duas regras iguais.
+  - [ ] Salvar rascunho e assinar são stub.
+
+- [ ] **Enviar arquivo** — no prontuário, botão "Enviar arquivo" (`?nova=arquivo`)
+  - Variante B, "Foto do documento": "Fotografar" (câmera traseira no celular) ou "Escolher arquivo"; prévia grande e o tipo em chips (Exame, Laudo, Receita…), que monta o nome.
+  - Código: `resources/js/pages/clinic/patient/patient-record-prototype/new-file/`
+  - [ ] O tipo vai no nome do arquivo, porque a API só guarda o nome; se virar filtro, precisa de campo próprio.
+  - [ ] Envio simulado; ligar no `useUploadPatientFile`.
+
+- [ ] **Enviar questionário** — no prontuário, botão "Enviar questionário" (`?nova=questionario`)
+  - Variante A, "Escolher e prever": questionários em cartões com o último envio a este paciente, prévia das perguntas, "Pelo celular" ou "Aqui na clínica" e prazo em chips; depois de enviar, "Enviar pelo WhatsApp" e "Copiar link".
+  - Código: `resources/js/pages/clinic/patient/patient-record-prototype/new-questionnaire/` (questionários de exemplo em `demo-data.ts`, só para ver a lista cheia; apagar na implementação).
+  - [ ] **Segurança:** `GET` e `POST /api/questionnaires/{id}` são públicas e usam o id sequencial, sem token: qualquer pessoa responde o questionário pendente de outro paciente trocando o número. O link precisa de um token aleatório por envio.
+  - [ ] Página para o paciente responder pelo link (não existe no front).
+  - [ ] Enviar, WhatsApp e copiar link são stub.
+
+- [ ] **Criar questionário** — `/clinica/questionarios/novo` (com `?returnTo=` do prontuário)
+  - Variante C, "Banco de perguntas": perguntas prontas da clínica para montar com cliques, o roteiro no meio e a pergunta escolhida à direita para ajustar.
+  - Código: `resources/js/pages/clinic/questionnaire-template/questionnaire-new-prototype/`
+  - [ ] Banco de perguntas da clínica no backend (hoje está fixo no código); não usar escalas validadas sem o texto oficial.
+  - [ ] Salvar é stub; ao salvar, voltar ao `returnTo` com a gaveta de envio aberta.
 
 ## Equipe
 

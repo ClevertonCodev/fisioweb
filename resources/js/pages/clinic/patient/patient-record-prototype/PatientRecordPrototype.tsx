@@ -5,10 +5,14 @@
  * (A, ficha e linha do tempo; C, mesa de leitura) não foram commitadas.
  *
  * Os dados são reais (ver data.ts); o que altera dados é stub.
+ * "Nova evolução" e "Enviar arquivo" abrem os protótipos de new-evolution
+ * e new-file (?nova=evolucao|arquivo); "Enviar questionário", o de
+ * new-questionnaire (?nova=questionario); "Nova avaliação" vai para a rota
+ * real, que tem o protótipo da página (assessment-new-prototype).
  */
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton, DsEmptyState } from '@/components/ds';
@@ -19,7 +23,10 @@ import {
     type PatientRecordData,
     type RecordItem,
 } from './data';
-import { RecordDrawer } from './parts';
+import { NewEvolution } from './new-evolution/NewEvolution';
+import { NewFile } from './new-file/NewFile';
+import { NewQuestionnaire } from './new-questionnaire/NewQuestionnaire';
+import { NEW_PARAM, RecordDrawer } from './parts';
 import { VariantB } from './VariantB';
 import { RECORD_VARIANTS } from './variants';
 
@@ -39,6 +46,19 @@ export default function PatientRecordPrototype({
     const data = usePatientRecord(id);
     const [openKey, setOpenKey] = useState<string | null>(null);
     const open = data.items.find((i) => i.key === openKey) ?? null;
+    const [params, setParams] = useSearchParams();
+    const creating = params.get(NEW_PARAM);
+    const closeNew = () =>
+        setParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete(NEW_PARAM);
+            return next;
+        });
+    const newProps = {
+        patientId: id,
+        patientName: data.patient?.name ?? '',
+        onClose: closeNew,
+    };
 
     const props: VariantProps = {
         id,
@@ -69,6 +89,9 @@ export default function PatientRecordPrototype({
                 <VariantB {...props} />
             )}
 
+            {creating === 'evolucao' && <NewEvolution {...newProps} />}
+            {creating === 'arquivo' && <NewFile {...newProps} />}
+            {creating === 'questionario' && <NewQuestionnaire {...newProps} />}
             <RecordDrawer
                 item={open}
                 patientId={id}

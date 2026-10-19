@@ -124,15 +124,15 @@ export function ClinicTopbar() {
                     <Link
                         to="/clinica"
                         className="flex shrink-0 items-center gap-2.5"
-                        aria-label="FisioElite — início"
+                        aria-label="IVS Fisioterapia e Saúde — início"
                     >
                         <AppLogo className="size-10 ds-dark:text-ds-white" />
                         <div className="hidden leading-tight lg:block">
                             <p className="text-ds-body-sm font-semibold text-ds-primary-80 ds-dark:text-ds-white">
-                                FisioElite
+                                IVS
                             </p>
                             <p className="font-ds-mono text-[10px] tracking-wider text-ds-content-muted uppercase">
-                                Painel da clínica
+                                Fisioterapia e Saúde
                             </p>
                         </div>
                     </Link>

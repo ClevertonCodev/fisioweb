@@ -79,9 +79,14 @@ export default function ClinicResetPasswordPage() {
             <div className="flex w-full flex-col items-center justify-center bg-card px-8 py-12 md:w-[440px] lg:w-[480px]">
                 <div className="mb-8 flex items-center gap-2">
                     <AppLogo className="h-10 w-10" />
-                    <span className="text-xl font-bold tracking-tight text-foreground">
-                        FisioClinic
-                    </span>
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-xl font-bold tracking-tight text-foreground">
+                            IVS
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                            Fisioterapia e Saúde
+                        </span>
+                    </div>
                 </div>
 
                 <h1 className="mb-2 text-2xl font-bold text-foreground">

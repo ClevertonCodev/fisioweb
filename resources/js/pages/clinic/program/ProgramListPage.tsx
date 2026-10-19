@@ -10,6 +10,17 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import ExerciseLibraryPrototype from './exercise-library-prototype/ExerciseLibraryPrototype';
+import { LIBRARY_VARIANTS } from './exercise-library-prototype/variants';
+import ProgramHistoryPrototype from './program-history-prototype/ProgramHistoryPrototype';
+import { HISTORY_VARIANTS } from './program-history-prototype/variants';
+import ProgramModelsPrototype from './program-models-prototype/ProgramModelsPrototype';
+import { MODELS_VARIANTS } from './program-models-prototype/variants';
 
 function deriveActiveTab(pathname: string): string {
     if (pathname.includes('/exercicios')) return 'exercicios';
@@ -22,6 +33,15 @@ export default function ProgramListPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const activeTab = deriveActiveTab(location.pathname);
+    // PROTÓTIPO: Histórico v2 por ?variant= (O = esta tela v1).
+    const historyVariant = usePrototypeVariant(HISTORY_VARIANTS, 'A');
+    const historyPrototype = import.meta.env.DEV && activeTab === 'historico';
+    // PROTÓTIPO: Exercícios v2 por ?variant= (O = esta tela v1).
+    const libraryVariant = usePrototypeVariant(LIBRARY_VARIANTS, 'D');
+    const libraryPrototype = import.meta.env.DEV && activeTab === 'exercicios';
+    // PROTÓTIPO: Programas (modelos) v2 por ?variant= (O = esta tela v1).
+    const modelsVariant = usePrototypeVariant(MODELS_VARIANTS, 'C');
+    const modelsPrototype = import.meta.env.DEV && activeTab === 'programas';
 
     const handleTabChange = (value: string) => {
         switch (value) {
@@ -45,8 +65,36 @@ export default function ProgramListPage() {
         }
     };
 
+    if (historyPrototype && historyVariant !== 'O') {
+        return <ProgramHistoryPrototype variant={historyVariant} />;
+    }
+    if (libraryPrototype && libraryVariant !== 'O') {
+        return <ExerciseLibraryPrototype variant={libraryVariant} />;
+    }
+    if (modelsPrototype && modelsVariant !== 'O') {
+        return <ProgramModelsPrototype variant={modelsVariant} />;
+    }
+
     return (
         <ClinicLayout>
+            {historyPrototype && (
+                <PrototypeSwitcher
+                    variants={HISTORY_VARIANTS}
+                    current={historyVariant}
+                />
+            )}
+            {libraryPrototype && (
+                <PrototypeSwitcher
+                    variants={LIBRARY_VARIANTS}
+                    current={libraryVariant}
+                />
+            )}
+            {modelsPrototype && (
+                <PrototypeSwitcher
+                    variants={MODELS_VARIANTS}
+                    current={modelsVariant}
+                />
+            )}
             <div className="flex h-full flex-col">
                 {/* Header */}
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">

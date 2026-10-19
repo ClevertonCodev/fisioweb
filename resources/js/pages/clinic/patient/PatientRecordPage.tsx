@@ -69,6 +69,13 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import PatientRecordPrototype from './patient-record-prototype/PatientRecordPrototype';
+import { RECORD_VARIANTS } from './patient-record-prototype/variants';
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
@@ -194,7 +201,22 @@ const TAB_TO_URL: Record<string, string> = {
     files: 'files',
 };
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (patient-record-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function PatientRecordPage() {
+    const variant = usePrototypeVariant(RECORD_VARIANTS, 'B');
+    if (PROTOTYPE && variant !== 'O') {
+        return <PatientRecordPrototype variant={variant} />;
+    }
+    return <PatientRecordPageV1 />;
+}
+
+function PatientRecordPageV1() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -1177,6 +1199,9 @@ export default function PatientRecordPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={RECORD_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

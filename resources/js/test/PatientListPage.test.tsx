@@ -70,8 +70,8 @@ function listResult(patients: Patient[], total = patients.length) {
     return {
         data: patients,
         total,
-        lastPage: Math.max(1, Math.ceil(total / 15)),
-        perPage: 15,
+        lastPage: Math.max(1, Math.ceil(total / 16)),
+        perPage: 16,
         currentPage: 1,
     };
 }
@@ -153,11 +153,11 @@ describe('PatientListPage: lista e URL', () => {
     it('abre com a busca, a página e os itens por página da URL', async () => {
         list.mockResolvedValue(listResult([makePatient('1')], 40));
 
-        renderPage('/clinica/pacientes?q=maria&page=2&per_page=30');
+        renderPage('/clinica/pacientes?q=maria&page=2&per_page=32');
 
         expect(await screen.findByText('Paciente 1')).toBeInTheDocument();
         expect(list).toHaveBeenCalledWith(
-            expect.objectContaining({ search: 'maria', page: 2, perPage: 30 }),
+            expect.objectContaining({ search: 'maria', page: 2, perPage: 32 }),
         );
         expect(
             screen.getByRole('searchbox', { name: /pesquisar/i }),
@@ -360,7 +360,7 @@ describe('PatientListPage: total e estados', () => {
         ).not.toBeInTheDocument();
     });
 
-    it('remover o chip de itens por página volta para 15 e para a página 1', async () => {
+    it('remover o chip de itens por página volta para 16 e para a página 1', async () => {
         const user = userEvent.setup();
         list.mockResolvedValue(listResult([makePatient('1')], 200));
         renderPage('/clinica/pacientes?per_page=50&page=2');
@@ -761,7 +761,7 @@ describe('PatientListPage: casos de borda de inativar e da gaveta', () => {
 
     it('na gaveta, Limpar fica habilitado quando só os itens por página mudaram', async () => {
         const user = userEvent.setup();
-        renderPage('/clinica/pacientes?per_page=30');
+        renderPage('/clinica/pacientes?per_page=32');
         await screen.findByText('Paciente 1');
 
         await user.click(screen.getByRole('button', { name: 'Filtros' }));

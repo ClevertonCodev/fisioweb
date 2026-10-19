@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
@@ -21,14 +22,38 @@ abstract class BaseAuthController extends Controller
         ]);
     }
 
+    /**
+     * Se o usuário com a senha certa pode entrar (ex.: está ativo). Só é
+     * consultado depois da senha conferida, então não revela quem tem conta.
+     */
+    protected function canLogIn(Authenticatable $user): bool
+    {
+        return true;
+    }
+
+    protected function blockedLoginMessage(): string
+    {
+        return 'Seu acesso está desativado.';
+    }
+
     protected function attemptLogin(array $credentials): JsonResponse
     {
-        $token = auth($this->guardName())->attempt($credentials);
+        $guard = auth($this->guardName());
+        $token = $guard->attempt($credentials);
 
         if (!$token) {
             return response()->json([
                 'message' => 'Credenciais inválidas.',
             ], 401);
+        }
+
+        if (!$this->canLogIn($guard->user())) {
+            // O token acabou de ser emitido: invalida antes de responder.
+            $guard->logout();
+
+            return response()->json([
+                'message' => $this->blockedLoginMessage(),
+            ], 403);
         }
 
         return $this->respondWithToken($token);

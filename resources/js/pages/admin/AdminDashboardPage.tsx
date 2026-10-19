@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
                             Painel Administrativo
                         </h1>
                         <p className="mt-1 text-muted-foreground">
-                            Visão geral da plataforma FisioElite.
+                            Visão geral da plataforma IVS Fisioterapia e Saúde.
                         </p>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

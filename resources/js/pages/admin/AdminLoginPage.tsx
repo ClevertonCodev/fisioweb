@@ -48,9 +48,12 @@ export default function AdminLoginPage() {
             <div className="relative z-10 flex w-[90%] max-w-[420px] flex-col items-center rounded-3xl border border-border/40 bg-card/70 p-10 shadow-2xl backdrop-blur-xl">
                 <AppLogo className="mb-4 h-16 w-16" />
 
-                <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground">
-                    FisioClinic
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    IVS
                 </h1>
+                <p className="mb-1 text-sm text-muted-foreground">
+                    Fisioterapia e Saúde
+                </p>
                 <h2 className="mt-4 mb-2 font-serif text-2xl font-bold text-foreground italic">
                     Painel Administrativo
                 </h2>

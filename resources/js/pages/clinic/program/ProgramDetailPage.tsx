@@ -45,6 +45,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { VideoThumb } from '@/components/VideoThumb';
 import type { Program, ProgramExercise } from '@/domain/clinic';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import ProgramDetailPrototype from './program-detail-prototype/ProgramDetailPrototype';
+import { DETAIL_VARIANTS } from './program-detail-prototype/shared';
 
 export type ClinicProgramDetailLoaderData = {
     program: Program | null;
@@ -195,7 +202,22 @@ function ExerciseRow({ exercise }: { exercise: ProgramExercise }) {
     );
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (program-detail-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function ProgramDetailPage() {
+    const variant = usePrototypeVariant(DETAIL_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <ProgramDetailPrototype variant={variant} />;
+    }
+    return <ProgramDetailPageV1 />;
+}
+
+function ProgramDetailPageV1() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { program: loaderProgram, error: loaderError } =
@@ -444,6 +466,9 @@ export default function ProgramDetailPage() {
                         ))}
                     </div>
                 </div>
+                {PROTOTYPE && (
+                    <PrototypeSwitcher variants={DETAIL_VARIANTS} current="O" />
+                )}
             </ClinicLayout>
 
             <AlertDialog

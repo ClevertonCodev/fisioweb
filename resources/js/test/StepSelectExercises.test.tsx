@@ -41,6 +41,7 @@ function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
     return {
         id,
         title: 'Exercício',
+        description: '',
         thumbnailUrl: 'thumb.jpg',
         videoUrl: 'video.mp4',
         specialty: '',

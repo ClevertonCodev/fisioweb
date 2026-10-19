@@ -281,7 +281,7 @@ function SidebarContent({
                     {!collapsed && (
                         <div className="flex flex-col">
                             <span className="text-sm font-semibold text-sidebar-foreground">
-                                FisioElite
+                                IVS
                             </span>
                             <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
                                 Admin
@@ -363,7 +363,7 @@ export function AdminSidebar() {
                     <AppLogo tone="inverse" className="h-7 w-7" />
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold text-sidebar-foreground">
-                            FisioElite
+                            IVS
                         </span>
                         <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
                             Admin

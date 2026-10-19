@@ -53,6 +53,13 @@ import {
     serializeClinicUserDocument,
 } from '@/lib/br-document-validation';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+
+import UserEditPrototype from './user-edit-prototype/UserEditPrototype';
+import { USER_EDIT_VARIANTS } from './user-edit-prototype/variants';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
 
@@ -615,7 +622,22 @@ function UserEditForm({
     );
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (user-edit-prototype); O = esta tela. Desligado nos testes (o Vitest
+ * roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export function UserEditPage() {
+    const variant = usePrototypeVariant(USER_EDIT_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <UserEditPrototype variant={variant} />;
+    }
+    return <UserEditPageV1 />;
+}
+
+function UserEditPageV1() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { user: authUser } = useAuth();
@@ -685,6 +707,9 @@ export function UserEditPage() {
                 canManageUsers={canManageUsers}
                 isOwnProfile={String(authUser?.id) === String(clinicUser.id)}
             />
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={USER_EDIT_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

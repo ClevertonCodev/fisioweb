@@ -6,9 +6,9 @@ import type { PatientStatus } from '@/domain/clinic/patient';
  * puras: valor inválido na URL cai no padrão, e valor padrão não vai para a URL.
  *
  * ?q=maria&situacao=ativos|inativos&status=alta,obito&prof=12,34
- *  &de=2026-01-01&ate=2026-03-31&page=2&per_page=30
+ *  &de=2026-01-01&ate=2026-03-31&page=2&per_page=32
  */
-export const PATIENT_LIST_PER_PAGE_OPTIONS = [15, 30, 50] as const;
+export const PATIENT_LIST_PER_PAGE_OPTIONS = [16, 32, 50] as const;
 
 /** "todos" = ativos e inativos. */
 export type PatientSituation = 'todos' | 'ativos' | 'inativos';
@@ -37,7 +37,7 @@ export interface PatientListFilters {
 export const DEFAULT_PATIENT_LIST_FILTERS: PatientListFilters = {
     search: '',
     page: 1,
-    perPage: 15,
+    perPage: 16,
     situation: 'todos',
     statuses: [],
     professionalIds: [],

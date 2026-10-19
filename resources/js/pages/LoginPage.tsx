@@ -40,9 +40,12 @@ const LoginPage = () => {
                 <AppLogo className="mb-4 h-16 w-16" />
 
                 {/* Title */}
-                <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground">
-                    FisioClinic
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    IVS
                 </h1>
+                <p className="mb-1 text-sm text-muted-foreground">
+                    Fisioterapia e Saúde
+                </p>
 
                 <h2 className="mt-4 mb-8 font-serif text-3xl font-bold text-foreground italic">
                     Bem-vindo(a)!

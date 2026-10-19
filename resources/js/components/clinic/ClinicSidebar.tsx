@@ -121,9 +121,14 @@ function SidebarContent({
                 <div className="flex items-center gap-2">
                     <AppLogo tone="inverse" className="h-8 w-8" />
                     {!collapsed && (
-                        <span className="font-semibold text-sidebar-foreground">
-                            FisioElite
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="leading-tight font-semibold text-sidebar-foreground">
+                                IVS
+                            </span>
+                            <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
+                                Fisioterapia e Saúde
+                            </span>
+                        </div>
                     )}
                 </div>
                 {!onNavClick && (
@@ -189,9 +194,14 @@ export function ClinicSidebar() {
                     </Sheet>
                     <div className="flex items-center gap-2">
                         <AppLogo tone="inverse" className="h-7 w-7" />
-                        <span className="text-sm font-semibold text-sidebar-foreground">
-                            FisioElite
-                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-sidebar-foreground">
+                                IVS
+                            </span>
+                            <span className="text-[10px] tracking-wider text-sidebar-foreground/50 uppercase">
+                                Fisioterapia e Saúde
+                            </span>
+                        </div>
                     </div>
                 </div>
             </>

@@ -1,4 +1,5 @@
 import { Building2, User } from 'lucide-react';
+import { useEffect } from 'react';
 import type {
     Control,
     FieldErrors,
@@ -9,6 +10,7 @@ import type {
 import { Controller } from 'react-hook-form';
 
 import type { ClinicProfileFormValues } from '@/application/clinic/clinic-profile-form';
+import { useCepLookup } from '@/application/clinic/use-cep-lookup';
 import {
     applyMask,
     dsCn,
@@ -180,7 +182,31 @@ export function AddressFields({
     canEdit,
     control,
     register,
-}: Pick<FormFields, 'canEdit' | 'control' | 'register'>) {
+    setValue,
+    watch,
+}: Pick<
+    FormFields,
+    'canEdit' | 'control' | 'register' | 'setValue' | 'watch'
+>) {
+    const zipCode = watch('zipCode');
+    const { loading, lookup } = useCepLookup();
+
+    useEffect(() => {
+        if (!canEdit) return;
+
+        let cancelled = false;
+        lookup(zipCode ?? '').then((result) => {
+            if (cancelled || !result) return;
+            setValue('address', result.street, { shouldDirty: true });
+            setValue('city', result.city, { shouldDirty: true });
+            setValue('state', result.state, { shouldDirty: true });
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [canEdit, lookup, setValue, zipCode]);
+
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
             <div className="sm:col-span-2">
@@ -206,7 +232,10 @@ export function AddressFields({
                             inputMode="numeric"
                             placeholder="00000-000"
                             state={fieldState.error ? 'error' : 'default'}
-                            helper={fieldState.error?.message}
+                            helper={
+                                fieldState.error?.message ??
+                                (loading ? 'Buscando endereço…' : undefined)
+                            }
                         />
                     )}
                 />

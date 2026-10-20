@@ -29,7 +29,7 @@ import type {
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import ProgramBuilderPrototype from './program-builder-prototype/ProgramBuilderPrototype';
 import { BUILDER_VARIANTS } from './program-builder-prototype/variants';

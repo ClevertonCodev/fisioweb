@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import AssessmentAnswerPrototype from './assessment-answer-prototype/AssessmentAnswerPrototype';
 import { ANSWER_VARIANTS } from './assessment-answer-prototype/shared';

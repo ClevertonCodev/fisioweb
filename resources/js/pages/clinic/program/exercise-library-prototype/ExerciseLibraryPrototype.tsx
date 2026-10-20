@@ -17,7 +17,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton, dsCn, DsEmptyState, DsTabs } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import {
     activeFilterCount,

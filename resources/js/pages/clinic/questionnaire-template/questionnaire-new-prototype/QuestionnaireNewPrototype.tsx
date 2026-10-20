@@ -8,7 +8,7 @@
  * Salvar é stub e volta para o returnTo.
  */
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { NEW_QUESTIONNAIRE_VARIANTS, useQuestionnaireBuilder } from './shared';
 import { VariantC } from './VariantC';

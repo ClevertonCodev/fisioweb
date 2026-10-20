@@ -48,7 +48,7 @@ import type { Program, ProgramExercise } from '@/domain/clinic';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import ProgramDetailPrototype from './program-detail-prototype/ProgramDetailPrototype';
 import { DETAIL_VARIANTS } from './program-detail-prototype/shared';

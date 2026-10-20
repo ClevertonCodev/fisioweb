@@ -25,7 +25,7 @@ import {
     DsInput,
 } from '@/components/ds';
 import type { ClinicRole } from '@/domain/auth/session';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
 
 import {

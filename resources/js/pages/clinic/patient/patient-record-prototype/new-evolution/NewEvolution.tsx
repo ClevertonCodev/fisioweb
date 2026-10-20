@@ -8,7 +8,7 @@ import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDr
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import { EVOLUTION_VARIANTS, useEvolutionComposer } from './shared';
 import { VariantB } from './VariantB';

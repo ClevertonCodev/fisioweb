@@ -26,7 +26,7 @@ import type {
     Program,
 } from '@/domain/clinic';
 import type { PatientDetail } from '@/domain/clinic/patient';
-import { statusLabel } from '@/pages/clinic/agenda-prototype/shared';
+import { statusLabel } from '@/components/clinic/agenda/agenda-shared';
 
 const DAY = 24 * 60 * 60 * 1000;
 

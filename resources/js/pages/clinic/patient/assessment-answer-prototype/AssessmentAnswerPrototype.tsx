@@ -12,7 +12,7 @@
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsEmptyState } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { ANSWER_VARIANTS, useAssessmentAnswers } from './shared';
 import { VariantC } from './VariantC';

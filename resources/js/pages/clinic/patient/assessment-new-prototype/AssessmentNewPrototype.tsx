@@ -10,7 +10,7 @@
 import { useParams } from 'react-router-dom';
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { ASSESSMENT_VARIANTS, useAssessmentPicker } from './shared';
 import { VariantB } from './VariantB';

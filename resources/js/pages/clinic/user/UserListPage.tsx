@@ -52,7 +52,7 @@ import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import UserListPrototype from './user-list-prototype/UserListPrototype';
 import { USERS_VARIANTS } from './user-list-prototype/variants';

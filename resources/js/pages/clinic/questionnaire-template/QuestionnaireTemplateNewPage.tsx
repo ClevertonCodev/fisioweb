@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import QuestionnaireNewPrototype from './questionnaire-new-prototype/QuestionnaireNewPrototype';
 import { NEW_QUESTIONNAIRE_VARIANTS } from './questionnaire-new-prototype/shared';

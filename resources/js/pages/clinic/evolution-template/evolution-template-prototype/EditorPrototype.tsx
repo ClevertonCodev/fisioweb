@@ -15,7 +15,7 @@ import { useEvolutionTemplate } from '@/application/clinic/use-evolutions';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsAlert, DsButton, DsEmptyState } from '@/components/ds';
 import type { EvolutionTemplate } from '@/domain/clinic';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { EditorA } from './EditorA';
 import { DEMO_TEMPLATES, EDITOR_VARIANTS, useTemplateDraft } from './shared';

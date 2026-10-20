@@ -9,7 +9,7 @@ import { QuestionnaireFormSheet } from '@/components/clinic/patient/Questionnair
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import { QUESTIONNAIRE_VARIANTS, useQuestionnaireSend } from './shared';
 import { VariantA } from './VariantA';

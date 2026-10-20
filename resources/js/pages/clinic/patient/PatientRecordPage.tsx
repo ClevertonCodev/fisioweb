@@ -72,7 +72,7 @@ import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import PatientRecordPrototype from './patient-record-prototype/PatientRecordPrototype';
 import { RECORD_VARIANTS } from './patient-record-prototype/variants';

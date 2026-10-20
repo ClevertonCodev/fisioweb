@@ -2,7 +2,7 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 import { ClinicDataForm } from '@/pages/clinic/clinic-data/ClinicDataForm';
 
 import ClinicDataPrototype from './clinic-data-prototype/ClinicDataPrototype';

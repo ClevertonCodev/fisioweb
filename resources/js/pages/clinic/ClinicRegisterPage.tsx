@@ -33,7 +33,7 @@ import { SlugInput } from '@/components/ui/slug-input';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import RegisterPrototype from './register-prototype/RegisterPrototype';
 import { REGISTER_VARIANTS } from './register-prototype/shared';

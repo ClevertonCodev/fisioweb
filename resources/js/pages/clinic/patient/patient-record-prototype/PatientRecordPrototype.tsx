@@ -16,7 +16,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton, DsEmptyState } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import {
     usePatientRecord,

@@ -37,7 +37,7 @@ import {
     DS_STATUS,
     STATUS_ORDER,
     statusLabel,
-} from '@/pages/clinic/agenda-prototype/shared';
+} from '@/components/clinic/agenda/agenda-shared';
 import { PatientStatusBadge } from '@/pages/clinic/patient/patient-list/patient-status';
 import { PatientAvatar } from '@/pages/clinic/patient/patient-list/PatientAvatar';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';

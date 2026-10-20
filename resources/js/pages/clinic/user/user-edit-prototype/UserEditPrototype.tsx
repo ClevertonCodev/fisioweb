@@ -26,7 +26,7 @@ import { DsButton, DsEmptyState } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import { useTeam } from '@/pages/clinic/user/user-list-prototype/data';
 
 import { passwordLockReason, useUserEditForm } from './form';

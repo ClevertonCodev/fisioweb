@@ -11,7 +11,7 @@ import { useParams } from 'react-router-dom';
 import { useClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsEmptyState } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { DETAIL_VARIANTS } from './shared';
 import { VariantA } from './VariantA';

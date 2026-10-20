@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import EditorPrototype from './evolution-template-prototype/EditorPrototype';
 import { EDITOR_VARIANTS } from './evolution-template-prototype/shared';

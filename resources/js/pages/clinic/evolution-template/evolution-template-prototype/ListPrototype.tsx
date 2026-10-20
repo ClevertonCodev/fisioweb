@@ -24,7 +24,7 @@ import {
     DsTabs,
 } from '@/components/ds';
 import type { EvolutionTemplate } from '@/domain/clinic';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { TryTemplate } from './parts';
 import {

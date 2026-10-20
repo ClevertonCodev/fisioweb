@@ -46,7 +46,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 import SubmitExercisePrototype from '@/pages/clinic/exercise-submit-prototype/SubmitExercisePrototype';
 import { SUBMIT_VARIANTS } from '@/pages/clinic/exercise-submit-prototype/variants';
 

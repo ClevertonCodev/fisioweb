@@ -8,7 +8,7 @@ import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileU
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import { FILE_VARIANTS, useFileQueue } from './shared';
 import { VariantB } from './VariantB';

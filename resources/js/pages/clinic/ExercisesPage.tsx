@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 import ExerciseLibraryPrototype from '@/pages/clinic/program/exercise-library-prototype/ExerciseLibraryPrototype';
 import { LIBRARY_VARIANTS } from '@/pages/clinic/program/exercise-library-prototype/variants';
 

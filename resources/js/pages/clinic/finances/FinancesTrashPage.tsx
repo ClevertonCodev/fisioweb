@@ -15,7 +15,7 @@ import type { FinancialTransaction } from '@/domain/clinic/finance';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import { FINANCE_VARIANTS } from './finance-prototype/data';
 import FinancePrototype from './finance-prototype/FinancePrototype';

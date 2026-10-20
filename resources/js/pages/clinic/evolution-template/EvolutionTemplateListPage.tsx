@@ -33,7 +33,7 @@ import { apiClinicEvolutionsRepository } from '@/infrastructure/repositories/api
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import ListPrototype from './evolution-template-prototype/ListPrototype';
 import { LIST_VARIANTS } from './evolution-template-prototype/shared';

@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import AssessmentNewPrototype from './assessment-new-prototype/AssessmentNewPrototype';
 import { ASSESSMENT_VARIANTS } from './assessment-new-prototype/shared';

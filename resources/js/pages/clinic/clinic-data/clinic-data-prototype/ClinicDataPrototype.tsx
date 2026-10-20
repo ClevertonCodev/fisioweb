@@ -12,7 +12,7 @@ import { useClinicProfile } from '@/application/clinic/use-clinic-profile';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsAlert, DsButton, DsEmptyState } from '@/components/ds';
 import type { ClinicProfile } from '@/domain/clinic';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { DATA_VARIANTS, useClinicData } from './shared';
 import { VariantA } from './VariantA';

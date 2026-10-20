@@ -21,7 +21,7 @@ import {
     DsEmptyState,
     DsSteps,
 } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import {
     activeFilterCount,
     applyFilters,

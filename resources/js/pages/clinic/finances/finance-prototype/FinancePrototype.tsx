@@ -20,7 +20,7 @@ import { useFinanceValuesVisibility } from '@/application/clinic/use-finance-val
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton, DsTabs } from '@/components/ds';
 import type { FinancialTransaction } from '@/domain/clinic/finance';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
 
 import {

@@ -6,7 +6,7 @@
  * commitada). Validação real
  * (clinicRegisterSchema); criar a conta é stub (sem endpoint no backend).
  */
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { REGISTER_VARIANTS } from './shared';
 import { VariantA } from './VariantA';

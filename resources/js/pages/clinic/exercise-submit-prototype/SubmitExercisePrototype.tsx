@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useClinicExerciseOptions } from '@/application/clinic';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import { useFakeSubmit, useSubmitForm, type FormValues } from './shared';
 import { SubmitA } from './SubmitA';

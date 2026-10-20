@@ -56,7 +56,7 @@ import { cn } from '@/lib/utils';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
-} from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+} from '@/pages/clinic/PrototypeSwitcher';
 
 import UserEditPrototype from './user-edit-prototype/UserEditPrototype';
 import { USER_EDIT_VARIANTS } from './user-edit-prototype/variants';

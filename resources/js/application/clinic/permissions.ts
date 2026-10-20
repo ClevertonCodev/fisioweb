@@ -13,4 +13,6 @@ export const can = {
     reactivate: (role?: ClinicRole) => role === 'admin' || role === 'secretary',
     manageClinicalRecords: (role?: ClinicRole) =>
         role === 'admin' || role === 'physiotherapist',
+    manageServiceTypes: (role?: ClinicRole) =>
+        role === 'admin' || role === 'secretary',
 };

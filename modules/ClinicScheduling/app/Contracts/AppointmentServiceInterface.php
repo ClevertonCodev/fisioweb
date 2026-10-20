@@ -2,6 +2,7 @@
 
 namespace Modules\ClinicScheduling\Contracts;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
@@ -21,4 +22,13 @@ interface AppointmentServiceInterface
      * O tipo do usuário não é anotado para evitar import cross-module de Model.
      */
     public function listForUser($user, array $filters = []): Collection;
+
+    /**
+     * Histórico completo do paciente (qualquer profissional) para quem pode
+     * vê-lo: admin/secretária, ou o fisioterapeuta que atende o paciente.
+     * Sem consulta do paciente na clínica, ou fisio que não o atende: 404.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function historyForPatient($user, int $patientId, int $perPage): LengthAwarePaginator;
 }

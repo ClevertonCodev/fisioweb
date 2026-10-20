@@ -2,8 +2,10 @@
 
 namespace Modules\ClinicScheduling\Repositories;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
+use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
 
 class AppointmentRepository implements AppointmentRepositoryInterface
@@ -54,5 +56,31 @@ class AppointmentRepository implements AppointmentRepositoryInterface
         }
 
         return $query->orderBy('starts_at')->get();
+    }
+
+    public function patientHasAppointmentInClinic(int $clinicId, int $patientId): bool
+    {
+        return $this->model->forClinic($clinicId)
+            ->where('patient_id', $patientId)
+            ->exists();
+    }
+
+    public function clinicUserAttendsPatient(int $clinicId, int $clinicUserId, int $patientId): bool
+    {
+        return $this->model->forClinic($clinicId)
+            ->forClinicUser($clinicUserId)
+            ->where('patient_id', $patientId)
+            ->where('status', '!=', AppointmentStatus::Cancelled->value)
+            ->exists();
+    }
+
+    public function paginateForPatient(int $clinicId, int $patientId, int $perPage): LengthAwarePaginator
+    {
+        return $this->model->with('clinicUser:id,name')
+            ->forClinic($clinicId)
+            ->where('patient_id', $patientId)
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->paginate($perPage, ['id', 'clinic_user_id', 'title', 'starts_at', 'ends_at', 'status']);
     }
 }

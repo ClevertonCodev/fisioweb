@@ -1,3 +1,4 @@
+export * from './agenda-preferences';
 export * from './appointment';
 export * from './assessment';
 export * from './clinic-profile';
@@ -9,3 +10,4 @@ export * from './patient-file';
 export * from './patient-questionnaire';
 export * from './program';
 export * from './questionnaire-template';
+export * from './service-type';

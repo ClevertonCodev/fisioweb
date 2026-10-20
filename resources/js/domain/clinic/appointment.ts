@@ -24,21 +24,17 @@ export interface Appointment {
     source: AppointmentSource;
 }
 
-export interface CalendarEvent {
+/**
+ * Consulta no histórico do paciente: todas as consultas dele, de qualquer
+ * profissional, sem observações nem local.
+ */
+export interface PatientAppointmentHistoryItem {
     id: string;
-    title: string;
-    start: string;
-    end: string;
-    allDay: boolean;
-    backgroundColor: string;
-    borderColor: string;
-    textColor: string;
-    /** false para status terminais (não arrastar/redimensionar). */
-    editable?: boolean;
-    extendedProps: {
-        appointment: Appointment;
-        status: Appointment['status'];
-    };
+    startsAt: string;
+    endsAt: string;
+    title: string | null;
+    clinicUserName: string;
+    status: AppointmentStatus;
 }
 
 export const STATUS_COLORS: Record<

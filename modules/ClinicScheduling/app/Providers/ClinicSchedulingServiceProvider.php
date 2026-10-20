@@ -11,12 +11,18 @@ use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
 use Modules\ClinicScheduling\Contracts\Public\AppointmentSyncWriteServiceInterface;
 use Modules\ClinicScheduling\Contracts\Public\AppointmentUpsertFromExternalSourceInterface;
 use Modules\ClinicScheduling\Contracts\Public\SchedulingReadServiceInterface;
+use Modules\ClinicScheduling\Contracts\ServiceTypeRepositoryInterface;
+use Modules\ClinicScheduling\Contracts\ServiceTypeServiceInterface;
 use Modules\ClinicScheduling\Models\Appointment;
+use Modules\ClinicScheduling\Models\ServiceType;
 use Modules\ClinicScheduling\Policies\AppointmentPolicy;
+use Modules\ClinicScheduling\Policies\ServiceTypePolicy;
 use Modules\ClinicScheduling\Repositories\AppointmentRepository;
+use Modules\ClinicScheduling\Repositories\ServiceTypeRepository;
 use Modules\ClinicScheduling\Services\AppointmentExternalSyncService;
 use Modules\ClinicScheduling\Services\AppointmentService;
 use Modules\ClinicScheduling\Services\SchedulingReadService;
+use Modules\ClinicScheduling\Services\ServiceTypeService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -45,6 +51,8 @@ class ClinicSchedulingServiceProvider extends ServiceProvider
         $this->app->bind(AppointmentSyncWriteServiceInterface::class, AppointmentExternalSyncService::class);
         $this->app->bind(AppointmentUpsertFromExternalSourceInterface::class, AppointmentExternalSyncService::class);
         $this->app->bind(AppointmentCancelFromExternalSourceInterface::class, AppointmentExternalSyncService::class);
+        $this->app->bind(ServiceTypeRepositoryInterface::class, ServiceTypeRepository::class);
+        $this->app->bind(ServiceTypeServiceInterface::class, ServiceTypeService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
@@ -53,6 +61,7 @@ class ClinicSchedulingServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Appointment::class, AppointmentPolicy::class);
+        Gate::policy(ServiceType::class, ServiceTypePolicy::class);
     }
 
     protected function registerConfig(): void

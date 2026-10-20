@@ -11,6 +11,7 @@ import { routerFutureFlags } from '@/test/browser-router';
 
 const getProfile = vi.fn();
 const updateProfile = vi.fn();
+const lookupCep = vi.fn();
 
 vi.mock('@/infrastructure/repositories/api-clinic-profile', () => ({
     apiClinicProfileRepository: {
@@ -21,6 +22,10 @@ vi.mock('@/infrastructure/repositories/api-clinic-profile', () => ({
 
 vi.mock('@/components/clinic/ClinicLayout', () => ({
     ClinicLayout: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+vi.mock('@/application/clinic/use-cep-lookup', () => ({
+    useCepLookup: () => ({ loading: false, lookup: lookupCep }),
 }));
 
 vi.mock('sonner', () => ({
@@ -84,6 +89,7 @@ function renderPage() {
 
 beforeEach(() => {
     authState.user.mestre = 1;
+    lookupCep.mockResolvedValue(null);
     getProfile.mockResolvedValue(makeProfile());
     updateProfile.mockImplementation((dto: Record<string, unknown>) =>
         Promise.resolve(makeProfile({ name: String(dto.name ?? '') })),
@@ -245,5 +251,36 @@ describe('ClinicDataPage', () => {
 
         expect(await screen.findByText('CPF inválido')).toBeInTheDocument();
         expect(updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('preenche rua, cidade e UF quando o CEP fica completo', async () => {
+        lookupCep.mockResolvedValue({
+            street: 'Avenida Paulista',
+            neighborhood: 'Bela Vista',
+            city: 'São Paulo',
+            state: 'SP',
+        });
+        getProfile.mockResolvedValue(
+            makeProfile({
+                zipCode: '',
+                address: '',
+                city: '',
+                state: '',
+            }),
+        );
+        const user = userEvent.setup();
+        renderPage();
+
+        const cep = await screen.findByLabelText('CEP');
+        await user.type(cep, '01310100');
+
+        await waitFor(() => {
+            expect(lookupCep).toHaveBeenCalled();
+        });
+        expect(screen.getByLabelText('Rua')).toHaveValue('Avenida Paulista');
+        expect(screen.getByLabelText('Cidade')).toHaveValue('São Paulo');
+        expect(screen.getByRole('button', { name: /UF/ })).toHaveTextContent(
+            'SP',
+        );
     });
 });

@@ -8,7 +8,6 @@ import { ArrowLeft, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { DsBadge, DsButton, dsCn } from '@/components/ds';
-import { ROLE_META } from '@/pages/clinic/user/user-list-prototype/data';
 
 import { DOCUMENT_KIND_LABEL } from './form';
 import {
@@ -25,6 +24,7 @@ import {
     StatusSwitch,
     type VariantProps,
 } from './parts';
+import { ROLE_META } from './team-data';
 
 const card =
     'rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs sm:p-6';

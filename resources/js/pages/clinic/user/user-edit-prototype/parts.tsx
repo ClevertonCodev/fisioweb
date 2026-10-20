@@ -32,11 +32,6 @@ import {
 } from '@/components/ds';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import type { ClinicUserDocumentKind } from '@/lib/br-document-validation';
-import {
-    CAPABILITIES,
-    ROLE_META,
-    type Member,
-} from '@/pages/clinic/user/user-list-prototype/data';
 
 import {
     DOCUMENT_KIND_LABEL,
@@ -45,6 +40,7 @@ import {
     SCORE_LABEL,
     type UserEditForm,
 } from './form';
+import { CAPABILITIES, ROLE_META, type Member } from './team-data';
 
 export interface VariantProps {
     user: ClinicUserSummary;

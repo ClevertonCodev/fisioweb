@@ -82,9 +82,19 @@ class ClinicController extends Controller
     {
         try {
             $this->clinicService->findById($id);
+            // Só admin ativo: o guard da clínica recusa token de inativo (ADR 022).
+            // O mestre primeiro, e ordem fixa para não variar com o banco.
             $clinicUser = ClinicUser::where('clinic_id', $id)
                 ->where('role', ClinicUser::ROLE_ADMIN)
-                ->firstOrFail();
+                ->where('status', ClinicUser::STATUS_ACTIVE)
+                ->orderByDesc('mestre')
+                ->orderBy('id')
+                ->first();
+
+            if (is_null($clinicUser)) {
+                return response()->json(['message' => 'A clínica não tem administrador ativo para entrar como ele.'], 422);
+            }
+
             $token = auth('clinic')->login($clinicUser);
 
             return response()->json([

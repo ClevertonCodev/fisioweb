@@ -3,6 +3,7 @@
 namespace Modules\TreatmentProgram\Tests\Unit;
 
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\ClinicUser;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Services\ProgramPdfViewModelBuilder;
 use Tests\TestCase;
@@ -15,6 +16,21 @@ class ProgramPdfViewModelBuilderTest extends TestCase
     {
         parent::setUp();
         $this->builder = new ProgramPdfViewModelBuilder;
+    }
+
+    public function test_excluded_responsible_keeps_the_name_but_contact_is_the_clinic(): void
+    {
+        $clinic                  = new Clinic(['name' => 'Clínica Demo', 'email' => 'contato@clinica.test']);
+        $responsible             = new ClinicUser(['name' => 'Fisio Que Saiu', 'email' => 'saiu@clinica.test']);
+        $responsible->deleted_at = now();
+        $plan                    = new TreatmentPlan;
+        $plan->setRelation('clinic', $clinic);
+        $plan->setRelation('clinicUser', $responsible);
+
+        $view = $this->builder->build($plan);
+
+        $this->assertSame('Fisio Que Saiu', $view['responsibleName']);
+        $this->assertSame('contato@clinica.test', $view['responsibleEmail']);
     }
 
     public function test_group_display_name_falls_back_to_novo_grupo(): void

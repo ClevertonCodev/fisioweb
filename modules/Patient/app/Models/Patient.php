@@ -99,6 +99,6 @@ class Patient extends Authenticatable implements JWTSubject
 
     public function clinicUser(): BelongsTo
     {
-        return $this->belongsTo(ClinicUser::class);
+        return $this->belongsTo(ClinicUser::class)->withTrashed();
     }
 }

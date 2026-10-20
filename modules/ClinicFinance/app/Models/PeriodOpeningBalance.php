@@ -42,6 +42,6 @@ class PeriodOpeningBalance extends Model
 
     public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'updated_by_user_id');
+        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'updated_by_user_id')->withTrashed();
     }
 }

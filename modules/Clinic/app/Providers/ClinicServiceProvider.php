@@ -4,10 +4,12 @@ namespace Modules\Clinic\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Modules\Clinic\Auth\ActiveClinicUserProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
@@ -59,6 +61,7 @@ class ClinicServiceProvider extends ServiceProvider
         Clinic::observe(ClinicObserver::class);
 
         $this->registerPolicies();
+        $this->registerAuthProvider();
         $this->registerGateBefore();
         $this->registerAuthRateLimiters();
     }
@@ -116,10 +119,19 @@ class ClinicServiceProvider extends ServiceProvider
             ->response($tooMany));
     }
 
+    /** Driver do provider `clinic_users` (config/auth.php): só usuário ativo autentica. */
+    protected function registerAuthProvider(): void
+    {
+        Auth::provider('clinic_active_eloquent', fn ($app, array $config) => new ActiveClinicUserProvider(
+            $app['hash'],
+            $config['model'],
+        ));
+    }
+
     protected function registerGateBefore(): void
     {
         Gate::before(function ($user, $ability) {
-            if ($user instanceof ClinicUser && $user->isAdmin()) {
+            if ($user instanceof ClinicUser && $user->isAdmin() && (int) $user->status === ClinicUser::STATUS_ACTIVE) {
                 return true;
             }
         });

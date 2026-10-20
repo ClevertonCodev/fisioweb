@@ -75,6 +75,35 @@ export function useUpdateClinicUser(id: string) {
     });
 }
 
+/**
+ * Função ou situação de qualquer pessoa da lista (`PUT` parcial). O toast de
+ * sucesso fica com quem chama, que sabe o que mudou; o de erro traz o motivo
+ * da API (mestre, último administrador ativo).
+ */
+export function useChangeClinicUserAccess() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({
+            id,
+            dto,
+        }: {
+            id: string;
+            dto: Pick<ClinicUserUpdateDto, 'role' | 'status'>;
+        }) => apiClinicUsersRepository.update(id, dto),
+        // Também no erro: a recusa (422/404) pode vir de uma mudança feita
+        // por outra pessoa, e a lista na tela já não vale.
+        onSettled: () => {
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+        },
+        onError: (error: { response?: { data?: { message?: string } } }) => {
+            toast.error(
+                error?.response?.data?.message ??
+                    'Não foi possível salvar a alteração.',
+            );
+        },
+    });
+}
+
 export function useUploadClinicUserPhoto() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -113,8 +142,10 @@ export function useDeleteClinicUser() {
     return useMutation({
         mutationFn: (id: string) => apiClinicUsersRepository.destroy(id),
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Usuário removido com sucesso.');
+        },
+        onSettled: () => {
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
         },
         onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(

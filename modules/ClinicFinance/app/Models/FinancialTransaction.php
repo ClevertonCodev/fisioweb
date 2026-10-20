@@ -65,12 +65,12 @@ class FinancialTransaction extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'created_by_user_id');
+        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'created_by_user_id')->withTrashed();
     }
 
     public function deletedBy(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'deleted_by_user_id');
+        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class, 'deleted_by_user_id')->withTrashed();
     }
 
     public function scopeForClinic(Builder $query, int $clinicId): Builder

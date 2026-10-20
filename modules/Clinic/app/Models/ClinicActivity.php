@@ -35,7 +35,7 @@ class ClinicActivity extends Model
     /** Ator que realizou a ação. */
     public function actor(): BelongsTo
     {
-        return $this->belongsTo(ClinicUser::class, 'clinic_user_id');
+        return $this->belongsTo(ClinicUser::class, 'clinic_user_id')->withTrashed();
     }
 
     public function subject(): MorphTo

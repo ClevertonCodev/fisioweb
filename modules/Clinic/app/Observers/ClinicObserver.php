@@ -10,7 +10,8 @@ class ClinicObserver
 {
     public function created(Clinic $clinic): void
     {
-        if (ClinicUser::where('email', $clinic->email)->exists()) {
+        // withTrashed: o e-mail de um usuário excluído continua ocupado no índice único.
+        if (ClinicUser::withTrashed()->where('email', $clinic->email)->exists()) {
             return;
         }
 

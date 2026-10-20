@@ -21,9 +21,11 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::put('me/preferences/{key}', [ClinicUserPreferenceController::class, 'update'])->name('clinic.me.preferences.update');
 
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
-    Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');
-    Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo');
-    Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
+    // Id inexistente, excluído ou de outra clínica: o mesmo 404, sem dizer qual.
+    $userNotFound = fn () => response()->json(['message' => 'Usuário não encontrado.'], 404);
+    Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo')->missing($userNotFound);
+    Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo')->missing($userNotFound);
+    Route::apiResource('users', ClinicUserController::class)->names('clinic.users')->missing($userNotFound);
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');

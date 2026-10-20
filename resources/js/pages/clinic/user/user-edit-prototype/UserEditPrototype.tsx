@@ -27,10 +27,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
-import { useTeam } from '@/pages/clinic/user/user-list-prototype/data';
 
 import { passwordLockReason, useUserEditForm } from './form';
 import { PasswordCodeModal, roleLabel, type VariantProps } from './parts';
+import { useTeam } from './team-data';
 import { VariantA } from './VariantA';
 import { USER_EDIT_VARIANTS } from './variants';
 

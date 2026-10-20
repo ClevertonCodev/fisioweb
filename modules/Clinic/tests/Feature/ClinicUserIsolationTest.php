@@ -119,8 +119,6 @@ class ClinicUserIsolationTest extends TestCase
 
     public function test_show_user_of_another_clinic_is_denied(): void
     {
-        $this->markTestIncomplete('Falha que já existe na main (show/update/destroy sem checagem de clinic_id); corrigida no bugfix final da feature 001-clinic-base-controller.');
-
         $this->actingAs($this->adminB, 'clinic')
             ->getJson("/api/clinic/users/{$this->physioA->id}")
             ->assertJsonMissing(['name' => 'Fisio da Clínica A'])
@@ -129,8 +127,6 @@ class ClinicUserIsolationTest extends TestCase
 
     public function test_update_user_of_another_clinic_is_denied(): void
     {
-        $this->markTestIncomplete('Falha que já existe na main (show/update/destroy sem checagem de clinic_id); corrigida no bugfix final da feature 001-clinic-base-controller.');
-
         $this->actingAs($this->adminB, 'clinic')
             ->putJson("/api/clinic/users/{$this->physioA->id}", [
                 'name'     => 'Alterado por B',
@@ -145,13 +141,43 @@ class ClinicUserIsolationTest extends TestCase
 
     public function test_destroy_user_of_another_clinic_is_denied(): void
     {
-        $this->markTestIncomplete('Falha que já existe na main (show/update/destroy sem checagem de clinic_id); corrigida no bugfix final da feature 001-clinic-base-controller.');
-
         $this->actingAs($this->adminB, 'clinic')
             ->deleteJson("/api/clinic/users/{$this->physioA->id}")
             ->assertNotFound();
 
-        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id]);
+        $this->assertNotSoftDeleted('clinic_users', ['id' => $this->physioA->id]);
+    }
+
+    public function test_partial_update_of_another_clinic_user_is_not_found(): void
+    {
+        foreach ([['role' => ClinicUser::ROLE_SECRETARY], ['status' => false], ['email' => 'nao-e-email']] as $payload) {
+            $this->actingAs($this->adminB, 'clinic')
+                ->putJson("/api/clinic/users/{$this->physioA->id}", $payload)
+                ->assertNotFound()
+                ->assertJsonMissing(['name' => 'Fisio da Clínica A']);
+        }
+
+        $this->assertDatabaseHas('clinic_users', [
+            'id'     => $this->physioA->id,
+            'role'   => ClinicUser::ROLE_PHYSIOTHERAPIST,
+            'status' => ClinicUser::STATUS_ACTIVE,
+        ]);
+    }
+
+    public function test_not_found_does_not_reveal_whether_the_id_exists_elsewhere(): void
+    {
+        $missingId = ClinicUser::withTrashed()->max('id') + 100;
+
+        $otherClinic = $this->actingAs($this->adminB, 'clinic')
+            ->getJson("/api/clinic/users/{$this->physioA->id}")
+            ->assertNotFound()
+            ->json();
+        $missing = $this->actingAs($this->adminB, 'clinic')
+            ->getJson("/api/clinic/users/{$missingId}")
+            ->assertNotFound()
+            ->json();
+
+        $this->assertSame($otherClinic, $missing);
     }
 
     private function collectIds(mixed $data): array

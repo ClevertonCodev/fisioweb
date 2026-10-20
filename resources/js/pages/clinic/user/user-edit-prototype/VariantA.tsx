@@ -2,7 +2,8 @@
  * PROTÓTIPO A, "Crachá ao vivo": o formulário à esquerda e, à direita, como
  * a pessoa aparece no sistema, mudando enquanto se digita: o crachá, a
  * consulta na agenda, o cartão do paciente e a assinatura do PDF. Mostra
- * por que nome, foto e CREFITO importam.
+ * por que nome, foto e CREFITO importam. Serve ao cadastro e à edição
+ * (f.mode); no cadastro, a prévia usa placeholders enquanto está vazia.
  */
 import { ArrowLeft, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +27,9 @@ import {
 } from './parts';
 import { ROLE_META } from './team-data';
 
+/** Nome na prévia enquanto o campo está vazio. */
+export const NAME_PLACEHOLDER = 'Nome do profissional';
+
 const card =
     'rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs sm:p-6';
 
@@ -39,6 +43,7 @@ export function VariantA(props: VariantProps) {
         backTo,
     } = props;
     const navigate = useNavigate();
+    const creating = f.mode === 'create';
 
     return (
         <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
@@ -57,11 +62,19 @@ export function VariantA(props: VariantProps) {
                     />
                     <div>
                         <h1 className="text-ds-body-lg font-medium sm:text-ds-page-title sm:font-normal">
-                            {isOwnProfile ? 'Meu perfil' : 'Editar usuário'}
+                            {creating
+                                ? 'Novo usuário'
+                                : isOwnProfile
+                                  ? 'Meu perfil'
+                                  : 'Editar usuário'}
                         </h1>
                         <p className="text-ds-caption text-ds-content-secondary sm:text-ds-body-sm">
                             À direita, como{' '}
-                            {isOwnProfile ? 'você aparece' : 'a pessoa aparece'}{' '}
+                            {creating
+                                ? 'a pessoa vai aparecer'
+                                : isOwnProfile
+                                  ? 'você aparece'
+                                  : 'a pessoa aparece'}{' '}
                             para a clínica e os pacientes.
                         </p>
                     </div>
@@ -109,7 +122,9 @@ export function VariantA(props: VariantProps) {
                                 hint={
                                     passwordLock
                                         ? undefined
-                                        : 'Deixe em branco para manter a atual.'
+                                        : creating
+                                          ? 'É com ela que a pessoa entra no sistema.'
+                                          : 'Deixe em branco para manter a atual.'
                                 }
                             />
                             {passwordLock ? (
@@ -122,10 +137,13 @@ export function VariantA(props: VariantProps) {
                             )}
                         </section>
 
-                        <section className={card}>
-                            <SectionTitle title="Integrações" />
-                            <GoogleRow isOwnProfile={isOwnProfile} />
-                        </section>
+                        {/* No cadastro ainda não há perfil para conectar. */}
+                        {!creating && (
+                            <section className={card}>
+                                <SectionTitle title="Integrações" />
+                                <GoogleRow isOwnProfile={isOwnProfile} />
+                            </section>
+                        )}
                     </div>
 
                     {/* Como aparece */}
@@ -142,19 +160,22 @@ export function VariantA(props: VariantProps) {
                 <SaveBar>
                     <div className="flex items-center gap-3">
                         <p className="mr-auto min-w-0 truncate text-ds-caption text-ds-content-secondary">
-                            {f.changes.length === 0
-                                ? 'Nada alterado'
-                                : `${f.changes.length} ${f.changes.length === 1 ? 'alteração' : 'alterações'}: ${f.changes.map((c) => c.label.toLowerCase()).join(', ')}`}
+                            {creating
+                                ? 'Nada é gravado.'
+                                : f.changes.length === 0
+                                  ? 'Nada alterado'
+                                  : `${f.changes.length} ${f.changes.length === 1 ? 'alteração' : 'alterações'}: ${f.changes.map((c) => c.label.toLowerCase()).join(', ')}`}
                         </p>
                         <DsButton
                             variant="secondary"
                             label="Cancelar"
                             onClick={() => navigate(backTo)}
                         />
+                        {/* No cadastro não há base: a validação decide. */}
                         <DsButton
                             type="submit"
-                            label="Salvar"
-                            disabled={f.changes.length === 0}
+                            label={creating ? 'Criar usuário' : 'Salvar'}
+                            disabled={!creating && f.changes.length === 0}
                         />
                     </div>
                 </SaveBar>
@@ -184,14 +205,23 @@ function Badge({ user, f, member }: VariantProps) {
                     size={96}
                     className="ring-4 ring-ds-surface-default"
                 />
-                <p className="mt-1 text-ds-h4 leading-tight font-semibold break-words">
-                    {v.name || 'Sem nome'}
+                <p
+                    className={dsCn(
+                        'mt-1 text-ds-h4 leading-tight font-semibold break-words',
+                        !v.name && 'text-ds-content-muted',
+                    )}
+                >
+                    {v.name || NAME_PLACEHOLDER}
                 </p>
                 <div className="flex flex-wrap justify-center gap-1.5">
-                    <DsBadge variant="primary">
-                        {ROLE_META[v.role].label}
-                    </DsBadge>
-                    {user.mestre === 1 && (
+                    {v.role ? (
+                        <DsBadge variant="primary">
+                            {ROLE_META[v.role].label}
+                        </DsBadge>
+                    ) : (
+                        <DsBadge>Sem função</DsBadge>
+                    )}
+                    {user?.mestre === 1 && (
                         <DsBadge variant="new">Mestre</DsBadge>
                     )}
                 </div>
@@ -222,7 +252,7 @@ function Badge({ user, f, member }: VariantProps) {
                 )}
                 <p className="text-ds-micro tracking-[0.08em] text-ds-content-muted uppercase">
                     IVS Fisioterapia e Saúde
-                    {user.createdAt &&
+                    {user?.createdAt &&
                         ` · desde ${new Date(user.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}`}
                 </p>
             </div>
@@ -242,12 +272,13 @@ function Appearances({ f }: VariantProps) {
     const first =
         (/^dra?\.?$/i.test(words[0] ?? '')
             ? words.slice(0, 2).join(' ')
-            : words[0]) || '—';
+            : words[0]) || NAME_PLACEHOLDER;
+    const name = v.name || NAME_PLACEHOLDER;
     const crefito =
         v.documentKind === 'crefito' && v.document ? v.document : null;
     // Assina quem atende: fisioterapeuta, ou administrador com CREFITO.
-    const signs =
-        v.role === 'physiotherapist' || (v.role === 'admin' && !!crefito);
+    const role = v.role;
+    const signs = role === 'physiotherapist' || (role === 'admin' && !!crefito);
     return (
         <div className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs">
             <p className="text-ds-eyebrow text-ds-content-muted uppercase">
@@ -283,7 +314,7 @@ function Appearances({ f }: VariantProps) {
                             Maria Souza
                         </p>
                         <p className="truncate text-ds-caption text-ds-content-secondary">
-                            por {v.name || '—'}
+                            por {name}
                         </p>
                     </div>
                 </div>
@@ -291,24 +322,24 @@ function Appearances({ f }: VariantProps) {
 
             {!signs && (
                 <p className="rounded-ds-md bg-ds-surface-subtle px-3 py-2 text-ds-caption text-ds-content-muted">
-                    {v.role === 'secretary'
-                        ? 'Secretário(a) não assina evoluções nem programas.'
-                        : 'Administrador só assina com CREFITO. Informe o registro em Registro profissional.'}
+                    {!role
+                        ? 'Escolha a função para ver se a pessoa assina evoluções e programas.'
+                        : role === 'secretary'
+                          ? 'Secretário(a) não assina evoluções nem programas.'
+                          : 'Administrador só assina com CREFITO. Informe o registro em Registro profissional.'}
                 </p>
             )}
-            {signs && (
+            {signs && role && (
                 <figure className="flex flex-col gap-1.5">
                     <figcaption className="text-ds-caption text-ds-content-secondary">
                         Na assinatura do PDF
                     </figcaption>
                     <div className="rounded-ds-md border border-ds-border-subtle bg-ds-white px-4 pt-6 pb-3 text-center text-ds-gray-100">
                         <p className="font-[cursive] text-ds-body-lg italic opacity-70">
-                            {v.name || '—'}
+                            {name}
                         </p>
                         <div className="mx-auto mt-1 mb-1.5 h-px w-4/5 bg-ds-gray-60" />
-                        <p className="text-ds-caption font-semibold">
-                            {v.name || '—'}
-                        </p>
+                        <p className="text-ds-caption font-semibold">{name}</p>
                         <p
                             className={dsCn(
                                 'text-ds-micro',
@@ -317,7 +348,7 @@ function Appearances({ f }: VariantProps) {
                                     : 'text-ds-danger-120',
                             )}
                         >
-                            {ROLE_META[v.role].label}
+                            {ROLE_META[role].label}
                             {crefito
                                 ? ` · CREFITO ${crefito}`
                                 : ' · sem CREFITO informado'}

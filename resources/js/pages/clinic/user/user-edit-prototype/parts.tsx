@@ -1,7 +1,7 @@
 /**
- * PROTÓTIPO (descartável): campos e peças da edição de usuário. Os campos
- * ligam no formulário real (form.ts); Google Agenda mostra o estado real,
- * mas conectar e desconectar são stub.
+ * PROTÓTIPO (descartável): campos e peças do cadastro e da edição de
+ * usuário. Os campos ligam no formulário real (form.ts); Google Agenda
+ * mostra o estado real, mas conectar e desconectar são stub.
  */
 import {
     CalendarCheck,
@@ -9,6 +9,7 @@ import {
     Check,
     MailCheck,
     Trash2,
+    UserRound,
     X,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -38,13 +39,14 @@ import {
     maskEmail,
     passwordScore,
     SCORE_LABEL,
-    type UserEditForm,
+    type UserForm,
 } from './form';
 import { CAPABILITIES, ROLE_META, type Member } from './team-data';
 
 export interface VariantProps {
-    user: ClinicUserSummary;
-    f: UserEditForm;
+    /** null no cadastro: ainda não existe usuário. */
+    user: ClinicUserSummary | null;
+    f: UserForm;
     canManageUsers: boolean;
     isOwnProfile: boolean;
     /** Mestre: a função fica administrador e a conta não se desativa. */
@@ -96,15 +98,18 @@ export function Avatar({
         >
             {url ? (
                 <img src={url} alt="" className="size-full object-cover" />
+            ) : initials(name) ? (
+                initials(name)
             ) : (
-                initials(name || '?')
+                // Sem nome nem foto: avatar genérico.
+                <UserRound className="size-1/2" />
             )}
         </span>
     );
 }
 
 /** Seletor de arquivo escondido; `open()` abre a janela de escolha. */
-function usePhotoInput(f: UserEditForm) {
+function usePhotoInput(f: UserForm) {
     const input = useRef<HTMLInputElement>(null);
     const element = (
         <input
@@ -132,7 +137,7 @@ export function PhotoAvatar({
     size = 88,
     className,
 }: {
-    f: UserEditForm;
+    f: UserForm;
     name: string;
     size?: number;
     className?: string;
@@ -164,7 +169,7 @@ export function PhotoActions({
     f,
     hint = 'JPG ou PNG, quadrada de preferência.',
 }: {
-    f: UserEditForm;
+    f: UserForm;
     hint?: string;
 }) {
     const picker = usePhotoInput(f);
@@ -200,7 +205,7 @@ export function PhotoActions({
 
 // ------------------------------------------------------------- campos
 
-export function NameField({ f }: { f: UserEditForm }) {
+export function NameField({ f }: { f: UserForm }) {
     const err = f.form.formState.errors.name?.message;
     return (
         <DsInput
@@ -214,7 +219,7 @@ export function NameField({ f }: { f: UserEditForm }) {
     );
 }
 
-export function EmailField({ f }: { f: UserEditForm }) {
+export function EmailField({ f }: { f: UserForm }) {
     const err = f.form.formState.errors.email?.message;
     return (
         <DsInput
@@ -258,14 +263,16 @@ export function PasswordMeter({ value }: { value: string }) {
     );
 }
 
-export function PasswordFields({ f }: { f: UserEditForm }) {
+export function PasswordFields({ f }: { f: UserForm }) {
     const errors = f.form.formState.errors;
+    // No cadastro a senha é obrigatória e não pede código (ADR 019).
+    const creating = f.mode === 'create';
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="flex-1">
                     <DsInput
-                        label="Nova senha"
+                        label={creating ? 'Senha' : 'Nova senha'}
                         type="password"
                         autocomplete="new-password"
                         placeholder="Mínimo de 8 caracteres"
@@ -276,11 +283,15 @@ export function PasswordFields({ f }: { f: UserEditForm }) {
                 </div>
                 <div className="flex-1">
                     <DsInput
-                        label="Confirmar nova senha"
+                        label={
+                            creating
+                                ? 'Confirmar senha'
+                                : 'Confirmar nova senha'
+                        }
                         type="password"
                         autocomplete="new-password"
                         placeholder="Repita a senha"
-                        disabled={!f.values.password}
+                        disabled={!creating && !f.values.password}
                         state={errors.confirmPassword ? 'error' : 'default'}
                         helper={errors.confirmPassword?.message}
                         {...f.form.register('confirmPassword')}
@@ -288,7 +299,7 @@ export function PasswordFields({ f }: { f: UserEditForm }) {
                 </div>
             </div>
             <PasswordMeter value={f.values.password ?? ''} />
-            {f.values.password && (
+            {!creating && f.values.password && (
                 <p className="flex items-center gap-1.5 text-ds-caption text-ds-content-secondary [&_svg]:size-3.5">
                     <MailCheck />
                     Ao salvar, enviamos um código para{' '}
@@ -363,7 +374,7 @@ export function PasswordCodeModal({
     targetName,
     isOwnProfile,
 }: {
-    f: UserEditForm;
+    f: UserForm;
     targetName: string;
     isOwnProfile: boolean;
 }) {
@@ -491,7 +502,7 @@ export function PasswordCodeModal({
 
 const KINDS: ClinicUserDocumentKind[] = ['crefito', 'cpf', 'cnpj'];
 
-export function DocumentFields({ f }: { f: UserEditForm }) {
+export function DocumentFields({ f }: { f: UserForm }) {
     const kind = f.values.documentKind;
     const err = f.form.formState.errors.document?.message;
     return (
@@ -573,7 +584,7 @@ export function StatusSwitch({
     f,
     disabled,
 }: {
-    f: UserEditForm;
+    f: UserForm;
     disabled?: boolean;
 }) {
     const active = f.values.status === '1';
@@ -608,18 +619,22 @@ function Access({ value }: { value: true | false | string }) {
     return <span className="text-ds-caption">{value}</span>;
 }
 
-/** Funções como cartões; o escolhido mostra o que muda em relação ao atual. */
+/**
+ * Funções como cartões; na edição, o escolhido mostra o que muda em relação
+ * ao atual. No cadastro não há função atual.
+ */
 export function RoleCards({
     f,
     disabled,
 }: {
-    f: UserEditForm;
+    f: UserForm;
     disabled?: boolean;
 }) {
     const current = f.defaultValues.role;
     const picked = f.values.role;
+    const err = f.form.formState.errors.role?.message;
     const diff =
-        picked !== current
+        current && picked && picked !== current
             ? CAPABILITIES.filter((c) => c.access[picked] !== c.access[current])
             : [];
     return (
@@ -641,6 +656,7 @@ export function RoleCards({
                             onClick={() =>
                                 f.form.setValue('role', r, {
                                     shouldDirty: true,
+                                    shouldValidate: !!err,
                                 })
                             }
                             className={dsCn(
@@ -663,12 +679,20 @@ export function RoleCards({
                     );
                 })}
             </div>
+            {err && (
+                <p
+                    role="alert"
+                    className="text-ds-caption text-ds-content-danger"
+                >
+                    {err}
+                </p>
+            )}
             {disabled && (
                 <p className="text-ds-caption text-ds-content-muted">
                     Este é o mestre da clínica: a função fica administrador.
                 </p>
             )}
-            {diff.length > 0 && (
+            {current && picked && diff.length > 0 && (
                 <div className="rounded-ds-lg border border-ds-status-warning-border bg-ds-status-warning-surface p-3">
                     <p className="mb-2 text-ds-body-xs font-semibold text-ds-status-warning-content">
                         De {ROLE_META[current].label} para{' '}

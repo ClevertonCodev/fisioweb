@@ -1,18 +1,20 @@
 /**
- * PROTÓTIPO (descartável): o formulário de edição de usuário, igual para as
- * três variantes. Usa o esquema real (clinicUserEditFormSchema); salvar é
- * stub: mostra o que seria enviado e marca o formulário como salvo.
+ * PROTÓTIPO (descartável): o formulário de usuário, em dois modos. Na
+ * edição, usa o esquema real de editar (senha opcional); no cadastro, o de
+ * novo usuário (senha e função obrigatórias). Salvar e criar são stub:
+ * mostram o que seria enviado e nada é gravado.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import {
     clinicUserEditFormSchema,
-    type ClinicUserEditFormValues,
+    clinicUserNewFormSchema,
     type ClinicUserFormRole,
     type ClinicUserFormStatus,
+    type ClinicUserNewFormValues,
 } from '@/application/clinic/clinic-user-form';
 import { formatCnpj, formatCpf } from '@/components/ds';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
@@ -34,7 +36,13 @@ export function maskDocument(kind: ClinicUserDocumentKind, raw: string) {
     return raw;
 }
 
-export const FIELD_LABEL: Record<keyof ClinicUserEditFormValues, string> = {
+/**
+ * Valores do formulário nos dois modos. A função começa vazia no cadastro;
+ * na edição, ela vem do usuário.
+ */
+export type UserFormValues = ClinicUserNewFormValues;
+
+export const FIELD_LABEL: Record<keyof UserFormValues, string> = {
     name: 'Nome',
     email: 'E-mail',
     password: 'Senha',
@@ -87,7 +95,7 @@ export interface CodeStep {
     code: string;
     /** Conta os envios: muda a cada reenvio. */
     sendId: number;
-    values: ClinicUserEditFormValues;
+    values: UserFormValues;
 }
 
 /**
@@ -118,14 +126,33 @@ function newCode(): string {
     return String(Math.floor(100000 + Math.random() * 900000));
 }
 
-export function useUserEditForm(
-    user: ClinicUserSummary,
-    role: ClinicUserFormRole,
-    roleLabel: (r: ClinicUserFormRole) => string,
-    /** E-mail de quem está logado: recebe o código da troca de senha. */
-    codeRecipient: string,
-) {
-    const defaultValues = useMemo<ClinicUserEditFormValues>(() => {
+export type UserFormMode =
+    | { mode: 'create' }
+    | {
+          mode: 'edit';
+          user: ClinicUserSummary;
+          role: ClinicUserFormRole;
+          roleLabel: (r: ClinicUserFormRole) => string;
+          /** E-mail de quem está logado: recebe o código da troca de senha. */
+          codeRecipient: string;
+      };
+
+const EMPTY_VALUES: UserFormValues = {
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: undefined,
+    status: '1',
+    documentKind: 'cpf',
+    document: '',
+};
+
+export function useUserForm(options: UserFormMode) {
+    const user = options.mode === 'edit' ? options.user : null;
+    const role = options.mode === 'edit' ? options.role : undefined;
+    const defaultValues = useMemo<UserFormValues>(() => {
+        if (!user) return EMPTY_VALUES;
         const kind = inferClinicUserDocumentKind(user.document);
         return {
             name: user.name,
@@ -142,21 +169,27 @@ export function useUserEditForm(
         };
     }, [user, role]);
 
-    const form = useForm<ClinicUserEditFormValues>({
-        resolver: zodResolver(clinicUserEditFormSchema),
+    const form = useForm<UserFormValues>({
+        // Mesmos campos; o de novo usuário exige senha e confirmação, o de
+        // editar aceita a senha em branco.
+        resolver: zodResolver(
+            options.mode === 'edit'
+                ? clinicUserEditFormSchema
+                : clinicUserNewFormSchema,
+        ) as Resolver<UserFormValues>,
         defaultValues,
         mode: 'onTouched',
     });
     const values = useWatch({
         control: form.control,
-    }) as ClinicUserEditFormValues;
+    }) as UserFormValues;
     // Base da comparação: depois de "salvar", o reset muda os padrões.
     const base = (form.formState.defaultValues ??
-        defaultValues) as ClinicUserEditFormValues;
+        defaultValues) as UserFormValues;
 
-    const [savedPhoto, setSavedPhoto] = useState(user.photoUrl ?? null);
+    const [savedPhoto, setSavedPhoto] = useState(user?.photoUrl ?? null);
     const [photo, setPhotoState] = useState<PhotoState>({
-        url: user.photoUrl ?? null,
+        url: user?.photoUrl ?? null,
         changed: false,
     });
     const setPhoto = (file: File | null) => {
@@ -167,53 +200,57 @@ export function useUserEditForm(
     };
     const resetPhoto = () => setPhotoState({ url: savedPhoto, changed: false });
 
-    const show = (
-        key: keyof ClinicUserEditFormValues,
-        v: ClinicUserEditFormValues,
-    ) => {
-        if (key === 'role') return roleLabel(v.role);
+    const show = (key: keyof UserFormValues, v: UserFormValues) => {
+        if (key === 'role') {
+            return v.role && options.mode === 'edit'
+                ? options.roleLabel(v.role)
+                : '—';
+        }
         if (key === 'status') return v.status === '1' ? 'Ativo' : 'Inativo';
         if (key === 'documentKind') return DOCUMENT_KIND_LABEL[v.documentKind];
         if (key === 'password') return v.password ? '••••••••' : '—';
         return String(v[key] ?? '') || '—';
     };
 
+    // No cadastro não há base para comparar: nada conta como alteração.
     const changes: Change[] = [];
-    for (const key of [
-        'name',
-        'email',
-        'role',
-        'status',
-        'documentKind',
-        'document',
-    ] as const) {
-        if (values[key] !== base[key]) {
+    if (options.mode === 'edit') {
+        for (const key of [
+            'name',
+            'email',
+            'role',
+            'status',
+            'documentKind',
+            'document',
+        ] as const) {
+            if (values[key] !== base[key]) {
+                changes.push({
+                    key,
+                    label: FIELD_LABEL[key],
+                    from: show(key, base),
+                    to: show(key, values),
+                });
+            }
+        }
+        if (values.password) {
             changes.push({
-                key,
-                label: FIELD_LABEL[key],
-                from: show(key, base),
-                to: show(key, values),
+                key: 'password',
+                label: 'Senha',
+                from: 'atual',
+                to: 'nova senha',
+            });
+        }
+        if (photo.changed) {
+            changes.push({
+                key: 'photo',
+                label: 'Foto',
+                from: savedPhoto ? 'atual' : 'sem foto',
+                to: photo.url ? 'nova foto' : 'sem foto',
             });
         }
     }
-    if (values.password) {
-        changes.push({
-            key: 'password',
-            label: 'Senha',
-            from: 'atual',
-            to: 'nova senha',
-        });
-    }
-    if (photo.changed) {
-        changes.push({
-            key: 'photo',
-            label: 'Foto',
-            from: savedPhoto ? 'atual' : 'sem foto',
-            to: photo.url ? 'nova foto' : 'sem foto',
-        });
-    }
 
-    const commit = (v: ClinicUserEditFormValues) => {
+    const commit = (v: UserFormValues) => {
         toast.success('Protótipo: nada foi salvo', {
             description: changes.length
                 ? changes.map((c) => `${c.label}: ${c.to}`).join(' · ')
@@ -224,8 +261,15 @@ export function useUserEditForm(
         setPhotoState((p) => ({ ...p, changed: false }));
     };
 
+    // Criar é stub: não grava, não redireciona e mantém o que foi digitado.
+    const create = (v: UserFormValues) => {
+        toast.success('Protótipo: nenhum usuário foi criado', {
+            description: `Nada foi gravado. ${v.name} · ${v.email}${photo.url ? ' · com foto' : ''}`,
+        });
+    };
+
     const [codeStep, setCodeStep] = useState<CodeStep | null>(null);
-    const sendCode = (v: ClinicUserEditFormValues) => {
+    const sendCode = (v: UserFormValues) => {
         const code = newCode();
         setCodeStep((prev) => ({
             code,
@@ -237,14 +281,17 @@ export function useUserEditForm(
         });
     };
 
-    // Com senha nova, salvar passa antes pelo código.
-    const submit = form.handleSubmit((v) =>
-        v.password ? sendCode(v) : commit(v),
-    );
+    // Com senha nova, salvar passa antes pelo código. Criar não pede código
+    // (o código é só da troca, ADR 019).
+    const submit = form.handleSubmit((v) => {
+        if (options.mode === 'create') create(v);
+        else if (v.password) sendCode(v);
+        else commit(v);
+    });
 
     const code = {
         step: codeStep,
-        recipient: codeRecipient,
+        recipient: options.mode === 'edit' ? options.codeRecipient : '',
         resend: () => codeStep && sendCode(codeStep.values),
         cancel: () => setCodeStep(null),
         /** true quando o código confere (e salva). */
@@ -262,6 +309,7 @@ export function useUserEditForm(
     };
 
     return {
+        mode: options.mode,
         form,
         values,
         defaultValues: base,
@@ -274,4 +322,4 @@ export function useUserEditForm(
     };
 }
 
-export type UserEditForm = ReturnType<typeof useUserEditForm>;
+export type UserForm = ReturnType<typeof useUserForm>;

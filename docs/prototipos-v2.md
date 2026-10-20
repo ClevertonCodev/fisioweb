@@ -113,14 +113,16 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Números de carga (pacientes, programas, agenda da semana) vindos da API de usuários. Continuam somados no front.
   - [x] Mudar função, desativar e excluir são stub.
 
-- [ ] **Edição de usuário** — `/clinica/usuarios/:id/editar`
+- [ ] **Edição e cadastro de usuário** — `/clinica/usuarios/:id/editar` e `/clinica/usuarios/novo`
   - Variante A, "Crachá ao vivo": formulário e, ao lado, como a pessoa aparece no sistema (crachá, agenda, cartão do paciente e assinatura do PDF).
-  - Código: `resources/js/pages/clinic/user/user-edit-prototype/` · commit `a3c0731`
+  - O cadastro é a mesma tela no modo criar (`useUserForm({ mode: 'create' })`): campos vazios, placeholders na prévia, senha obrigatória sem código e sem Google Agenda. Criar é stub.
+  - Código: `resources/js/pages/clinic/user/user-edit-prototype/` · commit `a3c0731` · feature `.ai-workbench/007-clinic-user-form-ds/`
   - Decisões: [ADR 019](adr/019-troca-de-senha-de-usuario-da-clinica.md).
   - [ ] Regras de senha no backend: só administrador troca a de outra pessoa, só o mestre a de outro administrador, e a do mestre ninguém além dele (no service, porque o `Gate::before` libera tudo para administrador).
   - [ ] Código de 6 dígitos por e-mail para trocar a senha, mandado a quem está logado.
   - [ ] Assinatura só para fisioterapeuta ou administrador com CREFITO.
-  - [ ] Corrigir o CPF inválido da Dra. Ana Paula no seed (trava o salvar na v1 também).
+  - [ ] Corrigir o CPF inválido da Dra. Ana Paula no seed (trava o salvar na v1 também). Os CPFs dos outros usuários do seed também são inválidos.
+  - [ ] **Antes de ir para produção:** o GET e o PUT de `/api/clinic/users/{id}` não conferem a clínica (o admin de uma clínica lê usuário de outra). Corrigir no backend (feature de isolamento entre clínicas, tarefa de usuários com 404).
 
 ## Finanças
 

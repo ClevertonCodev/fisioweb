@@ -28,7 +28,7 @@ import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
-import { passwordLockReason, useUserEditForm } from './form';
+import { passwordLockReason, useUserForm } from './form';
 import { PasswordCodeModal, roleLabel, type VariantProps } from './parts';
 import { useTeam } from './team-data';
 import { VariantA } from './VariantA';
@@ -76,7 +76,12 @@ export default function UserEditPrototype({ variant }: { variant: string }) {
                 role={role}
                 canManageUsers={canManageUsers}
                 isOwnProfile={String(authUser?.id) === String(user.id)}
-                signerEmail={authUser?.email ?? user.email}
+                // ADR 019: o código vai a quem está logado, nunca ao alvo
+                // (no próprio perfil, os dois são a mesma pessoa).
+                signerEmail={
+                    authUser?.email ||
+                    (String(authUser?.id) === String(user.id) ? user.email : '')
+                }
                 editor={{
                     id: authUser?.id ?? '',
                     role: authUser?.role,
@@ -113,7 +118,13 @@ function Editor({
     signerEmail: string;
     editor: Parameters<typeof passwordLockReason>[0];
 }) {
-    const f = useUserEditForm(user, role, roleLabel, signerEmail);
+    const f = useUserForm({
+        mode: 'edit',
+        user,
+        role,
+        roleLabel,
+        codeRecipient: signerEmail,
+    });
     const team = useTeam();
     const props: VariantProps = {
         user,
@@ -121,17 +132,20 @@ function Editor({
         canManageUsers,
         isOwnProfile,
         roleLocked: user.mestre === 1,
-        passwordLock: passwordLockReason(
-            {
-                ...editor,
-                // A sessão pode não trazer "mestre": a equipe traz.
-                mestre:
-                    editor.mestre ??
-                    team.members.find((m) => m.id === String(editor.id))
-                        ?.mestre,
-            },
-            user,
-        ),
+        // Sem e-mail de quem está logado, não há para onde mandar o código.
+        passwordLock: signerEmail
+            ? passwordLockReason(
+                  {
+                      ...editor,
+                      // A sessão pode não trazer "mestre": a equipe traz.
+                      mestre:
+                          editor.mestre ??
+                          team.members.find((m) => m.id === String(editor.id))
+                              ?.mestre,
+                  },
+                  user,
+              )
+            : 'Sua sessão não tem e-mail para receber o código da troca.',
         member: team.members.find((m) => m.id === user.id) ?? null,
         backTo: canManageUsers ? '/clinica/usuarios' : '/clinica',
     };

@@ -40,6 +40,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import UserNewPrototype from './user-edit-prototype/UserNewPrototype';
+import { USER_EDIT_VARIANTS } from './user-edit-prototype/variants';
 
 const labelClass = 'text-muted-foreground text-xs font-medium';
 
@@ -51,7 +58,22 @@ function SectionTitle({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (user-edit-prototype, no modo criar); O = esta tela. Desligado nos testes
+ * (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export function UserNewPage() {
+    const variant = usePrototypeVariant(USER_EDIT_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <UserNewPrototype variant={variant} />;
+    }
+    return <UserNewPageV1 />;
+}
+
+function UserNewPageV1() {
     const navigate = useNavigate();
     const createUser = useCreateClinicUser();
     const { mutateAsync: uploadPhoto, isPending: isUploading } =
@@ -528,6 +550,9 @@ export function UserNewPage() {
                     </div>
                 </div>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={USER_EDIT_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

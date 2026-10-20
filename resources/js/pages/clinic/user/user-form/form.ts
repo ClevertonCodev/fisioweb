@@ -1,11 +1,11 @@
 /**
- * O formulário de usuário da clínica, em dois modos. O cadastro é a tela de
- * verdade: usa o esquema de novo usuário (senha e função obrigatórias) e
- * grava pelo `onCreate` da página. A edição ainda é protótipo (esquema de
- * editar, senha opcional): salvar é stub e nada é gravado.
+ * O formulário de usuário da clínica, em dois modos: cadastro (esquema de
+ * novo usuário, senha e função obrigatórias) e edição (esquema de editar,
+ * senha opcional). Quem grava é a página, pelo `onSave`; erro 422 volta
+ * para os campos.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -92,70 +92,23 @@ export function passwordScore(pwd: string): number {
 
 export const SCORE_LABEL = ['', 'Fraca', 'Razoável', 'Boa', 'Forte'];
 
-/** "c*********v@gmail.com": mostra só a primeira e a última letra. */
-export function maskEmail(email: string): string {
-    const [local = '', domain = ''] = email.split('@');
-    if (local.length <= 2) return `${local[0] ?? ''}*@${domain}`;
-    return `${local[0]}${'*'.repeat(Math.min(local.length - 2, 5))}${local.at(-1)}@${domain}`;
+/** O que mudou na foto: arquivo novo, ou a atual removida. */
+export interface PhotoChange {
+    file: File | null;
+    removed: boolean;
 }
 
-/**
- * Trocar senha pede um código mandado ao e-mail de quem está logado: no
- * próprio perfil, o da pessoa; quando um administrador troca a senha de
- * outra conta, o do administrador. No protótipo, o código só aparece num
- * aviso (nenhum e-mail sai).
- */
-export interface CodeStep {
-    code: string;
-    /** Conta os envios: muda a cada reenvio. */
-    sendId: number;
-    values: UserFormValues;
-}
-
-/**
- * Quem troca a senha de quem (ADR 019). null = pode trocar; senão, o motivo.
- * - A própria senha, qualquer um troca (o mestre também).
- * - A de outra pessoa, só administrador.
- * - A de outro administrador, só o mestre.
- * - A do mestre, ninguém além dele.
- */
-export function passwordLockReason(
-    editor: { id: string | number; role?: string; mestre?: 0 | 1 },
-    target: ClinicUserSummary,
-): string | null {
-    if (String(editor.id) === String(target.id)) return null;
-    if (target.mestre === 1) {
-        return 'A senha do mestre da clínica só ele mesmo troca.';
-    }
-    if (editor.role !== 'admin') {
-        return 'Só administrador troca a senha de outra pessoa.';
-    }
-    if (target.role === 'admin' && editor.mestre !== 1) {
-        return 'Só o mestre da clínica troca a senha de outro administrador.';
-    }
-    return null;
-}
-
-function newCode(): string {
-    return String(Math.floor(100000 + Math.random() * 900000));
-}
+/** Grava o usuário (e a foto). Erro 422 volta aos campos. */
+type SaveUser = (values: UserFormValues, photo: PhotoChange) => Promise<void>;
 
 export type UserFormMode =
-    | {
-          mode: 'create';
-          /** Grava o usuário (e a foto, se houver). Erro 422 volta aos campos. */
-          onCreate: (
-              values: UserFormValues,
-              photo: File | null,
-          ) => Promise<void>;
-      }
+    | { mode: 'create'; onSave: SaveUser }
     | {
           mode: 'edit';
           user: ClinicUserSummary;
           role: ClinicUserFormRole;
           roleLabel: (r: ClinicUserFormRole) => string;
-          /** E-mail de quem está logado: recebe o código da troca de senha. */
-          codeRecipient: string;
+          onSave: SaveUser;
       };
 
 const EMPTY_VALUES: UserFormValues = {
@@ -204,11 +157,17 @@ export function useUserForm(options: UserFormMode) {
     const values = useWatch({
         control: form.control,
     }) as UserFormValues;
-    // Base da comparação: depois de "salvar", o reset muda os padrões.
+    // O mestre não se desativa (o backend recusa). Um mestre que a v1
+    // deixou desativar abre com a situação em "ativo", mas a base continua
+    // a real: a comparação com ela mostra a reativação como alteração e
+    // habilita o Salvar. Antes de pintar (e depois do useWatch, que assina num layout effect), para o crachá não piscar inativo.
+    useLayoutEffect(() => {
+        if (user?.mestre === 1 && !user.status) form.setValue('status', '1');
+    }, [form, user]);
     const base = (form.formState.defaultValues ??
         defaultValues) as UserFormValues;
 
-    const [savedPhoto, setSavedPhoto] = useState(user?.photoUrl ?? null);
+    const savedPhoto = user?.photoUrl ?? null;
     const [photo, setPhotoState] = useState<PhotoState>({
         url: user?.photoUrl ?? null,
         file: null,
@@ -233,8 +192,6 @@ export function useUserForm(options: UserFormMode) {
             changed: true,
         });
     };
-    const resetPhoto = () =>
-        setPhotoState({ url: savedPhoto, file: null, changed: false });
 
     const show = (key: keyof UserFormValues, v: UserFormValues) => {
         if (key === 'role') {
@@ -286,25 +243,15 @@ export function useUserForm(options: UserFormMode) {
         }
     }
 
-    const commit = (v: UserFormValues) => {
-        toast.success('Protótipo: nada foi salvo', {
-            description: changes.length
-                ? changes.map((c) => `${c.label}: ${c.to}`).join(' · ')
-                : 'Nenhuma alteração.',
-        });
-        form.reset({ ...v, password: '', confirmPassword: '' });
-        setSavedPhoto(photo.url);
-        // Mantém o arquivo: a prévia salva (stub) continua viva até trocar.
-        setPhotoState((p) => ({ ...p, changed: false }));
-    };
-
     // Erro 422 do backend volta para o campo que a tela desenha; o resto
     // (campo sem lugar na tela ou desconhecido) vai para um toast. Os outros
-    // erros o hook de criar já mostra num toast.
-    const create = async (v: UserFormValues) => {
-        if (options.mode !== 'create') return;
+    // erros os hooks de criar e de salvar já mostram num toast.
+    const submit = form.handleSubmit(async (v) => {
         try {
-            await options.onCreate(v, photo.file);
+            await options.onSave(v, {
+                file: photo.file,
+                removed: photo.changed && !photo.url && !!savedPhoto,
+            });
         } catch (error) {
             const invalid = getValidationErrors(error);
             if (!invalid) return;
@@ -324,47 +271,7 @@ export function useUserForm(options: UserFormMode) {
                 toast.error(invalid.message ?? 'Confira os dados.');
             }
         }
-    };
-
-    const [codeStep, setCodeStep] = useState<CodeStep | null>(null);
-    const sendCode = (v: UserFormValues) => {
-        const code = newCode();
-        setCodeStep((prev) => ({
-            code,
-            sendId: (prev?.sendId ?? 0) + 1,
-            values: v,
-        }));
-        toast.info(`Protótipo: nenhum e-mail saiu. O código é ${code}.`, {
-            duration: 15000,
-        });
-    };
-
-    // Com senha nova, salvar passa antes pelo código. Criar não pede código
-    // (o código é só da troca, ADR 019).
-    const submit = form.handleSubmit(async (v) => {
-        if (options.mode === 'create') await create(v);
-        else if (v.password) sendCode(v);
-        else commit(v);
     });
-
-    const code = {
-        step: codeStep,
-        recipient: options.mode === 'edit' ? options.codeRecipient : '',
-        resend: () => codeStep && sendCode(codeStep.values),
-        cancel: () => setCodeStep(null),
-        /** true quando o código confere (e salva). */
-        confirm: (typed: string) => {
-            if (!codeStep || typed !== codeStep.code) return false;
-            commit(codeStep.values);
-            setCodeStep(null);
-            return true;
-        },
-    };
-
-    const discard = () => {
-        form.reset(base);
-        resetPhoto();
-    };
 
     return {
         mode: options.mode,
@@ -377,8 +284,6 @@ export function useUserForm(options: UserFormMode) {
         setPhoto,
         changes,
         submit,
-        discard,
-        code,
     };
 }
 

@@ -21,6 +21,9 @@ class GoogleCalendarController extends ClinicAuthenticatedController
         '/clinic/usuarios',
     ];
 
+    /** Edição de usuário (o próprio perfil, onde se conecta o Google). */
+    private const ALLOWED_RETURN_PATTERN = '#^/clinica/usuarios/\d+/editar$#';
+
     public function __construct(
         protected GoogleCalendarServiceInterface $service,
         protected ClinicUserGoogleConnectionReadServiceInterface $connections,
@@ -139,13 +142,14 @@ class GoogleCalendarController extends ClinicAuthenticatedController
     {
         $fallback ??= (string) config('googlecalendar.frontend_redirect', '/clinica/usuarios');
 
-        if (!is_string($path) || empty($path)) {
+        if (!is_string($path) || empty($path) || !is_null(parse_url($path, PHP_URL_HOST))) {
             return $fallback;
         }
 
         $normalized = '/' . ltrim(parse_url($path, PHP_URL_PATH) ?: '', '/');
 
         return in_array($normalized, self::ALLOWED_RETURN_PATHS, true)
+            || preg_match(self::ALLOWED_RETURN_PATTERN, $normalized) === 1
             ? $normalized
             : $fallback;
     }

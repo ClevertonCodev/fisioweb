@@ -71,7 +71,11 @@ export function useUpdateClinicUser(id: string) {
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Usuário atualizado com sucesso.');
         },
-        onError: (error: { response?: { data?: { message?: string } } }) => {
+        onError: (error: {
+            response?: { status?: number; data?: { message?: string } };
+        }) => {
+            // 422: a tela mostra os erros nos campos.
+            if (error?.response?.status === 422) return;
             toast.error(
                 error?.response?.data?.message ?? 'Erro ao atualizar usuário.',
             );

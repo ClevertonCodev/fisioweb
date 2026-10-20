@@ -1,27 +1,32 @@
 /**
  * Campos e peças do cadastro e da edição de usuário, ligados no formulário
- * (form.ts). Só a edição (protótipo) usa o Google Agenda e o modal de
- * código: lá, conectar, desconectar e o código ainda são stub.
+ * (form.ts). Só a edição mostra o Google Agenda, e só no próprio perfil
+ * dá para conectar (o OAuth liga a conta de quem está logado).
  */
 import {
     CalendarCheck,
     Camera,
     Check,
-    MailCheck,
     Trash2,
     UserRound,
     X,
 } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Controller } from 'react-hook-form';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { useGoogleCalendarStatus } from '@/application/clinic';
+import {
+    useConnectGoogleCalendar,
+    useDisconnectGoogleCalendar,
+    useGoogleCalendarStatus,
+} from '@/application/clinic';
 import {
     CLINIC_USER_ROLES,
     type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
 import { CLINIC_USER_PHOTO_INPUT_ACCEPT } from '@/application/clinic/clinic-user-photo-rules';
+import { useGoogleCalendarReturnToast } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
 import {
     DsBadge,
     DsButton,
@@ -29,7 +34,6 @@ import {
     DsCnpjField,
     DsCpfField,
     DsInput,
-    DsModal,
     DsSwitch,
 } from '@/components/ds';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
@@ -37,20 +41,11 @@ import type { ClinicUserDocumentKind } from '@/lib/br-document-validation';
 
 import {
     DOCUMENT_KIND_LABEL,
-    maskEmail,
     passwordScore,
     SCORE_LABEL,
     type UserForm,
 } from './form';
 import { CAPABILITIES, ROLE_META } from './roles';
-
-/** Carga da pessoa na clínica, mostrada no crachá da edição. */
-export interface UserLoad {
-    patients: number;
-    programs: number;
-    /** Consultas da semana (não canceladas). */
-    weekAppointments: number;
-}
 
 export interface UserFormLayoutProps {
     /** null no cadastro: ainda não existe usuário. */
@@ -60,10 +55,6 @@ export interface UserFormLayoutProps {
     isOwnProfile: boolean;
     /** Mestre: a função fica administrador e a conta não se desativa. */
     roleLocked: boolean;
-    /** Motivo para não poder trocar a senha (null = pode). */
-    passwordLock: string | null;
-    /** Carga da pessoa (pacientes, programas, agenda da semana). */
-    member: UserLoad | null;
     backTo: string;
 }
 
@@ -320,204 +311,7 @@ export function PasswordFields({ f }: { f: UserForm }) {
                 </div>
             </div>
             <PasswordMeter value={f.values.password ?? ''} />
-            {!creating && f.values.password && (
-                <p className="flex items-center gap-1.5 text-ds-caption text-ds-content-secondary [&_svg]:size-3.5">
-                    <MailCheck />
-                    Ao salvar, enviamos um código para{' '}
-                    {maskEmail(f.code.recipient)} para confirmar a troca.
-                </p>
-            )}
         </div>
-    );
-}
-
-const RESEND_AFTER = 30;
-
-/** Seis casas para o código; um input só por baixo (colar funciona). */
-function CodeInput({
-    value,
-    onChange,
-    invalid,
-}: {
-    value: string;
-    onChange: (v: string) => void;
-    invalid: boolean;
-}) {
-    const [focused, setFocused] = useState(false);
-    return (
-        <div className="relative mx-auto w-fit">
-            <input
-                autoFocus
-                value={value}
-                onChange={(e) =>
-                    onChange(e.target.value.replace(/\D/g, '').slice(0, 6))
-                }
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                aria-label="Código de 6 dígitos"
-                aria-invalid={invalid || undefined}
-                className="absolute inset-0 cursor-text opacity-0"
-            />
-            <div aria-hidden="true" className="flex gap-2">
-                {Array.from({ length: 6 }, (_, i) => {
-                    const current =
-                        focused &&
-                        (i === value.length || (value.length === 6 && i === 5));
-                    return (
-                        <span
-                            key={i}
-                            className={dsCn(
-                                'flex size-12 items-center justify-center rounded-ds-lg border bg-ds-surface-default font-ds-mono text-ds-h4 font-semibold transition-[border-color,box-shadow]',
-                                invalid
-                                    ? 'border-ds-status-danger-content'
-                                    : current
-                                      ? 'border-ds-primary-80 shadow-ds-focus ds-dark:border-ds-primary-60'
-                                      : 'border-ds-border-default',
-                            )}
-                        >
-                            {value[i] ?? ''}
-                        </span>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-/**
- * Confirmação da troca de senha. O código vai para quem está logado: no
- * próprio perfil, a pessoa; editando outra conta, o administrador.
- */
-export function PasswordCodeModal({
-    f,
-    targetName,
-    isOwnProfile,
-}: {
-    f: UserForm;
-    targetName: string;
-    isOwnProfile: boolean;
-}) {
-    const step = f.code.step;
-    const [typed, setTyped] = useState('');
-    const [wrong, setWrong] = useState(false);
-    const [wait, setWait] = useState(RESEND_AFTER);
-    const [shownFor, setShownFor] = useState<number | null>(null);
-
-    // Código novo (ou reenviado): limpa o que foi digitado.
-    if (step && step.sendId !== shownFor) {
-        setShownFor(step.sendId);
-        setTyped('');
-        setWrong(false);
-        setWait(RESEND_AFTER);
-    }
-
-    // Contagem para liberar o reenvio, a partir de cada envio.
-    const sendId = step?.sendId;
-    useEffect(() => {
-        if (sendId === undefined) return;
-        const start = Date.now();
-        const id = window.setInterval(() => {
-            const left = RESEND_AFTER - Math.floor((Date.now() - start) / 1000);
-            setWait(Math.max(0, left));
-        }, 250);
-        return () => window.clearInterval(id);
-    }, [sendId]);
-
-    const confirm = () => {
-        if (!f.code.confirm(typed)) setWrong(true);
-    };
-
-    return (
-        <DsModal
-            open={!!step}
-            onOpenChange={(o) => !o && f.code.cancel()}
-            title="Confirme a troca de senha"
-            size="sm"
-            footer={
-                <div className="flex w-full justify-end gap-3">
-                    <DsButton
-                        variant="secondary"
-                        label="Voltar"
-                        onClick={f.code.cancel}
-                    />
-                    <DsButton
-                        label="Confirmar e salvar"
-                        disabled={typed.length < 6}
-                        onClick={confirm}
-                    />
-                </div>
-            }
-        >
-            <form
-                className="flex flex-col items-center gap-5 text-center"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    if (typed.length === 6) confirm();
-                }}
-            >
-                <span className="flex size-14 items-center justify-center rounded-ds-full bg-ds-surface-brand-subtle text-ds-content-brand ds-dark:text-ds-primary-60">
-                    <MailCheck className="size-7" />
-                </span>
-                <p className="text-ds-body-sm text-ds-content-secondary">
-                    {isOwnProfile ? (
-                        <>
-                            Enviamos um código de 6 dígitos para{' '}
-                            <strong className="font-semibold text-ds-content-primary">
-                                {maskEmail(f.code.recipient)}
-                            </strong>
-                            .
-                        </>
-                    ) : (
-                        <>
-                            Para trocar a senha de{' '}
-                            <strong className="font-semibold text-ds-content-primary">
-                                {targetName}
-                            </strong>
-                            , enviamos um código para o seu e-mail de
-                            administrador,{' '}
-                            <strong className="font-semibold text-ds-content-primary">
-                                {maskEmail(f.code.recipient)}
-                            </strong>
-                            .
-                        </>
-                    )}
-                </p>
-                <CodeInput
-                    value={typed}
-                    invalid={wrong}
-                    onChange={(v) => {
-                        setTyped(v);
-                        setWrong(false);
-                    }}
-                />
-                <p
-                    role={wrong ? 'alert' : undefined}
-                    className={dsCn(
-                        'min-h-5 text-ds-caption',
-                        wrong
-                            ? 'text-ds-content-danger'
-                            : 'text-ds-content-muted',
-                    )}
-                >
-                    {wrong
-                        ? 'Código incorreto. Confira o e-mail e tente de novo.'
-                        : 'O código vale por 10 minutos.'}
-                </p>
-                <DsButton
-                    size="sm"
-                    variant="tertiary"
-                    label={
-                        wait > 0
-                            ? `Reenviar código em ${wait}s`
-                            : 'Reenviar código'
-                    }
-                    disabled={wait > 0}
-                    onClick={f.code.resend}
-                />
-            </form>
-        </DsModal>
     );
 }
 
@@ -614,7 +408,9 @@ export function StatusSwitch({
             label={active ? 'Conta ativa' : 'Conta desativada'}
             description={
                 disabled
-                    ? 'O mestre da clínica não pode ser desativado.'
+                    ? f.defaultValues.status === '0'
+                        ? 'Este mestre estava desativado; salvar reativa a conta.'
+                        : 'O mestre da clínica não pode ser desativado.'
                     : active
                       ? 'Entra no sistema e aparece na agenda.'
                       : 'Não entra mais; os registros dela continuam.'
@@ -745,8 +541,25 @@ export function RoleCards({
 // ------------------------------------------------------------- conta
 
 export function GoogleRow({ isOwnProfile }: { isOwnProfile: boolean }) {
-    const { data, isLoading } = useGoogleCalendarStatus();
-    const connected = isOwnProfile ? !!data?.connected : undefined;
+    // O status é o de quem está logado: só faz sentido no próprio perfil.
+    const { data, isLoading } = useGoogleCalendarStatus(isOwnProfile);
+    const connect = useConnectGoogleCalendar();
+    const disconnect = useDisconnectGoogleCalendar();
+    const { pathname } = useLocation();
+    const connected = !!data?.connected;
+
+    // Aviso do retorno do OAuth (?google=connected|error), como na agenda.
+    useGoogleCalendarReturnToast();
+
+    const onDisconnect = async () => {
+        try {
+            await disconnect.mutateAsync();
+            toast.success('Google Agenda desconectado.');
+        } catch {
+            toast.error('Não foi possível desconectar o Google Agenda.');
+        }
+    };
+
     return (
         <div className="flex items-center gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-ds-md bg-ds-status-info-surface text-ds-status-info-content">
@@ -769,10 +582,9 @@ export function GoogleRow({ isOwnProfile }: { isOwnProfile: boolean }) {
                     size="sm"
                     variant={connected ? 'secondary' : 'primary'}
                     label={connected ? 'Desconectar' : 'Conectar'}
+                    loading={connect.isPending || disconnect.isPending}
                     onClick={() =>
-                        toast.info(
-                            `Protótipo: ${connected ? 'desconectar' : 'conectar'} o Google é stub aqui.`,
-                        )
+                        connected ? onDisconnect() : connect.mutate(pathname)
                     }
                 />
             )}
@@ -781,8 +593,8 @@ export function GoogleRow({ isOwnProfile }: { isOwnProfile: boolean }) {
 }
 
 /**
- * Barra de salvar: no celular, presa embaixo (com folga para a barra do
- * protótipo); no desktop, um cartão flutuando à direita.
+ * Barra de salvar: no celular, presa embaixo; no desktop, um cartão
+ * flutuando à direita.
  */
 export function SaveBar({
     children,

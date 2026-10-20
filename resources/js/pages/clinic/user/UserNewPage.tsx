@@ -17,7 +17,11 @@ import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 
-import { useUserForm, type UserFormValues } from './user-form/form';
+import {
+    useUserForm,
+    type PhotoChange,
+    type UserFormValues,
+} from './user-form/form';
 import { UserFormLayout } from './user-form/UserFormLayout';
 
 export function UserNewPage() {
@@ -26,13 +30,16 @@ export function UserNewPage() {
     const createUser = useCreateClinicUser();
     const uploadPhoto = useUploadClinicUserPhoto();
 
-    const onCreate = async (values: UserFormValues, photo: File | null) => {
+    const onSave = async (values: UserFormValues, photo: PhotoChange) => {
         const created = await createUser.mutateAsync(
             toClinicUserWriteDto(values),
         );
-        if (photo) {
+        if (photo.file) {
             try {
-                await uploadPhoto.mutateAsync({ id: created.id, file: photo });
+                await uploadPhoto.mutateAsync({
+                    id: created.id,
+                    file: photo.file,
+                });
             } catch {
                 toast.warning(
                     'Usuário criado, mas a foto não foi enviada. Tente de novo na edição.',
@@ -42,7 +49,7 @@ export function UserNewPage() {
         navigate('/clinica/usuarios');
     };
 
-    const f = useUserForm({ mode: 'create', onCreate });
+    const f = useUserForm({ mode: 'create', onSave });
 
     return (
         <ClinicLayout>
@@ -52,8 +59,6 @@ export function UserNewPage() {
                 canManageUsers={can.manageUsers(authUser?.role as ClinicRole)}
                 isOwnProfile={false}
                 roleLocked={false}
-                passwordLock={null}
-                member={null}
                 backTo="/clinica/usuarios"
             />
         </ClinicLayout>

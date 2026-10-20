@@ -25,7 +25,7 @@ Como está hoje:
 - A senha de um administrador, só o mestre troca (além do próprio administrador).
 - A senha do mestre, ninguém além dele troca.
 
-A regra fica no backend, numa verificação explícita do service (ou numa ability própria, como `updatePassword`, que o `Gate::before` não libere sozinho). O front esconde o campo e mostra o motivo, mas não decide. No protótipo, a mesma tabela está em `passwordLockReason` (`user-edit-prototype/form.ts`); na tela real, ela vai para `application/clinic/permissions.ts`, com teste.
+A regra fica no backend, numa verificação explícita do service (ou numa ability própria, como `updatePassword`, que o `Gate::before` não libere sozinho). O front esconde o campo e mostra o motivo, mas não decide. O protótipo tinha a mesma tabela em `passwordLockReason` (`user-edit-prototype/form.ts`, removido na tarefa 004 da feature 007; está no commit `60f682d`); na tela real, ela vai para `application/clinic/permissions.ts`, com teste.
 
 ### A troca pede um código por e-mail
 
@@ -53,6 +53,10 @@ A regra fica no backend, numa verificação explícita do service (ou numa abili
 - Mandar o código para o e-mail do usuário alvo: o administrador ficaria dependendo da pessoa para trocar a senha que ela mesma esqueceu.
 - Pedir a senha atual em vez de código: quem troca a senha de outra pessoa não sabe a senha dela, e a senha atual não protege uma sessão já aberta.
 - Deixar qualquer administrador trocar a senha do mestre, como hoje: um administrador poderia tomar a conta dona da clínica.
+
+## Situação (2026-10-20)
+
+A edição de usuário v2 virou a tela de verdade (feature `007-clinic-user-form-ds`, tarefa 004) **sem** este ADR: por decisão do usuário, a senha continua como na v1 (quem chega à edição troca direto, sem código e sem a tabela acima). A decisão deste ADR segue valendo como o destino; falta o backend (regra no service, endpoint do código, fila de e-mail) e, depois, a tela.
 
 ## Em aberto
 

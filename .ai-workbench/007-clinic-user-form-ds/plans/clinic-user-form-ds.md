@@ -103,7 +103,7 @@ Nenhum endpoint, migration ou Policy muda nesta entrega.
 
 - Cadastro: senha + confirmação obrigatórias, indicador de força, sem
   modal de código.
-- Edição: a tabela do ADR 019 já está no protótipo (`passwordLockReason`).
+- Edição: a tabela do ADR 019 já está no protótipo (`passwordLockReason`). **Tarefa 004:** saiu junto com o protótipo (está no commit `60f682d`); a senha ficou como na v1, por decisão do usuário.
   Quem pode, troca; a troca abre o modal de código visual (nenhum e-mail
   sai). Quem não pode, vê o motivo. Essa tabela **não** vai ainda para
   `permissions` nem para o backend — isso é a implementação real do ADR
@@ -212,12 +212,13 @@ Nenhum endpoint, migration ou Policy muda nesta entrega.
 
 - POST/PUT reais, upload de foto, e qualquer persistência. **Exceção
   (2026-10-20, pedido do usuário, tarefa 003):** o cadastro grava de
-  verdade (POST e foto); a edição continua sem persistência.
+  verdade (POST e foto). **Tarefa 004:** a edição também grava de
+  verdade (PUT e foto), com a senha como na v1 (sem o código do ADR 019).
 - Endpoint, fila e tabela de código por e-mail (ADR 019). Mover
   `passwordLockReason` para `permissions.ts` e aplicar no backend.
 - Promover o Crachá ao vivo a tela de produção (tirar o interruptor e a
-  v1), como foi feito na lista de pacientes. **Exceção (tarefa 003):** o
-  cadastro foi promovido; a edição não.
+  v1), como foi feito na lista de pacientes. **Exceção (tarefas 003 e
+  004):** cadastro e edição foram promovidos; a v1 e os protótipos saíram.
 - Lista de usuários v2 (protótipo C à parte).
 - Variantes B e C da edição (já descartadas).
 - Verificação em duas etapas (coluna existe, fluxo não).

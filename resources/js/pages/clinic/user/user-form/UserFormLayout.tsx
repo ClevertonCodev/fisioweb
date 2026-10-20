@@ -3,9 +3,9 @@
  * a pessoa aparece no sistema, mudando enquanto se digita: o crachá, a
  * consulta na agenda, o cartão do paciente e a assinatura do PDF. Mostra
  * por que nome, foto e CREFITO importam. Serve ao cadastro e à edição
- * (f.mode); no cadastro, a prévia usa placeholders enquanto está vazia.
+ * (f.mode); com nome, foto ou documento vazios, a prévia usa placeholders.
  */
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { DsBadge, DsButton, dsCn } from '@/components/ds';
@@ -34,14 +34,7 @@ const card =
     'rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs sm:p-6';
 
 export function UserFormLayout(props: UserFormLayoutProps) {
-    const {
-        f,
-        canManageUsers,
-        isOwnProfile,
-        roleLocked,
-        passwordLock,
-        backTo,
-    } = props;
+    const { f, canManageUsers, isOwnProfile, roleLocked, backTo } = props;
     const navigate = useNavigate();
     const creating = f.mode === 'create';
 
@@ -120,21 +113,12 @@ export function UserFormLayout(props: UserFormLayoutProps) {
                             <SectionTitle
                                 title="Senha"
                                 hint={
-                                    passwordLock
-                                        ? undefined
-                                        : creating
-                                          ? 'É com ela que a pessoa entra no sistema.'
-                                          : 'Deixe em branco para manter a atual.'
+                                    creating
+                                        ? 'É com ela que a pessoa entra no sistema.'
+                                        : 'Deixe em branco para manter a atual.'
                                 }
                             />
-                            {passwordLock ? (
-                                <p className="flex items-center gap-2 rounded-ds-lg bg-ds-surface-subtle px-4 py-3 text-ds-body-xs text-ds-content-secondary [&_svg]:size-4 [&_svg]:shrink-0">
-                                    <Lock />
-                                    {passwordLock}
-                                </p>
-                            ) : (
-                                <PasswordFields f={f} />
-                            )}
+                            <PasswordFields f={f} />
                         </section>
 
                         {/* No cadastro ainda não há perfil para conectar. */}
@@ -191,7 +175,7 @@ export function UserFormLayout(props: UserFormLayoutProps) {
     );
 }
 
-function Badge({ user, f, member }: UserFormLayoutProps) {
+function Badge({ user, f }: UserFormLayoutProps) {
     const v = f.values;
     const inactive = v.status === '0';
     const crefito = v.documentKind === 'crefito' && v.document;
@@ -239,24 +223,6 @@ function Badge({ user, f, member }: UserFormLayoutProps) {
                           ? `${DOCUMENT_KIND_LABEL[v.documentKind]} ${v.document}`
                           : 'Sem documento'}
                 </p>
-                {member && (
-                    <dl className="mt-2 grid w-full grid-cols-3 border-t border-ds-border-subtle pt-3">
-                        {[
-                            ['Pacientes', member.patients],
-                            ['Programas', member.programs],
-                            ['Semana', member.weekAppointments],
-                        ].map(([label, value]) => (
-                            <div key={label}>
-                                <dd className="font-ds-mono text-ds-body-lg font-semibold">
-                                    {value}
-                                </dd>
-                                <dt className="text-ds-micro text-ds-content-muted uppercase">
-                                    {label}
-                                </dt>
-                            </div>
-                        ))}
-                    </dl>
-                )}
                 <p className="text-ds-micro tracking-[0.08em] text-ds-content-muted uppercase">
                     IVS Fisioterapia e Saúde
                     {user?.createdAt &&

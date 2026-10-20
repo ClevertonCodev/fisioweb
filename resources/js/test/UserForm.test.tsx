@@ -6,8 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
-import UserEditPrototype from '@/pages/clinic/user/user-edit-prototype/UserEditPrototype';
-import { passwordLockReason } from '@/pages/clinic/user/user-form/form';
+import { UserEditPage } from '@/pages/clinic/user/UserEditPage';
 import { UserNewPage } from '@/pages/clinic/user/UserNewPage';
 import { routerFutureFlags } from '@/test/browser-router';
 
@@ -15,6 +14,10 @@ const getById = vi.fn();
 const create = vi.fn();
 const update = vi.fn();
 const uploadPhoto = vi.fn();
+const deletePhoto = vi.fn();
+const connectGoogle = vi.fn();
+const googleStatusEnabled = vi.fn();
+const disconnectGoogle = vi.fn();
 const toastSuccess = vi.fn();
 const toastInfo = vi.fn();
 const toastWarning = vi.fn();
@@ -27,10 +30,11 @@ vi.mock('@/infrastructure/repositories/api-clinic-users', () => ({
         create: (...args: unknown[]) => create(...args),
         update: (...args: unknown[]) => update(...args),
         uploadPhoto: (...args: unknown[]) => uploadPhoto(...args),
+        deletePhoto: (...args: unknown[]) => deletePhoto(...args),
     },
 }));
 
-// A carga da equipe (useTeam) e o Google não importam aqui.
+// Programas, pacientes e agenda não importam aqui.
 vi.mock('@/application/clinic/use-programs', async (importOriginal) => ({
     ...(await importOriginal<object>()),
     useClinicPrograms: () => ({ data: undefined }),
@@ -45,9 +49,17 @@ vi.mock('@/application/clinic/use-appointments', async (importOriginal) => ({
 }));
 vi.mock('@/application/clinic/use-google-calendar', async (importOriginal) => ({
     ...(await importOriginal<object>()),
-    useGoogleCalendarStatus: () => ({
-        data: googleStatus,
-        isLoading: false,
+    useGoogleCalendarStatus: (enabled?: boolean) => {
+        googleStatusEnabled(enabled);
+        return { data: googleStatus, isLoading: false };
+    },
+    useConnectGoogleCalendar: () => ({
+        mutate: (...args: unknown[]) => connectGoogle(...args),
+        isPending: false,
+    }),
+    useDisconnectGoogleCalendar: () => ({
+        mutateAsync: (...args: unknown[]) => disconnectGoogle(...args),
+        isPending: false,
     }),
 }));
 
@@ -514,75 +526,39 @@ function member(overrides: Partial<ClinicUserSummary> = {}): ClinicUserSummary {
     };
 }
 
-describe('passwordLockReason (tabela do ADR 019)', () => {
-    const admin = { id: '1', role: 'admin', mestre: 0 as const };
-    const mestre = { id: '2', role: 'admin', mestre: 1 as const };
-    const physio = { id: '3', role: 'physiotherapist', mestre: 0 as const };
-
-    it('a própria senha, qualquer um troca (o mestre também)', () => {
-        expect(passwordLockReason(physio, member({ id: '3' }))).toBeNull();
-        expect(
-            passwordLockReason(admin, member({ id: '1', role: 'admin' })),
-        ).toBeNull();
-        expect(
-            passwordLockReason(
-                mestre,
-                member({ id: '2', role: 'admin', mestre: 1 }),
-            ),
-        ).toBeNull();
-    });
-
-    it('a de outra pessoa, só administrador', () => {
-        expect(passwordLockReason(admin, member())).toBeNull();
-        expect(passwordLockReason(mestre, member())).toBeNull();
-        expect(passwordLockReason(physio, member())).toMatch(
-            /só administrador/i,
-        );
-        expect(
-            passwordLockReason(
-                { id: '4', role: 'secretary', mestre: 0 },
-                member(),
-            ),
-        ).toMatch(/só administrador/i);
-    });
-
-    it('a de outro administrador, só o mestre', () => {
-        const other = member({ id: '9', role: 'admin' });
-        expect(passwordLockReason(mestre, other)).toBeNull();
-        expect(passwordLockReason(admin, other)).toMatch(/só o mestre/i);
-    });
-
-    it('a do mestre, ninguém além dele', () => {
-        const owner = member({ id: '2', role: 'admin', mestre: 1 });
-        expect(passwordLockReason(admin, owner)).toMatch(/só ele mesmo/i);
-        expect(passwordLockReason(physio, owner)).toMatch(/só ele mesmo/i);
-    });
-});
-
 function renderEdit(target: ClinicUserSummary) {
     getById.mockResolvedValue(target);
+    return renderEditRaw(target.id);
+}
+
+function renderEditRaw(id: string) {
     const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false } },
     });
     return render(
         <QueryClientProvider client={queryClient}>
             <MemoryRouter
-                initialEntries={[`/clinica/usuarios/${target.id}/editar`]}
+                initialEntries={[`/clinica/usuarios/${id}/editar`]}
                 future={routerFutureFlags}
             >
                 <Routes>
                     <Route
                         path="/clinica/usuarios/:id/editar"
-                        element={<UserEditPrototype variant="A" />}
+                        element={<UserEditPage />}
                     />
+                    <Route
+                        path="/clinica/usuarios"
+                        element={<p>Lista de usuários</p>}
+                    />
+                    <Route path="/clinica" element={<p>Painel</p>} />
                 </Routes>
             </MemoryRouter>
         </QueryClientProvider>,
     );
 }
 
-describe('edição de usuário no Crachá ao vivo', () => {
-    it('carrega o usuário; sem alteração, "Nada alterado" e Salvar desabilitado', async () => {
+describe('edição de usuário (tela de verdade)', () => {
+    it('carrega o usuário sem barra de protótipo; sem alteração, "Nada alterado" e Salvar desabilitado', async () => {
         const user = userEvent.setup();
         renderEdit(member());
 
@@ -592,6 +568,13 @@ describe('edição de usuário no Crachá ao vivo', () => {
         expect(screen.getByLabelText('Nome')).toHaveValue('Bruno Reis');
         expect(screen.getByText('Nada alterado')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled();
+        expect(
+            screen.queryByRole('group', {
+                name: 'Trocar variante do protótipo',
+            }),
+        ).toBeNull();
+        // Sem os contadores do protótipo (decisão de 2026-10-20).
+        expect(preview().queryByText('Pacientes')).toBeNull();
 
         await user.type(screen.getByLabelText('Nome'), ' Jr');
 
@@ -600,37 +583,55 @@ describe('edição de usuário no Crachá ao vivo', () => {
         expect(getById).toHaveBeenCalledWith('7');
     });
 
-    it('trocar a foto conta como alteração e habilita Salvar', async () => {
+    it('admin salva pela API com função e situação, sem senha vazia, e volta para a lista', async () => {
         const user = userEvent.setup();
-        const { container } = renderEdit(member());
-
-        await screen.findByText('Nada alterado');
-        await user.upload(
-            container.querySelector<HTMLInputElement>('input[type="file"]')!,
-            new File(['x'], 'bruno.png', { type: 'image/png' }),
-        );
-
-        expect(screen.getByText('1 alteração: foto')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
-    });
-
-    it('salvar sem senha cai no stub, sem modal de código e sem PUT', async () => {
-        const user = userEvent.setup();
+        update.mockResolvedValue(member({ name: 'Bruno Reis Jr' }));
         renderEdit(member());
 
         await user.type(await screen.findByLabelText('Nome'), ' Jr');
         await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
-        expect(toastSuccess).toHaveBeenCalledTimes(1);
-        expect(toastSuccess.mock.calls[0][0]).toMatch(/nada foi salvo/i);
-        expect(toastInfo).not.toHaveBeenCalled();
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-        expect(update).not.toHaveBeenCalled();
-        expect(await screen.findByText('Nada alterado')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith('7', {
+            name: 'Bruno Reis Jr',
+            email: 'bruno@clinica.test',
+            document: '52998224725',
+            role: 'physiotherapist',
+            status: 1,
+        });
+        expect(toastSuccess).toHaveBeenCalledWith(
+            'Usuário atualizado com sucesso.',
+        );
+        expect(uploadPhoto).not.toHaveBeenCalled();
+        expect(deletePhoto).not.toHaveBeenCalled();
     });
 
-    it('senha nova abre o código, mandado a quem está logado; o código certo salva no stub', async () => {
+    it('no próprio perfil, quem não é admin não manda função nem situação e volta para o painel', async () => {
         const user = userEvent.setup();
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        update.mockResolvedValue(member());
+        renderEdit(member());
+
+        expect(
+            await screen.findByRole('heading', { name: 'Meu perfil' }),
+        ).toBeInTheDocument();
+        expect(screen.queryByRole('radiogroup', { name: 'Função' })).toBeNull();
+        await user.type(screen.getByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(await screen.findByText('Painel')).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith('7', {
+            name: 'Bruno Reis Jr',
+            email: 'bruno@clinica.test',
+            document: '52998224725',
+        });
+    });
+
+    it('senha nova salva direto pela API, sem código por e-mail', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
         renderEdit(member());
 
         await user.type(
@@ -641,52 +642,104 @@ describe('edição de usuário no Crachá ao vivo', () => {
             screen.getByLabelText('Confirmar nova senha'),
             'Clinica2026!',
         );
+        expect(screen.queryByText(/enviamos um código/i)).toBeNull();
         await user.click(screen.getByRole('button', { name: 'Salvar' }));
 
-        const dialog = await screen.findByRole('dialog', {
-            name: 'Confirme a troca de senha',
-        });
-        // ADR 019: o código vai para o e-mail do administrador, não o do alvo.
-        expect(dialog).toHaveTextContent('a***n@clinica.test');
-        expect(dialog).not.toHaveTextContent('b***o@clinica.test');
-        expect(toastSuccess).not.toHaveBeenCalled();
-
-        const code = String(toastInfo.mock.calls[0][0]).match(/\d{6}/)![0];
-        await user.type(
-            within(dialog).getByLabelText('Código de 6 dígitos'),
-            code,
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith(
+            '7',
+            expect.objectContaining({ password: 'Clinica2026!' }),
         );
-        await user.click(
-            within(dialog).getByRole('button', { name: 'Confirmar e salvar' }),
-        );
-
-        expect(toastSuccess).toHaveBeenCalledTimes(1);
-        expect(String(toastSuccess.mock.calls[0][1].description)).toMatch(
-            /senha: nova senha/i,
-        );
-        expect(update).not.toHaveBeenCalled();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
-    it('Google Agenda: status real no próprio perfil; em outra pessoa, só ela conecta', async () => {
+    it('foto nova é enviada depois de salvar', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        uploadPhoto.mockResolvedValue(member());
+        const { container } = renderEdit(member());
+
+        await screen.findByText('Nada alterado');
+        const photo = new File(['x'], 'bruno.png', { type: 'image/png' });
+        await user.upload(
+            container.querySelector<HTMLInputElement>('input[type="file"]')!,
+            photo,
+        );
+        expect(screen.getByText('1 alteração: foto')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(uploadPhoto).toHaveBeenCalledWith('7', photo);
+    });
+
+    it('foto removida é apagada depois de salvar', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        deletePhoto.mockResolvedValue(member());
+        renderEdit(member({ photoUrl: 'https://cdn.test/bruno.png' }));
+
+        await user.click(
+            await screen.findByRole('button', { name: 'Remover foto' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(deletePhoto).toHaveBeenCalledWith('7');
+        expect(uploadPhoto).not.toHaveBeenCalled();
+    });
+
+    it('422 do backend aparece no campo e a tela não sai da edição', async () => {
+        const user = userEvent.setup();
+        update.mockRejectedValue({
+            response: {
+                status: 422,
+                data: { errors: { email: ['O email já está em uso.'] } },
+            },
+        });
+        renderEdit(member());
+
+        await user.type(await screen.findByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('O email já está em uso.'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('Lista de usuários')).toBeNull();
+        expect(toastError).not.toHaveBeenCalled();
+    });
+
+    it('Google Agenda: no próprio perfil conecta e desconecta pela API; em outra pessoa, só ela conecta', async () => {
+        const user = userEvent.setup();
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        const own = renderEdit(member());
+
+        await user.click(
+            await screen.findByRole('button', { name: 'Conectar' }),
+        );
+        expect(connectGoogle).toHaveBeenCalledWith(
+            '/clinica/usuarios/7/editar',
+        );
+        own.unmount();
+
         googleStatus = {
             connected: true,
             connectedAt: new Date(Date.now() - 86_400_000).toISOString(),
         };
-        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
-        const own = renderEdit(member());
-
-        expect(
-            await screen.findByRole('heading', { name: 'Meu perfil' }),
-        ).toBeInTheDocument();
-        expect(screen.getByText(/^Conectado em/)).toBeInTheDocument();
-        expect(
-            screen.getByRole('button', { name: 'Desconectar' }),
-        ).toBeInTheDocument();
-        own.unmount();
+        disconnectGoogle.mockResolvedValue(undefined);
+        const connected = renderEdit(member());
+        expect(await screen.findByText(/^Conectado em/)).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Desconectar' }));
+        expect(disconnectGoogle).toHaveBeenCalled();
+        connected.unmount();
 
         authUser = { ...authUser, id: 1, role: 'admin' };
         renderEdit(member());
-
         expect(
             await screen.findByText(
                 'Só a própria pessoa conecta, no perfil dela.',
@@ -695,18 +748,7 @@ describe('edição de usuário no Crachá ao vivo', () => {
         expect(screen.queryByRole('button', { name: /conectar/i })).toBeNull();
     });
 
-    it('função e situação só para quem gerencia usuários; no mestre, a função fica travada', async () => {
-        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
-        const own = renderEdit(member());
-
-        await screen.findByRole('heading', { name: 'Meu perfil' });
-        expect(
-            screen.queryByRole('heading', { name: 'Função e acesso' }),
-        ).toBeNull();
-        expect(screen.queryByRole('radiogroup', { name: 'Função' })).toBeNull();
-        own.unmount();
-
-        authUser = { ...authUser, id: 1, role: 'admin' };
+    it('no mestre, função e situação ficam travadas', async () => {
         renderEdit(member({ id: '2', role: 'admin', mestre: 1 }));
 
         expect(
@@ -718,49 +760,55 @@ describe('edição de usuário no Crachá ao vivo', () => {
         expect(roleCard(/^fisioterapeuta/i)).toBeDisabled();
         expect(roleCard(/^secretário/i)).toBeDisabled();
         expect(screen.getByRole('switch')).toBeDisabled();
-        // Senha do mestre: o motivo no lugar do campo.
-        expect(
-            screen.getByText(
-                'A senha do mestre da clínica só ele mesmo troca.',
-            ),
-        ).toBeInTheDocument();
-        expect(screen.queryByLabelText('Nova senha')).toBeNull();
     });
 
-    it('sem e-mail na sessão, a troca trava em vez de mandar o código ao alvo (ADR 019)', async () => {
-        authUser = { ...authUser, email: undefined };
-        renderEdit(member());
-
-        expect(
-            await screen.findByText(
-                'Sua sessão não tem e-mail para receber o código da troca.',
-            ),
-        ).toBeInTheDocument();
-        expect(screen.queryByLabelText('Nova senha')).toBeNull();
-        expect(screen.queryByText(/b\*\*\*o@clinica\.test/)).toBeNull();
-    });
-
-    it('sem e-mail na sessão, o próprio perfil continua trocando a senha (o alvo é quem está logado)', async () => {
-        authUser = {
-            ...authUser,
-            id: 7,
-            role: 'physiotherapist',
-            email: undefined,
-        };
+    it('mestre que a v1 deixou inativo abre ativo e salvar o reativa', async () => {
         const user = userEvent.setup();
-        renderEdit(member());
+        update.mockResolvedValue(member());
+        renderEdit(member({ id: '2', role: 'admin', mestre: 1, status: 0 }));
 
-        expect(await screen.findByLabelText('Nova senha')).toBeInTheDocument();
-        expect(screen.queryByText(/sessão não tem e-mail/i)).toBeNull();
-
-        // O código vai ao e-mail da própria pessoa (é ela quem está logada).
-        await user.type(screen.getByLabelText('Nova senha'), 'Clinica2026!');
+        await screen.findByText(
+            'Este é o mestre da clínica: a função fica administrador.',
+        );
+        expect(screen.getByRole('switch')).toBeChecked();
         expect(
-            screen.getByText(/enviamos um código para b\*\*\*o@clinica\.test/),
+            screen.getByText(/estava desativado; salvar reativa a conta/i),
         ).toBeInTheDocument();
+        // Só a reativação já conta como alteração: nada de mexer no nome.
+        expect(screen.getByText('1 alteração: situação')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith(
+            '2',
+            expect.objectContaining({ status: 1 }),
+        );
     });
 
-    it('apagar o nome na edição mostra os placeholders do cadastro (decisão de 2026-10-20)', async () => {
+    it('usuário comum desativado continua desativado: abrir não reativa', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        renderEdit(member({ status: 0 }));
+
+        expect(await screen.findByText('Nada alterado')).toBeInTheDocument();
+        expect(screen.getByRole('switch')).not.toBeChecked();
+        expect(screen.getByText('Conta desativada')).toBeInTheDocument();
+        await user.type(screen.getByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith(
+            '7',
+            expect.objectContaining({ status: 0 }),
+        );
+    });
+
+    it('apagar o nome mostra os placeholders do cadastro', async () => {
         const user = userEvent.setup();
         renderEdit(member({ photoUrl: undefined }));
 
@@ -770,12 +818,86 @@ describe('edição de usuário no Crachá ao vivo', () => {
             preview().getAllByText('Nome do profissional').length,
         ).toBeGreaterThan(1);
         expect(preview().queryByText('Sem nome')).toBeNull();
-        expect(
-            preview().getByText('Maria Souza · com Nome do profissional'),
-        ).toBeInTheDocument();
         const avatar = screen.getAllByRole('button', {
             name: 'Trocar foto',
         })[0];
         expect(avatar.querySelector('.lucide-user-round')).not.toBeNull();
+    });
+
+    it('usuário que não carrega mostra "não encontrado"', async () => {
+        getById.mockRejectedValueOnce(new Error('404'));
+        renderEditRaw('99');
+
+        expect(
+            await screen.findByText('Usuário não encontrado'),
+        ).toBeInTheDocument();
+    });
+
+    it('volta do OAuth com ?google=connected avisa e limpa a URL', async () => {
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/usuarios/7/editar?google=connected',
+        );
+        renderEdit(member());
+
+        await screen.findByRole('heading', { name: 'Meu perfil' });
+        expect(toastSuccess).toHaveBeenCalledWith(
+            'Google Calendar conectado com sucesso!',
+        );
+        expect(window.location.search).toBe('');
+        window.history.pushState({}, '', '/');
+    });
+
+    it('em outra pessoa não busca o status do Google de quem está logado', async () => {
+        renderEdit(member());
+
+        await screen.findByText('Só a própria pessoa conecta, no perfil dela.');
+        expect(googleStatusEnabled).toHaveBeenCalled();
+        expect(googleStatusEnabled).not.toHaveBeenCalledWith(true);
+    });
+
+    it('escolher e depois remover a foto de quem não tinha foto não apaga nada', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        const { container } = renderEdit(member({ photoUrl: undefined }));
+
+        await screen.findByText('Nada alterado');
+        await user.upload(
+            container.querySelector<HTMLInputElement>('input[type="file"]')!,
+            new File(['x'], 'b.png', { type: 'image/png' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Remover foto' }));
+        await user.type(screen.getByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(deletePhoto).not.toHaveBeenCalled();
+        expect(uploadPhoto).not.toHaveBeenCalled();
+    });
+
+    it('foto que falha depois de salvar avisa e volta para a lista', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        uploadPhoto.mockRejectedValue({ response: { status: 422 } });
+        const { container } = renderEdit(member());
+
+        await screen.findByText('Nada alterado');
+        await user.upload(
+            container.querySelector<HTMLInputElement>('input[type="file"]')!,
+            new File(['x'], 'b.png', { type: 'image/png' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        // Um aviso só: o do hook da foto (os dados já foram salvos).
+        expect(toastError).toHaveBeenCalledTimes(1);
+        expect(toastError).toHaveBeenCalledWith('Erro ao enviar a foto.');
+        expect(toastWarning).not.toHaveBeenCalled();
     });
 });

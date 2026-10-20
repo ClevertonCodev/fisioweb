@@ -11,105 +11,17 @@ import { useAppointments } from '@/application/clinic/use-appointments';
 import { useClinicUsers } from '@/application/clinic/use-clinic-users';
 import { usePatients } from '@/application/clinic/use-patients';
 import { useClinicPrograms } from '@/application/clinic/use-programs';
-import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import type { UserLoad } from '@/pages/clinic/user/user-form/parts';
 
 // ---------------------------------------------------------------- funções
 
-export const ROLE_META: Record<
-    ClinicRole,
-    { label: string; plural: string; description: string }
-> = {
-    admin: {
-        label: 'Administrador',
-        plural: 'Administradores',
-        description:
-            'Cuida da clínica, da equipe e de tudo o que um fisioterapeuta faz.',
-    },
-    physiotherapist: {
-        label: 'Fisioterapeuta',
-        plural: 'Fisioterapeutas',
-        description:
-            'Atende: prontuário, evoluções, programas e a própria agenda.',
-    },
-    secretary: {
-        label: 'Secretário(a)',
-        plural: 'Secretários(as)',
-        description: 'Recepção: agenda de todos e cadastro de pacientes.',
-    },
-};
-
-/**
- * O que cada função pode fazer, tirado de application/clinic/permissions.ts
- * e da regra da agenda (fisioterapeuta só vê a própria, FR-012).
- */
-export const CAPABILITIES: {
-    key: string;
-    label: string;
-    access: Record<ClinicRole, true | false | string>;
-}[] = [
-    {
-        key: 'agenda',
-        label: 'Agenda',
-        access: {
-            admin: 'De todos',
-            physiotherapist: 'Só a própria',
-            secretary: 'De todos',
-        },
-    },
-    {
-        key: 'records',
-        label: 'Prontuário e evoluções',
-        access: { admin: true, physiotherapist: true, secretary: false },
-    },
-    {
-        key: 'sign',
-        label: 'Assinar documentos',
-        // Assina quem atende: administrador só com CREFITO.
-        access: {
-            admin: 'Com CREFITO',
-            physiotherapist: true,
-            secretary: false,
-        },
-    },
-    {
-        key: 'reactivate',
-        label: 'Inativar e reativar pacientes',
-        access: { admin: true, physiotherapist: false, secretary: true },
-    },
-    {
-        key: 'delete',
-        label: 'Excluir registros',
-        access: {
-            admin: true,
-            physiotherapist: 'Só os seus',
-            secretary: false,
-        },
-    },
-    {
-        key: 'users',
-        label: 'Gerenciar a equipe',
-        access: { admin: true, physiotherapist: false, secretary: false },
-    },
-    {
-        key: 'clinic',
-        label: 'Dados da clínica',
-        access: {
-            admin: 'Só o mestre edita',
-            physiotherapist: false,
-            secretary: false,
-        },
-    },
-];
+export { CAPABILITIES, ROLE_META } from '@/pages/clinic/user/user-form/roles';
 
 // ---------------------------------------------------------------- equipe
 
-export interface Member extends ClinicUserSummary {
+export interface Member extends ClinicUserSummary, UserLoad {
     active: boolean;
-    patients: number;
-    programs: number;
-    /** Consultas da semana (não canceladas). */
-    weekAppointments: number;
 }
 
 const DAY = 86_400_000;

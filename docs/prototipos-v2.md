@@ -113,10 +113,13 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Números de carga (pacientes, programas, agenda da semana) vindos da API de usuários. Continuam somados no front.
   - [x] Mudar função, desativar e excluir são stub.
 
-- [ ] **Edição e cadastro de usuário** — `/clinica/usuarios/:id/editar` e `/clinica/usuarios/novo`
-  - Variante A, "Crachá ao vivo": formulário e, ao lado, como a pessoa aparece no sistema (crachá, agenda, cartão do paciente e assinatura do PDF).
-  - O cadastro é a mesma tela no modo criar (`useUserForm({ mode: 'create' })`): campos vazios, placeholders na prévia, senha obrigatória sem código e sem Google Agenda. Criar é stub.
-  - Código: `resources/js/pages/clinic/user/user-edit-prototype/` · commit `a3c0731` · feature `.ai-workbench/007-clinic-user-form-ds/`
+- [x] **Cadastro de usuário** — `/clinica/usuarios/novo`
+  - "Crachá ao vivo" é a tela de verdade em todos os ambientes: grava pela API (`POST /api/clinic/users`, foto depois de criar), sem `?variant=`; a v1 saiu.
+  - Código: `resources/js/pages/clinic/user/UserNewPage.tsx` e as peças compartilhadas em `resources/js/pages/clinic/user/user-form/` · feature `.ai-workbench/007-clinic-user-form-ds/` (tarefa 003).
+
+- [ ] **Edição de usuário** — `/clinica/usuarios/:id/editar`
+  - Variante A, "Crachá ao vivo": formulário e, ao lado, como a pessoa aparece no sistema (crachá, agenda, cartão do paciente e assinatura do PDF). Usa as mesmas peças do cadastro (`user-form/`, modo `edit`); salvar ainda é stub.
+  - Código: `resources/js/pages/clinic/user/user-edit-prototype/` (+ `user-form/`) · commits `a3c0731`, `60f682d`
   - Decisões: [ADR 019](adr/019-troca-de-senha-de-usuario-da-clinica.md).
   - [ ] Regras de senha no backend: só administrador troca a de outra pessoa, só o mestre a de outro administrador, e a do mestre ninguém além dele (no service, porque o `Gate::before` libera tudo para administrador).
   - [ ] Código de 6 dígitos por e-mail para trocar a senha, mandado a quem está logado.

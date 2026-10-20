@@ -50,7 +50,11 @@ export function useCreateClinicUser() {
             void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
             toast.success('Usuário criado com sucesso.');
         },
-        onError: (error: { response?: { data?: { message?: string } } }) => {
+        onError: (error: {
+            response?: { status?: number; data?: { message?: string } };
+        }) => {
+            // 422: a tela mostra os erros nos campos.
+            if (error?.response?.status === 422) return;
             toast.error(
                 error?.response?.data?.message ?? 'Erro ao criar usuário.',
             );

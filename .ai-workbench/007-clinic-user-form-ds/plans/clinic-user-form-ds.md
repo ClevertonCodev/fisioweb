@@ -210,11 +210,14 @@ Nenhum endpoint, migration ou Policy muda nesta entrega.
 
 ## Fora do Escopo
 
-- POST/PUT reais, upload de foto, e qualquer persistência.
+- POST/PUT reais, upload de foto, e qualquer persistência. **Exceção
+  (2026-10-20, pedido do usuário, tarefa 003):** o cadastro grava de
+  verdade (POST e foto); a edição continua sem persistência.
 - Endpoint, fila e tabela de código por e-mail (ADR 019). Mover
   `passwordLockReason` para `permissions.ts` e aplicar no backend.
 - Promover o Crachá ao vivo a tela de produção (tirar o interruptor e a
-  v1), como foi feito na lista de pacientes.
+  v1), como foi feito na lista de pacientes. **Exceção (tarefa 003):** o
+  cadastro foi promovido; a edição não.
 - Lista de usuários v2 (protótipo C à parte).
 - Variantes B e C da edição (já descartadas).
 - Verificação em duas etapas (coluna existe, fluxo não).

@@ -1,7 +1,7 @@
 /**
- * PROTÓTIPO (descartável): campos e peças do cadastro e da edição de
- * usuário. Os campos ligam no formulário real (form.ts); Google Agenda
- * mostra o estado real, mas conectar e desconectar são stub.
+ * Campos e peças do cadastro e da edição de usuário, ligados no formulário
+ * (form.ts). Só a edição (protótipo) usa o Google Agenda e o modal de
+ * código: lá, conectar, desconectar e o código ainda são stub.
  */
 import {
     CalendarCheck,
@@ -21,6 +21,7 @@ import {
     CLINIC_USER_ROLES,
     type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
+import { CLINIC_USER_PHOTO_INPUT_ACCEPT } from '@/application/clinic/clinic-user-photo-rules';
 import {
     DsBadge,
     DsButton,
@@ -41,9 +42,17 @@ import {
     SCORE_LABEL,
     type UserForm,
 } from './form';
-import { CAPABILITIES, ROLE_META, type Member } from './team-data';
+import { CAPABILITIES, ROLE_META } from './roles';
 
-export interface VariantProps {
+/** Carga da pessoa na clínica, mostrada no crachá da edição. */
+export interface UserLoad {
+    patients: number;
+    programs: number;
+    /** Consultas da semana (não canceladas). */
+    weekAppointments: number;
+}
+
+export interface UserFormLayoutProps {
     /** null no cadastro: ainda não existe usuário. */
     user: ClinicUserSummary | null;
     f: UserForm;
@@ -54,7 +63,7 @@ export interface VariantProps {
     /** Motivo para não poder trocar a senha (null = pode). */
     passwordLock: string | null;
     /** Carga da pessoa (pacientes, programas, agenda da semana). */
-    member: Member | null;
+    member: UserLoad | null;
     backTo: string;
 }
 
@@ -115,7 +124,7 @@ function usePhotoInput(f: UserForm) {
         <input
             ref={input}
             type="file"
-            accept="image/*"
+            accept={CLINIC_USER_PHOTO_INPUT_ACCEPT}
             className="hidden"
             onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -164,10 +173,11 @@ export function PhotoAvatar({
     );
 }
 
-/** "Trocar foto" e "Remover", sem a foto. O recorte da v1 fica para a tela real. */
+/** "Trocar foto" e "Remover", sem a foto. Sem o recorte da v1 (DEFERRED). */
 export function PhotoActions({
     f,
-    hint = 'JPG ou PNG, quadrada de preferência.',
+    // O mesmo que o backend aceita (ClinicUserController::uploadPhoto).
+    hint = 'JPG, PNG ou WebP, até 2 MB. Quadrada de preferência.',
 }: {
     f: UserForm;
     hint?: string;
@@ -195,8 +205,19 @@ export function PhotoActions({
                     />
                 )}
             </div>
-            {hint && (
-                <p className="text-ds-caption text-ds-content-muted">{hint}</p>
+            {f.photoError ? (
+                <p
+                    role="alert"
+                    className="text-ds-caption text-ds-content-danger"
+                >
+                    {f.photoError}
+                </p>
+            ) : (
+                hint && (
+                    <p className="text-ds-caption text-ds-content-muted">
+                        {hint}
+                    </p>
+                )
             )}
             {picker.element}
         </div>

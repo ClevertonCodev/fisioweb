@@ -1,11 +1,11 @@
 /**
- * PROTÓTIPO (descartável): o formulário de usuário, em dois modos. Na
- * edição, usa o esquema real de editar (senha opcional); no cadastro, o de
- * novo usuário (senha e função obrigatórias). Salvar e criar são stub:
- * mostram o que seria enviado e nada é gravado.
+ * O formulário de usuário da clínica, em dois modos. O cadastro é a tela de
+ * verdade: usa o esquema de novo usuário (senha e função obrigatórias) e
+ * grava pelo `onCreate` da página. A edição ainda é protótipo (esquema de
+ * editar, senha opcional): salvar é stub e nada é gravado.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -16,6 +16,8 @@ import {
     type ClinicUserFormStatus,
     type ClinicUserNewFormValues,
 } from '@/application/clinic/clinic-user-form';
+import { getClinicUserPhotoValidationError } from '@/application/clinic/clinic-user-photo-rules';
+import { getValidationErrors } from '@/application/clinic/validation-errors';
 import { formatCnpj, formatCpf } from '@/components/ds';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import {
@@ -56,8 +58,20 @@ export const FIELD_LABEL: Record<keyof UserFormValues, string> = {
 export interface PhotoState {
     /** URL mostrada (nova, atual ou null). */
     url: string | null;
+    /** Arquivo escolhido nesta tela (null = nenhum novo). */
+    file: File | null;
     changed: boolean;
 }
+
+/** Campos que mostram o próprio erro na tela (os outros vão para o toast). */
+const FIELDS_WITH_ERROR = [
+    'name',
+    'email',
+    'password',
+    'confirmPassword',
+    'role',
+    'document',
+] as const;
 
 export interface Change {
     key: string;
@@ -127,7 +141,14 @@ function newCode(): string {
 }
 
 export type UserFormMode =
-    | { mode: 'create' }
+    | {
+          mode: 'create';
+          /** Grava o usuário (e a foto, se houver). Erro 422 volta aos campos. */
+          onCreate: (
+              values: UserFormValues,
+              photo: File | null,
+          ) => Promise<void>;
+      }
     | {
           mode: 'edit';
           user: ClinicUserSummary;
@@ -190,15 +211,30 @@ export function useUserForm(options: UserFormMode) {
     const [savedPhoto, setSavedPhoto] = useState(user?.photoUrl ?? null);
     const [photo, setPhotoState] = useState<PhotoState>({
         url: user?.photoUrl ?? null,
+        file: null,
         changed: false,
     });
+    const [photoError, setPhotoError] = useState<string | null>(null);
+    // Prévia escolhida nesta tela (blob:): liberada ao trocar e ao sair.
+    const previewUrl = photo.file ? photo.url : null;
+    useEffect(
+        () => () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        },
+        [previewUrl],
+    );
     const setPhoto = (file: File | null) => {
+        const problem = file ? getClinicUserPhotoValidationError(file) : null;
+        setPhotoError(problem);
+        if (problem) return;
         setPhotoState({
             url: file ? URL.createObjectURL(file) : null,
+            file,
             changed: true,
         });
     };
-    const resetPhoto = () => setPhotoState({ url: savedPhoto, changed: false });
+    const resetPhoto = () =>
+        setPhotoState({ url: savedPhoto, file: null, changed: false });
 
     const show = (key: keyof UserFormValues, v: UserFormValues) => {
         if (key === 'role') {
@@ -258,14 +294,36 @@ export function useUserForm(options: UserFormMode) {
         });
         form.reset({ ...v, password: '', confirmPassword: '' });
         setSavedPhoto(photo.url);
+        // Mantém o arquivo: a prévia salva (stub) continua viva até trocar.
         setPhotoState((p) => ({ ...p, changed: false }));
     };
 
-    // Criar é stub: não grava, não redireciona e mantém o que foi digitado.
-    const create = (v: UserFormValues) => {
-        toast.success('Protótipo: nenhum usuário foi criado', {
-            description: `Nada foi gravado. ${v.name} · ${v.email}${photo.url ? ' · com foto' : ''}`,
-        });
+    // Erro 422 do backend volta para o campo que a tela desenha; o resto
+    // (campo sem lugar na tela ou desconhecido) vai para um toast. Os outros
+    // erros o hook de criar já mostra num toast.
+    const create = async (v: UserFormValues) => {
+        if (options.mode !== 'create') return;
+        try {
+            await options.onCreate(v, photo.file);
+        } catch (error) {
+            const invalid = getValidationErrors(error);
+            if (!invalid) return;
+            const leftover: string[] = [];
+            for (const [key, messages] of Object.entries(invalid.fields)) {
+                if (!messages[0]) continue;
+                if ((FIELDS_WITH_ERROR as readonly string[]).includes(key)) {
+                    form.setError(key as (typeof FIELDS_WITH_ERROR)[number], {
+                        message: messages[0],
+                    });
+                } else {
+                    leftover.push(messages[0]);
+                }
+            }
+            if (leftover.length > 0) toast.error(leftover.join(' '));
+            else if (Object.keys(invalid.fields).length === 0) {
+                toast.error(invalid.message ?? 'Confira os dados.');
+            }
+        }
     };
 
     const [codeStep, setCodeStep] = useState<CodeStep | null>(null);
@@ -283,8 +341,8 @@ export function useUserForm(options: UserFormMode) {
 
     // Com senha nova, salvar passa antes pelo código. Criar não pede código
     // (o código é só da troca, ADR 019).
-    const submit = form.handleSubmit((v) => {
-        if (options.mode === 'create') create(v);
+    const submit = form.handleSubmit(async (v) => {
+        if (options.mode === 'create') await create(v);
         else if (v.password) sendCode(v);
         else commit(v);
     });
@@ -310,10 +368,12 @@ export function useUserForm(options: UserFormMode) {
 
     return {
         mode: options.mode,
+        submitting: form.formState.isSubmitting,
         form,
         values,
         defaultValues: base,
         photo,
+        photoError,
         setPhoto,
         changes,
         submit,

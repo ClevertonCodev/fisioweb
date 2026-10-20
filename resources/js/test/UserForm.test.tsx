@@ -6,9 +6,9 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
-import { passwordLockReason } from '@/pages/clinic/user/user-edit-prototype/form';
 import UserEditPrototype from '@/pages/clinic/user/user-edit-prototype/UserEditPrototype';
-import UserNewPrototype from '@/pages/clinic/user/user-edit-prototype/UserNewPrototype';
+import { passwordLockReason } from '@/pages/clinic/user/user-form/form';
+import { UserNewPage } from '@/pages/clinic/user/UserNewPage';
 import { routerFutureFlags } from '@/test/browser-router';
 
 const getById = vi.fn();
@@ -17,6 +17,8 @@ const update = vi.fn();
 const uploadPhoto = vi.fn();
 const toastSuccess = vi.fn();
 const toastInfo = vi.fn();
+const toastWarning = vi.fn();
+const toastError = vi.fn();
 
 vi.mock('@/infrastructure/repositories/api-clinic-users', () => ({
     apiClinicUsersRepository: {
@@ -53,7 +55,8 @@ vi.mock('sonner', () => ({
     toast: {
         success: (...args: unknown[]) => toastSuccess(...args),
         info: (...args: unknown[]) => toastInfo(...args),
-        error: vi.fn(),
+        warning: (...args: unknown[]) => toastWarning(...args),
+        error: (...args: unknown[]) => toastError(...args),
     },
 }));
 
@@ -92,10 +95,28 @@ function renderNew() {
                 initialEntries={['/clinica/usuarios/novo']}
                 future={routerFutureFlags}
             >
-                <UserNewPrototype variant="A" />
+                <Routes>
+                    <Route
+                        path="/clinica/usuarios/novo"
+                        element={<UserNewPage />}
+                    />
+                    <Route
+                        path="/clinica/usuarios"
+                        element={<p>Lista de usuários</p>}
+                    />
+                </Routes>
             </MemoryRouter>
         </QueryClientProvider>,
     );
+}
+
+async function fillValidUser(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText('Nome'), 'Ana Lima');
+    await user.type(screen.getByLabelText('E-mail'), 'ana@clinica.test');
+    await user.type(screen.getByLabelText('Senha'), 'Clinica2026!');
+    await user.type(screen.getByLabelText('Confirmar senha'), 'Clinica2026!');
+    await user.click(roleCard(/^fisioterapeuta/i));
+    await user.type(screen.getByLabelText('CPF'), '52998224725');
 }
 
 function preview() {
@@ -123,7 +144,7 @@ beforeEach(() => {
     };
 });
 
-describe('cadastro de usuário no Crachá ao vivo', () => {
+describe('cadastro de usuário (tela de verdade)', () => {
     it('abre vazio, com título de cadastro e placeholders na prévia', () => {
         renderNew();
 
@@ -150,6 +171,13 @@ describe('cadastro de usuário no Crachá ao vivo', () => {
             preview().getByText('por Nome do profissional'),
         ).toBeInTheDocument();
         expect(preview().queryByText('Mestre')).not.toBeInTheDocument();
+        // Tela de verdade: sem a barra do protótipo (no Vitest o DEV está
+        // ligado, então ela apareceria se a página ainda a tivesse).
+        expect(
+            screen.queryByRole('group', {
+                name: 'Trocar variante do protótipo',
+            }),
+        ).toBeNull();
         // Sem nome nem foto, o avatar é genérico (não um "?").
         const avatar = screen.getAllByRole('button', {
             name: 'Trocar foto',
@@ -242,48 +270,234 @@ describe('cadastro de usuário no Crachá ao vivo', () => {
         expect(screen.queryByText(/enviamos um código/i)).toBeNull();
     });
 
-    it('criar válido mostra o stub, sem modal de código e sem chamar a API', async () => {
+    it('criar válido grava pela API, envia a foto e volta para a lista', async () => {
         const user = userEvent.setup();
+        create.mockResolvedValue(member({ id: '42', name: 'Ana Lima' }));
+        uploadPhoto.mockResolvedValue(member({ id: '42' }));
         const { container } = renderNew();
 
-        await user.type(screen.getByLabelText('Nome'), 'Ana Lima');
-        await user.type(screen.getByLabelText('E-mail'), 'ana@clinica.test');
-        await user.type(screen.getByLabelText('Senha'), 'Clinica2026!');
-        await user.type(
-            screen.getByLabelText('Confirmar senha'),
-            'Clinica2026!',
-        );
-        await user.click(roleCard(/^fisioterapeuta/i));
-        await user.type(screen.getByLabelText('CPF'), '52998224725');
-        const photoInput =
-            container.querySelector<HTMLInputElement>('input[type="file"]')!;
+        await fillValidUser(user);
+        const photo = new File(['x'], 'ana.png', { type: 'image/png' });
         await user.upload(
-            photoInput,
-            new File(['x'], 'ana.png', { type: 'image/png' }),
+            container.querySelector<HTMLInputElement>('input[type="file"]')!,
+            photo,
         );
-        expect(
-            screen.getByRole('button', { name: 'Remover foto' }),
-        ).toBeInTheDocument();
-
         await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
 
-        expect(toastSuccess).toHaveBeenCalledTimes(1);
-        expect(toastSuccess.mock.calls[0][0]).toMatch(
-            /nenhum usuário foi criado/i,
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(create).toHaveBeenCalledWith({
+            name: 'Ana Lima',
+            email: 'ana@clinica.test',
+            password: 'Clinica2026!',
+            role: 'physiotherapist',
+            status: 1,
+            document: '52998224725',
+        });
+        expect(uploadPhoto).toHaveBeenCalledWith('42', photo);
+        expect(toastSuccess).toHaveBeenCalledWith(
+            'Usuário criado com sucesso.',
         );
         expect(
             screen.queryByRole('dialog', {
                 name: /confirme a troca de senha/i,
             }),
         ).not.toBeInTheDocument();
-        expect(toastInfo).not.toHaveBeenCalled();
-        expect(create).not.toHaveBeenCalled();
+    });
+
+    it('foto acima de 2 MB ou de tipo que o backend não aceita é recusada antes de criar', async () => {
+        const user = userEvent.setup({ applyAccept: false });
+        create.mockResolvedValue(member({ id: '42' }));
+        const { container } = renderNew();
+        const input = () =>
+            container.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+        await user.upload(
+            input(),
+            new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'grande.png', {
+                type: 'image/png',
+            }),
+        );
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'A foto pode ter até 2 MB.',
+        );
+        expect(
+            screen.queryByRole('button', { name: 'Remover foto' }),
+        ).toBeNull();
+
+        await user.upload(
+            input(),
+            new File(['x'], 'foto.gif', { type: 'image/gif' }),
+        );
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Use uma foto JPG, PNG ou WebP.',
+        );
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
         expect(uploadPhoto).not.toHaveBeenCalled();
-        // Não finge sucesso: continua no cadastro, com o que foi digitado.
+    });
+
+    it('trocar a foto libera a prévia anterior, e sair da tela libera a atual', async () => {
+        const user = userEvent.setup();
+        const revoke = vi.spyOn(URL, 'revokeObjectURL');
+        const { container, unmount } = renderNew();
+        const input = () =>
+            container.querySelector<HTMLInputElement>('input[type="file"]')!;
+
+        await user.upload(
+            input(),
+            new File(['a'], 'a.png', { type: 'image/png' }),
+        );
+        const first = (
+            container.querySelector('aside img') as HTMLImageElement
+        ).getAttribute('src');
+        await user.upload(
+            input(),
+            new File(['b'], 'b.png', { type: 'image/png' }),
+        );
+        const second = (
+            container.querySelector('aside img') as HTMLImageElement
+        ).getAttribute('src');
+
+        expect(revoke).toHaveBeenCalledWith(first);
+        unmount();
+        expect(revoke).toHaveBeenCalledWith(second);
+        revoke.mockRestore();
+    });
+
+    it('sem foto, não chama o envio de foto', async () => {
+        const user = userEvent.setup();
+        create.mockResolvedValue(member({ id: '42' }));
+        renderNew();
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(uploadPhoto).not.toHaveBeenCalled();
+    });
+
+    it('foto que falha depois de criar avisa e volta para a lista', async () => {
+        const user = userEvent.setup();
+        create.mockResolvedValue(member({ id: '42' }));
+        uploadPhoto.mockRejectedValue(new Error('falhou'));
+        const { container } = renderNew();
+
+        await fillValidUser(user);
+        await user.upload(
+            container.querySelector<HTMLInputElement>('input[type="file"]')!,
+            new File(['x'], 'ana.png', { type: 'image/png' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        expect(toastWarning).toHaveBeenCalledWith(
+            expect.stringMatching(/criado, mas a foto não foi enviada/i),
+        );
+    });
+
+    it('422 do backend aparece no campo e a tela não sai do cadastro', async () => {
+        const user = userEvent.setup();
+        create.mockRejectedValue({
+            response: {
+                status: 422,
+                data: {
+                    message: 'E-mail já está em uso.',
+                    errors: { email: ['E-mail já está em uso.'] },
+                },
+            },
+        });
+        renderNew();
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        expect(
+            await screen.findByText('E-mail já está em uso.'),
+        ).toBeInTheDocument();
+        expect(screen.getByLabelText('E-mail')).toHaveAttribute(
+            'aria-invalid',
+            'true',
+        );
+        expect(screen.queryByText('Lista de usuários')).toBeNull();
         expect(
             screen.getByRole('heading', { name: 'Novo usuário' }),
         ).toBeInTheDocument();
-        expect(screen.getByLabelText('Nome')).toHaveValue('Ana Lima');
+        // A mensagem vai para o campo, não repete num toast.
+        expect(toastError).not.toHaveBeenCalled();
+    });
+
+    it('422 sem campo conhecido vai para o toast, para não sumir', async () => {
+        const user = userEvent.setup();
+        create.mockRejectedValue({
+            response: {
+                status: 422,
+                data: {
+                    message: 'Limite de usuários do plano atingido.',
+                    errors: { plan: ['Limite de usuários do plano atingido.'] },
+                },
+            },
+        });
+        renderNew();
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        await vi.waitFor(() =>
+            expect(toastError).toHaveBeenCalledWith(
+                'Limite de usuários do plano atingido.',
+            ),
+        );
+        expect(screen.queryByText('Lista de usuários')).toBeNull();
+    });
+
+    it('422 em campo que a tela não desenha vai para o toast junto do campo mostrado', async () => {
+        const user = userEvent.setup();
+        create.mockRejectedValue({
+            response: {
+                status: 422,
+                data: {
+                    message: 'Dados inválidos.',
+                    errors: {
+                        email: ['O email já está em uso.'],
+                        status: ['Situação inválida.'],
+                    },
+                },
+            },
+        });
+        renderNew();
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        expect(
+            await screen.findByText('O email já está em uso.'),
+        ).toBeInTheDocument();
+        expect(toastError).toHaveBeenCalledWith('Situação inválida.');
+    });
+
+    it('enquanto cria, o botão fica ocupado e não envia duas vezes', async () => {
+        const user = userEvent.setup();
+        create.mockReturnValue(new Promise(() => {}));
+        renderNew();
+
+        await fillValidUser(user);
+        await user.click(screen.getByRole('button', { name: 'Criar usuário' }));
+
+        const busy = await screen.findByRole('button', { name: 'Criando…' });
+        expect(busy).toBeDisabled();
+        await user.click(busy);
+        expect(create).toHaveBeenCalledTimes(1);
     });
 });
 

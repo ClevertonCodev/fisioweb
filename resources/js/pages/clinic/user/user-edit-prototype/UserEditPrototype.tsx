@@ -27,11 +27,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
+import {
+    passwordLockReason,
+    useUserForm,
+} from '@/pages/clinic/user/user-form/form';
+import {
+    PasswordCodeModal,
+    roleLabel,
+    type UserFormLayoutProps,
+} from '@/pages/clinic/user/user-form/parts';
+import { UserFormLayout } from '@/pages/clinic/user/user-form/UserFormLayout';
 
-import { passwordLockReason, useUserForm } from './form';
-import { PasswordCodeModal, roleLabel, type VariantProps } from './parts';
 import { useTeam } from './team-data';
-import { VariantA } from './VariantA';
 import { USER_EDIT_VARIANTS } from './variants';
 
 export default function UserEditPrototype({ variant }: { variant: string }) {
@@ -126,7 +133,7 @@ function Editor({
         codeRecipient: signerEmail,
     });
     const team = useTeam();
-    const props: VariantProps = {
+    const props: UserFormLayoutProps = {
         user,
         f,
         canManageUsers,
@@ -151,7 +158,7 @@ function Editor({
     };
     return (
         <>
-            <VariantA {...props} />
+            <UserFormLayout {...props} />
             <PasswordCodeModal
                 f={f}
                 targetName={user.name}

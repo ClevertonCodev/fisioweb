@@ -1,5 +1,5 @@
 /**
- * PROTÓTIPO A, "Crachá ao vivo": o formulário à esquerda e, à direita, como
+ * "Crachá ao vivo": o formulário à esquerda e, à direita, como
  * a pessoa aparece no sistema, mudando enquanto se digita: o crachá, a
  * consulta na agenda, o cartão do paciente e a assinatura do PDF. Mostra
  * por que nome, foto e CREFITO importam. Serve ao cadastro e à edição
@@ -23,9 +23,9 @@ import {
     SaveBar,
     SectionTitle,
     StatusSwitch,
-    type VariantProps,
+    type UserFormLayoutProps,
 } from './parts';
-import { ROLE_META } from './team-data';
+import { ROLE_META } from './roles';
 
 /** Nome na prévia enquanto o campo está vazio. */
 export const NAME_PLACEHOLDER = 'Nome do profissional';
@@ -33,7 +33,7 @@ export const NAME_PLACEHOLDER = 'Nome do profissional';
 const card =
     'rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs sm:p-6';
 
-export function VariantA(props: VariantProps) {
+export function UserFormLayout(props: UserFormLayoutProps) {
     const {
         f,
         canManageUsers,
@@ -69,7 +69,7 @@ export function VariantA(props: VariantProps) {
                                   : 'Editar usuário'}
                         </h1>
                         <p className="text-ds-caption text-ds-content-secondary sm:text-ds-body-sm">
-                            À direita, como{' '}
+                            Na prévia, como{' '}
                             {creating
                                 ? 'a pessoa vai aparecer'
                                 : isOwnProfile
@@ -161,7 +161,7 @@ export function VariantA(props: VariantProps) {
                     <div className="flex items-center gap-3">
                         <p className="mr-auto min-w-0 truncate text-ds-caption text-ds-content-secondary">
                             {creating
-                                ? 'Nada é gravado.'
+                                ? 'Confira a prévia antes de criar.'
                                 : f.changes.length === 0
                                   ? 'Nada alterado'
                                   : `${f.changes.length} ${f.changes.length === 1 ? 'alteração' : 'alterações'}: ${f.changes.map((c) => c.label.toLowerCase()).join(', ')}`}
@@ -174,7 +174,14 @@ export function VariantA(props: VariantProps) {
                         {/* No cadastro não há base: a validação decide. */}
                         <DsButton
                             type="submit"
-                            label={creating ? 'Criar usuário' : 'Salvar'}
+                            label={
+                                creating
+                                    ? f.submitting
+                                        ? 'Criando…'
+                                        : 'Criar usuário'
+                                    : 'Salvar'
+                            }
+                            loading={f.submitting}
                             disabled={!creating && f.changes.length === 0}
                         />
                     </div>
@@ -184,7 +191,7 @@ export function VariantA(props: VariantProps) {
     );
 }
 
-function Badge({ user, f, member }: VariantProps) {
+function Badge({ user, f, member }: UserFormLayoutProps) {
     const v = f.values;
     const inactive = v.status === '0';
     const crefito = v.documentKind === 'crefito' && v.document;
@@ -265,7 +272,7 @@ function Badge({ user, f, member }: VariantProps) {
     );
 }
 
-function Appearances({ f }: VariantProps) {
+function Appearances({ f }: UserFormLayoutProps) {
     const v = f.values;
     // Como a agenda chama a pessoa: o primeiro nome, com "Dr."/"Dra." junto.
     const words = v.name.trim().split(/\s+/);

@@ -1,5 +1,7 @@
 /**
  * PROTÓTIPO (descartável): a equipe da clínica com o que cada um carrega.
+ * Veio do protótipo da lista (que virou a tela real em user-list/) e fica
+ * aqui só enquanto o protótipo da edição existir.
  * Usuários reais (/clinic/users); a carga vem de dados que a clínica já
  * tem: programas (professionalId), consultas da semana (clinicUserId) e
  * pacientes (pelo nome do profissional, porque a entidade Patient só traz
@@ -13,8 +15,6 @@ import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 
 // ---------------------------------------------------------------- funções
-
-export const ROLES: ClinicRole[] = ['admin', 'physiotherapist', 'secretary'];
 
 export const ROLE_META: Record<
     ClinicRole,
@@ -114,13 +114,13 @@ export interface Member extends ClinicUserSummary {
 
 const DAY = 86_400_000;
 
-export function startOfDay(d: Date): Date {
+function startOfDay(d: Date): Date {
     const x = new Date(d);
     x.setHours(0, 0, 0, 0);
     return x;
 }
 
-export function isoDay(d: Date): string {
+function isoDay(d: Date): string {
     const x = startOfDay(d);
     const m = String(x.getMonth() + 1).padStart(2, '0');
     const day = String(x.getDate()).padStart(2, '0');
@@ -161,40 +161,4 @@ export function useTeam() {
         (a, b) => b.mestre - a.mestre || a.name.localeCompare(b.name, 'pt-BR'),
     );
     return { members, isLoading: users.isLoading, isError: users.isError };
-}
-
-// ---------------------------------------------------------------- filtros
-
-export interface TeamFilters {
-    search: string;
-    roles: ClinicRole[];
-    status: ('active' | 'inactive')[];
-}
-
-export const INITIAL_FILTERS: TeamFilters = {
-    search: '',
-    roles: [],
-    status: [],
-};
-
-function normalize(text: string): string {
-    return text
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .toLowerCase();
-}
-
-export function applyFilters(list: Member[], f: TeamFilters): Member[] {
-    const q = normalize(f.search.trim());
-    return list.filter(
-        (m) =>
-            (f.roles.length === 0 || f.roles.includes(m.role)) &&
-            (f.status.length === 0 ||
-                f.status.includes(m.active ? 'active' : 'inactive')) &&
-            (!q || normalize(`${m.name} ${m.email}`).includes(q)),
-    );
-}
-
-export function initialOf(name: string): string {
-    return name.trim()[0]?.toUpperCase() ?? '?';
 }

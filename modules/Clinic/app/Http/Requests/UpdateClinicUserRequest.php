@@ -20,6 +20,7 @@ class UpdateClinicUserRequest extends FormRequest
             'password' => ['sometimes', 'string', 'min:8'],
             'role'     => ['sometimes', 'string', 'in:' . implode(',', array_keys(ClinicUser::ROLES))],
             'document' => [
+                'sometimes',
                 'required',
                 'string',
                 'max:30',

@@ -54,7 +54,9 @@ class ClinicUserSeeder extends Seeder
         ];
 
         foreach ($extras as $data) {
-            $user = ClinicUser::updateOrCreate(
+            // withTrashed + restore: o seed volta ao estado conhecido mesmo se o
+            // usuário tiver sido excluído (soft delete, ADR 022).
+            $user = ClinicUser::withTrashed()->updateOrCreate(
                 ['email' => $data['email']],
                 [
                     'clinic_id' => $clinic->id,
@@ -67,6 +69,8 @@ class ClinicUserSeeder extends Seeder
                     'photo_url' => $cdn . '/' . self::PHOTO,
                 ],
             );
+
+            $user->restore();
 
             $action = $user->wasRecentlyCreated ? 'criado' : 'atualizado';
             $this->command->info("Usuário {$action}: {$user->name} ({$user->email}) — senha: {$devPassword}");

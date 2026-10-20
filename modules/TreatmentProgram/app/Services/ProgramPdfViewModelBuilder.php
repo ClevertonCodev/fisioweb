@@ -37,13 +37,26 @@ class ProgramPdfViewModelBuilder
             'responsiblePhotoUrl'   => $responsible?->photo_url,
             'responsibleInitials'   => $this->initials($name),
             'responsibleCredential' => !empty($responsible?->document) ? $responsible->document : null,
-            'responsibleEmail'      => !empty($responsible?->email) ? $responsible->email : (!empty($clinic?->email) ? $clinic->email : null),
+            'responsibleEmail'      => $this->contactEmail($responsible, $clinic),
             'responsiblePhone'      => !empty($clinic?->phone) ? $clinic->phone : null,
             'qrUrl'                 => $this->deepLinkUrl($plan),
             'patientLabel'          => $plan->patient?->name ?? '—',
             'observations'          => $plan->notes ?? $plan->message ?? '',
             'annotationMonths'      => $this->annotationMonths($plan->start_date, $plan->end_date),
         ];
+    }
+
+    /**
+     * O e-mail do responsável; se ele saiu da equipe (excluído, ADR 022) ou não
+     * tem e-mail, o da clínica: o paciente não fala com quem já não atende.
+     */
+    private function contactEmail(?object $responsible, ?object $clinic): ?string
+    {
+        if (!is_null($responsible) && is_null($responsible->deleted_at) && !empty($responsible->email)) {
+            return $responsible->email;
+        }
+
+        return !empty($clinic?->email) ? $clinic->email : null;
     }
 
     public function groupDisplayName(?string $name): string

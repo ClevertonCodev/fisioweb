@@ -106,12 +106,12 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 
 ## Equipe
 
-- [ ] **Lista de usuários** — `/clinica/usuarios`
+- [x] **Lista de usuários** — `/clinica/usuarios`
   - Variante C, "Funções e acessos": usuários de um lado, funções em sanfona do outro; arrastar a pessoa para uma função muda a função dela.
-  - Código: `resources/js/pages/clinic/user/user-list-prototype/` · commit `033fb22`
-  - [ ] Tirar os sinais de verificação em duas etapas: o sistema não tem esse recurso.
-  - [ ] Números de carga (pacientes, programas, agenda da semana) vindos da API de usuários.
-  - [ ] Mudar função, desativar e excluir são stub.
+  - Código: `resources/js/pages/clinic/user/user-list/` (feature `007-clinic-usuarios-ds`); o protótipo saiu (commit `033fb22`).
+  - [x] Tirar os sinais de verificação em duas etapas: o sistema não tem esse recurso.
+  - [ ] Números de carga (pacientes, programas, agenda da semana) vindos da API de usuários. Continuam somados no front.
+  - [x] Mudar função, desativar e excluir são stub.
 
 - [ ] **Edição de usuário** — `/clinica/usuarios/:id/editar`
   - Variante A, "Crachá ao vivo": formulário e, ao lado, como a pessoa aparece no sistema (crachá, agenda, cartão do paciente e assinatura do PDF).

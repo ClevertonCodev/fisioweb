@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Http\Controllers;
 
 use App\Http\Controllers\ClinicAuthenticatedController;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
@@ -17,6 +18,18 @@ class ClinicUserController extends ClinicAuthenticatedController
         protected ClinicUserServiceInterface $clinicUserService,
         protected FileServiceInterface $fileService,
     ) {
+        // Antes do authorizeResource: o Gate::before libera o admin de qualquer
+        // clínica, e o FormRequest validaria o payload antes do controller.
+        $this->middleware(function (Request $request, Closure $next) {
+            $user = $request->route('user');
+
+            if ($user instanceof ClinicUser && (int) $user->clinic_id !== $this->clinicId()) {
+                return response()->json(['message' => 'Usuário não encontrado.'], 404);
+            }
+
+            return $next($request);
+        });
+
         $this->authorizeResource(ClinicUser::class, 'user');
     }
 
@@ -69,12 +82,6 @@ class ClinicUserController extends ClinicAuthenticatedController
     {
         $this->authorize('update', $user);
 
-        $clinicId = $this->clinicId();
-
-        if ((int) $user->clinic_id !== $clinicId) {
-            return response()->json(['message' => 'Usuário não encontrado.'], 404);
-        }
-
         $request->validate([
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
@@ -88,12 +95,6 @@ class ClinicUserController extends ClinicAuthenticatedController
     public function deletePhoto(ClinicUser $user): JsonResponse
     {
         $this->authorize('update', $user);
-
-        $clinicId = $this->clinicId();
-
-        if ((int) $user->clinic_id !== $clinicId) {
-            return response()->json(['message' => 'Usuário não encontrado.'], 404);
-        }
 
         $user = $this->clinicUserService->update($user, ['photo_url' => null]);
 

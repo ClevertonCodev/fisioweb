@@ -6,6 +6,7 @@ use App\Traits\JwtAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Database\Factories\ClinicUserFactory;
@@ -13,7 +14,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 class ClinicUser extends Authenticatable implements JWTSubject
 {
-    use HasFactory, JwtAuthenticatable, Notifiable;
+    use HasFactory, JwtAuthenticatable, Notifiable, SoftDeletes;
 
     protected static function newFactory(): ClinicUserFactory
     {

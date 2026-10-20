@@ -30,12 +30,27 @@ export function resetClinicPassword(
     );
 }
 
-/** A mensagem que a API mandou, ou a de reserva. */
+/**
+ * A mensagem que a API mandou num erro 4xx, que é o que o backend trata de
+ * propósito; num 5xx ou sem resposta, a de reserva.
+ */
 export function authErrorMessage(err: unknown, fallback: string): string {
     if (err && typeof err === 'object' && 'response' in err) {
-        const message = (err as { response?: { data?: { message?: unknown } } })
-            .response?.data?.message;
-        if (typeof message === 'string' && message.trim()) return message;
+        const response = (
+            err as {
+                response?: { status?: number; data?: { message?: unknown } };
+            }
+        ).response;
+        const status = response?.status ?? 0;
+        const message = response?.data?.message;
+        if (
+            status >= 400 &&
+            status < 500 &&
+            typeof message === 'string' &&
+            message.trim()
+        ) {
+            return message;
+        }
     }
     return fallback;
 }

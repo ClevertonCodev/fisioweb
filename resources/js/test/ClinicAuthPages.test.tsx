@@ -129,6 +129,28 @@ describe('Login da clínica', () => {
         expect(screen.queryByText('Painel da clínica')).not.toBeInTheDocument();
     });
 
+    it('não mostra a mensagem interna de um erro 500', async () => {
+        login.mockRejectedValueOnce(
+            apiError(500, {
+                message:
+                    'SQLSTATE[42703]: Undefined column: clinic_users.deleted_at',
+            }),
+        );
+        renderAt('/clinica/login');
+
+        await userEvent.type(
+            screen.getByLabelText('E-mail'),
+            'ana@clinica.test',
+        );
+        await userEvent.type(screen.getByLabelText('Senha'), 'segredo123');
+        await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+        expect(
+            await screen.findByText('Não foi possível entrar. Tente de novo.'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/SQLSTATE/)).not.toBeInTheDocument();
+    });
+
     it('avisa quando o Caps Lock está ligado na senha', async () => {
         const user = userEvent.setup();
         renderAt('/clinica/login');

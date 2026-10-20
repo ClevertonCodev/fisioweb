@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
 
@@ -189,7 +190,7 @@ class VideoService implements VideoServiceInterface
                 throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
             }
             if (!$this->fileService->fileExists($data['thumbnail_path'])) {
-                throw new \RuntimeException('Thumbnail não encontrada no storage.');
+                throw new VideoStorageFileMissingException('Thumbnail não encontrada no storage.');
             }
 
             if ($video->thumbnail_path) {
@@ -262,7 +263,7 @@ class VideoService implements VideoServiceInterface
         }
 
         if (!$this->fileService->fileExists($video->path)) {
-            throw new \RuntimeException('Arquivo não encontrado no storage. O upload pode ter falhado.');
+            throw new VideoStorageFileMissingException('Arquivo não encontrado no storage. O upload pode ter falhado.');
         }
 
         $metadata = $video->metadata ?? [];
@@ -292,7 +293,7 @@ class VideoService implements VideoServiceInterface
                 throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
             }
             if (!$this->fileService->fileExists($thumbnailPath)) {
-                throw new \RuntimeException('Thumbnail não encontrada no storage.');
+                throw new VideoStorageFileMissingException('Thumbnail não encontrada no storage.');
             }
 
             $update['thumbnail_path'] = $thumbnailPath;

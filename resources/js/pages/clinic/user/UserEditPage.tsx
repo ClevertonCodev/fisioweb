@@ -1,14 +1,16 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+/**
+ * Edição de usuário da clínica no DS v2 ("Crachá ao vivo"): a mesma tela do
+ * cadastro, com os dados do usuário. Grava pela API; foto nova é enviada
+ * depois, foto removida é apagada. Função e situação só para quem gerencia
+ * usuários; o mestre fica administrador e ativo. Senha em branco mantém a
+ * atual (como na v1; o código do ADR 019 ainda não existe no backend).
+ */
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
-    clinicUserEditFormSchema,
     normalizeClinicUserRole,
-    type ClinicUserEditFormValues,
-    type ClinicUserFormStatus,
+    type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
 import { can } from '@/application/clinic/permissions';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
@@ -19,124 +21,93 @@ import {
     useUploadClinicUserPhoto,
 } from '@/application/clinic/use-clinic-users';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { PatientPhotoSection } from '@/components/clinic/patient/form/PatientPhotoSection';
-import { Req } from '@/components/clinic/patient/form/shared';
-import { GoogleCalendarConnection } from '@/components/clinic/user/GoogleCalendarConnection';
-import { BackButton } from '@/components/ui/back-button';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DsButton, DsEmptyState } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import { serializeClinicUserDocument } from '@/lib/br-document-validation';
+
 import {
-    documentStoredValueForForm,
-    inferClinicUserDocumentKind,
-    serializeClinicUserDocument,
-} from '@/lib/br-document-validation';
-import { cn } from '@/lib/utils';
-import {
-    PrototypeSwitcher,
-    usePrototypeVariant,
-} from '@/pages/clinic/PrototypeSwitcher';
+    useUserForm,
+    type PhotoChange,
+    type UserFormValues,
+} from './user-form/form';
+import { roleLabel } from './user-form/parts';
+import { UserFormLayout } from './user-form/UserFormLayout';
 
-import UserEditPrototype from './user-edit-prototype/UserEditPrototype';
-import { USER_EDIT_VARIANTS } from './user-edit-prototype/variants';
+export function UserEditPage() {
+    const { id = '' } = useParams();
+    const navigate = useNavigate();
+    const { user: authUser } = useAuth();
+    const { data: user, isLoading, isError } = useClinicUser(id);
+    const canManageUsers = can.manageUsers(authUser?.role as ClinicRole);
+    const role = user ? normalizeClinicUserRole(user.role) : null;
+    const backTo = canManageUsers ? '/clinica/usuarios' : '/clinica';
 
-const labelClass = 'text-muted-foreground text-xs font-medium';
+    let body;
+    if (isLoading) {
+        body = (
+            <div
+                role="status"
+                className="flex h-full items-center justify-center bg-ds-surface-body font-ds text-ds-body-sm text-ds-content-muted"
+            >
+                Carregando…
+            </div>
+        );
+    } else if (isError || !user || !role) {
+        body = (
+            <div className="flex h-full items-center justify-center bg-ds-surface-body p-6 font-ds">
+                <DsEmptyState
+                    variant="error"
+                    title="Usuário não encontrado"
+                    description="Ele não existe ou você não tem acesso a ele."
+                    action={
+                        <DsButton
+                            variant="secondary"
+                            iconPosition="left"
+                            icon={<ArrowLeft />}
+                            label="Voltar"
+                            onClick={() => navigate(backTo)}
+                        />
+                    }
+                />
+            </div>
+        );
+    } else {
+        body = (
+            <Editor
+                key={user.id}
+                user={user}
+                role={role}
+                canManageUsers={canManageUsers}
+                isOwnProfile={String(authUser?.id) === String(user.id)}
+                backTo={backTo}
+            />
+        );
+    }
 
-function SectionTitle({ children }: { children: ReactNode }) {
-    return (
-        <h2 className="border-b border-border pb-2 text-base font-semibold text-foreground">
-            {children}
-        </h2>
-    );
+    return <ClinicLayout>{body}</ClinicLayout>;
 }
 
-function EditFormSkeleton() {
-    return (
-        <div className="mx-auto max-w-3xl space-y-6 p-6" aria-hidden>
-            <Skeleton className="h-9 w-64" />
-            <Card>
-                <CardContent className="space-y-4 p-6">
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                </CardContent>
-            </Card>
-        </div>
-    );
-}
-
-function UserEditForm({
+function Editor({
     user,
     role,
-    roleChangeDisabled,
     canManageUsers,
     isOwnProfile,
+    backTo,
 }: {
     user: ClinicUserSummary;
-    role: ClinicUserEditFormValues['role'];
-    roleChangeDisabled: boolean;
+    role: ClinicUserFormRole;
     canManageUsers: boolean;
     isOwnProfile: boolean;
+    backTo: string;
 }) {
     const navigate = useNavigate();
     const updateUser = useUpdateClinicUser(user.id);
-    const { mutateAsync: uploadPhoto, isPending: isUploading } =
-        useUploadClinicUserPhoto();
-    const { mutateAsync: deletePhoto, isPending: isDeletingPhoto } =
-        useDeleteClinicUserPhoto();
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
-    const [removePhoto, setRemovePhoto] = useState(false);
+    const uploadPhoto = useUploadClinicUserPhoto();
+    const deletePhoto = useDeleteClinicUserPhoto();
 
-    const defaultValues = useMemo(() => {
-        const dk = inferClinicUserDocumentKind(user.document);
-
-        return {
-            name: user.name,
-            email: user.email,
-            password: '',
-            confirmPassword: '',
-            role,
-            status: (user.status ? '1' : '0') as ClinicUserFormStatus,
-            documentKind: dk,
-            document: documentStoredValueForForm(dk, user.document),
-        };
-    }, [user.name, user.email, user.document, user.status, role]);
-
-    const form = useForm<ClinicUserEditFormValues>({
-        resolver: zodResolver(clinicUserEditFormSchema),
-        defaultValues,
-    });
-
-    const documentKind = useWatch({
-        control: form.control,
-        name: 'documentKind',
-    });
-
-    async function onSubmit(values: ClinicUserEditFormValues) {
+    const onSave = async (values: UserFormValues, photo: PhotoChange) => {
         const payload: ClinicUserUpdateDto = {
             name: values.name,
             email: values.email,
@@ -145,571 +116,41 @@ function UserEditForm({
                 values.document,
             ),
         };
+        // O backend também ignora função e situação de quem não é admin.
         if (canManageUsers) {
             payload.role = values.role;
             payload.status = Number(values.status ?? '1');
         }
-        if (values.password.trim()) payload.password = values.password;
+        if (values.password?.trim()) payload.password = values.password;
 
+        await updateUser.mutateAsync(payload);
+        // Os dados já estão salvos: se a foto falhar, o hook dela avisa e a
+        // tela segue.
         try {
-            await updateUser.mutateAsync(payload);
-
-            if (photoFile) {
-                await uploadPhoto({ id: user.id, file: photoFile });
-            } else if (removePhoto && user.photoUrl) {
-                await deletePhoto(user.id);
+            if (photo.file) {
+                await uploadPhoto.mutateAsync({
+                    id: user.id,
+                    file: photo.file,
+                });
+            } else if (photo.removed) {
+                await deletePhoto.mutateAsync(user.id);
             }
-
-            navigate(canManageUsers ? '/clinica/usuarios' : '/clinica');
         } catch {
-            // erros já tratados pelos hooks (toast)
+            // aviso já mostrado pelo hook da foto
         }
-    }
+        navigate(backTo);
+    };
 
-    const backTo = canManageUsers ? '/clinica/usuarios' : '/clinica';
-
-    return (
-        <div className="flex h-full flex-col">
-            <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                <div className="flex items-start justify-between gap-4 px-6 py-4">
-                    <div>
-                        <h1 className="text-2xl font-semibold text-foreground">
-                            {canManageUsers ? 'Editar usuário' : 'Meu perfil'}
-                        </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Atualize as informações e salve as alterações.
-                        </p>
-                    </div>
-                    <BackButton to={backTo} className="shrink-0" />
-                </div>
-            </header>
-
-            <div className="flex-1 overflow-auto p-6">
-                <div className="mx-auto max-w-3xl space-y-6">
-                    <Form {...form}>
-                        <form
-                            onSubmit={form.handleSubmit(onSubmit)}
-                            className="space-y-6"
-                        >
-                            <Card>
-                                <CardContent className="space-y-8 p-6">
-                                    <section className="space-y-4">
-                                        <SectionTitle>Foto</SectionTitle>
-                                        <PatientPhotoSection
-                                            value={photoFile}
-                                            onChange={setPhotoFile}
-                                            currentPhotoUrl={user.photoUrl}
-                                            onRemoveCurrent={setRemovePhoto}
-                                            cropTitle="Recortar foto do usuário"
-                                            cropAspect={1}
-                                        />
-                                    </section>
-
-                                    <section className="space-y-4">
-                                        <SectionTitle>
-                                            Dados da conta
-                                        </SectionTitle>
-
-                                        <FormField
-                                            control={form.control}
-                                            name="name"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        Nome
-                                                        <Req />
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            autoComplete="name"
-                                                            placeholder="Nome completo"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="email"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        E-mail
-                                                        <Req />
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            type="email"
-                                                            {...field}
-                                                            autoComplete="email"
-                                                            placeholder="E-mail"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="password"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        Nova senha
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <Input
-                                                                type={
-                                                                    showPassword
-                                                                        ? 'text'
-                                                                        : 'password'
-                                                                }
-                                                                {...field}
-                                                                autoComplete="new-password"
-                                                                className="pr-10"
-                                                                placeholder="Nova senha"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    setShowPassword(
-                                                                        !showPassword,
-                                                                    )
-                                                                }
-                                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                                                aria-label={
-                                                                    showPassword
-                                                                        ? 'Ocultar senha'
-                                                                        : 'Mostrar senha'
-                                                                }
-                                                            >
-                                                                {showPassword ? (
-                                                                    <EyeOff className="h-4 w-4" />
-                                                                ) : (
-                                                                    <Eye className="h-4 w-4" />
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormDescription className="text-xs">
-                                                        Opcional. Deixe em
-                                                        branco para não alterar
-                                                        a senha atual.
-                                                    </FormDescription>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="confirmPassword"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        Confirmar nova senha
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <div className="relative">
-                                                            <Input
-                                                                type={
-                                                                    showConfirm
-                                                                        ? 'text'
-                                                                        : 'password'
-                                                                }
-                                                                {...field}
-                                                                autoComplete="new-password"
-                                                                className="pr-10"
-                                                                placeholder="Confirmar nova senha"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    setShowConfirm(
-                                                                        !showConfirm,
-                                                                    )
-                                                                }
-                                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                                                aria-label={
-                                                                    showConfirm
-                                                                        ? 'Ocultar confirmação'
-                                                                        : 'Mostrar confirmação'
-                                                                }
-                                                            >
-                                                                {showConfirm ? (
-                                                                    <EyeOff className="h-4 w-4" />
-                                                                ) : (
-                                                                    <Eye className="h-4 w-4" />
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </FormControl>
-                                                    <FormDescription className="text-xs">
-                                                        Preencha apenas se
-                                                        alterar a senha.
-                                                    </FormDescription>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        {canManageUsers && (
-                                            <FormField
-                                                control={form.control}
-                                                name="role"
-                                                render={({ field }) => (
-                                                    <FormItem className="space-y-1.5">
-                                                        <FormLabel
-                                                            className={cn(
-                                                                labelClass,
-                                                            )}
-                                                        >
-                                                            Função
-                                                            <Req />
-                                                        </FormLabel>
-                                                        <Select
-                                                            onValueChange={
-                                                                field.onChange
-                                                            }
-                                                            value={field.value}
-                                                            disabled={
-                                                                roleChangeDisabled
-                                                            }
-                                                        >
-                                                            <FormControl>
-                                                                <SelectTrigger
-                                                                    aria-disabled={
-                                                                        roleChangeDisabled
-                                                                    }
-                                                                >
-                                                                    <SelectValue placeholder="Selecione uma opção" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="admin">
-                                                                    Administrador
-                                                                </SelectItem>
-                                                                <SelectItem value="secretary">
-                                                                    Secretário(a)
-                                                                </SelectItem>
-                                                                <SelectItem value="physiotherapist">
-                                                                    Fisioterapeuta
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        {roleChangeDisabled && (
-                                                            <FormDescription className="text-xs">
-                                                                Este é o usuário
-                                                                mestre da
-                                                                clínica; a
-                                                                função permanece
-                                                                administrador.
-                                                            </FormDescription>
-                                                        )}
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        )}
-
-                                        {canManageUsers && (
-                                            <FormField
-                                                control={form.control}
-                                                name="status"
-                                                render={({ field }) => (
-                                                    <FormItem className="space-y-1.5">
-                                                        <FormLabel
-                                                            className={cn(
-                                                                labelClass,
-                                                            )}
-                                                        >
-                                                            Status
-                                                            <Req />
-                                                        </FormLabel>
-                                                        <Select
-                                                            onValueChange={
-                                                                field.onChange
-                                                            }
-                                                            value={
-                                                                field.value ??
-                                                                '1'
-                                                            }
-                                                        >
-                                                            <FormControl>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Selecione uma opção" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="1">
-                                                                    Ativo
-                                                                </SelectItem>
-                                                                <SelectItem value="0">
-                                                                    Inativo
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        )}
-                                    </section>
-
-                                    <section className="space-y-4">
-                                        <SectionTitle>Documento</SectionTitle>
-
-                                        <FormField
-                                            control={form.control}
-                                            name="documentKind"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        Tipo de documento
-                                                        <Req />
-                                                    </FormLabel>
-                                                    <Select
-                                                        onValueChange={(v) => {
-                                                            form.setValue(
-                                                                'document',
-                                                                '',
-                                                            );
-                                                            field.onChange(v);
-                                                        }}
-                                                        value={field.value}
-                                                    >
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Selecione uma opção" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="cpf">
-                                                                CPF
-                                                            </SelectItem>
-                                                            <SelectItem value="cnpj">
-                                                                CNPJ
-                                                            </SelectItem>
-                                                            <SelectItem value="crefito">
-                                                                CREFITO
-                                                                (registro
-                                                                profissional)
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="document"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1.5">
-                                                    <FormLabel
-                                                        className={cn(
-                                                            labelClass,
-                                                        )}
-                                                    >
-                                                        Número do documento
-                                                        <Req />
-                                                    </FormLabel>
-                                                    {documentKind ===
-                                                    'crefito' ? (
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                autoComplete="off"
-                                                                placeholder="Ex.: MG-123456 ou SP 123456-G"
-                                                            />
-                                                        </FormControl>
-                                                    ) : (
-                                                        <FormControl>
-                                                            <CpfCnpjInput
-                                                                type={
-                                                                    documentKind
-                                                                }
-                                                                value={
-                                                                    field.value
-                                                                }
-                                                                onChange={
-                                                                    field.onChange
-                                                                }
-                                                            />
-                                                        </FormControl>
-                                                    )}
-                                                    <FormDescription className="text-xs">
-                                                        {documentKind ===
-                                                            'cpf' &&
-                                                            'Informe um CPF válido (11 dígitos).'}
-                                                        {documentKind ===
-                                                            'cnpj' &&
-                                                            'Informe um CNPJ válido (14 dígitos).'}
-                                                        {documentKind ===
-                                                            'crefito' &&
-                                                            'Informe o registro no conselho (UF em letras + número).'}
-                                                    </FormDescription>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </section>
-
-                                    <div className="flex gap-3 border-t border-border pt-6">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() =>
-                                                navigate(
-                                                    canManageUsers
-                                                        ? '/clinica/usuarios'
-                                                        : '/clinica',
-                                                )
-                                            }
-                                        >
-                                            Cancelar
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            disabled={
-                                                updateUser.isPending ||
-                                                isUploading ||
-                                                isDeletingPhoto
-                                            }
-                                        >
-                                            {updateUser.isPending ||
-                                            isUploading ||
-                                            isDeletingPhoto
-                                                ? 'Salvando...'
-                                                : 'Salvar alterações'}
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {isOwnProfile && <GoogleCalendarConnection />}
-                        </form>
-                    </Form>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/**
- * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
- * (user-edit-prototype); O = esta tela. Desligado nos testes (o Vitest
- * roda com DEV ligado).
- */
-const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
-
-export function UserEditPage() {
-    const variant = usePrototypeVariant(USER_EDIT_VARIANTS, 'A');
-    if (PROTOTYPE && variant !== 'O') {
-        return <UserEditPrototype variant={variant} />;
-    }
-    return <UserEditPageV1 />;
-}
-
-function UserEditPageV1() {
-    const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const { user: authUser } = useAuth();
-    const { data: clinicUser, isLoading, isError } = useClinicUser(id!);
-    const authRole = authUser?.role as ClinicRole | undefined;
-    const canManageUsers = can.manageUsers(authRole);
-
-    const masterRoleLocked = clinicUser?.mestre === 1;
-
-    if (isLoading) {
-        return (
-            <ClinicLayout>
-                <div role="status" aria-live="polite" className="p-6">
-                    <span className="sr-only">Carregando dados do usuário</span>
-                    <EditFormSkeleton />
-                </div>
-            </ClinicLayout>
-        );
-    }
-
-    if (isError || !clinicUser) {
-        return (
-            <ClinicLayout>
-                <div className="mx-auto max-w-3xl space-y-4 p-6">
-                    <p className="text-sm text-destructive">
-                        Não foi possível carregar o usuário.
-                    </p>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate('/clinica/usuarios')}
-                    >
-                        Voltar para lista
-                    </Button>
-                </div>
-            </ClinicLayout>
-        );
-    }
-
-    const resolvedRole = normalizeClinicUserRole(clinicUser.role);
-    if (!resolvedRole) {
-        return (
-            <ClinicLayout>
-                <div className="mx-auto max-w-3xl space-y-4 p-6">
-                    <p className="text-sm text-destructive">
-                        Função do usuário inválida neste formulário.
-                    </p>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => navigate('/clinica/usuarios')}
-                    >
-                        Voltar para lista
-                    </Button>
-                </div>
-            </ClinicLayout>
-        );
-    }
+    const f = useUserForm({ mode: 'edit', user, role, roleLabel, onSave });
 
     return (
-        <ClinicLayout>
-            <UserEditForm
-                key={clinicUser.id}
-                user={clinicUser}
-                role={resolvedRole}
-                roleChangeDisabled={masterRoleLocked}
-                canManageUsers={canManageUsers}
-                isOwnProfile={String(authUser?.id) === String(clinicUser.id)}
-            />
-            {PROTOTYPE && (
-                <PrototypeSwitcher variants={USER_EDIT_VARIANTS} current="O" />
-            )}
-        </ClinicLayout>
+        <UserFormLayout
+            user={user}
+            f={f}
+            canManageUsers={canManageUsers}
+            isOwnProfile={isOwnProfile}
+            roleLocked={user.mestre === 1}
+            backTo={backTo}
+        />
     );
 }

@@ -74,6 +74,29 @@ class ClinicUserIsolationTest extends TestCase
         ]);
     }
 
+    public function test_store_is_forbidden_for_physiotherapist_and_secretary(): void
+    {
+        $secretaryA = ClinicUser::factory()->create([
+            'clinic_id' => $this->adminA->clinic_id,
+            'role'      => ClinicUser::ROLE_SECRETARY,
+        ]);
+
+        foreach ([$this->physioA, $secretaryA] as $index => $user) {
+            $this->actingAs($user, 'clinic')
+                ->postJson('/api/clinic/users', [
+                    'name'     => 'Colega',
+                    'email'    => "colega{$index}@example.com",
+                    'password' => 'senha-segura-123',
+                    'role'     => ClinicUser::ROLE_ADMIN,
+                    'document' => '11144477735',
+                ])
+                ->assertForbidden();
+        }
+
+        $this->assertDatabaseMissing('clinic_users', ['email' => 'colega0@example.com']);
+        $this->assertDatabaseMissing('clinic_users', ['email' => 'colega1@example.com']);
+    }
+
     public function test_photo_of_own_clinic_user_can_be_uploaded_and_removed(): void
     {
         $this->mock(FileServiceInterface::class, function ($mock) {

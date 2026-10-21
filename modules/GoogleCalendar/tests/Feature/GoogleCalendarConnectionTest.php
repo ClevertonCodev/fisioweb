@@ -76,6 +76,43 @@ class GoogleCalendarConnectionTest extends TestCase
             ->assertRedirect('/clinica/agenda?google=connected');
     }
 
+    public function test_callback_returns_to_user_edit_page(): void
+    {
+        $this->mock(GoogleCalendarServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('connectFromCallback')->once()
+                ->with($this->user->id, 'fake-code');
+        });
+
+        $state = Crypt::encryptString(json_encode([
+            'uid'    => $this->user->id,
+            'return' => "/clinica/usuarios/{$this->user->id}/editar",
+        ]));
+
+        $this->getJson('/api/clinic/google-calendar/callback?code=fake-code&state=' . urlencode($state))
+            ->assertRedirect("/clinica/usuarios/{$this->user->id}/editar?google=connected");
+    }
+
+    public function test_callback_ignores_return_paths_outside_the_allowed_list(): void
+    {
+        $this->mock(GoogleCalendarServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('connectFromCallback')->times(3);
+        });
+
+        foreach ([
+            '/clinica/usuarios/abc/editar',
+            '/clinica/usuarios/7/editar/extra',
+            'https://evil.test/clinica/usuarios/7/editar',
+        ] as $path) {
+            $state = Crypt::encryptString(json_encode([
+                'uid'    => $this->user->id,
+                'return' => $path,
+            ]));
+
+            $this->getJson('/api/clinic/google-calendar/callback?code=fake-code&state=' . urlencode($state))
+                ->assertRedirect('/clinica/usuarios?google=connected');
+        }
+    }
+
     public function test_callback_with_error_does_not_connect(): void
     {
         $this->getJson('/api/clinic/google-calendar/callback?error=access_denied')

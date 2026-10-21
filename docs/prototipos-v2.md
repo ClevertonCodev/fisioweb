@@ -113,14 +113,19 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Números de carga (pacientes, programas, agenda da semana) vindos da API de usuários. Continuam somados no front.
   - [x] Mudar função, desativar e excluir são stub.
 
-- [ ] **Edição de usuário** — `/clinica/usuarios/:id/editar`
-  - Variante A, "Crachá ao vivo": formulário e, ao lado, como a pessoa aparece no sistema (crachá, agenda, cartão do paciente e assinatura do PDF).
-  - Código: `resources/js/pages/clinic/user/user-edit-prototype/` · commit `a3c0731`
-  - Decisões: [ADR 019](adr/019-troca-de-senha-de-usuario-da-clinica.md).
+- [x] **Cadastro de usuário** — `/clinica/usuarios/novo`
+  - "Crachá ao vivo" é a tela de verdade em todos os ambientes: grava pela API (`POST /api/clinic/users`, foto depois de criar), sem `?variant=`; a v1 saiu.
+  - Código: `resources/js/pages/clinic/user/UserNewPage.tsx` e as peças compartilhadas em `resources/js/pages/clinic/user/user-form/` · feature `.ai-workbench/007-clinic-user-form-ds/` (tarefa 003).
+
+- [x] **Edição de usuário** — `/clinica/usuarios/:id/editar`
+  - "Crachá ao vivo" é a tela de verdade em todos os ambientes: a mesma tela do cadastro (`user-form/`, modo `edit`) com os dados do usuário; grava pela API (`PUT`, foto enviada ou apagada depois), com Google Agenda de verdade no próprio perfil. Sem os contadores do crachá (pacientes, programas, semana) até a API de usuários devolver os números. A v1 e o protótipo saíram.
+  - Código: `resources/js/pages/clinic/user/UserEditPage.tsx` + `user-form/` · feature `.ai-workbench/007-clinic-user-form-ds/` (tarefa 004).
+  - Senha como na v1 (decisão do usuário em 2026-10-20): troca direto, sem código e sem a tabela do [ADR 019](adr/019-troca-de-senha-de-usuario-da-clinica.md), que segue pendente:
   - [ ] Regras de senha no backend: só administrador troca a de outra pessoa, só o mestre a de outro administrador, e a do mestre ninguém além dele (no service, porque o `Gate::before` libera tudo para administrador).
   - [ ] Código de 6 dígitos por e-mail para trocar a senha, mandado a quem está logado.
   - [ ] Assinatura só para fisioterapeuta ou administrador com CREFITO.
-  - [ ] Corrigir o CPF inválido da Dra. Ana Paula no seed (trava o salvar na v1 também).
+  - [ ] Corrigir o CPF inválido da Dra. Ana Paula no seed (trava o salvar na v1 também). Os CPFs dos outros usuários do seed também são inválidos.
+  - [x] O GET e o PUT de `/api/clinic/users/{id}` conferem a clínica: usuário de outra clínica dá 404 (middleware no `ClinicUserController`, PR #47 da lista de usuários).
 
 ## Finanças
 

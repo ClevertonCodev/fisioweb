@@ -30,7 +30,7 @@ import {
     getPhoneValidationError,
     type SelectOption,
 } from '@/components/ds';
-import type { PrototypeVariant } from '@/pages/clinic/agenda-prototype/PrototypeSwitcher';
+import type { PrototypeVariant } from '@/pages/clinic/PrototypeSwitcher';
 
 import { DateField } from './DateField';
 

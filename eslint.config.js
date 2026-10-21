@@ -71,6 +71,8 @@ export default [
             'modules',
             // Skills e ferramentas do Claude Code (scripts Node .cjs), não código do app.
             '.claude',
+            // Scripts Node dos agentes (tools/screenshot), não código do app.
+            'tools',
         ],
     },
     prettier,

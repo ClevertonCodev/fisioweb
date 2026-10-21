@@ -208,8 +208,14 @@ que a sua mudança nunca produziria):
    e confirme que o sistema abre em `APP_URL`. Use dados do seeder
    (`php artisan db:seed`) e garanta **duas clínicas** com usuários próprios,
    para poder testar o isolamento.
-2. **Tela:** abra o fluxo alterado num navegador de verdade (MCP do Playwright
-   ou do Chrome DevTools), faça o que o usuário faria e fique de olho em erro
+2. **Tela:** abra o fluxo alterado num navegador de verdade, sempre no Chromium
+   headless do Playwright (sem janela na tela do usuário), seguindo a skill
+   `qa-navegador`: o `tools/screenshot/flow.mjs` com
+   `--out .ai-workbench/<feature>/evidence/<tarefa>/frontend/<fluxo>` grava o
+   `report.md` e os prints do fluxo, e o MCP `playwright` do `.mcp.json` serve
+   para explorar a tela antes. Nunca use o Chrome do usuário (Claude in Chrome,
+   Chrome DevTools MCP): o `.claude/settings.json` bloqueia esses dois. Faça o
+   que o usuário faria e fique de olho em erro
    no console, na rede e na tela. Salve cada print em `frontend/<fluxo>/`, uma
    pasta por fluxo, para que refazer um fluxo não apague a evidência dos outros.
 3. **Backend:** chame o endpoint por HTTP de verdade, com um token de verdade

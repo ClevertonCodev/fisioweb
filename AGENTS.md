@@ -26,6 +26,11 @@ npm run test:watch
 
 # Skills (após editar .claude/skills/ e .cursor/skills/)
 bash bin/verificar-skills.sh
+
+# Navegador headless (skill qa-navegador; 1ª vez: cd tools/screenshot && npm install)
+node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
+node tools/screenshot/flow.mjs roteiro.json            # fluxo caçando erro (--video só para bug)
+node tools/screenshot/frames.mjs video.webm --at 8,17  # vídeo → storyboard.png
 ```
 
 ## Initial Setup
@@ -113,6 +118,7 @@ Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude C
 |-----------|-------|
 | Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
+| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
 
 ## Princípios não-negociáveis
 

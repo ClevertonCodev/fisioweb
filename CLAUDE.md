@@ -23,6 +23,11 @@ npm run format
 composer run test     # PHPUnit (backend)
 npm run test          # Vitest (frontend)
 npm run test:watch
+
+# Navegador headless (skill qa-navegador; 1ª vez: cd tools/screenshot && npm install)
+node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
+node tools/screenshot/flow.mjs roteiro.json            # fluxo caçando erro (--video só para bug)
+node tools/screenshot/frames.mjs video.webm --at 8,17  # vídeo → storyboard.png
 ```
 
 ## Várias tarefas ao mesmo tempo (Docker por worktree)
@@ -118,6 +123,7 @@ Skills vivem em **`.claude/skills/`** (Claude Code) e **`.cursor/skills/`** (Cur
 |-----------|-------|
 | Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.claude/skills/security/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.claude/skills/prototype/SKILL.md) |
+| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.claude/skills/qa-navegador/SKILL.md) |
 
 ## Princípios não-negociáveis
 

@@ -35,8 +35,17 @@ yarn-error.log
 # ai-harness: evidência, revisão e trabalho adiado ficam fora do git
 /.ai-workbench/*/evidence/
 /.ai-workbench/*/review/
+/.ai-workbench/*/bugs/
 /.ai-workbench/DEFERRED.md
 /.ai-workbench/*/DEFERRED.md
+
+# Playwright MCP headless (.mcp.json): prints, snapshots e logs do agente
+/.playwright-mcp/
+
+# tools/screenshot (skill qa-navegador): saída, dependências e credencial local
+/temporary-screenshots/
+/tools/screenshot/node_modules/
+/tools/screenshot/credentials.json
 
 # bin/fisio-app: configuração pessoal (o modelo é o docker/fisio-app.example.json) e arquivos gerados
 /docker/fisio-app.json

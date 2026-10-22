@@ -37,6 +37,7 @@ import type { Exercise } from '@/domain/clinic';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import { ProgramsPageShell } from '../programs-shell/ProgramsPageShell';
+
 import { FavoritesDropdown, LibraryFiltersPanel } from './parts';
 import { FacetDropdown } from './shared';
 import { VariantD } from './VariantD';

@@ -24,6 +24,7 @@ import {
 import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import { ProgramsPageShell } from '../programs-shell/ProgramsPageShell';
+
 import { useModels } from './data';
 import { ModelFiltersBar, ModelFiltersPanel } from './parts';
 import { VariantC } from './VariantC';

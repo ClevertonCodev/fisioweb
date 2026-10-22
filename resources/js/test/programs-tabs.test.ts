@@ -17,10 +17,7 @@ describe('programs-tabs', () => {
             'programas',
         );
         expect(
-            programsTabPath(
-                'programas',
-                '/clinica/programas/meus-modelos',
-            ),
+            programsTabPath('programas', '/clinica/programas/meus-modelos'),
         ).toBe('/clinica/programas/meus-modelos');
         expect(
             programsTabPath('programas', '/clinica/programas/historico'),

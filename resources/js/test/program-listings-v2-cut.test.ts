@@ -23,3 +23,13 @@ describe('corte v1 das listagens de Programas', () => {
         expect(src).not.toMatch(/\?variant=/);
     });
 });
+
+describe('assistente v1 com asModel', () => {
+    it('não entrega o modo modelo ao protótipo em desenvolvimento', () => {
+        const src = readFileSync(
+            'resources/js/pages/clinic/program/ProgramNewPage.tsx',
+            'utf8',
+        );
+        expect(src).toMatch(/variant !== 'O' && !asModel/);
+    });
+});

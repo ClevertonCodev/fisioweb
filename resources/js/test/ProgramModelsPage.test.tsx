@@ -126,12 +126,15 @@ function myProgram(overrides: Partial<Program> = {}): Program {
 
 function LocationState() {
     const location = useLocation();
+    const program = location.state?.program;
+    const first = program?.groups?.[0]?.exercises?.[0];
+    const exerciseTitle = first?.title ?? first?.exercise?.name;
     return (
         <div>
             novo programa
-            {location.state?.program ? (
-                <span>{location.state.program.title}</span>
-            ) : null}
+            <span>{program?.title}</span>
+            <span>{program?.groups?.[0]?.name}</span>
+            <span>{exerciseTitle}</span>
         </div>
     );
 }
@@ -288,6 +291,23 @@ describe('ProgramModelsPage', () => {
             await screen.findByText('Reabilitação lombar — fase 1'),
         ).toBeInTheDocument();
         expect(screen.getByText('novo programa')).toBeInTheDocument();
+        expect(screen.getByText('Aquecimento')).toBeInTheDocument();
+        expect(screen.getByText('Bird Dog')).toBeInTheDocument();
+    });
+
+    it('em Meus modelos Editar abre a rota de edição', async () => {
+        const user = userEvent.setup();
+        renderPage('/clinica/programas/meus-modelos');
+        await screen.findByText('Meu modelo de joelho');
+        await user.click(
+            screen.getAllByRole('button', {
+                name: 'Mais ações de Meu modelo de joelho',
+            })[0]!,
+        );
+        await user.click(
+            screen.getByRole('menuitem', { name: 'Editar modelo' }),
+        );
+        expect(screen.getByText('editar modelo')).toBeInTheDocument();
     });
 
     it('em Meus modelos o admin duplica e exclui com confirmação', async () => {

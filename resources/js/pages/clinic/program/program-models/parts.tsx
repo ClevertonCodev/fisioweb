@@ -1,7 +1,6 @@
 /**
- * PROTÓTIPO (descartável): peças comuns às variantes da aba Programas.
- * "Usar modelo" é real (abre o assistente com o modelo, como a v1);
- * editar, duplicar e excluir um modelo da clínica são stub.
+ * Peças da listagem v2 de modelos: sessão com barra dos grupos, mapa e
+ * ações reais de Meus modelos (editar, duplicar, excluir rascunho).
  */
 import {
     CalendarDays,

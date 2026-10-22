@@ -159,6 +159,7 @@ export function validityOf(program: Program): Validity {
 
 export function activeFilterCount(f: HistoryFilters): number {
     return (
+        (f.search.trim() ? 1 : 0) +
         f.statuses.length +
         f.professionalIds.length +
         (f.validity !== 'all' ? 1 : 0) +
@@ -224,6 +225,13 @@ export function historyChips(
     patientName: string | null,
 ): HistoryChip[] {
     const chips: HistoryChip[] = [];
+    if (f.search.trim()) {
+        chips.push({
+            key: 'search',
+            label: 'Busca',
+            value: f.search.trim(),
+        });
+    }
     if (patientName) {
         chips.push({ key: 'patient', label: 'Paciente', value: patientName });
     }
@@ -263,6 +271,9 @@ export function removeChip(
     chip: Pick<HistoryChip, 'key'>,
 ): Partial<HistoryFilters> {
     const [kind, value] = chip.key.split(':') as [string, string | undefined];
+    if (kind === 'search') {
+        return { search: '' };
+    }
     if (kind === 'status') {
         return { statuses: f.statuses.filter((s) => s !== value) };
     }

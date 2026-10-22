@@ -120,4 +120,74 @@ describe('program-history-filters', () => {
         ]);
         expect(removeChip(filters, chips[0]!)).toEqual({ statuses: [] });
     });
+
+    it('filtra por profissional, validade e criado entre', () => {
+        const today = new Date();
+        const isoDay = (daysFromToday: number) => {
+            const d = new Date(
+                today.getFullYear(),
+                today.getMonth(),
+                today.getDate() + daysFromToday,
+            );
+            const pad = (n: number) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        };
+
+        const items = [
+            program({
+                id: '1',
+                professionalId: '10',
+                startDate: isoDay(-30),
+                endDate: isoDay(30),
+                createdAt: `${isoDay(-5)}T12:00:00Z`,
+            }),
+            program({
+                id: '2',
+                professionalId: '20',
+                startDate: isoDay(-30),
+                endDate: isoDay(2),
+                createdAt: `${isoDay(-40)}T12:00:00Z`,
+            }),
+            program({
+                id: '3',
+                professionalId: '10',
+                startDate: isoDay(-30),
+                endDate: null,
+                createdAt: `${isoDay(-2)}T12:00:00Z`,
+            }),
+        ];
+
+        expect(
+            applyFilters(
+                items,
+                { ...INITIAL_FILTERS, professionalIds: ['20'] },
+                null,
+            ).map((p) => p.id),
+        ).toEqual(['2']);
+        expect(
+            applyFilters(
+                items,
+                { ...INITIAL_FILTERS, validity: 'ending' },
+                null,
+            ).map((p) => p.id),
+        ).toEqual(['2']);
+        expect(
+            applyFilters(
+                items,
+                { ...INITIAL_FILTERS, validity: 'open' },
+                null,
+            ).map((p) => p.id),
+        ).toEqual(['3']);
+        expect(
+            applyFilters(
+                items,
+                {
+                    ...INITIAL_FILTERS,
+                    createdFrom: isoDay(-10),
+                    createdTo: isoDay(0),
+                },
+                null,
+            ).map((p) => p.id),
+        ).toEqual(['1', '3']);
+    });
 });

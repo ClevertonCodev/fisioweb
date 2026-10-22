@@ -120,7 +120,6 @@ export default function ProgramHistoryPage() {
     const clearFilters = () => {
         setFilters({
             ...INITIAL_FILTERS,
-            search: filters.search,
             perPage: filters.perPage,
         });
         clearPatient();

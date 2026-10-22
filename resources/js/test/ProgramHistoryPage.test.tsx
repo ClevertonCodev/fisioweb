@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -11,6 +11,19 @@ import { routerFutureFlags } from '@/test/browser-router';
 
 vi.mock('@/components/clinic/ClinicLayout', () => ({
     ClinicLayout: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+const toastSuccess = vi.fn();
+const toastError = vi.fn();
+vi.mock('sonner', () => ({
+    toast: {
+        success: (...args: unknown[]) => toastSuccess(...args),
+        error: (...args: unknown[]) => toastError(...args),
+    },
+}));
+
+vi.mock('@/application/clinic/download-program-pdf', () => ({
+    downloadProgramPdf: (...args: unknown[]) => fetchPdfBlob(...args),
 }));
 
 let authRole = 'admin';
@@ -30,6 +43,8 @@ const listProfessionals = vi.fn();
 const duplicateProgram = vi.fn();
 const toModelProgram = vi.fn();
 const destroyProgram = vi.fn();
+const getById = vi.fn();
+const fetchPdfBlob = vi.fn();
 
 vi.mock('@/infrastructure/repositories', async (importOriginal) => {
     const actual =
@@ -41,8 +56,8 @@ vi.mock('@/infrastructure/repositories', async (importOriginal) => {
             duplicate: (...args: unknown[]) => duplicateProgram(...args),
             toModel: (...args: unknown[]) => toModelProgram(...args),
             destroy: (...args: unknown[]) => destroyProgram(...args),
-            getById: vi.fn(),
-            fetchPdfBlob: vi.fn(),
+            getById: (...args: unknown[]) => getById(...args),
+            fetchPdfBlob: (...args: unknown[]) => fetchPdfBlob(...args),
         },
         apiClinicUsersRepository: {
             listProfessionals: (...args: unknown[]) =>
@@ -158,6 +173,14 @@ describe('ProgramHistoryPage', () => {
         duplicateProgram.mockResolvedValue(program());
         toModelProgram.mockResolvedValue(program({ patientId: null }));
         destroyProgram.mockResolvedValue(undefined);
+        getById.mockResolvedValue(program());
+        fetchPdfBlob.mockResolvedValue(
+            new Blob(['pdf'], { type: 'application/pdf' }),
+        );
+        vi.stubGlobal(
+            'open',
+            vi.fn(() => ({ closed: false })),
+        );
     });
 
     it('mostra a casca v2 e os cartões, sem a tabela v1', async () => {
@@ -263,6 +286,48 @@ describe('ProgramHistoryPage', () => {
         expect(
             screen.getByRole('link', { name: 'Bruno Lima' }),
         ).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Limpar filtros' }),
+        );
+        expect(
+            screen.getByRole('link', { name: 'Ana Souza' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'Bruno Lima' }),
+        ).toBeInTheDocument();
+    });
+
+    it('o chip da busca restaura os cartões ao ser removido', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(
+            listResult([
+                program({ id: '1', title: 'Lombar', patientName: 'Ana Souza' }),
+                program({
+                    id: '2',
+                    title: 'Joelho',
+                    patientName: 'Bruno Lima',
+                }),
+            ]),
+        );
+        renderPage();
+        await screen.findByRole('link', { name: 'Ana Souza' });
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar programas' }),
+            'joelho',
+        );
+        expect(
+            screen.queryByRole('link', { name: 'Ana Souza' }),
+        ).not.toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Remover filtro Busca: joelho',
+            }),
+        );
+        expect(
+            screen.getByRole('link', { name: 'Ana Souza' }),
+        ).toBeInTheDocument();
     });
 
     it('navega para Exercícios pela aba', async () => {
@@ -336,6 +401,128 @@ describe('ProgramHistoryPage', () => {
             screen.getByRole('menuitem', { name: 'Transformar em modelo' }),
         );
         expect(toModelProgram).toHaveBeenCalledWith('1');
+    });
+
+    it('mostra o esqueleto enquanto a API não responde', () => {
+        listPrograms.mockReturnValue(new Promise(() => {}));
+        renderPage();
+        expect(
+            screen.getByLabelText('Carregando programas'),
+        ).toBeInTheDocument();
+    });
+
+    it('mostra vazio filtrado com Limpar quando a busca não acha', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(listResult([program()]));
+        renderPage();
+        await screen.findByRole('link', { name: 'Ana Souza' });
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar programas' }),
+            'xyz-nao-existe',
+        );
+        expect(
+            await screen.findByText('Nenhum programa encontrado'),
+        ).toBeInTheDocument();
+        await user.click(
+            screen.getAllByRole('button', { name: 'Limpar filtros' })[0]!,
+        );
+        expect(
+            await screen.findByRole('link', { name: 'Ana Souza' }),
+        ).toBeInTheDocument();
+    });
+
+    it('troca a paginação de 16 para 32 e mostra o cartão da página seguinte', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(
+            listResult(
+                Array.from({ length: 17 }, (_, i) =>
+                    program({
+                        id: String(i + 1),
+                        patientId: String(i + 1),
+                        patientName: `Paciente ${i + 1}`,
+                        title: `Programa ${i + 1}`,
+                    }),
+                ),
+            ),
+        );
+        renderPage();
+        expect(
+            await screen.findByRole('link', { name: 'Paciente 1' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Paciente 17' }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText('16 por página')).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Itens por página' }),
+        );
+        await user.click(
+            screen.getByRole('menuitemradio', { name: '32 por página' }),
+        );
+        expect(
+            await screen.findByRole('link', { name: 'Paciente 17' }),
+        ).toBeInTheDocument();
+        expect(screen.getByText('32 por página')).toBeInTheDocument();
+    });
+
+    it('copia o link, abre o PDF e copia o texto do prontuário pelo rodapé', async () => {
+        const user = userEvent.setup();
+        const withShare = program({
+            shareUrl: 'https://exemplo.test/p/1',
+            groups: [
+                {
+                    id: 'g1',
+                    name: 'Principal',
+                    exercises: [
+                        {
+                            id: 'e1',
+                            exerciseId: '42',
+                            title: 'Bird Dog',
+                            thumbnailUrl: '',
+                            videoUrl: '',
+                            days: [1],
+                            period: null,
+                            seriesMin: 3,
+                            seriesMax: 3,
+                            repetitionsMin: 10,
+                            repetitionsMax: 10,
+                            loadMin: null,
+                            loadMax: null,
+                            restTime: null,
+                            notes: null,
+                            isConfigured: true,
+                        },
+                    ],
+                },
+            ],
+        });
+        listPrograms.mockResolvedValue(listResult([withShare]));
+        getById.mockResolvedValue(withShare);
+        renderPage();
+        await screen.findByRole('link', { name: 'Ana Souza' });
+
+        await user.click(
+            screen.getByRole('button', { name: 'Copiar link do programa' }),
+        );
+        await waitFor(() => expect(getById).toHaveBeenCalledWith('1'));
+        await waitFor(() =>
+            expect(toastSuccess).toHaveBeenCalledWith(
+                'Link do programa copiado.',
+            ),
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Baixar PDF' }));
+        await waitFor(() => expect(fetchPdfBlob).toHaveBeenCalledWith('1'));
+
+        await user.click(
+            screen.getByRole('button', { name: 'Texto para prontuário' }),
+        );
+        await waitFor(() =>
+            expect(toastSuccess).toHaveBeenCalledWith(
+                'Texto copiado para a área de transferência.',
+            ),
+        );
     });
 
     it('fisioterapeuta vê Excluir desabilitado e não dispara o DELETE', async () => {

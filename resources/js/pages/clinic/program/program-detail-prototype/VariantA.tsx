@@ -7,14 +7,14 @@
 import { CalendarClock, CheckCircle2, Dumbbell, Eye, Play } from 'lucide-react';
 import { useState } from 'react';
 
+import { validityOf } from '@/application/clinic/program-history-filters';
 import { DsKpi, DsModal } from '@/components/ds';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 import {
     PersonAvatar,
     ProgramStatusBadge,
     ValidityBar,
-    validityOf,
-} from '@/pages/clinic/program/program-history-prototype/shared';
+} from '@/pages/clinic/program/program-history/ProgramHistoryCard';
 
 import { DetailActions, doseParts, scheduleOf, Thumb } from './shared';
 

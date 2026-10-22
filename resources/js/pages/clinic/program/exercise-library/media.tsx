@@ -23,8 +23,8 @@ import {
     type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
+import { programDraftFromExercise } from '@/application/clinic/program-from-exercise';
 import { DsBadge, DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
 import type { Exercise } from '@/domain/clinic';
 
@@ -385,18 +385,20 @@ export function ModalPlayer({
     );
 }
 
-/** Stub: leva ao programa novo, ainda sem o exercício pré-selecionado. */
 export function useExerciseActions() {
     const navigate = useNavigate();
     return {
-        startProgram: (e: Exercise) => {
-            toast.info(
-                `Protótipo: "${e.title}" ainda não vem pré-selecionado no programa.`,
-            );
-            navigate('/clinica/programas/novo');
-        },
+        startProgram: (e: Exercise) =>
+            navigate('/clinica/programas/novo', {
+                state: { program: programDraftFromExercise(e) },
+            }),
         startModel: (e: Exercise) =>
-            toast.info(`Protótipo: nenhum modelo foi criado com "${e.title}".`),
+            navigate('/clinica/programas/novo', {
+                state: {
+                    program: programDraftFromExercise(e),
+                    asModel: true,
+                },
+            }),
     };
 }
 
@@ -545,6 +547,9 @@ export interface VariantProps {
     tabs?: ReactNode;
     /** Modo seleção (assistente de programa): marcar exercícios no cartão e no modal. */
     selection?: LibrarySelection;
+    /** Sem a caixa de filtros: a página já mostrou busca e dropdowns. */
+    embedded?: boolean;
+    sentinel?: ReactNode;
 }
 
 export interface LibrarySelection {

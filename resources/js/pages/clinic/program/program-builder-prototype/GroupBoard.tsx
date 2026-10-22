@@ -39,7 +39,7 @@ import { useState, type ReactNode } from 'react';
 
 import { DsButton, dsCn, DsInput } from '@/components/ds';
 import type { ProgramExercise, ProgramGroup } from '@/domain/clinic';
-import { CardVideo } from '@/pages/clinic/program/exercise-library-prototype/media';
+import { CardVideo } from '@/pages/clinic/program/exercise-library/media';
 
 import { doseParts, scheduleOf, type ProgramBuilder } from './builder';
 

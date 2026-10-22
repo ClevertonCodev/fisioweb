@@ -4,11 +4,8 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { listExercisesPaginated } from '@/application/clinic/use-exercises';
 import { findClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLoaderError } from '@/components/clinic/ClinicLoaderError';
-import { ProgramasTab } from '@/components/clinic/program/ProgramasTab';
-import ExercisesPage from '@/pages/clinic/ExercisesPage';
 import ProgramDetailPage from '@/pages/clinic/program/ProgramDetailPage';
 import ProgramEditPage from '@/pages/clinic/program/ProgramEditPage';
-import ProgramHistoryTab from '@/pages/clinic/program/ProgramHistoryTab';
 import ProgramListPage from '@/pages/clinic/program/ProgramListPage';
 import ProgramNewPage from '@/pages/clinic/program/ProgramNewPage';
 
@@ -20,22 +17,10 @@ export function programClinicRoutes(queryClient: QueryClient): RouteObject[] {
             errorElement: <ClinicLoaderError />,
             children: [
                 { index: true, element: <Navigate to="historico" replace /> },
-                {
-                    path: 'historico',
-                    element: <ProgramHistoryTab />,
-                },
-                {
-                    path: 'exercicios',
-                    element: <ExercisesPage embedded />,
-                },
-                {
-                    path: 'modelos',
-                    element: <ProgramasTab subTab="modelos" />,
-                },
-                {
-                    path: 'meus-modelos',
-                    element: <ProgramasTab subTab="meus-modelos" />,
-                },
+                { path: 'historico', element: null },
+                { path: 'exercicios', element: null },
+                { path: 'modelos', element: null },
+                { path: 'meus-modelos', element: null },
             ],
         },
         {

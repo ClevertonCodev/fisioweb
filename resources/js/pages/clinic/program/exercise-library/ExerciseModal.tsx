@@ -1,10 +1,4 @@
-/**
- * PROTÓTIPO (descartável): modal do exercício, trocado por ?modal= com a
- * barra que aparece por cima do modal aberto. O = o player da v1; A (a
- * escolhida) = ficha clínica. As variantes B (vídeo em destaque + abas) e
- * C (gaveta lateral) foram descartadas sem commit.
- * "Usar em novo programa/modelo" são stub.
- */
+/** Ficha clínica do exercício (modal A). */
 import {
     Activity,
     ArrowLeftRight,
@@ -24,25 +18,15 @@ import type { ReactNode } from 'react';
 
 import { DsBadge, DsButton, DsDrawer, DsModal, dsCn } from '@/components/ds';
 import type { Exercise } from '@/domain/clinic';
-import {
-    PrototypeSwitcher,
-    usePrototypeVariant,
-} from '@/pages/clinic/PrototypeSwitcher';
+import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import {
     CardVideo,
     DifficultyBadge,
-    ExercisePlayerModal,
     ReviewBadge,
     useExerciseActions,
     type LibrarySelection,
 } from './media';
-import { useIsMobile } from './use-media-query';
-
-export const MODAL_VARIANTS = [
-    { key: 'O', name: 'Player da v1' },
-    { key: 'A', name: 'Ficha clínica' },
-] as const;
 
 interface ModalProps {
     exercise: Exercise | null;
@@ -350,32 +334,6 @@ function ModalA({
     );
 }
 
-// ---------------------------------------------------------------- troca
-
-const MODALS: Record<string, (p: ModalProps) => ReactNode> = {
-    A: ModalA,
-};
-
-/** O modal da D, escolhido por ?modal= (barra própria enquanto aberto). */
 export function ExerciseModal(props: ModalProps) {
-    const key = usePrototypeVariant(MODAL_VARIANTS, 'A', 'modal');
-    const Modal = MODALS[key];
-    return (
-        <>
-            {Modal ? (
-                <Modal {...props} />
-            ) : (
-                <ExercisePlayerModal {...props} withActions showDescription />
-            )}
-            {props.exercise && (
-                <PrototypeSwitcher
-                    variants={MODAL_VARIANTS}
-                    current={key}
-                    param="modal"
-                    scope="dialog"
-                    prefix="Modal"
-                />
-            )}
-        </>
-    );
+    return <ModalA {...props} />;
 }

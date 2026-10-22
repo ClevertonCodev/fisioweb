@@ -15,7 +15,13 @@ import type {
     DropdownItem,
     ModalSize,
 } from '@/components/ds';
-import { DsButton, DsDrawer, DsDropdown, DsModal } from '@/components/ds';
+import {
+    DsActionsMenu,
+    DsButton,
+    DsDrawer,
+    DsDropdown,
+    DsModal,
+} from '@/components/ds';
 
 import { CatalogRow, CatalogSection } from './CatalogSection';
 
@@ -226,6 +232,24 @@ export function OverlaysSection() {
                     icon={<MoreHorizontal />}
                 />
                 <DsDropdown items={PERIODS} placeholder="Sem valor" />
+            </CatalogRow>
+
+            <CatalogRow label="Menu de ações (DsActionsMenu)">
+                <DsActionsMenu
+                    items={[
+                        { key: 'edit', label: 'Editar', icon: <Pencil /> },
+                        {
+                            key: 'delete',
+                            label: 'Excluir',
+                            icon: <Trash2 />,
+                            danger: true,
+                            disabled: true,
+                            disabledReason:
+                                'Só o admin da clínica pode excluir.',
+                        },
+                    ]}
+                    onSelect={() => undefined}
+                />
             </CatalogRow>
         </CatalogSection>
     );

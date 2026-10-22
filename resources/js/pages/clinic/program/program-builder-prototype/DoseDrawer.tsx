@@ -18,8 +18,8 @@ import {
     DsTextarea,
 } from '@/components/ds';
 import type { ProgramExercise } from '@/domain/clinic';
-import { CardVideo } from '@/pages/clinic/program/exercise-library-prototype/media';
-import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
+import { CardVideo } from '@/pages/clinic/program/exercise-library/media';
+import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import type { Dose } from './builder';
 

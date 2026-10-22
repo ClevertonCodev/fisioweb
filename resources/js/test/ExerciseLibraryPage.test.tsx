@@ -300,4 +300,36 @@ describe('ExerciseLibraryPage', () => {
         expect(screen.getByText('modo modelo')).toBeInTheDocument();
         expect(screen.getByText('Bird Dog')).toBeInTheDocument();
     });
+
+    it('busca sem resultado oferece Limpar filtros e restaura a grade', async () => {
+        const user = userEvent.setup();
+        listPaginated.mockImplementation(
+            (params?: { search?: string; page?: number }) => {
+                if (params?.search) {
+                    return Promise.resolve(pageResult([]));
+                }
+                return Promise.resolve(
+                    pageResult([
+                        exercise(),
+                        exercise({ id: '2', title: 'Agachamento' }),
+                    ]),
+                );
+            },
+        );
+        renderPage();
+        expect(await screen.findByText('Bird Dog')).toBeInTheDocument();
+
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar exercícios' }),
+            'zzzz',
+        );
+        expect(
+            await screen.findByText('Nenhum exercício encontrado'),
+        ).toBeInTheDocument();
+        await user.click(
+            screen.getAllByRole('button', { name: 'Limpar filtros' })[0]!,
+        );
+        expect(await screen.findByText('Bird Dog')).toBeInTheDocument();
+        expect(screen.getByText('Agachamento')).toBeInTheDocument();
+    });
 });

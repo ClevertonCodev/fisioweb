@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    activeLibraryFilterCount,
     applyLibraryFilters,
     INITIAL_LIBRARY_FILTERS,
     libraryApiParams,
+    libraryChips,
+    removeLibraryChip,
 } from '@/application/clinic/exercise-library-filters';
 import type { Exercise } from '@/domain/clinic';
 
@@ -57,5 +60,22 @@ describe('exercise-library-filters', () => {
                 },
             }),
         ).toEqual({ search: 'lombar', difficultyLevel: 'easy' });
+    });
+
+    it('conta a busca e o chip da busca zera só ela', () => {
+        const filters = {
+            ...INITIAL_LIBRARY_FILTERS,
+            search: 'dog',
+            favoritesOnly: true,
+        };
+        expect(activeLibraryFilterCount(filters)).toBe(2);
+        expect(libraryChips(filters)[0]).toEqual({
+            key: 'search',
+            label: 'Busca',
+            value: 'dog',
+        });
+        expect(removeLibraryChip(filters, { key: 'search' })).toEqual({
+            search: '',
+        });
     });
 });

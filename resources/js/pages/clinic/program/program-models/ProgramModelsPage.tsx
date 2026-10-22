@@ -65,8 +65,7 @@ export default function ProgramModelsPage() {
     }
     const update = (patch: Partial<ModelFilters>) =>
         setFilters((prev) => ({ ...prev, ...patch }));
-    const clearFilters = () =>
-        setFilters({ ...INITIAL_MODEL_FILTERS, search: filters.search });
+    const clearFilters = () => setFilters(INITIAL_MODEL_FILTERS);
 
     const { models, isLoading, isError } = useModels(origin);
     const filtered = useMemo(

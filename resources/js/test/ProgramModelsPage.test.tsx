@@ -318,6 +318,43 @@ describe('ProgramModelsPage', () => {
         expect(destroyProgram).toHaveBeenCalledWith('9');
     });
 
+    it('Limpar filtros da busca restaura os cartões', async () => {
+        const user = userEvent.setup();
+        listLibrary.mockResolvedValue({
+            data: [
+                catalogProgram(),
+                catalogProgram({
+                    id: 2,
+                    title: 'Cervical aguda',
+                    description: 'Pescoço',
+                }),
+            ],
+            meta: { currentPage: 1, lastPage: 1, total: 2 },
+        });
+        renderPage();
+        expect(
+            await screen.findByText('Reabilitação lombar — fase 1'),
+        ).toBeInTheDocument();
+        expect(screen.getByText('Cervical aguda')).toBeInTheDocument();
+
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar modelos' }),
+            'lombar',
+        );
+        expect(
+            screen.getByText('Reabilitação lombar — fase 1'),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('Cervical aguda')).not.toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Limpar filtros' }),
+        );
+        expect(
+            screen.getByText('Reabilitação lombar — fase 1'),
+        ).toBeInTheDocument();
+        expect(screen.getByText('Cervical aguda')).toBeInTheDocument();
+    });
+
     it('fisioterapeuta não dispara o DELETE do modelo', async () => {
         const user = userEvent.setup();
         authRole = 'physiotherapist';

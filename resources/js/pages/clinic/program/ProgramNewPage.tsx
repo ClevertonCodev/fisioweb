@@ -94,12 +94,15 @@ const EDIT_STEP_LABELS: Record<ProgramStep, string> = {
  * PROTÓTIPO: em desenvolvimento, ?variant= troca o assistente pelo do DS v2
  * (program-builder-prototype); O = esta tela. Fora dos testes, que cobrem
  * esta tela (o Vitest roda com DEV ligado).
+ * `asModel` sempre cai nesta tela: o protótipo não tem modo sem paciente.
  */
 const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function ProgramNewPage() {
+    const location = useLocation();
     const variant = usePrototypeVariant(BUILDER_VARIANTS, 'A');
-    if (PROTOTYPE && variant !== 'O') {
+    const asModel = location.state?.asModel === true;
+    if (PROTOTYPE && variant !== 'O' && !asModel) {
         return <ProgramBuilderPrototype variant={variant} />;
     }
     return <ProgramNewPageV1 />;

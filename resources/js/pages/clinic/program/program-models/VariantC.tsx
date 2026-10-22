@@ -1,9 +1,6 @@
 /**
- * PROTÓTIPO C · Mapa do corpo: o fisioterapeuta começa pela queixa. Clica
- * na região do corpo (cada ponto mostra quantos modelos há ali) e vê os
- * modelos como sessões: uma barra dividida pelos blocos, do tamanho de
- * cada um, e a fila de exercícios. A região, por enquanto, sai do título
- * e da descrição (ver regionsOf).
+ * Mapa do corpo da listagem de modelos: clicar na região recorta a lista.
+ * A região ainda sai do título e da descrição (`regionsOf`).
  */
 import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';

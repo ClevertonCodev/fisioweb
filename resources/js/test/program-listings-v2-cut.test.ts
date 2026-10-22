@@ -8,6 +8,11 @@ const PAGES = [
     'resources/js/pages/clinic/program/exercise-library/ExerciseLibraryPage.tsx',
     'resources/js/pages/clinic/program/program-models/ProgramModelsPage.tsx',
     'resources/js/pages/clinic/ExercisesPage.tsx',
+    'resources/js/pages/clinic/program/programs-shell/ProgramsPageShell.tsx',
+    'resources/js/pages/clinic/program/programs-shell/programs-tabs.tsx',
+    'resources/js/pages/clinic/program/program-history/ProgramHistoryActions.tsx',
+    'resources/js/pages/clinic/program/exercise-library/VariantD.tsx',
+    'resources/js/pages/clinic/program/program-models/VariantC.tsx',
 ];
 
 describe('corte v1 das listagens de Programas', () => {

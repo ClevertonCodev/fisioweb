@@ -1,7 +1,6 @@
 /**
- * PROTÓTIPO (descartável): peças da v1 (ExerciseCard e VideoPlayerModal)
- * refeitas com o DS v2. "Usar em novo programa/modelo"
- * são stub.
+ * Peças da biblioteca v2: cartão com vídeo, player e ficha. "Usar em novo
+ * programa/modelo" abre o assistente v1 com o exercício já no grupo.
  */
 import {
     Check,

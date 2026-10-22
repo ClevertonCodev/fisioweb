@@ -1,14 +1,7 @@
 /**
- * PROTÓTIPO D (a preferida): a v1 no DS, enxuta. Filtros iguais aos do
- * Histórico v2 (caixa com as abas no topo, busca, um dropdown por filtro,
- * chips e gaveta no celular). Cartão sem moldura: vídeo arredondado com o
- * play do tamanho da referência e, embaixo, título em duas linhas +
- * estrela, especialidade e região. Rolagem infinita como na v1 (20 por
- * vez, sem paginação). O modal tem os botões de usar o exercício.
- *
- * Com `selection` (assistente de programa), o cartão ganha o círculo de
- * marcar e o contorno de escolhido, e o modal troca as ações por
- * "Adicionar ao programa".
+ * Grade D da biblioteca: cartão sem moldura, rolagem infinita e modal da
+ * ficha. Com `selection` (assistente), o cartão marca o exercício e o
+ * modal vira "Adicionar ao programa".
  */
 import {
     Gauge,

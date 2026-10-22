@@ -239,6 +239,61 @@ describe('ExerciseLibraryPage', () => {
         expect(screen.queryByText('Agachamento')).not.toBeInTheDocument();
     });
 
+    it('com Só favoritos zerando a página 1, a rolagem busca a página 2', async () => {
+        const user = userEvent.setup();
+        listPaginated
+            .mockResolvedValueOnce(pageResult([exercise()], 1, 2))
+            .mockResolvedValueOnce(
+                pageResult(
+                    [
+                        exercise({
+                            id: '2',
+                            title: 'Agachamento',
+                            isFavorite: true,
+                        }),
+                    ],
+                    2,
+                    2,
+                ),
+            );
+        renderPage();
+        await screen.findByText('Bird Dog');
+
+        await user.click(screen.getByRole('button', { name: 'Favoritos' }));
+        await user.click(
+            screen.getByRole('menuitemradio', { name: 'Só favoritos' }),
+        );
+        expect(screen.queryByText('Bird Dog')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Nenhum exercício encontrado'),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByText('Procurando nos próximos exercícios…'),
+        ).toBeInTheDocument();
+
+        ioCallback?.(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            {} as IntersectionObserver,
+        );
+        expect(await screen.findByText('Agachamento')).toBeInTheDocument();
+        expect(listPaginated).toHaveBeenCalledWith(
+            expect.objectContaining({ page: 2 }),
+        );
+    });
+
+    it('sem próxima página, o recorte vazio mostra o estado vazio', async () => {
+        const user = userEvent.setup();
+        renderPage();
+        await screen.findByText('Bird Dog');
+        await user.click(screen.getByRole('button', { name: 'Favoritos' }));
+        await user.click(
+            screen.getByRole('menuitemradio', { name: 'Só favoritos' }),
+        );
+        expect(
+            screen.getByText('Nenhum exercício encontrado'),
+        ).toBeInTheDocument();
+    });
+
     it('clicar na estrela chama o toggle', async () => {
         const user = userEvent.setup();
         renderPage();

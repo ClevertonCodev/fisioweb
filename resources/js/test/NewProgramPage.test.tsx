@@ -63,6 +63,8 @@ const mockLocation: {
     state: {
         program: typeof copiedProgram;
         asModel?: boolean;
+        editMode?: boolean;
+        programId?: string;
     };
 } = {
     pathname: '/clinica/programas/novo',
@@ -85,6 +87,9 @@ const exercises = [
 ];
 
 function stubWizardHooks(mockMutate: ReturnType<typeof vi.fn>) {
+    draftGet.mockResolvedValue(null);
+    draftSave.mockResolvedValue(undefined);
+    draftDiscard.mockResolvedValue(undefined);
     vi.spyOn(useExercisesHook, 'useExercises').mockReturnValue({
         data: exercises,
         isLoading: false,
@@ -114,6 +119,17 @@ vi.mock('react-router-dom', async () => {
         useLocation: () => mockLocation,
     };
 });
+
+const draftGet = vi.fn();
+const draftSave = vi.fn();
+const draftDiscard = vi.fn();
+vi.mock('@/infrastructure/repositories/api-clinic-program-draft', () => ({
+    programDraftRepository: {
+        get: (...args: unknown[]) => draftGet(...args),
+        save: (...args: unknown[]) => draftSave(...args),
+        discard: (...args: unknown[]) => draftDiscard(...args),
+    },
+}));
 
 // Mock do auth context
 vi.mock('@/contexts/AuthContext', () => ({
@@ -303,6 +319,138 @@ describe('NewProgramPage em modo modelo (asModel)', () => {
             onSuccess: (program: { id: string }) => void;
         };
         options.onSuccess({ id: '42' });
+        expect(mockNavigate).toHaveBeenCalledWith(
+            '/clinica/programas/meus-modelos',
+        );
+    });
+});
+
+describe('NewProgramPage editando um modelo (editMode + asModel)', () => {
+    const mockMutate = vi.fn();
+    const mockUpdate = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockLocation.state = {
+            program: copiedProgram,
+            asModel: true,
+            editMode: true,
+            programId: '9',
+        };
+        stubWizardHooks(mockMutate);
+        vi.spyOn(useProgramsHook, 'useUpdateClinicProgram').mockReturnValue({
+            mutate: mockUpdate,
+            isPending: false,
+        } as unknown as ReturnType<
+            typeof useProgramsHook.useUpdateClinicProgram
+        >);
+    });
+
+    afterEach(() => {
+        mockLocation.state = { program: copiedProgram };
+    });
+
+    it('não apaga nem sobrescreve o rascunho do Novo programa', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        const meuRascunho = {
+            step: 2,
+            selectedIds: ['101'],
+            groups: [],
+            savedAt: 1000,
+        };
+        localStorage.setItem(
+            'clinic_new_program_draft',
+            JSON.stringify(meuRascunho),
+        );
+        draftGet.mockResolvedValue(meuRascunho);
+        const user = userEvent.setup({
+            advanceTimers: vi.advanceTimersByTime,
+        });
+        try {
+            render(
+                <TestBrowserRouter>
+                    <ProgramNewPage />
+                </TestBrowserRouter>,
+            );
+            expect(
+                screen.queryByText(/Rascunho salvo/),
+            ).not.toBeInTheDocument();
+
+            await user.click(
+                screen.getByRole('button', { name: /^avançar$/i }),
+            );
+            await user.click(
+                screen.getByRole('button', { name: /^salvar modelo$/i }),
+            );
+            const options = mockUpdate.mock.calls[0]?.[1] as {
+                onSuccess: (program: { id: string }) => void;
+            };
+            options.onSuccess({ id: '9' });
+            vi.advanceTimersByTime(3500);
+
+            expect(draftGet).not.toHaveBeenCalled();
+            expect(draftDiscard).not.toHaveBeenCalled();
+            expect(draftSave).not.toHaveBeenCalled();
+            expect(
+                JSON.parse(
+                    localStorage.getItem('clinic_new_program_draft') ?? '{}',
+                ),
+            ).toEqual(meuRascunho);
+        } finally {
+            vi.useRealTimers();
+            localStorage.clear();
+        }
+    });
+
+    it('Voltar na primeira etapa leva a Meus modelos', async () => {
+        const user = userEvent.setup();
+        render(
+            <TestBrowserRouter>
+                <ProgramNewPage />
+            </TestBrowserRouter>,
+        );
+        await user.click(screen.getByRole('button', { name: /^voltar$/i }));
+        await user.click(screen.getByRole('button', { name: /^voltar$/i }));
+        expect(mockNavigate).toHaveBeenCalledWith(
+            '/clinica/programas/meus-modelos',
+        );
+    });
+
+    it('salva o mesmo modelo sem paciente e volta a Meus modelos', async () => {
+        const user = userEvent.setup();
+        render(
+            <TestBrowserRouter>
+                <ProgramNewPage />
+            </TestBrowserRouter>,
+        );
+
+        await user.click(screen.getByRole('button', { name: /^avançar$/i }));
+        expect(screen.getByText('Detalhes do modelo')).toBeInTheDocument();
+        expect(
+            screen.queryByRole('combobox', { name: /enviar para/i }),
+        ).not.toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: /^salvar modelo$/i }),
+        );
+
+        expect(mockMutate).not.toHaveBeenCalled();
+        expect(mockUpdate).toHaveBeenCalledWith(
+            {
+                id: '9',
+                dto: expect.objectContaining({
+                    title: 'Modelo Vedius 1',
+                    patientId: null,
+                    status: 'draft',
+                }),
+            },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+
+        const options = mockUpdate.mock.calls[0]?.[1] as {
+            onSuccess: (program: { id: string }) => void;
+        };
+        options.onSuccess({ id: '9' });
         expect(mockNavigate).toHaveBeenCalledWith(
             '/clinica/programas/meus-modelos',
         );

@@ -22,6 +22,13 @@ class PatientService implements PatientServiceInterface
         return $this->repository->find($id);
     }
 
+    public function findForClinic(int $clinicId, int $id): ?Patient
+    {
+        $patient = $this->repository->find($id);
+
+        return !is_null($patient) && (int) $patient->clinic_id === $clinicId ? $patient : null;
+    }
+
     public function list(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return $this->repository->paginateByClinic($clinicId, $filters, $perPage);

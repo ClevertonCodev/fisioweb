@@ -10,8 +10,9 @@ import {
     Stethoscope,
     Trash2,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
 import {
@@ -33,8 +34,7 @@ import {
     areaOptions,
     doseOf,
     scheduleOf,
-    useModelDetail,
-    type ModelDetail,
+    useFetchModelDetail,
     type ModelExercise,
     type ModelFilters,
     type ModelGroup,
@@ -153,13 +153,44 @@ const MODEL_ACTIONS: {
 
 export function useModelActions() {
     const navigate = useNavigate();
+    const fetchDetail = useFetchModelDetail();
     const { mutate: duplicate } = useDuplicateClinicProgram();
     const { mutate: deleteProgram } = useDeleteClinicProgram();
     const [toDelete, setToDelete] = useState<ModelSummary | null>(null);
+    const mounted = useRef(true);
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
+
+    /** O assistente parte dos grupos, que a listagem não traz. */
+    const openWizard = async (
+        model: ModelSummary,
+        state: Record<string, unknown>,
+    ) => {
+        try {
+            const detail = await fetchDetail(model);
+            if (!detail) throw new Error('Modelo não encontrado.');
+            // Saiu da lista enquanto o detalhe vinha: não puxa a pessoa de volta.
+            if (!mounted.current) return;
+            navigate(NEW_PROGRAM_PATH, {
+                state: { ...state, program: detail.source },
+            });
+        } catch {
+            toast.error('Não foi possível abrir o modelo. Tente novamente.');
+        }
+    };
 
     const run = (key: ModelActionKey, model: ModelSummary) => {
         if (key === 'edit') {
-            navigate(`/clinica/programas/${model.id}/editar`);
+            // Edita como modelo: sem paciente, rascunho, volta a Meus modelos.
+            void openWizard(model, {
+                editMode: true,
+                asModel: true,
+                programId: model.id,
+            });
             return;
         }
         if (key === 'duplicate') {
@@ -203,14 +234,13 @@ export function useModelActions() {
     );
 
     return {
-        use: (detail: ModelDetail) =>
-            navigate(NEW_PROGRAM_PATH, { state: { program: detail.source } }),
+        use: (model: ModelSummary) => openWizard(model, {}),
         run,
         deleteModal,
     };
 }
 
-/** "Usar modelo": espera o detalhe (grupos) para abrir o assistente. */
+/** "Usar modelo": busca o detalhe (grupos) no clique e abre o assistente. */
 export function UseModelButton({
     model,
     size = 'md',
@@ -222,18 +252,19 @@ export function UseModelButton({
     variant?: 'primary' | 'secondary';
     label?: string;
 }) {
-    const { detail, isLoading } = useModelDetail(model);
     const { use } = useModelActions();
+    const [loading, setLoading] = useState(false);
     return (
         <DsButton
             size={size}
             variant={variant}
             label={label}
-            loading={isLoading}
-            disabled={!detail}
-            onClick={(ev) => {
+            loading={loading}
+            onClick={async (ev) => {
                 ev.stopPropagation();
-                if (detail) use(detail);
+                setLoading(true);
+                await use(model);
+                setLoading(false);
             }}
         />
     );

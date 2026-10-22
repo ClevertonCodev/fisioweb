@@ -142,6 +142,9 @@ export default function ExerciseLibraryPage({
     const isFiltered = filters.search !== '' || filterCount > 0;
     const chips = libraryChips(filters);
     const facetProps = { exercises: loaded, filters, onChange: update };
+    // Favoritos e facetas recortam só o que já veio: com página por vir, o
+    // vazio ainda não é final e a rolagem precisa continuar buscando.
+    const searchingMore = filtered.length === 0 && Boolean(hasNextPage);
 
     const emptyState = isError ? (
         <DsEmptyState
@@ -149,7 +152,7 @@ export default function ExerciseLibraryPage({
             title="Erro ao carregar exercícios"
             description="Tente de novo em alguns instantes."
         />
-    ) : filtered.length === 0 && !isFiltered ? (
+    ) : searchingMore ? null : filtered.length === 0 && !isFiltered ? (
         <DsEmptyState
             variant="empty"
             title="Nenhum exercício na biblioteca"
@@ -274,11 +277,21 @@ export default function ExerciseLibraryPage({
                     isLoading={isLoading}
                     emptyState={emptyState}
                     sentinel={
-                        <div
-                            ref={sentinelRef}
-                            className="h-4"
-                            aria-hidden="true"
-                        />
+                        <>
+                            {searchingMore && (
+                                <p
+                                    role="status"
+                                    className="text-ds-body-sm text-ds-content-muted"
+                                >
+                                    Procurando nos próximos exercícios…
+                                </p>
+                            )}
+                            <div
+                                ref={sentinelRef}
+                                className="h-4"
+                                aria-hidden="true"
+                            />
+                        </>
                     }
                 />
             </ProgramsPageShell>

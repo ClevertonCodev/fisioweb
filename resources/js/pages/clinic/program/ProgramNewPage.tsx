@@ -137,7 +137,14 @@ function ProgramNewPageV1() {
     const editProgramId: string | undefined = location.state?.programId;
     const initialProgram = location.state?.program;
     const STEP_LABELS = editMode
-        ? EDIT_STEP_LABELS
+        ? asModel
+            ? {
+                  1: 'Editar modelo',
+                  2: 'Configurar exercícios',
+                  3: 'Configurar exercícios',
+                  4: 'Detalhes do modelo',
+              }
+            : EDIT_STEP_LABELS
         : asModel
           ? {
                 1: 'Novo modelo',
@@ -163,8 +170,9 @@ function ProgramNewPageV1() {
     const [shareProgram, setShareProgram] = useState<Program | null>(null);
     const [shareError, setShareError] = useState<string | null>(null);
 
+    // Editar ou montar modelo não mexe no rascunho do "Novo programa".
     const { draft, hasDraft, scheduleSave, clearDraft, restoreDraft } =
-        useProgramDraft(step, selectedIds, groups);
+        useProgramDraft(step, selectedIds, groups, !editMode && !asModel);
 
     // Auto-save debounced ao mudar estado do wizard
     useEffect(() => {
@@ -544,7 +552,11 @@ function ProgramNewPageV1() {
 
     const handleWizardBack = () => {
         if (step === 1) {
-            navigate('/clinica/programas');
+            navigate(
+                asModel
+                    ? '/clinica/programas/meus-modelos'
+                    : '/clinica/programas',
+            );
             return;
         }
         if (step === 2 && editingExercise) {

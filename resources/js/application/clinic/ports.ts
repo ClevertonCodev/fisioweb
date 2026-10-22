@@ -265,6 +265,7 @@ export interface ProgramListParams {
     perPage?: number;
     search?: string;
     status?: string;
+    patientId?: string;
     withoutPatient?: boolean;
     patientId?: string;
 }

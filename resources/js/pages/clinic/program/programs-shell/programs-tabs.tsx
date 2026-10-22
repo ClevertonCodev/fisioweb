@@ -9,6 +9,7 @@ export const PROGRAMS_TABS = [
 
 export type ProgramsTabKey = (typeof PROGRAMS_TABS)[number]['key'];
 
+export const HISTORICO_PATH = '/clinica/programas/historico';
 export const NOSSOS_MODELOS_PATH = '/clinica/programas/modelos';
 export const MEUS_MODELOS_PATH = '/clinica/programas/meus-modelos';
 
@@ -30,6 +31,7 @@ export function programsTabPath(
     tab: ProgramsTabKey,
     pathname: string,
     lastProgramasPath: string = NOSSOS_MODELOS_PATH,
+    lastHistoricoPath: string = HISTORICO_PATH,
 ): string {
     if (tab === 'exercicios') return '/clinica/programas/exercicios';
     if (tab === 'programas') {
@@ -41,32 +43,58 @@ export function programsTabPath(
         }
         return lastProgramasPath;
     }
-    return '/clinica/programas/historico';
+    if (pathname.includes('/historico')) return HISTORICO_PATH;
+    return lastHistoricoPath;
 }
 
-const LastProgramasPathContext = createContext(NOSSOS_MODELOS_PATH);
+interface LastPaths {
+    programas: string;
+    /** Com a busca da URL: o recorte `?patientId=` do prontuário. */
+    historico: string;
+}
+
+const LastPathsContext = createContext<LastPaths>({
+    programas: NOSSOS_MODELOS_PATH,
+    historico: HISTORICO_PATH,
+});
+
+function historicoPathFrom(pathname: string, search: string): string | null {
+    return programsTabFromPath(pathname) === 'historico'
+        ? `${HISTORICO_PATH}${search}`
+        : null;
+}
 
 export function ProgramsOriginProvider({ children }: { children: ReactNode }) {
-    const { pathname } = useLocation();
-    const [lastPath, setLastPath] = useState(() => originPathFrom(pathname));
-    const [seenPath, setSeenPath] = useState(pathname);
-    if (pathname !== seenPath) {
-        setSeenPath(pathname);
-        if (
+    const { pathname, search } = useLocation();
+    const [lastPaths, setLastPaths] = useState<LastPaths>(() => ({
+        programas: originPathFrom(pathname),
+        historico: historicoPathFrom(pathname, search) ?? HISTORICO_PATH,
+    }));
+    const url = `${pathname}${search}`;
+    const [seenUrl, setSeenUrl] = useState(url);
+    if (url !== seenUrl) {
+        setSeenUrl(url);
+        const historico = historicoPathFrom(pathname, search);
+        if (historico) {
+            setLastPaths((prev) => ({ ...prev, historico }));
+        } else if (
             pathname.includes('/meus-modelos') ||
             pathname.includes('/modelos')
         ) {
-            setLastPath(originPathFrom(pathname));
+            setLastPaths((prev) => ({
+                ...prev,
+                programas: originPathFrom(pathname),
+            }));
         }
     }
 
     return (
-        <LastProgramasPathContext.Provider value={lastPath}>
+        <LastPathsContext.Provider value={lastPaths}>
             {children}
-        </LastProgramasPathContext.Provider>
+        </LastPathsContext.Provider>
     );
 }
 
-export function useLastProgramasPath(): string {
-    return useContext(LastProgramasPathContext);
+export function useLastProgramsPaths(): LastPaths {
+    return useContext(LastPathsContext);
 }

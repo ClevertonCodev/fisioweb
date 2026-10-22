@@ -168,6 +168,53 @@ class TreatmentPlanControllerTest extends TestCase
         $this->assertNotContains('Plano de outra clínica', $titles);
     }
 
+    public function test_index_filters_by_patient_id_only_inside_own_clinic(): void
+    {
+        $patient      = Patient::factory()->create(['clinic_id' => $this->clinicUser->clinic_id]);
+        $otherPatient = Patient::factory()->create(['clinic_id' => $this->clinicUser->clinic_id]);
+        $otherUser    = ClinicUser::factory()->create();
+        $foreign      = Patient::factory()->create(['clinic_id' => $otherUser->clinic_id]);
+
+        TreatmentPlan::create([
+            'clinic_id'      => $this->clinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+            'patient_id'     => $patient->id,
+            'title'          => 'Plano do paciente',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+        TreatmentPlan::create([
+            'clinic_id'      => $this->clinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+            'patient_id'     => $otherPatient->id,
+            'title'          => 'Plano de outro paciente',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+        TreatmentPlan::create([
+            'clinic_id'      => $otherUser->clinic_id,
+            'clinic_user_id' => $otherUser->id,
+            'patient_id'     => $foreign->id,
+            'title'          => 'Plano de outra clínica',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+
+        $own = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans?per_page=50&patient_id={$patient->id}");
+        $own->assertOk();
+        $this->assertSame(['Plano do paciente'], collect($own->json('data.data'))->pluck('title')->all());
+
+        $other = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans?per_page=50&patient_id={$foreign->id}");
+        $other->assertOk()->assertJsonCount(0, 'data.data');
+    }
+
+    public function test_index_rejects_non_numeric_patient_id_with_422(): void
+    {
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?patient_id=abc')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('patient_id');
+    }
+
     public function test_duplicate_creates_copy_with_suffix_no_patient_and_draft_status(): void
     {
         $patient = Patient::factory()->create(['clinic_id' => $this->clinicUser->clinic_id]);

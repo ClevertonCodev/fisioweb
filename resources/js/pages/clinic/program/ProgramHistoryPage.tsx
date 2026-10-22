@@ -14,7 +14,7 @@ import {
     type HistoryFilters,
 } from '@/application/clinic/program-history-filters';
 import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
-import { useClinicPrograms } from '@/application/clinic/use-programs';
+import { useAllClinicPrograms } from '@/application/clinic/use-programs';
 import {
     DsButton,
     DsDrawer,
@@ -66,6 +66,10 @@ export default function ProgramHistoryPage() {
     const isMobile = useIsMobile();
     const [searchParams, setSearchParams] = useSearchParams();
     const patientId = searchParams.get('patientId');
+    // Só id numérico vai para a API; lixo na URL cai no recorte do navegador
+    // e vira lista vazia, não erro do banco.
+    const apiPatientId =
+        patientId && /^\d+$/.test(patientId) ? patientId : null;
 
     const [filters, setFilters] = useState<HistoryFilters>(INITIAL_FILTERS);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -76,16 +80,16 @@ export default function ProgramHistoryPage() {
             page: patch.page ?? 1,
         }));
 
-    const { data, isLoading, isError } = useClinicPrograms({
-        page: 1,
-        perPage: 200,
-    });
+    // O recorte do prontuário vai para a API; os demais filtros, no navegador.
+    const { data, isLoading, isError } = useAllClinicPrograms(
+        apiPatientId ? { patientId: apiPatientId } : undefined,
+    );
     const { data: professionals = [] } = useClinicProfessionals();
     const { run, deleteModal } = useProgramHistoryActions();
 
     const sorted = useMemo(
         () =>
-            [...(data?.items ?? [])].sort(
+            [...(data ?? [])].sort(
                 (a, b) =>
                     (parseDate(b.createdAt)?.getTime() ?? 0) -
                     (parseDate(a.createdAt)?.getTime() ?? 0),

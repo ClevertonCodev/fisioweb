@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -132,6 +132,11 @@ function LocationState() {
     return (
         <div>
             novo programa
+            {location.state?.editMode && <span>modo edição</span>}
+            {location.state?.asModel && <span>como modelo</span>}
+            {location.state?.programId && (
+                <span>id {location.state.programId}</span>
+            )}
             <span>{program?.title}</span>
             <span>{program?.groups?.[0]?.name}</span>
             <span>{exerciseTitle}</span>
@@ -164,7 +169,7 @@ function renderPage(url = '/clinica/programas/modelos') {
                     />
                     <Route
                         path="/clinica/programas/:id/editar"
-                        element={<div>editar modelo</div>}
+                        element={<div>editor de programa</div>}
                     />
                 </Routes>
             </MemoryRouter>
@@ -295,8 +300,19 @@ describe('ProgramModelsPage', () => {
         expect(screen.getByText('Bird Dog')).toBeInTheDocument();
     });
 
-    it('em Meus modelos Editar abre a rota de edição', async () => {
+    it('em Meus modelos Editar abre o assistente como modelo, não o editor de programa', async () => {
         const user = userEvent.setup();
+        getMine.mockResolvedValue(
+            myProgram({
+                groups: [
+                    {
+                        id: 'g1',
+                        name: 'Fortalecimento',
+                        exercises: [],
+                    },
+                ],
+            }),
+        );
         renderPage('/clinica/programas/meus-modelos');
         await screen.findByText('Meu modelo de joelho');
         await user.click(
@@ -307,7 +323,94 @@ describe('ProgramModelsPage', () => {
         await user.click(
             screen.getByRole('menuitem', { name: 'Editar modelo' }),
         );
-        expect(screen.getByText('editar modelo')).toBeInTheDocument();
+        expect(await screen.findByText('novo programa')).toBeInTheDocument();
+        expect(screen.getByText('modo edição')).toBeInTheDocument();
+        expect(screen.getByText('como modelo')).toBeInTheDocument();
+        expect(screen.getByText('id 9')).toBeInTheDocument();
+        expect(screen.getByText('Fortalecimento')).toBeInTheDocument();
+        expect(
+            screen.queryByText('editor de programa'),
+        ).not.toBeInTheDocument();
+    });
+
+    it('não busca o detalhe de cada modelo ao abrir a lista', async () => {
+        const user = userEvent.setup();
+        listLibrary.mockResolvedValue({
+            data: [
+                catalogProgram(),
+                catalogProgram({ id: 2, title: 'Cervical aguda' }),
+                catalogProgram({ id: 3, title: 'Joelho pós-LCA' }),
+            ],
+            meta: { currentPage: 1, lastPage: 1, total: 3 },
+        });
+        renderPage();
+        await screen.findByText('Cervical aguda');
+        expect(getLibraryDetail).not.toHaveBeenCalled();
+
+        const card = screen
+            .getByText('Cervical aguda')
+            .closest('article') as HTMLElement;
+        await user.click(
+            within(card).getByRole('button', { name: 'Ver exercícios' }),
+        );
+        expect(await within(card).findByText('Bird Dog')).toBeInTheDocument();
+        expect(getLibraryDetail).toHaveBeenCalledTimes(1);
+        expect(getLibraryDetail).toHaveBeenCalledWith(2);
+    });
+
+    it('falha no detalhe não deixa a barra em carregamento eterno', async () => {
+        const user = userEvent.setup();
+        getLibraryDetail.mockRejectedValue(new Error('falhou'));
+        renderPage();
+        await screen.findByText('Reabilitação lombar — fase 1');
+        await user.click(
+            screen.getByRole('button', { name: 'Ver exercícios' }),
+        );
+        expect(
+            await screen.findByText('Não foi possível carregar os exercícios.'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText('Não foi possível carregar os blocos'),
+        ).toBeInTheDocument();
+    });
+
+    it('Nossos modelos busca todas as páginas do catálogo', async () => {
+        listLibrary.mockImplementation(({ page }: { page: number }) =>
+            Promise.resolve({
+                data: [
+                    page === 1
+                        ? catalogProgram()
+                        : catalogProgram({ id: 2, title: 'Catálogo antigo' }),
+                ],
+                meta: { currentPage: page, lastPage: 2, total: 201 },
+            }),
+        );
+        renderPage();
+        expect(await screen.findByText('Catálogo antigo')).toBeInTheDocument();
+        expect(listLibrary).toHaveBeenCalledWith(
+            expect.objectContaining({ page: 2, perPage: 200 }),
+        );
+    });
+
+    it('Meus modelos busca todas as páginas da API', async () => {
+        listMine.mockImplementation(({ page }: { page: number }) =>
+            Promise.resolve({
+                items: [
+                    page === 1
+                        ? myProgram()
+                        : myProgram({ id: '201', title: 'Modelo antigo' }),
+                ],
+                total: 201,
+                lastPage: 2,
+                perPage: 200,
+                currentPage: page,
+            }),
+        );
+        renderPage('/clinica/programas/meus-modelos');
+        expect(await screen.findByText('Modelo antigo')).toBeInTheDocument();
+        expect(listMine).toHaveBeenCalledWith(
+            expect.objectContaining({ page: 2, withoutPatient: true }),
+        );
     });
 
     it('em Meus modelos o admin duplica e exclui com confirmação', async () => {

@@ -10,7 +10,7 @@ import {
     PROGRAMS_TABS,
     programsTabFromPath,
     programsTabPath,
-    useLastProgramasPath,
+    useLastProgramsPaths,
     type ProgramsTabKey,
 } from './programs-tabs';
 
@@ -35,7 +35,7 @@ export function ProgramsPageShell({
     const location = useLocation();
     const isMobile = useIsMobile();
     const tab = programsTabFromPath(location.pathname);
-    const lastProgramasPath = useLastProgramasPath();
+    const lastPaths = useLastProgramsPaths();
 
     return (
         <ClinicLayout>
@@ -92,7 +92,8 @@ export function ProgramsPageShell({
                                                 const path = programsTabPath(
                                                     key as ProgramsTabKey,
                                                     location.pathname,
-                                                    lastProgramasPath,
+                                                    lastPaths.programas,
+                                                    lastPaths.historico,
                                                 );
                                                 if (
                                                     path !== location.pathname

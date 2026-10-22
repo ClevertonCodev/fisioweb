@@ -43,7 +43,7 @@ export function UserFormLayout(props: UserFormLayoutProps) {
             <form
                 onSubmit={f.submit}
                 noValidate
-                className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-col gap-6 px-4 pt-6 pb-44 sm:px-6 sm:pt-8 sm:pb-28"
+                className="mx-auto flex min-h-full max-w-(--breakpoint-ds-xl) flex-col gap-6 px-4 pt-6 sm:px-6 sm:pt-8"
             >
                 <header className="flex items-center gap-3">
                     <DsButton
@@ -140,7 +140,7 @@ export function UserFormLayout(props: UserFormLayoutProps) {
                     </aside>
                 </div>
 
-                {/* Barra de salvar */}
+                <div className="flex-1" />
                 <SaveBar>
                     <div className="flex items-center gap-3">
                         <p className="mr-auto min-w-0 truncate text-ds-caption text-ds-content-secondary">

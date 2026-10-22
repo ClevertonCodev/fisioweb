@@ -222,6 +222,21 @@ describe('cadastro de usuário (tela de verdade)', () => {
         expect(toastSuccess).not.toHaveBeenCalled();
     });
 
+    it('cada cartão de função tem o nome acessível só do cargo', () => {
+        renderNew();
+
+        const group = screen.getByRole('radiogroup', { name: 'Função' });
+        expect(
+            within(group).getByRole('radio', { name: 'Administrador' }),
+        ).toBeInTheDocument();
+        expect(
+            within(group).getByRole('radio', { name: 'Fisioterapeuta' }),
+        ).toBeInTheDocument();
+        expect(
+            within(group).getAllByRole('radio', { name: /fisioterapeuta/i }),
+        ).toHaveLength(1);
+    });
+
     it('crachá, agenda e assinatura acompanham nome, função e CREFITO', async () => {
         const user = userEvent.setup();
         renderNew();

@@ -1,13 +1,13 @@
 import { Minus, Plus, RotateCcw, RotateCw } from 'lucide-react';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 
-import { DsButton, DsModal, dsCn } from '@/components/ds';
+import { DsButton } from '../button/DsButton';
+import { DsModal } from '../modal/DsModal';
+import { dsCn } from '../utils/ds-cn';
 
-/*
- * PROTOTYPE (throwaway) — recorte circular da foto do paciente, no DS v2.
- * Moldura fixa em círculo; a imagem se move por baixo (arrastar, setas),
- * com zoom (controle, roda do mouse, + e -) e giro de 90°. A saída é um JPEG
- * quadrado de 512px. Sem dependência: react-image-crop não tem zoom.
+/**
+ * Recorte circular: moldura fixa; a imagem se move por baixo (arrastar,
+ * setas), com zoom e giro de 90°. A saída é um JPEG quadrado de 512px.
  */
 
 /** Ajuste do recorte. x e y em frações do diâmetro do círculo. */
@@ -94,7 +94,7 @@ async function renderCrop(
     return new File([blob], `${base}-recorte.jpg`, { type: 'image/jpeg' });
 }
 
-export function PhotoCropModal({
+export function DsPhotoCropModal({
     file,
     initial,
     onCancel,

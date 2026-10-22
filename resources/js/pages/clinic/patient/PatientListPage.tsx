@@ -3,7 +3,7 @@ import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { usePatients } from '@/application/clinic';
+import { patientDisplayName, usePatients } from '@/application/clinic';
 import {
     PATIENT_LIST_PER_PAGE_OPTIONS,
     toPatientListParams,
@@ -134,7 +134,9 @@ export default function PatientListPage() {
                             'Paciente não encontrado. A lista foi atualizada.',
                         );
                     } else {
-                        toast.success(`${patient.name} foi inativado.`);
+                        toast.success(
+                            `${patientDisplayName(patient)} foi inativado.`,
+                        );
                     }
                     setPendingChange(null);
                 },
@@ -143,7 +145,9 @@ export default function PatientListPage() {
         } else {
             reactivate.mutate(patient.id, {
                 onSuccess: () => {
-                    toast.success(`${patient.name} foi reativado.`);
+                    toast.success(
+                        `${patientDisplayName(patient)} foi reativado.`,
+                    );
                     setPendingChange(null);
                 },
                 onError,
@@ -207,7 +211,7 @@ export default function PatientListPage() {
                                     <DsInput
                                         type="search"
                                         aria-label="Pesquisar pacientes"
-                                        placeholder="Pesquisar por nome, CPF ou e-mail"
+                                        placeholder="Pesquisar por nome, apelido, CPF ou e-mail"
                                         iconLeft={<Search />}
                                         value={searchInput}
                                         onValueChange={setSearchInput}

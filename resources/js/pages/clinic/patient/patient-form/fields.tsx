@@ -1,150 +1,25 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import {
-    Controller,
-    useForm,
-    type FieldErrors,
-    type UseFormReturn,
-} from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { Controller } from 'react-hook-form';
 
-import {
-    patientFormDefaults,
-    patientFormSchema,
-    toPatientWriteDto,
-    type PatientFormValues,
-} from '@/application/clinic';
+import type { PatientFormValues } from '@/application/clinic';
 import { useCepLookup } from '@/application/clinic/use-cep-lookup';
 import {
     DsButton,
     DsCheckbox,
     DsCpfField,
+    DsDateField,
     DsFieldSelect,
     DsInput,
-    DsModal,
     DsPhoneField,
     DsSwitch,
     DsTextarea,
-    getPhoneValidationError,
     type SelectOption,
 } from '@/components/ds';
-import type { PrototypeVariant } from '@/pages/clinic/PrototypeSwitcher';
 
-import { DateField } from './DateField';
+import { ageFromIso, type Form, type SectionKey } from './form';
 
-/*
- * PROTOTYPE (throwaway) — peças compartilhadas pelas variantes do cadastro de
- * paciente no DS v2. Os campos são os mesmos da tela atual (patientFormSchema);
- * cada variante só muda o arranjo. O envio é stub: mostra o payload e não grava.
- */
-
-export const PATIENT_NEW_PROTOTYPE_VARIANTS: readonly PrototypeVariant[] = [
-    { key: 'O', name: 'Original v1' },
-    { key: 'A', name: 'Abas' },
-];
-
-export const PATIENTS_PATH = '/clinica/pacientes';
-
-export type Form = UseFormReturn<PatientFormValues>;
 type Field = keyof PatientFormValues;
-
-// ─── Seções (as mesmas abas da tela atual, com Perfil separado) ──────────────
-
-export type SectionKey =
-    | 'identificacao'
-    | 'perfil'
-    | 'contato'
-    | 'endereco'
-    | 'convenio'
-    | 'origem';
-
-export const SECTIONS: { key: SectionKey; label: string; hint: string }[] = [
-    {
-        key: 'identificacao',
-        label: 'Identificação',
-        hint: 'Foto, nome, documento e nascimento',
-    },
-    {
-        key: 'perfil',
-        label: 'Perfil e diagnóstico',
-        hint: 'Estado civil, profissão, sexo, gênero',
-    },
-    { key: 'contato', label: 'Contato', hint: 'Telefone e e-mail' },
-    { key: 'endereco', label: 'Endereço', hint: 'CEP preenche o resto' },
-    { key: 'convenio', label: 'Convênio', hint: 'Plano de saúde' },
-    {
-        key: 'origem',
-        label: 'Como conheceu',
-        hint: 'Indicação e canal de origem',
-    },
-];
-
-export const SECTION_FIELDS: Record<SectionKey, Field[]> = {
-    identificacao: [
-        'status',
-        'is_foreign',
-        'name',
-        'apelido',
-        'use_apelido',
-        'cpf',
-        'birth_date',
-    ],
-    perfil: [
-        'marital_status',
-        'profession',
-        'biological_sex',
-        'gender',
-        'education',
-        'diagnosis',
-    ],
-    contato: ['phone', 'email'],
-    endereco: [
-        'zip_code',
-        'address_street',
-        'address_number',
-        'address_no_number',
-        'address_complement',
-        'neighborhood',
-        'city',
-        'state',
-    ],
-    convenio: ['has_insurance', 'insurance', 'insurance_number'],
-    origem: ['referral_source'],
-};
-
-export const REQUIRED_FIELDS: Field[] = [
-    'name',
-    'cpf',
-    'birth_date',
-    'phone',
-    'email',
-];
-
-export function sectionErrorCount(
-    section: SectionKey,
-    errors: FieldErrors<PatientFormValues>,
-): number {
-    return SECTION_FIELDS[section].filter((f) => !!errors[f]).length;
-}
-
-export function firstSectionWithError(
-    errors: FieldErrors<PatientFormValues>,
-): SectionKey | null {
-    return (
-        SECTIONS.find((s) => sectionErrorCount(s.key, errors) > 0)?.key ?? null
-    );
-}
-
-// ─── Opções ──────────────────────────────────────────────────────────────────
-
-/** Só as situações de quem está chegando (sem Alta, Cancelado e Óbito). */
-export const STATUS_OPTIONS: SelectOption[] = [
-    { value: 'em_tratamento', label: 'Em tratamento' },
-    { value: 'em_treinamento', label: 'Em treinamento' },
-    { value: 'em_prevencao', label: 'Em prevenção' },
-];
 
 const MARITAL_OPTIONS: SelectOption[] = [
     { value: 'solteiro', label: 'Solteiro(a)' },
@@ -211,122 +86,6 @@ const UF_OPTIONS: SelectOption[] = [
     'TO',
 ].map((uf) => ({ value: uf, label: uf }));
 
-// ─── Hook do formulário (stub no envio) ──────────────────────────────────────
-
-/** O schema real + a validação de telefone do DsPhoneField. */
-const prototypeSchema = patientFormSchema.superRefine((data, ctx) => {
-    const error = data.phone ? getPhoneValidationError(data.phone) : '';
-    if (error) {
-        ctx.addIssue({ code: 'custom', message: error, path: ['phone'] });
-    }
-});
-
-/** Obrigatórios ainda vazios ou inválidos (pelo schema, sem esperar o blur). */
-export function pendingRequired(values: PatientFormValues): Field[] {
-    const result = prototypeSchema.safeParse(values);
-    if (result.success) return [];
-    const bad = new Set(result.error.issues.map((i) => i.path[0]));
-    return REQUIRED_FIELDS.filter((f) => bad.has(f));
-}
-
-export function usePatientNewPrototype() {
-    const navigate = useNavigate();
-    const form = useForm<PatientFormValues>({
-        resolver: zodResolver(prototypeSchema),
-        defaultValues: patientFormDefaults,
-        mode: 'onTouched',
-    });
-    const [photo, setPhoto] = useState<File | null>(null);
-    const [payload, setPayload] = useState<ReturnType<
-        typeof toPatientWriteDto
-    > | null>(null);
-
-    /** `onInvalid` recebe os erros para a variante levar o usuário até eles. */
-    const submit = (
-        onInvalid?: (errors: FieldErrors<PatientFormValues>) => void,
-    ) =>
-        form.handleSubmit(
-            (data) => setPayload(toPatientWriteDto(data)),
-            (errors) => {
-                toast.error('Confira os campos destacados.');
-                onInvalid?.(errors);
-            },
-        );
-
-    return {
-        form,
-        photo,
-        setPhoto,
-        payload,
-        closePayload: () => setPayload(null),
-        submit,
-        cancel: () => navigate(PATIENTS_PATH),
-    };
-}
-
-export type PrototypeState = ReturnType<typeof usePatientNewPrototype>;
-
-/** Resultado do envio stub: o que iria para a API, sem gravar. */
-export function PayloadModal({ state }: { state: PrototypeState }) {
-    return (
-        <DsModal
-            open={state.payload !== null}
-            onOpenChange={(open) => !open && state.closePayload()}
-            title="Protótipo: nada foi gravado"
-            size="md"
-            footer={
-                <div className="flex w-full justify-end gap-3">
-                    <DsButton
-                        variant="secondary"
-                        label="Voltar ao formulário"
-                        onClick={state.closePayload}
-                    />
-                    <DsButton label="Ir para a lista" onClick={state.cancel} />
-                </div>
-            }
-        >
-            <p className="text-ds-body-sm text-ds-content-secondary">
-                Na tela real, isto iria para <code>POST /clinic/patients</code>
-                {state.photo ? ' e a foto seria enviada em seguida' : ''}.
-            </p>
-            <pre className="mt-3 max-h-[50vh] overflow-auto rounded-ds-md bg-ds-surface-subtle p-3 font-ds-mono text-ds-caption text-ds-content-primary">
-                {JSON.stringify(state.payload, null, 2)}
-            </pre>
-        </DsModal>
-    );
-}
-
-// ─── Cabeçalho comum (título + voltar) ───────────────────────────────────────
-
-export function PageHeader({
-    state,
-    subtitle = 'Preencha os dados do paciente. Campos com * são obrigatórios.',
-    actions,
-}: {
-    state: PrototypeState;
-    subtitle?: string;
-    actions?: ReactNode;
-}) {
-    return (
-        <header className="flex flex-wrap items-start gap-4">
-            <DsButton
-                variant="tertiary"
-                iconPosition="only"
-                icon={<ArrowLeft />}
-                label="Voltar para pacientes"
-                onClick={state.cancel}
-            />
-            <div className="mr-auto min-w-0">
-                <h1 className="text-ds-page-title">Novo paciente</h1>
-                <p className="mt-1 text-ds-body-sm text-ds-content-secondary">
-                    {subtitle}
-                </p>
-            </div>
-            {actions}
-        </header>
-    );
-}
-
 export function SectionTitle({
     title,
     description,
@@ -346,13 +105,6 @@ export function SectionTitle({
     );
 }
 
-// ─── Encaixe dos campos de rótulo na borda (DsCpfField, DsPhoneField) ───────
-
-/**
- * Os campos com rótulo na borda têm 45px e só mostram ajuda no erro; o
- * DsInput tem o rótulo em cima (25px) e 48px. Este encaixe alinha os dois lado
- * a lado e mostra a dica fora do erro. Achado do protótipo: levar para o DS.
- */
 function OutlinedSlot({
     hint,
     invalid,
@@ -374,8 +126,6 @@ function OutlinedSlot({
     );
 }
 
-// ─── Select do DS ligado ao RHF ──────────────────────────────────────────────
-
 type StringField = {
     [K in Field]: PatientFormValues[K] extends string ? K : never;
 }[Field];
@@ -393,7 +143,6 @@ export function SelectField({
     label: string;
     options: SelectOption[];
     placeholder?: string;
-    /** Lista com busca (ex.: UF). */
     search?: boolean;
 }) {
     return (
@@ -422,38 +171,23 @@ export function SelectField({
     );
 }
 
-// ─── Status ──────────────────────────────────────────────────────────────────
-
-export function StatusField({ form }: { form: Form }) {
+export function StatusField({
+    form,
+    options,
+}: {
+    form: Form;
+    options: SelectOption[];
+}) {
     return (
         <SelectField
             form={form}
             name="status"
             label="Situação do tratamento"
-            options={STATUS_OPTIONS}
+            options={options}
         />
     );
 }
 
-// ─── Idade ───────────────────────────────────────────────────────────────────
-
-export function ageFromIso(iso: string): number | null {
-    if (!iso) return null;
-    const birth = new Date(`${iso}T00:00:00`);
-    const now = new Date();
-    let age = now.getFullYear() - birth.getFullYear();
-    const m = now.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
-    return age;
-}
-
-// ─── Blocos de campos ────────────────────────────────────────────────────────
-
-/** Nome, apelido, documento e nascimento. */
-/*
- * Os grids usam container queries (@xl, @5xl): a quantidade de colunas segue a
- * largura do cartão, não a da janela. Quem usa precisa de um `@container`.
- */
 const GRID = 'grid gap-5 @xl:grid-cols-2 @5xl:grid-cols-3';
 
 export function IdentityFields({ form }: { form: Form }) {
@@ -545,7 +279,7 @@ export function IdentityFields({ form }: { form: Form }) {
                 control={control}
                 name="birth_date"
                 render={({ field, fieldState }) => (
-                    <DateField
+                    <DsDateField
                         label="Data de nascimento"
                         required
                         name={field.name}
@@ -566,14 +300,7 @@ export function IdentityFields({ form }: { form: Form }) {
     );
 }
 
-/** Estado civil, profissão, sexo, gênero, escolaridade, diagnóstico. */
-export function ProfileFields({
-    form,
-    showDiagnosis = true,
-}: {
-    form: Form;
-    showDiagnosis?: boolean;
-}) {
+export function ProfileFields({ form }: { form: Form }) {
     const {
         register,
         formState: { errors },
@@ -611,28 +338,16 @@ export function ProfileFields({
                     options={EDUCATION_OPTIONS}
                 />
             </div>
-            {showDiagnosis && <DiagnosisField form={form} errors={errors} />}
+            <DsTextarea
+                label="Resumo do diagnóstico"
+                placeholder="Ex.: Lombalgia crônica pós-cirúrgica"
+                rows={3}
+                maxlength={500}
+                {...register('diagnosis')}
+                state={errors.diagnosis ? 'error' : 'default'}
+                helper={errors.diagnosis?.message}
+            />
         </div>
-    );
-}
-
-export function DiagnosisField({
-    form,
-    errors = form.formState.errors,
-}: {
-    form: Form;
-    errors?: FieldErrors<PatientFormValues>;
-}) {
-    return (
-        <DsTextarea
-            label="Resumo do diagnóstico"
-            placeholder="Ex.: Lombalgia crônica pós-cirúrgica"
-            rows={3}
-            maxlength={500}
-            {...form.register('diagnosis')}
-            state={errors.diagnosis ? 'error' : 'default'}
-            helper={errors.diagnosis?.message}
-        />
     );
 }
 
@@ -691,7 +406,6 @@ export function AddressFields({ form }: { form: Form }) {
     const { loading, lookup } = useCepLookup();
     const [cepMessage, setCepMessage] = useState<string | null>(null);
 
-    // Busca no ViaCEP ao completar os 8 dígitos (no evento, não num efeito).
     const onCepChange = (masked: string) => {
         setCepMessage(null);
         if (masked.replace(/\D/g, '').length !== 8) return;
@@ -710,8 +424,6 @@ export function AddressFields({ form }: { form: Form }) {
     };
 
     return (
-        // 6 colunas no cartão médio, 12 no largo:
-        // CEP · Rua · Número · Sem número / Complemento · Bairro · Cidade · UF.
         <div className="grid gap-5 @xl:grid-cols-6 @5xl:grid-cols-12">
             <div className="@xl:col-span-2">
                 <Controller
@@ -861,7 +573,7 @@ export function SourceFields({ form }: { form: Form }) {
     );
 }
 
-/** Igual à tela atual: ainda não grava nada (não existe campo no backend). */
+/** Ainda não grava: não existe campo no backend. */
 export function ReferralFields() {
     return (
         <div className="flex flex-col gap-3 rounded-ds-md border border-dashed border-ds-border-default p-4">
@@ -870,7 +582,7 @@ export function ReferralFields() {
                     Indicação de profissional da saúde
                 </p>
                 <p className="text-ds-caption text-ds-content-muted">
-                    Ainda não grava (igual à tela atual). Decidir se fica.
+                    Ainda não grava (igual à tela anterior).
                 </p>
             </div>
             <div>
@@ -887,15 +599,13 @@ export function ReferralFields() {
     );
 }
 
-/** Uma seção inteira pela chave. A foto e a situação ficam no painel lateral. */
 export function SectionFields({
     section,
-    state,
+    form,
 }: {
     section: SectionKey;
-    state: PrototypeState;
+    form: Form;
 }) {
-    const { form } = state;
     switch (section) {
         case 'identificacao':
             return <IdentityFields form={form} />;

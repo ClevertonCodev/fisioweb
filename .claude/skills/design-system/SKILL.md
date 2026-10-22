@@ -59,7 +59,7 @@ Diferenças de propósito:
 ## Formulário v2 (React Hook Form + Zod)
 
 - **`register`** funciona direto em: `DsInput`, `DsTextarea`, `DsSelect` e nos campos de documento (`DsCpfField`, `DsCnpjField`, `DsRgField`, `DsCnhField`, `DsPassportField`). Os documentos mascaram no próprio input, então o RHF já recebe o valor com máscara.
-- **`Controller`** (ou `FormField`) em: `DsMoneyInput` (número), `DsPhoneField`, `DsFieldSelect`, `DsCountrySelect`, `DsCheckbox`, `DsSwitch`, `DsRadioGroup`, `DsDatepicker`, `DsTimepicker`.
+- **`Controller`** (ou `FormField`) em: `DsMoneyInput` (número), `DsPhoneField`, `DsFieldSelect`, `DsCountrySelect`, `DsCheckbox`, `DsSwitch`, `DsRadioGroup`, `DsDatepicker`, `DsDateField`, `DsTimepicker`.
 - Erro: `state="error"` + `helper={mensagem}` nos campos de moldura; `invalid` + `helperText` nos de documento e telefone.
 - Validações prontas: `getCpfValidationError`, `getCnpjValidationError`, `getRgValidationError`, `getCnhValidationError`, `getPassportValidationError`, `getPhoneValidationError`.
 - **CNPJ alfanumérico:** o `DsCnpjField` e o `getCnpjValidationError` aceitam letras (formato novo da Receita), mas o backend (`ValidationHelper::validateCnpj`) ainda só aceita CNPJ numérico. Até o backend aceitar, um formulário v2 que manda CNPJ para a API deve validar também com `isValidCnpj` de `@/lib/br-document-validation` (alinhado ao PHP), para não deixar passar um valor que vai voltar 422.

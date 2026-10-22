@@ -20,6 +20,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
 import {
     useDeleteEvolution,
@@ -410,11 +411,13 @@ function PatientRecordPageV1() {
                                     {patient?.photoUrl && (
                                         <AvatarImage
                                             src={patient.photoUrl}
-                                            alt={patient.name}
+                                            alt={patientDisplayName(patient)}
                                         />
                                     )}
                                     <AvatarFallback className="bg-primary/10 font-medium text-primary">
-                                        {patient?.name.charAt(0).toUpperCase()}
+                                        {patientDisplayName(patient)
+                                            .charAt(0)
+                                            .toUpperCase()}
                                     </AvatarFallback>
                                 </>
                             )}
@@ -428,7 +431,7 @@ function PatientRecordPageV1() {
                                     <Skeleton className="h-4 w-48" />
                                 ) : (
                                     <p className="truncate text-sm text-muted-foreground">
-                                        {patient?.name}
+                                        {patientDisplayName(patient)}
                                     </p>
                                 )}
                                 <Tooltip>
@@ -1105,7 +1108,7 @@ function PatientRecordPageV1() {
                     setEvolutionViewOpen(open);
                     if (!open) setEvolutionToView(undefined);
                 }}
-                patientName={patient?.name ?? ''}
+                patientName={patient ? patientDisplayName(patient) : ''}
                 evolution={evolutionToView ?? null}
                 onEditDraft={handleEditDraftFromView}
             />

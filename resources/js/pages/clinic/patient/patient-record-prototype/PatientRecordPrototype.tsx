@@ -14,6 +14,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { DsButton, DsEmptyState } from '@/components/ds';
 import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
@@ -56,7 +57,7 @@ export default function PatientRecordPrototype({
         });
     const newProps = {
         patientId: id,
-        patientName: data.patient?.name ?? '',
+        patientName: data.patient ? patientDisplayName(data.patient) : '',
         onClose: closeNew,
     };
 

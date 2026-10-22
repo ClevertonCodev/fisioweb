@@ -10,14 +10,15 @@ import {
     type MonthCaptionProps,
 } from 'react-day-picker';
 
-import { DsInput, DsSelect, dsCn } from '@/components/ds';
-import { fieldIconButtonClass } from '@/components/ds/field/field';
+import { fieldIconButtonClass } from '../field/field';
+import { DsInput } from '../input/DsInput';
+import { DsSelect } from '../select/DsSelect';
+import { dsCn } from '../utils/ds-cn';
 
-/*
- * PROTOTYPE (throwaway) — campo de data que aceita digitar (DD/MM/AAAA) ou
- * escolher no calendário pelo ícone à direita. O DS só tem o DsDatepicker,
- * que é um botão e anda mês a mês; para nascimento, o cabeçalho aqui tem mês
- * e ano em select. Candidato a DsDateField no DS (mesmo visual do calendário).
+/**
+ * Campo de data digitável (DD/MM/AAAA) com calendário no ícone. O cabeçalho
+ * tem mês e ano em select — diferente do `DsDatepicker`, que é um botão e
+ * anda mês a mês.
  */
 
 const MONTHS = [
@@ -175,7 +176,7 @@ function DayButton({ day, modifiers, className, ...props }: DayButtonProps) {
     );
 }
 
-export function DateField({
+export function DsDateField({
     label,
     value,
     onChange,

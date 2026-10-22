@@ -57,6 +57,8 @@ interface ApiPatientPage {
 
 function toEntity(raw: ApiPatientDto): Patient {
     const professionalName = raw.clinic_user?.name ?? '';
+    const apelido = raw.apelido ?? undefined;
+    const useApelido = raw.use_apelido ?? false;
 
     return {
         id: String(raw.id),
@@ -68,6 +70,8 @@ function toEntity(raw: ApiPatientDto): Patient {
         diagnosis: raw.diagnosis ?? '',
         photoUrl: raw.photo_url ?? undefined,
         isActive: raw.is_active ?? true,
+        apelido,
+        useApelido,
     };
 }
 

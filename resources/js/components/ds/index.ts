@@ -206,3 +206,9 @@ export type {
     DatepickerTriggerState,
     DatepickerValue,
 } from './datepicker/types';
+
+export { DsDateField } from './date-field/DsDateField';
+
+export { DsAvatarPhotoField } from './photo/DsAvatarPhotoField';
+export { DEFAULT_CROP, DsPhotoCropModal } from './photo/DsPhotoCropModal';
+export type { CropParams } from './photo/DsPhotoCropModal';

@@ -1,20 +1,27 @@
 import { Camera, Crop, ImageUp, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 
-import { DsButton, dsCn } from '@/components/ds';
+import { DsButton } from '../button/DsButton';
+import { dsCn } from '../utils/ds-cn';
 
-import { PhotoCropModal, type CropParams } from './PhotoCropModal';
+const DEFAULT_ACCEPT = 'image/jpeg,image/png,image/webp';
+const SOURCE_MAX = 10 * 1024 * 1024;
+const RESULT_MAX = 2 * 1024 * 1024;
+const MIMES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-/*
- * PROTOTYPE (throwaway) — campo de foto do paciente no DS v2: área de soltar
- * em círculo, recorte obrigatório ao escolher, "Ajustar" reabre o recorte a
- * partir da imagem original com o enquadramento anterior.
- */
+function defaultSourceError(file: File): string | null {
+    if (!MIMES.has(file.type)) return 'Use uma foto JPG, PNG ou WebP.';
+    if (file.size > SOURCE_MAX) return 'A foto pode ter até 10 MB.';
+    return null;
+}
 
-const MIMES: readonly string[] = ['image/jpeg', 'image/png', 'image/webp'];
-/** A original pode ser maior: o recorte sai com 512px e bem menos de 2 MB. */
-const MAX_SOURCE = 10 * 1024 * 1024;
-const MAX_RESULT = 2 * 1024 * 1024;
+function defaultResultError(file: File): string | null {
+    if (!MIMES.has(file.type)) return 'Use uma foto JPG, PNG ou WebP.';
+    if (file.size > RESULT_MAX) return 'A foto pode ter até 2 MB.';
+    return null;
+}
+
+import { DsPhotoCropModal, type CropParams } from './DsPhotoCropModal';
 
 function initialsOf(name: string): string {
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -23,18 +30,27 @@ function initialsOf(name: string): string {
     return (first + last).toUpperCase();
 }
 
-export function PhotoUpload({
+export function DsAvatarPhotoField({
     value,
+    currentUrl = null,
     onChange,
     name = '',
     size = 152,
+    accept = DEFAULT_ACCEPT,
+    validateSource = defaultSourceError,
+    validateResult = defaultResultError,
 }: {
     /** Foto já recortada (o que vai para a API). */
     value: File | null;
+    /** Foto já salva, enquanto não há arquivo novo. */
+    currentUrl?: string | null;
     onChange: (file: File | null) => void;
-    /** Nome do paciente, para as iniciais enquanto não há foto. */
+    /** Nome para as iniciais enquanto não há foto. */
     name?: string;
     size?: number;
+    accept?: string;
+    validateSource?: (file: File) => string | null;
+    validateResult?: (file: File) => string | null;
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [source, setSource] = useState<File | null>(null);
@@ -53,16 +69,14 @@ export function PhotoUpload({
         },
         [preview],
     );
+    const shown = preview ?? currentUrl;
 
-    const accept = (file: File | undefined) => {
+    const takeFile = (file: File | undefined) => {
         setError(null);
         if (!file) return;
-        if (!MIMES.includes(file.type)) {
-            setError('Formato não aceito. Use JPEG, PNG ou WebP.');
-            return;
-        }
-        if (file.size > MAX_SOURCE) {
-            setError('Imagem grande demais (máximo 10 MB).');
+        const problem = validateSource(file);
+        if (problem) {
+            setError(problem);
             return;
         }
         setParams(undefined);
@@ -72,7 +86,7 @@ export function PhotoUpload({
     const onDrop = (e: DragEvent) => {
         e.preventDefault();
         setOver(false);
-        accept(e.dataTransfer.files[0]);
+        takeFile(e.dataTransfer.files[0]);
     };
 
     const pick = () => inputRef.current?.click();
@@ -91,13 +105,13 @@ export function PhotoUpload({
                     onDragLeave={() => setOver(false)}
                     onDrop={onDrop}
                     aria-label={
-                        value
+                        shown
                             ? 'Ajustar o recorte da foto'
                             : 'Adicionar foto do paciente'
                     }
                     className={dsCn(
                         'group relative flex cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-full transition-[box-shadow,background-color,border-color] duration-200 focus-visible:shadow-ds-focus focus-visible:outline-0',
-                        value
+                        shown
                             ? 'border border-ds-border-default shadow-ds-md'
                             : 'border-2 border-dashed border-ds-border-default bg-ds-surface-subtle hover:border-ds-primary-60 hover:bg-ds-surface-brand-subtle',
                         over &&
@@ -105,10 +119,10 @@ export function PhotoUpload({
                     )}
                     style={{ width: size, height: size }}
                 >
-                    {preview ? (
+                    {shown ? (
                         <>
                             <img
-                                src={preview}
+                                src={shown}
                                 alt=""
                                 className="size-full object-cover"
                             />
@@ -146,23 +160,25 @@ export function PhotoUpload({
                         </>
                     )}
                 </button>
-                {value && (
+                {shown && (
                     <span className="pointer-events-none absolute right-1 bottom-1 flex size-9 items-center justify-center rounded-full bg-ds-primary-80 text-ds-white ring-4 ring-ds-surface-default ds-dark:bg-ds-primary-70">
                         <Pencil className="size-4" />
                     </span>
                 )}
             </div>
 
-            {value ? (
+            {shown ? (
                 <div className="flex flex-wrap justify-center gap-2">
-                    <DsButton
-                        variant="secondary"
-                        size="sm"
-                        iconPosition="left"
-                        icon={<Crop />}
-                        label="Ajustar"
-                        onClick={() => setCropping(source)}
-                    />
+                    {value && source && (
+                        <DsButton
+                            variant="secondary"
+                            size="sm"
+                            iconPosition="left"
+                            icon={<Crop />}
+                            label="Ajustar"
+                            onClick={() => setCropping(source)}
+                        />
+                    )}
                     <DsButton
                         variant="secondary"
                         size="sm"
@@ -194,7 +210,7 @@ export function PhotoUpload({
                     >
                         escolha um arquivo
                     </button>
-                    . JPEG, PNG ou WebP.
+                    . JPEG, PNG ou WebP, até 2 MB depois do recorte.
                 </p>
             )}
 
@@ -210,21 +226,22 @@ export function PhotoUpload({
             <input
                 ref={inputRef}
                 type="file"
-                accept={MIMES.join(',')}
+                accept={accept}
                 className="hidden"
                 onChange={(e) => {
-                    accept(e.target.files?.[0]);
+                    takeFile(e.target.files?.[0]);
                     e.target.value = '';
                 }}
             />
 
-            <PhotoCropModal
+            <DsPhotoCropModal
                 file={cropping}
                 initial={cropping === source ? params : undefined}
                 onCancel={() => setCropping(null)}
                 onConfirm={(cropped, next) => {
-                    if (cropped.size > MAX_RESULT) {
-                        setError('A foto recortada passou de 2 MB.');
+                    const problem = validateResult(cropped);
+                    if (problem) {
+                        setError(problem);
                         return;
                     }
                     setSource(cropping);

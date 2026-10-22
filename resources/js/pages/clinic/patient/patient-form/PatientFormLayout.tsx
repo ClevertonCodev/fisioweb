@@ -1,53 +1,53 @@
-import { Check, CircleAlert } from 'lucide-react';
+import { ArrowLeft, Check, CircleAlert } from 'lucide-react';
 import { useState } from 'react';
 
-import { DsButton, dsCn, DsTabs } from '@/components/ds';
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
+import {
+    getPatientPhotoSourceError,
+    getPatientPhotoValidationError,
+    PATIENT_PHOTO_INPUT_ACCEPT,
+} from '@/application/clinic/patient-photo-rules';
+import { DsAvatarPhotoField, DsButton, dsCn, DsTabs } from '@/components/ds';
 
-import { PhotoUpload } from './PhotoUpload';
+import {
+    IdentityFields,
+    SectionFields,
+    SectionTitle,
+    StatusField,
+} from './fields';
 import {
     ageFromIso,
     firstSectionWithError,
-    IdentityFields,
-    PageHeader,
     pendingRequired,
     REQUIRED_FIELDS,
+    REQUIRED_LABELS,
     SECTION_FIELDS,
     sectionErrorCount,
-    SectionFields,
     SECTIONS,
-    SectionTitle,
-    StatusField,
-    type PrototypeState,
+    type PatientFormState,
     type SectionKey,
-} from './shared';
+} from './form';
 
-const REQUIRED_LABELS: Record<string, string> = {
-    name: 'Nome',
-    cpf: 'Documento',
-    birth_date: 'Data de nascimento',
-    phone: 'Celular',
-    email: 'E-mail',
-};
-
-/**
- * A — Abas, na largura toda (até 1920px). À esquerda, um painel fixo com a
- * foto (recorte), a situação e o que falta dos obrigatórios; à direita, o
- * cartão com as abas, com os campos em mais colunas conforme o espaço.
- */
-export function VariantA({ state }: { state: PrototypeState }) {
-    const { form } = state;
+export function PatientFormLayout({ f }: { f: PatientFormState }) {
+    const { form } = f;
+    const creating = f.mode === 'create';
     const [tab, setTab] = useState<SectionKey>('identificacao');
     const { errors } = form.formState;
     const v = form.watch();
     const index = SECTIONS.findIndex((s) => s.key === tab);
     const current = SECTIONS[index];
     const age = ageFromIso(v.birth_date);
-    // Obrigatórios vazios ou inválidos: travam "Próxima aba" (os da aba) e
-    // "Concluir cadastro" (todos).
+    const shownName = patientDisplayName({
+        name: v.name,
+        apelido: v.apelido,
+        useApelido: v.use_apelido,
+    });
     const pending = pendingRequired(v);
-    const pendingInTab = pending.filter((f) => SECTION_FIELDS[tab].includes(f));
+    const pendingInTab = pending.filter((field) =>
+        SECTION_FIELDS[tab].includes(field),
+    );
 
-    const onSubmit = state.submit((errs) => {
+    const onSubmit = f.submit((errs) => {
         const first = firstSectionWithError(errs);
         if (first) setTab(first);
     });
@@ -59,24 +59,51 @@ export function VariantA({ state }: { state: PrototypeState }) {
             className="flex min-h-full flex-col"
         >
             <div className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
-                {/* Largura máxima = breakpoint xl do DS (1920px). */}
                 <div className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-col gap-6">
-                    <PageHeader state={state} />
+                    <header className="flex flex-wrap items-start gap-4">
+                        <DsButton
+                            variant="tertiary"
+                            iconPosition="only"
+                            icon={<ArrowLeft />}
+                            label={
+                                creating
+                                    ? 'Voltar para pacientes'
+                                    : 'Voltar para o prontuário'
+                            }
+                            onClick={f.cancel}
+                        />
+                        <div className="mr-auto min-w-0">
+                            <h1 className="text-ds-page-title">
+                                {creating ? 'Novo paciente' : 'Editar paciente'}
+                            </h1>
+                            <p className="mt-1 text-ds-body-sm text-ds-content-secondary">
+                                {creating
+                                    ? 'Preencha os dados do paciente. Campos com * são obrigatórios.'
+                                    : 'Atualize as informações do paciente e salve as alterações.'}
+                            </p>
+                        </div>
+                    </header>
                     <div className="grid items-start gap-6 lg:grid-cols-[300px_1fr] 2xl:grid-cols-[340px_1fr]">
                         <aside
                             aria-label="Foto e situação"
-                            className="flex flex-col gap-6 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-6 shadow-ds-xs lg:sticky lg:top-6"
+                            className="flex flex-col gap-6 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-6 shadow-ds-xs max-lg:order-2 lg:sticky lg:top-6"
                         >
-                            <PhotoUpload
-                                value={state.photo}
-                                onChange={state.setPhoto}
-                                name={v.name}
+                            <DsAvatarPhotoField
+                                value={f.photoFile}
+                                currentUrl={f.savedPhoto}
+                                onChange={f.setPhoto}
+                                name={shownName}
+                                accept={PATIENT_PHOTO_INPUT_ACCEPT}
+                                validateSource={getPatientPhotoSourceError}
+                                validateResult={getPatientPhotoValidationError}
                             />
                             <div className="text-center">
                                 <p className="truncate text-ds-h4">
-                                    {v.name.trim() || (
+                                    {shownName || (
                                         <span className="text-ds-content-subtle">
-                                            Novo paciente
+                                            {creating
+                                                ? 'Novo paciente'
+                                                : 'Paciente'}
                                         </span>
                                     )}
                                 </p>
@@ -86,27 +113,30 @@ export function VariantA({ state }: { state: PrototypeState }) {
                                         : 'Idade aparece com a data de nascimento'}
                                 </p>
                             </div>
-                            <StatusField form={form} />
+                            <StatusField
+                                form={form}
+                                options={f.statusOptions}
+                            />
                             <div className="flex flex-col gap-2 border-t border-ds-border-subtle pt-5">
                                 <p className="text-ds-eyebrow text-ds-content-muted uppercase">
                                     Obrigatórios
                                 </p>
                                 <ul className="flex flex-col gap-1.5">
-                                    {REQUIRED_FIELDS.map((f) => {
-                                        const ok = !pending.includes(f);
+                                    {REQUIRED_FIELDS.map((field) => {
+                                        const ok = !pending.includes(field);
                                         return (
                                             <li
-                                                key={f}
+                                                key={field}
                                                 className={dsCn(
                                                     'flex items-center gap-2 text-ds-body-xs',
                                                     ok
                                                         ? 'text-ds-status-success-content'
-                                                        : errors[f]
+                                                        : errors[field]
                                                           ? 'text-ds-status-danger-content'
                                                           : 'text-ds-content-muted',
                                                 )}
                                             >
-                                                {errors[f] ? (
+                                                {errors[field] ? (
                                                     <CircleAlert className="size-4" />
                                                 ) : (
                                                     <Check
@@ -116,7 +146,7 @@ export function VariantA({ state }: { state: PrototypeState }) {
                                                         )}
                                                     />
                                                 )}
-                                                {REQUIRED_LABELS[f]}
+                                                {REQUIRED_LABELS[field]}
                                             </li>
                                         );
                                     })}
@@ -124,7 +154,7 @@ export function VariantA({ state }: { state: PrototypeState }) {
                             </div>
                         </aside>
 
-                        <div className="min-w-0 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs">
+                        <div className="min-w-0 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs max-lg:order-1">
                             <div className="border-b border-ds-border-subtle p-3">
                                 <DsTabs
                                     aria-label="Seções do cadastro"
@@ -150,7 +180,6 @@ export function VariantA({ state }: { state: PrototypeState }) {
                                         description={current.hint}
                                     />
                                 )}
-                                {/* Todas montadas: o RHF valida e guarda tudo. */}
                                 {SECTIONS.map((s) => (
                                     <div key={s.key} hidden={s.key !== tab}>
                                         {s.key === 'identificacao' ? (
@@ -158,7 +187,7 @@ export function VariantA({ state }: { state: PrototypeState }) {
                                         ) : (
                                             <SectionFields
                                                 section={s.key}
-                                                state={state}
+                                                form={form}
                                             />
                                         )}
                                     </div>
@@ -168,7 +197,7 @@ export function VariantA({ state }: { state: PrototypeState }) {
                     </div>
                 </div>
             </div>
-            <footer className="sticky bottom-0 border-t border-ds-border-subtle bg-ds-surface-default px-4 py-3 sm:px-6">
+            <footer className="mt-auto border-t border-ds-border-subtle bg-ds-surface-default px-4 py-3 sm:px-6">
                 <div className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-wrap items-center gap-3">
                     <p
                         aria-live="polite"
@@ -176,23 +205,23 @@ export function VariantA({ state }: { state: PrototypeState }) {
                     >
                         {pending.length === 0 ? (
                             <span className="text-ds-status-success-content">
-                                Tudo pronto para concluir.
+                                Tudo pronto para{' '}
+                                {creating ? 'concluir' : 'salvar'}.
                             </span>
                         ) : (
                             <>
                                 Falta preencher:{' '}
                                 {pending
-                                    .map((f) => REQUIRED_LABELS[f])
+                                    .map((field) => REQUIRED_LABELS[field])
                                     .join(', ')}
                             </>
                         )}
                     </p>
-                    {/* Todas as ações juntas, à direita. */}
                     <div className="flex gap-3">
                         <DsButton
                             variant="secondary"
                             label="Cancelar"
-                            onClick={state.cancel}
+                            onClick={f.cancel}
                         />
                         {index < SECTIONS.length - 1 && (
                             <DsButton
@@ -207,8 +236,17 @@ export function VariantA({ state }: { state: PrototypeState }) {
                         )}
                         <DsButton
                             type="submit"
-                            label="Concluir cadastro"
-                            disabled={pending.length > 0}
+                            label={
+                                f.submitting
+                                    ? creating
+                                        ? 'Criando…'
+                                        : 'Salvando…'
+                                    : creating
+                                      ? 'Concluir cadastro'
+                                      : 'Salvar alterações'
+                            }
+                            loading={f.submitting}
+                            disabled={pending.length > 0 || f.submitting}
                         />
                     </div>
                 </div>

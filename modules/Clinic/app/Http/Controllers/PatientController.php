@@ -98,6 +98,8 @@ class PatientController extends ClinicAuthenticatedController
 
     public function store(StorePatientRequest $request): JsonResponse
     {
+        $this->authorize('create', Patient::class);
+
         $clinicId = $this->clinicId();
         $patient  = $this->patientService->create($request->validated(), $clinicId);
 
@@ -112,6 +114,8 @@ class PatientController extends ClinicAuthenticatedController
         if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
+
+        $this->authorize('update', $patient);
 
         $patient = $this->patientService->update($id, $request->validated());
 
@@ -130,6 +134,8 @@ class PatientController extends ClinicAuthenticatedController
         if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
+
+        $this->authorize('update', $patient);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'patients/photos');
         $patient  = $this->patientService->update($id, ['photo_url' => $uploaded['cdn_url']]);

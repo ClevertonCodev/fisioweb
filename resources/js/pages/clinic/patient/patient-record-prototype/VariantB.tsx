@@ -23,6 +23,12 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
+import {
+    DS_STATUS,
+    STATUS_ORDER,
+    statusLabel,
+} from '@/components/clinic/agenda/agenda-shared';
 import {
     DsAlert,
     DsButton,
@@ -33,11 +39,6 @@ import {
     DsTooltip,
 } from '@/components/ds';
 import type { Appointment } from '@/domain/clinic';
-import {
-    DS_STATUS,
-    STATUS_ORDER,
-    statusLabel,
-} from '@/components/clinic/agenda/agenda-shared';
 import { PatientStatusBadge } from '@/pages/clinic/patient/patient-list/patient-status';
 import { PatientAvatar } from '@/pages/clinic/patient/patient-list/PatientAvatar';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
@@ -92,6 +93,7 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
     const [now] = useState(() => Date.now());
     const isMobile = useIsMobile();
 
+    const shownName = patient ? patientDisplayName(patient) : 'Carregando…';
     const age = ageOf(patient?.birthDate);
     const monthsInCare = stats.since
         ? Math.max(1, Math.round((now - stats.since.getTime()) / (30 * DAY)))
@@ -229,7 +231,7 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                         </div>
                         <div className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                             <h1 className="text-ds-body-lg leading-tight font-semibold sm:truncate sm:text-ds-h3">
-                                {patient?.name ?? 'Carregando…'}
+                                {shownName}
                             </h1>
                             {patient && (
                                 <PatientStatusBadge status={patient.status} />

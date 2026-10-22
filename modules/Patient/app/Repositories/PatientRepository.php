@@ -48,6 +48,7 @@ class PatientRepository implements PatientRepositoryInterface
             $searchDigits = preg_replace('/\D+/', '', $search);
             $query->where(function ($q) use ($search, $searchDigits) {
                 $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('apelido', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
                 if (!empty($searchDigits)) {
                     $q->orWhere('cpf', 'like', "%{$searchDigits}%");

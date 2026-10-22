@@ -164,6 +164,7 @@ export function facetOptions(
 
 export function activeLibraryFilterCount(f: LibraryFilters): number {
     return (
+        (f.search.trim() ? 1 : 0) +
         (f.favoritesOnly ? 1 : 0) +
         FACETS.reduce((n, { key }) => n + f.facets[key].length, 0)
     );
@@ -171,6 +172,13 @@ export function activeLibraryFilterCount(f: LibraryFilters): number {
 
 export function libraryChips(f: LibraryFilters): LibraryChip[] {
     const chips: LibraryChip[] = [];
+    if (f.search.trim()) {
+        chips.push({
+            key: 'search',
+            label: 'Busca',
+            value: f.search.trim(),
+        });
+    }
     if (f.favoritesOnly) {
         chips.push({ key: 'fav', label: 'Mostrar', value: 'Só favoritos' });
     }
@@ -190,6 +198,7 @@ export function removeLibraryChip(
     f: LibraryFilters,
     chip: Pick<LibraryChip, 'key'>,
 ): Partial<LibraryFilters> {
+    if (chip.key === 'search') return { search: '' };
     if (chip.key === 'fav') return { favoritesOnly: false };
     const [key, ...rest] = chip.key.split(':');
     const value = rest.join(':');

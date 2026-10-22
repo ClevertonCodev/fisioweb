@@ -71,8 +71,7 @@ export default function ExerciseLibraryPage({
 
     const update = (patch: Partial<LibraryFilters>) =>
         setFilters((prev) => ({ ...prev, ...patch }));
-    const clearFilters = () =>
-        setFilters({ ...INITIAL_LIBRARY_FILTERS, search: filters.search });
+    const clearFilters = () => setFilters(INITIAL_LIBRARY_FILTERS);
 
     const apiParams = libraryApiParams(filters);
     const {
@@ -161,7 +160,7 @@ export default function ExerciseLibraryPage({
             variant="no-results"
             title="Nenhum exercício encontrado"
             action={
-                filterCount > 0 ? (
+                isFiltered ? (
                     <DsButton
                         variant="secondary"
                         label="Limpar filtros"

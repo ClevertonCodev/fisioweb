@@ -224,18 +224,30 @@ export function areaOptions(models: ModelSummary[]): string[] {
 }
 
 export function activeModelFilterCount(f: ModelFilters): number {
-    return f.areas.length;
+    return (f.search.trim() ? 1 : 0) + f.areas.length;
 }
 
 export function modelChips(f: ModelFilters) {
-    return f.areas.map((a) => ({
-        key: a,
-        label: 'Especialidade',
-        value: a,
-    }));
+    const chips: { key: string; label: string; value: string }[] = [];
+    if (f.search.trim()) {
+        chips.push({
+            key: 'search',
+            label: 'Busca',
+            value: f.search.trim(),
+        });
+    }
+    for (const a of f.areas) {
+        chips.push({
+            key: a,
+            label: 'Especialidade',
+            value: a,
+        });
+    }
+    return chips;
 }
 
 export function removeModelChip(f: ModelFilters, key: string): ModelFilters {
+    if (key === 'search') return { ...f, search: '' };
     return { ...f, areas: f.areas.filter((a) => a !== key) };
 }
 

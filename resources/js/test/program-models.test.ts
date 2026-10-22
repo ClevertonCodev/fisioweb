@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    activeModelFilterCount,
     applyModelFilters,
     fromMine,
+    INITIAL_MODEL_FILTERS,
+    modelChips,
     regionsOf,
+    removeModelChip,
     type ModelSummary,
 } from '@/application/clinic/program-models';
 import type { Program } from '@/domain/clinic';
@@ -55,6 +59,18 @@ describe('applyModelFilters', () => {
                 areas: ['Neurologia'],
             }).map((m) => m.id),
         ).toEqual(['2']);
+    });
+
+    it('conta a busca e o Limpar do chip zera só ela', () => {
+        const filters = { ...INITIAL_MODEL_FILTERS, search: 'lombar' };
+        expect(activeModelFilterCount(filters)).toBe(1);
+        expect(modelChips(filters)).toEqual([
+            { key: 'search', label: 'Busca', value: 'lombar' },
+        ]);
+        expect(removeModelChip(filters, 'search')).toEqual({
+            ...filters,
+            search: '',
+        });
     });
 });
 

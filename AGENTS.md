@@ -44,6 +44,24 @@ php artisan migrate
 npm run build
 ```
 
+## Cursor Cloud specific instructions
+
+Ambiente versionado em `.cursor/environment.json` (Dockerfile + `cloud-agent-install.sh`).
+O Build roda o mesmo fluxo do CI: `composer install`, `npm install`, `npm run build`,
+`.env` a partir de `.env.example`, `key:generate`, `jwt:secret` se faltar, migrate em
+SQLite e `./vendor/bin/phpunit` (igual ao job `tests` do GitHub Actions).
+
+**Secrets no dashboard** ([Cloud Agents → Secrets](https://cursor.com/dashboard/cloud-agents)):
+só se a tarefa precisar de integração real (R2, Google OAuth, WhatsApp, etc.). Tarefas
+só de código/teste costumam bastar com o `.env.example` (SQLite, `MAIL_MAILER=log`).
+
+**Verificar mudança:** `bash bin/verificar.sh` (ou `composer run test` + `npm run test -- --run`).
+
+**Dev server na VM (smoke no browser):** `php artisan serve --host=0.0.0.0 --port=8000` e
+`npm run dev` em terminal separado; usar port forwarding no painel do agente.
+
+Não use `bin/fisio-app` / Docker local na nuvem — é fluxo de worktree no Mac.
+
 ## Stack
 
 | Área | Tecnologia |

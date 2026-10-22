@@ -6,7 +6,7 @@
  * e da descrição (ver regionsOf).
  */
 import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 
 import { DsBadge, DsButton, dsCn, DsTooltip } from '@/components/ds';
 
@@ -19,8 +19,18 @@ import {
     type ModelSummary,
     type Region,
 } from './data';
-import { GroupSections, ModelActionsMenu, UseModelButton } from './parts';
-import type { VariantProps } from './ProgramModelsPrototype';
+import {
+    GroupSections,
+    ModelActionsMenu,
+    useModelActions,
+    UseModelButton,
+} from './parts';
+
+export interface VariantProps {
+    models: ModelSummary[];
+    isLoading: boolean;
+    emptyState: ReactNode;
+}
 
 // ---------------------------------------------------------------- corpo
 
@@ -201,6 +211,7 @@ function SessionBar({ model }: { model: ModelSummary }) {
 }
 
 function SessionCard({ model }: { model: ModelSummary }) {
+    const { run, deleteModal } = useModelActions();
     const { detail } = useModelDetail(model);
     const [open, setOpen] = useState(false);
     const thumbs = exercisesOf(detail);
@@ -245,7 +256,7 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 </div>
                 <div className="hidden items-center gap-1 sm:flex">
                     <UseModelButton model={model} size="sm" />
-                    <ModelActionsMenu model={model} />
+                    <ModelActionsMenu model={model} onAction={run} />
                 </div>
             </div>
 
@@ -291,8 +302,9 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 <div className="flex-1">
                     <UseModelButton model={model} size="full" />
                 </div>
-                <ModelActionsMenu model={model} />
+                <ModelActionsMenu model={model} onAction={run} />
             </div>
+            {deleteModal}
         </article>
     );
 }
@@ -306,7 +318,7 @@ export function VariantC({ models, isLoading, emptyState }: VariantProps) {
     const pick = (r: Region | null) => {
         setRegion(r);
         if (r && !window.matchMedia('(min-width: 1024px)').matches) {
-            resultsRef.current?.scrollIntoView({
+            resultsRef.current?.scrollIntoView?.({
                 behavior: 'smooth',
                 block: 'start',
             });

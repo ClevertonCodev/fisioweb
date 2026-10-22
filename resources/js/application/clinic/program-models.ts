@@ -1,24 +1,3 @@
-/**
- * PROTÓTIPO (descartável): os dois tipos de modelo numa forma só.
- *
- * - "Nossos modelos": catálogo do admin (GET /clinic/programs). A lista
- *   traz área e contagem; grupos e vídeos só no detalhe.
- * - "Meus modelos": programas da clínica sem paciente
- *   (GET /clinic/treatment-plans?without_patient=1).
- *
- * Dados reais (até 200 de cada); busca e filtros são locais. Na tela de
- * verdade viram parâmetros da API (search e physio_area_id já existem).
- */
-import { useQuery } from '@tanstack/react-query';
-
-import {
-    listClinicProgramsLibraryPaginated,
-    useClinicProgramLibraryDetail,
-} from '@/application/clinic/use-clinic-programs-library';
-import {
-    listMyModelsPaginated,
-    useClinicProgram,
-} from '@/application/clinic/use-programs';
 import type { AdminProgram, AdminProgramExercise } from '@/domain/admin';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 
@@ -62,16 +41,15 @@ export interface ModelGroup {
 
 export interface ModelDetail extends ModelSummary {
     groups: ModelGroup[];
-    /** O objeto que a v1 manda para /clinica/programas/novo. */
     source: AdminProgram | Program;
 }
 
-// ---------------------------------------------------------------- mapeamento
-
-function fromLibrary(p: AdminProgram & { exercisesCount?: number }) {
+export function fromLibrary(
+    p: AdminProgram & { exercisesCount?: number },
+): ModelSummary {
     return {
         key: `nossos-${p.id}`,
-        origin: 'nossos' as const,
+        origin: 'nossos',
         id: String(p.id),
         title: p.title,
         description: p.description ?? '',
@@ -86,7 +64,7 @@ function fromLibrary(p: AdminProgram & { exercisesCount?: number }) {
     };
 }
 
-function fromMine(p: Program): ModelSummary {
+export function fromMine(p: Program): ModelSummary {
     return {
         key: `meus-${p.id}`,
         origin: 'meus',
@@ -109,7 +87,7 @@ const ADMIN_PERIOD = {
     night: 'noite',
 } as const;
 
-function libraryExercise(e: AdminProgramExercise): ModelExercise {
+export function libraryExercise(e: AdminProgramExercise): ModelExercise {
     return {
         id: String(e.id),
         title: e.exercise?.name ?? 'Exercício',
@@ -128,7 +106,7 @@ function libraryExercise(e: AdminProgramExercise): ModelExercise {
     };
 }
 
-function myExercise(e: ProgramExercise): ModelExercise {
+export function myExercise(e: ProgramExercise): ModelExercise {
     return {
         id: e.id,
         title: e.title,
@@ -146,78 +124,6 @@ function myExercise(e: ProgramExercise): ModelExercise {
         notes: e.notes ?? null,
     };
 }
-
-// ---------------------------------------------------------------- dados
-
-export function useModels() {
-    const library = useQuery({
-        queryKey: ['clinic', 'programs-library', 'prototype-all'],
-        queryFn: () => listClinicProgramsLibraryPaginated({ perPage: 200 }),
-    });
-    const mine = useQuery({
-        queryKey: ['clinic-programs', 'prototype-my-models'],
-        queryFn: () => listMyModelsPaginated({ perPage: 200 }),
-    });
-    const models: ModelSummary[] = [
-        ...(library.data?.data ?? []).map(fromLibrary),
-        ...(mine.data?.items ?? []).map(fromMine),
-    ];
-    return {
-        models,
-        isLoading: library.isLoading || mine.isLoading,
-        isError: library.isError && mine.isError,
-    };
-}
-
-/** Grupos e vídeos de um modelo; a consulta é a mesma da v1 (cache comum). */
-export function useModelDetail(model: ModelSummary | null): {
-    detail: ModelDetail | null;
-    isLoading: boolean;
-} {
-    const lib = useClinicProgramLibraryDetail(
-        model?.origin === 'nossos' ? Number(model.id) : null,
-    );
-    const mine = useClinicProgram(
-        model?.origin === 'meus' ? model.id : undefined,
-    );
-    if (!model) return { detail: null, isLoading: false };
-    if (model.origin === 'nossos') {
-        const p = lib.data;
-        return {
-            isLoading: lib.isLoading,
-            detail: p
-                ? {
-                      ...model,
-                      ...fromLibrary(p),
-                      groups: (p.groups ?? []).map((g) => ({
-                          id: String(g.id),
-                          name: g.name,
-                          exercises: (g.exercises ?? []).map(libraryExercise),
-                      })),
-                      source: p,
-                  }
-                : null,
-        };
-    }
-    const p = mine.data;
-    return {
-        isLoading: mine.isLoading,
-        detail: p
-            ? {
-                  ...model,
-                  ...fromMine(p),
-                  groups: p.groups.map((g) => ({
-                      id: g.id,
-                      name: g.name,
-                      exercises: g.exercises.map(myExercise),
-                  })),
-                  source: p,
-              }
-            : null,
-    };
-}
-
-// ---------------------------------------------------------------- prescrição
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const PERIOD = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' } as const;
@@ -243,7 +149,6 @@ export interface Dose {
     unit: string;
 }
 
-/** "3 séries · 10 repetições · 2 kg · 30 s de descanso", em pedaços. */
 export function doseOf(e: ModelExercise): Dose[] {
     const sets = range(e.setsMin, e.setsMax);
     const reps = range(e.repsMin, e.repsMax);
@@ -268,7 +173,6 @@ export function doseOf(e: ModelExercise): Dose[] {
     ].filter(Boolean) as Dose[];
 }
 
-/** Dias e período ("Seg, Qua, Sex · Manhã"). */
 export function scheduleOf(e: ModelExercise): string | null {
     const parts = [daysLabel(e.days), e.period ? PERIOD[e.period] : null];
     const text = parts.filter(Boolean).join(' · ');
@@ -281,15 +185,12 @@ export function formatDate(iso: string | null): string | null {
     return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString('pt-BR');
 }
 
-// ---------------------------------------------------------------- filtros
-
-/** A origem não é filtro: é a aba (Nossos modelos / Meus modelos). */
 export interface ModelFilters {
     search: string;
     areas: string[];
 }
 
-export const INITIAL_FILTERS: ModelFilters = {
+export const INITIAL_MODEL_FILTERS: ModelFilters = {
     search: '',
     areas: [],
 };
@@ -301,7 +202,7 @@ function normalize(text: string): string {
         .toLowerCase();
 }
 
-export function applyFilters(
+export function applyModelFilters(
     models: ModelSummary[],
     f: ModelFilters,
 ): ModelSummary[] {
@@ -322,11 +223,11 @@ export function areaOptions(models: ModelSummary[]): string[] {
     ].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-export function activeFilterCount(f: ModelFilters): number {
+export function activeModelFilterCount(f: ModelFilters): number {
     return f.areas.length;
 }
 
-export function chipsOf(f: ModelFilters) {
+export function modelChips(f: ModelFilters) {
     return f.areas.map((a) => ({
         key: a,
         label: 'Especialidade',
@@ -334,15 +235,13 @@ export function chipsOf(f: ModelFilters) {
     }));
 }
 
-export function removeChip(f: ModelFilters, key: string): ModelFilters {
+export function removeModelChip(f: ModelFilters, key: string): ModelFilters {
     return { ...f, areas: f.areas.filter((a) => a !== key) };
 }
 
 export function exercisesOf(detail: ModelDetail | null): ModelExercise[] {
     return detail?.groups.flatMap((g) => g.exercises) ?? [];
 }
-
-// ---------------------------------------------------------------- regiões
 
 export type Region =
     | 'cervical'
@@ -373,11 +272,7 @@ const REGION_WORDS: [Region, RegExp][] = [
     ['equilibrio', /queda|equilibrio|idoso/],
 ];
 
-/**
- * PROTÓTIPO: a região sai de palavras do título e da descrição. Na tela de
- * verdade, viria do modelo (ou da região dos exercícios dele, que o
- * catálogo já tem).
- */
+/** Heurística: região sai de palavras do título e da descrição. */
 export function regionsOf(m: ModelSummary): Region[] {
     const text = normalize(`${m.title} ${m.description}`);
     return REGION_WORDS.filter(([, re]) => re.test(text)).map(([r]) => r);

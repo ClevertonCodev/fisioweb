@@ -1,8 +1,4 @@
-/**
- * PROTÓTIPO (descartável): chips, rolagem infinita da v1, esqueleto e os
- * filtros no padrão do Histórico v2 (dropdown de favoritos e gaveta do
- * celular).
- */
+/** Chips, esqueleto e filtros da biblioteca v2. */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import {

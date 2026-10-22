@@ -15,8 +15,8 @@ import {
 } from '@/pages/clinic/program/program-builder-prototype/builder';
 import {
     ProgramActionsMenu,
-    useProgramActions,
-} from '@/pages/clinic/program/program-history-prototype/shared';
+    useProgramHistoryActions as useProgramActions,
+} from '@/pages/clinic/program/program-history/ProgramHistoryActions';
 
 export const DETAIL_VARIANTS = [
     { key: 'O', name: 'Tela atual (v1)' },

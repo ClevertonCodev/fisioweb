@@ -90,4 +90,18 @@ class TreatmentPlanIsolationTest extends TestCase
         $this->assertDatabaseMissing('clinic_program_drafts', ['clinic_user_id' => $this->adminA->id]);
         $this->assertDatabaseHas('clinic_program_drafts', ['clinic_user_id' => $this->adminB->id]);
     }
+
+    public function test_physiotherapist_cannot_delete_own_clinic_plan(): void
+    {
+        $physio = ClinicUser::factory()->create([
+            'clinic_id' => $this->adminA->clinic_id,
+            'role'      => ClinicUser::ROLE_PHYSIOTHERAPIST,
+        ]);
+
+        $this->actingAs($physio, 'clinic')
+            ->deleteJson("/api/clinic/treatment-plans/{$this->planA->id}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('clinic_treatment_plans', ['id' => $this->planA->id]);
+    }
 }

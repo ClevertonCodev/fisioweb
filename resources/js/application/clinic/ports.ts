@@ -111,6 +111,11 @@ export interface PatientsRepository {
 export interface ExerciseListParams {
     page?: number;
     perPage?: number;
+    search?: string;
+    physioAreaId?: number;
+    bodyRegionId?: number;
+    difficultyLevel?: 'easy' | 'medium' | 'hard';
+    movementForm?: string;
 }
 
 export interface ExerciseListResult {

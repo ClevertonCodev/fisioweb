@@ -3,28 +3,32 @@
  * "Usar modelo" é real (abre o assistente com o modelo, como a v1);
  * editar, duplicar e excluir um modelo da clínica são stub.
  */
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {
     CalendarDays,
     Copy,
     MessageSquareText,
-    MoreHorizontal,
     Pencil,
     Stethoscope,
     Trash2,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
+import { can } from '@/application/clinic/permissions';
 import {
+    useDeleteClinicProgram,
+    useDuplicateClinicProgram,
+} from '@/application/clinic/use-programs';
+import {
+    DsActionsMenu,
     DsButton,
     DsCheckbox,
-    dsCn,
     DsDropdown,
-    DsTooltip,
+    DsModal,
 } from '@/components/ds';
-import { CardVideo } from '@/pages/clinic/program/exercise-library-prototype/media';
+import { useAuth } from '@/contexts/AuthContext';
+import type { ClinicRole } from '@/domain/auth/session';
+import { CardVideo } from '@/pages/clinic/program/exercise-library/media';
 
 import {
     areaOptions,
@@ -150,18 +154,60 @@ const MODEL_ACTIONS: {
 
 export function useModelActions() {
     const navigate = useNavigate();
+    const { mutate: duplicate } = useDuplicateClinicProgram();
+    const { mutate: deleteProgram } = useDeleteClinicProgram();
+    const [toDelete, setToDelete] = useState<ModelSummary | null>(null);
+
+    const run = (key: ModelActionKey, model: ModelSummary) => {
+        if (key === 'edit') {
+            navigate(`/clinica/programas/${model.id}/editar`);
+            return;
+        }
+        if (key === 'duplicate') {
+            duplicate(model.id);
+            return;
+        }
+        if (key === 'delete') {
+            setToDelete(model);
+        }
+    };
+
+    const deleteModal = (
+        <DsModal
+            open={toDelete !== null}
+            onOpenChange={(open) => !open && setToDelete(null)}
+            title="Excluir modelo"
+            size="sm"
+            footer={
+                <div className="flex w-full justify-end gap-3">
+                    <DsButton
+                        variant="secondary"
+                        label="Cancelar"
+                        onClick={() => setToDelete(null)}
+                    />
+                    <DsButton
+                        variant="destructive"
+                        label="Excluir"
+                        onClick={() => {
+                            if (toDelete) deleteProgram(toDelete.id);
+                            setToDelete(null);
+                        }}
+                    />
+                </div>
+            }
+        >
+            <p className="text-ds-body-sm text-ds-content-secondary">
+                Excluir <strong>“{toDelete?.title}”</strong>? Esta ação não pode
+                ser desfeita.
+            </p>
+        </DsModal>
+    );
+
     return {
-        /** Real: o mesmo que o "Criar programa" do detalhe na v1. */
         use: (detail: ModelDetail) =>
             navigate(NEW_PROGRAM_PATH, { state: { program: detail.source } }),
-        run: (key: ModelActionKey, model: ModelSummary) => {
-            const verb = {
-                edit: 'não foi aberto para edição',
-                duplicate: 'não foi duplicado',
-                delete: 'não foi excluído',
-            }[key];
-            toast.info(`Protótipo: "${model.title}" ${verb}.`);
-        },
+        run,
+        deleteModal,
     };
 }
 
@@ -194,53 +240,34 @@ export function UseModelButton({
     );
 }
 
-const menuItem =
-    'flex w-full cursor-pointer items-center gap-2 rounded-ds-md px-3 py-[9px] text-left font-ds text-ds-body-xs font-medium whitespace-nowrap outline-none transition-[background] duration-100 data-[highlighted]:bg-ds-surface-subtle [&_svg]:size-4';
-
 /** "…" com editar/duplicar/excluir; só os modelos da clínica têm. */
-export function ModelActionsMenu({ model }: { model: ModelSummary }) {
-    const { run } = useModelActions();
+export function ModelActionsMenu({
+    model,
+    onAction,
+}: {
+    model: ModelSummary;
+    onAction: (key: ModelActionKey, model: ModelSummary) => void;
+}) {
+    const { user } = useAuth();
+    const canDelete = can.delete(user?.role as ClinicRole | undefined);
     if (model.origin !== 'meus') return null;
     return (
-        <DropdownMenu.Root modal={false}>
-            <DsTooltip content="Mais ações" asChild>
-                <DropdownMenu.Trigger asChild>
-                    <button
-                        type="button"
-                        aria-label={`Mais ações de ${model.title}`}
-                        onClick={(ev) => ev.stopPropagation()}
-                        className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-ds-md text-ds-content-secondary transition-colors hover:bg-ds-surface-brand-subtle hover:text-ds-content-brand focus-visible:shadow-ds-focus focus-visible:outline-0 data-[state=open]:bg-ds-surface-brand-subtle ds-dark:hover:text-ds-primary-60 [&_svg]:size-4"
-                    >
-                        <MoreHorizontal />
-                    </button>
-                </DropdownMenu.Trigger>
-            </DsTooltip>
-            <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                    align="end"
-                    sideOffset={4}
-                    collisionPadding={8}
-                    onClick={(ev) => ev.stopPropagation()}
-                    className="z-[9999] min-w-48 rounded-ds-lg border border-ds-border-subtle bg-ds-surface-default p-1 font-ds shadow-ds-md"
-                >
-                    {MODEL_ACTIONS.map((a) => (
-                        <DropdownMenu.Item
-                            key={a.key}
-                            onSelect={() => run(a.key, model)}
-                            className={dsCn(
-                                menuItem,
-                                a.danger
-                                    ? 'text-ds-danger-120 ds-dark:text-ds-status-danger-content [&_svg]:text-current'
-                                    : 'text-ds-content-primary [&_svg]:text-ds-content-muted',
-                            )}
-                        >
-                            {a.icon}
-                            {a.label}
-                        </DropdownMenu.Item>
-                    ))}
-                </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-        </DropdownMenu.Root>
+        <div onClick={(ev) => ev.stopPropagation()}>
+            <DsActionsMenu
+                label={`Mais ações de ${model.title}`}
+                items={MODEL_ACTIONS.map((a) =>
+                    a.key === 'delete'
+                        ? {
+                              ...a,
+                              disabled: !canDelete,
+                              disabledReason:
+                                  'Só o admin da clínica pode excluir.',
+                          }
+                        : a,
+                )}
+                onSelect={(key) => onAction(key as ModelActionKey, model)}
+            />
+        </div>
     );
 }
 

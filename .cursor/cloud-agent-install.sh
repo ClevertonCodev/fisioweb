@@ -5,6 +5,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Cloud VM runs install as root; without this Composer disables plugins (merge-plugin).
+export COMPOSER_ALLOW_SUPERUSER=1
+
 if [[ ! -f .env ]]; then
     cp .env.example .env
 fi

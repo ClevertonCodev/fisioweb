@@ -35,9 +35,6 @@ yarn-error.log
 # ai-harness: evidência, revisão e trabalho adiado ficam fora do git
 /.ai-workbench/*/evidence/
 /.ai-workbench/*/review/
-/.ai-workbench/*/bugs/
-/.ai-workbench/DEFERRED.md
-/.ai-workbench/*/DEFERRED.md
 
 # Playwright MCP headless (.mcp.json): prints, snapshots e logs do agente
 /.playwright-mcp/

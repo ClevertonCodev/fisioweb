@@ -10,13 +10,17 @@ import {
     type Origin,
 } from '@/application/clinic/program-models';
 import {
-    listClinicProgramsLibraryPaginated,
+    listAllClinicProgramsLibrary,
     useClinicProgramLibraryDetail,
+    useFetchClinicProgramLibraryDetail,
 } from '@/application/clinic/use-clinic-programs-library';
 import {
-    listMyModelsPaginated,
+    listAllClinicPrograms,
     useClinicProgram,
+    useFetchClinicProgram,
 } from '@/application/clinic/use-programs';
+import type { AdminProgram } from '@/domain/admin';
+import type { Program } from '@/domain/clinic';
 
 export {
     activeModelFilterCount as activeFilterCount,
@@ -47,18 +51,18 @@ export {
 export function useModels(origin: Origin) {
     const library = useQuery({
         queryKey: ['clinic', 'programs-library', 'all'],
-        queryFn: () => listClinicProgramsLibraryPaginated({ perPage: 200 }),
+        queryFn: () => listAllClinicProgramsLibrary(),
         enabled: origin === 'nossos',
     });
     const mine = useQuery({
-        queryKey: ['clinic-programs', 'my-models-all'],
-        queryFn: () => listMyModelsPaginated({ perPage: 200 }),
+        queryKey: ['clinic-programs', 'all', { withoutPatient: true }],
+        queryFn: () => listAllClinicPrograms({ withoutPatient: true }),
         enabled: origin === 'meus',
     });
     const models: ModelSummary[] =
         origin === 'nossos'
-            ? (library.data?.data ?? []).map(fromLibrary)
-            : (mine.data?.items ?? []).map(fromMine);
+            ? (library.data ?? []).map(fromLibrary)
+            : (mine.data ?? []).map(fromMine);
     return {
         models,
         isLoading: origin === 'nossos' ? library.isLoading : mine.isLoading,
@@ -66,49 +70,74 @@ export function useModels(origin: Origin) {
     };
 }
 
-export function useModelDetail(model: ModelSummary | null): {
+function libraryDetail(model: ModelSummary, p: AdminProgram): ModelDetail {
+    return {
+        ...model,
+        ...fromLibrary(p),
+        groups: (p.groups ?? []).map((g) => ({
+            id: String(g.id),
+            name: g.name,
+            exercises: (g.exercises ?? []).map(libraryExercise),
+        })),
+        source: p,
+    };
+}
+
+function mineDetail(model: ModelSummary, p: Program): ModelDetail {
+    return {
+        ...model,
+        ...fromMine(p),
+        groups: p.groups.map((g) => ({
+            id: g.id,
+            name: g.name,
+            exercises: g.exercises.map(myExercise),
+        })),
+        source: p,
+    };
+}
+
+/**
+ * Detalhe (grupos e exercícios) de um modelo. A listagem não traz os grupos,
+ * então cada cartão só pede o detalhe quando `enabled` (visível ou aberto).
+ */
+export function useModelDetail(
+    model: ModelSummary | null,
+    enabled = true,
+): {
     detail: ModelDetail | null;
     isLoading: boolean;
+    isError: boolean;
 } {
     const lib = useClinicProgramLibraryDetail(
         model?.origin === 'nossos' ? Number(model.id) : null,
+        enabled,
     );
     const mine = useClinicProgram(
         model?.origin === 'meus' ? model.id : undefined,
+        enabled,
     );
-    if (!model) return { detail: null, isLoading: false };
-    if (model.origin === 'nossos') {
-        const p = lib.data;
-        return {
-            isLoading: lib.isLoading,
-            detail: p
-                ? {
-                      ...model,
-                      ...fromLibrary(p),
-                      groups: (p.groups ?? []).map((g) => ({
-                          id: String(g.id),
-                          name: g.name,
-                          exercises: (g.exercises ?? []).map(libraryExercise),
-                      })),
-                      source: p,
-                  }
-                : null,
-        };
-    }
-    const p = mine.data;
-    return {
-        isLoading: mine.isLoading,
-        detail: p
-            ? {
-                  ...model,
-                  ...fromMine(p),
-                  groups: p.groups.map((g) => ({
-                      id: g.id,
-                      name: g.name,
-                      exercises: g.exercises.map(myExercise),
-                  })),
-                  source: p,
-              }
-            : null,
+    if (!model) return { detail: null, isLoading: false, isError: false };
+    const query = model.origin === 'nossos' ? lib : mine;
+    const detail =
+        model.origin === 'nossos'
+            ? lib.data
+                ? libraryDetail(model, lib.data)
+                : null
+            : mine.data
+              ? mineDetail(model, mine.data)
+              : null;
+    return { detail, isLoading: query.isLoading, isError: query.isError };
+}
+
+/** Busca o detalhe na hora da ação (usar ou editar), sem depender do cartão. */
+export function useFetchModelDetail() {
+    const fetchLibrary = useFetchClinicProgramLibraryDetail();
+    const fetchMine = useFetchClinicProgram();
+    return async (model: ModelSummary): Promise<ModelDetail | null> => {
+        if (model.origin === 'nossos') {
+            return libraryDetail(model, await fetchLibrary(Number(model.id)));
+        }
+        const p = await fetchMine(model.id);
+        return p ? mineDetail(model, p) : null;
     };
 }

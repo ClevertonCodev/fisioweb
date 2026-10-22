@@ -20,7 +20,12 @@ vi.mock('@/components/clinic/ClinicLayout', () => ({
 
 function PathSpy() {
     const location = useLocation();
-    return <div>caminho {location.pathname}</div>;
+    return (
+        <div>
+            caminho {location.pathname}
+            {location.search}
+        </div>
+    );
 }
 
 function Shell() {
@@ -117,6 +122,39 @@ describe('programs-tabs', () => {
         await user.click(screen.getByRole('tab', { name: 'Programas' }));
         expect(
             screen.getByText(`caminho ${MEUS_MODELOS_PATH}`),
+        ).toBeInTheDocument();
+    });
+
+    it('volta ao Histórico com o recorte ?patientId= do prontuário', async () => {
+        const user = userEvent.setup();
+        render(
+            <MemoryRouter
+                initialEntries={['/clinica/programas/historico?patientId=10']}
+                future={routerFutureFlags}
+            >
+                <Routes>
+                    <Route
+                        path="/clinica/programas/historico"
+                        element={<Shell />}
+                    />
+                    <Route
+                        path="/clinica/programas/exercicios"
+                        element={<Shell />}
+                    />
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await user.click(screen.getByRole('tab', { name: 'Exercícios' }));
+        expect(
+            screen.getByText('caminho /clinica/programas/exercicios'),
+        ).toBeInTheDocument();
+
+        await user.click(screen.getByRole('tab', { name: 'Histórico' }));
+        expect(
+            screen.getByText(
+                'caminho /clinica/programas/historico?patientId=10',
+            ),
         ).toBeInTheDocument();
     });
 });

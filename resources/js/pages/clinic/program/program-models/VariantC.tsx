@@ -6,6 +6,7 @@ import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 
 import { DsBadge, DsButton, dsCn, DsTooltip } from '@/components/ds';
+import { useInView } from '@/pages/clinic/use-in-view';
 
 import {
     exercisesOf,
@@ -13,6 +14,7 @@ import {
     REGIONS,
     regionsOf,
     useModelDetail,
+    type ModelDetail,
     type ModelSummary,
     type Region,
 } from './data';
@@ -168,17 +170,29 @@ const SEGMENT = [
 ];
 
 /** A sessão numa barra: um pedaço por bloco, do tamanho dele. */
-function SessionBar({ model }: { model: ModelSummary }) {
-    const { detail } = useModelDetail(model);
-    if (!detail) {
+function SessionBar({
+    model,
+    detail,
+    isError,
+}: {
+    model: ModelSummary;
+    detail: ModelDetail | null;
+    isError: boolean;
+}) {
+    if (!detail && !isError) {
         return (
             <div className="h-9 animate-pulse rounded-ds-md bg-ds-surface-subtle" />
         );
     }
-    const groups = detail.groups.filter((g) => g.exercises.length > 0);
+    const groups = detail?.groups.filter((g) => g.exercises.length > 0) ?? [];
     return (
         <div className="flex flex-col gap-1.5">
             <div className="flex h-9 gap-0.5 overflow-hidden rounded-ds-md">
+                {isError && (
+                    <span className="flex flex-1 items-center rounded-ds-md bg-ds-surface-subtle px-2.5 text-ds-caption text-ds-content-muted">
+                        Não foi possível carregar os blocos
+                    </span>
+                )}
                 {groups.map((g, i) => (
                     <span
                         key={g.id}
@@ -209,8 +223,11 @@ function SessionBar({ model }: { model: ModelSummary }) {
 
 function SessionCard({ model }: { model: ModelSummary }) {
     const { run, deleteModal } = useModelActions();
-    const { detail } = useModelDetail(model);
+    const ref = useRef<HTMLElement>(null);
+    const inView = useInView(ref);
     const [open, setOpen] = useState(false);
+    // A listagem não traz os grupos: o detalhe só vem quando o cartão aparece.
+    const { detail, isError } = useModelDetail(model, inView || open);
     const thumbs = exercisesOf(detail);
     const regions = regionsOf(model);
     // A aba já diz de onde veio; o cartão fica com o que ajuda a escolher.
@@ -227,7 +244,10 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 .join(' '),
     ].filter(Boolean);
     return (
-        <article className="flex flex-col gap-4 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs sm:p-5">
+        <article
+            ref={ref}
+            className="flex flex-col gap-4 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs sm:p-5"
+        >
             <div className="flex items-start gap-4">
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                     {model.area && (
@@ -257,7 +277,7 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 </div>
             </div>
 
-            <SessionBar model={model} />
+            <SessionBar model={model} detail={detail} isError={isError} />
 
             <div className="flex items-center gap-3">
                 <ul className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
@@ -289,9 +309,17 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 />
             </div>
 
-            {open && detail && (
+            {open && (
                 <div className="border-t border-ds-border-subtle pt-4">
-                    <GroupSections groups={detail.groups} />
+                    {detail ? (
+                        <GroupSections groups={detail.groups} />
+                    ) : isError ? (
+                        <p className="text-ds-body-sm text-ds-content-muted">
+                            Não foi possível carregar os exercícios.
+                        </p>
+                    ) : (
+                        <div className="h-24 animate-pulse rounded-ds-md bg-ds-surface-subtle" />
+                    )}
                 </div>
             )}
 

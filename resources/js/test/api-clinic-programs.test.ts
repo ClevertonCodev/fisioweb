@@ -59,6 +59,20 @@ function makePaginatedResponse(items: ReturnType<typeof makeApiPlan>[]) {
 }
 
 describe('apiClinicProgramsRepository.list', () => {
+    it('manda o recorte por paciente como patient_id', async () => {
+        mockGet.mockResolvedValueOnce(makePaginatedResponse([]));
+
+        await apiClinicProgramsRepository.list({
+            page: 2,
+            perPage: 200,
+            patientId: '10',
+        });
+
+        expect(mockGet).toHaveBeenCalledWith('/clinic/treatment-plans', {
+            params: { page: 2, per_page: 200, patient_id: '10' },
+        });
+    });
+
     it('mapeia exercises_count, foto do paciente, profissional e engajamento', async () => {
         mockGet.mockResolvedValueOnce(makePaginatedResponse([makeApiPlan()]));
 

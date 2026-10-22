@@ -238,6 +238,62 @@ describe('ProgramHistoryPage', () => {
             screen.queryByRole('link', { name: 'Bruno Lima' }),
         ).not.toBeInTheDocument();
         expect(screen.getByText('Paciente: Ana Souza')).toBeInTheDocument();
+        expect(listPrograms).toHaveBeenCalledWith(
+            expect.objectContaining({ patientId: '10' }),
+        );
+    });
+
+    it('patientId não numérico não vai para a API e dá lista vazia', async () => {
+        listPrograms.mockResolvedValue(listResult([program()]));
+        renderPage('/clinica/programas/historico?patientId=abc');
+        expect(
+            await screen.findByText('Nenhum programa encontrado'),
+        ).toBeInTheDocument();
+        expect(listPrograms).not.toHaveBeenCalledWith(
+            expect.objectContaining({ patientId: expect.anything() }),
+        );
+    });
+
+    it('busca todas as páginas da API: o 201º programa aparece na busca', async () => {
+        const user = userEvent.setup();
+        const firstPage = Array.from({ length: 200 }, (_, i) =>
+            program({
+                id: String(i + 1),
+                title: `Programa recente ${i + 1}`,
+                patientName: `Paciente ${i + 1}`,
+                createdAt: '2026-10-18T00:00:00Z',
+            }),
+        );
+        const oldest = program({
+            id: '201',
+            title: 'Protocolo antigo de ombro',
+            patientName: 'Carla Dias',
+            createdAt: '2025-01-01T00:00:00Z',
+        });
+        listPrograms.mockImplementation(({ page }: { page: number }) =>
+            Promise.resolve({
+                items: page === 1 ? firstPage : [oldest],
+                total: 201,
+                lastPage: 2,
+                perPage: 200,
+                currentPage: page,
+            }),
+        );
+        renderPage();
+
+        expect(
+            await screen.findByText('201 programas no histórico'),
+        ).toBeInTheDocument();
+        expect(listPrograms).toHaveBeenCalledWith(
+            expect.objectContaining({ page: 2, perPage: 200 }),
+        );
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar programas' }),
+            'ombro',
+        );
+        expect(
+            await screen.findByText('Protocolo antigo de ombro'),
+        ).toBeInTheDocument();
     });
 
     it('mostra estado vazio quando não há programas', async () => {
@@ -546,6 +602,33 @@ describe('ProgramHistoryPage', () => {
         await user.click(
             screen.getByRole('menuitem', { name: 'Excluir rascunho' }),
         );
+        expect(
+            screen.queryByRole('heading', { name: 'Excluir rascunho' }),
+        ).not.toBeInTheDocument();
+        expect(destroyProgram).not.toHaveBeenCalled();
+    });
+
+    it('secretária vê Excluir desabilitado e não dispara o DELETE', async () => {
+        const user = userEvent.setup();
+        authRole = 'secretary';
+        listPrograms.mockResolvedValue(
+            listResult([
+                program({
+                    id: '9',
+                    title: 'Rascunho para apagar',
+                    status: 'draft',
+                    patientId: null,
+                    patientName: null,
+                }),
+            ]),
+        );
+        renderPage();
+        await screen.findByText('Rascunho para apagar');
+
+        await user.click(screen.getByRole('button', { name: 'Mais ações' }));
+        const item = screen.getByRole('menuitem', { name: 'Excluir rascunho' });
+        expect(item).toHaveAttribute('aria-disabled', 'true');
+        await user.click(item);
         expect(
             screen.queryByRole('heading', { name: 'Excluir rascunho' }),
         ).not.toBeInTheDocument();

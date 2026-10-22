@@ -49,9 +49,9 @@ describe('program-history-filters', () => {
     });
 
     it('classifica status derivado: não visto, visto, completou e rascunho', () => {
-        expect(uiStatusOf(program({ status: 'active', patientViewedAt: null }))).toBe(
-            'not_viewed',
-        );
+        expect(
+            uiStatusOf(program({ status: 'active', patientViewedAt: null })),
+        ).toBe('not_viewed');
         expect(
             uiStatusOf(
                 program({
@@ -66,7 +66,11 @@ describe('program-history-filters', () => {
 
     it('busca por título, paciente ou profissional ignorando acento', () => {
         const items = [
-            program({ id: '1', title: 'Reabilitação Lombar', patientName: 'Ana' }),
+            program({
+                id: '1',
+                title: 'Reabilitação Lombar',
+                patientName: 'Ana',
+            }),
             program({
                 id: '2',
                 title: 'Joelho',
@@ -75,18 +79,34 @@ describe('program-history-filters', () => {
             }),
         ];
 
-        expect(applyFilters(items, { ...INITIAL_FILTERS, search: 'reabilitacao' }, null)).toHaveLength(1);
         expect(
-            applyFilters(items, { ...INITIAL_FILTERS, search: 'jose' }, null)[0]?.id,
+            applyFilters(
+                items,
+                { ...INITIAL_FILTERS, search: 'reabilitacao' },
+                null,
+            ),
+        ).toHaveLength(1);
+        expect(
+            applyFilters(items, { ...INITIAL_FILTERS, search: 'jose' }, null)[0]
+                ?.id,
         ).toBe('2');
         expect(
-            applyFilters(items, { ...INITIAL_FILTERS, search: 'marina' }, null)[0]?.id,
+            applyFilters(
+                items,
+                { ...INITIAL_FILTERS, search: 'marina' },
+                null,
+            )[0]?.id,
         ).toBe('2');
     });
 
     it('filtra por status derivado e o chip remove só aquele status', () => {
         const items = [
-            program({ id: '1', status: 'draft', patientId: null, patientName: null }),
+            program({
+                id: '1',
+                status: 'draft',
+                patientId: null,
+                patientName: null,
+            }),
             program({ id: '2', status: 'active', patientViewedAt: null }),
         ];
         const filters = { ...INITIAL_FILTERS, statuses: ['draft' as const] };
@@ -101,4 +121,3 @@ describe('program-history-filters', () => {
         expect(removeChip(filters, chips[0]!)).toEqual({ statuses: [] });
     });
 });
-

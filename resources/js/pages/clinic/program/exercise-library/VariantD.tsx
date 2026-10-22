@@ -21,8 +21,8 @@ import {
 import { useState } from 'react';
 
 import { DsButton, dsCn, DsDrawer, DsInput } from '@/components/ds';
-
 import { useIsMobile } from '@/pages/clinic/use-media-query';
+
 import { ExerciseModal } from './ExerciseModal';
 import {
     CardVideo,

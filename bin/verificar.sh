@@ -69,7 +69,24 @@ for f in "${CHANGED[@]}"; do
     esac
 done
 
+AGY_HARNESS=0
+for f in "${CHANGED[@]}"; do
+    case "$f" in
+        bin/agy* | tests/bin/agy* | tests/bin/fixtures/*) AGY_HARNESS=1 ;;
+    esac
+done
+
 if [ "${#PHP_FILES[@]}" -eq 0 ] && [ "$FRONT_CHANGED" -eq 0 ]; then
+    if [ "$AGY_HARNESS" -eq 1 ]; then
+        HARNESS_FAILED=0
+        for t in tests/bin/agy-*_test.sh; do
+            [ -f "$t" ] || continue
+            echo
+            echo "==> $(basename "$t")"
+            bash "$t" || HARNESS_FAILED=1
+        done
+        exit "$HARNESS_FAILED"
+    fi
     echo "Nenhum arquivo PHP ou do frontend mudou desde '$BASE'. Nada para verificar."
     exit 0
 fi
@@ -83,6 +100,20 @@ record() {
         OK* | PULADO*) ;;
         *) FAILED=1 ;;
     esac
+}
+
+run_agy_harness_tests() {
+    local t
+    for t in tests/bin/agy-*_test.sh; do
+        [ -f "$t" ] || continue
+        echo
+        echo "==> $(basename "$t")"
+        if bash "$t"; then
+            record "Harness $(basename "$t")" "OK"
+        else
+            record "Harness $(basename "$t")" "FALHOU"
+        fi
+    done
 }
 
 run() {
@@ -158,6 +189,10 @@ if [ "$FRONT_CHANGED" -eq 1 ]; then
         run "Vitest (npm run test)" npm run --silent test
         run "Build (npm run build)" npm run --silent build
     fi
+fi
+
+if [ "$AGY_HARNESS" -eq 1 ]; then
+    run_agy_harness_tests || true
 fi
 
 echo

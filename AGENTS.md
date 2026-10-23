@@ -137,6 +137,7 @@ Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude C
 | Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
 | Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
+| Delegar implementação ao Antigravity (`/agy-task`, `/agy-verify`) | [`agy-harness`](.cursor/skills/agy-harness/SKILL.md) |
 
 ## Princípios não-negociáveis
 

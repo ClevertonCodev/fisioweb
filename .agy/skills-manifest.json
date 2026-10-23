@@ -1,0 +1,50 @@
+{
+    "version": 1,
+    "default_tags": ["security"],
+    "tags": {
+        "backend": [
+            "architecture-paradigm-modular-monolith",
+            "backend-clean-code",
+            "laravel-eloquent",
+            "php-modern",
+            "php-testing"
+        ],
+        "frontend": [
+            "frontend-ddd",
+            "frontend-react",
+            "api-client",
+            "forms-shadcn"
+        ],
+        "security": ["security-audit"],
+        "testing": ["php-testing", "frontend-testing"],
+        "ui-v1": ["frontend-ui-patterns"],
+        "ui-v2": ["design-system"],
+        "harness": ["implementar-tarefa"]
+    },
+    "keywords": {
+        "backend": [
+            "migration",
+            "eloquent",
+            "modules/",
+            "phpunit",
+            "policy",
+            "formrequest",
+            "repository",
+            "service",
+            "controller",
+            "laravel"
+        ],
+        "frontend": [
+            "resources/js",
+            "react",
+            "vitest",
+            "tanstack",
+            "pages/",
+            "domain/",
+            "infrastructure/"
+        ],
+        "testing": ["teste", "test ", "phpunit", "vitest", "tdd"],
+        "ui-v2": ["design-system", "components/ds", "telas v2"],
+        "ui-v1": ["shadcn", "datatable", "adminlayout"]
+    }
+}

@@ -35,6 +35,7 @@ yarn-error.log
 # ai-harness: evidência, revisão e trabalho adiado ficam fora do git
 /.ai-workbench/*/evidence/
 /.ai-workbench/*/review/
+/.ai-workbench/_agy-jobs/
 /.ai-workbench/*/bugs/
 /.ai-workbench/DEFERRED.md
 /.ai-workbench/*/DEFERRED.md

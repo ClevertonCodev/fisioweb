@@ -38,6 +38,7 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | Tarefa | Skill |
 |--------|-------|
 | Policies + permissions.ts + RequireClinicAdmin | `security` |
+| Delegar tarefa ao Antigravity (`/agy-task`, `/agy-verify`) | `agy-harness` |
 
 ## Princípios
 

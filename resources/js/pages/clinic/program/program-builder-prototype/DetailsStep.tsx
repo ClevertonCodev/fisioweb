@@ -245,12 +245,14 @@ export function DetailsStep({
     builder,
     initialTitle,
     initialMessage,
+    initialPatientId = '',
     editMode,
     onReview,
 }: {
     builder: ProgramBuilder;
     initialTitle: string;
     initialMessage: string;
+    initialPatientId?: string;
     editMode: boolean;
     onReview: () => void;
 }) {
@@ -269,7 +271,7 @@ export function DetailsStep({
         resolver: zodResolver(schema),
         defaultValues: {
             title: initialTitle,
-            patientId: '',
+            patientId: initialPatientId,
             startDate: today(),
             endDate: null,
             message: initialMessage,

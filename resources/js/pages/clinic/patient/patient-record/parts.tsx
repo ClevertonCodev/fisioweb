@@ -1,32 +1,47 @@
 /**
- * Peças do prontuário (drawer, ícones e ações). Nesta fatia, evolução,
- * arquivo, questionário e agendar ainda não gravam (tarefa 004).
+ * Peças do prontuário (drawer, ícones e ações). Overlays v1 que gravam
+ * ficam no PatientRecordScreen, não aqui.
  */
 import {
     Activity,
     CalendarDays,
     ClipboardList,
+    Copy,
     Download,
     Dumbbell,
     ExternalLink,
     FileText,
+    Mail,
+    MessageCircle,
     Paperclip,
+    Pencil,
     PenLine,
+    Trash2,
     Upload,
     type LucideIcon,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-import { usePatientQuestionnaire } from '@/application/clinic/use-patient-questionnaires';
+import { can } from '@/application/clinic/permissions';
+import { useDeleteEvolution } from '@/application/clinic/use-evolutions';
+import { useDeletePatientFile } from '@/application/clinic/use-patient-files';
+import {
+    useDeleteQuestionnaire,
+    usePatientQuestionnaire,
+} from '@/application/clinic/use-patient-questionnaires';
 import {
     DsBadge,
     DsButton,
     dsCn,
     DsDrawer,
     DsList,
+    DsModal,
+    DsTooltip,
     type BadgeVariant,
 } from '@/components/ds';
+import type { ClinicRole } from '@/domain/auth/session';
 import type { Appointment, PatientEvolution, Program } from '@/domain/clinic';
 
 import {
@@ -38,6 +53,11 @@ import {
     type RecordKind,
     type Tone,
 } from './data';
+import {
+    buildMailtoUrl,
+    buildWhatsAppUrl,
+    questionnaireShareText,
+} from './share';
 
 export const KIND_ICON: Record<RecordKind, LucideIcon> = {
     consulta: CalendarDays,
@@ -156,20 +176,72 @@ export const QUICK_ACTIONS: {
     },
 ];
 
-export function useQuickAction(patientId: string) {
-    const navigate = useNavigate();
-    return (action: QuickAction) => {
-        switch (action) {
-            case 'avaliacao':
-                navigate(`/clinica/pacientes/${patientId}/avaliacoes/nova`);
-                return;
-            case 'programa':
-                navigate('/clinica/programas/novo');
-                return;
-            default:
-                return;
-        }
-    };
+export const CLINICAL_DENIED =
+    'Apenas admin ou fisioterapeuta podem registrar evolução e avaliação';
+
+export const DELETE_EVOLUTION_DENIED =
+    'Apenas o admin da clínica pode excluir evolução';
+
+export const DELETE_FILE_DENIED =
+    'Apenas o admin ou quem enviou pode excluir este arquivo';
+
+export const DELETE_QUESTIONNAIRE_DENIED =
+    'Apenas o admin ou quem enviou pode excluir este questionário';
+
+export function canEditEvolutionDraft(
+    role?: ClinicRole,
+    ownerId?: number,
+    userId?: number,
+): boolean {
+    if (can.delete(role)) return true;
+    return can.manageClinicalRecords(role) && ownerId === userId;
+}
+
+export function canDeleteOwnedRecord(
+    role?: ClinicRole,
+    ownerId?: number,
+    userId?: number,
+): boolean {
+    if (can.delete(role)) return true;
+    return can.deleteOwn(role) && ownerId === userId;
+}
+
+/** Botão visível com motivo no tooltip quando a ação não é permitida (ADR 017). */
+export function GuardedButton({
+    allowed,
+    denied,
+    label,
+    icon,
+    onClick,
+    size = 'sm',
+    variant = 'secondary',
+}: {
+    allowed: boolean;
+    denied: string;
+    label: string;
+    icon?: ReactNode;
+    onClick: () => void;
+    size?: 'sm' | 'md';
+    variant?: 'secondary' | 'tertiary' | 'destructive-secondary';
+}) {
+    const button = (
+        <DsButton
+            size={size}
+            variant={variant}
+            iconPosition={icon ? 'left' : undefined}
+            icon={icon}
+            label={label}
+            aria-disabled={allowed ? undefined : true}
+            className={allowed ? undefined : 'cursor-not-allowed opacity-50'}
+            onClick={allowed ? onClick : undefined}
+        />
+    );
+    if (allowed) return button;
+    return (
+        <DsTooltip content={denied} asChild>
+            {button}
+        </DsTooltip>
+    );
 }
 
 // ------------------------------------------------------------ leitura
@@ -178,9 +250,15 @@ export function useQuickAction(patientId: string) {
 export function RecordBody({
     item,
     patientId,
+    patientName,
+    patientPhone,
+    patientEmail,
 }: {
     item: RecordItem;
     patientId: string;
+    patientName?: string;
+    patientPhone?: string;
+    patientEmail?: string;
 }) {
     const navigate = useNavigate();
     const src = item.source;
@@ -312,10 +390,18 @@ export function RecordBody({
                         answers={questionnaireDetail.data?.answers ?? []}
                     />
                 ) : (
-                    <p className="text-ds-body-sm text-ds-content-secondary">
-                        Aguardando o paciente responder. O envio do link entra
-                        na próxima fatia.
-                    </p>
+                    <>
+                        <p className="text-ds-body-sm text-ds-content-secondary">
+                            Aguardando o paciente responder. Envie o link:
+                        </p>
+                        <QuestionnaireShareButtons
+                            shareUrl={q.shareUrl}
+                            title={q.template?.title ?? item.title}
+                            patientName={patientName}
+                            patientPhone={patientPhone}
+                            patientEmail={patientEmail}
+                        />
+                    </>
                 )}
             </div>
         );
@@ -444,6 +530,74 @@ function formatAnswer(answer: string | string[] | null): string {
     return Array.isArray(answer) ? answer.join(', ') : answer;
 }
 
+async function copyShareUrl(shareUrl: string | null) {
+    if (!shareUrl) return;
+    try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Link copiado');
+    } catch {
+        toast.error('Não foi possível copiar o link');
+    }
+}
+
+export function QuestionnaireShareButtons({
+    shareUrl,
+    title,
+    patientName,
+    patientPhone,
+    patientEmail,
+}: {
+    shareUrl: string | null;
+    title: string;
+    patientName?: string;
+    patientPhone?: string;
+    patientEmail?: string;
+}) {
+    const text = questionnaireShareText(patientName, title, shareUrl ?? '');
+    const whatsappUrl = buildWhatsAppUrl(patientPhone, text);
+    const mailtoUrl = buildMailtoUrl(
+        patientEmail,
+        `Questionário: ${title}`,
+        text,
+    );
+
+    return (
+        <div className="flex flex-col gap-2">
+            <GuardedButton
+                allowed={!!shareUrl}
+                denied="Link de acesso indisponível"
+                label="Copiar link"
+                icon={<Copy />}
+                onClick={() => void copyShareUrl(shareUrl)}
+            />
+            <GuardedButton
+                allowed={!!whatsappUrl}
+                denied="Paciente sem telefone cadastrado"
+                label="WhatsApp"
+                icon={<MessageCircle />}
+                onClick={() => {
+                    if (whatsappUrl) {
+                        window.open(
+                            whatsappUrl,
+                            '_blank',
+                            'noopener,noreferrer',
+                        );
+                    }
+                }}
+            />
+            <GuardedButton
+                allowed={!!mailtoUrl}
+                denied="Paciente sem e-mail cadastrado"
+                label="E-mail"
+                icon={<Mail />}
+                onClick={() => {
+                    if (mailtoUrl) window.location.href = mailtoUrl;
+                }}
+            />
+        </div>
+    );
+}
+
 function QuestionnaireAnswers({
     loading,
     sections,
@@ -504,25 +658,235 @@ function QuestionnaireAnswers({
     );
 }
 
+type DeleteKind = 'evolucao' | 'arquivo' | 'questionario';
+
 export function RecordDrawer({
     item,
     patientId,
+    patientName,
+    patientPhone,
+    patientEmail,
+    currentUserId,
+    role,
     onClose,
+    onEditEvolution,
 }: {
     item: RecordItem | null;
     patientId: string;
+    patientName?: string;
+    patientPhone?: string;
+    patientEmail?: string;
+    currentUserId?: number;
+    role?: ClinicRole;
     onClose: () => void;
+    onEditEvolution?: (evolution: PatientEvolution) => void;
 }) {
+    const [pendingDelete, setPendingDelete] = useState<DeleteKind | null>(null);
+    const deleteEvolution = useDeleteEvolution(patientId);
+    const deleteFile = useDeletePatientFile(patientId);
+    const deleteQuestionnaire = useDeleteQuestionnaire(patientId);
+    const deleting =
+        deleteEvolution.isPending ||
+        deleteFile.isPending ||
+        deleteQuestionnaire.isPending;
+
+    const closeDelete = () => {
+        if (!deleting) setPendingDelete(null);
+    };
+
+    const confirmDelete = () => {
+        if (!item) return;
+        if (pendingDelete === 'evolucao' && item.source.kind === 'evolucao') {
+            deleteEvolution.mutate(String(item.source.item.id), {
+                onSuccess: () => {
+                    setPendingDelete(null);
+                    onClose();
+                },
+            });
+            return;
+        }
+        if (pendingDelete === 'arquivo' && item.source.kind === 'arquivo') {
+            deleteFile.mutate(String(item.source.item.id), {
+                onSuccess: () => {
+                    setPendingDelete(null);
+                    onClose();
+                },
+            });
+            return;
+        }
+        if (
+            pendingDelete === 'questionario' &&
+            item.source.kind === 'questionario'
+        ) {
+            deleteQuestionnaire.mutate(String(item.source.item.id), {
+                onSuccess: () => {
+                    setPendingDelete(null);
+                    onClose();
+                },
+            });
+        }
+    };
+
+    const deleteCopy =
+        pendingDelete === 'evolucao'
+            ? {
+                  title: 'Excluir rascunho de evolução',
+                  body: 'Esta ação não pode ser desfeita.',
+              }
+            : pendingDelete === 'arquivo'
+              ? {
+                    title: 'Excluir arquivo',
+                    body: 'O arquivo sai do prontuário. Esta ação não pode ser desfeita.',
+                }
+              : {
+                    title: 'Excluir questionário',
+                    body: 'O envio sai do prontuário. Esta ação não pode ser desfeita.',
+                };
+
     return (
-        <DsDrawer
-            open={!!item}
-            onOpenChange={(open) => !open && onClose()}
-            placement="right"
-            size="md"
-            title={item?.title ?? ''}
-            meta={item ? KIND_META[item.kind].label : undefined}
-        >
-            {item && <RecordBody item={item} patientId={patientId} />}
-        </DsDrawer>
+        <>
+            <DsDrawer
+                open={!!item}
+                onOpenChange={(open) => !open && onClose()}
+                placement="right"
+                size="md"
+                title={item?.title ?? ''}
+                meta={item ? KIND_META[item.kind].label : undefined}
+                footer={
+                    item ? (
+                        <RecordFooter
+                            item={item}
+                            role={role}
+                            currentUserId={currentUserId}
+                            onEditEvolution={onEditEvolution}
+                            onRequestDelete={setPendingDelete}
+                        />
+                    ) : undefined
+                }
+            >
+                {item && (
+                    <RecordBody
+                        item={item}
+                        patientId={patientId}
+                        patientName={patientName}
+                        patientPhone={patientPhone}
+                        patientEmail={patientEmail}
+                    />
+                )}
+            </DsDrawer>
+            <DsModal
+                open={pendingDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) closeDelete();
+                }}
+                size="sm"
+                title={deleteCopy.title}
+                footer={
+                    <div className="flex w-full justify-end gap-3">
+                        <DsButton
+                            variant="secondary"
+                            label="Cancelar"
+                            disabled={deleting}
+                            onClick={closeDelete}
+                        />
+                        <DsButton
+                            variant="destructive"
+                            label="Excluir"
+                            loading={deleting}
+                            onClick={confirmDelete}
+                        />
+                    </div>
+                }
+            >
+                <p className="text-ds-body-sm text-ds-content-secondary">
+                    {deleteCopy.body}
+                </p>
+            </DsModal>
+        </>
     );
+}
+
+function RecordFooter({
+    item,
+    role,
+    currentUserId,
+    onEditEvolution,
+    onRequestDelete,
+}: {
+    item: RecordItem;
+    role?: ClinicRole;
+    currentUserId?: number;
+    onEditEvolution?: (evolution: PatientEvolution) => void;
+    onRequestDelete: (kind: DeleteKind) => void;
+}) {
+    if (
+        item.source.kind === 'evolucao' &&
+        item.source.item.status === 'draft'
+    ) {
+        const evolution = item.source.item;
+        const ownerId = evolution.clinicUserId;
+        const canEdit = canEditEvolutionDraft(role, ownerId, currentUserId);
+        const canRemove = can.delete(role);
+        return (
+            <div className="flex w-full flex-wrap justify-end gap-2">
+                <GuardedButton
+                    allowed={canEdit}
+                    denied={CLINICAL_DENIED}
+                    label="Editar rascunho"
+                    icon={<Pencil />}
+                    onClick={() => onEditEvolution?.(evolution)}
+                />
+                <GuardedButton
+                    allowed={canRemove}
+                    denied={DELETE_EVOLUTION_DENIED}
+                    label="Excluir rascunho"
+                    icon={<Trash2 />}
+                    variant="destructive-secondary"
+                    onClick={() => onRequestDelete('evolucao')}
+                />
+            </div>
+        );
+    }
+
+    if (item.source.kind === 'arquivo') {
+        const allowed = canDeleteOwnedRecord(
+            role,
+            item.source.item.clinicUserId,
+            currentUserId,
+        );
+        return (
+            <div className="flex w-full flex-wrap justify-end gap-2">
+                <GuardedButton
+                    allowed={allowed}
+                    denied={DELETE_FILE_DENIED}
+                    label="Excluir arquivo"
+                    icon={<Trash2 />}
+                    variant="destructive-secondary"
+                    onClick={() => onRequestDelete('arquivo')}
+                />
+            </div>
+        );
+    }
+
+    if (item.source.kind === 'questionario') {
+        const allowed = canDeleteOwnedRecord(
+            role,
+            item.source.item.clinicUserId,
+            currentUserId,
+        );
+        return (
+            <div className="flex w-full flex-wrap justify-end gap-2">
+                <GuardedButton
+                    allowed={allowed}
+                    denied={DELETE_QUESTIONNAIRE_DENIED}
+                    label="Excluir questionário"
+                    icon={<Trash2 />}
+                    variant="destructive-secondary"
+                    onClick={() => onRequestDelete('questionario')}
+                />
+            </div>
+        );
+    }
+
+    return null;
 }

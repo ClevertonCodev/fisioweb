@@ -78,7 +78,13 @@ function renderRecord(patient: PatientDetail) {
     };
     return render(
         <MemoryRouter future={routerFutureFlags}>
-            <VariantB id={patient.id} data={data} onOpen={() => {}} />
+            <VariantB
+                id={patient.id}
+                data={data}
+                onOpen={() => {}}
+                onAction={() => {}}
+                canManageClinical
+            />
         </MemoryRouter>,
     );
 }

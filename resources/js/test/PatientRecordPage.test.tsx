@@ -2,7 +2,13 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+    within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import {
@@ -51,10 +57,20 @@ beforeAll(() => {
 
 const getDetailById = vi.fn();
 const listEvolutions = vi.fn();
+const listEvolutionTemplates = vi.fn();
+const createEvolution = vi.fn();
+const updateEvolution = vi.fn();
+const signEvolution = vi.fn();
+const destroyEvolution = vi.fn();
 const listAssessments = vi.fn();
 const listQuestionnaires = vi.fn();
 const findQuestionnaire = vi.fn();
+const storeQuestionnaire = vi.fn();
+const destroyQuestionnaire = vi.fn();
+const listQuestionnaireTemplates = vi.fn();
 const listFiles = vi.fn();
+const storeFile = vi.fn();
+const destroyFile = vi.fn();
 const listAppointments = vi.fn();
 const listPrograms = vi.fn();
 
@@ -67,6 +83,11 @@ vi.mock('@/infrastructure/repositories/api-clinic-patients', () => ({
 vi.mock('@/infrastructure/repositories/api-clinic-evolutions', () => ({
     apiClinicEvolutionsRepository: {
         listByPatient: (...args: unknown[]) => listEvolutions(...args),
+        listTemplates: (...args: unknown[]) => listEvolutionTemplates(...args),
+        create: (...args: unknown[]) => createEvolution(...args),
+        update: (...args: unknown[]) => updateEvolution(...args),
+        sign: (...args: unknown[]) => signEvolution(...args),
+        destroy: (...args: unknown[]) => destroyEvolution(...args),
     },
 }));
 
@@ -82,6 +103,17 @@ vi.mock(
         apiClinicPatientQuestionnairesRepository: {
             listByPatient: (...args: unknown[]) => listQuestionnaires(...args),
             findById: (...args: unknown[]) => findQuestionnaire(...args),
+            store: (...args: unknown[]) => storeQuestionnaire(...args),
+            destroy: (...args: unknown[]) => destroyQuestionnaire(...args),
+        },
+    }),
+);
+
+vi.mock(
+    '@/infrastructure/repositories/api-clinic-questionnaire-templates',
+    () => ({
+        apiClinicQuestionnaireTemplatesRepository: {
+            list: (...args: unknown[]) => listQuestionnaireTemplates(...args),
         },
     }),
 );
@@ -89,6 +121,8 @@ vi.mock(
 vi.mock('@/infrastructure/repositories/api-clinic-patient-files', () => ({
     apiClinicPatientFilesRepository: {
         listByPatient: (...args: unknown[]) => listFiles(...args),
+        store: (...args: unknown[]) => storeFile(...args),
+        destroy: (...args: unknown[]) => destroyFile(...args),
     },
 }));
 
@@ -303,10 +337,14 @@ function emptyProgramPage(items: Program[] = []) {
 function LocationProbe() {
     const location = useLocation();
     const navigate = useNavigate();
+    const state = location.state as { openNewAppointment?: boolean } | null;
     return (
         <>
             <output aria-label="url atual">
                 {`${location.pathname}${location.search}`}
+            </output>
+            <output aria-label="estado da navegação">
+                {state?.openNewAppointment ? 'openNewAppointment' : ''}
             </output>
             <button type="button" onClick={() => navigate(-1)}>
                 voltar do navegador
@@ -368,13 +406,41 @@ beforeEach(() => {
     role = 'admin';
     getDetailById.mockResolvedValue(makePatient());
     listEvolutions.mockResolvedValue([]);
+    listEvolutionTemplates.mockResolvedValue([]);
+    createEvolution.mockResolvedValue(makeEvolution({ status: 'draft' }));
+    updateEvolution.mockResolvedValue(makeEvolution({ status: 'draft' }));
+    signEvolution.mockResolvedValue(makeEvolution());
+    destroyEvolution.mockResolvedValue(undefined);
     listAssessments.mockResolvedValue([]);
     listQuestionnaires.mockResolvedValue([]);
     findQuestionnaire.mockResolvedValue(makeQuestionnaireDetail());
+    storeQuestionnaire.mockResolvedValue(
+        makeQuestionnaire({
+            status: 'pending',
+            answeredAt: null,
+        }),
+    );
+    destroyQuestionnaire.mockResolvedValue(undefined);
+    listQuestionnaireTemplates.mockResolvedValue([
+        {
+            id: 1,
+            clinicId: 1,
+            title: 'Anamnese lombar',
+            description: null,
+            isActive: true,
+            sections: [],
+        },
+    ]);
     listFiles.mockResolvedValue([]);
+    storeFile.mockResolvedValue(makeFile());
+    destroyFile.mockResolvedValue(undefined);
     listAppointments.mockResolvedValue([]);
     listPrograms.mockResolvedValue(emptyProgramPage());
     vi.spyOn(window, 'open').mockImplementation(() => null);
+    Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
 });
 
 afterEach(() => {
@@ -687,13 +753,499 @@ describe('prontuário do paciente (painel B)', () => {
             join(root, 'patient-record/VariantB.tsx'),
             join(root, 'patient-record/data.ts'),
             join(root, 'patient-record/parts.tsx'),
+            join(root, 'patient-record/share.ts'),
         ];
         const source = files.map((f) => readFileSync(f, 'utf8')).join('\n');
         expect(source).not.toMatch('PrototypeSwitcher');
         expect(source).not.toMatch('patient-record-prototype');
         expect(source).not.toMatch('apiClient');
-        expect(source).not.toMatch('@/components/ui');
         expect(source).not.toMatch('PatientRecordOriginal');
         expect(source).not.toMatch(/filter\([^)]*patientId/);
+        expect(source).not.toMatch('stub do protótipo');
+        const panel = [
+            join(root, 'patient-record/VariantB.tsx'),
+            join(root, 'patient-record/data.ts'),
+            join(root, 'patient-record/parts.tsx'),
+        ]
+            .map((f) => readFileSync(f, 'utf8'))
+            .join('\n');
+        expect(panel).not.toMatch('@/components/ui');
+        expect(panel).not.toMatch('EvolutionFormDrawer');
+        expect(panel).not.toMatch('PatientFileUploadModal');
+        expect(panel).not.toMatch('QuestionnaireFormSheet');
+    });
+
+    it('nova evolução abre a gaveta da v1, grava e aparece em Clínico', async () => {
+        const user = userEvent.setup();
+        const created = makeEvolution({
+            id: 77,
+            title: 'Sessão de quadril',
+            status: 'draft',
+            signedAt: null,
+            notes: null,
+            generatedText: 'Alongar e fortalecer.',
+        });
+        createEvolution.mockImplementation(async () => {
+            listEvolutions.mockResolvedValue([created]);
+            return created;
+        });
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Nova evolução' }));
+        expect(
+            await screen.findByRole('heading', { name: 'Nova evolução' }),
+        ).toBeInTheDocument();
+
+        await user.click(screen.getByText('Texto livre'));
+        await user.type(
+            screen.getByLabelText(/título da sessão/i),
+            'Sessão de quadril',
+        );
+        await user.type(
+            screen.getByLabelText(/texto da evolução/i),
+            'Alongar e fortalecer.',
+        );
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+
+        await waitFor(() => {
+            expect(createEvolution).toHaveBeenCalled();
+        });
+        expect(
+            await screen.findByRole('button', { name: /Sessão de quadril/ }),
+        ).toBeInTheDocument();
+    });
+
+    it('enviar arquivo abre o modal da v1, grava e aparece em Arquivos', async () => {
+        const user = userEvent.setup();
+        const created = makeFile({
+            id: 88,
+            name: 'Laudo joelho',
+            originalName: 'laudo.pdf',
+        });
+        storeFile.mockImplementation(async () => {
+            listFiles.mockResolvedValue([created]);
+            return created;
+        });
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: 'Enviar arquivo' }),
+        );
+        expect(
+            await screen.findByRole('heading', {
+                name: 'Adicionar arquivo ao prontuário',
+            }),
+        ).toBeInTheDocument();
+
+        const file = new File(['laudo'], 'laudo.pdf', {
+            type: 'application/pdf',
+        });
+        const input = document.querySelector(
+            'input[type="file"]',
+        ) as HTMLInputElement;
+        await user.upload(input, file);
+        await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+        await waitFor(() => {
+            expect(storeFile).toHaveBeenCalled();
+        });
+        await user.click(screen.getByRole('tab', { name: /Arquivos/ }));
+        expect(await screen.findByText('Laudo joelho')).toBeInTheDocument();
+    });
+
+    it('enviar questionário cria o envio e o passo Pronto mostra o shareUrl com token', async () => {
+        const user = userEvent.setup();
+        const token = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
+        const created = makeQuestionnaire({
+            id: 12,
+            status: 'pending',
+            answeredAt: null,
+            publicToken: token,
+            shareUrl: `/clinica-a/paciente/questionarios/${token}`,
+        });
+        storeQuestionnaire.mockImplementation(async () => {
+            listQuestionnaires.mockResolvedValue([created]);
+            return created;
+        });
+        getDetailById.mockResolvedValue(
+            makePatient('108', { email: 'paciente@example.com' }),
+        );
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: 'Enviar questionário' }),
+        );
+        await user.click(screen.getByText('Anamnese lombar'));
+        await user.click(screen.getByRole('button', { name: /continuar/i }));
+        await user.click(screen.getByRole('button', { name: /^remoto$/i }));
+        await user.click(
+            screen.getByRole('button', { name: /enviar ao paciente/i }),
+        );
+
+        expect(
+            await screen.findByRole('heading', { name: 'Pronto' }),
+        ).toBeInTheDocument();
+        expect(screen.getByText(created.shareUrl!)).toBeInTheDocument();
+        expect(
+            screen.queryByText(/\/questionarios\/12\b/),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(/\/questionnaires\/12\b/),
+        ).not.toBeInTheDocument();
+
+        expect(
+            screen.getByRole('button', { name: /copiar link/i }),
+        ).toBeEnabled();
+        expect(screen.getByRole('button', { name: /whatsapp/i })).toBeEnabled();
+        expect(screen.getByRole('button', { name: /e-mail/i })).toBeEnabled();
+        fireEvent.click(screen.getByRole('button', { name: /whatsapp/i }));
+        expect(window.open).toHaveBeenCalledWith(
+            expect.stringContaining(`https://wa.me/84977776666?text=`),
+            '_blank',
+            'noopener,noreferrer',
+        );
+        expect(window.open).toHaveBeenCalledWith(
+            expect.stringContaining(token),
+            '_blank',
+            'noopener,noreferrer',
+        );
+    });
+
+    it('secretária vê evolução e avaliação aria-disabled; clique e Enter não abrem', async () => {
+        const user = userEvent.setup();
+        role = 'secretary';
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        const evolution = screen.getByRole('button', { name: 'Nova evolução' });
+        const assessment = screen.getByRole('button', {
+            name: 'Nova avaliação',
+        });
+        expect(evolution).toHaveAttribute('aria-disabled', 'true');
+        expect(assessment).toHaveAttribute('aria-disabled', 'true');
+
+        evolution.focus();
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(
+            'Apenas admin ou fisioterapeuta',
+        );
+        await user.click(evolution);
+        expect(
+            screen.queryByRole('heading', { name: 'Nova evolução' }),
+        ).not.toBeInTheDocument();
+
+        assessment.focus();
+        await user.keyboard('{Enter}');
+        expect(currentUrl()).toBe('/clinica/pacientes/108');
+        expect(screen.queryByText('Outra tela')).not.toBeInTheDocument();
+    });
+
+    it('agendar navega para a agenda com patientId e openNewAppointment', async () => {
+        const user = userEvent.setup();
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Agendar' }));
+        expect(currentUrl()).toBe('/clinica/agenda?patientId=108');
+        expect(
+            screen.getByRole('status', { name: 'estado da navegação' }),
+        ).toHaveTextContent('openNewAppointment');
+    });
+
+    it('novo programa e prescrever navegam com patientId', async () => {
+        const user = userEvent.setup();
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Prescrever' }));
+        expect(currentUrl()).toBe('/clinica/programas/novo?patientId=108');
+    });
+
+    it('WhatsApp do cabeçalho abre wa.me com os dígitos; sem telefone fica desabilitado', async () => {
+        const user = userEvent.setup();
+        const { unmount } = renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: 'Chamar no WhatsApp' }),
+        );
+        expect(window.open).toHaveBeenCalledWith(
+            'https://wa.me/84977776666',
+            '_blank',
+            'noopener,noreferrer',
+        );
+        unmount();
+
+        getDetailById.mockResolvedValue(
+            makePatient('108', { phone: undefined }),
+        );
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+        const whatsapp = screen.getByRole('button', {
+            name: 'Chamar no WhatsApp',
+        });
+        expect(whatsapp).toHaveAttribute('aria-disabled', 'true');
+        await user.click(whatsapp);
+        expect(window.open).toHaveBeenCalledTimes(1);
+    });
+
+    it('drawer pendente tem os três botões; o respondido mostra respostas e não tem formulário', async () => {
+        const user = userEvent.setup();
+        listQuestionnaires.mockResolvedValue([
+            makeQuestionnaire({
+                id: 41,
+                status: 'pending',
+                answeredAt: null,
+                template: { id: 3, title: 'Dor lombar' },
+            }),
+            makeQuestionnaire({
+                id: 42,
+                status: 'answered',
+                template: { id: 3, title: 'SF-36' },
+            }),
+        ]);
+        findQuestionnaire.mockImplementation(async (_patientId, qid) => {
+            if (String(qid) === '42') {
+                return {
+                    ...makeQuestionnaireDetail(),
+                    id: 42,
+                    template: {
+                        ...makeQuestionnaireDetail().template,
+                        title: 'SF-36',
+                    },
+                };
+            }
+            return makeQuestionnaire({
+                id: 41,
+                status: 'pending',
+                answeredAt: null,
+            });
+        });
+        getDetailById.mockResolvedValue(
+            makePatient('108', { email: 'paciente@example.com' }),
+        );
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', { name: /Dor lombar/ }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: /Dor lombar/ }));
+        const pending = await screen.findByRole('dialog', {
+            name: 'Dor lombar',
+        });
+        expect(
+            within(pending).getByRole('button', { name: 'Copiar link' }),
+        ).toBeInTheDocument();
+        expect(
+            within(pending).getByRole('button', { name: 'WhatsApp' }),
+        ).toBeInTheDocument();
+        expect(
+            within(pending).getByRole('button', { name: 'E-mail' }),
+        ).toBeInTheDocument();
+        expect(
+            within(pending).queryByRole('button', { name: /responder/i }),
+        ).not.toBeInTheDocument();
+        await user.click(
+            within(pending).getByRole('button', { name: 'Fechar' }),
+        );
+
+        await user.click(screen.getByRole('button', { name: /SF-36/ }));
+        const answered = await screen.findByRole('dialog', { name: 'SF-36' });
+        await waitFor(() => {
+            expect(
+                within(answered).getByText('Nível de dor'),
+            ).toBeInTheDocument();
+        });
+        expect(within(answered).getByText('7')).toBeInTheDocument();
+        expect(
+            within(answered).queryByRole('button', { name: 'Copiar link' }),
+        ).not.toBeInTheDocument();
+        expect(within(answered).queryByRole('textbox')).not.toBeInTheDocument();
+    });
+
+    it('editar rascunho abre a gaveta; excluir pede DsModal e some da lista', async () => {
+        const user = userEvent.setup();
+        const draft = makeEvolution({
+            id: 11,
+            title: 'Rascunho lombar',
+            status: 'draft',
+            signedAt: null,
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        destroyEvolution.mockImplementation(async () => {
+            listEvolutions.mockResolvedValue([]);
+        });
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', { name: /Rascunho lombar/ }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho lombar/ }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho lombar',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        expect(
+            await screen.findByRole('heading', { name: 'Editar evolução' }),
+        ).toBeInTheDocument();
+        await user.keyboard('{Escape}');
+
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho lombar/ }),
+        );
+        const again = await screen.findByRole('dialog', {
+            name: 'Rascunho lombar',
+        });
+        await user.click(
+            within(again).getByRole('button', { name: 'Excluir rascunho' }),
+        );
+        const confirm = await screen.findByRole('dialog', {
+            name: 'Excluir rascunho de evolução',
+        });
+        await user.click(
+            within(confirm).getByRole('button', { name: 'Excluir' }),
+        );
+
+        await waitFor(() => {
+            expect(destroyEvolution).toHaveBeenCalledWith('11');
+        });
+        await waitFor(() => {
+            expect(
+                screen.queryByRole('button', { name: /Rascunho lombar/ }),
+            ).not.toBeInTheDocument();
+        });
+    });
+
+    it('fisioterapeuta não exclui evolução; secretária não exclui arquivo de outro', async () => {
+        const user = userEvent.setup();
+        role = 'physiotherapist';
+        listEvolutions.mockResolvedValue([
+            makeEvolution({
+                id: 11,
+                title: 'Rascunho lombar',
+                status: 'draft',
+                signedAt: null,
+                clinicUserId: 1,
+            }),
+        ]);
+
+        const { unmount } = renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', { name: /Rascunho lombar/ }),
+            ).toBeInTheDocument();
+        });
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho lombar/ }),
+        );
+        const evoDrawer = await screen.findByRole('dialog', {
+            name: 'Rascunho lombar',
+        });
+        const deleteEvo = within(evoDrawer).getByRole('button', {
+            name: 'Excluir rascunho',
+        });
+        expect(deleteEvo).toHaveAttribute('aria-disabled', 'true');
+        await user.click(deleteEvo);
+        expect(
+            screen.queryByRole('dialog', {
+                name: 'Excluir rascunho de evolução',
+            }),
+        ).not.toBeInTheDocument();
+        unmount();
+
+        role = 'secretary';
+        listEvolutions.mockResolvedValue([]);
+        listFiles.mockResolvedValue([
+            makeFile({ clinicUserId: 5, name: 'Raio-X lombar' }),
+        ]);
+        listQuestionnaires.mockResolvedValue([
+            makeQuestionnaire({
+                clinicUserId: 5,
+                status: 'pending',
+                answeredAt: null,
+            }),
+        ]);
+        renderPage('/clinica/pacientes/108?tab=arquivos');
+        await waitFor(() => {
+            expect(screen.getByText('Raio-X lombar')).toBeInTheDocument();
+        });
+        await user.click(screen.getByRole('button', { name: /Raio-X lombar/ }));
+        const fileDrawer = await screen.findByRole('dialog', {
+            name: 'Raio-X lombar',
+        });
+        const deleteFileBtn = within(fileDrawer).getByRole('button', {
+            name: 'Excluir arquivo',
+        });
+        expect(deleteFileBtn).toHaveAttribute('aria-disabled', 'true');
+        await user.click(deleteFileBtn);
+        expect(
+            screen.queryByRole('dialog', { name: 'Excluir arquivo' }),
+        ).not.toBeInTheDocument();
+        await user.click(
+            within(fileDrawer).getByRole('button', { name: 'Fechar' }),
+        );
+
+        await user.click(screen.getByRole('tab', { name: /Clínico/ }));
+        await user.click(screen.getByRole('button', { name: /Dor lombar/ }));
+        const qDrawer = await screen.findByRole('dialog', {
+            name: 'Dor lombar',
+        });
+        const deleteQ = within(qDrawer).getByRole('button', {
+            name: 'Excluir questionário',
+        });
+        expect(deleteQ).toHaveAttribute('aria-disabled', 'true');
+        await user.click(deleteQ);
+        expect(
+            screen.queryByRole('dialog', { name: 'Excluir questionário' }),
+        ).not.toBeInTheDocument();
     });
 });

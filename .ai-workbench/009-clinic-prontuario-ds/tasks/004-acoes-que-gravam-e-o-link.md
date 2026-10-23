@@ -23,19 +23,19 @@ Esta fatia liga as ações aos fluxos que já gravam, põe WhatsApp no cabeçalh
 
 ## Critérios de Aceite
 
-- [ ] “Nova evolução” abre a gaveta da v1, grava e a evolução aparece na aba Clínico sem recarregar à mão (teste).
-- [ ] “Enviar arquivo” abre o modal da v1, grava e o arquivo aparece na aba Arquivos (teste).
-- [ ] “Enviar questionário” cria o envio; a tela seguinte mostra Copiar, WhatsApp e E-mail usando o `shareUrl` (token, não id) (teste).
-- [ ] Secretária: “Nova evolução” e “Nova avaliação” estão `aria-disabled`; clique e Enter não abrem nada (teste).
-- [ ] “Agendar” navega para a agenda com `patientId` e `openNewAppointment` (teste).
-- [ ] “Novo programa” e “Prescrever” navegam com `patientId`; o passo de detalhes da v1 já vem com esse paciente (teste do cadastro).
-- [ ] WhatsApp do cabeçalho abre `wa.me` com os dígitos; sem telefone fica desabilitado (teste).
-- [ ] Drawer de questionário pendente tem os três botões de compartilhar; o de respondido mostra respostas e **não** tem formulário de responder (teste).
-- [ ] Editar rascunho de evolução abre a gaveta da v1; excluir pede confirmação e some da lista (teste).
-- [ ] Fisioterapeuta não exclui evolução; secretária não exclui arquivo nem questionário de outro — botão desabilitado, API continua 403 (teste de página + Policy já existente).
-- [ ] Nenhum toast de “stub do protótipo” nas ações desta tela (teste / grep).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] “Nova evolução” abre a gaveta da v1, grava e a evolução aparece na aba Clínico sem recarregar à mão (teste).
+- [x] “Enviar arquivo” abre o modal da v1, grava e o arquivo aparece na aba Arquivos (teste).
+- [x] “Enviar questionário” cria o envio; a tela seguinte mostra Copiar, WhatsApp e E-mail usando o `shareUrl` (token, não id) (teste).
+- [x] Secretária: “Nova evolução” e “Nova avaliação” estão `aria-disabled`; clique e Enter não abrem nada (teste).
+- [x] “Agendar” navega para a agenda com `patientId` e `openNewAppointment` (teste).
+- [x] “Novo programa” e “Prescrever” navegam com `patientId`; o passo de detalhes da v1 já vem com esse paciente (teste do cadastro).
+- [x] WhatsApp do cabeçalho abre `wa.me` com os dígitos; sem telefone fica desabilitado (teste).
+- [x] Drawer de questionário pendente tem os três botões de compartilhar; o de respondido mostra respostas e **não** tem formulário de responder (teste).
+- [x] Editar rascunho de evolução abre a gaveta da v1; excluir pede confirmação e some da lista (teste).
+- [x] Fisioterapeuta não exclui evolução; secretária não exclui arquivo nem questionário de outro — botão desabilitado, API continua 403 (teste de página + Policy já existente).
+- [x] Nenhum toast de “stub do protótipo” nas ações desta tela (teste / grep).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`) — revisão adversária das 001–004 fica para o final, como pedido.
 
 ## Depende de
 

@@ -13,6 +13,7 @@ import {
     Check,
     ChevronRight,
     Clock,
+    MessageCircle,
     Pencil,
     Phone,
     Search,
@@ -56,17 +57,21 @@ import {
     type RecordKind,
 } from './data';
 import {
+    CLINICAL_DENIED,
+    GuardedButton,
     KindIcon,
     QUICK_ACTIONS,
     ToneBadge,
-    useQuickAction,
     type QuickAction,
 } from './parts';
+import { whatsappChatUrl } from './share';
 
 export interface VariantProps {
     id: string;
     data: import('./data').PatientRecordData;
     onOpen: (item: RecordItem) => void;
+    onAction: (action: QuickAction) => void;
+    canManageClinical: boolean;
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -88,14 +93,20 @@ interface Step {
     icon: ReactNode;
     title: string;
     hint: string;
-    action?: { label: string; run: () => void };
+    action?: { label: string; run: () => void; clinical?: boolean };
     tone: 'warning' | 'brand' | 'muted';
 }
 
-export function VariantB({ id, data, onOpen }: VariantProps) {
+export function VariantB({
+    id,
+    data,
+    onOpen,
+    onAction,
+    canManageClinical,
+}: VariantProps) {
     const navigate = useNavigate();
     const [params, setParams] = useSearchParams();
-    const runAction = useQuickAction(id);
+    const runAction = onAction;
     const { user } = useAuth();
     const { patient, items, stats, isLoading } = data;
     const listErrors = data.listErrors ?? {
@@ -158,6 +169,7 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                     action: {
                         label: 'Escrever',
                         run: () => runAction('evolucao'),
+                        clinical: true,
                     },
                     tone: 'brand',
                 });
@@ -174,7 +186,11 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                 hint: lastAssessment?.date
                     ? `Última avaliação ${relativeDay(lastAssessment.date)}.`
                     : 'Nenhuma avaliação assinada.',
-                action: { label: 'Avaliar', run: () => runAction('avaliacao') },
+                action: {
+                    label: 'Avaliar',
+                    run: () => runAction('avaliacao'),
+                    clinical: true,
+                },
                 tone: 'brand',
             });
         }
@@ -306,6 +322,7 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                                         }
                                     />
                                 )}
+                                <HeaderWhatsApp phone={patient?.phone} />
                                 <DsButton
                                     size="sm"
                                     variant="tertiary"
@@ -543,14 +560,22 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                                                 {s.hint}
                                             </p>
                                         </div>
-                                        {s.action && (
-                                            <DsButton
-                                                size="sm"
-                                                variant="secondary"
-                                                label={s.action.label}
-                                                onClick={s.action.run}
-                                            />
-                                        )}
+                                        {s.action &&
+                                            (s.action.clinical ? (
+                                                <GuardedButton
+                                                    allowed={canManageClinical}
+                                                    denied={CLINICAL_DENIED}
+                                                    label={s.action.label}
+                                                    onClick={s.action.run}
+                                                />
+                                            ) : (
+                                                <DsButton
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    label={s.action.label}
+                                                    onClick={s.action.run}
+                                                />
+                                            ))}
                                     </li>
                                 ))}
                             </ul>
@@ -590,33 +615,51 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                                 {QUICK_ACTIONS.filter((a) =>
                                     RECORD_ACTIONS.includes(a.key),
                                 ).map((a) => (
-                                    <button
+                                    <MobileRecordAction
                                         key={a.key}
-                                        type="button"
-                                        aria-label={a.label}
+                                        action={a}
+                                        allowed={
+                                            a.key === 'evolucao' ||
+                                            a.key === 'avaliacao'
+                                                ? canManageClinical
+                                                : true
+                                        }
                                         onClick={() => runAction(a.key)}
-                                        className="flex cursor-pointer flex-col items-center gap-1 rounded-ds-lg border border-ds-border-subtle px-1 py-2.5 text-ds-micro text-ds-content-secondary transition-colors focus-visible:shadow-ds-focus focus-visible:outline-0 active:bg-ds-surface-brand-subtle [&_svg]:size-5 [&_svg]:text-ds-content-brand ds-dark:[&_svg]:text-ds-primary-60"
-                                    >
-                                        {a.icon}
-                                        {a.short}
-                                    </button>
+                                    />
                                 ))}
                             </div>
                         ) : (
                             <div className="flex flex-wrap gap-2">
                                 {QUICK_ACTIONS.filter((a) =>
                                     RECORD_ACTIONS.includes(a.key),
-                                ).map((a) => (
-                                    <DsButton
-                                        key={a.key}
-                                        size="sm"
-                                        variant="secondary"
-                                        iconPosition="left"
-                                        icon={a.icon}
-                                        label={a.label}
-                                        onClick={() => runAction(a.key)}
-                                    />
-                                ))}
+                                ).map((a) => {
+                                    const clinical =
+                                        a.key === 'evolucao' ||
+                                        a.key === 'avaliacao';
+                                    if (clinical) {
+                                        return (
+                                            <GuardedButton
+                                                key={a.key}
+                                                allowed={canManageClinical}
+                                                denied={CLINICAL_DENIED}
+                                                label={a.label}
+                                                icon={a.icon}
+                                                onClick={() => runAction(a.key)}
+                                            />
+                                        );
+                                    }
+                                    return (
+                                        <DsButton
+                                            key={a.key}
+                                            size="sm"
+                                            variant="secondary"
+                                            iconPosition="left"
+                                            icon={a.icon}
+                                            label={a.label}
+                                            onClick={() => runAction(a.key)}
+                                        />
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -855,6 +898,64 @@ function FileGrid({
                 );
             })}
         </ul>
+    );
+}
+
+function HeaderWhatsApp({ phone }: { phone?: string }) {
+    const url = whatsappChatUrl(phone);
+    const button = (
+        <DsButton
+            size="sm"
+            variant="tertiary"
+            iconPosition="left"
+            icon={<MessageCircle />}
+            label="Chamar no WhatsApp"
+            aria-disabled={url ? undefined : true}
+            className={url ? undefined : 'cursor-not-allowed opacity-50'}
+            onClick={
+                url
+                    ? () => window.open(url, '_blank', 'noopener,noreferrer')
+                    : undefined
+            }
+        />
+    );
+    if (url) return button;
+    return (
+        <DsTooltip content="Paciente sem telefone cadastrado" asChild>
+            {button}
+        </DsTooltip>
+    );
+}
+
+function MobileRecordAction({
+    action,
+    allowed,
+    onClick,
+}: {
+    action: (typeof QUICK_ACTIONS)[number];
+    allowed: boolean;
+    onClick: () => void;
+}) {
+    const button = (
+        <button
+            type="button"
+            aria-label={action.label}
+            aria-disabled={allowed ? undefined : true}
+            onClick={allowed ? onClick : undefined}
+            className={dsCn(
+                'flex cursor-pointer flex-col items-center gap-1 rounded-ds-lg border border-ds-border-subtle px-1 py-2.5 text-ds-micro text-ds-content-secondary transition-colors focus-visible:shadow-ds-focus focus-visible:outline-0 active:bg-ds-surface-brand-subtle [&_svg]:size-5 [&_svg]:text-ds-content-brand ds-dark:[&_svg]:text-ds-primary-60',
+                !allowed && 'cursor-not-allowed opacity-50',
+            )}
+        >
+            {action.icon}
+            {action.short}
+        </button>
+    );
+    if (allowed) return button;
+    return (
+        <DsTooltip content={CLINICAL_DENIED} asChild>
+            {button}
+        </DsTooltip>
     );
 }
 

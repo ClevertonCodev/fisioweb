@@ -1,20 +1,67 @@
 import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
+import { can } from '@/application/clinic/permissions';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDrawer';
+import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileUploadModal';
+import { QuestionnaireFormSheet } from '@/components/clinic/patient/QuestionnaireFormSheet';
 import { DsButton, DsEmptyState } from '@/components/ds';
+import { useAuth } from '@/contexts/AuthContext';
+import type { PatientEvolution } from '@/domain/clinic';
 
 import { usePatientRecord, type RecordItem } from './data';
-import { RecordDrawer } from './parts';
+import { RecordDrawer, type QuickAction } from './parts';
 import { VariantB } from './VariantB';
 
 export default function PatientRecordScreen() {
     const { id = '' } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const data = usePatientRecord(id);
     const [openKey, setOpenKey] = useState<string | null>(null);
+    const [evolutionOpen, setEvolutionOpen] = useState(false);
+    const [evolutionToEdit, setEvolutionToEdit] = useState<
+        PatientEvolution | undefined
+    >();
+    const [fileOpen, setFileOpen] = useState(false);
+    const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
     const open = data.items.find((i) => i.key === openKey) ?? null;
+    const canManageClinical = can.manageClinicalRecords(user?.role);
+    const shownName = data.patient ? patientDisplayName(data.patient) : '';
+
+    const runAction = useCallback(
+        (action: QuickAction) => {
+            switch (action) {
+                case 'evolucao':
+                    if (!canManageClinical) return;
+                    setEvolutionToEdit(undefined);
+                    setEvolutionOpen(true);
+                    return;
+                case 'avaliacao':
+                    if (!canManageClinical) return;
+                    navigate(`/clinica/pacientes/${id}/avaliacoes/nova`);
+                    return;
+                case 'questionario':
+                    setQuestionnaireOpen(true);
+                    return;
+                case 'arquivo':
+                    setFileOpen(true);
+                    return;
+                case 'consulta':
+                    navigate(`/clinica/agenda?patientId=${id}`, {
+                        state: { openNewAppointment: true },
+                    });
+                    return;
+                case 'programa':
+                    navigate(`/clinica/programas/novo?patientId=${id}`);
+                    return;
+            }
+        },
+        [canManageClinical, id, navigate],
+    );
 
     return (
         <ClinicLayout>
@@ -40,12 +87,48 @@ export default function PatientRecordScreen() {
                     id={id}
                     data={data}
                     onOpen={(item: RecordItem) => setOpenKey(item.key)}
+                    onAction={runAction}
+                    canManageClinical={canManageClinical}
                 />
             )}
             <RecordDrawer
                 item={open}
                 patientId={id}
+                patientName={shownName}
+                patientPhone={data.patient?.phone}
+                patientEmail={data.patient?.email}
+                currentUserId={user == null ? undefined : Number(user.id)}
+                role={user?.role}
                 onClose={() => setOpenKey(null)}
+                onEditEvolution={(evolution) => {
+                    setOpenKey(null);
+                    setEvolutionToEdit(evolution);
+                    setEvolutionOpen(true);
+                }}
+            />
+            <EvolutionFormDrawer
+                key={evolutionToEdit?.id ?? 'new'}
+                open={evolutionOpen}
+                onOpenChange={(next) => {
+                    setEvolutionOpen(next);
+                    if (!next) setEvolutionToEdit(undefined);
+                }}
+                patientId={id}
+                evolutionToEdit={evolutionToEdit}
+            />
+            <PatientFileUploadModal
+                open={fileOpen}
+                onOpenChange={setFileOpen}
+                patientId={id}
+            />
+            <QuestionnaireFormSheet
+                open={questionnaireOpen}
+                onOpenChange={setQuestionnaireOpen}
+                patientId={id}
+                patientRecordPath={`/clinica/pacientes/${id}`}
+                patientName={shownName}
+                patientPhone={data.patient?.phone}
+                patientEmail={data.patient?.email}
             />
         </ClinicLayout>
     );

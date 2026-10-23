@@ -1,6 +1,15 @@
-import { Edit2, Plus } from 'lucide-react';
+import {
+    Check,
+    CheckCircle2,
+    Copy,
+    Edit2,
+    Mail,
+    MessageCircle,
+    Plus,
+} from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { useSendQuestionnaire } from '@/application/clinic/use-patient-questionnaires';
 import { useQuestionnaireTemplates } from '@/application/clinic/use-questionnaire-templates';
@@ -16,13 +25,24 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { QuestionnaireTemplate } from '@/domain/clinic';
+import type {
+    PatientQuestionnaire,
+    QuestionnaireTemplate,
+} from '@/domain/clinic';
+import {
+    buildMailtoUrl,
+    buildWhatsAppUrl,
+    questionnaireShareText,
+} from '@/pages/clinic/patient/patient-record/share';
 
 export interface QuestionnaireFormSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     patientId: string;
     patientRecordPath: string;
+    patientName?: string;
+    patientPhone?: string;
+    patientEmail?: string;
 }
 
 function datetimeLocalToApi(raw: string): string | undefined {
@@ -36,16 +56,21 @@ export function QuestionnaireFormSheet({
     onOpenChange,
     patientId,
     patientRecordPath,
+    patientName,
+    patientPhone,
+    patientEmail,
 }: QuestionnaireFormSheetProps) {
     const navigate = useNavigate();
 
-    const [step, setStep] = useState<1 | 2>(1);
+    const [step, setStep] = useState<1 | 2 | 3>(1);
     const [selectedTemplate, setSelectedTemplate] =
         useState<QuestionnaireTemplate | null>(null);
     const [modality, setModality] = useState<'presencial' | 'remoto'>(
         'presencial',
     );
     const [expiresLocal, setExpiresLocal] = useState('');
+    const [sent, setSent] = useState<PatientQuestionnaire | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const { data: templates = [], isLoading: loadingTemplates } =
         useQuestionnaireTemplates();
@@ -56,6 +81,8 @@ export function QuestionnaireFormSheet({
         setSelectedTemplate(null);
         setModality('presencial');
         setExpiresLocal('');
+        setSent(null);
+        setCopied(false);
     }, []);
 
     const handleOpenChange = useCallback(
@@ -70,22 +97,17 @@ export function QuestionnaireFormSheet({
         if (!selectedTemplate) return;
         const expiresAt = datetimeLocalToApi(expiresLocal);
         try {
-            await mutateAsync({
+            const created = await mutateAsync({
                 questionnaireTemplateId: selectedTemplate.id,
                 modality,
                 expiresAt,
             });
-            handleOpenChange(false);
+            setSent(created);
+            setStep(3);
         } catch {
             // feedback via hook onError
         }
-    }, [
-        selectedTemplate,
-        modality,
-        expiresLocal,
-        mutateAsync,
-        handleOpenChange,
-    ]);
+    }, [selectedTemplate, modality, expiresLocal, mutateAsync]);
 
     const returnTo = encodeURIComponent(
         patientRecordPath + '?tab=questionnaires',
@@ -115,12 +137,16 @@ export function QuestionnaireFormSheet({
                     <SheetTitle>
                         {step === 1
                             ? 'Selecionar questionário'
-                            : 'Configurar envio'}
+                            : step === 2
+                              ? 'Configurar envio'
+                              : 'Pronto'}
                     </SheetTitle>
                     <SheetDescription>
                         {step === 1
                             ? 'Escolha um questionário já criado ou crie um novo.'
-                            : `Questionário: ${selectedTemplate?.title}`}
+                            : step === 2
+                              ? `Questionário: ${selectedTemplate?.title}`
+                              : 'Envie o link ao paciente. O endereço leva o token, não o id.'}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -248,6 +274,22 @@ export function QuestionnaireFormSheet({
                             </div>
                         </div>
                     )}
+
+                    {step === 3 && sent && (
+                        <QuestionnaireReadyStep
+                            sent={sent}
+                            templateTitle={
+                                selectedTemplate?.title ??
+                                sent.template?.title ??
+                                'Questionário'
+                            }
+                            patientName={patientName}
+                            patientPhone={patientPhone}
+                            patientEmail={patientEmail}
+                            copied={copied}
+                            onCopied={() => setCopied(true)}
+                        />
+                    )}
                 </ScrollArea>
 
                 <SheetFooter className="gap-2 pt-4">
@@ -268,7 +310,7 @@ export function QuestionnaireFormSheet({
                                 Continuar
                             </Button>
                         </>
-                    ) : (
+                    ) : step === 2 ? (
                         <>
                             <Button
                                 type="button"
@@ -286,9 +328,136 @@ export function QuestionnaireFormSheet({
                                 {isPending ? 'Enviando…' : 'Enviar ao paciente'}
                             </Button>
                         </>
+                    ) : (
+                        <Button
+                            type="button"
+                            onClick={() => handleOpenChange(false)}
+                        >
+                            Concluir
+                        </Button>
                     )}
                 </SheetFooter>
             </SheetContent>
         </Sheet>
+    );
+}
+
+function QuestionnaireReadyStep({
+    sent,
+    templateTitle,
+    patientName,
+    patientPhone,
+    patientEmail,
+    copied,
+    onCopied,
+}: {
+    sent: PatientQuestionnaire;
+    templateTitle: string;
+    patientName?: string;
+    patientPhone?: string;
+    patientEmail?: string;
+    copied: boolean;
+    onCopied: () => void;
+}) {
+    const shareUrl = sent.shareUrl;
+    const text = questionnaireShareText(
+        patientName,
+        templateTitle,
+        shareUrl ?? '',
+    );
+    const whatsappUrl = buildWhatsAppUrl(patientPhone, text);
+    const mailtoUrl = buildMailtoUrl(
+        patientEmail,
+        `Questionário: ${templateTitle}`,
+        text,
+    );
+
+    async function handleCopy() {
+        if (!shareUrl) return;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            onCopied();
+            toast.success('Link copiado');
+        } catch {
+            toast.error('Não foi possível copiar o link');
+        }
+    }
+
+    return (
+        <div className="flex min-w-0 flex-col gap-2 py-4">
+            <div className="mb-2 flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                <p className="text-sm font-medium">Questionário enviado</p>
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
+                disabled={!whatsappUrl}
+                onClick={() => {
+                    if (whatsappUrl) {
+                        window.open(
+                            whatsappUrl,
+                            '_blank',
+                            'noopener,noreferrer',
+                        );
+                    }
+                }}
+            >
+                <MessageCircle
+                    className={`h-5 w-5 shrink-0 ${whatsappUrl ? 'text-primary' : 'text-muted-foreground'}`}
+                />
+                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                    <span className="text-sm font-medium">WhatsApp</span>
+                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
+                        {whatsappUrl
+                            ? (patientPhone ?? 'Telefone cadastrado')
+                            : 'Paciente sem telefone cadastrado'}
+                    </span>
+                </span>
+            </Button>
+            <Button
+                type="button"
+                variant="outline"
+                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
+                disabled={!mailtoUrl}
+                onClick={() => {
+                    if (mailtoUrl) window.location.href = mailtoUrl;
+                }}
+            >
+                <Mail
+                    className={`h-5 w-5 shrink-0 ${mailtoUrl ? 'text-primary' : 'text-muted-foreground'}`}
+                />
+                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                    <span className="text-sm font-medium">E-mail</span>
+                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
+                        {mailtoUrl
+                            ? patientEmail
+                            : 'Paciente sem e-mail cadastrado'}
+                    </span>
+                </span>
+            </Button>
+            <Button
+                type="button"
+                variant="outline"
+                className="h-auto w-full min-w-0 cursor-pointer justify-start gap-3 px-3 py-2.5 whitespace-normal"
+                disabled={!shareUrl}
+                onClick={() => void handleCopy()}
+            >
+                {copied ? (
+                    <Check className="h-5 w-5 shrink-0 text-primary" />
+                ) : (
+                    <Copy className="h-5 w-5 shrink-0 text-primary" />
+                )}
+                <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+                    <span className="text-sm font-medium">
+                        {copied ? 'Link copiado' : 'Copiar link'}
+                    </span>
+                    <span className="w-full truncate text-xs font-normal text-muted-foreground">
+                        {shareUrl ?? 'Link de acesso indisponível'}
+                    </span>
+                </span>
+            </Button>
+        </div>
     );
 }

@@ -15,10 +15,10 @@ class QuestionnaireAnswerController extends Controller
         protected PatientQuestionnaireServiceInterface $questionnaireService,
     ) {}
 
-    public function store(AnswerPatientQuestionnaireRequest $request, int $id): JsonResponse
+    public function store(AnswerPatientQuestionnaireRequest $request, string $token): JsonResponse
     {
         try {
-            $result = $this->questionnaireService->submitPublicAnswer($id, $request->validated()['answers']);
+            $result = $this->questionnaireService->submitPublicAnswer($token, $request->validated()['answers']);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
         } catch (ValidationException $exception) {
@@ -30,10 +30,10 @@ class QuestionnaireAnswerController extends Controller
         return response()->json(['data' => $result]);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(string $token): JsonResponse
     {
         try {
-            $questionnaire = $this->questionnaireService->showForPublic($id);
+            $questionnaire = $this->questionnaireService->showForPublic($token);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
         } catch (ValidationException $exception) {

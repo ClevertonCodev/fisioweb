@@ -12,6 +12,10 @@ import type {
 import type { AppointmentStatus } from '@/domain/clinic';
 import { apiClinicAppointmentsRepository } from '@/infrastructure/repositories';
 
+import {
+    patientAppointmentsWindow,
+    type PatientAppointmentsWindow,
+} from './patient-care';
 import { nextHistoryPage } from './patient-history-pages';
 
 const repository = apiClinicAppointmentsRepository;
@@ -20,6 +24,26 @@ export function useAppointments(params: AppointmentListParams = {}) {
     return useQuery({
         queryKey: ['appointments', 'list', params],
         queryFn: () => repository.list(params),
+    });
+}
+
+/**
+ * Consultas do prontuário: a API filtra pelo paciente (e, para o
+ * fisioterapeuta, pelas consultas dele) dentro da janela (ADR 018).
+ */
+export function usePatientAppointments(
+    patientId: string | null,
+    window: PatientAppointmentsWindow = patientAppointmentsWindow(),
+) {
+    const params: AppointmentListParams = {
+        from: window.from,
+        to: window.to,
+        patientId: patientId ?? undefined,
+    };
+    return useQuery({
+        queryKey: ['appointments', 'list', params],
+        queryFn: () => repository.list(params),
+        enabled: !!patientId,
     });
 }
 

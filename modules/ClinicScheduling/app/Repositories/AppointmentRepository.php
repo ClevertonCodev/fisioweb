@@ -45,6 +45,9 @@ class AppointmentRepository implements AppointmentRepositoryInterface
         if (!empty($filters['clinic_user_id'])) {
             $query->where('clinic_user_id', $filters['clinic_user_id']);
         }
+        if (!empty($filters['patient_id'])) {
+            $query->where('patient_id', (int) $filters['patient_id']);
+        }
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }

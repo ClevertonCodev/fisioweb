@@ -290,6 +290,8 @@ export function demoLastSent(
         modality: 'remoto' as const,
         answeredAt: null,
         expiresAt: null,
+        publicToken: '00000000-0000-0000-0000-000000000000',
+        shareUrl: null,
     };
     if (templateId === -1) {
         return { ...base, status: 'pending', createdAt: daysAgo(2) };

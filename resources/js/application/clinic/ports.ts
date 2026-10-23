@@ -145,6 +145,7 @@ export interface AppointmentListParams {
     to?: string;
     clinicUserId?: string;
     status?: string;
+    patientId?: string;
 }
 
 /** DTO de escrita para criar/editar consulta (camelCase). */
@@ -260,6 +261,7 @@ export interface ProgramListParams {
     search?: string;
     status?: string;
     withoutPatient?: boolean;
+    patientId?: string;
 }
 
 export interface ProgramListResult {

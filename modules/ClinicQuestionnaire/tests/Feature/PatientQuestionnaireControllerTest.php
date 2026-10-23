@@ -358,8 +358,8 @@ class ClinicQuestionnaireRouteCompatibilityTest extends TestCase
             'api/clinic/patients/{patient}/questionnaires/{questionnaire}/answer'   => ['POST'],
             'api/clinic/questionnaire-templates'                                    => ['GET', 'HEAD', 'POST'],
             'api/clinic/questionnaire-templates/{id}'                               => ['DELETE', 'GET', 'HEAD', 'PUT'],
-            'api/questionnaires/{id}'                                               => ['GET', 'HEAD'],
-            'api/questionnaires/{id}/answer'                                        => ['POST'],
+            'api/questionnaires/{token}'                                            => ['GET', 'HEAD'],
+            'api/questionnaires/{token}/answer'                                     => ['POST'],
         ];
     }
 }

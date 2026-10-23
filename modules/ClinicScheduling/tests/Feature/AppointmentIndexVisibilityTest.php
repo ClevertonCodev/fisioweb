@@ -8,6 +8,7 @@ use Modules\Clinic\Models\ClinicUser;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class AppointmentIndexVisibilityTest extends TestCase
@@ -109,5 +110,79 @@ class AppointmentIndexVisibilityTest extends TestCase
             ->getJson('/api/clinic/appointments')
             ->assertOk()
             ->assertJsonCount(1, 'data');
+    }
+
+    public function test_index_filters_by_patient_id(): void
+    {
+        $otherPatient = Patient::factory()->create(['clinic_id' => $this->clinic->id]);
+        $first        = $this->makeAppointment($this->physioA);
+        $second       = $this->makeAppointment($this->physioB);
+        $this->makeAppointment($this->physioA, ['patient_id' => $otherPatient->id]);
+
+        $response = $this->actingAs($this->admin, 'clinic')
+            ->getJson('/api/clinic/appointments?patient_id=' . $this->patient->id)
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $this->assertEqualsCanonicalizing(
+            [$first->id, $second->id],
+            array_column($response->json('data'), 'id'),
+        );
+    }
+
+    public function test_index_with_patient_id_from_other_clinic_returns_empty_list(): void
+    {
+        $this->makeAppointment($this->physioA);
+
+        $otherClinic = Clinic::factory()->create();
+        $otherAdmin  = ClinicUser::factory()->create(['clinic_id' => $otherClinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+
+        $this->actingAs($otherAdmin, 'clinic')
+            ->getJson('/api/clinic/appointments?patient_id=' . $this->patient->id)
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_index_with_unknown_patient_id_returns_empty_list(): void
+    {
+        $this->makeAppointment($this->physioA);
+
+        $this->actingAs($this->admin, 'clinic')
+            ->getJson('/api/clinic/appointments?patient_id=999999')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_physiotherapist_with_patient_id_sees_only_own_appointments_with_that_patient(): void
+    {
+        $otherPatient = Patient::factory()->create(['clinic_id' => $this->clinic->id]);
+        $own          = $this->makeAppointment($this->physioA);
+        $this->makeAppointment($this->physioB);
+        $this->makeAppointment($this->physioA, ['patient_id' => $otherPatient->id]);
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->getJson('/api/clinic/appointments?patient_id=' . $this->patient->id . '&clinic_user_id=' . $this->physioB->id)
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $own->id)
+            ->assertJsonPath('data.0.clinic_user_id', $this->physioA->id);
+    }
+
+    #[DataProvider('invalidPatientIds')]
+    public function test_index_rejects_invalid_patient_id(string $patientId): void
+    {
+        $this->actingAs($this->admin, 'clinic')
+            ->getJson('/api/clinic/appointments?patient_id=' . $patientId)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('patient_id');
+    }
+
+    public static function invalidPatientIds(): array
+    {
+        return [
+            'zero'         => ['0'],
+            'negativo'     => ['-1'],
+            'não numérico' => ['abc'],
+        ];
     }
 }

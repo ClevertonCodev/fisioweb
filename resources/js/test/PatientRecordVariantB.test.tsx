@@ -18,9 +18,13 @@ beforeAll(() => {
     });
 });
 
+vi.mock('@/contexts/AuthContext', () => ({
+    useAuth: () => ({ user: { id: 1, name: 'Cleverton', role: 'admin' } }),
+}));
+
 import type { PatientDetail } from '@/domain/clinic/patient';
-import type { PatientRecordData } from '@/pages/clinic/patient/patient-record-prototype/data';
-import { VariantB } from '@/pages/clinic/patient/patient-record-prototype/VariantB';
+import type { PatientRecordData } from '@/pages/clinic/patient/patient-record/data';
+import { VariantB } from '@/pages/clinic/patient/patient-record/VariantB';
 import { routerFutureFlags } from '@/test/browser-router';
 
 function detail(overrides: Partial<PatientDetail> = {}): PatientDetail {
@@ -48,6 +52,7 @@ function emptyStats(): PatientRecordData['stats'] {
         next: null,
         last: null,
         since: null,
+        monthsInCare: null,
         noShowStreak: 0,
         activeProgram: null,
         pending: [],
@@ -62,6 +67,14 @@ function renderRecord(patient: PatientDetail) {
         isLoading: false,
         isError: false,
         patientError: false,
+        listErrors: {
+            evolutions: false,
+            assessments: false,
+            questionnaires: false,
+            files: false,
+            appointments: false,
+            programs: false,
+        },
     };
     return render(
         <MemoryRouter future={routerFutureFlags}>

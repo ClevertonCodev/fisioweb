@@ -1,9 +1,8 @@
 /**
- * PROTÓTIPO B, "Painel de acompanhamento": a tela responde primeiro "como
- * está esse paciente?". Cabeçalho com a próxima consulta, alerta de
- * faltas seguidas, números do tratamento, a frequência dos últimos 12
- * meses (um ponto por consulta) e os próximos passos sugeridos. Os
- * registros vêm embaixo, em abas por tipo.
+ * Painel de acompanhamento: a tela responde primeiro "como está esse
+ * paciente?". Cabeçalho com a próxima consulta, alerta de faltas seguidas,
+ * números do tratamento, a frequência dos últimos 12 meses e os próximos
+ * passos. Os registros vêm embaixo, em abas por tipo.
  */
 import {
     AlertTriangle,
@@ -14,14 +13,13 @@ import {
     Check,
     ChevronRight,
     Clock,
-    MessageCircle,
     Pencil,
     Phone,
+    Search,
     Sparkles,
 } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import {
@@ -34,14 +32,16 @@ import {
     DsButton,
     dsCn,
     DsEmptyState,
+    DsInput,
     DsKpi,
     DsTabs,
     DsTooltip,
 } from '@/components/ds';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Appointment } from '@/domain/clinic';
+import { useIsBelowSm } from '@/hooks/use-below-sm';
 import { PatientStatusBadge } from '@/pages/clinic/patient/patient-list/patient-status';
 import { PatientAvatar } from '@/pages/clinic/patient/patient-list/PatientAvatar';
-import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
 
 import {
     ageOf,
@@ -49,7 +49,9 @@ import {
     formatPhone,
     formatTime,
     KIND_META,
+    matchesSearch,
     relativeDay,
+    tabFromSearchParam,
     type RecordItem,
     type RecordKind,
 } from './data';
@@ -60,7 +62,12 @@ import {
     useQuickAction,
     type QuickAction,
 } from './parts';
-import type { VariantProps } from './PatientRecordPrototype';
+
+export interface VariantProps {
+    id: string;
+    data: import('./data').PatientRecordData;
+    onOpen: (item: RecordItem) => void;
+}
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -87,17 +94,43 @@ interface Step {
 
 export function VariantB({ id, data, onOpen }: VariantProps) {
     const navigate = useNavigate();
+    const [params, setParams] = useSearchParams();
     const runAction = useQuickAction(id);
+    const { user } = useAuth();
     const { patient, items, stats, isLoading } = data;
-    const [tab, setTab] = useState<string>('clinico');
+    const listErrors = data.listErrors ?? {
+        evolutions: false,
+        assessments: false,
+        questionnaires: false,
+        files: false,
+        appointments: false,
+        programs: false,
+    };
+    const tab = tabFromSearchParam(params.get('tab'));
+    const [search, setSearch] = useState('');
     const [now] = useState(() => Date.now());
-    const isMobile = useIsMobile();
+    const isMobile = useIsBelowSm();
+    const isPhysio = user?.role === 'physiotherapist';
 
     const shownName = patient ? patientDisplayName(patient) : 'Carregando…';
     const age = ageOf(patient?.birthDate);
-    const monthsInCare = stats.since
-        ? Math.max(1, Math.round((now - stats.since.getTime()) / (30 * DAY)))
-        : null;
+    const monthsInCare = stats.monthsInCare;
+
+    const setTab = (next: string) => {
+        setParams(
+            (prev) => {
+                const nextParams = new URLSearchParams(prev);
+                const nextTab = tabFromSearchParam(next);
+                if (nextTab === 'clinico') {
+                    nextParams.delete('tab');
+                } else {
+                    nextParams.set('tab', nextTab);
+                }
+                return nextParams;
+            },
+            { replace: true },
+        );
+    };
 
     const steps = useMemo<Step[]>(() => {
         const list: Step[] = stats.pending.map((p) => ({
@@ -192,7 +225,18 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
         { key: 'arquivos', label: 'Arquivos', kinds: ['arquivo'] },
     ];
     const current = TABS.find((t) => t.key === tab) ?? TABS[0]!;
-    const tabItems = items.filter((i) => current.kinds.includes(i.kind));
+    const tabItems = items.filter(
+        (i) => current.kinds.includes(i.kind) && matchesSearch(i, search),
+    );
+    const clinicalError =
+        listErrors.evolutions ||
+        listErrors.assessments ||
+        listErrors.questionnaires;
+    const tabError =
+        (tab === 'clinico' && clinicalError) ||
+        (tab === 'agenda' && listErrors.appointments) ||
+        (tab === 'programas' && listErrors.programs) ||
+        (tab === 'arquivos' && listErrors.files);
 
     return (
         <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
@@ -343,18 +387,7 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                         mode="rich"
                         icon={<AlertTriangle />}
                         title={`${stats.noShowStreak} faltas seguidas`}
-                        actions={
-                            <DsButton
-                                size="sm"
-                                variant="secondary"
-                                iconPosition="left"
-                                icon={<MessageCircle />}
-                                label="Chamar no WhatsApp"
-                                onClick={() =>
-                                    toast.info('WhatsApp: stub do protótipo')
-                                }
-                            />
-                        }
+                        actions={undefined}
                     >
                         O paciente não veio às últimas consultas. Um contato
                         agora ajuda a não perder o tratamento.
@@ -458,6 +491,13 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                     </section>
                 )}
 
+                {isPhysio && (
+                    <p className="text-ds-caption text-ds-content-secondary">
+                        Os números e o gráfico são das suas consultas com este
+                        paciente.
+                    </p>
+                )}
+
                 <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
                     <AttendanceStrip
                         items={items}
@@ -520,6 +560,17 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
 
                 {/* Registros */}
                 <section className="rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs">
+                    <div className="border-b border-ds-border-subtle p-3 sm:p-4">
+                        <DsInput
+                            type="search"
+                            label="Pesquisar registros"
+                            placeholder="Evolução, avaliação, questionário ou arquivo"
+                            iconLeft={<Search />}
+                            value={search}
+                            onValueChange={setSearch}
+                            onCleared={() => setSearch('')}
+                        />
+                    </div>
                     <div className="flex flex-col gap-3 border-b border-ds-border-subtle p-3 sm:flex-row sm:items-center sm:p-4">
                         <div className="min-w-0 overflow-x-auto sm:mr-auto">
                             <DsTabs
@@ -569,7 +620,18 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                             </div>
                         )}
                     </div>
-                    {tabItems.length === 0 ? (
+                    {tabError ? (
+                        <div className="p-4">
+                            <DsAlert
+                                variant="danger"
+                                mode="rich"
+                                title="Não foi possível carregar estes registros"
+                            >
+                                O restante do prontuário continua visível.
+                            </DsAlert>
+                        </div>
+                    ) : null}
+                    {tabItems.length === 0 && !tabError ? (
                         <div className="p-6">
                             <DsEmptyState
                                 variant="empty"
@@ -577,7 +639,9 @@ export function VariantB({ id, data, onOpen }: VariantProps) {
                                 description="Use os botões acima para registrar."
                             />
                         </div>
-                    ) : current.key === 'arquivos' ? (
+                    ) : null}
+                    {tabItems.length === 0 ? null : current.key ===
+                      'arquivos' ? (
                         <FileGrid items={tabItems} onOpen={onOpen} />
                     ) : (
                         <ul className="divide-y divide-ds-border-subtle">

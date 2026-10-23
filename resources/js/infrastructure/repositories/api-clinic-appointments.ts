@@ -102,6 +102,7 @@ export const apiClinicAppointmentsRepository: AppointmentsRepository = {
         if (params.to) query.to = params.to;
         if (params.clinicUserId) query.clinic_user_id = params.clinicUserId;
         if (params.status) query.status = params.status;
+        if (params.patientId) query.patient_id = params.patientId;
 
         const { data } = await apiClient.get<{ data: ApiAppointmentDto[] }>(
             '/clinic/appointments',

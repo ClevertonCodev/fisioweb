@@ -1,8 +1,6 @@
 /**
- * PROTÓTIPO (descartável): peças do prontuário (drawer, ícones e ações).
- * "Nova avaliação", "Editar paciente", abrir avaliação e "Novo programa"
- * levam às telas reais; nova evolução, enviar questionário, enviar arquivo
- * e agendar são stub (toast).
+ * Peças do prontuário (drawer, ícones e ações). Nesta fatia, evolução,
+ * arquivo, questionário e agendar ainda não gravam (tarefa 004).
  */
 import {
     Activity,
@@ -18,9 +16,9 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
+import { usePatientQuestionnaire } from '@/application/clinic/use-patient-questionnaires';
 import {
     DsBadge,
     DsButton,
@@ -158,38 +156,18 @@ export const QUICK_ACTIONS: {
     },
 ];
 
-/** Abrir nova evolução ou envio de arquivo: ?nova= (ver PatientRecordPrototype). */
-export const NEW_PARAM = 'nova';
-
 export function useQuickAction(patientId: string) {
     const navigate = useNavigate();
-    const [, setSearchParams] = useSearchParams();
     return (action: QuickAction) => {
         switch (action) {
-            case 'evolucao':
-            case 'arquivo':
-            case 'questionario':
-                setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set(NEW_PARAM, action);
-                    return next;
-                });
-                return;
             case 'avaliacao':
                 navigate(`/clinica/pacientes/${patientId}/avaliacoes/nova`);
                 return;
             case 'programa':
                 navigate('/clinica/programas/novo');
                 return;
-            default: {
-                const label = QUICK_ACTIONS.find(
-                    (a) => a.key === action,
-                )?.label;
-                toast.info(`${label}: stub do protótipo`, {
-                    description:
-                        'Na tela de verdade, abre o mesmo fluxo da v1.',
-                });
-            }
+            default:
+                return;
         }
     };
 }
@@ -206,6 +184,12 @@ export function RecordBody({
 }) {
     const navigate = useNavigate();
     const src = item.source;
+    const questionnaireId =
+        src.kind === 'questionario' ? String(src.item.id) : null;
+    const questionnaireDetail = usePatientQuestionnaire(
+        patientId,
+        questionnaireId,
+    );
 
     const meta = (
         <DsList
@@ -319,10 +303,20 @@ export function RecordBody({
                         { label: 'Por', value: item.author ?? '—' },
                     ]}
                 />
-                <p className="text-ds-body-sm text-ds-content-secondary">
-                    No protótipo, as respostas não são carregadas: a tela de
-                    verdade mostra cada pergunta com a resposta aqui.
-                </p>
+                {q.status === 'answered' ? (
+                    <QuestionnaireAnswers
+                        loading={questionnaireDetail.isLoading}
+                        sections={
+                            questionnaireDetail.data?.template?.sections ?? []
+                        }
+                        answers={questionnaireDetail.data?.answers ?? []}
+                    />
+                ) : (
+                    <p className="text-ds-body-sm text-ds-content-secondary">
+                        Aguardando o paciente responder. O envio do link entra
+                        na próxima fatia.
+                    </p>
+                )}
             </div>
         );
     }
@@ -441,6 +435,71 @@ export function RecordBody({
                     }
                 />
             </div>
+        </div>
+    );
+}
+
+function formatAnswer(answer: string | string[] | null): string {
+    if (answer === null) return '—';
+    return Array.isArray(answer) ? answer.join(', ') : answer;
+}
+
+function QuestionnaireAnswers({
+    loading,
+    sections,
+    answers,
+}: {
+    loading: boolean;
+    sections: Array<{
+        id: number;
+        title: string;
+        questions: Array<{ id: number; label: string }>;
+    }>;
+    answers: Array<{
+        questionnaireQuestionId: number;
+        answer: string | string[] | null;
+    }>;
+}) {
+    if (loading) {
+        return (
+            <p className="text-ds-body-sm text-ds-content-secondary">
+                Carregando respostas…
+            </p>
+        );
+    }
+    const byQuestion = new Map(
+        answers.map((a) => [a.questionnaireQuestionId, a.answer]),
+    );
+    if (sections.length === 0) {
+        return (
+            <p className="text-ds-body-sm text-ds-content-secondary">
+                Sem respostas registradas.
+            </p>
+        );
+    }
+    return (
+        <div className="flex flex-col gap-4">
+            {sections.map((section) => (
+                <section key={section.id}>
+                    <h3 className="mb-2 text-ds-eyebrow text-ds-content-muted uppercase">
+                        {section.title}
+                    </h3>
+                    <ul className="flex flex-col gap-3">
+                        {section.questions.map((question) => (
+                            <li key={question.id}>
+                                <p className="text-ds-caption text-ds-content-muted">
+                                    {question.label}
+                                </p>
+                                <p className="text-ds-body-sm text-ds-content-primary">
+                                    {formatAnswer(
+                                        byQuestion.get(question.id) ?? null,
+                                    )}
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            ))}
         </div>
     );
 }

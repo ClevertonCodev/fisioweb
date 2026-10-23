@@ -2,6 +2,7 @@ export * from './clinic-password';
 export * from './clinic-profile-form';
 export * from './download-program-pdf';
 export * from './format-program-clinical-record-text';
+export * from './patient-care';
 export * from './patient-display-name';
 export * from './patient-file-upload-rules';
 export * from './patient-form';

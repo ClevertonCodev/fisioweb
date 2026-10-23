@@ -1,22 +1,19 @@
 /**
- * PROTÓTIPO (descartável): junta tudo o que o prontuário tem do paciente
- * (consultas, evoluções, avaliações, questionários, arquivos e programas)
- * numa lista só, e tira dela os números do acompanhamento.
- *
- * Consultas e programas não têm filtro por paciente na API: o protótipo
- * busca a janela de 12 meses para trás e 6 para frente (e até 200
- * programas) e filtra aqui. Na tela de verdade, viram parâmetros da API
- * (docs/adr/018-prontuario-v2-busca-consultas-e-programas-por-paciente.md).
+ * Junta o que o prontuário lê do paciente numa lista só. Consultas e
+ * programas já vêm filtrados pela API (ADR 018); os números saem de
+ * `patientCareStats`.
  */
 import { useMemo } from 'react';
 
-import { useAppointments } from '@/application/clinic/use-appointments';
+import { patientCareStats } from '@/application/clinic/patient-care';
+import { usePatientAppointments } from '@/application/clinic/use-appointments';
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
 import { usePatientEvolutions } from '@/application/clinic/use-evolutions';
 import { usePatientFiles } from '@/application/clinic/use-patient-files';
 import { usePatientQuestionnaires } from '@/application/clinic/use-patient-questionnaires';
 import { usePatientDetail } from '@/application/clinic/use-patients';
-import { useClinicPrograms } from '@/application/clinic/use-programs';
+import { usePatientPrograms } from '@/application/clinic/use-programs';
+import { statusLabel } from '@/components/clinic/agenda/agenda-shared';
 import type {
     Appointment,
     AssessmentSummary,
@@ -26,7 +23,6 @@ import type {
     Program,
 } from '@/domain/clinic';
 import type { PatientDetail } from '@/domain/clinic/patient';
-import { statusLabel } from '@/components/clinic/agenda/agenda-shared';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -63,6 +59,39 @@ export interface RecordItem {
     source: RecordSource;
 }
 
+export const RECORD_TABS = [
+    'clinico',
+    'agenda',
+    'programas',
+    'arquivos',
+] as const;
+
+export type RecordTab = (typeof RECORD_TABS)[number];
+
+export const SEARCHABLE_KINDS: RecordKind[] = [
+    'evolucao',
+    'avaliacao',
+    'questionario',
+    'arquivo',
+];
+
+export function tabFromSearchParam(value: string | null): RecordTab {
+    if (value && (RECORD_TABS as readonly string[]).includes(value)) {
+        return value as RecordTab;
+    }
+    return 'clinico';
+}
+
+export function matchesSearch(item: RecordItem, query: string): boolean {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    if (!SEARCHABLE_KINDS.includes(item.kind)) return true;
+    return (
+        item.title.toLowerCase().includes(q) ||
+        item.subtitle.toLowerCase().includes(q)
+    );
+}
+
 export const KIND_META: Record<RecordKind, { label: string; plural: string }> =
     {
         consulta: { label: 'Consulta', plural: 'Consultas' },
@@ -89,23 +118,6 @@ const PROGRAM_STATUS: Record<Program['status'], { label: string; tone: Tone }> =
         active: { label: 'Em andamento', tone: 'success' },
         completed: { label: 'Concluído', tone: 'default' },
     };
-
-function isoDay(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-}
-
-/** Janela fixa por dia, para a chave da query não mudar a cada render. */
-function appointmentWindow() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return {
-        from: isoDay(new Date(today.getTime() - 365 * DAY)),
-        to: isoDay(new Date(today.getTime() + 183 * DAY)),
-    };
-}
 
 export function formatDate(date: Date | null, withYear = true): string {
     if (!date) return 'Sem data';
@@ -294,75 +306,38 @@ function toItems(sources: {
 export interface RecordStats {
     completed: number;
     noShow: number;
-    /** Comparecimento das consultas já encerradas (0–100), ou null. */
     attendance: number | null;
     next: RecordItem | null;
     last: RecordItem | null;
-    /** Desde a primeira consulta ou registro. */
     since: Date | null;
-    /** Faltas seguidas mais recentes (alerta de abandono). */
+    monthsInCare: number | null;
     noShowStreak: number;
     activeProgram: Program | null;
     pending: RecordItem[];
 }
 
-function toStats(items: RecordItem[]): RecordStats {
-    const visits = items
-        .filter((i) => i.kind === 'consulta')
-        .map((i) => i.source.item as Appointment);
-    const past = visits.filter(
-        (a) => a.status === 'completed' || a.status === 'no_show',
-    );
-    const completed = past.filter((a) => a.status === 'completed').length;
-    const noShow = past.length - completed;
-
-    const upcoming = items
-        .filter(
+function consultaItem(
+    items: RecordItem[],
+    appointment: Appointment | null,
+): RecordItem | null {
+    if (!appointment) return null;
+    return (
+        items.find(
             (i) =>
                 i.kind === 'consulta' &&
-                i.future &&
-                (i.source.item as Appointment).status !== 'cancelled',
-        )
-        .sort((a, b) => a.date!.getTime() - b.date!.getTime());
-    const done = items.filter(
-        (i) =>
-            i.kind === 'consulta' &&
-            !i.future &&
-            (i.source.item as Appointment).status === 'completed',
+                i.source.kind === 'consulta' &&
+                i.source.item.id === appointment.id,
+        ) ?? null
     );
+}
 
-    let noShowStreak = 0;
-    const pastSorted = [...past].sort(
-        (a, b) => +new Date(b.startsAt) - +new Date(a.startsAt),
-    );
-    for (const a of pastSorted) {
-        if (a.status !== 'no_show') break;
-        noShowStreak += 1;
-    }
-
-    const dated = items.filter((i) => i.date && !i.future);
-    const since = dated.length ? dated[dated.length - 1]!.date : null;
-
-    const programs = items
-        .filter((i) => i.kind === 'programa')
-        .map((i) => i.source.item as Program);
-
-    return {
-        completed,
-        noShow,
-        attendance: past.length
-            ? Math.round((completed / past.length) * 100)
-            : null,
-        next: upcoming[0] ?? null,
-        last: done[0] ?? null,
-        since,
-        noShowStreak,
-        activeProgram:
-            programs.find(
-                (p) => p.status === 'active' || p.status === 'sent',
-            ) ?? null,
-        pending: items.filter((i) => i.pending),
-    };
+export interface ListErrors {
+    evolutions: boolean;
+    assessments: boolean;
+    questionnaires: boolean;
+    files: boolean;
+    appointments: boolean;
+    programs: boolean;
 }
 
 export interface PatientRecordData {
@@ -372,6 +347,7 @@ export interface PatientRecordData {
     isLoading: boolean;
     isError: boolean;
     patientError: boolean;
+    listErrors: ListErrors;
 }
 
 export function usePatientRecord(id: string): PatientRecordData {
@@ -380,26 +356,20 @@ export function usePatientRecord(id: string): PatientRecordData {
     const assessments = usePatientAssessments(id);
     const questionnaires = usePatientQuestionnaires(id);
     const files = usePatientFiles(id);
-    const window = useMemo(() => appointmentWindow(), []);
-    const appointments = useAppointments(window);
-    const programs = useClinicPrograms({ perPage: 200 });
+    const appointments = usePatientAppointments(id);
+    const programs = usePatientPrograms(id);
 
     const items = useMemo(
         () =>
             toItems({
-                appointments: (appointments.data ?? []).filter(
-                    (a) => a.patientId === id,
-                ),
+                appointments: appointments.data ?? [],
                 evolutions: evolutions.data ?? [],
                 assessments: assessments.data ?? [],
                 questionnaires: questionnaires.data ?? [],
                 files: files.data ?? [],
-                programs: (programs.data?.items ?? []).filter(
-                    (p) => p.patientId === id,
-                ),
+                programs: programs.data ?? [],
             }),
         [
-            id,
             appointments.data,
             evolutions.data,
             assessments.data,
@@ -408,7 +378,25 @@ export function usePatientRecord(id: string): PatientRecordData {
             programs.data,
         ],
     );
-    const stats = useMemo(() => toStats(items), [items]);
+
+    const stats = useMemo(() => {
+        const care = patientCareStats(
+            appointments.data ?? [],
+            programs.data ?? [],
+        );
+        return {
+            completed: care.completed,
+            noShow: care.noShow,
+            attendance: care.attendance,
+            next: consultaItem(items, care.next),
+            last: consultaItem(items, care.last),
+            since: care.since,
+            monthsInCare: care.monthsInCare,
+            noShowStreak: care.noShowStreak,
+            activeProgram: care.activeProgram,
+            pending: items.filter((i) => i.pending),
+        };
+    }, [appointments.data, programs.data, items]);
 
     const all = [
         evolutions,
@@ -425,5 +413,13 @@ export function usePatientRecord(id: string): PatientRecordData {
         isLoading: patient.isLoading || all.some((q) => q.isLoading),
         isError: all.some((q) => q.isError),
         patientError: patient.isError || (!patient.isLoading && !patient.data),
+        listErrors: {
+            evolutions: evolutions.isError,
+            assessments: assessments.isError,
+            questionnaires: questionnaires.isError,
+            files: files.isError,
+            appointments: appointments.isError,
+            programs: programs.isError,
+        },
     };
 }

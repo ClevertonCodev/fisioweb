@@ -17,9 +17,9 @@ link do questionário com token.
 
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
-| [001 · Consultas e programas por paciente, e os números](tasks/001-consultas-e-programas-por-paciente.md) | a fazer | | |
-| [002 · Token no link público do questionário](tasks/002-token-do-questionario.md) | a fazer | | |
-| [003 · Painel B vira a tela de verdade (leitura)](tasks/003-painel-b-vira-tela-real.md) | a fazer | | |
+| [001 · Consultas e programas por paciente, e os números](tasks/001-consultas-e-programas-por-paciente.md) | implementada (review no final) | | |
+| [002 · Token no link público do questionário](tasks/002-token-do-questionario.md) | implementada (review no final) | | |
+| [003 · Painel B vira a tela de verdade (leitura)](tasks/003-painel-b-vira-tela-real.md) | implementada (review no final) | | |
 | [004 · Ações que gravam e o link do questionário](tasks/004-acoes-que-gravam-e-o-link.md) | a fazer | | |
 
 ## Pastas

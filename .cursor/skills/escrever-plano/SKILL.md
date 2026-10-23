@@ -1,12 +1,17 @@
 ---
 name: escrever-plano
-description: Transforma a conversa atual (em geral, o resultado da skill refinar) num plano de implementação, criando a pasta da feature em .ai-workbench/NNN-<slug>/ com README.md e plans/. Segunda etapa do ciclo (refinar, escrever-plano, criar-tarefas, implementar-tarefa, revisao-adversaria). Use quando pedirem para escrever, montar ou salvar o plano de uma funcionalidade.
+description: Transforma o resultado da skill refinar (o decisoes.md da feature e a conversa) num plano de implementação, na pasta da feature em .ai-workbench/NNN-<slug>/ (cria a pasta se ainda não existe), com README.md e plans/. Segunda etapa do ciclo (refinar, escrever-plano, criar-tarefas, implementar-tarefa, revisao-adversaria). Use quando pedirem para escrever, montar ou salvar o plano de uma funcionalidade.
 ---
 
 # Escrever o plano
 
-Junte o que já se sabe da conversa e do código num plano. **Não entreviste o
-usuário de novo**: se ainda há decisão em aberto, volte para a skill `refinar`.
+Junte o que já se sabe do `decisoes.md` da feature, da conversa e do código num
+plano. Quando há `decisoes.md` (gravado pela skill `refinar`), ele é a fonte: a
+conversa pode ter sido com outro agente ou já ter acabado. Se ele e a conversa
+discordam, pergunte ao usuário qual vale.
+
+**Não entreviste o usuário de novo**: se ainda há decisão em aberto (inclusive
+na seção "Em aberto" do `decisoes.md`), volte para a skill `refinar`.
 
 ## Passo a passo
 
@@ -30,8 +35,8 @@ usuário de novo**: se ainda há decisão em aberto, volte para a skill `refinar
 
 3. **Crie a pasta da feature** `.ai-workbench/NNN-<slug>/` (slug em
    kebab-case; `NNN` é o próximo número depois do maior que existe em
-   `.ai-workbench/`: `ls -d .ai-workbench/[0-9]*/`). Se a conversa já é sobre
-   uma feature que tem pasta, use a dela. A estrutura completa está em
+   `.ai-workbench/`: `ls -d .ai-workbench/[0-9]*/`). Se a feature já tem pasta
+   (a skill `refinar` cria a pasta com o `decisoes.md`), use a dela. A estrutura completa está em
    `docs/ai-harness/DEFINITION_OF_DONE.md`, seção "Pasta de trabalho".
 
 4. **Escreva o plano** com o modelo abaixo e salve em
@@ -43,7 +48,7 @@ usuário de novo**: se ainda há decisão em aberto, volte para a skill `refinar
 # {Título}
 
 Data: {data}
-Fonte: {de onde veio: conversa, reunião, documento}
+Fonte: {de onde veio: `decisoes.md`, conversa, reunião, documento}
 
 ## Problema
 
@@ -114,6 +119,7 @@ Qualquer outra coisa que importe.
 - **Status:** planejada | em andamento | em revisão | concluída
 - **Branch:** `feat/{slug}`
 - **Plano:** [`plans/{slug}.md`](plans/{slug}.md)
+- **Decisões:** [`decisoes.md`](decisoes.md) (quando a skill `refinar` gravou)
 - **Módulos:** {módulos de `modules/` e áreas do SPA que mudam}
 
 ## Tarefas
@@ -124,7 +130,7 @@ Qualquer outra coisa que importe.
 
 ## Pastas
 
-- `plans/`, `tasks/`: no git.
+- `decisoes.md`, `plans/`, `tasks/`: no git.
 - `evidence/`, `review/`, `DEFERRED.md`: locais, fora do git.
 
 </modelo-do-readme>

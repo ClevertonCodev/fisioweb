@@ -145,28 +145,21 @@ Skills vivem em **`.claude/skills/`** (Claude Code), **`.cursor/skills/`** (Curs
 
 - `frontend-standards-fisio.md` — documento original de padrões frontend (mantido como histórico; a fonte canônica agora são as skills).
 
-<!-- SPECKIT START -->
-Current active Spec Kit plan: `specs/015-patient-program-experience/plan.md`.
-Read this plan for feature scope, technical context, and validation artifacts
-before implementing tasks for the active feature.
-<!-- SPECKIT END -->
-
 <!-- BEGIN ai-harness -->
 ## Ciclo de trabalho
 
 Cada etapa tem uma skill em `.claude/skills/` / `.cursor/skills/`, e cada uma diz qual é a próxima:
 
-`especificar` (opcional: cria `.ai-workbench/NNN-<slug>/` com `spec.md`, no
-estilo do `/speckit-specify`; o usuário revisa) → `refinar` →
-`escrever-plano` (cria a pasta, se ainda não existe, com `README.md` e
-`plans/`) → `criar-tarefas` (salva em `tasks/` da feature) →
-`implementar-tarefa` (teste primeiro, termina na Definição de Pronto) →
-`revisao-adversaria`.
+`refinar` (grava cada decisão no `decisoes.md` da feature) → `escrever-plano`
+(cria a pasta, se ainda não existe, com `README.md` e `plans/`) →
+`criar-tarefas` (salva em `tasks/` da feature e confere que toda história do
+plano virou tarefa) → `implementar-tarefa` (teste primeiro, termina na
+Definição de Pronto) → `revisao-adversaria`.
 
-Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`, `plans/`,
-`tasks/`, `evidence/`, `review/` e `DEFERRED.md`; a raiz tem um `DEFERRED.md`
-para o que não pertence a nenhuma feature. Detalhes na seção "Pasta de
-trabalho" da Definição de Pronto.
+Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`,
+`decisoes.md`, `plans/`, `tasks/`, `evidence/`, `review/` e `DEFERRED.md`; a
+raiz tem um `DEFERRED.md` para o que não pertence a nenhuma feature. Detalhes
+na seção "Pasta de trabalho" da Definição de Pronto.
 
 ## Definição de Pronto
 

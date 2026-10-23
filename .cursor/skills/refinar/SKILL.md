@@ -17,7 +17,7 @@ decisões de que outras dependem.
 - **Se o código responde, não pergunte.** Antes de perguntar como algo funciona
   hoje, procure no repositório: módulos em `modules/`, telas em
   `resources/js/pages/`, ADRs em `docs/adr/`, docs em `docs/`, as features
-  anteriores em `.ai-workbench/*/` (`README.md` e `plans/`) e as skills em
+  anteriores em `.ai-workbench/*/` (`README.md`, `decisoes.md` e `plans/`) e as skills em
   `.claude/skills/`, `.cursor/skills/` ou `.agents/skills/` (as três canônicas).
 - Pergunte o que só o usuário sabe: o que a clínica, o fisioterapeuta ou o
   paciente precisa, o que fica fora, qual comportamento é o certo quando há
@@ -42,7 +42,47 @@ decisões de que outras dependem.
   teste ou uma tela consegue conferir.
 - **Fora do escopo:** o que fica explicitamente para depois.
 
+## Grave cada decisão
+
+A conversa não é o registro: outro agente (Claude Code, Cursor, Antigravity) ou
+outra sessão vai continuar daqui. Grave cada decisão em
+`.ai-workbench/<feature>/decisoes.md` assim que o usuário responder, não só no
+fim.
+
+- Se a ideia já tem pasta em `.ai-workbench/`, use a dela. Se não tem, crie
+  `.ai-workbench/NNN-<slug>/` na primeira resposta (o número segue a seção
+  "Pasta de trabalho" de `docs/ai-harness/DEFINITION_OF_DONE.md`). A skill
+  `escrever-plano` usa a mesma pasta depois.
+- Cada vez que a skill roda é uma sessão nova no fim do arquivo, com a data de
+  `date '+%Y-%m-%d'`. Não reescreva as sessões anteriores: se uma decisão
+  mudou, registre a nova e diga qual ela substitui.
+- Uma linha por decisão: a pergunta, a resposta e o porquê, quando o usuário
+  disse.
+- O arquivo entra no git: sem dado de paciente, nome de clínica real ou
+  credencial.
+
+<modelo-das-decisoes>
+
+# Decisões · {Título}
+
+## Sessão {data}
+
+- **{Pergunta curta}** → {resposta}. {Por quê, se o usuário disse.}
+- **{Pergunta curta}** → {resposta}. (Substitui a decisão de {data} sobre {tema}.)
+
+### Fora do escopo
+
+- {O que ficou para depois}
+
+### Em aberto
+
+- {Só se a sessão parou antes de fechar tudo; a próxima começa por aqui}
+
+</modelo-das-decisoes>
+
 ## Quando parar
 
-Quando não houver mais decisão em aberto, resuma em tópicos o que foi decidido e
-o que ficou fora, e sugira o próximo passo: a skill `escrever-plano`.
+Quando não houver mais decisão em aberto, confira que o `decisoes.md` tem tudo o
+que foi decidido e o que ficou fora, e que a seção "Em aberto" saiu ou ficou
+vazia. Mostre ao usuário o caminho do arquivo e um resumo em tópicos, e sugira o
+próximo passo: a skill `escrever-plano`.

@@ -1,24 +1,25 @@
 import { ArrowLeft } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { can } from '@/application/clinic/permissions';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDrawer';
-import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileUploadModal';
-import { QuestionnaireFormSheet } from '@/components/clinic/patient/QuestionnaireFormSheet';
 import { DsButton, DsEmptyState } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PatientEvolution } from '@/domain/clinic';
 
 import { usePatientRecord, type RecordItem } from './data';
+import { EvolutionModal } from './overlays/EvolutionModal';
+import { FileUploadModal } from './overlays/FileUploadModal';
+import { QuestionnaireDrawer } from './overlays/QuestionnaireDrawer';
 import { RecordDrawer, type QuickAction } from './parts';
 import { VariantB } from './VariantB';
 
 export default function PatientRecordScreen() {
     const { id = '' } = useParams();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuth();
     const data = usePatientRecord(id);
     const [openKey, setOpenKey] = useState<string | null>(null);
@@ -31,6 +32,18 @@ export default function PatientRecordScreen() {
     const open = data.items.find((i) => i.key === openKey) ?? null;
     const canManageClinical = can.manageClinicalRecords(user?.role);
     const shownName = data.patient ? patientDisplayName(data.patient) : '';
+    const nova = searchParams.get('nova');
+    const evolutionShown =
+        evolutionOpen || (nova === 'evolucao' && canManageClinical);
+    const fileShown = fileOpen || nova === 'arquivo';
+    const questionnaireShown = questionnaireOpen || nova === 'questionario';
+
+    const clearNova = useCallback(() => {
+        if (!searchParams.has('nova')) return;
+        const next = new URLSearchParams(searchParams);
+        next.delete('nova');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams]);
 
     const runAction = useCallback(
         (action: QuickAction) => {
@@ -106,26 +119,38 @@ export default function PatientRecordScreen() {
                     setEvolutionOpen(true);
                 }}
             />
-            <EvolutionFormDrawer
-                key={evolutionToEdit?.id ?? 'new'}
-                open={evolutionOpen}
+            <EvolutionModal
+                key={`${evolutionToEdit?.id ?? 'new'}-${evolutionShown}`}
+                open={evolutionShown}
                 onOpenChange={(next) => {
                     setEvolutionOpen(next);
-                    if (!next) setEvolutionToEdit(undefined);
+                    if (!next) {
+                        setEvolutionToEdit(undefined);
+                        clearNova();
+                    }
                 }}
                 patientId={id}
+                patientName={shownName}
                 evolutionToEdit={evolutionToEdit}
             />
-            <PatientFileUploadModal
-                open={fileOpen}
-                onOpenChange={setFileOpen}
+            <FileUploadModal
+                key={String(fileShown)}
+                open={fileShown}
+                onOpenChange={(next) => {
+                    setFileOpen(next);
+                    if (!next) clearNova();
+                }}
                 patientId={id}
+                patientName={shownName}
             />
-            <QuestionnaireFormSheet
-                open={questionnaireOpen}
-                onOpenChange={setQuestionnaireOpen}
+            <QuestionnaireDrawer
+                key={String(questionnaireShown)}
+                open={questionnaireShown}
+                onOpenChange={(next) => {
+                    setQuestionnaireOpen(next);
+                    if (!next) clearNova();
+                }}
                 patientId={id}
-                patientRecordPath={`/clinica/pacientes/${id}`}
                 patientName={shownName}
                 patientPhone={data.patient?.phone}
                 patientEmail={data.patient?.email}

@@ -138,6 +138,15 @@ Skills vivem em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Co
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
 | Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
 
+### Diagnóstico e arquitetura
+| Vou fazer | Skill |
+|-----------|-------|
+| Levantar pontos de melhoria e candidatos a refatoração (relatório HTML com antes e depois; só o usuário chama) | [`improve-codebase-architecture`](.cursor/skills/improve-codebase-architecture/SKILL.md) |
+| Desenhar a interface de um módulo, decidir onde fica a costura, desenhar duas vezes antes de refatorar | [`codebase-design`](.cursor/skills/codebase-design/SKILL.md) |
+| Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.cursor/skills/tech-debt-audit/SKILL.md) |
+| Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.cursor/skills/domain-modeling/SKILL.md) |
+| Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.cursor/skills/systematic-debugging/SKILL.md) |
+
 ## Princípios não-negociáveis
 
 1. **Backend é fonte de verdade.** Frontend nunca decide autorização efetiva, validação de segurança, ou regra de negócio crítica. Frontend esconde para UX; backend protege para valer.

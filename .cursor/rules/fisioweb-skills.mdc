@@ -39,6 +39,15 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 |--------|-------|
 | Policies + permissions.ts + RequireClinicAdmin | `security` |
 
+### Diagnóstico e arquitetura
+| Tarefa | Skill |
+|--------|-------|
+| Candidatos a refatoração, relatório HTML (só o usuário chama) | `improve-codebase-architecture` |
+| Desenhar a interface de um módulo, desenhar duas vezes | `codebase-design` |
+| Auditoria de débito técnico com arquivo e linha (só o usuário chama) | `tech-debt-audit` |
+| Explicar área antiga, glossário (`docs/glossario.md`), ADR | `domain-modeling` |
+| Investigar bug antes de corrigir | `systematic-debugging` |
+
 ## Princípios
 
 1. Backend limpo por padrão: Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla.

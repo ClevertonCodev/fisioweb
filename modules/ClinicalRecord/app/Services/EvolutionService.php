@@ -85,7 +85,9 @@ class EvolutionService implements EvolutionServiceInterface
 
             $evolution = $this->repository->update($evolution, [
                 'title'          => $dto['title'] ?? $evolution->title,
-                'generated_text' => $generatedText ?? $evolution->generated_text,
+                'generated_text' => array_key_exists('generated_text', $dto)
+                    ? $generatedText
+                    : $evolution->generated_text,
                 'notes'          => array_key_exists('notes', $dto) ? $dto['notes'] : $evolution->notes,
             ]);
 

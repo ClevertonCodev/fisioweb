@@ -5,12 +5,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { can } from '@/application/clinic/permissions';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { EvolutionFormDrawer } from '@/components/clinic/patient/EvolutionFormDrawer';
-import { PatientFileUploadModal } from '@/components/clinic/patient/PatientFileUploadModal';
-import { QuestionnaireFormSheet } from '@/components/clinic/patient/QuestionnaireFormSheet';
 import { DsButton, DsEmptyState } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PatientEvolution } from '@/domain/clinic';
+
+import { EvolutionFormModal } from '../evolution-form/EvolutionFormModal';
+import { FileUploadModal } from '../file-form/FileUploadModal';
+import { QuestionnaireSendDrawer } from '../questionnaire-form/QuestionnaireSendDrawer';
 
 import { usePatientRecord, type RecordItem } from './data';
 import { RecordDrawer, type QuickAction } from './parts';
@@ -106,26 +107,26 @@ export default function PatientRecordScreen() {
                     setEvolutionOpen(true);
                 }}
             />
-            <EvolutionFormDrawer
-                key={evolutionToEdit?.id ?? 'new'}
+            <EvolutionFormModal
                 open={evolutionOpen}
                 onOpenChange={(next) => {
                     setEvolutionOpen(next);
                     if (!next) setEvolutionToEdit(undefined);
                 }}
                 patientId={id}
+                patientName={shownName}
                 evolutionToEdit={evolutionToEdit}
             />
-            <PatientFileUploadModal
+            <FileUploadModal
                 open={fileOpen}
                 onOpenChange={setFileOpen}
                 patientId={id}
+                patientName={shownName}
             />
-            <QuestionnaireFormSheet
+            <QuestionnaireSendDrawer
                 open={questionnaireOpen}
                 onOpenChange={setQuestionnaireOpen}
                 patientId={id}
-                patientRecordPath={`/clinica/pacientes/${id}`}
                 patientName={shownName}
                 patientPhone={data.patient?.phone}
                 patientEmail={data.patient?.email}

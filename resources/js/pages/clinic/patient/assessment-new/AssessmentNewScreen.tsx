@@ -122,10 +122,13 @@ export function AssessmentNewScreen({
                             </h2>
                             {p.suggested != null &&
                                 p.suggested.id === p.selectedSummary?.id && (
-                                <DsBadge variant="primary" icon={<Sparkles />}>
-                                    Indicada pelo diagnóstico
-                                </DsBadge>
-                            )}
+                                    <DsBadge
+                                        variant="primary"
+                                        icon={<Sparkles />}
+                                    >
+                                        Indicada pelo diagnóstico
+                                    </DsBadge>
+                                )}
                         </div>
                         {p.selectedSummary && (
                             <p className="text-ds-caption text-ds-content-muted">

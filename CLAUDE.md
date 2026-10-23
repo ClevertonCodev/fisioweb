@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Orientação para Claude Code neste repositório. **Detalhes vivem nas skills em `.claude/skills/` e `.cursor/skills/`** (mesmo conteúdo; ambas canônicas) — este arquivo aponta para onde olhar.
+Orientação para Claude Code neste repositório. **Detalhes vivem nas skills em `.claude/skills/`, `.cursor/skills/` e `.agents/skills/`** (Antigravity; mesmo conteúdo; as três canônicas) — este arquivo aponta para onde olhar.
 
 ## Project Overview
 
@@ -95,7 +95,7 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em **`.claude/skills/`** (Claude Code) e **`.cursor/skills/`** (Cursor). **As duas árvores são canônicas** — sem symlink entre elas. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/`. Ao criar ou alterar uma skill, atualize **os dois** caminhos e rode `bash bin/verificar-skills.sh`.
+Skills vivem em **`.claude/skills/`** (Claude Code), **`.cursor/skills/`** (Cursor) e **`.agents/skills/`** (Antigravity). **As três árvores são canônicas** — sem symlink entre elas. Cada uma tem `SKILL.md` (resumo + decisão rápida) e `references/`. Ao criar ou alterar uma skill, atualize **os três** caminhos e rode `bash bin/verificar-skills.sh`. O Antigravity tem ainda os subagentes em `.agents/agents/` e as regras em `.agents/rules/`.
 
 ### Backend
 | Vou fazer | Skill |

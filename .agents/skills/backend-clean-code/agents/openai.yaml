@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backend Clean Code"
+  short_description: "SOLID e Clean Code para Laravel modular"
+  default_prompt: "Use $backend-clean-code para revisar ou implementar backend Laravel com SOLID, DTOs, Service Container e separacao clara de responsabilidades."

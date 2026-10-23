@@ -1,0 +1,18 @@
+---
+trigger: glob
+description: Telas v1 — consulte frontend-ui-patterns antes de implementar UI (componentes, cores, sidebar, popover, cursor). Telas v2 e resources/js/components/ds usam design-system
+globs: resources/js/components/**, resources/js/pages/**, resources/css/**
+---
+
+# Frontend UI
+
+**Só para telas v1.** Tela v2, `resources/js/components/ds/**` e `resources/css/ds/**` seguem [`design-system`](../skills/design-system/SKILL.md) (componentes `Ds*`, tokens `--ds-*`). Nunca as duas bibliotecas na mesma tela.
+
+Antes de criar ou estilizar telas v1, menus ou componentes visuais:
+
+1. Leia [`frontend-ui-patterns`](../skills/frontend-ui-patterns/SKILL.md)
+2. Artefato Spec Kit: [`specs/_shared/frontend-ui-patterns.md`](../../specs/_shared/frontend-ui-patterns.md)
+3. Identifique e siga o arquivo canônico do repo antes de criar layout, cor ou interação nova
+4. Popover flutuante = fundo claro (`bg-popover`); sidebar = escuro (`bg-sidebar`)
+5. Elementos clicáveis = `cursor-pointer`
+6. Forms/listagens usam [`forms-shadcn`](../skills/forms-shadcn/SKILL.md); estrutura de feature usa [`frontend-ddd`](../skills/frontend-ddd/SKILL.md)

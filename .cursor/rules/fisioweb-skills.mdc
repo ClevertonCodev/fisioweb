@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Fisioweb Skills
 
-Skills em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude Code): **ambas canônicas**, mesmo conteúdo, **pastas reais** (sem `ln -s` entre árvores). No Explorer, **seta ↗ na pasta = symlink no disco** (atalho legado); rode `bash bin/materializar-skills.sh`. No Cursor, leia `.cursor/skills/<skill>/SKILL.md`. Ao alterar uma skill, atualize **as duas** árvores e rode `bash bin/verificar-skills.sh`.
+Skills em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e **`.agents/skills/`** (Antigravity): **as três canônicas**, mesmo conteúdo, **pastas reais** (sem `ln -s` entre árvores). No Explorer, **seta ↗ na pasta = symlink no disco** (atalho legado); rode `bash bin/materializar-skills.sh`. No Cursor, leia `.cursor/skills/<skill>/SKILL.md`. Ao alterar uma skill, atualize **as três** árvores e rode `bash bin/verificar-skills.sh`.
 
 Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/speckit-specify`, `/speckit-plan`, etc. para spec-driven development.
 
@@ -38,7 +38,6 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | Tarefa | Skill |
 |--------|-------|
 | Policies + permissions.ts + RequireClinicAdmin | `security` |
-| Delegar tarefa ao Antigravity (`/agy-task`, `/agy-verify`) | `agy-harness` |
 
 ## Princípios
 

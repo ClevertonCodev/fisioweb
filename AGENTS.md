@@ -108,7 +108,7 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude Code). **As duas árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os dois** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`.
+Skills vivem em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e **`.agents/skills/`** (Antigravity). **As três árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os três** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`. No Antigravity, subagentes ficam em `.agents/agents/` e regras em `.agents/rules/` (veja `.agents/rules/fisioweb-antigravity.md`).
 
 ### Backend
 | Vou fazer | Skill |
@@ -137,7 +137,6 @@ Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude C
 | Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
 | Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
-| Delegar implementação ao Antigravity (`/agy-task`, `/agy-verify`) | [`agy-harness`](.cursor/skills/agy-harness/SKILL.md) |
 
 ## Princípios não-negociáveis
 

@@ -90,17 +90,41 @@ export function RepeatLastButton({ c }: { c: EvolutionComposer }) {
 export function TextBlocks({
     blocks,
     className,
+    compact = false,
 }: {
     blocks: EvolutionSheetBlock[];
     className?: string;
+    compact?: boolean;
 }) {
     return (
-        <div className={dsCn('flex flex-col gap-3', className)}>
+        <div
+            className={dsCn(
+                'flex flex-col',
+                compact ? 'gap-1.5' : 'gap-3',
+                className,
+            )}
+        >
             {blocks.map((b) => (
                 <div key={b.section}>
-                    <p className="font-semibold">{b.section}:</p>
+                    <p
+                        className={dsCn(
+                            'font-semibold',
+                            compact &&
+                                'text-ds-caption text-ds-content-secondary',
+                        )}
+                    >
+                        {b.section}:
+                    </p>
                     {b.lines.map((l) => (
-                        <p key={l}>{l}</p>
+                        <p
+                            key={l}
+                            className={dsCn(
+                                compact &&
+                                    'text-ds-caption text-ds-content-muted',
+                            )}
+                        >
+                            {l}
+                        </p>
                     ))}
                 </div>
             ))}

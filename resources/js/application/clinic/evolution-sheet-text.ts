@@ -51,23 +51,41 @@ export function buildEvolutionSheetText(
         .join('\n\n');
 }
 
-const SHEET_SECTION_HEAD = /^\*\*(.+):\*\*$/;
+const SHEET_SECTION_MARKER = /\*\*([^*]+):\*\*/g;
+
+function sheetLinesFromBody(body: string): string[] {
+    return body
+        .split('\n')
+        .flatMap((line) => line.split(/(?=\*\*[^*]+:\*\*)/))
+        .map((line) =>
+            line
+                .replace(/\*\*([^*]+):\*\*/g, '')
+                .replace(/^[\s\-–—]+/, '')
+                .trim(),
+        )
+        .filter(Boolean);
+}
 
 /** Inverte o formato gravado em `generated_text` (modelo com seções). */
 export function parseEvolutionSheetText(text: string): EvolutionSheetBlock[] {
     const trimmed = text.trim();
     if (!trimmed.includes('**')) return [];
 
+    const markers = [...trimmed.matchAll(SHEET_SECTION_MARKER)];
+    if (markers.length === 0) return [];
+
     const blocks: EvolutionSheetBlock[] = [];
-    for (const chunk of trimmed.split(/\n\n+/)) {
-        const lines = chunk
-            .split('\n')
-            .map((line) => line.trim())
-            .filter(Boolean);
-        if (lines.length === 0) continue;
-        const match = lines[0].match(SHEET_SECTION_HEAD);
-        if (match) {
-            blocks.push({ section: match[1], lines: lines.slice(1) });
+    for (let i = 0; i < markers.length; i += 1) {
+        const match = markers[i];
+        const section = match[1].trim();
+        const start = (match.index ?? 0) + match[0].length;
+        const end =
+            i + 1 < markers.length
+                ? markers[i + 1].index ?? trimmed.length
+                : trimmed.length;
+        const lines = sheetLinesFromBody(trimmed.slice(start, end));
+        if (lines.length > 0) {
+            blocks.push({ section, lines });
         }
     }
     return blocks;
@@ -87,7 +105,10 @@ export function evolutionListPreview(
             })
             .join(' · ');
     }
-    return generatedText.replace(/\s+/g, ' ').trim();
+    return generatedText
+        .replace(SHEET_SECTION_MARKER, '$1: ')
+        .replace(/\s+/g, ' ')
+        .trim();
 }
 
 /** Blocos para o drawer: modelo parseado ou texto livre por frase. */

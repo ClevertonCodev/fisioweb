@@ -118,6 +118,24 @@ describe('parseEvolutionSheetText e previews', () => {
         );
     });
 
+    it('parseia várias seções na mesma linha (texto colapsado)', () => {
+        const collapsed =
+            '**Anamnese / Avaliação:** Reavaliação clínica. **Eletroterapia e Termoterapia:** Ultrassom aplicado.';
+        expect(parseEvolutionSheetText(collapsed)).toEqual([
+            {
+                section: 'Anamnese / Avaliação',
+                lines: ['Reavaliação clínica.'],
+            },
+            {
+                section: 'Eletroterapia e Termoterapia',
+                lines: ['Ultrassom aplicado.'],
+            },
+        ]);
+        expect(evolutionListPreview(collapsed)).toBe(
+            'Anamnese / Avaliação: Reavaliação clínica. · Eletroterapia e Termoterapia: Ultrassom aplicado.',
+        );
+    });
+
     it('drawer usa blocos do modelo ou frases no texto livre', () => {
         expect(
             evolutionDetailBlocks({ generatedText: sheet }),

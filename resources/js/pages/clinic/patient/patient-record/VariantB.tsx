@@ -43,6 +43,7 @@ import type { Appointment } from '@/domain/clinic';
 import { useIsBelowSm } from '@/hooks/use-below-sm';
 import { PatientStatusBadge } from '@/pages/clinic/patient/patient-list/patient-status';
 import { PatientAvatar } from '@/pages/clinic/patient/patient-list/PatientAvatar';
+import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
 
 import {
     ageOf,
@@ -711,9 +712,21 @@ export function VariantB({
                                             <p className="truncate text-ds-body-xs font-medium">
                                                 {item.title}
                                             </p>
-                                            <p className="truncate text-ds-caption text-ds-content-muted">
-                                                {item.subtitle}
-                                            </p>
+                                            {item.evolutionSheet &&
+                                            item.evolutionSheet.length > 0 ? (
+                                                <div className="mt-0.5 line-clamp-4 text-left">
+                                                    <TextBlocks
+                                                        blocks={
+                                                            item.evolutionSheet
+                                                        }
+                                                        compact
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <p className="truncate text-ds-caption text-ds-content-muted">
+                                                    {item.subtitle}
+                                                </p>
+                                            )}
                                             <p className="mt-1.5 flex flex-wrap items-center gap-2 sm:hidden">
                                                 <span className="font-ds-mono text-ds-caption text-ds-content-secondary">
                                                     {item.date?.toLocaleDateString(

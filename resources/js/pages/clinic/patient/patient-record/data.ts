@@ -5,7 +5,11 @@
  */
 import { useMemo } from 'react';
 
-import { evolutionListPreview } from '@/application/clinic/evolution-sheet-text';
+import {
+    evolutionDetailBlocks,
+    evolutionListPreview,
+    type EvolutionSheetBlock,
+} from '@/application/clinic/evolution-sheet-text';
 import { patientCareStats } from '@/application/clinic/patient-care';
 import { usePatientAppointments } from '@/application/clinic/use-appointments';
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
@@ -52,6 +56,8 @@ export interface RecordItem {
     date: Date | null;
     title: string;
     subtitle: string;
+    /** Folha da evolução (modelo), igual ao cadastro; omitido se só há notas. */
+    evolutionSheet?: EvolutionSheetBlock[];
     author: string | null;
     status: { label: string; tone: Tone } | null;
     /** Pede ação de alguém (rascunho, questionário pendente). */
@@ -222,6 +228,9 @@ function toItems(sources: {
                 e.notes ||
                 evolutionListPreview(e.generatedText) ||
                 'Sem texto',
+            evolutionSheet: e.notes
+                ? undefined
+                : evolutionDetailBlocks(e),
             author: e.clinicUser?.name ?? null,
             status:
                 e.status === 'signed'

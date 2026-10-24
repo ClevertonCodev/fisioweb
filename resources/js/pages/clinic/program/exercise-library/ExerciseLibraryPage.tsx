@@ -178,6 +178,7 @@ export default function ExerciseLibraryPage({
         <>
             <ProgramsPageShell
                 hideTabs={hideTabs}
+                hideCreateProgram={hideTabs}
                 subtitle={
                     isLoading
                         ? 'Carregando exercícios…'

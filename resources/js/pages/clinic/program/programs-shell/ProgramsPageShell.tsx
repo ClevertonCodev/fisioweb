@@ -23,6 +23,7 @@ export function ProgramsPageShell({
     chips,
     children,
     hideTabs = false,
+    hideCreateProgram = false,
 }: {
     subtitle: ReactNode;
     extraActions?: ReactNode;
@@ -30,6 +31,8 @@ export function ProgramsPageShell({
     chips: ReactNode;
     children: ReactNode;
     hideTabs?: boolean;
+    /** Rota do menu Exercícios: biblioteca sem criar programa no cabeçalho. */
+    hideCreateProgram?: boolean;
 }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -53,26 +56,30 @@ export function ProgramsPageShell({
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
                                 {extraActions}
-                                <div className="sm:hidden">
-                                    <DsButton
-                                        iconPosition="only"
-                                        icon={<Plus />}
-                                        label="Criar programa"
-                                        onClick={() =>
-                                            navigate(NEW_PROGRAM_PATH)
-                                        }
-                                    />
-                                </div>
-                                <div className="hidden sm:block">
-                                    <DsButton
-                                        iconPosition="left"
-                                        icon={<Plus />}
-                                        label="Criar programa"
-                                        onClick={() =>
-                                            navigate(NEW_PROGRAM_PATH)
-                                        }
-                                    />
-                                </div>
+                                {!hideCreateProgram && (
+                                    <>
+                                        <div className="sm:hidden">
+                                            <DsButton
+                                                iconPosition="only"
+                                                icon={<Plus />}
+                                                label="Criar programa"
+                                                onClick={() =>
+                                                    navigate(NEW_PROGRAM_PATH)
+                                                }
+                                            />
+                                        </div>
+                                        <div className="hidden sm:block">
+                                            <DsButton
+                                                iconPosition="left"
+                                                icon={<Plus />}
+                                                label="Criar programa"
+                                                onClick={() =>
+                                                    navigate(NEW_PROGRAM_PATH)
+                                                }
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </header>
 

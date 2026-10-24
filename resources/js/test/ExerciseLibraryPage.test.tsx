@@ -177,6 +177,9 @@ describe('ExerciseLibraryPage', () => {
         ).toBeInTheDocument();
         expect(await screen.findByText('Bird Dog')).toBeInTheDocument();
         expect(screen.getByText('Enviar exercício')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Criar programa' }),
+        ).toBeInTheDocument();
     });
 
     it('na URL do menu não mostra as abas de Programas', async () => {
@@ -184,6 +187,9 @@ describe('ExerciseLibraryPage', () => {
         expect(await screen.findByText('Bird Dog')).toBeInTheDocument();
         expect(
             screen.queryByRole('tab', { name: 'Histórico' }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Criar programa' }),
         ).not.toBeInTheDocument();
     });
 

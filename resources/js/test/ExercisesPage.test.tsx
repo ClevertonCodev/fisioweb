@@ -121,5 +121,8 @@ describe('ExercisesPage', () => {
         expect(
             screen.queryByRole('tab', { name: 'Histórico' }),
         ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Criar programa' }),
+        ).not.toBeInTheDocument();
     });
 });

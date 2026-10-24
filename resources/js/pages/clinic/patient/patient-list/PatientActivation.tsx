@@ -1,5 +1,6 @@
 import { UserCheck, UserX } from 'lucide-react';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
 import type { Patient } from '@/domain/clinic/patient';
 
@@ -97,7 +98,7 @@ export function PatientActivationModal({
                 if (!next && !pending) onCancel();
             }}
             size="sm"
-            title={patient ? texts.title(patient.name) : ''}
+            title={patient ? texts.title(patientDisplayName(patient)) : ''}
             footer={
                 <div className="flex w-full justify-end gap-3">
                     <DsButton

@@ -6,7 +6,12 @@ export default defineConfig({
         globals: true,
         setupFiles: ['./resources/js/test/setup.ts'],
         // Skills: scripts testados com node:test, não com Vitest.
-        exclude: [...configDefaults.exclude, '.claude/**', '.cursor/skills/**'],
+        exclude: [
+            ...configDefaults.exclude,
+            '.claude/**',
+            '.cursor/skills/**',
+            '.agents/**',
+        ],
     },
     resolve: {
         alias: {

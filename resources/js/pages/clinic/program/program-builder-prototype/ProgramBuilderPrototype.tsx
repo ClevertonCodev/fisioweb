@@ -11,7 +11,7 @@
  */
 import { ArrowLeft, ArrowRight, ChevronUp, Layers, Plus } from 'lucide-react';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
@@ -21,7 +21,6 @@ import {
     DsEmptyState,
     DsSteps,
 } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import {
     activeFilterCount,
     applyFilters,
@@ -31,6 +30,7 @@ import {
 } from '@/pages/clinic/program/exercise-library-prototype/shared';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
 import { VariantD as ExerciseLibrary } from '@/pages/clinic/program/exercise-library-prototype/VariantD';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import {
     exerciseCount,
@@ -244,6 +244,8 @@ export default function ProgramBuilderPrototype({
 }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const initialPatientId = searchParams.get('patientId') ?? '';
     const isMobile = useIsMobile();
     const topRef = useRef<HTMLDivElement>(null);
 
@@ -292,6 +294,7 @@ export default function ProgramBuilderPrototype({
                 builder={builder}
                 initialTitle={incoming?.title ?? ''}
                 initialMessage={incoming?.message ?? ''}
+                initialPatientId={initialPatientId}
                 editMode={editMode}
                 onReview={() => go(1)}
             />

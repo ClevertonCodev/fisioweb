@@ -30,12 +30,12 @@ import type {
     ExerciseFilters as Filters,
 } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
+import ExerciseLibraryPrototype from '@/pages/clinic/program/exercise-library-prototype/ExerciseLibraryPrototype';
+import { LIBRARY_VARIANTS } from '@/pages/clinic/program/exercise-library-prototype/variants';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
 } from '@/pages/clinic/PrototypeSwitcher';
-import ExerciseLibraryPrototype from '@/pages/clinic/program/exercise-library-prototype/ExerciseLibraryPrototype';
-import { LIBRARY_VARIANTS } from '@/pages/clinic/program/exercise-library-prototype/variants';
 
 const initialFilters: Filters = {
     search: '',

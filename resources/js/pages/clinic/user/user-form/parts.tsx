@@ -468,6 +468,7 @@ export function RoleCards({
                             key={r}
                             type="button"
                             role="radio"
+                            aria-label={ROLE_META[r].label}
                             aria-checked={on}
                             disabled={disabled && !on}
                             onClick={() =>
@@ -593,8 +594,8 @@ export function GoogleRow({ isOwnProfile }: { isOwnProfile: boolean }) {
 }
 
 /**
- * Barra de salvar: no celular, presa embaixo; no desktop, um cartão
- * flutuando à direita.
+ * Barra de salvar em largura total, igual ao cadastro de paciente.
+ * Fica no fluxo do formulário para não tapar a prévia nem a senha.
  */
 export function SaveBar({
     children,
@@ -606,7 +607,7 @@ export function SaveBar({
     return (
         <div
             className={dsCn(
-                'fixed inset-x-0 bottom-0 z-10 border-t border-ds-border-subtle bg-ds-surface-default/95 px-4 pt-3 pb-20 backdrop-blur sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[min(440px,calc(100vw-48px))] sm:rounded-ds-xl sm:border sm:pb-3 sm:shadow-ds-md lg:right-10',
+                '-mx-4 mt-auto border-t border-ds-border-subtle bg-ds-surface-default px-4 py-3 sm:-mx-6 sm:px-6',
                 className,
             )}
         >

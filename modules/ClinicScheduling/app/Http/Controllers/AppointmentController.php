@@ -4,8 +4,8 @@ namespace Modules\ClinicScheduling\Http\Controllers;
 
 use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
+use Modules\ClinicScheduling\Http\Requests\ListAppointmentsRequest;
 use Modules\ClinicScheduling\Http\Requests\PatientHistoryRequest;
 use Modules\ClinicScheduling\Http\Requests\StoreAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentRequest;
@@ -18,12 +18,12 @@ class AppointmentController extends ClinicAuthenticatedController
         protected AppointmentServiceInterface $appointmentService,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(ListAppointmentsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Appointment::class);
 
         $user    = $this->clinicUser();
-        $filters = $request->only(['from', 'to', 'clinic_user_id', 'status']);
+        $filters = $request->only(['from', 'to', 'clinic_user_id', 'status', 'patient_id']);
 
         $appointments = $this->appointmentService->listForUser($user, $filters);
 

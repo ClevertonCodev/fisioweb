@@ -5,13 +5,13 @@ alwaysApply: true
 <!-- SPECKIT START -->
 # Fisioweb — Spec Kit Context
 
-Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md` / `AGENTS.md`, skills em `.claude/skills/` e `.cursor/skills/` (ambas canônicas) e mapa em `.cursor/rules/fisioweb-skills.mdc`.
+Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md` / `AGENTS.md`, skills em `.claude/skills/`, `.cursor/skills/` e `.agents/skills/` (as três canônicas) e mapa em `.cursor/rules/fisioweb-skills.mdc`.
 
 | Arquivo | Conteúdo |
 |---------|----------|
 | `CLAUDE.md` / `AGENTS.md` | Overview, stack, comandos, princípios não-negociáveis |
 | `.cursor/rules/fisioweb-skills.mdc` | Skill map — **consultar antes de implementar** |
-| `.claude/skills/` e `.cursor/skills/` | Skills detalhadas (mesmo conteúdo; atualizar as duas; `bash bin/verificar-skills.sh`) |
+| `.claude/skills/`, `.cursor/skills/` e `.agents/skills/` | Skills detalhadas (mesmo conteúdo; atualizar as três; `bash bin/verificar-skills.sh`) |
 | `.specify/memory/constitution.md` | Princípios Spec Kit (local; template se ainda não ratificado) |
 | `specs/_shared/` | Artefatos compartilhados entre features (ex.: UI patterns) |
 | `specs/*/` | Spec, plan, tasks e contratos da feature ativa |
@@ -34,7 +34,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 
 ## Skills — consultar sempre (conforme escopo)
 
-**Leia o `SKILL.md` relevante antes de codar.** Cursor: `.cursor/skills/<nome>/`. Claude Code: `.claude/skills/<nome>/`. Ambas canônicas — mantenha iguais (`bash bin/verificar-skills.sh`).
+**Leia o `SKILL.md` relevante antes de codar.** Cursor: `.cursor/skills/<nome>/`. Claude Code: `.claude/skills/<nome>/`. Antigravity: `.agents/skills/<nome>/`. As três canônicas — mantenha iguais (`bash bin/verificar-skills.sh`).
 
 ### Backend
 | Tarefa | Skill |
@@ -103,21 +103,4 @@ npm run build && npm run types && npm run lint
 ```
 
 Teste filtrado: `vendor/bin/phpunit --filter=NomeDoTest`
-
-## Plano ativo
-
-**Feature atual**: `specs/014-program-pdf-download/`
-
-| Artefato | Path |
-|----------|------|
-| Spec | `specs/014-program-pdf-download/spec.md` |
-| Plan | `specs/014-program-pdf-download/plan.md` |
-| Research | `specs/014-program-pdf-download/research.md` |
-| Data model | `specs/014-program-pdf-download/data-model.md` |
-| Quickstart | `specs/014-program-pdf-download/quickstart.md` |
-| Contracts | `specs/014-program-pdf-download/contracts/` |
-| Tasks | `specs/014-program-pdf-download/tasks.md` *(gerar com `/speckit-tasks`)* |
-| Checklist | `specs/014-program-pdf-download/checklists/requirements.md` |
-
-**Antes de implementar:** leia `plan.md` + `tasks.md` da feature ativa e a skill correspondente ao escopo.
 <!-- SPECKIT END -->

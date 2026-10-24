@@ -74,6 +74,24 @@ class PatientControllerTest extends TestCase
             ->assertJsonPath('data.data.0.clinic_user.name', $this->clinicUser->name);
     }
 
+    public function test_index_search_finds_patient_by_apelido(): void
+    {
+        $patient = Patient::factory()->forClinic(
+            \Modules\Clinic\Models\Clinic::find($this->clinicUser->clinic_id)
+        )->create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'name'           => 'Paciente Nome Legal',
+            'apelido'        => 'QA Apelido Busca',
+            'use_apelido'    => true,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/patients?search=QA Apelido Busca')
+            ->assertOk()
+            ->assertJsonPath('data.data.0.id', $patient->id)
+            ->assertJsonPath('data.total', 1);
+    }
+
     public function test_index_search_finds_patient_by_masked_cpf(): void
     {
         $patient = Patient::factory()->forClinic(

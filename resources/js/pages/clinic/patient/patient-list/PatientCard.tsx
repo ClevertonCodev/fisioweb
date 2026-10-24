@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { DsBadge, DsCard, DsTooltip, dsCn } from '@/components/ds';
 import type { Patient } from '@/domain/clinic/patient';
 
@@ -23,6 +24,7 @@ export function PatientCard({
     patient: Patient;
     action?: ReactNode;
 }) {
+    const shownName = patientDisplayName(patient);
     return (
         <DsCard
             variant="interactive"
@@ -43,7 +45,7 @@ export function PatientCard({
                             to={patientRecordPath(patient)}
                             className="block truncate text-ds-body-emphasis text-ds-content-primary outline-0 after:absolute after:inset-0 after:rounded-ds-lg after:content-[''] focus-visible:after:shadow-ds-focus"
                         >
-                            {patient.name}
+                            {shownName}
                         </Link>
                         <p className="truncate text-ds-caption text-ds-content-secondary">
                             por {patient.professional || '—'}

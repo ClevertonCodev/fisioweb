@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import type { DatepickerPreset, DatepickerValue } from '@/components/ds';
-import { DsDatepicker } from '@/components/ds';
+import { DsDateField, DsDatepicker } from '@/components/ds';
 
 import { CatalogRow, CatalogSection } from './CatalogSection';
 
@@ -58,6 +58,7 @@ export function DatepickerSection() {
     const [limited, setLimited] = useState<DatepickerValue>(null);
     const [limitedRange, setLimitedRange] = useState<DatepickerValue>(null);
     const [agenda, setAgenda] = useState<DatepickerValue>(null);
+    const [typed, setTyped] = useState('');
 
     return (
         <CatalogSection
@@ -111,6 +112,19 @@ export function DatepickerSection() {
                     onValueChange={setAgenda}
                 />
                 <Applied value={agenda} />
+            </CatalogRow>
+
+            <CatalogRow label="Campo digitável (DsDateField)">
+                <div className="w-64">
+                    <DsDateField
+                        label="Data de nascimento"
+                        value={typed}
+                        onChange={setTyped}
+                    />
+                </div>
+                <span className="self-center font-ds-mono text-ds-caption text-ds-content-muted">
+                    {typed || 'AAAA-MM-DD'}
+                </span>
             </CatalogRow>
 
             <CatalogRow label="Preenchido e desabilitado">

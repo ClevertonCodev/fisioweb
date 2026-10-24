@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Modules\ClinicQuestionnaire\Database\Factories\PatientQuestionnaireFactory;
 
 class PatientQuestionnaire extends Model
@@ -39,6 +40,7 @@ class PatientQuestionnaire extends Model
         'status',
         'answered_at',
         'expires_at',
+        'public_token',
     ];
 
     protected function casts(): array
@@ -47,6 +49,15 @@ class PatientQuestionnaire extends Model
             'answered_at' => 'datetime',
             'expires_at'  => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (PatientQuestionnaire $questionnaire) {
+            if (empty($questionnaire->public_token)) {
+                $questionnaire->public_token = (string) Str::uuid();
+            }
+        });
     }
 
     public function clinic(): BelongsTo

@@ -160,6 +160,22 @@ describe('apiClinicPatientsRepository — mapper', () => {
         expect(patient.professional).toBe('');
         expect(patient.professionalInitial).toBe('');
     });
+
+    it('traz apelido e o switch de usar apelido da listagem', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiPatient({
+                    apelido: 'Aninha',
+                    use_apelido: true,
+                }),
+            },
+        });
+
+        const patient = await apiClinicPatientsRepository.getById('1');
+
+        expect(patient.apelido).toBe('Aninha');
+        expect(patient.useApelido).toBe(true);
+    });
 });
 
 // ─── create ───────────────────────────────────────────────────────────────────

@@ -54,6 +54,8 @@ export interface FieldSelectProps {
     state?: SelectState;
     size?: SelectSize;
     disabled?: boolean;
+    /** Asterisco vermelho no rótulo e aria-required no gatilho. */
+    required?: boolean;
     hideApplyButton?: boolean;
     footerLinkLabel?: string;
     /** No modo multi, mostra só a quantidade no gatilho. */

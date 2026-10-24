@@ -17,6 +17,8 @@ export interface Patient {
     diagnosis: string;
     photoUrl?: string;
     isActive: boolean;
+    apelido?: string;
+    useApelido?: boolean;
 }
 
 /** Detalhe completo do paciente — usado no formulário de edição */

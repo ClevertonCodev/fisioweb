@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ProgramDraft } from '@/application/clinic';
 import {
@@ -108,6 +108,12 @@ export default function ProgramNewPage() {
 function ProgramNewPageV1() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const patientIdFromQuery = Number(searchParams.get('patientId'));
+    const queryPatientId =
+        Number.isInteger(patientIdFromQuery) && patientIdFromQuery > 0
+            ? patientIdFromQuery
+            : null;
     const {
         data: exercisesData,
         fetchNextPage,
@@ -646,6 +652,7 @@ function ProgramNewPageV1() {
                                 groups={groups}
                                 initialTitle={initialTitle}
                                 initialMessage={initialMessage}
+                                initialPatientId={queryPatientId}
                                 onSave={handleSaveProgram}
                                 isSaving={
                                     createProgram.isPending ||

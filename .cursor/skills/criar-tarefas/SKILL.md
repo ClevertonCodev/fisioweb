@@ -6,7 +6,7 @@ description: Quebra um plano em tarefas independentes, cada uma uma fatia vertic
 # Criar tarefas
 
 Quebre o plano (`.ai-workbench/<feature>/plans/<slug>.md` ou o que estiver na
-conversa) em tarefas que uma pessoa pode pegar sozinha. Se o plano só existe na
+conversa, mais o `decisoes.md` da feature, se houver) em tarefas que uma pessoa pode pegar sozinha. Se o plano só existe na
 conversa, rode antes a skill `escrever-plano`, que cria a pasta da feature.
 
 ## Fatias verticais
@@ -35,13 +35,24 @@ todas as camadas que a funcionalidade toca. Nunca uma camada inteira de uma vez
 3. **Pergunte ao usuário:** o tamanho está certo? As dependências estão certas?
    Alguma fatia deve ser juntada ou dividida? Repita até ele aprovar.
 
-4. **Confira se cada tarefa está pronta para ser pega.** Uma tarefa só sai
+4. **Confira a cobertura contra o plano.** Antes de salvar, monte uma tabela
+   história → fatias e mostre ao usuário, com as lacunas destacadas:
+   - Toda história de "Histórias de Usuário" do plano aparece em "Histórias
+     cobertas" de pelo menos uma fatia. Para cada história sem fatia, crie a
+     fatia ou pergunte ao usuário se ela vai para "Fora do Escopo" do plano (e
+     anote lá).
+   - Nenhuma fatia faz algo que o plano põe em "Fora do Escopo" nem contradiz
+     "Decisões de Implementação" ou o `decisoes.md`. Se contradiz, o plano ou a
+     fatia está errado: pergunte qual.
+
+5. **Confira se cada tarefa está pronta para ser pega.** Uma tarefa só sai
    daqui se todos os critérios de aceite podem ser conferidos (um teste, um
    comando, uma tela que alguém abre) e se nada nela depende de uma decisão que
    ninguém tomou. Se faltar decisão, volte ao usuário.
 
-5. **Salve** cada tarefa em `.ai-workbench/<feature>/tasks/NNN-<slug>.md`,
+6. **Salve** cada tarefa em `.ai-workbench/<feature>/tasks/NNN-<slug>.md`,
    numerada em ordem de dependência (`001-...`, `002-...`), com o modelo abaixo.
+   As "Histórias cobertas" da fatia vão para o campo **Histórias**.
    A numeração é por feature: toda feature começa no `001`.
 
 <modelo-da-tarefa>
@@ -50,6 +61,7 @@ todas as camadas que a funcionalidade toca. Nunca uma camada inteira de uma vez
 
 **Tipo:** {História | Tarefa | Bug}
 **Plano:** `../plans/{slug}.md`
+**Histórias:** {números das histórias do plano que esta tarefa cobre: 1, 2, 5}
 **Issue:** {#NNN, ou "ainda não criada"}
 
 ## Descrição
@@ -89,9 +101,9 @@ papel, qual tela ou endpoint, o que deve aparecer.
 
 </modelo-da-tarefa>
 
-6. **Atualize o `README.md` da feature:** uma linha por tarefa na tabela
+7. **Atualize o `README.md` da feature:** uma linha por tarefa na tabela
    "Tarefas", com status `a fazer`.
 
-7. Liste as tarefas salvas e sugira o próximo passo: criar as issues no GitHub
+8. Liste as tarefas salvas e sugira o próximo passo: criar as issues no GitHub
    (`gh issue create`, só se o usuário pedir) e depois rodar a skill
    `implementar-tarefa` na primeira sem dependência.

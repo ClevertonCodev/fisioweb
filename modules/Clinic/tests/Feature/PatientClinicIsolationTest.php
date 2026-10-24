@@ -3,8 +3,12 @@
 namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Mockery\MockInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 
@@ -67,6 +71,42 @@ class PatientClinicIsolationTest extends TestCase
 
         $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'name' => 'Paciente A Editado']);
         $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'name' => 'Paciente B']);
+    }
+
+    public function test_upload_photo_reaches_own_patient_and_not_another_clinic_photo(): void
+    {
+        Storage::fake('r2');
+        $cdnUrl = 'https://cdn.example.com/patients/photos/a-new.jpg';
+
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($cdnUrl) {
+            $mock->shouldReceive('uploadFile')
+                ->once()
+                ->andReturn([
+                    'cdn_url'           => $cdnUrl,
+                    'url'               => 'https://r2.example.com/patients/photos/a-new.jpg',
+                    'filename'          => 'a-new.jpg',
+                    'original_filename' => 'a-new.jpg',
+                    'path'              => 'patients/photos/a-new.jpg',
+                    'mime_type'         => 'image/jpeg',
+                    'size'              => 1024,
+                ]);
+        });
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/photo", [
+                'photo' => UploadedFile::fake()->create('a-new.jpg', 100, 'image/jpeg'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.photo_url', $cdnUrl);
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientB->id}/photo", [
+                'photo' => UploadedFile::fake()->create('hack.jpg', 100, 'image/jpeg'),
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'photo_url' => $cdnUrl]);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_url' => 'https://cdn.example.com/b.jpg']);
     }
 
     public function test_delete_photo_clears_own_patient_photo_and_not_another_clinic_photo(): void

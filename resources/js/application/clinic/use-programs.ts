@@ -43,6 +43,40 @@ export function listMyModelsPaginated(params?: ProgramListParams) {
     });
 }
 
+const PATIENT_PROGRAMS_PAGE_SIZE = 20;
+
+/**
+ * Todos os programas do paciente: a API filtra por `patient_id` e, se houver
+ * mais de uma página, as seguintes são pedidas (ADR 018). A paginação é por
+ * offset: um programa que mude de página no meio vem uma vez só.
+ */
+export async function listAllPatientPrograms(
+    patientId: string,
+): Promise<Program[]> {
+    const params = { patientId, perPage: PATIENT_PROGRAMS_PAGE_SIZE };
+    const first = await apiClinicProgramsRepository.list({
+        ...params,
+        page: 1,
+    });
+    const rest = await Promise.all(
+        Array.from({ length: Math.max(0, first.lastPage - 1) }, (_, i) =>
+            apiClinicProgramsRepository.list({ ...params, page: i + 2 }),
+        ),
+    );
+    const seen = new Set<string>();
+    return [first, ...rest]
+        .flatMap((page) => page.items)
+        .filter((p) => !seen.has(p.id) && !!seen.add(p.id));
+}
+
+export function usePatientPrograms(patientId: string | null) {
+    return useQuery({
+        queryKey: ['clinic-programs', 'patient', patientId],
+        queryFn: () => listAllPatientPrograms(patientId as string),
+        enabled: !!patientId,
+    });
+}
+
 export function useInfiniteMyPrograms(
     params?: Omit<ProgramListParams, 'page' | 'withoutPatient'>,
 ) {

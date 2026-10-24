@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Troca symlinks em .cursor/skills e .claude/skills por pastas/arquivos reais.
+# Troca symlinks em .cursor/skills, .claude/skills e .agents/skills por pastas/arquivos reais.
 # A seta ↗ no Explorer do Cursor/VS Code costuma ser symlink no disco (atalho antigo
 # para a outra árvore), não o modelo "duas canônicas" do projeto.
 #
@@ -44,10 +44,11 @@ materialize_tree() {
 
 materialize_tree "$ROOT/.cursor/skills"
 materialize_tree "$ROOT/.claude/skills"
+materialize_tree "$ROOT/.agents/skills"
 
-if find "$ROOT/.cursor/skills" "$ROOT/.claude/skills" -type l -print -quit 2>/dev/null | grep -q .; then
+if find "$ROOT/.cursor/skills" "$ROOT/.claude/skills" "$ROOT/.agents/skills" -type l -print -quit 2>/dev/null | grep -q .; then
     echo "FALHOU: ainda há symlinks." >&2
-    find "$ROOT/.cursor/skills" "$ROOT/.claude/skills" -type l >&2
+    find "$ROOT/.cursor/skills" "$ROOT/.claude/skills" "$ROOT/.agents/skills" -type l >&2
     exit 1
 fi
 

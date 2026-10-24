@@ -1,9 +1,9 @@
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { ClinicDataForm } from '@/pages/clinic/clinic-data/ClinicDataForm';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
 } from '@/pages/clinic/PrototypeSwitcher';
-import { ClinicDataForm } from '@/pages/clinic/clinic-data/ClinicDataForm';
 
 import ClinicDataPrototype from './clinic-data-prototype/ClinicDataPrototype';
 import { DATA_VARIANTS } from './clinic-data-prototype/shared';

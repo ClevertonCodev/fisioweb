@@ -108,7 +108,7 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude Code). **As duas árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os dois** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`.
+Skills vivem em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e **`.agents/skills/`** (Antigravity). **As três árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os três** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`. No Antigravity, subagentes ficam em `.agents/agents/` e regras em `.agents/rules/` (veja `.agents/rules/fisioweb-antigravity.md`).
 
 ### Backend
 | Vou fazer | Skill |
@@ -137,7 +137,15 @@ Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude C
 | Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
 | Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
-| Delegar implementação ao Antigravity (`/agy-task`, `/agy-verify`) | [`agy-harness`](.cursor/skills/agy-harness/SKILL.md) |
+
+### Diagnóstico e arquitetura
+| Vou fazer | Skill |
+|-----------|-------|
+| Levantar pontos de melhoria e candidatos a refatoração (relatório HTML com antes e depois; só o usuário chama) | [`improve-codebase-architecture`](.cursor/skills/improve-codebase-architecture/SKILL.md) |
+| Desenhar a interface de um módulo, decidir onde fica a costura, desenhar duas vezes antes de refatorar | [`codebase-design`](.cursor/skills/codebase-design/SKILL.md) |
+| Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.cursor/skills/tech-debt-audit/SKILL.md) |
+| Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.cursor/skills/domain-modeling/SKILL.md) |
+| Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.cursor/skills/systematic-debugging/SKILL.md) |
 
 ## Princípios não-negociáveis
 
@@ -159,28 +167,21 @@ Skills vivem em **`.cursor/skills/`** (Cursor) e **`.claude/skills/`** (Claude C
 
 - `frontend-standards-fisio.md` — documento original de padrões frontend (mantido como histórico; a fonte canônica agora são as skills).
 
-<!-- SPECKIT START -->
-Current active Spec Kit plan: `specs/015-patient-program-experience/plan.md`.
-Read this plan for feature scope, technical context, and validation artifacts
-before implementing tasks for the active feature.
-<!-- SPECKIT END -->
-
 <!-- BEGIN ai-harness -->
 ## Ciclo de trabalho
 
 Cada etapa tem uma skill em `.cursor/skills/` / `.claude/skills/`, e cada uma diz qual é a próxima:
 
-`especificar` (opcional: cria `.ai-workbench/NNN-<slug>/` com `spec.md`, no
-estilo do `/speckit-specify`; o usuário revisa) → `refinar` →
-`escrever-plano` (cria a pasta, se ainda não existe, com `README.md` e
-`plans/`) → `criar-tarefas` (salva em `tasks/` da feature) →
-`implementar-tarefa` (teste primeiro, termina na Definição de Pronto) →
-`revisao-adversaria`.
+`refinar` (grava cada decisão no `decisoes.md` da feature) → `escrever-plano`
+(cria a pasta, se ainda não existe, com `README.md` e `plans/`) →
+`criar-tarefas` (salva em `tasks/` da feature e confere que toda história do
+plano virou tarefa) → `implementar-tarefa` (teste primeiro, termina na
+Definição de Pronto) → `revisao-adversaria`.
 
-Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`, `plans/`,
-`tasks/`, `evidence/`, `review/` e `DEFERRED.md`; a raiz tem um `DEFERRED.md`
-para o que não pertence a nenhuma feature. Detalhes na seção "Pasta de
-trabalho" da Definição de Pronto.
+Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`,
+`decisoes.md`, `plans/`, `tasks/`, `evidence/`, `review/` e `DEFERRED.md`; a
+raiz tem um `DEFERRED.md` para o que não pertence a nenhuma feature. Detalhes
+na seção "Pasta de trabalho" da Definição de Pronto.
 
 ## Definição de Pronto
 

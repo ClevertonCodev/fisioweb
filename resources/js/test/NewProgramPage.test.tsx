@@ -169,6 +169,38 @@ describe('NewProgramPage com preenchimento via location.state', () => {
         );
     });
 
+    it('o passo de detalhes já vem com o paciente do ?patientId=', async () => {
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/programas/novo?patientId=108',
+        );
+        vi.spyOn(usePatientsHook, 'usePatients').mockReturnValue({
+            data: {
+                data: [
+                    {
+                        id: '108',
+                        name: 'QA Mobile',
+                        initial: 'Q',
+                        professional: 'Cleverton',
+                        professionalInitial: 'C',
+                        status: 'em_tratamento',
+                        diagnosis: '',
+                        isActive: true,
+                    },
+                ],
+            },
+            isLoading: false,
+        } as ReturnType<typeof usePatientsHook.usePatients>);
+
+        const user = userEvent.setup();
+        renderComponent();
+        await user.click(screen.getByRole('button', { name: /^avançar$/i }));
+
+        expect(screen.getByText('Detalhes do programa')).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toHaveTextContent('QA Mobile');
+    });
+
     it('deve exibir botão "Adicionar novo grupo" na etapa 2', () => {
         renderComponent();
 

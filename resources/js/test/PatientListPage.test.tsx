@@ -221,6 +221,26 @@ describe('PatientListPage: busca com pausa', () => {
 });
 
 describe('PatientListPage: cartões', () => {
+    it('mostra o apelido no cartão quando o switch está ligado', async () => {
+        list.mockResolvedValue(
+            listResult([
+                makePatient('7', {
+                    name: 'Ana Souza',
+                    apelido: 'Aninha',
+                    useApelido: true,
+                }),
+            ]),
+        );
+        renderPage();
+
+        expect(
+            await screen.findByRole('link', { name: 'Aninha' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Ana Souza' }),
+        ).not.toBeInTheDocument();
+    });
+
     it('cartão leva ao prontuário e os atalhos aos destinos da v1', async () => {
         list.mockResolvedValue(
             listResult([makePatient('7', { name: 'Ana Souza' })]),

@@ -131,6 +131,20 @@ describe('apiClinicProgramsRepository.list', () => {
         const result = await apiClinicProgramsRepository.list();
         expect(result.items[0].status).toBe('completed');
     });
+
+    it('envia patientId como patient_id', async () => {
+        mockGet.mockResolvedValueOnce(makePaginatedResponse([]));
+
+        await apiClinicProgramsRepository.list({
+            patientId: '10',
+            perPage: 20,
+            page: 2,
+        });
+
+        expect(mockGet).toHaveBeenCalledWith('/clinic/treatment-plans', {
+            params: { page: 2, per_page: 20, patient_id: '10' },
+        });
+    });
 });
 
 describe('apiClinicProgramsRepository.fetchPdfBlob', () => {

@@ -81,7 +81,11 @@ export function DsInput({
     return (
         <DsFieldControl state={state} className={className}>
             {label && (
-                <DsFieldLabel htmlFor={uid} disabled={disabled}>
+                <DsFieldLabel
+                    htmlFor={uid}
+                    disabled={disabled}
+                    required={rest.required}
+                >
                     {label}
                 </DsFieldLabel>
             )}

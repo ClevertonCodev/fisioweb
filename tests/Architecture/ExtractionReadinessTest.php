@@ -127,7 +127,7 @@ class ExtractionReadinessTest extends TestCase
         $ownerMigrations  = glob($projectRoot . '/modules/ClinicQuestionnaire/database/migrations/*questionnaire*.php') ?: [];
 
         $this->assertSame([], $clinicMigrations, 'Questionnaire migrations must not live in modules/Clinic.');
-        $this->assertCount(1, $ownerMigrations, 'ClinicQuestionnaire must own the clinic_questionnaire tables migration.');
+        $this->assertCount(2, $ownerMigrations, 'ClinicQuestionnaire must own the clinic_questionnaire tables migration and the public_token follow-up.');
     }
 
     public function test_clinic_questionnaire_events_do_not_reference_models(): void

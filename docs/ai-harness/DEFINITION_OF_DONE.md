@@ -41,8 +41,7 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
 └── NNN-<slug>/                 # a feature: 001-agenda-recorrente, 002-...
     ├── README.md               # índice: objetivo, branch, status, tarefas
     ├── DEFERRED.md             # o que esta feature deixou de fora
-    ├── spec.md                 # especificação, opcional (skill especificar)
-    ├── checklists/requisitos.md # checklist de qualidade da spec
+    ├── decisoes.md             # decisões do refinar (skill refinar)
     ├── plans/<slug>.md         # plano (skill escrever-plano)
     ├── tasks/NNN-<slug>.md     # tarefas (skill criar-tarefas)
     ├── evidence/<tarefa>/      # smoke test
@@ -53,12 +52,12 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
   depois do maior que já existe em `.ai-workbench/`.
 - `<tarefa>` é o nome do arquivo da tarefa sem `.md` (`002-cancelar-sessao`).
   Trabalho sem arquivo de tarefa (correção pequena) usa `000-<slug>`.
-- A feature nasce na skill `especificar` (quando o ciclo começa pela spec) ou
-  na skill `escrever-plano`. Correção pequena que não passa pelo plano cria a
-  pasta só com o `README.md`.
+- A feature nasce na skill `refinar` (com o `decisoes.md`) ou na skill
+  `escrever-plano`. Correção pequena que não passa pelo plano cria a pasta só
+  com o `README.md`.
 - Pastas de apoio (por exemplo `engenharia-reversa/`, com notas sobre o código
   que já existe) podem ser criadas na feature; cite cada uma no `README.md`.
-- `README.md`, `spec.md`, `checklists/`, `plans/` e `tasks/` entram no git. `evidence/`, `review/` e os
+- `README.md`, `decisoes.md`, `plans/` e `tasks/` entram no git. `evidence/`, `review/` e os
   dois `DEFERRED.md` ficam no `.gitignore` e nunca entram num commit, numa PR,
   numa issue ou numa mensagem: podem ter dado de paciente.
 

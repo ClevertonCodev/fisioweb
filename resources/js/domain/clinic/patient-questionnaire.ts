@@ -12,6 +12,8 @@ export interface PatientQuestionnaire {
     modality: 'presencial' | 'remoto';
     answeredAt: string | null;
     expiresAt: string | null;
+    publicToken: string;
+    shareUrl: string | null;
     createdAt: string;
 }
 

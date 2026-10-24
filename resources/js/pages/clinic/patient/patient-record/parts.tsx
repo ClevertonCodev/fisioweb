@@ -32,8 +32,6 @@ import {
     useDeleteQuestionnaire,
     usePatientQuestionnaire,
 } from '@/application/clinic/use-patient-questionnaires';
-import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
-
 import {
     DsBadge,
     DsButton,
@@ -46,6 +44,7 @@ import {
 } from '@/components/ds';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { Appointment, PatientEvolution, Program } from '@/domain/clinic';
+import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
 
 import {
     formatDate,

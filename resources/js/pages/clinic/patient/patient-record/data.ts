@@ -189,7 +189,8 @@ export function formatPhone(phone?: string): string | null {
     return phone;
 }
 
-function toItems(sources: {
+/** Monta itens da lista do prontuário (exportado para testes). */
+export function buildRecordItems(sources: {
     appointments: Appointment[];
     evolutions: PatientEvolution[];
     assessments: AssessmentSummary[];
@@ -225,12 +226,8 @@ function toItems(sources: {
             date: new Date(e.signedAt ?? e.createdAt),
             title: e.title || 'Sessão de fisioterapia',
             subtitle:
-                e.notes ||
-                evolutionListPreview(e.generatedText) ||
-                'Sem texto',
-            evolutionSheet: e.notes
-                ? undefined
-                : evolutionDetailBlocks(e),
+                e.notes || evolutionListPreview(e.generatedText) || 'Sem texto',
+            evolutionSheet: e.notes ? undefined : evolutionDetailBlocks(e),
             author: e.clinicUser?.name ?? null,
             status:
                 e.status === 'signed'
@@ -379,7 +376,7 @@ export function usePatientRecord(id: string): PatientRecordData {
 
     const items = useMemo(
         () =>
-            toItems({
+            buildRecordItems({
                 appointments: appointments.data ?? [],
                 evolutions: evolutions.data ?? [],
                 assessments: assessments.data ?? [],

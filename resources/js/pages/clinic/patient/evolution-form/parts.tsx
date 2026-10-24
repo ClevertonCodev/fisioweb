@@ -115,9 +115,9 @@ export function TextBlocks({
                     >
                         {b.section}:
                     </p>
-                    {b.lines.map((l) => (
+                    {b.lines.map((l, i) => (
                         <p
-                            key={l}
+                            key={`${b.section}-${i}`}
                             className={dsCn(
                                 compact &&
                                     'text-ds-caption text-ds-content-muted',

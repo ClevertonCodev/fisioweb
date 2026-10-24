@@ -81,7 +81,7 @@ export function parseEvolutionSheetText(text: string): EvolutionSheetBlock[] {
         const start = (match.index ?? 0) + match[0].length;
         const end =
             i + 1 < markers.length
-                ? markers[i + 1].index ?? trimmed.length
+                ? (markers[i + 1].index ?? trimmed.length)
                 : trimmed.length;
         const lines = sheetLinesFromBody(trimmed.slice(start, end));
         if (lines.length > 0) {

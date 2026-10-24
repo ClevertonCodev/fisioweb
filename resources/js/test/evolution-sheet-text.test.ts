@@ -137,9 +137,9 @@ describe('parseEvolutionSheetText e previews', () => {
     });
 
     it('drawer usa blocos do modelo ou frases no texto livre', () => {
-        expect(
-            evolutionDetailBlocks({ generatedText: sheet }),
-        ).toEqual(parseEvolutionSheetText(sheet));
+        expect(evolutionDetailBlocks({ generatedText: sheet })).toEqual(
+            parseEvolutionSheetText(sheet),
+        );
         expect(
             evolutionDetailBlocks({
                 generatedText: 'Paciente tolerou bem. Dor 3/10.',

@@ -41,9 +41,9 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import type { Appointment } from '@/domain/clinic';
 import { useIsBelowSm } from '@/hooks/use-below-sm';
+import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
 import { PatientStatusBadge } from '@/pages/clinic/patient/patient-list/patient-status';
 import { PatientAvatar } from '@/pages/clinic/patient/patient-list/PatientAvatar';
-import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
 
 import {
     ageOf,

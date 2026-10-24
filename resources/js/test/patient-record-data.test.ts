@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import type { PatientQuestionnaire } from '@/domain/clinic';
 import {
     buildRecordItems,
     matchesSearch,
     tabFromSearchParam,
     type RecordItem,
 } from '@/pages/clinic/patient/patient-record/data';
-import type { PatientQuestionnaire } from '@/domain/clinic';
 
 function item(
     kind: RecordItem['kind'],
@@ -68,11 +68,13 @@ describe('buildRecordItems', () => {
         patch: Partial<PatientQuestionnaire>,
     ): PatientQuestionnaire => ({
         id: 1,
+        clinicId: 1,
         patientId: 1,
         clinicUserId: 1,
         questionnaireTemplateId: 1,
         modality: 'remoto',
         status: 'pending',
+        publicToken: 'test-token',
         shareUrl: 'https://example.com/q',
         expiresAt: null,
         answeredAt: null,

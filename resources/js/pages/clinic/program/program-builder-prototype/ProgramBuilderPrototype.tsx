@@ -27,10 +27,10 @@ import {
     INITIAL_FILTERS,
     useExerciseLibrary,
     type LibraryFilters,
-} from '@/pages/clinic/program/exercise-library-prototype/shared';
-import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
-import { VariantD as ExerciseLibrary } from '@/pages/clinic/program/exercise-library-prototype/VariantD';
+} from '@/pages/clinic/program/exercise-library/shared';
+import { VariantD as ExerciseLibrary } from '@/pages/clinic/program/exercise-library/VariantD';
 import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
+import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import {
     exerciseCount,

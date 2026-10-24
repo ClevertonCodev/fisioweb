@@ -9,6 +9,8 @@ use Modules\TreatmentProgram\Models\TreatmentPlanExercise;
 
 class StoreTreatmentPlanRequest extends FormRequest
 {
+    use ValidatesPatientOfClinic;
+
     public function authorize(): bool
     {
         return true;
@@ -18,7 +20,7 @@ class StoreTreatmentPlanRequest extends FormRequest
     {
         return [
             'title'                       => ['required', 'string', 'max:255'],
-            'patient_id'                  => ['nullable', 'exists:patients,id'],
+            'patient_id'                  => ['nullable', 'integer'],
             'message'                     => ['nullable', 'string', 'max:600'],
             'physio_area_id'              => ['nullable', 'exists:admin_physio_areas,id'],
             'physio_subarea_id'           => ['nullable', 'exists:admin_physio_subareas,id'],

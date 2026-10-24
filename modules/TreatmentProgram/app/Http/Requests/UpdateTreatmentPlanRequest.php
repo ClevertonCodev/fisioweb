@@ -9,6 +9,8 @@ use Modules\TreatmentProgram\Models\TreatmentPlanExercise;
 
 class UpdateTreatmentPlanRequest extends FormRequest
 {
+    use ValidatesPatientOfClinic;
+
     public function authorize(): bool
     {
         return true;
@@ -18,7 +20,7 @@ class UpdateTreatmentPlanRequest extends FormRequest
     {
         return [
             'title'                       => ['sometimes', 'required', 'string', 'max:255'],
-            'patient_id'                  => ['nullable', 'exists:patients,id'],
+            'patient_id'                  => ['nullable', 'integer'],
             'message'                     => ['nullable', 'string', 'max:600'],
             'physio_area_id'              => ['nullable', 'exists:admin_physio_areas,id'],
             'physio_subarea_id'           => ['nullable', 'exists:admin_physio_subareas,id'],
@@ -45,5 +47,12 @@ class UpdateTreatmentPlanRequest extends FormRequest
             'exercises.*.notes'           => ['nullable', 'string'],
             'exercises.*.sort_order'      => ['nullable', 'integer', 'min:0'],
         ];
+    }
+
+    protected function currentPatientId(): ?int
+    {
+        $patientId = TreatmentPlan::query()->whereKey($this->route('id'))->value('patient_id');
+
+        return is_null($patientId) ? null : (int) $patientId;
     }
 }

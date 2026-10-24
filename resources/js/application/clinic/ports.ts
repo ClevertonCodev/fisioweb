@@ -267,7 +267,6 @@ export interface ProgramListParams {
     status?: string;
     patientId?: string;
     withoutPatient?: boolean;
-    patientId?: string;
 }
 
 export interface ProgramListResult {

@@ -24,6 +24,7 @@ import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { evolutionDetailBlocks } from '@/application/clinic/evolution-sheet-text';
 import { can } from '@/application/clinic/permissions';
 import { useDeleteEvolution } from '@/application/clinic/use-evolutions';
 import { useDeletePatientFile } from '@/application/clinic/use-patient-files';
@@ -31,6 +32,8 @@ import {
     useDeleteQuestionnaire,
     usePatientQuestionnaire,
 } from '@/application/clinic/use-patient-questionnaires';
+import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
+
 import {
     DsBadge,
     DsButton,
@@ -289,6 +292,7 @@ export function RecordBody({
 
     if (src.kind === 'evolucao') {
         const ev: PatientEvolution = src.item;
+        const conductBlocks = evolutionDetailBlocks(ev);
         return (
             <div className="flex flex-col gap-5">
                 {meta}
@@ -301,20 +305,16 @@ export function RecordBody({
                     <h3 className="mb-2 text-ds-eyebrow text-ds-content-muted uppercase">
                         Condutas
                     </h3>
-                    <ul className="flex flex-col gap-2">
-                        {(ev.generatedText ?? '')
-                            .split(/(?<=\.)\s+/)
-                            .filter(Boolean)
-                            .map((line, i) => (
-                                <li
-                                    key={i}
-                                    className="flex gap-2 text-ds-body-sm text-ds-content-secondary"
-                                >
-                                    <span className="mt-2 size-1.5 shrink-0 rounded-ds-full bg-ds-primary-80 ds-dark:bg-ds-primary-60" />
-                                    {line}
-                                </li>
-                            ))}
-                    </ul>
+                    {conductBlocks.length > 0 ? (
+                        <TextBlocks
+                            blocks={conductBlocks}
+                            className="text-ds-body-sm text-ds-content-secondary"
+                        />
+                    ) : (
+                        <p className="text-ds-body-sm text-ds-content-muted">
+                            Sem condutas registradas.
+                        </p>
+                    )}
                 </section>
                 {ev.template && (
                     <p className="text-ds-caption text-ds-content-muted">

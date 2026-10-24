@@ -5,6 +5,7 @@
  */
 import { useMemo } from 'react';
 
+import { evolutionListPreview } from '@/application/clinic/evolution-sheet-text';
 import { patientCareStats } from '@/application/clinic/patient-care';
 import { usePatientAppointments } from '@/application/clinic/use-appointments';
 import { usePatientAssessments } from '@/application/clinic/use-assessments';
@@ -217,7 +218,10 @@ function toItems(sources: {
             kind: 'evolucao',
             date: new Date(e.signedAt ?? e.createdAt),
             title: e.title || 'Sessão de fisioterapia',
-            subtitle: e.notes || e.generatedText || 'Sem texto',
+            subtitle:
+                e.notes ||
+                evolutionListPreview(e.generatedText) ||
+                'Sem texto',
             author: e.clinicUser?.name ?? null,
             status:
                 e.status === 'signed'
@@ -252,10 +256,15 @@ function toItems(sources: {
             kind: 'questionario',
             date: new Date(q.answeredAt ?? q.createdAt),
             title: q.template?.title ?? 'Questionário',
-            subtitle:
-                q.modality === 'remoto'
+            subtitle: answered
+                ? q.modality === 'remoto'
                     ? 'Respondido pelo paciente, a distância'
-                    : 'Respondido na clínica',
+                    : 'Respondido na clínica'
+                : q.status === 'expired'
+                  ? 'Prazo encerrado'
+                  : q.modality === 'remoto'
+                    ? 'Aguardando resposta do paciente'
+                    : 'Aguardando resposta na clínica',
             author: q.clinicUser?.name ?? null,
             status: answered
                 ? { label: 'Respondido', tone: 'success' }

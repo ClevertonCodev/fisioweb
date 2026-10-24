@@ -19,7 +19,7 @@ import {
     Search,
     Sparkles,
 } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { patientDisplayName } from '@/application/clinic/patient-display-name';
@@ -119,6 +119,7 @@ export function VariantB({
     };
     const tab = tabFromSearchParam(params.get('tab'));
     const [search, setSearch] = useState('');
+    const recordsSectionRef = useRef<HTMLElement>(null);
     const [now] = useState(() => Date.now());
     const isMobile = useIsBelowSm();
     const isPhysio = user?.role === 'physiotherapist';
@@ -142,6 +143,13 @@ export function VariantB({
             { replace: true },
         );
     };
+
+    useEffect(() => {
+        if (tab !== 'arquivos') return;
+        const el = recordsSectionRef.current;
+        if (!el || typeof el.scrollIntoView !== 'function') return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, [tab]);
 
     const steps = useMemo<Step[]>(() => {
         const list: Step[] = stats.pending.map((p) => ({
@@ -584,7 +592,10 @@ export function VariantB({
                 </div>
 
                 {/* Registros */}
-                <section className="rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs">
+                <section
+                    ref={recordsSectionRef}
+                    className="rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs"
+                >
                     <div className="border-b border-ds-border-subtle p-3 sm:p-4">
                         <DsInput
                             type="search"

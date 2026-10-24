@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildEvolutionSheetText } from '@/application/clinic/evolution-sheet-text';
+import {
+    buildEvolutionSheetText,
+    evolutionDetailBlocks,
+    evolutionListPreview,
+    parseEvolutionSheetText,
+} from '@/application/clinic/evolution-sheet-text';
 import type { EvolutionTemplate } from '@/domain/clinic';
 
 const template: EvolutionTemplate = {
@@ -87,5 +92,45 @@ describe('buildEvolutionSheetText', () => {
         expect(buildEvolutionSheetText(template, new Set(), { 21: 'x' })).toBe(
             '',
         );
+    });
+});
+
+describe('parseEvolutionSheetText e previews', () => {
+    const sheet = buildEvolutionSheetText(template, new Set([21]), {
+        21: 'isquiotibiais',
+    });
+
+    it('parseia seções do texto gravado', () => {
+        expect(parseEvolutionSheetText(sheet)).toEqual([
+            {
+                section: 'Conduta',
+                lines: ['Alongamento de cadeia posterior — isquiotibiais'],
+            },
+        ]);
+    });
+
+    it('lista sem markdown na prévia', () => {
+        expect(evolutionListPreview(sheet)).toBe(
+            'Conduta: Alongamento de cadeia posterior — isquiotibiais',
+        );
+        expect(evolutionListPreview('Paciente tolerou bem. Dor 3/10.')).toBe(
+            'Paciente tolerou bem. Dor 3/10.',
+        );
+    });
+
+    it('drawer usa blocos do modelo ou frases no texto livre', () => {
+        expect(
+            evolutionDetailBlocks({ generatedText: sheet }),
+        ).toEqual(parseEvolutionSheetText(sheet));
+        expect(
+            evolutionDetailBlocks({
+                generatedText: 'Paciente tolerou bem. Dor 3/10.',
+            }),
+        ).toEqual([
+            {
+                section: 'Condutas',
+                lines: ['Paciente tolerou bem.', 'Dor 3/10.'],
+            },
+        ]);
     });
 });

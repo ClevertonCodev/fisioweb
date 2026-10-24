@@ -68,11 +68,13 @@ describe('buildRecordItems', () => {
         patch: Partial<PatientQuestionnaire>,
     ): PatientQuestionnaire => ({
         id: 1,
+        clinicId: 1,
         patientId: 1,
         clinicUserId: 1,
         questionnaireTemplateId: 1,
         modality: 'remoto',
         status: 'pending',
+        publicToken: 'test-token',
         shareUrl: 'https://example.com/q',
         expiresAt: null,
         answeredAt: null,

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import type { PatientQuestionnaire } from '@/domain/clinic';
 import {
     buildRecordItems,
     matchesSearch,
     tabFromSearchParam,
     type RecordItem,
 } from '@/pages/clinic/patient/patient-record/data';
-import type { PatientQuestionnaire } from '@/domain/clinic';
 
 function item(
     kind: RecordItem['kind'],

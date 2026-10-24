@@ -43,12 +43,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import SubmitExercisePrototype from '@/pages/clinic/exercise-submit-prototype/SubmitExercisePrototype';
+import { SUBMIT_VARIANTS } from '@/pages/clinic/exercise-submit-prototype/variants';
 import {
     PrototypeSwitcher,
     usePrototypeVariant,
 } from '@/pages/clinic/PrototypeSwitcher';
-import SubmitExercisePrototype from '@/pages/clinic/exercise-submit-prototype/SubmitExercisePrototype';
-import { SUBMIT_VARIANTS } from '@/pages/clinic/exercise-submit-prototype/variants';
 
 const ACCEPT_VIDEO =
     'video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/webm,video/x-flv,video/x-matroska';

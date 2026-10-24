@@ -1,14 +1,8 @@
-/**
- * PROTÓTIPO (descartável): o rascunho do novo questionário, comum às
- * variantes. Usa os tipos da v1 (DraftSection/DraftQuestion) e a mesma
- * validação; salvar é stub e volta para o returnTo (o prontuário, com a
- * gaveta de envio aberta). O banco de perguntas são perguntas simples da
- * clínica, não escalas validadas (Oswestry, DASH etc. têm texto próprio).
- */
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
+import type { QuestionnaireTemplateWriteDto } from '@/application/clinic/ports';
+import { useCreateQuestionnaireTemplate } from '@/application/clinic/use-questionnaire-templates';
 import {
     createDraftQuestion,
     createDraftSection,
@@ -16,11 +10,6 @@ import {
     type DraftSection,
     type QuestionType,
 } from '@/components/clinic/questionnaire-template/types';
-
-export const NEW_QUESTIONNAIRE_VARIANTS = [
-    { key: 'O', name: 'Tela atual (v1)' },
-    { key: 'C', name: 'Banco de perguntas' },
-] as const;
 
 export const TYPE_LABEL: Record<QuestionType, string> = {
     multiple_choice: 'Escolha única',
@@ -141,7 +130,6 @@ export function fromBank(item: BankItem): DraftQuestion {
     };
 }
 
-/** Mesma regra da v1 (QuestionnaireTemplateNewPage). */
 export function validate(
     title: string,
     sections: DraftSection[],
@@ -166,7 +154,31 @@ export function validate(
     return null;
 }
 
-/** Número de cada pergunta no questionário inteiro (1, 2, 3…). */
+export function toWriteDto(
+    title: string,
+    description: string,
+    sections: DraftSection[],
+): QuestionnaireTemplateWriteDto {
+    return {
+        title: title.trim(),
+        description: description.trim() || null,
+        sections: sections.map((s) => ({
+            title: s.title.trim(),
+            questions: s.questions.map((q) => ({
+                label: q.label.trim(),
+                type: q.type,
+                options:
+                    q.type === 'multiple_choice' || q.type === 'checkbox'
+                        ? q.options.map((o) => o.trim())
+                        : null,
+                scaleMin: q.scaleMin,
+                scaleMax: q.scaleMax,
+                required: q.required,
+            })),
+        })),
+    };
+}
+
 export function numbering(sections: DraftSection[]): Map<string, number> {
     return new Map(
         sections
@@ -179,6 +191,7 @@ export function useQuestionnaireBuilder(initial?: DraftSection[]) {
     const navigate = useNavigate();
     const [params] = useSearchParams();
     const returnTo = params.get('returnTo');
+    const createTemplate = useCreateQuestionnaireTemplate();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [sections, setSections] = useState<DraftSection[]>(
@@ -274,14 +287,18 @@ export function useQuestionnaireBuilder(initial?: DraftSection[]) {
 
     const count = sections.reduce((n, s) => n + s.questions.length, 0);
 
-    const save = () => {
+    const save = async () => {
         const err = validate(title, sections);
         setError(err);
         if (err) return;
-        toast.success(`Protótipo: "${title}" não foi salvo.`, {
-            description: `${sections.length} seções e ${count} perguntas.`,
-        });
-        navigate(returnTo ?? '/clinica/pacientes');
+        try {
+            await createTemplate.mutateAsync(
+                toWriteDto(title, description, sections),
+            );
+            navigate(returnTo ?? '/clinica/pacientes');
+        } catch {
+            // toast no hook
+        }
     };
 
     return {
@@ -301,6 +318,7 @@ export function useQuestionnaireBuilder(initial?: DraftSection[]) {
         removeSection,
         count,
         error,
+        saving: createTemplate.isPending,
         save,
         back: () => (returnTo ? navigate(returnTo) : navigate(-1)),
         returnTo,

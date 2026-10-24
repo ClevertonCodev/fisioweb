@@ -98,11 +98,11 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Página para o paciente responder pelo link (não existe no front).
   - [x] Enviar é remoto; Copiar / WhatsApp / E-mail usam `share_url`.
 
-- [ ] **Criar questionário** — `/clinica/questionarios/novo` (com `?returnTo=` do prontuário)
+- [x] **Criar questionário** — `/clinica/questionarios/novo` (com `?returnTo=` do prontuário)
   - Variante C, "Banco de perguntas": perguntas prontas da clínica para montar com cliques, o roteiro no meio e a pergunta escolhida à direita para ajustar.
-  - Código: `resources/js/pages/clinic/questionnaire-template/questionnaire-new-prototype/`
+  - Código: `resources/js/pages/clinic/questionnaire-template/questionnaire-template-new/`
   - [ ] Banco de perguntas da clínica no backend (hoje está fixo no código); não usar escalas validadas sem o texto oficial.
-  - [ ] Salvar é stub; ao salvar, voltar ao `returnTo` com a gaveta de envio aberta.
+  - [x] Salvar grava na API e volta ao `returnTo` (a gaveta de envio não reabre sozinha).
 
 ## Equipe
 

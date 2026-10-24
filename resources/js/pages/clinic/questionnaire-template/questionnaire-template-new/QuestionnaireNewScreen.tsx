@@ -1,10 +1,4 @@
-/**
- * PROTÓTIPO C, "Banco de perguntas": montar com cliques. À esquerda, o
- * banco de perguntas prontas da clínica (dor, rotina, tratamento), cada
- * uma com "+"; no meio, o roteiro do questionário em linhas curtas; à
- * direita, a pergunta escolhida para ajustar. "Pergunta em branco" para o
- * que não estiver no banco.
- */
+/** Novo questionário v2 — Banco de perguntas (variante C do protótipo). */
 import { ArrowLeft, Check, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,6 +9,7 @@ import {
     dsCn,
     DsEmptyState,
     DsInput,
+    DsTextarea,
 } from '@/components/ds';
 
 import { QuestionEditor, TYPE_ICON } from './parts';
@@ -26,7 +21,7 @@ import {
     type QuestionnaireBuilder,
 } from './shared';
 
-export function VariantC({ b }: { b: QuestionnaireBuilder }) {
+export function QuestionnaireNewScreen({ b }: { b: QuestionnaireBuilder }) {
     const [selected, setSelected] = useState<string | null>(null);
     const target = b.sections[b.sections.length - 1];
     const used = new Set(
@@ -52,7 +47,12 @@ export function VariantC({ b }: { b: QuestionnaireBuilder }) {
                 <h1 className="mr-auto text-ds-body-lg font-semibold">
                     Novo questionário
                 </h1>
-                <DsButton label="Salvar questionário" onClick={b.save} />
+                <DsButton
+                    label="Salvar questionário"
+                    loading={b.saving}
+                    disabled={b.saving}
+                    onClick={() => void b.save()}
+                />
             </header>
             {b.error && (
                 <div className="px-4 pt-3 sm:px-6">
@@ -123,6 +123,13 @@ export function VariantC({ b }: { b: QuestionnaireBuilder }) {
                         placeholder="Ex.: Primeira consulta, dor lombar"
                         value={b.title}
                         onValueChange={b.setTitle}
+                    />
+                    <DsTextarea
+                        label="Descrição"
+                        placeholder="Opcional"
+                        value={b.description}
+                        onValueChange={b.setDescription}
+                        rows={3}
                     />
                     {b.sections.map((s) => (
                         <section

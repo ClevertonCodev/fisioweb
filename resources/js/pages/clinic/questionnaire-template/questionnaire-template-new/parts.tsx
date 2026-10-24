@@ -1,7 +1,4 @@
-/**
- * PROTÓTIPO (descartável): peças do novo questionário. `QuestionEditor`
- * edita uma pergunta.
- */
+/** Peças do novo questionário v2 (banco de perguntas). */
 import {
     AlignLeft,
     ArrowDown,

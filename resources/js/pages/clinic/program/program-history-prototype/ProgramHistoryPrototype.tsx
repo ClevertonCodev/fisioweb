@@ -27,8 +27,8 @@ import {
     DsPagination,
     DsTabs,
 } from '@/components/ds';
-import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 import { useIsMobile } from '@/pages/clinic/program/exercise-library-prototype/use-media-query';
+import { PrototypeSwitcher } from '@/pages/clinic/PrototypeSwitcher';
 
 import {
     activeFilterCount,

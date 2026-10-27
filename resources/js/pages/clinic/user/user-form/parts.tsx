@@ -378,7 +378,7 @@ export function DocumentFields({ f }: { f: UserForm }) {
                     ) : (
                         <DsInput
                             label="Registro no CREFITO"
-                            placeholder="Ex.: MG-123456 ou SP 123456-G"
+                            placeholder="Ex.: 123456-F"
                             value={field.value}
                             onValueChange={field.onChange}
                             onBlur={field.onBlur}

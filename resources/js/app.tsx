@@ -11,21 +11,25 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { adminRoutes } from '@/routes/admin-routes';
 import { clinicRoutes } from '@/routes/clinic-routes';
 import { devRoutes } from '@/routes/dev-routes';
+import { patientAuthRoutes } from '@/routes/patient/auth-routes';
+import { patientProgramRoutes } from '@/routes/patient/program-routes';
 
 import NotFound from './pages/NotFound';
-import PatientProgramDeepLinkPage from './pages/patient/PatientProgramDeepLinkPage';
+
+function LegacyLoginRedirect() {
+    return <Navigate to={`/paciente/login${window.location.search}`} replace />;
+}
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter(
     [
         { path: '/', element: <Navigate to="/clinica/login" replace /> },
+        { path: '/login', element: <LegacyLoginRedirect /> },
         ...clinicRoutes(queryClient),
         adminRoutes,
-        {
-            path: '/:clinicSlug/paciente/programas/:publicToken',
-            element: <PatientProgramDeepLinkPage />,
-        },
+        ...patientAuthRoutes,
+        ...patientProgramRoutes,
         ...devRoutes,
         { path: '*', element: <NotFound /> },
     ],

@@ -1,5 +1,3 @@
-/** Alinhado a `ValidationHelper::validateCpf` / `validateCnpj` / identificação CREFITO (PHP). */
-
 export function isValidCpf(raw: string): boolean {
     const cpf = raw.replace(/\D/g, '');
     if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -46,20 +44,21 @@ export function isValidCnpj(raw: string): boolean {
     return Number(cnpj[12]) === dv1 && Number(cnpj[13]) === dv2;
 }
 
-/** Registro profissional (CREFITO): UF (2 letras) + número, separadores opcionais. */
 export function isValidCrefitoRegistration(raw: string): boolean {
     const s = raw.trim();
-    if (s.length < 6 || s.length > 30) return false;
+    if (s.length < 3 || s.length > 30) return false;
     if (!/[A-Za-zÀ-ÿ]/u.test(s)) return false;
     const compact = s.replace(/\s+/g, '');
-    return /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u.test(
-        compact,
-    );
+
+    const realFormat = /^(?:CREFITO)?-?(?:\d{1,2}\/)?\d{3,6}-?[A-Za-z]{1,3}$/i;
+    const legacyUfFormat =
+        /^[A-Za-zÀ-ÿ]{2}[.\-/]?\d{4,}(?:[.\-/][A-Za-z0-9]+)*$/u;
+
+    return realFormat.test(compact) || legacyUfFormat.test(compact);
 }
 
 export type ClinicUserDocumentKind = 'cpf' | 'cnpj' | 'crefito';
 
-/** Melhor esforço para pré-selecionar o tipo na edição. */
 export function inferClinicUserDocumentKind(
     raw: string | undefined | null,
 ): ClinicUserDocumentKind {

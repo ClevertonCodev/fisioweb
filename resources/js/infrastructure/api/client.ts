@@ -3,9 +3,21 @@ import axios from 'axios';
 import { refresh, type AuthGuard } from './auth.service';
 
 const AUTH_GUARD_KEY = 'auth_guard';
+const PATIENT_CLINIC_SLUG_KEY = 'patient_clinic_slug';
 const tokenKey = (guard: AuthGuard) => `auth_token_${guard}`;
 
-// sessionStorage keys — isolated per tab (used for impersonation)
+export function getPatientClinicSlug(): string | null {
+    return localStorage.getItem(PATIENT_CLINIC_SLUG_KEY);
+}
+
+export function setPatientClinicSlug(slug: string): void {
+    localStorage.setItem(PATIENT_CLINIC_SLUG_KEY, slug);
+}
+
+export function clearPatientClinicSlug(): void {
+    localStorage.removeItem(PATIENT_CLINIC_SLUG_KEY);
+}
+
 const SESSION_TOKEN_KEY = 'auth_token';
 const SESSION_GUARD_KEY = 'auth_guard';
 
@@ -13,16 +25,39 @@ function inferGuardFromApiUrl(url?: string): AuthGuard | null {
     if (!url) return null;
     if (url.startsWith('/admin/') || url === '/admin') return 'admin';
     if (url.startsWith('/clinic/') || url === '/clinic') return 'clinic';
+    if (url.startsWith('/patient/') || url === '/patient') return 'patient';
     return null;
+}
+
+function isPublicPatientRequest(url?: string): boolean {
+    if (!url) return false;
+
+    if (url.startsWith('/patient/auth/')) return true;
+
+    if (/^\/patient\/programs\/[^/]+/.test(url)) return true;
+
+    return false;
+}
+
+export function isPatientAreaPath(path: string): boolean {
+    return path.startsWith('/paciente') || path.includes('/paciente/');
 }
 
 function inferGuardFromPath(path: string): AuthGuard | null {
     if (path.startsWith('/admin')) return 'admin';
+    if (isPatientAreaPath(path)) return 'patient';
     if (path.startsWith('/clinica')) return 'clinic';
     return null;
 }
 
-/** Migrates old single-key format (auth_token / auth_guard) to per-guard keys. */
+export function getStoredAuthForPage(): { token: string; guard: AuthGuard } | null {
+    if (isPatientAreaPath(window.location.pathname)) {
+        return getStoredAuth('patient') ?? getStoredAuth();
+    }
+
+    return getStoredAuth();
+}
+
 function migrateOldAuthKeys(): void {
     const oldToken = localStorage.getItem('auth_token');
     const oldGuard = localStorage.getItem('auth_guard');
@@ -36,7 +71,6 @@ function migrateOldAuthKeys(): void {
 export function getStoredAuth(
     guard?: AuthGuard,
 ): { token: string; guard: AuthGuard } | null {
-    // sessionStorage priority — used for impersonation in a new tab
     const sessionToken = sessionStorage.getItem(SESSION_TOKEN_KEY);
     const sessionGuard = sessionStorage.getItem(
         SESSION_GUARD_KEY,
@@ -54,15 +88,13 @@ export function getStoredAuth(
         return { token, guard };
     }
 
-    // Infer guard from current page path
     const pathGuard = inferGuardFromPath(window.location.pathname);
     if (pathGuard) {
         const token = localStorage.getItem(tokenKey(pathGuard));
         if (token) return { token, guard: pathGuard };
     }
 
-    // Fallback: return any available session
-    for (const g of ['admin', 'clinic'] as AuthGuard[]) {
+    for (const g of ['admin', 'clinic', 'patient'] as AuthGuard[]) {
         const token = localStorage.getItem(tokenKey(g));
         if (token) return { token, guard: g };
     }
@@ -75,19 +107,17 @@ export function setStoredAuth(token: string, guard: AuthGuard): void {
     localStorage.setItem(AUTH_GUARD_KEY, guard);
 }
 
-/** Stores auth only in sessionStorage (isolated per tab, used for impersonation). */
 export function setSessionAuth(token: string, guard: string): void {
     sessionStorage.setItem(SESSION_TOKEN_KEY, token);
     sessionStorage.setItem(SESSION_GUARD_KEY, guard);
 }
 
-/**
- * Clears stored auth for a specific guard only, leaving other guards intact.
- * If no guard is provided, clears everything.
- */
 export function clearStoredAuth(guard?: AuthGuard): void {
     if (guard) {
         localStorage.removeItem(tokenKey(guard));
+        if (guard === 'patient') {
+            clearPatientClinicSlug();
+        }
         if (localStorage.getItem(AUTH_GUARD_KEY) === guard) {
             localStorage.removeItem(AUTH_GUARD_KEY);
         }
@@ -99,15 +129,30 @@ export function clearStoredAuth(guard?: AuthGuard): void {
     } else {
         localStorage.removeItem(tokenKey('admin'));
         localStorage.removeItem(tokenKey('clinic'));
+        localStorage.removeItem(tokenKey('patient'));
         localStorage.removeItem(AUTH_GUARD_KEY);
+        clearPatientClinicSlug();
         sessionStorage.removeItem(SESSION_TOKEN_KEY);
         sessionStorage.removeItem(SESSION_GUARD_KEY);
     }
 }
 
 function redirectToLogin(guard: AuthGuard): void {
-    const path = guard === 'admin' ? '/admin/login' : '/clinica/login';
-    window.location.href = path;
+    if (guard === 'admin') {
+        window.location.href = '/admin/login';
+        return;
+    }
+    if (guard === 'clinic') {
+        window.location.href = '/clinica/login';
+        return;
+    }
+
+    const path = window.location.pathname;
+    const slugMatch = path.match(/^\/([^/]+)\/paciente(?:\/|$)/);
+    const base = slugMatch ? `/${slugMatch[1]}/paciente/login` : '/paciente/login';
+    const next = encodeURIComponent(`${path}${window.location.search}`);
+
+    window.location.href = `${base}?next=${next}`;
 }
 
 export const apiClient = axios.create({
@@ -155,6 +200,9 @@ apiClient.interceptors.response.use(
 
         const auth = urlGuard ? getStoredAuth(urlGuard) : getStoredAuth();
         if (!auth) {
+            if (urlGuard === 'patient' && isPublicPatientRequest(originalRequest.url)) {
+                return Promise.reject(error);
+            }
             redirectToLogin(urlGuard ?? 'clinic');
             return Promise.reject(error);
         }

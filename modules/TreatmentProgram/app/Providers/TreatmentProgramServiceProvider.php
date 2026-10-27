@@ -4,13 +4,19 @@ namespace Modules\TreatmentProgram\Providers;
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\ProgramDraftRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\ProgramDraftServiceInterface;
 use Modules\TreatmentProgram\Contracts\Public\TreatmentProgramReadServiceInterface;
+use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
+use Modules\TreatmentProgram\Contracts\TreatmentPlanFeedbackRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Policies\TreatmentPlanPolicy;
+use Modules\TreatmentProgram\Repositories\EloquentPatientProgramRepository;
+use Modules\TreatmentProgram\Repositories\EloquentTreatmentPlanExecutionRepository;
+use Modules\TreatmentProgram\Repositories\EloquentTreatmentPlanFeedbackRepository;
 use Modules\TreatmentProgram\Repositories\ProgramDraftRepository;
 use Modules\TreatmentProgram\Repositories\TreatmentPlanRepository;
 use Modules\TreatmentProgram\Repositories\TreatmentProgramReadService;
@@ -39,6 +45,9 @@ class TreatmentProgramServiceProvider extends ServiceProvider
         $this->app->bind(ProgramDraftRepositoryInterface::class, ProgramDraftRepository::class);
         $this->app->bind(ProgramDraftServiceInterface::class, ProgramDraftService::class);
         $this->app->bind(TreatmentProgramReadServiceInterface::class, TreatmentProgramReadService::class);
+        $this->app->bind(PatientProgramRepositoryInterface::class, EloquentPatientProgramRepository::class);
+        $this->app->bind(TreatmentPlanExecutionRepositoryInterface::class, EloquentTreatmentPlanExecutionRepository::class);
+        $this->app->bind(TreatmentPlanFeedbackRepositoryInterface::class, EloquentTreatmentPlanFeedbackRepository::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

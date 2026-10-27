@@ -19,3 +19,4 @@ export { apiClinicServiceTypesRepository } from './api-clinic-service-types';
 export { apiClinicUsersRepository } from './api-clinic-users';
 export { apiClinicVideosRepository } from './api-clinic-videos';
 export { apiGoogleCalendarRepository } from './api-google-calendar';
+export { apiPatientAuthRepository } from './api-patient-auth';

@@ -31,6 +31,7 @@ yarn-error.log
 /ROADMAP.md
 /tabelas.txt
 /.cursorrules
+/.claude/settings.local.json
 
 # ai-harness: evidência, revisão e trabalho adiado ficam fora do git
 /.ai-workbench/*/evidence/

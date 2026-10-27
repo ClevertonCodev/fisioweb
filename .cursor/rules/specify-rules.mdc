@@ -103,4 +103,25 @@ npm run build && npm run types && npm run lint
 ```
 
 Teste filtrado: `vendor/bin/phpunit --filter=NomeDoTest`
+
+## Plano ativo
+
+**Feature atual**: `specs/016-patient-login-area/`
+
+| Artefato | Path |
+|----------|------|
+| Spec | `specs/016-patient-login-area/spec.md` |
+| Plan | `specs/016-patient-login-area/plan.md` |
+| Research | `specs/016-patient-login-area/research.md` |
+| Data model | `specs/016-patient-login-area/data-model.md` |
+| Quickstart | `specs/016-patient-login-area/quickstart.md` |
+| Contracts | `specs/016-patient-login-area/contracts/` |
+| Tasks | `specs/016-patient-login-area/tasks.md` *(gerar com `/speckit-tasks`)* |
+| Checklist | `specs/016-patient-login-area/checklists/requirements.md` |
+
+**Atenção nesta feature**: `modules/Patient/.../AuthController::login` descarta hoje a senha
+digitada (`'password' => $cpf`), de modo que conhecer o CPF autentica o paciente. A correção
+é o núcleo do plano — ver `contracts/patient-auth-rest.md` §2. Ela **não** exige migration.
+
+**Antes de implementar:** leia `plan.md` + `tasks.md` da feature ativa e a skill correspondente ao escopo.
 <!-- SPECKIT END -->

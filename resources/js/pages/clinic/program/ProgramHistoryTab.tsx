@@ -96,7 +96,13 @@ type UiStatus = 'not_viewed' | 'viewed' | 'completed' | 'draft';
 
 function deriveUiStatus(program: Program): UiStatus {
     if (program.status === 'draft') return 'draft';
-    if (program.status === 'completed') return 'completed';
+    // Completou = paciente concluiu (contador) ou plano marcado completed
+    if (
+        program.patientCompletedCount > 0 ||
+        program.status === 'completed'
+    ) {
+        return 'completed';
+    }
     if (program.patientViewedAt) return 'viewed';
     return 'not_viewed';
 }

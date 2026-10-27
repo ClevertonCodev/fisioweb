@@ -8,6 +8,7 @@ export interface User {
     role?: ClinicRole;
     photoUrl?: string;
     clinicId?: string | number;
+    clinicSlug?: string;
     mestre?: 0 | 1;
 }
 

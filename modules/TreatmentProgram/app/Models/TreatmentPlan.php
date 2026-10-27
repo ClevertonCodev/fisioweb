@@ -42,16 +42,22 @@ class TreatmentPlan extends Model
         'notes',
         'patient_viewed_at',
         'patient_completed_count',
+        'outcome_pain_enabled',
+        'outcome_difficulty_enabled',
+        'outcome_satisfaction_enabled',
     ];
 
     protected function casts(): array
     {
         return [
-            'start_date'               => 'date',
-            'end_date'                 => 'date',
-            'duration_minutes'         => 'integer',
-            'patient_viewed_at'        => 'datetime',
-            'patient_completed_count'  => 'integer',
+            'start_date'                     => 'date',
+            'end_date'                       => 'date',
+            'duration_minutes'               => 'integer',
+            'patient_viewed_at'              => 'datetime',
+            'patient_completed_count'        => 'integer',
+            'outcome_pain_enabled'           => 'boolean',
+            'outcome_difficulty_enabled'     => 'boolean',
+            'outcome_satisfaction_enabled'   => 'boolean',
         ];
     }
 
@@ -97,6 +103,16 @@ class TreatmentPlan extends Model
     public function exercises(): HasMany
     {
         return $this->hasMany(TreatmentPlanExercise::class)->orderBy('sort_order');
+    }
+
+    public function executions(): HasMany
+    {
+        return $this->hasMany(TreatmentPlanExecution::class);
+    }
+
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(TreatmentPlanFeedback::class);
     }
 
     public function scopeForClinic($query, int $clinicId)

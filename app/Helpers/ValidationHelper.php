@@ -72,12 +72,17 @@ class ValidationHelper
     }
 
     /**
-     * Registro no CREFITO (UF em letras + número), separadores opcionais.
+     * Registro no CREFITO. Aceita:
+     * - formato real: número + sufixo de categoria (F = fisioterapeuta, TO = terapeuta
+     *   ocupacional), com região e prefixo "CREFITO" opcionais.
+     *   Ex.: "123456-F", "12345-TO", "3/12345-F", "CREFITO-3/12345-F".
+     * - formato legado com UF em letras + número (ex.: "MG-123456", "SP 123456-G"),
+     *   mantido para não invalidar cadastros antigos.
      */
     public static function isCrefitoRegistrationFormat(string $document): bool
     {
         $s = trim($document);
-        if ($s === '' || strlen($s) > 30) {
+        if ($s === '' || strlen($s) < 3 || strlen($s) > 30) {
             return false;
         }
 
@@ -87,10 +92,10 @@ class ValidationHelper
 
         $compact = preg_replace('/\s+/', '', $s);
 
-        return (bool) preg_match(
-            '/^[A-Za-z]{2}[.\-\/]?\d{4,}(?:[.\-\/][A-Za-z0-9]+)*$/',
-            $compact
-        );
+        $realFormat   = '/^(?:CREFITO)?-?(?:\d{1,2}\/)?\d{3,6}-?[A-Za-z]{1,3}$/i';
+        $legacyUfForm = '/^[A-Za-z]{2}[.\-\/]?\d{4,}(?:[.\-\/][A-Za-z0-9]+)*$/';
+
+        return (bool) (preg_match($realFormat, $compact) || preg_match($legacyUfForm, $compact));
     }
 
     /**
@@ -111,7 +116,7 @@ class ValidationHelper
         if (preg_match('/[A-Za-z]/', $s)) {
             return self::isCrefitoRegistrationFormat($s)
                 ? null
-                : 'Informe um registro CREFITO válido (ex.: MG-123456 ou SP 123456-G).';
+                : 'Informe um registro CREFITO válido (ex.: 123456-F ou 12345-TO).';
         }
 
         $digits = preg_replace('/\D/', '', $s);
@@ -136,7 +141,7 @@ class ValidationHelper
             return 'Informe um CPF, CNPJ válido ou registro no CREFITO.';
         }
 
-        return 'Informe um CPF, CNPJ válido ou registro no CREFITO (com UF, ex.: SP-123456).';
+        return 'Informe um CPF, CNPJ válido ou registro no CREFITO (ex.: 123456-F).';
     }
 
     /**

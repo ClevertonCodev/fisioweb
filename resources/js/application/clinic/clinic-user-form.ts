@@ -100,7 +100,7 @@ function addClinicUserDocumentIssues(
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message:
-                        'Informe um registro CREFITO válido (UF em letras + número, ex.: MG-123456).',
+                        'Informe um registro CREFITO válido (ex.: 123456-F).',
                     path: ['document'],
                 });
             }

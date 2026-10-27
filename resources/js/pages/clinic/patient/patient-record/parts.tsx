@@ -1,6 +1,6 @@
 /**
- * Peças do prontuário (drawer, ícones e ações). Overlays v1 que gravam
- * ficam no PatientRecordScreen, não aqui.
+ * Peças do prontuário (drawer, ícones e ações). Overlays DS que gravam
+ * ficam em overlays/, montados pelo PatientRecordScreen.
  */
 import {
     Activity,

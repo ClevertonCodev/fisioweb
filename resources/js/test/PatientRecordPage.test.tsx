@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -747,6 +747,7 @@ describe('prontuário do paciente (painel B)', () => {
 
     it('os arquivos desta rota não importam PrototypeSwitcher, apiClient nem a v1', () => {
         const root = join(process.cwd(), 'resources/js/pages/clinic/patient');
+        const overlayDir = join(root, 'patient-record/overlays');
         const files = [
             join(root, 'PatientRecordPage.tsx'),
             join(root, 'patient-record/PatientRecordScreen.tsx'),
@@ -754,6 +755,7 @@ describe('prontuário do paciente (painel B)', () => {
             join(root, 'patient-record/data.ts'),
             join(root, 'patient-record/parts.tsx'),
             join(root, 'patient-record/share.ts'),
+            ...readdirSync(overlayDir).map((f) => join(overlayDir, f)),
         ];
         const source = files.map((f) => readFileSync(f, 'utf8')).join('\n');
         expect(source).not.toMatch('PrototypeSwitcher');
@@ -762,20 +764,13 @@ describe('prontuário do paciente (painel B)', () => {
         expect(source).not.toMatch('PatientRecordOriginal');
         expect(source).not.toMatch(/filter\([^)]*patientId/);
         expect(source).not.toMatch('stub do protótipo');
-        const panel = [
-            join(root, 'patient-record/VariantB.tsx'),
-            join(root, 'patient-record/data.ts'),
-            join(root, 'patient-record/parts.tsx'),
-        ]
-            .map((f) => readFileSync(f, 'utf8'))
-            .join('\n');
-        expect(panel).not.toMatch('@/components/ui');
-        expect(panel).not.toMatch('EvolutionFormDrawer');
-        expect(panel).not.toMatch('PatientFileUploadModal');
-        expect(panel).not.toMatch('QuestionnaireFormSheet');
+        expect(source).not.toMatch('EvolutionFormDrawer');
+        expect(source).not.toMatch('PatientFileUploadModal');
+        expect(source).not.toMatch('QuestionnaireFormSheet');
+        expect(source).not.toMatch('@/components/ui');
     });
 
-    it('nova evolução abre a gaveta da v1, grava e aparece em Clínico', async () => {
+    it('nova evolução abre a folha do DS, grava e aparece em Clínico', async () => {
         const user = userEvent.setup();
         const created = makeEvolution({
             id: 77,
@@ -801,12 +796,14 @@ describe('prontuário do paciente (painel B)', () => {
         expect(
             await screen.findByRole('heading', { name: 'Nova evolução' }),
         ).toBeInTheDocument();
+        expect(
+            screen.getByRole('article', { name: 'Folha da evolução' }),
+        ).toBeInTheDocument();
 
-        await user.click(screen.getByText('Texto livre'));
-        await user.type(
-            screen.getByLabelText(/título da sessão/i),
-            'Sessão de quadril',
-        );
+        await user.click(screen.getByRole('radio', { name: 'Texto livre' }));
+        const title = screen.getByLabelText(/título da sessão/i);
+        await user.clear(title);
+        await user.type(title, 'Sessão de quadril');
         await user.type(
             screen.getByLabelText(/texto da evolução/i),
             'Alongar e fortalecer.',
@@ -823,7 +820,7 @@ describe('prontuário do paciente (painel B)', () => {
         ).toBeInTheDocument();
     });
 
-    it('enviar arquivo abre o modal da v1, grava e aparece em Arquivos', async () => {
+    it('enviar arquivo abre o modal do DS, grava e aparece em Arquivos', async () => {
         const user = userEvent.setup();
         const created = makeFile({
             id: 88,
@@ -847,22 +844,24 @@ describe('prontuário do paciente (painel B)', () => {
         );
         expect(
             await screen.findByRole('heading', {
-                name: 'Adicionar arquivo ao prontuário',
+                name: 'Adicionar ao prontuário',
             }),
         ).toBeInTheDocument();
+        expect(screen.getByText('Fotografar')).toBeInTheDocument();
 
         const file = new File(['laudo'], 'laudo.pdf', {
             type: 'application/pdf',
         });
-        const input = document.querySelector(
-            'input[type="file"]',
-        ) as HTMLInputElement;
-        await user.upload(input, file);
+        await user.upload(
+            screen.getByLabelText('Arquivo do dispositivo'),
+            file,
+        );
         await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
         await waitFor(() => {
             expect(storeFile).toHaveBeenCalled();
         });
+        await user.click(screen.getByRole('button', { name: 'Concluir' }));
         await user.click(screen.getByRole('tab', { name: /Arquivos/ }));
         expect(await screen.findByText('Laudo joelho')).toBeInTheDocument();
     });
@@ -896,14 +895,12 @@ describe('prontuário do paciente (painel B)', () => {
             screen.getByRole('button', { name: 'Enviar questionário' }),
         );
         await user.click(screen.getByText('Anamnese lombar'));
-        await user.click(screen.getByRole('button', { name: /continuar/i }));
-        await user.click(screen.getByRole('button', { name: /^remoto$/i }));
-        await user.click(
-            screen.getByRole('button', { name: /enviar ao paciente/i }),
-        );
+        await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
         expect(
-            await screen.findByRole('heading', { name: 'Pronto' }),
+            await screen.findByRole('heading', {
+                name: /Pronto, agora é com QA/,
+            }),
         ).toBeInTheDocument();
         expect(screen.getByText(created.shareUrl!)).toBeInTheDocument();
         expect(
@@ -1136,6 +1133,9 @@ describe('prontuário do paciente (painel B)', () => {
         );
         expect(
             await screen.findByRole('heading', { name: 'Editar evolução' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('article', { name: 'Folha da evolução' }),
         ).toBeInTheDocument();
         await user.keyboard('{Escape}');
 

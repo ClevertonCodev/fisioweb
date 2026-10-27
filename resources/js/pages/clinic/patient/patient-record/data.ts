@@ -5,6 +5,7 @@
  */
 import { useMemo } from 'react';
 
+import { parseDate } from '@/application/clinic/dates';
 import {
     evolutionDetailBlocks,
     evolutionListPreview,
@@ -300,7 +301,8 @@ export function buildRecordItems(sources: {
         items.push({
             key: `programa-${p.id}`,
             kind: 'programa',
-            date: new Date(p.startDate),
+            // startDate é só o dia: lido como UTC, vira o dia anterior em Brasília.
+            date: parseDate(p.startDate),
             title: p.title,
             subtitle: `${p.exerciseCount} exercícios · ${p.patientCompletedCount} feitos pelo paciente`,
             author: p.professionalName,

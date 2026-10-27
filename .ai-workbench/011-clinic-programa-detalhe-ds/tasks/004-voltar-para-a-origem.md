@@ -24,7 +24,7 @@ prontuário do paciente. Quem entra direto pela URL vai para o Histórico.
   quando existe e, sem ela, `/clinica/programas/historico`.
 - Duplicar (tarefa 002) repassa a mesma origem para a cópia. Assim,
   "Voltar" na cópia volta para onde a pessoa estava.
-- O link só aceita origem interna, um caminho que começa com `/clinica/`.
+- O botão só aceita origem interna, um caminho que começa com `/clinica/`.
   Qualquer outra coisa no `state` cai no Histórico.
 - Sem backend.
 
@@ -47,7 +47,7 @@ prontuário do paciente. Quem entra direto pela URL vai para o Histórico.
 
 ## Notas de Implementação
 
-- **Branch:** `feat/clinic-programa-detalhe-ds`
+- **Branch:** `feat/clinic-historico-exercicios-programas`
 - **Exemplo no código:** `ProgramHistoryCard` (o link para o programa), `programPath` em `program-history-filters` e a gaveta de programa do prontuário (`patient-record/parts.tsx`, botão "Abrir programa").
 - **Skills:** `frontend-react`, `frontend-testing`, `qa-navegador`
 

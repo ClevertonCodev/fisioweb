@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { PatientQuestionnaire } from '@/domain/clinic';
+import type { PatientQuestionnaire, Program } from '@/domain/clinic';
 import {
     buildRecordItems,
     matchesSearch,
@@ -124,8 +124,7 @@ describe('buildRecordItems', () => {
                     clinicUserId: 1,
                     evolutionTemplateId: 1,
                     title: 'Sessão',
-                    generatedText:
-                        '**Conduta:** Alongamento — detalhe.',
+                    generatedText: '**Conduta:** Alongamento — detalhe.',
                     notes: null,
                     checkedItems: [],
                     status: 'signed',
@@ -140,5 +139,50 @@ describe('buildRecordItems', () => {
         });
         expect(row?.subtitle).not.toContain('**');
         expect(row?.evolutionSheet?.[0]?.section).toBe('Conduta');
+    });
+});
+
+describe('buildRecordItems: data do programa no fuso de Brasília', () => {
+    // Troca o fuso no processo do teste (pool forks, padrão do Vitest 4).
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
+
+    it('mostra o programa no dia de início, sem voltar um dia', () => {
+        vi.stubEnv('TZ', 'America/Sao_Paulo');
+        const program = {
+            id: '61',
+            title: 'Programa em casa',
+            patientId: '108',
+            patientName: 'Paciente Teste',
+            patientPhotoUrl: null,
+            patientPhone: null,
+            patientEmail: null,
+            shareUrl: null,
+            professionalId: '1',
+            professionalName: 'Fisio Teste',
+            professionalPhotoUrl: null,
+            exerciseCount: 3,
+            startDate: '2026-08-10',
+            endDate: null,
+            message: '',
+            groups: [],
+            status: 'active',
+            patientViewedAt: null,
+            patientCompletedCount: 0,
+            createdAt: '2026-08-10T12:00:00Z',
+        } satisfies Program;
+
+        const [row] = buildRecordItems({
+            appointments: [],
+            evolutions: [],
+            assessments: [],
+            questionnaires: [],
+            files: [],
+            programs: [program],
+        });
+
+        expect(row?.date?.getDate()).toBe(10);
+        expect(row?.date?.getMonth()).toBe(7);
     });
 });

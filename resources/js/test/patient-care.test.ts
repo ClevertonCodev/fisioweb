@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     patientAppointmentsWindow,
@@ -176,7 +176,8 @@ describe('patientCareStats', () => {
             NOW,
         );
 
-        expect(stats.since).toEqual(new Date('2026-04-22'));
+        // startDate é só o dia: meia-noite local, não UTC.
+        expect(stats.since).toEqual(new Date(2026, 3, 22));
         expect(stats.monthsInCare).toBe(6);
     });
 
@@ -231,5 +232,26 @@ describe('patientAppointmentsWindow', () => {
         expect(
             patientAppointmentsWindow(new Date('2026-10-22T00:01:00')),
         ).toEqual(patientAppointmentsWindow(new Date('2026-10-22T23:59:00')));
+    });
+});
+
+describe('patientCareStats no fuso de Brasília', () => {
+    // Troca o fuso no processo do teste (pool forks, padrão do Vitest 4).
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
+
+    it('conta o acompanhamento desde o dia de início do programa, sem voltar um dia', () => {
+        vi.stubEnv('TZ', 'America/Sao_Paulo');
+
+        const stats = patientCareStats(
+            [],
+            [program('1', '2026-08-10', 'active')],
+            NOW,
+        );
+
+        expect(stats.since?.getFullYear()).toBe(2026);
+        expect(stats.since?.getMonth()).toBe(7);
+        expect(stats.since?.getDate()).toBe(10);
     });
 });

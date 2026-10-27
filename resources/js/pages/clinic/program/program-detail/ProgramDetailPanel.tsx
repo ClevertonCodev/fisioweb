@@ -87,7 +87,7 @@ function DetailActions({ program }: { program: Program }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { run, deleteModal } = useProgramHistoryActions({
-        // A cópia herda a origem: o "← Programas" dela volta para o mesmo lugar.
+        // A cópia herda a origem: o "Voltar" dela volta para o mesmo lugar.
         onDuplicated: (copy) =>
             navigate(`/clinica/programas/${copy.id}`, {
                 state: location.state,
@@ -178,7 +178,7 @@ function ExerciseCard({
                     ))}
                 </div>
                 <p className="text-ds-caption text-ds-content-muted">
-                    {scheduleOf(e) ?? 'Todos os dias'}
+                    {scheduleOf(e)}
                 </p>
                 {e.notes && (
                     <p className="text-ds-caption text-ds-content-secondary italic">

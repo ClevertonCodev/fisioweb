@@ -2,7 +2,9 @@
 
 Data: 2026-10-26
 Fonte: `decisoes.md` da feature (sessão 2026-10-26), protótipo A "Painel do
-programa" (`docs/prototipos-v2.md`) e a conversa de planejamento.
+programa" (`docs/prototipos-v2.md`) e a conversa de planejamento. Depois da
+implementação, o link "← Programas" virou o botão "Voltar" (`decisoes.md`,
+sessão posterior de 2026-10-26).
 
 ## Problema
 
@@ -22,7 +24,7 @@ terminou, vezes que completou, quando o paciente abriu) e os grupos com cada
 exercício em cartão, a dose em pedaços, os dias e o período, com o vídeo num
 modal. Os botões do topo são WhatsApp (abre a conversa com o paciente já com o
 link do programa), Editar e o menu ⋯ com as seis ações reais. O rascunho troca
-três números por um aviso com "Continuar editando". Um link "← Programas" volta
+três números por um aviso com "Continuar editando". Um botão "Voltar" (à esquerda do WhatsApp) volta
 para o lugar de onde a pessoa veio. A tela v1, o protótipo e o `?variant=` saem.
 
 ## Histórias de Usuário
@@ -58,9 +60,9 @@ para o lugar de onde a pessoa veio. A tela v1, o protótipo e o `?variant=` saem
 29. Como qualquer papel, quero não ver Excluir num programa que já foi enviado, porque só o rascunho pode ser excluído.
 30. Como fisioterapeuta, quero que um rascunho mostre só o número de exercícios e o aviso "Rascunho: o paciente ainda não recebeu", em vez de números que não dizem nada.
 31. Como fisioterapeuta, quero tocar em "Continuar editando" no aviso do rascunho e ir para a edição, para terminar e enviar.
-32. Como fisioterapeuta, quero tocar em "← Programas" e voltar para o Histórico com os mesmos filtros, ou para o prontuário do paciente, conforme de onde vim.
-33. Como fisioterapeuta, quero que "← Programas" leve ao Histórico quando abri o programa direto pela URL, para nunca ficar sem saída.
-34. Como fisioterapeuta, quero que, depois de duplicar, "← Programas" na cópia continue voltando para o lugar de onde vim.
+32. Como fisioterapeuta, quero tocar em "Voltar" e voltar para o Histórico com os mesmos filtros, ou para o prontuário do paciente, conforme de onde vim.
+33. Como fisioterapeuta, quero que "Voltar" leve ao Histórico quando abri o programa direto pela URL, para nunca ficar sem saída.
+34. Como fisioterapeuta, quero que, depois de duplicar, "Voltar" na cópia continue voltando para o lugar de onde vim.
 35. Como clínica, quero ver "Programa não encontrado" ao tentar abrir um programa de outra clínica, sem nenhum dado dele aparecer.
 36. Como fisioterapeuta, quero ver um esqueleto enquanto o programa carrega, sem a tela piscar.
 37. Como secretária, quero ver o programa e usar o que a Policy libera (WhatsApp, PDF, texto, link, duplicar, modelo, editar), para apoiar a rotina.
@@ -116,7 +118,7 @@ para o lugar de onde a pessoa veio. A tela v1, o protótipo e o `?variant=` saem
   Histórico, as duas continuam só com o toast e a lista atualizada.
 - **Voltar:** o cartão do Histórico e o "Abrir programa" da gaveta do
   prontuário abrem o programa passando no `state` da navegação a origem
-  (`pathname + search`). O "← Programas" usa essa origem ou,
+  (`pathname + search`). O "Voltar" usa essa origem ou,
   sem ela, `/clinica/programas/historico`. Duplicar repassa a mesma origem para
   a cópia.
 - **WhatsApp:** é um link `wa.me` aberto em nova aba (`target="_blank"`,
@@ -146,7 +148,7 @@ para o lugar de onde a pessoa veio. A tela v1, o protótipo e o `?variant=` saem
    link, PDF e Texto como itens), Excluir desabilitado para quem não é admin,
    duplicar abrindo a cópia e excluir voltando ao Histórico. O WhatsApp passa a
    ser real, com a mensagem compartilhada com o `ProgramShareDialog`. O cartão
-   do Histórico informa a origem e o "← Programas" volta para ela. Demonstra:
+   do Histórico informa a origem e o "Voltar" volta para ela. Demonstra:
    reenviar pelo WhatsApp, duplicar e voltar ao Histórico filtrado.
 
 ## Testes
@@ -176,7 +178,7 @@ para o lugar de onde a pessoa veio. A tela v1, o protótipo e o `?variant=` saem
   - Página, ações e navegação: o menu tem as seis ações; Excluir desabilitado
     com o motivo para fisioterapeuta e secretária; Excluir ausente em programa
     enviado; duplicar navega para a cópia; excluir navega para o Histórico;
-    "← Programas" usa a origem do `state` ou cai no Histórico.
+    "Voltar" usa a origem do `state` ou cai no Histórico.
   - Corte: a página real e a rota não importam `-prototype`,
     `PrototypeSwitcher` nem `?variant=`.
   - Backend: `GET /clinic/treatment-plans/{id}` de outra clínica devolve 404

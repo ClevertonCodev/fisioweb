@@ -20,7 +20,8 @@ export interface DosePart {
 export function doseParts(e: ProgramExercise): DosePart[] {
     const sets = range(e.seriesMin, e.seriesMax);
     const reps = range(e.repetitionsMin, e.repetitionsMax);
-    const load = range(e.loadMin, e.loadMax);
+    // Carga 0 e descanso 0 são "sem carga" e "sem descanso": não viram pedaço.
+    const load = e.loadMin || e.loadMax ? range(e.loadMin, e.loadMax) : null;
     return [
         sets && {
             key: 'sets',
@@ -33,7 +34,7 @@ export function doseParts(e: ProgramExercise): DosePart[] {
             unit: reps === '1' ? 'repetição' : 'repetições',
         },
         load && { key: 'load', value: load, unit: 'kg' },
-        e.restTime != null && {
+        !!e.restTime && {
             key: 'rest',
             value: `${e.restTime} s`,
             unit: 'de descanso',
@@ -41,19 +42,18 @@ export function doseParts(e: ProgramExercise): DosePart[] {
     ].filter(Boolean) as DosePart[];
 }
 
-/** "Seg, Qua, Sex · Manhã". */
-export function scheduleOf(e: ProgramExercise): string | null {
+/** "Seg, Qua, Sex · Manhã". Sem dias marcados, o exercício é de todo dia. */
+export function scheduleOf(e: ProgramExercise): string {
     const days =
-        e.days.length === 7
+        e.days.length === 0 || e.days.length === 7
             ? 'Todos os dias'
             : [...e.days]
                   .sort()
                   .map((d) => DAYS[d])
                   .join(', ');
-    const text = [days, e.period ? PERIOD[e.period] : null]
+    return [days, e.period ? PERIOD[e.period] : null]
         .filter(Boolean)
         .join(' · ');
-    return text || null;
 }
 
 export type PanelStatKey = 'exercises' | 'validity' | 'completed' | 'viewed';
@@ -139,7 +139,7 @@ export interface ProgramOrigin {
 const PROGRAM_BACK_FALLBACK = '/clinica/programas/historico';
 
 /**
- * Para onde o "← Programas" leva. Só aceita caminho da própria área da
+ * Para onde o botão "Voltar" leva. Só aceita caminho da própria área da
  * clínica: o `state` da navegação pode vir de qualquer lugar.
  */
 export function programBackPath(state: unknown): string {

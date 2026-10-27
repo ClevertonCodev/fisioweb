@@ -5,7 +5,7 @@ O detalhe do programa (`/clinica/programas/:id`) deixa a v1 e o protótipo
 as ações reais, para o fisioterapeuta acompanhar e reenviar o programa no
 visual já escolhido.
 
-- **Status:** implementada, sem commit; revisão adversária pendente (o usuário roda)
+- **Status:** implementada; revisão adversária APROVADA em 2026-10-27 (3 rodadas)
 - **Branch:** `feat/clinic-historico-exercicios-programas` (o usuário pediu para seguir nesta)
 - **Plano:** [`plans/clinic-programa-detalhe-ds.md`](plans/clinic-programa-detalhe-ds.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)
@@ -18,10 +18,10 @@ visual já escolhido.
 
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
-| [001 · Painel do programa v2 de verdade e corte da v1](tasks/001-painel-do-programa-e-corte.md) | concluída (sem revisão adversária) | | |
-| [002 · Menu ⋯ com as seis ações](tasks/002-menu-de-acoes-do-programa.md) | concluída (sem revisão adversária) | | |
-| [003 · WhatsApp real com a mensagem compartilhada](tasks/003-whatsapp-do-programa.md) | concluída (sem revisão adversária) | | |
-| [004 · "Voltar" volta para a origem](tasks/004-voltar-para-a-origem.md) | concluída (sem revisão adversária) | | |
+| [001 · Painel do programa v2 de verdade e corte da v1](tasks/001-painel-do-programa-e-corte.md) | concluída | | |
+| [002 · Menu ⋯ com as seis ações](tasks/002-menu-de-acoes-do-programa.md) | concluída | | |
+| [003 · WhatsApp real com a mensagem compartilhada](tasks/003-whatsapp-do-programa.md) | concluída | | |
+| [004 · "Voltar" volta para a origem](tasks/004-voltar-para-a-origem.md) | concluída | | |
 
 ## Pastas
 

@@ -1,4 +1,7 @@
+import { parseDate } from '@/application/clinic/dates';
 import type { Program } from '@/domain/clinic';
+
+export { parseDate };
 
 const DAY = 86_400_000;
 
@@ -44,20 +47,6 @@ export const VALIDITY_LABELS: Record<ValidityKey, string> = {
     open: 'Sem data de término',
 };
 
-export function parseDate(value: string | null): Date | null {
-    if (!value) return null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [y, m, d] = value.split('-').map(Number) as [
-            number,
-            number,
-            number,
-        ];
-        return new Date(y, m - 1, d);
-    }
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function startOfToday(): Date {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -86,10 +75,7 @@ export function formatLong(value: string | null): string {
 export function uiStatusOf(program: Program): UiStatus {
     if (program.status === 'draft') return 'draft';
     // Completou = paciente concluiu (contador) ou plano marcado completed
-    if (
-        program.patientCompletedCount > 0 ||
-        program.status === 'completed'
-    ) {
+    if (program.patientCompletedCount > 0 || program.status === 'completed') {
         return 'completed';
     }
     if (program.patientViewedAt) return 'viewed';

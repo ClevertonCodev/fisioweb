@@ -61,6 +61,12 @@ describe('doseParts', () => {
         ]);
     });
 
+    it('não mostra carga 0 nem descanso 0', () => {
+        expect(
+            doseParts(exercise({ seriesMin: 3, loadMin: 0, restTime: 0 })),
+        ).toEqual([{ key: 'sets', value: '3', unit: 'séries' }]);
+    });
+
     it('devolve lista vazia quando nada foi configurado', () => {
         expect(doseParts(exercise())).toEqual([]);
     });
@@ -79,8 +85,11 @@ describe('scheduleOf', () => {
         ).toBe('Todos os dias');
     });
 
-    it('devolve null sem dias e sem período', () => {
-        expect(scheduleOf(exercise())).toBeNull();
+    it('sem dias marcados é todo dia, com ou sem período', () => {
+        expect(scheduleOf(exercise())).toBe('Todos os dias');
+        expect(scheduleOf(exercise({ days: [], period: 'manha' }))).toBe(
+            'Todos os dias · Manhã',
+        );
     });
 });
 

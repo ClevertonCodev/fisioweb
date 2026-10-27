@@ -44,10 +44,14 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] A escolha de exercícios usa o mesmo componente da biblioteca (`selection`).
   - [ ] "Voltar" é um botão do mesmo tamanho, ao lado do "Avançar"; início e término em dois calendários separados.
 
-- [ ] **Detalhe do programa** — `/clinica/programas/:id`
+- [x] **Detalhe do programa** — `/clinica/programas/:id`
   - Variante A, "Painel do programa": paciente, situação e validade em barra; números (exercícios, dias que faltam, vezes que completou, quando abriu); blocos com cada exercício em cartão, a dose em pedaços e o vídeo num modal.
-  - Código: `resources/js/pages/clinic/program/program-detail-prototype/`
-  - [ ] PDF, texto do prontuário e copiar link já são reais; WhatsApp, duplicar, transformar em modelo e excluir são stub.
+  - Tela de verdade: `ProgramDetailPage` + `program-detail/ProgramDetailPanel`; números e dose em `application/clinic/program-detail`. Feature `.ai-workbench/011-clinic-programa-detalhe-ds`.
+  - [x] Rascunho mostra só os exercícios e o aviso "Continuar editando"; outra clínica vê "Programa não encontrado".
+  - [x] Duplicar, transformar em modelo e excluir rascunho (só admin) são reais.
+  - [x] Menu ⋯ com copiar link, PDF e texto para prontuário; duplicar abre a cópia e excluir volta ao Histórico.
+  - [x] WhatsApp com `wa.me` e o link do programa, mesma mensagem do diálogo de compartilhar.
+  - [x] "Voltar" voltando para a origem; "Abrir programa" do prontuário abrindo o painel.
 
 ## Pacientes
 

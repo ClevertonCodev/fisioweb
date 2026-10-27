@@ -291,6 +291,26 @@ class TreatmentPlanControllerTest extends TestCase
         ]);
     }
 
+    public function test_show_returns_404_without_data_for_plan_from_other_clinic(): void
+    {
+        $otherUser = ClinicUser::factory()->create();
+
+        $otherPlan = TreatmentPlan::create([
+            'clinic_id'      => $otherUser->clinic_id,
+            'clinic_user_id' => $otherUser->id,
+            'title'          => 'Plano Privado',
+            'message'        => 'Mensagem privada',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans/{$otherPlan->id}")
+            ->assertNotFound()
+            ->assertJsonMissingPath('data')
+            ->assertDontSee('Plano Privado')
+            ->assertDontSee('Mensagem privada');
+    }
+
     public function test_duplicate_returns_404_for_plan_from_other_clinic(): void
     {
         $otherUser = ClinicUser::factory()->create();

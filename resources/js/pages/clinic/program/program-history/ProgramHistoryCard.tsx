@@ -1,7 +1,8 @@
 import { Dumbbell } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
+import type { ProgramOrigin } from '@/application/clinic/program-detail';
 import {
     exerciseCountLabel,
     formatLong,
@@ -140,6 +141,10 @@ export function ProgramHistoryCard({
     footer?: ReactNode;
 }) {
     const draft = uiStatusOf(program) === 'draft';
+    const location = useLocation();
+    const origin: ProgramOrigin = {
+        from: `${location.pathname}${location.search}`,
+    };
     return (
         <DsCard variant="interactive" className="h-full">
             <div className="flex flex-1 flex-col">
@@ -151,6 +156,7 @@ export function ProgramHistoryCard({
                     <div className="min-w-0 flex-1">
                         <Link
                             to={programPath(program)}
+                            state={origin}
                             className="block truncate text-ds-body-emphasis text-ds-content-primary outline-0 after:absolute after:inset-0 after:rounded-ds-lg after:content-[''] focus-visible:after:shadow-ds-focus"
                         >
                             {program.patientName ?? '(sem paciente)'}

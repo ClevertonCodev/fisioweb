@@ -64,10 +64,16 @@ export function programClinicRoutes(queryClient: QueryClient): RouteObject[] {
             element: <ProgramEditPage />,
             errorElement: <ClinicLoaderError />,
             loader: async ({ params }) => {
-                await queryClient.fetchQuery({
+                const program = await queryClient.fetchQuery({
                     queryKey: ['clinic-programs', params.id],
                     queryFn: () => findClinicProgram(params.id!),
                 });
+                if (!program) {
+                    throw new Response('Programa não encontrado', {
+                        status: 404,
+                        statusText: 'Programa não encontrado',
+                    });
+                }
                 return null;
             },
         },

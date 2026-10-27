@@ -9,6 +9,10 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import {
+    programMailtoUrl,
+    programWhatsAppUrl,
+} from '@/application/clinic/program-share';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -31,45 +35,6 @@ interface ProgramShareDialogProps {
     onDone: () => void;
 }
 
-function digitsOnly(phone: string): string {
-    return phone.replace(/\D/g, '');
-}
-
-function buildWhatsAppUrl(program: Program): string | null {
-    const phone = program.patientPhone ? digitsOnly(program.patientPhone) : '';
-    if (!phone) return null;
-
-    const link = program.shareUrl ?? '';
-    const body = [
-        `Olá${program.patientName ? `, ${program.patientName}` : ''}!`,
-        `Seu programa de tratamento "${program.title}" já está disponível.`,
-        program.message?.trim() ? program.message.trim() : null,
-        link ? `Acesse: ${link}` : null,
-    ]
-        .filter(Boolean)
-        .join('\n\n');
-
-    return `https://wa.me/${phone}?text=${encodeURIComponent(body)}`;
-}
-
-function buildMailtoUrl(program: Program): string | null {
-    const email = program.patientEmail?.trim();
-    if (!email) return null;
-
-    const link = program.shareUrl ?? '';
-    const subject = `Programa de tratamento: ${program.title}`;
-    const body = [
-        `Olá${program.patientName ? `, ${program.patientName}` : ''}!`,
-        `Seu programa de tratamento "${program.title}" já está disponível.`,
-        program.message?.trim() ? program.message.trim() : null,
-        link ? `Acesse: ${link}` : null,
-    ]
-        .filter(Boolean)
-        .join('\n\n');
-
-    return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 export function ProgramShareDialog({
     open,
     phase,
@@ -79,8 +44,8 @@ export function ProgramShareDialog({
     onDone,
 }: ProgramShareDialogProps) {
     const [copied, setCopied] = useState(false);
-    const whatsappUrl = program ? buildWhatsAppUrl(program) : null;
-    const mailtoUrl = program ? buildMailtoUrl(program) : null;
+    const whatsappUrl = program ? programWhatsAppUrl(program) : null;
+    const mailtoUrl = program ? programMailtoUrl(program) : null;
     const shareUrl = program?.shareUrl ?? null;
 
     // Ajuste durante o render em vez de efeito: reseta o "copiado" ao fechar.

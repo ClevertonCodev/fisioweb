@@ -44,7 +44,17 @@ const SHORTCUTS: {
     { key: 'text', label: 'Texto para prontuário', icon: FileText },
 ];
 
-export function useProgramHistoryActions() {
+export interface ProgramActionsOptions {
+    /** Depois de duplicar com sucesso (o painel abre a cópia). */
+    onDuplicated?: (copy: Program) => void;
+    /** Depois de excluir com sucesso (o painel volta ao Histórico). */
+    onDeleted?: () => void;
+}
+
+export function useProgramHistoryActions({
+    onDuplicated,
+    onDeleted,
+}: ProgramActionsOptions = {}) {
     const { mutate: duplicate } = useDuplicateClinicProgram();
     const { mutate: toModel } = useConvertToModelClinicProgram();
     const { mutate: deleteProgram } = useDeleteClinicProgram();
@@ -96,7 +106,9 @@ export function useProgramHistoryActions() {
                     return;
                 }
                 case 'duplicate':
-                    duplicate(program.id);
+                    duplicate(program.id, {
+                        onSuccess: (copy) => onDuplicated?.(copy),
+                    });
                     return;
                 case 'model':
                     toModel(program.id);
@@ -106,7 +118,7 @@ export function useProgramHistoryActions() {
                     return;
             }
         },
-        [duplicate, toModel],
+        [duplicate, toModel, onDuplicated],
     );
 
     const deleteModal = (
@@ -126,7 +138,11 @@ export function useProgramHistoryActions() {
                         variant="destructive"
                         label="Excluir"
                         onClick={() => {
-                            if (toDelete) deleteProgram(toDelete.id);
+                            if (toDelete) {
+                                deleteProgram(toDelete.id, {
+                                    onSuccess: () => onDeleted?.(),
+                                });
+                            }
                             setToDelete(null);
                         }}
                     />
@@ -143,20 +159,49 @@ export function useProgramHistoryActions() {
     return { run, deleteModal };
 }
 
+/** Por que o link do programa não pode ser copiado, ou null se pode. */
+function linkBlockedReason(program: Program, isDraft: boolean): string | null {
+    if (!program.patientId) return 'Programa sem paciente.';
+    if (isDraft) return 'Rascunho: o paciente ainda não recebeu.';
+    return null;
+}
+
+/**
+ * Menu ⋯ do programa. Com `withShortcuts`, entram no topo os atalhos que no
+ * Histórico ficam no rodapé do cartão (link, PDF, texto) — é o caso do
+ * painel do programa, que não tem rodapé.
+ */
 export function ProgramActionsMenu({
     program,
     onAction,
+    withShortcuts = false,
 }: {
     program: Program;
     onAction: (key: HistoryActionKey, program: Program) => void;
+    withShortcuts?: boolean;
 }) {
     const { user } = useAuth();
     const role = user?.role as ClinicRole | undefined;
     const canDelete = can.delete(role);
     const isDraft = program.status === 'draft';
+    const linkBlocked = linkBlockedReason(program, isDraft);
+    const shortcuts = withShortcuts
+        ? SHORTCUTS.map((a) => {
+              const Icon = a.icon;
+              const blocked = a.key === 'link' ? linkBlocked : null;
+              return {
+                  key: a.key,
+                  label: a.label,
+                  icon: <Icon />,
+                  disabled: blocked !== null,
+                  disabledReason: blocked ?? undefined,
+              };
+          })
+        : [];
     return (
         <DsActionsMenu
             items={[
+                ...shortcuts,
                 {
                     key: 'duplicate',
                     label: 'Duplicar',

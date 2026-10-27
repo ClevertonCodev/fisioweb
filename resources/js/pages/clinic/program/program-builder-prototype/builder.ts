@@ -264,60 +264,8 @@ export type ProgramBuilder = ReturnType<typeof useProgramBuilder>;
 
 // ---------------------------------------------------------------- textos
 
-const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const PERIOD = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' } as const;
-
-function range(min: number | null | undefined, max: number | null | undefined) {
-    if (min == null && max == null) return null;
-    if (min != null && max != null && min !== max) return `${min}–${max}`;
-    return String(min ?? max);
-}
-
-export interface DosePart {
-    key: string;
-    value: string;
-    unit: string;
-}
-
-/** "3 séries · 10 repetições · 2 kg · 30 s de descanso", em pedaços. */
-export function doseParts(e: ProgramExercise): DosePart[] {
-    const sets = range(e.seriesMin, e.seriesMax);
-    const reps = range(e.repetitionsMin, e.repetitionsMax);
-    const load = range(e.loadMin, e.loadMax);
-    return [
-        sets && {
-            key: 'sets',
-            value: sets,
-            unit: sets === '1' ? 'série' : 'séries',
-        },
-        reps && {
-            key: 'reps',
-            value: reps,
-            unit: reps === '1' ? 'repetição' : 'repetições',
-        },
-        load && { key: 'load', value: load, unit: 'kg' },
-        e.restTime != null && {
-            key: 'rest',
-            value: `${e.restTime} s`,
-            unit: 'de descanso',
-        },
-    ].filter(Boolean) as DosePart[];
-}
-
-/** "Seg, Qua, Sex · Manhã". */
-export function scheduleOf(e: ProgramExercise): string | null {
-    const days =
-        e.days.length === 7
-            ? 'Todos os dias'
-            : [...e.days]
-                  .sort()
-                  .map((d) => DAYS[d])
-                  .join(', ');
-    const text = [days, e.period ? PERIOD[e.period] : null]
-        .filter(Boolean)
-        .join(' · ');
-    return text || null;
-}
+export { doseParts, scheduleOf } from '@/application/clinic/program-detail';
+export type { DosePart } from '@/application/clinic/program-detail';
 
 export function exerciseCount(n: number): string {
     return `${n} ${n === 1 ? 'exercício' : 'exercícios'}`;

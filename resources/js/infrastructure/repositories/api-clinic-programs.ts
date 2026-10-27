@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import type {
     ProgramListParams,
     ProgramListResult,
@@ -207,11 +209,18 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
-            `/clinic/treatment-plans/${id}`,
-        );
-        if (!data?.data) return null;
-        return toEntity(data.data);
+        try {
+            const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
+                `/clinic/treatment-plans/${id}`,
+            );
+            if (!data?.data) return null;
+            return toEntity(data.data);
+        } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 
     async create(dto) {

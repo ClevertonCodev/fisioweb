@@ -1,3 +1,4 @@
+import { AxiosError, type AxiosResponse } from 'axios';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { apiClient } from '@/infrastructure/api/client';
@@ -172,5 +173,31 @@ describe('apiClinicProgramsRepository.fetchPdfBlob', () => {
             responseType: 'blob',
         });
         expect(result).toBe(blob);
+    });
+});
+
+describe('apiClinicProgramsRepository.getById', () => {
+    it('devolve null quando a API responde 404 (outra clínica ou excluído)', async () => {
+        mockGet.mockRejectedValueOnce(
+            new AxiosError('Not Found', '404', undefined, undefined, {
+                status: 404,
+            } as AxiosResponse),
+        );
+
+        await expect(
+            apiClinicProgramsRepository.getById('99'),
+        ).resolves.toBeNull();
+    });
+
+    it('repassa erro que não é 404', async () => {
+        mockGet.mockRejectedValueOnce(
+            new AxiosError('Server Error', '500', undefined, undefined, {
+                status: 500,
+            } as AxiosResponse),
+        );
+
+        await expect(apiClinicProgramsRepository.getById('99')).rejects.toThrow(
+            'Server Error',
+        );
     });
 });

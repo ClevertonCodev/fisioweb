@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Program } from '@/domain/clinic';
@@ -92,6 +92,11 @@ function program(overrides: Partial<Program> = {}): Program {
     };
 }
 
+function DetailProbe() {
+    const state = useLocation().state as { from?: string } | null;
+    return <div>detalhe do programa, origem: {state?.from ?? '—'}</div>;
+}
+
 function listResult(items: Program[]) {
     return {
         items,
@@ -119,7 +124,7 @@ function renderPage(url = '/clinica/programas/historico') {
                     />
                     <Route
                         path="/clinica/programas/:id"
-                        element={<div>detalhe do programa</div>}
+                        element={<DetailProbe />}
                     />
                     <Route
                         path="/clinica/programas/exercicios"
@@ -633,5 +638,21 @@ describe('ProgramHistoryPage', () => {
             screen.queryByRole('heading', { name: 'Excluir rascunho' }),
         ).not.toBeInTheDocument();
         expect(destroyProgram).not.toHaveBeenCalled();
+    });
+
+    it('abre o programa levando a origem (Histórico com a busca)', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(listResult([program()]));
+        renderPage('/clinica/programas/historico?patientId=10');
+
+        await user.click(
+            await screen.findByRole('link', { name: 'Ana Souza' }),
+        );
+
+        expect(
+            screen.getByText(
+                'detalhe do programa, origem: /clinica/programas/historico?patientId=10',
+            ),
+        ).toBeInTheDocument();
     });
 });

@@ -201,3 +201,31 @@ describe('apiClinicProgramsRepository.getById', () => {
         );
     });
 });
+
+describe('apiClinicProgramsRepository: datas do programa', () => {
+    it('guarda início e fim só com o dia, sem virar o dia anterior no fuso de Brasília', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiPlan({
+                    start_date: '2026-08-10T00:00:00.000000Z',
+                    end_date: '2026-09-29T00:00:00.000000Z',
+                }),
+            },
+        });
+
+        const program = await apiClinicProgramsRepository.getById('7');
+
+        expect(program?.startDate).toBe('2026-08-10');
+        expect(program?.endDate).toBe('2026-09-29');
+    });
+
+    it('mantém o fim vazio como null', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: { data: makeApiPlan({ end_date: null }) },
+        });
+
+        const program = await apiClinicProgramsRepository.getById('7');
+
+        expect(program?.endDate).toBeNull();
+    });
+});

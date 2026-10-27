@@ -114,6 +114,15 @@ function mapGroup(raw: ApiTreatmentPlanGroup): ProgramGroup {
     };
 }
 
+/**
+ * `start_date`/`end_date` são datas sem hora (cast `date` no Laravel), mas a
+ * API manda meia-noite em UTC; lido como horário, vira o dia anterior em
+ * Brasília. O domínio guarda só o dia.
+ */
+function dayOnly(value: string | null | undefined): string | null {
+    return value ? value.slice(0, 10) : null;
+}
+
 function toEntity(raw: ApiTreatmentPlan): Program {
     const groups = (raw.groups ?? []).map(mapGroup);
     const exerciseCount =
@@ -132,8 +141,8 @@ function toEntity(raw: ApiTreatmentPlan): Program {
         professionalName: raw.clinic_user?.name ?? null,
         professionalPhotoUrl: raw.clinic_user?.photo_url ?? null,
         exerciseCount,
-        startDate: raw.start_date ?? '',
-        endDate: raw.end_date ?? null,
+        startDate: dayOnly(raw.start_date) ?? '',
+        endDate: dayOnly(raw.end_date),
         message: raw.message ?? '',
         groups,
         status: raw.status === 'cancelled' ? 'completed' : raw.status,

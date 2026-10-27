@@ -1,6 +1,6 @@
 ---
 name: frontend-ui-patterns
-description: Catálogo de componentes UI, cores/tokens, navegação (sidebar vs popover), cursor pointer e padrões visuais do SPA fisioweb. Use ANTES de criar ou estilizar qualquer tela, menu, dropdown, layout admin/clinic ou componente clicável. Evita reinventar CSS e garante consistência com AdminSidebar, ClinicSidebar e forms-shadcn.
+description: Catálogo de componentes UI, cores/tokens, navegação (sidebar vs popover), cursor pointer e padrões visuais das telas v1 do SPA fisioweb (shadcn). Use ANTES de criar ou estilizar tela, menu, dropdown, layout admin/clinic ou componente clicável da v1. Evita reinventar CSS e garante consistência com AdminSidebar, ClinicSidebar e forms-shadcn. Tela v2 (nova) usa a skill design-system.
 metadata:
   domain: ui
   triggers: componente, UI, cor, token, sidebar, popover, dropdown, cursor, layout, AdminLayout, ClinicLayout, shadcn, tailwind, hover, ativo
@@ -11,11 +11,13 @@ metadata:
 
 # Frontend UI Patterns (fisioweb)
 
-**Leia esta skill antes de implementar qualquer UI nova.** Ela complementa [`forms-shadcn`](../forms-shadcn/SKILL.md) (forms/listagens) com catálogo de componentes, cores, navegação e interação.
+**Leia esta skill antes de implementar UI nova em tela v1** (tela v2 usa [`design-system`](../design-system/SKILL.md)). Ela complementa [`forms-shadcn`](../forms-shadcn/SKILL.md) (forms/listagens) com catálogo de componentes, cores, navegação e interação.
 
 Artefato compartilhado do Spec Kit: [`specs/_shared/frontend-ui-patterns.md`](../../../specs/_shared/frontend-ui-patterns.md)
 
 ## Quando usar
+
+> **Só para telas v1** (as que já existem, com `AdminLayout`/`ClinicLayout`). Tela v2 (nova) usa `@/components/ds` e a skill [`design-system`](../design-system/SKILL.md); não misture as duas bibliotecas na mesma tela.
 
 - Criar menu, dropdown, popover ou item de sidebar.
 - Escolher qual componente shadcn/custom usar.

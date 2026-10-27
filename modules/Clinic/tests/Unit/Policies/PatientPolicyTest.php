@@ -74,6 +74,30 @@ class PatientPolicyTest extends TestCase
         $this->assertFalse($this->policy->bulkInactivate($this->user(ClinicUser::ROLE_ADMIN)));
     }
 
+    public function test_secretary_can_reactivate_patient_of_own_clinic(): void
+    {
+        $this->assertTrue($this->policy->reactivate(
+            $this->user(ClinicUser::ROLE_SECRETARY)->forceFill(['clinic_id' => 1]),
+            (new Patient)->forceFill(['clinic_id' => 1]),
+        ));
+    }
+
+    public function test_secretary_cannot_reactivate_patient_of_another_clinic(): void
+    {
+        $this->assertFalse($this->policy->reactivate(
+            $this->user(ClinicUser::ROLE_SECRETARY)->forceFill(['clinic_id' => 1]),
+            (new Patient)->forceFill(['clinic_id' => 2]),
+        ));
+    }
+
+    public function test_physiotherapist_cannot_reactivate(): void
+    {
+        $this->assertFalse($this->policy->reactivate(
+            $this->user(ClinicUser::ROLE_PHYSIOTHERAPIST)->forceFill(['clinic_id' => 1]),
+            (new Patient)->forceFill(['clinic_id' => 1]),
+        ));
+    }
+
     private function user(string $role, int $id = 1): ClinicUser
     {
         return (new ClinicUser)->forceFill(['id' => $id, 'role' => $role]);

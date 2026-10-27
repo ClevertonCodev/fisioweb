@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Activity, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import {
     clinicRegisterSchema,
     type ClinicRegisterValues,
 } from '@/application/clinic/register-schema';
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { CpfCnpjInput } from '@/components/ui/cpf-cnpj-input';
 import {
@@ -29,8 +30,30 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { SlugInput } from '@/components/ui/slug-input';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import RegisterPrototype from './register-prototype/RegisterPrototype';
+import { REGISTER_VARIANTS } from './register-prototype/shared';
+
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (register-prototype); O = esta tela. Desligado nos testes (o Vitest roda
+ * com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function ClinicRegisterPage() {
+    const variant = usePrototypeVariant(REGISTER_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <RegisterPrototype variant={variant} />;
+    }
+    return <ClinicRegisterPageV1 />;
+}
+
+function ClinicRegisterPageV1() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
@@ -78,12 +101,15 @@ export default function ClinicRegisterPage() {
             <div className="relative z-10 mx-auto flex min-h-full w-full max-w-lg flex-col justify-center px-4 py-12">
                 {/* Logo */}
                 <div className="mb-8 flex flex-col items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-sm shadow-primary/10">
-                        <Activity className="h-7 w-7 text-primary" />
+                    <AppLogo className="h-14 w-14" />
+                    <div className="flex flex-col items-center">
+                        <span className="text-2xl font-bold tracking-tight text-foreground">
+                            IVS
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                            Fisioterapia e Saúde
+                        </span>
                     </div>
-                    <span className="text-2xl font-bold tracking-tight text-foreground">
-                        FisioClinic
-                    </span>
                 </div>
 
                 <div className="rounded-3xl border border-border/60 bg-card/80 p-8 shadow-xl shadow-primary/5 backdrop-blur-sm sm:p-10">
@@ -377,6 +403,9 @@ export default function ClinicRegisterPage() {
                     </p>
                 </div>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={REGISTER_VARIANTS} current="O" />
+            )}
         </div>
     );
 }

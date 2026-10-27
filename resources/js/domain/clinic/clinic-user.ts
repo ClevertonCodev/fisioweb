@@ -9,4 +9,9 @@ export interface ClinicUserSummary {
     email: string;
     document?: string;
     photoUrl?: string;
+    /** Verificação em duas etapas ativada. */
+    twoFactorEnabled?: boolean;
+    /** Google Agenda conectado. */
+    googleConnected?: boolean;
+    createdAt?: string;
 }

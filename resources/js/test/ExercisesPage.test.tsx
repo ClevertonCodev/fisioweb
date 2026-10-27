@@ -113,7 +113,9 @@ describe('ExercisesPage', () => {
         renderPage(queryClient);
 
         expect(await screen.findByText('Exercício 1')).toBeInTheDocument();
-        expect(screen.getByText('2 exercícios encontrados')).toBeInTheDocument();
+        expect(
+            screen.getByText('2 exercícios encontrados'),
+        ).toBeInTheDocument();
     });
 
     it('mantem os exercicios ao remontar com o cache ja aquecido', async () => {
@@ -133,7 +135,9 @@ describe('ExercisesPage', () => {
         renderPage(queryClient);
 
         expect(screen.getByText('Exercício 1')).toBeInTheDocument();
-        expect(screen.getByText('2 exercícios encontrados')).toBeInTheDocument();
+        expect(
+            screen.getByText('2 exercícios encontrados'),
+        ).toBeInTheDocument();
         expect(
             screen.queryByText('Nenhum exercício encontrado'),
         ).not.toBeInTheDocument();

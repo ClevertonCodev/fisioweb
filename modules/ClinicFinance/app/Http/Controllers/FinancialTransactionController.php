@@ -2,16 +2,15 @@
 
 namespace Modules\ClinicFinance\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicFinance\Contracts\FinancialTransactionServiceInterface;
 use Modules\ClinicFinance\Http\Requests\StoreFinancialTransactionRequest;
 use Modules\ClinicFinance\Http\Requests\UpdateFinancialTransactionRequest;
 use Modules\ClinicFinance\Models\FinancialTransaction;
 
-class FinancialTransactionController extends Controller
+class FinancialTransactionController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected FinancialTransactionServiceInterface $transactionService,
@@ -21,7 +20,7 @@ class FinancialTransactionController extends Controller
     {
         $this->authorize('viewAny', FinancialTransaction::class);
 
-        $clinicId  = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId  = $this->clinicId();
         $paginator = $this->transactionService->list($clinicId, $request->all());
 
         return response()->json([
@@ -38,7 +37,7 @@ class FinancialTransactionController extends Controller
     {
         $this->authorize('create', FinancialTransaction::class);
 
-        $clinicId    = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId    = $this->clinicId();
         $transaction = $this->transactionService->create($clinicId, $request->validated());
 
         return response()->json(['data' => $transaction], 201);
@@ -57,7 +56,7 @@ class FinancialTransactionController extends Controller
         $this->authorizeClinic($transaction);
         $this->authorize('update', $transaction);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $updated  = $this->transactionService->update($clinicId, $transaction->id, $request->validated());
 
         return response()->json(['data' => $updated]);
@@ -68,7 +67,7 @@ class FinancialTransactionController extends Controller
         $this->authorizeClinic($transaction);
         $this->authorize('delete', $transaction);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $this->transactionService->softDelete($clinicId, $transaction->id);
 
         return response()->json(null, 204);
@@ -78,7 +77,7 @@ class FinancialTransactionController extends Controller
     {
         $this->authorize('viewAny', FinancialTransaction::class);
 
-        $clinicId  = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId  = $this->clinicId();
         $paginator = $this->transactionService->listTrash($clinicId, $request->all());
 
         return response()->json([
@@ -93,7 +92,7 @@ class FinancialTransactionController extends Controller
 
     public function restore(int $id): JsonResponse
     {
-        $clinicId    = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId    = $this->clinicId();
         $transaction = $this->transactionService->restore($clinicId, $id);
         $this->authorize('restore', $transaction);
 
@@ -102,6 +101,6 @@ class FinancialTransactionController extends Controller
 
     private function authorizeClinic(FinancialTransaction $transaction): void
     {
-        abort_if((int) $transaction->clinic_id !== (int) Auth::guard('clinic')->user()->clinic_id, 404);
+        abort_if((int) $transaction->clinic_id !== $this->clinicId(), 404);
     }
 }

@@ -30,6 +30,12 @@ import type {
     ExerciseFilters as Filters,
 } from '@/domain/clinic';
 import { cn } from '@/lib/utils';
+import ExerciseLibraryPrototype from '@/pages/clinic/program/exercise-library-prototype/ExerciseLibraryPrototype';
+import { LIBRARY_VARIANTS } from '@/pages/clinic/program/exercise-library-prototype/variants';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
 
 const initialFilters: Filters = {
     search: '',
@@ -49,9 +55,23 @@ interface ExercisesPageProps {
     embedded?: boolean;
 }
 
-export default function ExercisesPage({
-    embedded = false,
-}: ExercisesPageProps) {
+/**
+ * PROTÓTIPO: em desenvolvimento, /clinica/exercicios (menu de cima) mostra
+ * a mesma biblioteca v2 já escolhida na aba de Programas (D), sem as abas;
+ * ?variant=O = esta tela. Embutida (aba da v1) segue sendo a v1. Desligado
+ * nos testes (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
+export default function ExercisesPage(props: ExercisesPageProps) {
+    const variant = usePrototypeVariant(LIBRARY_VARIANTS, 'D');
+    if (PROTOTYPE && !props.embedded && variant !== 'O') {
+        return <ExerciseLibraryPrototype variant={variant} menu />;
+    }
+    return <ExercisesPageV1 {...props} />;
+}
+
+function ExercisesPageV1({ embedded = false }: ExercisesPageProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
     const canSubmit = can.manageUsers(user?.role as ClinicRole | undefined);
@@ -523,5 +543,12 @@ export default function ExercisesPage({
 
     if (embedded) return content;
 
-    return <ClinicLayout>{content}</ClinicLayout>;
+    return (
+        <ClinicLayout>
+            {content}
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={LIBRARY_VARIANTS} current="O" />
+            )}
+        </ClinicLayout>
+    );
 }

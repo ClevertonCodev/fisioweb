@@ -2,15 +2,14 @@
 
 namespace Modules\ClinicFinance\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicFinance\Contracts\FinanceSummaryServiceInterface;
 use Modules\ClinicFinance\Http\Requests\UpdatePeriodOpeningBalanceRequest;
 use Modules\ClinicFinance\Models\FinancialTransaction;
 
-class FinancialSummaryController extends Controller
+class FinancialSummaryController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected FinanceSummaryServiceInterface $summaryService,
@@ -20,7 +19,7 @@ class FinancialSummaryController extends Controller
     {
         $this->authorize('viewAny', FinancialTransaction::class);
 
-        $clinicId = (int) Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $data     = $this->summaryService->summary($clinicId, $request->all());
 
         return response()->json(['data' => $data]);
@@ -30,16 +29,14 @@ class FinancialSummaryController extends Controller
     {
         $this->authorize('viewAny', FinancialTransaction::class);
 
-        $user      = Auth::guard('clinic')->user();
-        $clinicId  = (int) $user->clinic_id;
         $validated = $request->validated();
 
         $balance = $this->summaryService->updateOpeningBalance(
-            $clinicId,
+            $this->clinicId(),
             (int) $validated['year'],
             (int) $validated['month'],
             number_format((float) $validated['amount'], 2, '.', ''),
-            (int) $user->id,
+            $this->clinicUserId(),
         );
 
         return response()->json(['data' => $balance]);

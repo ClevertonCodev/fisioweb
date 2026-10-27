@@ -24,7 +24,8 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
 
     public function listByPatient(int $clinicId, int $patientId)
     {
-        return $this->repository->listByPatient($clinicId, $patientId);
+        return $this->repository->listByPatient($clinicId, $patientId)
+            ->map(fn (PatientQuestionnaire $questionnaire) => $this->withShareUrl($questionnaire));
     }
 
     public function find(int $id): PatientQuestionnaire
@@ -43,7 +44,7 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
             return null;
         }
 
-        return $questionnaire;
+        return $this->withShareUrl($questionnaire);
     }
 
     public function send(int $clinicId, int $patientId, int $clinicUserId, array $data): PatientQuestionnaire
@@ -78,7 +79,7 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
                 CarbonImmutable::now(),
             ));
 
-            return $questionnaire;
+            return $this->withShareUrl($questionnaire);
         });
     }
 
@@ -148,19 +149,49 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
         });
     }
 
-    public function showForPublic(int $id): PatientQuestionnaire
+    public function showForPublic(string $token): PatientQuestionnaire
     {
-        $questionnaire = $this->repository->findForPublic($id);
+        $questionnaire = $this->repository->findForPublic($token);
 
-        return $this->ensurePendingAndNotExpired($questionnaire);
+        return $this->presentForPublic($this->ensurePendingAndNotExpired($questionnaire));
     }
 
-    public function submitPublicAnswer(int $id, array $answers): PatientQuestionnaire
+    public function submitPublicAnswer(string $token, array $answers): PatientQuestionnaire
     {
-        $questionnaire = $this->repository->findForPublic($id);
+        $questionnaire = $this->repository->findForPublic($token);
         $this->ensurePendingAndNotExpired($questionnaire);
 
-        return $this->answer($questionnaire, $answers);
+        return $this->presentForPublic($this->answer($questionnaire, $answers));
+    }
+
+    private function withShareUrl(PatientQuestionnaire $questionnaire): PatientQuestionnaire
+    {
+        $questionnaire->loadMissing('clinic');
+        $slug  = $questionnaire->clinic?->slug;
+        $token = $questionnaire->public_token;
+
+        $shareUrl = null;
+        if (!empty($slug) && !empty($token)) {
+            $shareUrl = rtrim((string) config('app.url'), '/')
+                . '/' . $slug
+                . '/paciente/questionarios/'
+                . $token;
+        }
+
+        $questionnaire->unsetRelation('clinic');
+        $questionnaire->setAttribute('share_url', $shareUrl);
+        $questionnaire->syncOriginalAttribute('share_url');
+
+        return $questionnaire;
+    }
+
+    private function presentForPublic(PatientQuestionnaire $questionnaire): PatientQuestionnaire
+    {
+        $questionnaire->unsetRelation('clinicUser');
+        $questionnaire->unsetRelation('clinic');
+        $questionnaire->makeHidden(['clinic_user_id']);
+
+        return $questionnaire;
     }
 
     private function ensurePendingAndNotExpired(PatientQuestionnaire $questionnaire): PatientQuestionnaire

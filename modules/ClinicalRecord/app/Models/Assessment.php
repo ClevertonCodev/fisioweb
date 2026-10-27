@@ -45,7 +45,7 @@ class Assessment extends Model
 
     public function clinicUser(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class);
+        return $this->belongsTo(\Modules\Clinic\Models\ClinicUser::class)->withTrashed();
     }
 
     public function template(): BelongsTo

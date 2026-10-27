@@ -2,32 +2,50 @@
 
 namespace Modules\ClinicScheduling\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
+use Modules\ClinicScheduling\Http\Requests\ListAppointmentsRequest;
+use Modules\ClinicScheduling\Http\Requests\PatientHistoryRequest;
 use Modules\ClinicScheduling\Http\Requests\StoreAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentStatusRequest;
 use Modules\ClinicScheduling\Models\Appointment;
 
-class AppointmentController extends Controller
+class AppointmentController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected AppointmentServiceInterface $appointmentService,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(ListAppointmentsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Appointment::class);
 
-        $user    = Auth::guard('clinic')->user();
-        $filters = $request->only(['from', 'to', 'clinic_user_id', 'status']);
+        $user    = $this->clinicUser();
+        $filters = $request->only(['from', 'to', 'clinic_user_id', 'status', 'patient_id']);
 
         $appointments = $this->appointmentService->listForUser($user, $filters);
 
         return response()->json(['data' => $appointments]);
+    }
+
+    public function patientHistory(PatientHistoryRequest $request, int $patient): JsonResponse
+    {
+        $this->authorize('viewAny', Appointment::class);
+
+        $history = $this->appointmentService->historyForPatient($this->clinicUser(), $patient, $request->perPage());
+
+        return response()->json([
+            'data' => $history->through(fn (Appointment $appointment) => [
+                'id'               => $appointment->id,
+                'starts_at'        => $appointment->starts_at?->toIso8601String(),
+                'ends_at'          => $appointment->ends_at?->toIso8601String(),
+                'title'            => $appointment->title,
+                'clinic_user_name' => $appointment->clinicUser?->name,
+                'status'           => $appointment->status->value,
+            ]),
+        ]);
     }
 
     public function store(StoreAppointmentRequest $request): JsonResponse
@@ -35,7 +53,7 @@ class AppointmentController extends Controller
         $this->authorize('create', Appointment::class);
 
         $data = array_merge($request->validated(), [
-            'clinic_id' => Auth::guard('clinic')->user()->clinic_id,
+            'clinic_id' => $this->clinicId(),
         ]);
 
         $appointment = $this->appointmentService->create($data);
@@ -87,8 +105,6 @@ class AppointmentController extends Controller
      */
     private function authorizeClinic(Appointment $appointment): void
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-
-        abort_if((int) $appointment->clinic_id !== (int) $clinicId, 404, 'Consulta não encontrada.');
+        abort_if((int) $appointment->clinic_id !== $this->clinicId(), 404, 'Consulta não encontrada.');
     }
 }

@@ -26,7 +26,13 @@ class ClinicQuestionnaireServiceEventsTest extends TestCase
 
     public function test_services_dispatch_questionnaire_events_after_commit(): void
     {
-        Event::fake();
+        Event::fake([
+            QuestionnaireTemplateCreated::class,
+            QuestionnaireSent::class,
+            QuestionnaireAnswered::class,
+            QuestionnaireExpired::class,
+            QuestionnaireCancelled::class,
+        ]);
 
         [$clinic, $physio, $patient, $template] = $this->context();
 
@@ -80,7 +86,7 @@ class ClinicQuestionnaireServiceEventsTest extends TestCase
         );
 
         try {
-            $questionnaireService->showForPublic($pending->id);
+            $questionnaireService->showForPublic((string) $pending->public_token);
         } catch (\Throwable) {
             // expected validation failure after expiry mark
         }

@@ -10,6 +10,13 @@ import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import EditorPrototype from './evolution-template-prototype/EditorPrototype';
+import { EDITOR_VARIANTS } from './evolution-template-prototype/shared';
 
 function createInitialSections(): DraftSection[] {
     return [
@@ -47,7 +54,22 @@ function validate(name: string, sections: DraftSection[]): string | null {
     return null;
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (evolution-template-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function EvolutionTemplateNewPage() {
+    const variant = usePrototypeVariant(EDITOR_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <EditorPrototype variant={variant} />;
+    }
+    return <EvolutionTemplateNewPageV1 />;
+}
+
+function EvolutionTemplateNewPageV1() {
     const navigate = useNavigate();
     const createTemplate = useCreateEvolutionTemplate();
 
@@ -144,6 +166,9 @@ export default function EvolutionTemplateNewPage() {
                         : 'Salvar template'}
                 </Button>
             </div>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={EDITOR_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

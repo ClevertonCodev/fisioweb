@@ -67,6 +67,10 @@ export function StepProgramDetails({
 
     const { data: patientsResult } = usePatients();
     const patients = patientsResult?.data ?? [];
+    const displayedPatientName =
+        patientName ||
+        patients.find((p) => Number(p.id) === patientId)?.name ||
+        '';
 
     const totalExercises = groups.reduce((s, g) => s + g.exercises.length, 0);
     const totalDuration = groups.reduce(
@@ -76,7 +80,14 @@ export function StepProgramDetails({
     );
 
     const handleSubmit = () => {
-        onSave({ title, patientId, patientName, startDate, endDate, message });
+        onSave({
+            title,
+            patientId,
+            patientName: displayedPatientName,
+            startDate,
+            endDate,
+            message,
+        });
     };
 
     const thumbnails = groups
@@ -139,11 +150,12 @@ export function StepProgramDetails({
                                     <span
                                         className={cn(
                                             'truncate',
-                                            !patientName &&
+                                            !displayedPatientName &&
                                                 'text-muted-foreground',
                                         )}
                                     >
-                                        {patientName || 'Enviar para...'}
+                                        {displayedPatientName ||
+                                            'Enviar para...'}
                                     </span>
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
                                 </Button>

@@ -16,6 +16,9 @@ interface ApiClinicUser {
     status: number;
     document?: string;
     photo_url?: string | null;
+    two_factor_confirmed_at?: string | null;
+    google_connected_at?: string | null;
+    created_at?: string | null;
 }
 
 function toEntity(raw: ApiClinicUser): ClinicUserSummary {
@@ -28,6 +31,9 @@ function toEntity(raw: ApiClinicUser): ClinicUserSummary {
         status: raw.status,
         document: raw.document,
         photoUrl: raw.photo_url ?? undefined,
+        twoFactorEnabled: Boolean(raw.two_factor_confirmed_at),
+        googleConnected: Boolean(raw.google_connected_at),
+        createdAt: raw.created_at ?? undefined,
     };
 }
 

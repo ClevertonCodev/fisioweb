@@ -48,6 +48,7 @@ class PatientRepository implements PatientRepositoryInterface
             $searchDigits = preg_replace('/\D+/', '', $search);
             $query->where(function ($q) use ($search, $searchDigits) {
                 $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('apelido', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
                 if (!empty($searchDigits)) {
                     $q->orWhere('cpf', 'like', "%{$searchDigits}%");
@@ -99,6 +100,17 @@ class PatientRepository implements PatientRepositoryInterface
         return Patient::where('clinic_id', $clinicId)
             ->whereIn('id', $ids)
             ->update(['is_active' => false]);
+    }
+
+    public function reactivate(int $clinicId, int $id): ?Patient
+    {
+        Patient::where('clinic_id', $clinicId)
+            ->whereKey($id)
+            ->update(['is_active' => true]);
+
+        return Patient::with('clinicUser:id,name')
+            ->where('clinic_id', $clinicId)
+            ->find($id);
     }
 
     public function create(array $data): Patient

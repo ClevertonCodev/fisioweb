@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ProgramDraft } from '@/application/clinic';
 import {
@@ -26,6 +26,13 @@ import type {
     ProgramGroup,
     ProgramStep,
 } from '@/domain/clinic';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import ProgramBuilderPrototype from './program-builder-prototype/ProgramBuilderPrototype';
+import { BUILDER_VARIANTS } from './program-builder-prototype/variants';
 
 /**
  * Programa recebido via router state (cópia ou edição). Pode chegar no formato
@@ -83,9 +90,30 @@ const EDIT_STEP_LABELS: Record<ProgramStep, string> = {
     4: 'Detalhes do programa',
 };
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca o assistente pelo do DS v2
+ * (program-builder-prototype); O = esta tela. Fora dos testes, que cobrem
+ * esta tela (o Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function ProgramNewPage() {
+    const variant = usePrototypeVariant(BUILDER_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <ProgramBuilderPrototype variant={variant} />;
+    }
+    return <ProgramNewPageV1 />;
+}
+
+function ProgramNewPageV1() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const patientIdFromQuery = Number(searchParams.get('patientId'));
+    const queryPatientId =
+        Number.isInteger(patientIdFromQuery) && patientIdFromQuery > 0
+            ? patientIdFromQuery
+            : null;
     const {
         data: exercisesData,
         fetchNextPage,
@@ -624,6 +652,7 @@ export default function ProgramNewPage() {
                                 groups={groups}
                                 initialTitle={initialTitle}
                                 initialMessage={initialMessage}
+                                initialPatientId={queryPatientId}
                                 onSave={handleSaveProgram}
                                 isSaving={
                                     createProgram.isPending ||
@@ -635,6 +664,9 @@ export default function ProgramNewPage() {
                 </div>
             </div>
 
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={BUILDER_VARIANTS} current="O" />
+            )}
             <ProgramShareDialog
                 open={shareOpen}
                 phase={sharePhase}

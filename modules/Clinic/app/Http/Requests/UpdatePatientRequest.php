@@ -49,7 +49,6 @@ class UpdatePatientRequest extends FormRequest
             'referral_source'   => ['nullable', 'string', 'max:100'],
             'apelido'           => ['nullable', 'string', 'max:100'],
             'use_apelido'       => ['nullable', 'boolean'],
-            'is_active'         => ['nullable', 'boolean'],
             'status'            => ['nullable', 'string', 'max:50'],
             'diagnosis'         => ['nullable', 'string', 'max:500'],
         ];

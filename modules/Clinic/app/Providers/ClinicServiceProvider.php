@@ -2,12 +2,19 @@
 
 namespace Modules\Clinic\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Modules\Clinic\Auth\ActiveClinicUserProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
+use Modules\Clinic\Contracts\ClinicUserPreferenceRepositoryInterface;
+use Modules\Clinic\Contracts\ClinicUserPreferenceServiceInterface;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
@@ -19,9 +26,11 @@ use Modules\Clinic\Observers\ClinicObserver;
 use Modules\Clinic\Policies\ClinicUserPolicy;
 use Modules\Clinic\Policies\PatientPolicy;
 use Modules\Clinic\Repositories\ClinicRepository;
+use Modules\Clinic\Repositories\ClinicUserPreferenceRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
 use Modules\Clinic\Services\ActivityLogger;
 use Modules\Clinic\Services\ClinicService;
+use Modules\Clinic\Services\ClinicUserPreferenceService;
 use Modules\Clinic\Services\ClinicUserService;
 use Modules\Clinic\Services\DashboardService;
 use Modules\Clinic\Services\GoogleCalendarConnectionService;
@@ -52,7 +61,9 @@ class ClinicServiceProvider extends ServiceProvider
         Clinic::observe(ClinicObserver::class);
 
         $this->registerPolicies();
+        $this->registerAuthProvider();
         $this->registerGateBefore();
+        $this->registerAuthRateLimiters();
     }
 
     /**
@@ -66,6 +77,8 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
+        $this->app->bind(ClinicUserPreferenceRepositoryInterface::class, ClinicUserPreferenceRepository::class);
+        $this->app->bind(ClinicUserPreferenceServiceInterface::class, ClinicUserPreferenceService::class);
         $this->app->bind(ClinicUserGoogleConnectionReadServiceInterface::class, GoogleCalendarConnectionService::class);
         $this->app->bind(GoogleCalendarConnectionWriteServiceInterface::class, GoogleCalendarConnectionService::class);
 
@@ -79,10 +92,46 @@ class ClinicServiceProvider extends ServiceProvider
         Gate::policy(ClinicUser::class, ClinicUserPolicy::class);
     }
 
+    /**
+     * Limites das rotas públicas de autenticação da clínica: login por e-mail
+     * e IP (um e-mail travado não trava os outros), senha por rota e IP.
+     */
+    protected function registerAuthRateLimiters(): void
+    {
+        // Repassa Retry-After e X-RateLimit-* que o throttle monta.
+        $tooMany = fn (Request $request, array $headers) => response()->json([
+            'message' => 'Muitas tentativas. Aguarde um minuto e tente de novo.',
+        ], 429, $headers);
+
+        // O limitador roda antes da validação: e-mail que não é texto vira
+        // chave vazia e segue para o 422 do FormRequest.
+        RateLimiter::for('clinic-login', function (Request $request) use ($tooMany) {
+            $email = $request->input('email');
+
+            return Limit::perMinute(5)
+                ->by((is_string($email) ? mb_strtolower($email) : '') . '|' . $request->ip())
+                ->response($tooMany);
+        });
+
+        // Uma conta por rota: pedir links não gasta as tentativas de redefinir.
+        RateLimiter::for('clinic-password', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->path() . '|' . $request->ip())
+            ->response($tooMany));
+    }
+
+    /** Driver do provider `clinic_users` (config/auth.php): só usuário ativo autentica. */
+    protected function registerAuthProvider(): void
+    {
+        Auth::provider('clinic_active_eloquent', fn ($app, array $config) => new ActiveClinicUserProvider(
+            $app['hash'],
+            $config['model'],
+        ));
+    }
+
     protected function registerGateBefore(): void
     {
         Gate::before(function ($user, $ability) {
-            if ($user instanceof ClinicUser && $user->isAdmin()) {
+            if ($user instanceof ClinicUser && $user->isAdmin() && (int) $user->status === ClinicUser::STATUS_ACTIVE) {
                 return true;
             }
         });

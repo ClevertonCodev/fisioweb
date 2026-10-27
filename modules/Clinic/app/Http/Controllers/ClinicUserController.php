@@ -2,31 +2,43 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
+use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Http\Requests\StoreClinicUserRequest;
 use Modules\Clinic\Http\Requests\UpdateClinicUserRequest;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 
-class ClinicUserController extends Controller
+class ClinicUserController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected ClinicUserServiceInterface $clinicUserService,
         protected FileServiceInterface $fileService,
     ) {
+        // Antes do authorizeResource: o Gate::before libera o admin de qualquer
+        // clínica, e o FormRequest validaria o payload antes do controller.
+        $this->middleware(function (Request $request, Closure $next) {
+            $user = $request->route('user');
+
+            if ($user instanceof ClinicUser && (int) $user->clinic_id !== $this->clinicId()) {
+                return response()->json(['message' => 'Usuário não encontrado.'], 404);
+            }
+
+            return $next($request);
+        });
+
         $this->authorizeResource(ClinicUser::class, 'user');
     }
 
     public function professionals(): JsonResponse
     {
-        $authUser = Auth::guard('clinic')->user();
+        $authUser = $this->clinicUser();
 
         $query = ClinicUser::query()
-            ->where('clinic_id', $authUser->clinic_id)
+            ->where('clinic_id', $this->clinicId())
             ->where('status', ClinicUser::STATUS_ACTIVE)
             ->whereIn('role', ClinicUser::ATTENDABLE_ROLES);
 
@@ -42,8 +54,7 @@ class ClinicUserController extends Controller
 
     public function index(): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $users    = $this->clinicUserService->listForClinic((int) $clinicId);
+        $users = $this->clinicUserService->listForClinic($this->clinicId());
 
         return response()->json(['data' => $users]);
     }
@@ -55,8 +66,7 @@ class ClinicUserController extends Controller
 
     public function store(StoreClinicUserRequest $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-        $user     = $this->clinicUserService->create($request->validated(), (int) $clinicId);
+        $user = $this->clinicUserService->create($request->validated(), $this->clinicId());
 
         return response()->json(['data' => $user], 201);
     }
@@ -72,12 +82,6 @@ class ClinicUserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-
-        if ((int) $user->clinic_id !== (int) $clinicId) {
-            return response()->json(['message' => 'Usuário não encontrado.'], 404);
-        }
-
         $request->validate([
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
@@ -91,12 +95,6 @@ class ClinicUserController extends Controller
     public function deletePhoto(ClinicUser $user): JsonResponse
     {
         $this->authorize('update', $user);
-
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
-
-        if ((int) $user->clinic_id !== (int) $clinicId) {
-            return response()->json(['message' => 'Usuário não encontrado.'], 404);
-        }
 
         $user = $this->clinicUserService->update($user, ['photo_url' => null]);
 

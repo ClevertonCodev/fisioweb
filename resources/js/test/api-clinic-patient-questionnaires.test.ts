@@ -29,6 +29,9 @@ function makeApiQuestionnaire(overrides = {}) {
         modality: 'presencial',
         answered_at: '2026-07-18T12:00:00Z',
         expires_at: null,
+        public_token: '11111111-2222-3333-4444-555555555555',
+        share_url:
+            'http://localhost/clinica-demo/paciente/questionarios/11111111-2222-3333-4444-555555555555',
         created_at: '2026-07-17T12:00:00Z',
         ...overrides,
     };
@@ -61,6 +64,32 @@ describe('apiClinicPatientQuestionnairesRepository.answer', () => {
 });
 
 describe('apiClinicPatientQuestionnairesRepository.store', () => {
+    it('mapeia public_token e share_url para camelCase', async () => {
+        mockPost.mockResolvedValueOnce({
+            data: {
+                data: makeApiQuestionnaire({
+                    status: 'pending',
+                    answered_at: null,
+                    modality: 'remoto',
+                }),
+            },
+        });
+
+        const result = await apiClinicPatientQuestionnairesRepository.store(
+            '102',
+            {
+                questionnaireTemplateId: 3,
+                modality: 'remoto',
+                expiresAt: null,
+            },
+        );
+
+        expect(result.publicToken).toBe('11111111-2222-3333-4444-555555555555');
+        expect(result.shareUrl).toBe(
+            'http://localhost/clinica-demo/paciente/questionarios/11111111-2222-3333-4444-555555555555',
+        );
+    });
+
     it('converte DTO camelCase em payload snake_case', async () => {
         mockPost.mockResolvedValueOnce({
             data: {

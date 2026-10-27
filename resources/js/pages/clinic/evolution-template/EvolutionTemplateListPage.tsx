@@ -30,6 +30,13 @@ import {
 } from '@/components/ui/table';
 import type { EvolutionTemplate } from '@/domain/clinic';
 import { apiClinicEvolutionsRepository } from '@/infrastructure/repositories/api-clinic-evolutions';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import ListPrototype from './evolution-template-prototype/ListPrototype';
+import { LIST_VARIANTS } from './evolution-template-prototype/shared';
 
 type Filter = 'all' | 'system' | 'custom';
 
@@ -74,7 +81,22 @@ function toTemplateWriteDto(
     };
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (evolution-template-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function EvolutionTemplateListPage() {
+    const variant = usePrototypeVariant(LIST_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <ListPrototype variant={variant} />;
+    }
+    return <EvolutionTemplateListPageV1 />;
+}
+
+function EvolutionTemplateListPageV1() {
     const navigate = useNavigate();
     const { data: templates } = useEvolutionTemplates();
     const updateTemplate = useUpdateEvolutionTemplate();
@@ -311,6 +333,9 @@ export default function EvolutionTemplateListPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={LIST_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

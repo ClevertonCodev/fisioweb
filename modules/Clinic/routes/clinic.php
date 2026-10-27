@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\ClinicProfileController;
 use Modules\Clinic\Http\Controllers\ClinicUserController;
+use Modules\Clinic\Http\Controllers\ClinicUserPreferenceController;
 use Modules\Clinic\Http\Controllers\DashboardController;
 use Modules\Clinic\Http\Controllers\ExerciseController;
 use Modules\Clinic\Http\Controllers\PatientController;
@@ -16,14 +17,20 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
     Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
 
+    Route::get('me/preferences', [ClinicUserPreferenceController::class, 'index'])->name('clinic.me.preferences.index');
+    Route::put('me/preferences/{key}', [ClinicUserPreferenceController::class, 'update'])->name('clinic.me.preferences.update');
+
     Route::get('users/professionals', [ClinicUserController::class, 'professionals'])->name('clinic.users.professionals');
-    Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo');
-    Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo');
-    Route::apiResource('users', ClinicUserController::class)->names('clinic.users');
+    // Id inexistente, excluído ou de outra clínica: o mesmo 404, sem dizer qual.
+    $userNotFound = fn () => response()->json(['message' => 'Usuário não encontrado.'], 404);
+    Route::post('users/{user}/photo', [ClinicUserController::class, 'uploadPhoto'])->name('clinic.users.upload-photo')->missing($userNotFound);
+    Route::delete('users/{user}/photo', [ClinicUserController::class, 'deletePhoto'])->name('clinic.users.delete-photo')->missing($userNotFound);
+    Route::apiResource('users', ClinicUserController::class)->names('clinic.users')->missing($userNotFound);
 
     Route::prefix('patients')->name('clinic.patients.')->group(function () {
         Route::get('/', [PatientController::class, 'index'])->name('index');
         Route::post('bulk-inactivate', [PatientController::class, 'bulkInactivate'])->name('bulk-inactivate');
+        Route::post('{id}/reactivate', [PatientController::class, 'reactivate'])->name('reactivate');
         Route::get('{id}', [PatientController::class, 'show'])->name('show');
         Route::post('/', [PatientController::class, 'store'])->name('store');
         Route::put('{id}', [PatientController::class, 'update'])->name('update');

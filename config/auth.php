@@ -35,7 +35,8 @@ return [
         ],
 
         'clinic_users' => [
-            'driver' => 'eloquent',
+            // Só usuário ativo autentica (Modules\Clinic\Auth\ActiveClinicUserProvider).
+            'driver' => 'clinic_active_eloquent',
             'model'  => Modules\Clinic\Models\ClinicUser::class,
         ],
 

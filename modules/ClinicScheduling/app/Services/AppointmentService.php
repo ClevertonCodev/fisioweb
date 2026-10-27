@@ -3,7 +3,9 @@
 namespace Modules\ClinicScheduling\Services;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -93,6 +95,23 @@ class AppointmentService implements AppointmentServiceInterface
         }
 
         return $this->repository->listForCalendar($user->clinic_id, $filters);
+    }
+
+    public function historyForPatient($user, int $patientId, int $perPage): LengthAwarePaginator
+    {
+        $clinicId = (int) $user->clinic_id;
+
+        // 404 e não 403: não revela que o paciente tem consultas.
+        $visible = $this->repository->patientHasAppointmentInClinic($clinicId, $patientId)
+            && (!$user->isPhysiotherapist()
+                || $this->repository->clinicUserAttendsPatient($clinicId, (int) $user->id, $patientId));
+
+        if (!$visible) {
+            throw (new ModelNotFoundException)->setModel(Appointment::class);
+        }
+
+        // Exceção à FR-009 só aqui: quem atende vê também as consultas dos colegas.
+        return $this->repository->paginateForPatient($clinicId, $patientId, $perPage);
     }
 
     /**

@@ -1,0 +1,12 @@
+{
+    "name": "fisioweb-screenshot",
+    "private": true,
+    "type": "module",
+    "description": "Print, fluxo de QA e storyboard de vídeo num Chromium headless, compartilhado por Claude Code e Cursor",
+    "scripts": {
+        "postinstall": "playwright install chromium"
+    },
+    "dependencies": {
+        "playwright": "1.62.1"
+    }
+}

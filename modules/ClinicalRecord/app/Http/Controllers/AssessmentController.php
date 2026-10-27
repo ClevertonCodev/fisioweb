@@ -2,17 +2,16 @@
 
 namespace Modules\ClinicalRecord\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Modules\ClinicalRecord\Contracts\AssessmentServiceInterface;
 use Modules\ClinicalRecord\Http\Requests\StoreAssessmentRequest;
 use Modules\ClinicalRecord\Http\Requests\UpdateAssessmentRequest;
 use Modules\ClinicalRecord\Models\Assessment;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
-class AssessmentController extends Controller
+class AssessmentController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected AssessmentServiceInterface $assessmentService,
@@ -21,14 +20,14 @@ class AssessmentController extends Controller
 
     public function indexByPatient(int $patient): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
-        $data = $this->assessmentService->listByPatient((int) $clinicId, $patient);
+        $data = $this->assessmentService->listByPatient($clinicId, $patient);
 
         return response()->json(['data' => $data]);
     }
@@ -37,19 +36,18 @@ class AssessmentController extends Controller
     {
         $this->authorize('create', Assessment::class);
 
-        $clinicUser = Auth::guard('clinic')->user();
-        $clinicId   = $clinicUser->clinic_id;
+        $clinicId   = $this->clinicId();
         $found      = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
         $assessment = $this->assessmentService->create(
             $request->validated(),
-            (int) $clinicId,
+            $clinicId,
             $patient,
-            (int) $clinicUser->id,
+            $this->clinicUserId(),
         );
 
         return response()->json(['data' => $assessment], 201);
@@ -57,10 +55,10 @@ class AssessmentController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $assessment = $this->assessmentService->findForClinic($id, (int) $clinicId);
+            $assessment = $this->assessmentService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Avaliação não encontrada.'], 404);
         }
@@ -70,10 +68,10 @@ class AssessmentController extends Controller
 
     public function update(UpdateAssessmentRequest $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $assessment = $this->assessmentService->findForClinic($id, (int) $clinicId);
+            $assessment = $this->assessmentService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Avaliação não encontrada.'], 404);
         }
@@ -87,28 +85,27 @@ class AssessmentController extends Controller
 
     public function sign(int $id): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-        $clinicId   = $clinicUser->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $assessment = $this->assessmentService->findForClinic($id, (int) $clinicId);
+            $assessment = $this->assessmentService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Avaliação não encontrada.'], 404);
         }
 
         $this->authorize('sign', $assessment);
 
-        $assessment = $this->assessmentService->sign($assessment, (int) $clinicUser->id);
+        $assessment = $this->assessmentService->sign($assessment, $this->clinicUserId());
 
         return response()->json(['data' => $assessment]);
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         try {
-            $assessment = $this->assessmentService->findForClinic($id, (int) $clinicId);
+            $assessment = $this->assessmentService->findForClinic($id, $clinicId);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Avaliação não encontrada.'], 404);
         }

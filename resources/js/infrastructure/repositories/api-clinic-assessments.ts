@@ -92,6 +92,7 @@ interface ApiClinicUserDto {
 
 interface ApiAssessmentFullDto {
     id: number;
+    patient_id: number;
     status: string;
     signed_at: string | null;
     template: ApiAssessmentTemplateFullDto;
@@ -204,6 +205,7 @@ function toAnswerOption(
 function toAssessment(raw: ApiAssessmentFullDto): Assessment {
     return {
         id: raw.id,
+        patientId: raw.patient_id,
         status: raw.status as Assessment['status'],
         signedAt: raw.signed_at,
         template: toTemplate(raw.template),

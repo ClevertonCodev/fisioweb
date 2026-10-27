@@ -1,594 +1,484 @@
 import {
-    MoreVertical,
-    Plus,
-    Search,
-    SlidersHorizontal,
-    Trash2,
-    X,
-} from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+    DndContext,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DndContextProps,
+    type DragEndEvent,
+    type UniqueIdentifier,
+} from '@dnd-kit/core';
+import { Plus, Search, SlidersHorizontal, UserPlus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-import { can } from '@/application/clinic/permissions';
+import { clinicUserLocks } from '@/application/clinic/clinic-user-locks';
 import {
+    useChangeClinicUserAccess,
     useClinicUsers,
     useDeleteClinicUser,
 } from '@/application/clinic/use-clinic-users';
+import {
+    applyUserListFilters,
+    DEFAULT_USER_LIST_FILTERS,
+    sortTeam,
+    type UserListFilters,
+} from '@/application/clinic/user-list-filters';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { TableCell, TableRow } from '@/components/ui/table';
-import { useAuth } from '@/contexts/AuthContext';
+    DsButton,
+    DsDrawer,
+    DsEmptyState,
+    DsFilterChips,
+    DsInput,
+} from '@/components/ds';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-const ROLE_LABELS: Record<ClinicRole, string> = {
-    admin: 'Administrador',
-    secretary: 'Secretário(a)',
-    physiotherapist: 'Fisioterapeuta',
-};
+import { RoleAccordion } from './user-list/RoleAccordion';
+import { RoleChangeModal, type RoleMove } from './user-list/RoleChangeModal';
+import { ROLE_META } from './user-list/roles';
+import { useUserListUrlState } from './user-list/use-user-list-url-state';
+import {
+    activeUserFilterCount,
+    clearedUserListFilters,
+    removeUserListChip,
+    userListChips,
+} from './user-list/user-list-chips';
+import {
+    statusActionOf,
+    UserActionModal,
+    type UserAction,
+} from './user-list/UserActionModal';
+import { UserCard, UserDragOverlay } from './user-list/UserCard';
+import { UserDrawer } from './user-list/UserDrawer';
+import { UserFiltersBar, UserFiltersPanel } from './user-list/UserFilters';
 
-const ROLE_BADGE_VARIANT: Record<ClinicRole, 'success' | 'info' | 'warning'> = {
-    admin: 'success',
-    physiotherapist: 'info',
-    secretary: 'warning',
-};
+const NEW_USER_PATH = '/clinica/usuarios/novo';
 
-const ROLE_FILTER_OPTIONS: { value: ClinicRole; label: string }[] = [
-    { value: 'admin', label: 'Administrador' },
-    { value: 'secretary', label: 'Secretário(a)' },
-    { value: 'physiotherapist', label: 'Fisioterapeuta' },
-];
-
-const BASE_COLUMNS: DataTableColumn[] = [
-    { title: 'Usuário', key: 'name' },
-    { title: 'E-mail', key: 'email' },
-    { title: 'Função', key: 'role' },
-    { title: 'Mestre', key: 'mestre' },
-    { title: 'Status', key: 'status' },
-];
-
-function firstLetter(name: string): string {
-    return name.trim()[0]?.toUpperCase() ?? '?';
+function draggedName(data: { current?: { user?: ClinicUserSummary } }) {
+    return data.current?.user?.name ?? 'a pessoa';
 }
 
-function UserTableSkeleton({ rows = 6 }: { rows?: number }) {
+function roleName(id: UniqueIdentifier | undefined) {
+    return id ? ROLE_META[id as ClinicRole].label : '';
+}
+
+/** O que o leitor de tela ouve no arraste (o padrão do dnd-kit é em inglês). */
+const DRAG_ACCESSIBILITY: DndContextProps['accessibility'] = {
+    screenReaderInstructions: {
+        draggable:
+            'Para mudar a função, aperte espaço ou Enter, use as setas até a função e aperte espaço ou Enter de novo. Esc cancela.',
+    },
+    announcements: {
+        onDragStart: ({ active }) => `Arrastando ${draggedName(active.data)}.`,
+        onDragOver: ({ active, over }) =>
+            over
+                ? `${draggedName(active.data)} sobre ${roleName(over.id)}.`
+                : `${draggedName(active.data)} fora das funções.`,
+        onDragEnd: ({ active, over }) =>
+            over
+                ? `${draggedName(active.data)} solto em ${roleName(over.id)}.`
+                : `${draggedName(active.data)} solto fora das funções.`,
+        onDragCancel: ({ active }) =>
+            `Arraste de ${draggedName(active.data)} cancelado.`,
+    },
+};
+
+function people(n: number): string {
+    return `${n} ${n === 1 ? 'pessoa' : 'pessoas'}`;
+}
+
+/** "3 pessoas na equipe · 2 ativas". */
+function teamSummary(team: ClinicUserSummary[]): string {
+    const active = team.filter((u) => u.status).length;
+    return `${people(team.length)} na equipe · ${active} ${active === 1 ? 'ativa' : 'ativas'}`;
+}
+
+function isFiltered(filters: UserListFilters): boolean {
+    return filters.search !== '' || activeUserFilterCount(filters) > 0;
+}
+
+function CardSkeletons() {
     return (
-        <Card className="mt-4 overflow-hidden">
-            <div className="grid grid-cols-[1.2fr_1.4fr_1fr_0.8fr_0.8fr_40px] gap-4 border-b p-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={`header-${i}`} className="h-4 w-24" />
-                ))}
-            </div>
-            <div className="space-y-0">
-                {Array.from({ length: rows }).map((_, row) => (
-                    <div
-                        key={`row-${row}`}
-                        className="grid grid-cols-[1.2fr_1.4fr_1fr_0.8fr_0.8fr_40px] items-center gap-4 border-b p-4 last:border-b-0"
-                    >
-                        <Skeleton className="h-9 w-40" />
-                        <Skeleton className="h-4 w-48" />
-                        <Skeleton className="h-6 w-28 rounded-full" />
-                        <Skeleton className="h-6 w-16 rounded-full" />
-                        <Skeleton className="h-6 w-16 rounded-full" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                    </div>
-                ))}
-            </div>
-        </Card>
+        <div
+            aria-label="Carregando usuários"
+            className="grid gap-3 xl:grid-cols-2"
+        >
+            {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                    key={i}
+                    className="h-24 animate-pulse rounded-ds-lg bg-ds-surface-subtle"
+                />
+            ))}
+        </div>
     );
 }
 
+/**
+ * Usuários da clínica (tela v2, só do administrador): a equipe em cartões de
+ * um lado e as funções do sistema em sanfona do outro, com a busca e os
+ * filtros guardados na URL.
+ */
 export function UserListPage() {
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const role = user?.role as ClinicRole | undefined;
-
-    const { data: users = [], isLoading, isError } = useClinicUsers();
-    const deleteUser = useDeleteClinicUser();
-
-    const [search, setSearch] = useState('');
-    const [roleFilters, setRoleFilters] = useState<ClinicRole[]>([]);
-    const [statusFilters, setStatusFilters] = useState<
-        Array<'active' | 'inactive'>
-    >([]);
-    const [masterFilters, setMasterFilters] = useState<Array<'yes' | 'no'>>([]);
+    const isMobile = useIsMobile();
+    const { filters, update, searchInput, setSearchInput, flushSearch } =
+        useUserListUrlState();
+    const { data, isLoading, isError } = useClinicUsers();
+    // Sem números (contagens, "0 pessoas") enquanto a equipe não chegou.
+    const loaded = !isLoading && !isError;
     const [filtersOpen, setFiltersOpen] = useState(false);
-    const [page, setPage] = useState(1);
-    const [perPage, setPerPage] = useState(10);
-    const [targetDelete, setTargetDelete] = useState<ClinicUserSummary | null>(
-        null,
+    const [openId, setOpenId] = useState<string | null>(null);
+
+    const team = useMemo(() => sortTeam(data ?? []), [data]);
+    const shown = useMemo(
+        () => applyUserListFilters(team, filters),
+        [team, filters],
+    );
+    // A pessoa do drawer vem da lista atual: depois de mudar algo, o drawer acompanha.
+    const openUser = team.find((u) => u.id === openId) ?? null;
+    // Travas de mestre e último admin ativo: contadas na equipe inteira.
+    const roleLockOf = (u: ClinicUserSummary) =>
+        clinicUserLocks(u, team).roleChange;
+
+    const changeAccess = useChangeClinicUserAccess();
+    const [move, setMove] = useState<RoleMove | null>(null);
+    // O modal continua mostrando a última mudança durante a animação de saída.
+    const [shownMove, setShownMove] = useState(move);
+    if (move && move !== shownMove) setShownMove(move);
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+        useSensor(KeyboardSensor),
     );
 
-    const activeFilterCount =
-        roleFilters.length + statusFilters.length + masterFilters.length;
+    const requestMove = (u: ClinicUserSummary, to: ClinicRole) => {
+        if (to !== u.role && roleLockOf(u) === null) setMove({ user: u, to });
+    };
+    const onDragEnd = ({ active, over }: DragEndEvent) => {
+        const u = team.find((x) => x.id === active.id);
+        if (u && over) requestMove(u, over.id as ClinicRole);
+    };
+    const confirmMove = () => {
+        if (!move) return;
+        const { user, to } = move;
+        changeAccess.mutate(
+            { id: user.id, dto: { role: to } },
+            {
+                onSuccess: () => {
+                    toast.success(
+                        `${user.name} agora é ${ROLE_META[to].label}.`,
+                    );
+                    setMove(null);
+                },
+            },
+        );
+    };
 
-    const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return users.filter((u) => {
-            if (q) {
-                const name = u.name.toLowerCase();
-                const mail = u.email.toLowerCase();
-                if (!name.includes(q) && !mail.includes(q)) return false;
-            }
-            if (roleFilters.length > 0 && !roleFilters.includes(u.role))
-                return false;
-            const isActive = Boolean(u.status);
-            if (statusFilters.length > 0) {
-                const matchesActive =
-                    statusFilters.includes('active') && isActive;
-                const matchesInactive =
-                    statusFilters.includes('inactive') && !isActive;
-                if (!matchesActive && !matchesInactive) return false;
-            }
-            if (masterFilters.length > 0) {
-                const isMaster = u.mestre === 1;
-                const matchesYes = masterFilters.includes('yes') && isMaster;
-                const matchesNo = masterFilters.includes('no') && !isMaster;
-                if (!matchesYes && !matchesNo) return false;
-            }
-            return true;
-        });
-    }, [users, search, roleFilters, statusFilters, masterFilters]);
-
-    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-
-    // Ajuste durante o render: mudar filtro volta para a página 1, e a página
-    // nunca fica além do total quando a lista encolhe.
-    const filterKey = JSON.stringify([
-        search,
-        roleFilters,
-        statusFilters,
-        masterFilters,
-    ]);
-    const [lastFilterKey, setLastFilterKey] = useState(filterKey);
-    if (lastFilterKey !== filterKey) {
-        setLastFilterKey(filterKey);
-        setPage(1);
-    } else if (page > totalPages) {
-        setPage(totalPages);
+    const deleteUser = useDeleteClinicUser();
+    const [pendingAction, setPendingAction] = useState<{
+        user: ClinicUserSummary;
+        action: UserAction;
+    } | null>(null);
+    const [shownAction, setShownAction] = useState(pendingAction);
+    if (pendingAction && pendingAction !== shownAction) {
+        setShownAction(pendingAction);
     }
-
-    const paginated = useMemo(() => {
-        const start = (page - 1) * perPage;
-        return filtered.slice(start, start + perPage);
-    }, [filtered, page, perPage]);
-
-    const pagination =
-        totalPages > 1
-            ? { currentPage: page, totalPages, onPageChange: setPage }
-            : undefined;
-
-    const filtersActive = !!search.trim() || activeFilterCount > 0;
-
-    const emptyMessage = isLoading
-        ? 'Carregando usuários...'
-        : isError
-          ? 'Erro ao carregar usuários. Tente novamente.'
-          : users.length === 0
-            ? 'Nenhum usuário encontrado.'
-            : filtersActive
-              ? 'Nenhum usuário corresponde aos filtros aplicados.'
-              : 'Nenhum usuário encontrado.';
-
-    const toggleRole = useCallback((value: ClinicRole) => {
-        setRoleFilters((prev) =>
-            prev.includes(value)
-                ? prev.filter((v) => v !== value)
-                : [...prev, value],
-        );
-    }, []);
-
-    const toggleStatus = useCallback((value: 'active' | 'inactive') => {
-        setStatusFilters((prev) =>
-            prev.includes(value)
-                ? prev.filter((v) => v !== value)
-                : [...prev, value],
-        );
-    }, []);
-
-    const toggleMaster = useCallback((value: 'yes' | 'no') => {
-        setMasterFilters((prev) =>
-            prev.includes(value)
-                ? prev.filter((v) => v !== value)
-                : [...prev, value],
-        );
-    }, []);
-
-    const clearFilters = useCallback(() => {
-        setRoleFilters([]);
-        setStatusFilters([]);
-        setMasterFilters([]);
-        setPage(1);
-    }, []);
-
-    const showActions = can.manageUsers(role);
-    const canDeleteUsers = can.delete(role);
-
-    const columns = useMemo(() => {
-        const cols = [...BASE_COLUMNS];
-        if (showActions) {
-            cols.push({ title: '', key: 'actions', className: 'w-10' });
+    const confirmAction = () => {
+        if (!pendingAction) return;
+        const { user, action } = pendingAction;
+        if (action === 'delete') {
+            deleteUser.mutate(user.id, {
+                onSuccess: () => {
+                    setPendingAction(null);
+                    setOpenId(null);
+                },
+            });
+            return;
         }
-        return cols;
-    }, [showActions]);
+        const activate = action === 'reactivate';
+        changeAccess.mutate(
+            { id: user.id, dto: { status: activate ? 1 : 0 } },
+            {
+                onSuccess: () => {
+                    toast.success(
+                        `${user.name} foi ${activate ? 'reativado(a)' : 'desativado(a)'}.`,
+                    );
+                    setPendingAction(null);
+                },
+            },
+        );
+    };
+
+    const chips = userListChips(filters);
+    const filterCount = activeUserFilterCount(filters);
+    const clearFilters = () => update(clearedUserListFilters());
+    // Também a busca ainda no debounce, senão ela volta 400ms depois.
+    const clearAll = () => {
+        setSearchInput('');
+        update(DEFAULT_USER_LIST_FILTERS);
+    };
+    // A busca ainda no debounce vai para a URL antes de sair, para o "voltar"
+    // encontrar a lista como estava.
+    const leaveTo = (path: string) => {
+        flushSearch();
+        navigate(path);
+    };
+    const newUser = () => leaveTo(NEW_USER_PATH);
+    const onlyMe = team.length === 1 && !isFiltered(filters);
 
     return (
         <ClinicLayout>
-            <div className="flex h-full flex-col">
-                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="px-6 py-6">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-semibold text-foreground">
-                                Usuários
-                            </h1>
-                            {showActions && (
-                                <Button
-                                    className="gap-2"
-                                    onClick={() =>
-                                        navigate('/clinica/usuarios/novo')
-                                    }
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    Novo usuário
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </header>
-
-                <div className="flex-1 overflow-auto p-6">
-                    <div className="mb-6 flex items-center gap-4">
-                        <div className="relative w-64">
-                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Pesquisar"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-9"
-                                autoComplete="off"
+            <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+                {/* O <main> é do ClinicLayout. */}
+                <div className="px-4 py-6 sm:px-6 sm:py-8">
+                    {/* Largura máxima = breakpoint xl do DS (1920px). */}
+                    <div className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-col gap-6">
+                        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                            <div className="min-w-0 sm:mr-auto">
+                                <h1 className="text-ds-body-lg font-medium sm:text-ds-page-title sm:font-normal">
+                                    Usuários
+                                </h1>
+                                <p className="mt-0.5 text-ds-caption text-ds-content-secondary sm:mt-1 sm:text-ds-body-sm">
+                                    {isLoading
+                                        ? 'Carregando a equipe…'
+                                        : isError
+                                          ? 'Não foi possível carregar a equipe.'
+                                          : teamSummary(team)}
+                                </p>
+                            </div>
+                            <DsButton
+                                iconPosition="left"
+                                icon={<Plus />}
+                                label="Novo usuário"
+                                className="max-sm:w-full"
+                                onClick={newUser}
                             />
-                        </div>
+                        </header>
 
-                        <Popover
-                            open={filtersOpen}
-                            onOpenChange={setFiltersOpen}
+                        <section
+                            aria-label="Busca e filtros"
+                            className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-3 shadow-ds-xs sm:p-4"
                         >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <SlidersHorizontal className="h-4 w-4" />
-                                    Filtros
-                                    {activeFilterCount > 0 && (
-                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="start" className="w-64 p-0">
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold">
-                                        Filtros
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="min-w-0 flex-1">
+                                    <DsInput
+                                        type="search"
+                                        aria-label="Pesquisar usuários"
+                                        placeholder={
+                                            isMobile
+                                                ? 'Pesquisar'
+                                                : 'Pesquisar por nome ou e-mail'
+                                        }
+                                        iconLeft={<Search />}
+                                        value={searchInput}
+                                        onValueChange={setSearchInput}
+                                        onCleared={() => setSearchInput('')}
+                                    />
+                                </div>
+                                <div className="hidden items-center gap-3 md:flex">
+                                    <UserFiltersBar
+                                        filters={filters}
+                                        onChange={update}
+                                    />
+                                </div>
+                                <div className="md:hidden">
+                                    <DsButton
+                                        variant={
+                                            filterCount > 0
+                                                ? 'primary'
+                                                : 'secondary'
+                                        }
+                                        iconPosition="left"
+                                        icon={<SlidersHorizontal />}
+                                        label={
+                                            filterCount > 0
+                                                ? `Filtros (${filterCount})`
+                                                : 'Filtros'
+                                        }
+                                        onClick={() => setFiltersOpen(true)}
+                                    />
+                                </div>
+                            </div>
+                            {/* Altura fixa: a caixa não cresce com o primeiro filtro. */}
+                            <div className="flex min-h-8 items-center">
+                                {chips.length > 0 ? (
+                                    <DsFilterChips
+                                        chips={chips}
+                                        onRemove={(chip) =>
+                                            update(
+                                                removeUserListChip(
+                                                    filters,
+                                                    chip,
+                                                ),
+                                            )
+                                        }
+                                        onClear={clearFilters}
+                                    />
+                                ) : (
+                                    <span className="text-ds-body-compact text-ds-content-muted">
+                                        Nenhum filtro aplicado
                                     </span>
-                                    {activeFilterCount > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={clearFilters}
-                                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                            <X className="h-3 w-3" />
-                                            Limpar
-                                        </button>
-                                    )}
-                                </div>
-                                <Separator />
-                                <div className="py-1">
-                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Função
-                                    </p>
-                                    {ROLE_FILTER_OPTIONS.map((opt) => (
-                                        <label
-                                            key={opt.value}
-                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
-                                        >
-                                            <Checkbox
-                                                checked={roleFilters.includes(
-                                                    opt.value,
-                                                )}
-                                                onCheckedChange={() =>
-                                                    toggleRole(opt.value)
-                                                }
-                                            />
-                                            <span className="text-sm">
-                                                {opt.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <Separator />
-                                <div className="py-1">
-                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Status
-                                    </p>
-                                    {[
-                                        {
-                                            value: 'active' as const,
-                                            label: 'Ativo',
-                                        },
-                                        {
-                                            value: 'inactive' as const,
-                                            label: 'Inativo',
-                                        },
-                                    ].map((opt) => (
-                                        <label
-                                            key={opt.value}
-                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
-                                        >
-                                            <Checkbox
-                                                checked={statusFilters.includes(
-                                                    opt.value,
-                                                )}
-                                                onCheckedChange={() =>
-                                                    toggleStatus(opt.value)
-                                                }
-                                            />
-                                            <span className="text-sm">
-                                                {opt.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <Separator />
-                                <div className="py-1">
-                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Mestre
-                                    </p>
-                                    {[
-                                        { value: 'yes' as const, label: 'Sim' },
-                                        { value: 'no' as const, label: 'Não' },
-                                    ].map((opt) => (
-                                        <label
-                                            key={opt.value}
-                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
-                                        >
-                                            <Checkbox
-                                                checked={masterFilters.includes(
-                                                    opt.value,
-                                                )}
-                                                onCheckedChange={() =>
-                                                    toggleMaster(opt.value)
-                                                }
-                                            />
-                                            <span className="text-sm">
-                                                {opt.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                                )}
+                            </div>
+                        </section>
 
-                        {activeFilterCount > 0 && (
-                            <button
-                                type="button"
-                                onClick={clearFilters}
-                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-3 w-3" />
-                                Limpar filtros
-                            </button>
-                        )}
-                    </div>
-
-                    {isLoading ? (
-                        <UserTableSkeleton rows={Math.min(perPage, 6)} />
-                    ) : (
-                        <DataTable<ClinicUserSummary>
-                            columns={columns}
-                            data={isError ? [] : paginated}
-                            emptyMessage={emptyMessage}
-                            totalLabel="usuários"
-                            totalCount={filtered.length}
-                            pagination={pagination}
-                            pageSize={perPage}
-                            pageSizeOptions={[10, 25, 50]}
-                            onPageSizeChange={(size) => {
-                                setPerPage(size);
-                                setPage(1);
-                            }}
+                        <DndContext
+                            sensors={sensors}
+                            onDragEnd={onDragEnd}
+                            accessibility={DRAG_ACCESSIBILITY}
                         >
-                            {(u) => (
-                                <TableRow
-                                    key={u.id}
-                                    className={
-                                        showActions
-                                            ? 'cursor-pointer'
-                                            : undefined
-                                    }
-                                    onClick={
-                                        showActions
-                                            ? () =>
-                                                  navigate(
-                                                      `/clinica/usuarios/${u.id}/editar`,
-                                                  )
-                                            : undefined
-                                    }
+                            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+                                <section
+                                    aria-labelledby="usuarios-titulo"
+                                    className="flex flex-col gap-3"
                                 >
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar
-                                                key={u.photoUrl ?? 'no-photo'}
-                                                className="h-9 w-9"
-                                            >
-                                                {u.photoUrl && (
-                                                    <AvatarImage
-                                                        src={u.photoUrl}
-                                                        alt=""
-                                                        className="object-cover"
-                                                    />
-                                                )}
-                                                <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                    {firstLetter(u.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium text-foreground">
-                                                {u.name}
+                                    <h2
+                                        id="usuarios-titulo"
+                                        className="flex items-center gap-2 text-ds-body-md font-semibold text-ds-content-primary"
+                                    >
+                                        Usuários
+                                        {loaded && (
+                                            <span className="font-ds-mono text-ds-caption font-normal text-ds-content-muted">
+                                                {shown.length}
                                             </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="text-sm text-muted-foreground">
-                                            {u.email}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <StatusBadge
-                                            variant={
-                                                ROLE_BADGE_VARIANT[u.role] ??
-                                                'neutral'
+                                        )}
+                                    </h2>
+                                    {isLoading ? (
+                                        <CardSkeletons />
+                                    ) : isError ? (
+                                        <DsEmptyState
+                                            variant="error"
+                                            title="Erro ao carregar a equipe"
+                                            description="Tente de novo em alguns instantes."
+                                        />
+                                    ) : shown.length === 0 ? (
+                                        <DsEmptyState
+                                            variant="no-results"
+                                            title="Ninguém encontrado"
+                                            description="Tente ajustar os filtros ou buscar por outro termo."
+                                            action={
+                                                <DsButton
+                                                    variant="secondary"
+                                                    label="Limpar busca e filtros"
+                                                    onClick={() => clearAll()}
+                                                />
                                             }
-                                            className="shrink-0 whitespace-nowrap"
-                                        >
-                                            {ROLE_LABELS[u.role] ?? u.role}
-                                        </StatusBadge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <StatusBadge
-                                            variant={
-                                                u.mestre === 1
-                                                    ? 'success'
-                                                    : 'danger'
-                                            }
-                                            className="shrink-0 whitespace-nowrap"
-                                        >
-                                            {u.mestre === 1 ? 'Sim' : 'Não'}
-                                        </StatusBadge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <StatusBadge
-                                            variant={
-                                                u.status ? 'success' : 'danger'
-                                            }
-                                            className="shrink-0 whitespace-nowrap"
-                                        >
-                                            {u.status ? 'Ativo' : 'Inativo'}
-                                        </StatusBadge>
-                                    </TableCell>
-                                    {showActions && (
-                                        <TableCell
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                    >
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent
-                                                    align="end"
-                                                    className="w-44"
-                                                >
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/clinica/usuarios/${u.id}/editar`,
-                                                            )
-                                                        }
-                                                    >
-                                                        Editar usuário
-                                                    </DropdownMenuItem>
-                                                    {canDeleteUsers &&
-                                                        u.mestre !== 1 && (
-                                                            <DropdownMenuItem
-                                                                className="cursor-pointer gap-2 text-destructive focus:text-destructive"
-                                                                onClick={() =>
-                                                                    setTargetDelete(
-                                                                        u,
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                                Excluir
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
+                                        />
+                                    ) : (
+                                        <>
+                                            <ul
+                                                aria-label="Usuários"
+                                                className="grid gap-3 xl:grid-cols-2"
+                                            >
+                                                {shown.map((u) => (
+                                                    <li key={u.id}>
+                                                        <UserCard
+                                                            user={u}
+                                                            roleLock={roleLockOf(
+                                                                u,
+                                                            )}
+                                                            onOpen={() =>
+                                                                setOpenId(u.id)
+                                                            }
+                                                            onMove={(to) =>
+                                                                requestMove(
+                                                                    u,
+                                                                    to,
+                                                                )
+                                                            }
+                                                        />
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            {onlyMe && (
+                                                <DsEmptyState
+                                                    variant="empty"
+                                                    icon={<UserPlus />}
+                                                    title="Cadastre a sua equipe"
+                                                    description="Convide fisioterapeutas e a recepção para dividir a agenda e os pacientes."
+                                                    action={
+                                                        <DsButton
+                                                            iconPosition="left"
+                                                            icon={<Plus />}
+                                                            label="Cadastrar o primeiro colega"
+                                                            onClick={newUser}
+                                                        />
+                                                    }
+                                                />
+                                            )}
+                                        </>
                                     )}
-                                </TableRow>
-                            )}
-                        </DataTable>
-                    )}
+                                </section>
+
+                                <RoleAccordion users={loaded ? shown : null} />
+                            </div>
+                            <UserDragOverlay />
+                        </DndContext>
+                    </div>
                 </div>
             </div>
 
-            <AlertDialog
-                open={!!targetDelete}
-                onOpenChange={(open) => !open && setTargetDelete(null)}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Remover usuário</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Tem certeza que deseja remover{' '}
-                            <strong>{targetDelete?.name}</strong>? Esta ação não
-                            pode ser desfeita.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            onClick={() => {
-                                if (targetDelete) {
-                                    deleteUser.mutate(targetDelete.id, {
-                                        onSettled: () => setTargetDelete(null),
-                                    });
+            <RoleChangeModal
+                open={move !== null}
+                move={shownMove}
+                pending={changeAccess.isPending}
+                onConfirm={confirmMove}
+                onCancel={() => setMove(null)}
+            />
+
+            <UserDrawer
+                user={openUser}
+                team={team}
+                onClose={() => setOpenId(null)}
+                onEdit={(u) => leaveTo(`/clinica/usuarios/${u.id}/editar`)}
+                onToggleStatus={(u) =>
+                    setPendingAction({ user: u, action: statusActionOf(u) })
+                }
+                onDelete={(u) =>
+                    setPendingAction({ user: u, action: 'delete' })
+                }
+            />
+
+            <UserActionModal
+                open={pendingAction !== null}
+                user={shownAction?.user ?? null}
+                action={shownAction?.action ?? 'deactivate'}
+                pending={changeAccess.isPending || deleteUser.isPending}
+                onConfirm={confirmAction}
+                onCancel={() => setPendingAction(null)}
+            />
+
+            <DsDrawer
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                placement="bottom"
+                title="Filtros"
+                footer={
+                    <div className="flex w-full items-center gap-3">
+                        <DsButton
+                            variant="tertiary"
+                            label="Limpar"
+                            disabled={filterCount === 0}
+                            onClick={clearFilters}
+                        />
+                        <div className="ml-auto">
+                            <DsButton
+                                label={
+                                    loaded
+                                        ? `Ver ${people(shown.length)}`
+                                        : 'Fechar'
                                 }
-                            }}
-                        >
-                            Remover
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                                onClick={() => setFiltersOpen(false)}
+                            />
+                        </div>
+                    </div>
+                }
+            >
+                <UserFiltersPanel filters={filters} onChange={update} />
+            </DsDrawer>
         </ClinicLayout>
     );
 }

@@ -2,18 +2,17 @@
 
 namespace Modules\GoogleCalendar\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
 use Modules\GoogleCalendar\Jobs\PullGoogleCalendarJob;
 
-class GoogleCalendarController extends Controller
+class GoogleCalendarController extends ClinicAuthenticatedController
 {
     /** Paths SPA permitidos no retorno do OAuth (evita open redirect). */
     private const ALLOWED_RETURN_PATHS = [
@@ -21,6 +20,9 @@ class GoogleCalendarController extends Controller
         '/clinica/usuarios',
         '/clinic/usuarios',
     ];
+
+    /** Edição de usuário (o próprio perfil, onde se conecta o Google). */
+    private const ALLOWED_RETURN_PATTERN = '#^/clinica/usuarios/\d+/editar$#';
 
     public function __construct(
         protected GoogleCalendarServiceInterface $service,
@@ -30,10 +32,9 @@ class GoogleCalendarController extends Controller
     /** Inicia o fluxo OAuth — devolve a URL de consentimento. */
     public function connect(Request $request): JsonResponse
     {
-        $user     = Auth::guard('clinic')->user();
         $returnTo = $this->resolveReturnPath($request->query('return_to'));
         $state    = Crypt::encryptString(json_encode([
-            'uid'    => (int) $user->id,
+            'uid'    => $this->clinicUserId(),
             'return' => $returnTo,
         ], JSON_THROW_ON_ERROR));
 
@@ -74,8 +75,7 @@ class GoogleCalendarController extends Controller
     /** Desconecta a conta Google do usuário autenticado. */
     public function disconnect(): JsonResponse
     {
-        $user = Auth::guard('clinic')->user();
-        $this->service->disconnect((int) $user->id);
+        $this->service->disconnect($this->clinicUserId());
 
         return response()->json(['data' => ['connected' => false]]);
     }
@@ -109,8 +109,7 @@ class GoogleCalendarController extends Controller
             ], 422);
         }
 
-        $user = Auth::guard('clinic')->user();
-        PullGoogleCalendarJob::dispatchSync((int) $user->id);
+        PullGoogleCalendarJob::dispatchSync($this->clinicUserId());
 
         return response()->json(['data' => ['pulled' => true]]);
     }
@@ -143,13 +142,14 @@ class GoogleCalendarController extends Controller
     {
         $fallback ??= (string) config('googlecalendar.frontend_redirect', '/clinica/usuarios');
 
-        if (!is_string($path) || empty($path)) {
+        if (!is_string($path) || empty($path) || !is_null(parse_url($path, PHP_URL_HOST))) {
             return $fallback;
         }
 
         $normalized = '/' . ltrim(parse_url($path, PHP_URL_PATH) ?: '', '/');
 
         return in_array($normalized, self::ALLOWED_RETURN_PATHS, true)
+            || preg_match(self::ALLOWED_RETURN_PATTERN, $normalized) === 1
             ? $normalized
             : $fallback;
     }

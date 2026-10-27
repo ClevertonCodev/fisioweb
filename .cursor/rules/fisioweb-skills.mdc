@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Fisioweb Skills
 
-No Cursor, leia as skills em `.cursor/skills/<skill>/SKILL.md`. A maioria é symlink para `.claude/skills/`; algumas podem existir como pasta local quando ainda estão sendo sincronizadas entre agentes.
+Skills em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e **`.agents/skills/`** (Antigravity): **as três canônicas**, mesmo conteúdo, **pastas reais** (sem `ln -s` entre árvores). No Explorer, **seta ↗ na pasta = symlink no disco** (atalho legado); rode `bash bin/materializar-skills.sh`. No Cursor, leia `.cursor/skills/<skill>/SKILL.md`. Ao alterar uma skill, atualize **as três** árvores e rode `bash bin/verificar-skills.sh`.
 
 Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/speckit-specify`, `/speckit-plan`, etc. para spec-driven development.
 
@@ -17,8 +17,7 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | Tarefa | Skill |
 |--------|-------|
 | SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | `backend-clean-code` |
-| Fronteira entre módulos backend, contrato público, evento, ADR, extração futura | `architecture-paradigm-modular-monolith` |
-| CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
+| Fronteira entre módulos backend, CRUD no módulo, contrato público, evento, ADR, extração futura | `architecture-paradigm-modular-monolith` |
 | Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
 | Job async (WhatsApp, PDF, R2, e-mail) | `laravel-queues` |
 | Enum, DTO readonly, Value Object, match | `php-modern` |
@@ -30,14 +29,24 @@ Skills do Spec Kit (`speckit-*`) também ficam em `.cursor/skills/` — use `/sp
 | DDD (domain → application → infra → page → route) | `frontend-ddd` |
 | Hooks, performance, React 19 | `frontend-react` |
 | Testes Vitest + RTL | `frontend-testing` |
-| **Componentes, cores, sidebar, popover, cursor** | **`frontend-ui-patterns`** |
-| DataTable, Forms RHF+Zod, Dialog | `forms-shadcn` |
+| **Componentes, cores, sidebar, popover, cursor (telas v1)** | **`frontend-ui-patterns`** |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, dark mode)** | **`design-system`** |
+| DataTable, Forms RHF+Zod, Dialog (telas v1) | `forms-shadcn` |
 | apiClient, Repository, JWT multi-guard | `api-client` |
 
 ### Cross-cutting
 | Tarefa | Skill |
 |--------|-------|
 | Policies + permissions.ts + RequireClinicAdmin | `security` |
+
+### Diagnóstico e arquitetura
+| Tarefa | Skill |
+|--------|-------|
+| Candidatos a refatoração, relatório HTML (só o usuário chama) | `improve-codebase-architecture` |
+| Desenhar a interface de um módulo, desenhar duas vezes | `codebase-design` |
+| Auditoria de débito técnico com arquivo e linha (só o usuário chama) | `tech-debt-audit` |
+| Explicar área antiga, glossário (`docs/glossario.md`), ADR | `domain-modeling` |
+| Investigar bug antes de corrigir | `systematic-debugging` |
 
 ## Princípios
 

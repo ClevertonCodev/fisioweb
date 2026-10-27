@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import type {
     PatientListParams,
@@ -46,6 +47,16 @@ export function useUpdatePatient() {
             queryClient.invalidateQueries({
                 queryKey: ['patients', patient.id, 'detail'],
             });
+            toast.success('Paciente atualizado com sucesso');
+        },
+        onError: (error: {
+            response?: { status?: number; data?: { message?: string } };
+        }) => {
+            if (error?.response?.status === 422) return;
+            toast.error(
+                error?.response?.data?.message ??
+                    'Erro ao atualizar paciente. Verifique os dados e tente novamente.',
+            );
         },
     });
 }
@@ -57,6 +68,16 @@ export function useCreatePatient() {
             apiClinicPatientsRepository.create(dto),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
+            toast.success('Paciente cadastrado com sucesso');
+        },
+        onError: (error: {
+            response?: { status?: number; data?: { message?: string } };
+        }) => {
+            if (error?.response?.status === 422) return;
+            toast.error(
+                error?.response?.data?.message ??
+                    'Erro ao cadastrar paciente. Verifique os dados e tente novamente.',
+            );
         },
     });
 }
@@ -66,6 +87,16 @@ export function useBulkInactivatePatients() {
     return useMutation({
         mutationFn: (ids: string[]) =>
             apiClinicPatientsRepository.bulkInactivate(ids),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['patients'] });
+        },
+    });
+}
+
+export function useReactivatePatient() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => apiClinicPatientsRepository.reactivate(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['patients'] });
         },

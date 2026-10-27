@@ -2,17 +2,16 @@
 
 namespace Modules\ClinicQuestionnaire\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
 use Modules\ClinicQuestionnaire\Http\Requests\AnswerPatientQuestionnaireRequest;
 use Modules\ClinicQuestionnaire\Http\Requests\SendPatientQuestionnaireRequest;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
-class PatientQuestionnaireController extends Controller
+class PatientQuestionnaireController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected PatientQuestionnaireServiceInterface $questionnaireService,
@@ -21,31 +20,31 @@ class PatientQuestionnaireController extends Controller
 
     public function indexByPatient(int $patient): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
-        $questionnaires = $this->questionnaireService->listByPatient((int) $clinicId, $patient);
+        $questionnaires = $this->questionnaireService->listByPatient($clinicId, $patient);
 
         return response()->json(['data' => $questionnaires]);
     }
 
     public function storeForPatient(SendPatientQuestionnaireRequest $request, int $patient): JsonResponse
     {
-        $clinicUser = Auth::guard('clinic')->user();
-        $found      = $this->patientService->find($patient);
+        $clinicId = $this->clinicId();
+        $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicUser->clinic_id) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
         $questionnaire = $this->questionnaireService->send(
-            (int) $clinicUser->clinic_id,
+            $clinicId,
             $patient,
-            $clinicUser->id,
+            $this->clinicUserId(),
             $request->validated(),
         );
 
@@ -54,14 +53,14 @@ class PatientQuestionnaireController extends Controller
 
     public function show(int $patient, int $questionnaire): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
-        $record = $this->questionnaireService->findForPatient((int) $clinicId, $patient, $questionnaire);
+        $record = $this->questionnaireService->findForPatient($clinicId, $patient, $questionnaire);
 
         if (is_null($record)) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
@@ -72,16 +71,16 @@ class PatientQuestionnaireController extends Controller
 
     public function answer(AnswerPatientQuestionnaireRequest $request, int $patient, int $questionnaire): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
         try {
             $record = $this->questionnaireService->answerForClinicPatient(
-                (int) $clinicId,
+                $clinicId,
                 $patient,
                 $questionnaire,
                 $request->validated()['answers'],
@@ -99,14 +98,14 @@ class PatientQuestionnaireController extends Controller
 
     public function destroy(int $patient, int $questionnaire): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $found    = $this->patientService->find($patient);
 
-        if (!$found || (int) $found->clinic_id !== (int) $clinicId) {
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
-        $record = $this->questionnaireService->findForPatient((int) $clinicId, $patient, $questionnaire);
+        $record = $this->questionnaireService->findForPatient($clinicId, $patient, $questionnaire);
 
         if (is_null($record)) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);

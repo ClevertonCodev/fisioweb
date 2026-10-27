@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Http\Requests\PresignedThumbnailUploadRequest;
 use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
 
@@ -133,7 +134,7 @@ class VideoController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\RuntimeException $e) {
+        } catch (VideoStorageFileMissingException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);
@@ -188,7 +189,7 @@ class VideoController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\RuntimeException $e) {
+        } catch (VideoStorageFileMissingException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);

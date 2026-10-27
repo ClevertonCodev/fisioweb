@@ -91,6 +91,20 @@ describe('apiClinicAppointmentsRepository.list', () => {
             title: 'PayMEET',
         });
     });
+
+    it('envia patientId como patient_id junto da janela', async () => {
+        mockGet.mockResolvedValueOnce({ data: { data: [] } });
+
+        await apiClinicAppointmentsRepository.list({
+            from: '2025-10-22',
+            to: '2027-04-23',
+            patientId: '3',
+        });
+
+        expect(mockGet).toHaveBeenCalledWith('/clinic/appointments', {
+            params: { from: '2025-10-22', to: '2027-04-23', patient_id: '3' },
+        });
+    });
 });
 
 describe('apiClinicAppointmentsRepository.create', () => {

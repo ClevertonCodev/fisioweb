@@ -6,7 +6,7 @@ metadata:
   triggers: model, eloquent, scope, accessor, mutator, cast, observer, with, withCount, chunk, lazy, N+1, DB::transaction, softdeletes
   scope: implementation
   output-format: code
-  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, backend-module, laravel-queues, php-testing, php-modern
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, laravel-queues, php-testing, php-modern
 ---
 
 # Laravel Eloquent (fisioweb)
@@ -65,7 +65,7 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 | Padrões completos (modelo, scopes, casts, observers, queries, transações) | [`references/eloquent.md`](references/eloquent.md) | Implementar Model ou query |
 | Responsabilidade de Model, Service e Repository | [`../backend-clean-code/SKILL.md`](../backend-clean-code/SKILL.md) | Evitar God Model, controller gordo ou repository com regra |
 | Fronteira entre módulos backend | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Relacionamento/query/transação toca outro módulo |
-| Estrutura de módulo (Service/Repository) | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) | Criar recurso CRUD |
+| Estrutura de módulo (Service/Repository) | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) | Criar recurso CRUD |
 | Tipos modernos (Enum em `$casts`, DTO de input) | [`../php-modern/SKILL.md`](../php-modern/SKILL.md) | Modelar status/tipo |
 | Disparar Job a partir de Observer | [`../laravel-queues/SKILL.md`](../laravel-queues/SKILL.md) | Reagir a evento async |
 | Testar Model + Scope | [`../php-testing/SKILL.md`](../php-testing/SKILL.md) | Cobrir Eloquent |

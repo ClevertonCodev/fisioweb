@@ -2,17 +2,16 @@
 
 namespace Modules\Clinic\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Modules\Clinic\Http\Requests\StorePatientRequest;
 use Modules\Clinic\Http\Requests\UpdatePatientRequest;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Models\Patient;
 
-class PatientController extends Controller
+class PatientController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected PatientServiceInterface $patientService,
@@ -21,7 +20,7 @@ class PatientController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
 
         $filters = array_filter([
             'search'    => $request->string('search')->toString() ?: null,
@@ -55,7 +54,7 @@ class PatientController extends Controller
             'ids.*' => ['integer'],
         ]);
 
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $count    = $this->patientService->bulkInactivate($clinicId, $request->input('ids'));
 
         return response()->json([
@@ -64,12 +63,33 @@ class PatientController extends Controller
         ]);
     }
 
-    public function show(int $id): JsonResponse
+    public function reactivate(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->find($id);
 
-        if (!$patient || $patient->clinic_id !== $clinicId) {
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        $this->authorize('reactivate', $patient);
+
+        $reactivated = $this->patientService->reactivate($clinicId, $id);
+
+        // Apagado entre a checagem acima e o update.
+        if (is_null($reactivated)) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        return response()->json(['data' => $reactivated]);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+        $patient  = $this->patientService->find($id);
+
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
@@ -78,7 +98,9 @@ class PatientController extends Controller
 
     public function store(StorePatientRequest $request): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $this->authorize('create', Patient::class);
+
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->create($request->validated(), $clinicId);
 
         return response()->json(['data' => $patient], 201);
@@ -86,12 +108,14 @@ class PatientController extends Controller
 
     public function update(UpdatePatientRequest $request, int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->find($id);
 
-        if (!$patient || $patient->clinic_id !== $clinicId) {
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
+
+        $this->authorize('update', $patient);
 
         $patient = $this->patientService->update($id, $request->validated());
 
@@ -104,12 +128,14 @@ class PatientController extends Controller
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
 
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->find($id);
 
-        if (!$patient || $patient->clinic_id !== $clinicId) {
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
+
+        $this->authorize('update', $patient);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'patients/photos');
         $patient  = $this->patientService->update($id, ['photo_url' => $uploaded['cdn_url']]);
@@ -119,10 +145,10 @@ class PatientController extends Controller
 
     public function deletePhoto(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->find($id);
 
-        if (!$patient || $patient->clinic_id !== $clinicId) {
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 
@@ -135,10 +161,10 @@ class PatientController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $clinicId = Auth::guard('clinic')->user()->clinic_id;
+        $clinicId = $this->clinicId();
         $patient  = $this->patientService->find($id);
 
-        if (!$patient || $patient->clinic_id !== $clinicId) {
+        if (!$patient || (int) $patient->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Paciente não encontrado.'], 404);
         }
 

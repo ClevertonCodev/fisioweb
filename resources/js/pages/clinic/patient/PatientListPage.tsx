@@ -1,896 +1,424 @@
-import {
-    Calendar,
-    ClipboardList,
-    Dumbbell,
-    MoreVertical,
-    Pencil,
-    Plus,
-    Search,
-    SlidersHorizontal,
-    UserX,
-    X,
-} from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Plus, Rows3, Search, SlidersHorizontal } from 'lucide-react';
+import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-import { usePatients } from '@/application/clinic';
+import { patientDisplayName, usePatients } from '@/application/clinic';
+import {
+    PATIENT_LIST_PER_PAGE_OPTIONS,
+    toPatientListParams,
+    type PatientListFilters,
+} from '@/application/clinic/patient-list-filters';
+import { can } from '@/application/clinic/permissions';
 import { useClinicProfessionals } from '@/application/clinic/use-clinic-users';
-import { useBulkInactivatePatients } from '@/application/clinic/use-patients';
+import {
+    useBulkInactivatePatients,
+    useReactivatePatient,
+} from '@/application/clinic/use-patients';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { CardList } from '@/components/ui/card-list';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+    DsButton,
+    DsDrawer,
+    DsDropdown,
+    DsEmptyState,
+    DsFieldSelect,
+    DsFilterChips,
+    DsInput,
+    DsPagination,
+} from '@/components/ds';
+import { useAuth } from '@/contexts/AuthContext';
+import type { ClinicRole } from '@/domain/auth/session';
+import type { Patient } from '@/domain/clinic/patient';
+
 import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { TableCell, TableRow } from '@/components/ui/table';
+    activePatientFilterCount,
+    clearedPatientListFilters,
+    patientListChips,
+    removePatientListChip,
+} from './patient-list/patient-list-chips';
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import type { Patient, PatientStatus } from '@/domain/clinic/patient';
+    activationModeOf,
+    PatientActivationButton,
+    PatientActivationModal,
+    type ActivationMode,
+} from './patient-list/PatientActivation';
+import { PatientCard } from './patient-list/PatientCard';
+import {
+    PatientFiltersBar,
+    PatientFiltersPanel,
+} from './patient-list/PatientFilters';
+import { usePatientListUrlState } from './patient-list/use-patient-list-url-state';
 
-const COLUMNS: DataTableColumn[] = [
-    { title: '', key: 'check', className: 'w-10' },
-    { title: 'Paciente', key: 'name' },
-    { title: 'Criado por', key: 'professional' },
-    { title: 'Status', key: 'status' },
-    { title: 'Resumo do diagnóstico', key: 'diagnosis' },
-    { title: '', key: 'actions', className: 'w-10' },
-];
+const NEW_PATIENT_PATH = '/clinica/pacientes/novo';
 
-const STATUS_VARIANTS: Record<
-    PatientStatus,
-    'info' | 'warning' | 'success' | 'neutral' | 'danger'
-> = {
-    em_tratamento: 'info',
-    em_treinamento: 'success',
-    em_prevencao: 'warning',
-    cancelado: 'neutral',
-    obito: 'danger',
-    alta: 'success',
-};
+const PER_PAGE_OPTIONS = PATIENT_LIST_PER_PAGE_OPTIONS.map((n) => ({
+    value: String(n),
+    label: String(n),
+}));
 
-const STATUS_LABELS: Record<PatientStatus, string> = {
-    em_tratamento: 'Em tratamento',
-    em_treinamento: 'Em treinamento',
-    em_prevencao: 'Em prevenção',
-    cancelado: 'Cancelado',
-    obito: 'Óbito',
-    alta: 'Alta',
-};
+/** Busca ou algum filtro ligado (itens por página não conta). */
+function isFiltered(filters: PatientListFilters): boolean {
+    return filters.search !== '' || activePatientFilterCount(filters) > 0;
+}
 
-const STATUS_FILTER_OPTIONS: { value: PatientStatus; label: string }[] = [
-    { value: 'em_tratamento', label: 'Em tratamento' },
-    { value: 'em_treinamento', label: 'Em treinamento' },
-    { value: 'em_prevencao', label: 'Em prevenção' },
-    { value: 'cancelado', label: 'Cancelado' },
-    { value: 'obito', label: 'Óbito' },
-    { value: 'alta', label: 'Alta' },
-];
-
-const DIAGNOSIS_PREVIEW_LENGTH = 20;
-
-/** Mostra os primeiros 20 caracteres do diagnóstico; o texto completo fica no tooltip */
-function DiagnosisSummary({ diagnosis }: { diagnosis: string }) {
-    if (!diagnosis) return <>—</>;
-
-    if (diagnosis.length <= DIAGNOSIS_PREVIEW_LENGTH) {
-        return <>{diagnosis}</>;
+function totalLabel(total: number, filtered: boolean): string {
+    const noun = total === 1 ? 'paciente' : 'pacientes';
+    if (filtered) {
+        return `${total} ${noun} ${total === 1 ? 'encontrado' : 'encontrados'}`;
     }
-
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <span className="cursor-default">
-                    {diagnosis.slice(0, DIAGNOSIS_PREVIEW_LENGTH)}…
-                </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs whitespace-pre-wrap">
-                {diagnosis}
-            </TooltipContent>
-        </Tooltip>
-    );
+    return `${total} ${noun} ${total === 1 ? 'cadastrado' : 'cadastrados'}`;
 }
 
-function PatientListTableSkeleton({ rows = 8 }: { rows?: number }) {
+function CardSkeletons() {
     return (
-        <Card className="overflow-hidden">
-            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.5fr_40px] gap-4 border-b p-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={`header-${i}`} className="h-4 w-20" />
-                ))}
-            </div>
-            <div>
-                {Array.from({ length: rows }).map((_, row) => (
-                    <div
-                        key={`row-${row}`}
-                        className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.5fr_40px] items-center gap-4 border-b p-4 last:border-b-0"
-                    >
-                        <Skeleton className="h-4 w-4 rounded" />
-                        <div className="flex items-center gap-3">
-                            <Skeleton className="h-9 w-9 rounded-full" />
-                            <Skeleton className="h-4 w-40" />
-                        </div>
-                        <Skeleton className="h-4 w-28" />
-                        <Skeleton className="h-7 w-24 rounded-full" />
-                        <Skeleton className="h-4 w-48" />
-                        <Skeleton className="h-8 w-8 rounded-md" />
-                    </div>
-                ))}
-            </div>
-        </Card>
-    );
-}
-
-function PatientListCardSkeleton({ rows = 4 }: { rows?: number }) {
-    return (
-        <div className="space-y-2">
-            {Array.from({ length: rows }).map((_, row) => (
-                <Card key={`card-${row}`} className="p-4">
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Skeleton className="h-9 w-9 rounded-full" />
-                                <Skeleton className="h-5 w-36" />
-                            </div>
-                            <Skeleton className="h-7 w-24 rounded-full" />
-                        </div>
-                        <Skeleton className="ml-12 h-4 w-48" />
-                        <Skeleton className="ml-12 h-4 w-32" />
-                    </div>
-                </Card>
+        <div
+            aria-label="Carregando pacientes"
+            className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4"
+        >
+            {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                    key={i}
+                    className="h-56 animate-pulse rounded-ds-xl bg-ds-surface-subtle"
+                />
             ))}
         </div>
     );
 }
 
-type PatientActionsProps = {
-    patient: Patient;
-    onNavigate: (path: string) => void;
-    onInactivate: (id: string) => void;
-    inactivateDisabled: boolean;
-};
-
-function PatientActions({
-    patient,
-    onNavigate,
-    onInactivate,
-    inactivateDisabled,
-}: PatientActionsProps) {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer"
-                >
-                    <MoreVertical className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2"
-                    onClick={() =>
-                        onNavigate(`/clinica/pacientes/${patient.id}/editar`)
-                    }
-                >
-                    <Pencil className="h-4 w-4" />
-                    Editar perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2"
-                    onClick={() =>
-                        onNavigate(`/clinica/pacientes/${patient.id}`)
-                    }
-                >
-                    <ClipboardList className="h-4 w-4" />
-                    Prontuário
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2"
-                    onClick={() =>
-                        onNavigate(
-                            `/clinica/programas/historico?patientId=${patient.id}&search=${encodeURIComponent(patient.name)}`,
-                        )
-                    }
-                >
-                    <Dumbbell className="h-4 w-4" />
-                    Programas
-                </DropdownMenuItem>
-                {/* Temporariamente oculto — reativar quando o recurso estiver pronto
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2"
-                    onClick={() =>
-                        onNavigate(
-                            `/clinica/pacientes/${patient.id}?tab=monitoramento`,
-                        )
-                    }
-                >
-                    Monitoramento
-                </DropdownMenuItem>
-                */}
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2"
-                    onClick={() =>
-                        onNavigate(`/clinica/agenda?patientId=${patient.id}`)
-                    }
-                >
-                    <Calendar className="h-4 w-4" />
-                    Agendamentos
-                </DropdownMenuItem>
-                {/* Temporariamente oculto — reativar quando o recurso estiver pronto
-                <DropdownMenuItem className="cursor-pointer gap-2">
-                    Pagamentos
-                </DropdownMenuItem>
-                */}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    className="cursor-pointer gap-2 text-destructive"
-                    disabled={inactivateDisabled}
-                    onClick={() => onInactivate(patient.id)}
-                >
-                    <UserX className="h-4 w-4" />
-                    Inativar paciente
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
+/**
+ * Lista de pacientes da clínica (tela v2): um cartão por paciente, com a
+ * busca, os filtros e a página guardados na URL.
+ */
 export default function PatientListPage() {
     const navigate = useNavigate();
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [perPage, setPerPage] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [filtersOpen, setFiltersOpen] = useState(false);
-
-    // Filter state
-    const [statusFilters, setStatusFilters] = useState<PatientStatus[]>([]);
-    const [professionalFilters, setProfessionalFilters] = useState<string[]>(
-        [],
+    const perPageId = useId();
+    const { filters, update, searchInput, setSearchInput } =
+        usePatientListUrlState();
+    const { data, isLoading, isError } = usePatients(
+        toPatientListParams(filters),
     );
-    const [activeFilter, setActiveFilter] = useState<boolean | undefined>(
-        undefined,
-    ); // undefined = todos
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const { data: professionals = [] } = useClinicProfessionals();
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const { user } = useAuth();
+    const role = user?.role as ClinicRole | undefined;
+    const inactivate = useBulkInactivatePatients();
+    const reactivate = useReactivatePatient();
+    const [pendingChange, setPendingChange] = useState<{
+        patient: Patient;
+        mode: ActivationMode;
+    } | null>(null);
+    // O modal continua mostrando o último paciente durante a animação de
+    // saída, em vez de piscar o título vazio e o botão de inativar.
+    const [shownChange, setShownChange] = useState(pendingChange);
+    if (pendingChange && pendingChange !== shownChange) {
+        setShownChange(pendingChange);
+    }
+    const allowedToChange: Record<ActivationMode, boolean> = {
+        inactivate: can.bulkInactivate(role),
+        reactivate: can.reactivate(role),
+    };
 
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 400);
-        return () => clearTimeout(timer);
-    }, [search]);
-
-    const { data: clinicUsers = [] } = useClinicProfessionals();
-    const bulkInactivate = useBulkInactivatePatients();
-
-    const { data, isLoading, isError } = usePatients({
-        page: currentPage,
-        perPage,
-        search: debouncedSearch || undefined,
-        isActive: activeFilter,
-        statuses: statusFilters.length > 0 ? statusFilters : undefined,
-        professionalIds:
-            professionalFilters.length > 0 ? professionalFilters : undefined,
-        dateFrom: dateFrom || undefined,
-        dateTo: dateTo || undefined,
-    });
+    const confirmChange = () => {
+        if (!pendingChange) return;
+        const { patient, mode } = pendingChange;
+        const onError = () =>
+            toast.error(
+                `Não foi possível ${mode === 'inactivate' ? 'inativar' : 'reativar'} o paciente.`,
+            );
+        if (mode === 'inactivate') {
+            inactivate.mutate([patient.id], {
+                onSuccess: (count) => {
+                    // count 0: o paciente sumiu (apagado ou de outra clínica).
+                    if (count === 0) {
+                        toast.error(
+                            'Paciente não encontrado. A lista foi atualizada.',
+                        );
+                    } else {
+                        toast.success(
+                            `${patientDisplayName(patient)} foi inativado.`,
+                        );
+                    }
+                    setPendingChange(null);
+                },
+                onError,
+            });
+        } else {
+            reactivate.mutate(patient.id, {
+                onSuccess: () => {
+                    toast.success(
+                        `${patientDisplayName(patient)} foi reativado.`,
+                    );
+                    setPendingChange(null);
+                },
+                onError,
+            });
+        }
+    };
 
     const patients = data?.data ?? [];
-    const totalPages = data?.lastPage ?? 1;
     const total = data?.total ?? 0;
+    const filtered = isFiltered(filters);
+    const filterCount = activePatientFilterCount(filters);
+    const chips = patientListChips(filters, professionals);
 
-    const activeFilterCount =
-        statusFilters.length +
-        professionalFilters.length +
-        (activeFilter !== undefined ? 1 : 0) +
-        (dateFrom ? 1 : 0) +
-        (dateTo ? 1 : 0);
+    const clearFilters = () => update(clearedPatientListFilters());
 
-    const allProfessionalsSelected =
-        clinicUsers.length > 0 &&
-        professionalFilters.length === clinicUsers.length;
-
-    const emptyMessage = isError
-        ? 'Erro ao carregar pacientes. Tente novamente.'
-        : 'Nenhum paciente encontrado.';
-
-    const pagination =
-        totalPages > 1
-            ? { currentPage, totalPages, onPageChange: setCurrentPage }
-            : undefined;
-
-    const toggleStatus = useCallback((value: PatientStatus) => {
-        setStatusFilters((prev) =>
-            prev.includes(value)
-                ? prev.filter((v) => v !== value)
-                : [...prev, value],
-        );
-        setCurrentPage(1);
-    }, []);
-
-    const toggleProfessional = useCallback((id: string) => {
-        setProfessionalFilters((prev) =>
-            prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id],
-        );
-        setCurrentPage(1);
-    }, []);
-
-    const toggleAllProfessionals = useCallback(() => {
-        if (allProfessionalsSelected) {
-            setProfessionalFilters([]);
-        } else {
-            setProfessionalFilters(clinicUsers.map((u) => u.id));
-        }
-        setCurrentPage(1);
-    }, [allProfessionalsSelected, clinicUsers]);
-
-    const clearFilters = useCallback(() => {
-        setStatusFilters([]);
-        setProfessionalFilters([]);
-        setActiveFilter(undefined);
-        setDateFrom('');
-        setDateTo('');
-        setSelectedIds([]);
-        setCurrentPage(1);
-    }, []);
+    const newPatient = () => navigate(NEW_PATIENT_PATH);
 
     return (
         <ClinicLayout>
-            <div className="flex h-full flex-col">
-                {/* Header */}
-                <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
-                    <div className="px-6 py-6">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-semibold text-foreground">
-                                Pacientes e evoluções
-                            </h1>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        className="gap-2"
-                                        onClick={() =>
-                                            navigate('/clinica/pacientes/novo')
-                                        }
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Novo paciente
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    Cadastrar novo paciente
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                    </div>
-                </header>
+            <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+                {/* O <main> é do ClinicLayout. */}
+                <div className="px-4 py-6 sm:px-6 sm:py-8">
+                    {/* Largura máxima = breakpoint xl do DS (1920px). */}
+                    <div className="mx-auto flex max-w-(--breakpoint-ds-xl) flex-col gap-6">
+                        <header className="flex flex-wrap items-center gap-4">
+                            <div className="mr-auto">
+                                <h1 className="text-ds-page-title">
+                                    Pacientes
+                                </h1>
+                                <p className="mt-1 text-ds-body-sm text-ds-content-secondary">
+                                    {isLoading
+                                        ? 'Carregando pacientes…'
+                                        : totalLabel(total, filtered)}
+                                </p>
+                            </div>
+                            {/* Celular: só o "+", para caber ao lado do título. */}
+                            <div className="sm:hidden">
+                                <DsButton
+                                    iconPosition="only"
+                                    icon={<Plus />}
+                                    label="Novo paciente"
+                                    onClick={newPatient}
+                                />
+                            </div>
+                            <div className="hidden sm:block">
+                                <DsButton
+                                    iconPosition="left"
+                                    icon={<Plus />}
+                                    label="Novo paciente"
+                                    onClick={newPatient}
+                                />
+                            </div>
+                        </header>
 
-                {/* Content */}
-                <div className="flex-1 overflow-auto p-6">
-                    {/* Search + Filters bar */}
-                    <div className="mb-6 flex flex-wrap items-center gap-3">
-                        <div className="relative w-full sm:max-w-md sm:flex-1">
-                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Pesquisar por nome, CPF ou e-mail"
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="pl-9"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm whitespace-nowrap text-muted-foreground">
-                                De
-                            </span>
-                            <Input
-                                type="date"
-                                value={dateFrom}
-                                onChange={(e) => {
-                                    setDateFrom(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-36"
-                            />
-                            <span className="text-sm whitespace-nowrap text-muted-foreground">
-                                até
-                            </span>
-                            <Input
-                                type="date"
-                                value={dateTo}
-                                onChange={(e) => {
-                                    setDateTo(e.target.value);
-                                    setCurrentPage(1);
-                                }}
-                                className="w-36"
-                            />
-                        </div>
-
-                        <Popover
-                            open={filtersOpen}
-                            onOpenChange={setFiltersOpen}
+                        <section
+                            aria-label="Busca e filtros"
+                            className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs"
                         >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2"
-                                >
-                                    <SlidersHorizontal className="h-4 w-4" />
-                                    Filtros
-                                    {activeFilterCount > 0 && (
-                                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                                            {activeFilterCount}
-                                        </span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent align="start" className="w-64 p-0">
-                                <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold">
-                                        Filtros
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="min-w-0 flex-1 basis-65">
+                                    <DsInput
+                                        type="search"
+                                        aria-label="Pesquisar pacientes"
+                                        placeholder="Pesquisar por nome, apelido, CPF ou e-mail"
+                                        iconLeft={<Search />}
+                                        value={searchInput}
+                                        onValueChange={setSearchInput}
+                                        onCleared={() => setSearchInput('')}
+                                    />
+                                </div>
+                                <div className="hidden flex-wrap items-center gap-3 md:flex">
+                                    <PatientFiltersBar
+                                        filters={filters}
+                                        professionals={professionals}
+                                        onChange={update}
+                                    />
+                                    <DsDropdown
+                                        mode="radio"
+                                        label="Itens por página"
+                                        icon={<Rows3 />}
+                                        menuAlign="right"
+                                        menuTitle="Itens por página"
+                                        items={PER_PAGE_OPTIONS.map((o) => ({
+                                            key: o.value,
+                                            label: `${o.label} por página`,
+                                        }))}
+                                        value={String(filters.perPage)}
+                                        onValueChange={(v) =>
+                                            update({ perPage: Number(v) })
+                                        }
+                                    />
+                                </div>
+                                <div className="md:hidden">
+                                    <DsButton
+                                        variant={
+                                            filterCount > 0
+                                                ? 'primary'
+                                                : 'secondary'
+                                        }
+                                        iconPosition="left"
+                                        icon={<SlidersHorizontal />}
+                                        label={
+                                            filterCount > 0
+                                                ? `Filtros (${filterCount})`
+                                                : 'Filtros'
+                                        }
+                                        onClick={() => setDrawerOpen(true)}
+                                    />
+                                </div>
+                            </div>
+                            {/* Altura fixa: a caixa não cresce com o primeiro filtro. */}
+                            <div className="flex min-h-8 items-center">
+                                {chips.length > 0 ? (
+                                    <DsFilterChips
+                                        chips={chips}
+                                        onRemove={(chip) =>
+                                            update(
+                                                removePatientListChip(
+                                                    filters,
+                                                    chip,
+                                                ),
+                                            )
+                                        }
+                                        onClear={clearFilters}
+                                    />
+                                ) : (
+                                    <span className="text-ds-body-compact text-ds-content-muted">
+                                        Nenhum filtro aplicado
                                     </span>
-                                    {activeFilterCount > 0 && (
-                                        <button
+                                )}
+                            </div>
+                        </section>
+
+                        {/* Celular: os dropdowns da barra somem, então os itens por página vêm aqui. */}
+                        <div className="-mt-2 flex items-center justify-end gap-2 md:hidden">
+                            <label
+                                htmlFor={perPageId}
+                                className="text-ds-body-compact whitespace-nowrap text-ds-content-muted"
+                            >
+                                Itens por página
+                            </label>
+                            <div className="w-24">
+                                <DsFieldSelect
+                                    id={perPageId}
+                                    size="sm"
+                                    options={PER_PAGE_OPTIONS}
+                                    value={String(filters.perPage)}
+                                    onValueChange={(v) =>
+                                        update({ perPage: Number(v) })
+                                    }
+                                />
+                            </div>
+                        </div>
+
+                        {/* Lista vazia com total > 0: página que já não existe, a caminho da última. */}
+                        {isLoading || (patients.length === 0 && total > 0) ? (
+                            <CardSkeletons />
+                        ) : isError ? (
+                            <DsEmptyState
+                                variant="error"
+                                title="Erro ao carregar pacientes"
+                                description="Tente de novo em alguns instantes."
+                            />
+                        ) : patients.length === 0 && !filtered ? (
+                            <DsEmptyState
+                                variant="empty"
+                                title="Nenhum paciente cadastrado"
+                                description="Cadastre o primeiro paciente da clínica."
+                                action={
+                                    <DsButton
+                                        iconPosition="left"
+                                        icon={<Plus />}
+                                        label="Novo paciente"
+                                        onClick={newPatient}
+                                    />
+                                }
+                            />
+                        ) : patients.length === 0 ? (
+                            <DsEmptyState
+                                variant="no-results"
+                                title="Nenhum paciente encontrado"
+                                action={
+                                    filterCount > 0 ? (
+                                        <DsButton
+                                            variant="secondary"
+                                            label="Limpar filtros"
                                             onClick={clearFilters}
-                                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                            <X className="h-3 w-3" />
-                                            Limpar
-                                        </button>
-                                    )}
-                                </div>
-
-                                <Separator />
-
-                                {/* Situação */}
-                                <div className="py-1">
-                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Situação
-                                    </p>
-                                    <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
-                                        <Checkbox
-                                            checked={activeFilter === true}
-                                            onCheckedChange={() => {
-                                                setActiveFilter((prev) =>
-                                                    prev === true
-                                                        ? undefined
-                                                        : true,
-                                                );
-                                                setCurrentPage(1);
-                                            }}
                                         />
-                                        <span className="text-sm">Ativo</span>
-                                    </label>
-                                    <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
-                                        <Checkbox
-                                            checked={activeFilter === false}
-                                            onCheckedChange={() => {
-                                                setActiveFilter((prev) =>
-                                                    prev === false
-                                                        ? undefined
-                                                        : false,
-                                                );
-                                                setCurrentPage(1);
-                                            }}
-                                        />
-                                        <span className="text-sm">Inativo</span>
-                                    </label>
-                                </div>
-
-                                <Separator />
-
-                                {/* Status clínico */}
-                                <div className="py-1">
-                                    <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                        Status
-                                    </p>
-                                    {STATUS_FILTER_OPTIONS.map((opt) => (
-                                        <label
-                                            key={opt.value}
-                                            className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
-                                        >
-                                            <Checkbox
-                                                checked={statusFilters.includes(
-                                                    opt.value,
-                                                )}
-                                                onCheckedChange={() =>
-                                                    toggleStatus(opt.value)
-                                                }
-                                            />
-                                            <span className="text-sm">
-                                                {opt.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-
-                                {/* Profissional */}
-                                {clinicUsers.length > 0 && (
-                                    <>
-                                        <Separator />
-                                        <div className="py-1">
-                                            <p className="px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                                Profissional
-                                            </p>
-                                            <label className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent">
-                                                <Checkbox
-                                                    checked={
-                                                        allProfessionalsSelected
+                                    ) : undefined
+                                }
+                            />
+                        ) : (
+                            <ul
+                                aria-label="Pacientes"
+                                className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4"
+                            >
+                                {patients.map((p) => (
+                                    <li key={p.id}>
+                                        <PatientCard
+                                            patient={p}
+                                            action={
+                                                <PatientActivationButton
+                                                    mode={activationModeOf(p)}
+                                                    allowed={
+                                                        allowedToChange[
+                                                            activationModeOf(p)
+                                                        ]
                                                     }
-                                                    onCheckedChange={
-                                                        toggleAllProfessionals
+                                                    onRequest={() =>
+                                                        setPendingChange({
+                                                            patient: p,
+                                                            mode: activationModeOf(
+                                                                p,
+                                                            ),
+                                                        })
                                                     }
                                                 />
-                                                <span className="text-sm font-medium">
-                                                    Selecionar Todos
-                                                </span>
-                                            </label>
-                                            <Separator className="my-1" />
-                                            <ScrollArea className="max-h-52">
-                                                {clinicUsers.map((user) => (
-                                                    <label
-                                                        key={user.id}
-                                                        className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-accent"
-                                                    >
-                                                        <Checkbox
-                                                            checked={professionalFilters.includes(
-                                                                user.id,
-                                                            )}
-                                                            onCheckedChange={() =>
-                                                                toggleProfessional(
-                                                                    user.id,
-                                                                )
-                                                            }
-                                                        />
-                                                        <span className="text-sm leading-tight">
-                                                            {user.name}
-                                                        </span>
-                                                    </label>
-                                                ))}
-                                            </ScrollArea>
-                                        </div>
-                                    </>
-                                )}
-                            </PopoverContent>
-                        </Popover>
-
-                        {activeFilterCount > 0 && (
-                            <button
-                                onClick={clearFilters}
-                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-3 w-3" />
-                                Limpar filtros
-                            </button>
+                                            }
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
                         )}
-                    </div>
 
-                    {selectedIds.length > 0 && (
-                        <div className="mb-4 flex items-center gap-3">
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                className="gap-2"
-                                disabled={bulkInactivate.isPending}
-                                onClick={() => {
-                                    bulkInactivate.mutate(selectedIds, {
-                                        onSuccess: () => setSelectedIds([]),
-                                    });
-                                }}
-                            >
-                                Inativar {selectedIds.length}{' '}
-                                {selectedIds.length === 1
-                                    ? 'paciente'
-                                    : 'pacientes'}
-                            </Button>
-                            <button
-                                onClick={() => setSelectedIds([])}
-                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-3 w-3" />
-                                Cancelar seleção
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Tabela — desktop */}
-                    <div className="hidden md:block">
-                        {isLoading ? (
-                            <PatientListTableSkeleton
-                                rows={Math.min(perPage, 8)}
-                            />
-                        ) : (
-                            <DataTable<Patient>
-                                columns={COLUMNS}
-                                data={patients}
-                                emptyMessage={emptyMessage}
-                                totalLabel="pacientes"
-                                totalCount={total}
-                                pagination={pagination}
-                                pageSize={perPage}
-                                pageSizeOptions={[10, 25, 50]}
-                                onPageSizeChange={(size) => {
-                                    setPerPage(size);
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                {(patient) => (
-                                    <TableRow
-                                        key={patient.id}
-                                        className="cursor-pointer"
-                                        onClick={() =>
-                                            navigate(
-                                                `/clinica/pacientes/${patient.id}`,
-                                            )
-                                        }
-                                    >
-                                        <TableCell
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <Checkbox
-                                                checked={selectedIds.includes(
-                                                    patient.id,
-                                                )}
-                                                onCheckedChange={(checked) => {
-                                                    setSelectedIds((prev) =>
-                                                        checked
-                                                            ? [
-                                                                  ...prev,
-                                                                  patient.id,
-                                                              ]
-                                                            : prev.filter(
-                                                                  (id) =>
-                                                                      id !==
-                                                                      patient.id,
-                                                              ),
-                                                    );
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar
-                                                    key={
-                                                        patient.photoUrl ??
-                                                        'no-photo'
-                                                    }
-                                                    className="h-9 w-9"
-                                                >
-                                                    {patient.photoUrl && (
-                                                        <AvatarImage
-                                                            src={
-                                                                patient.photoUrl
-                                                            }
-                                                            alt={patient.name}
-                                                        />
-                                                    )}
-                                                    <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                        {patient.initial}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <span className="font-medium text-foreground">
-                                                    {patient.name}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground">
-                                                {patient.professional || '—'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <StatusBadge
-                                                variant={
-                                                    STATUS_VARIANTS[
-                                                        patient.status
-                                                    ] ?? 'neutral'
-                                                }
-                                            >
-                                                {STATUS_LABELS[
-                                                    patient.status
-                                                ] ?? patient.status}
-                                            </StatusBadge>
-                                        </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">
-                                            <DiagnosisSummary
-                                                diagnosis={patient.diagnosis}
-                                            />
-                                        </TableCell>
-                                        <TableCell
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <PatientActions
-                                                patient={patient}
-                                                onNavigate={navigate}
-                                                onInactivate={(id) =>
-                                                    bulkInactivate.mutate([id])
-                                                }
-                                                inactivateDisabled={
-                                                    bulkInactivate.isPending
-                                                }
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </DataTable>
-                        )}
-                    </div>
-
-                    {/* Cards — mobile */}
-                    <div className="md:hidden">
-                        {isLoading ? (
-                            <PatientListCardSkeleton
-                                rows={Math.min(perPage, 4)}
-                            />
-                        ) : (
-                            <CardList<Patient>
-                                data={patients}
-                                emptyMessage={emptyMessage}
-                                totalLabel="pacientes"
-                                totalCount={total}
-                                pagination={pagination}
-                                pageSize={perPage}
-                                pageSizeOptions={[10, 25, 50]}
-                                onPageSizeChange={(size) => {
-                                    setPerPage(size);
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                {(patient) => (
-                                    <Card
-                                        key={patient.id}
-                                        className="cursor-pointer transition-colors hover:bg-accent/40"
-                                        onClick={() =>
-                                            navigate(
-                                                `/clinica/pacientes/${patient.id}`,
-                                            )
-                                        }
-                                    >
-                                        <div className="p-4">
-                                            {/* Linha 1: paciente + status + ações */}
-                                            <div className="flex items-center justify-between gap-2">
-                                                <div className="flex min-w-0 items-center gap-3">
-                                                    <div
-                                                        onClick={(e) =>
-                                                            e.stopPropagation()
-                                                        }
-                                                    >
-                                                        <Checkbox
-                                                            checked={selectedIds.includes(
-                                                                patient.id,
-                                                            )}
-                                                            onCheckedChange={(
-                                                                checked,
-                                                            ) => {
-                                                                setSelectedIds(
-                                                                    (prev) =>
-                                                                        checked
-                                                                            ? [
-                                                                                  ...prev,
-                                                                                  patient.id,
-                                                                              ]
-                                                                            : prev.filter(
-                                                                                  (
-                                                                                      id,
-                                                                                  ) =>
-                                                                                      id !==
-                                                                                      patient.id,
-                                                                              ),
-                                                                );
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <Avatar
-                                                        key={
-                                                            patient.photoUrl ??
-                                                            'no-photo'
-                                                        }
-                                                        className="h-9 w-9 shrink-0"
-                                                    >
-                                                        {patient.photoUrl && (
-                                                            <AvatarImage
-                                                                src={
-                                                                    patient.photoUrl
-                                                                }
-                                                                alt={
-                                                                    patient.name
-                                                                }
-                                                            />
-                                                        )}
-                                                        <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                                                            {patient.initial}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="truncate font-medium text-foreground">
-                                                        {patient.name}
-                                                    </span>
-                                                </div>
-                                                <div className="flex shrink-0 items-center gap-1">
-                                                    <StatusBadge
-                                                        variant={
-                                                            STATUS_VARIANTS[
-                                                                patient.status
-                                                            ] ?? 'neutral'
-                                                        }
-                                                    >
-                                                        {STATUS_LABELS[
-                                                            patient.status
-                                                        ] ?? patient.status}
-                                                    </StatusBadge>
-                                                    <div
-                                                        onClick={(e) =>
-                                                            e.stopPropagation()
-                                                        }
-                                                    >
-                                                        <PatientActions
-                                                            patient={patient}
-                                                            onNavigate={
-                                                                navigate
-                                                            }
-                                                            onInactivate={(
-                                                                id,
-                                                            ) =>
-                                                                bulkInactivate.mutate(
-                                                                    [id],
-                                                                )
-                                                            }
-                                                            inactivateDisabled={
-                                                                bulkInactivate.isPending
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Linha 2: diagnóstico */}
-                                            {patient.diagnosis && (
-                                                <p className="mt-2 ml-12 text-sm text-muted-foreground">
-                                                    <DiagnosisSummary
-                                                        diagnosis={
-                                                            patient.diagnosis
-                                                        }
-                                                    />
-                                                </p>
-                                            )}
-
-                                            {/* Linha 3: criado por */}
-                                            <p className="mt-2 ml-12 text-xs text-muted-foreground">
-                                                Criado por{' '}
-                                                {patient.professional || '—'}
-                                            </p>
-                                        </div>
-                                    </Card>
-                                )}
-                            </CardList>
-                        )}
+                        {/* Página que já não existe: o DsPagination pede a última. */}
+                        <DsPagination
+                            page={filters.page}
+                            onPageChange={(page) => update({ page })}
+                            total={total}
+                            perPage={filters.perPage}
+                            itemLabel="pacientes"
+                        />
                     </div>
                 </div>
             </div>
+            <PatientActivationModal
+                open={pendingChange !== null}
+                patient={shownChange?.patient ?? null}
+                mode={shownChange?.mode ?? 'inactivate'}
+                pending={inactivate.isPending || reactivate.isPending}
+                onConfirm={confirmChange}
+                onCancel={() => setPendingChange(null)}
+            />
+            <DsDrawer
+                open={drawerOpen}
+                onOpenChange={setDrawerOpen}
+                placement="bottom"
+                title="Filtros"
+                footer={
+                    <div className="flex w-full items-center gap-3">
+                        <DsButton
+                            variant="tertiary"
+                            label="Limpar"
+                            disabled={chips.length === 0}
+                            onClick={clearFilters}
+                        />
+                        <div className="ml-auto">
+                            <DsButton
+                                label={`Ver ${total} ${total === 1 ? 'paciente' : 'pacientes'}`}
+                                onClick={() => setDrawerOpen(false)}
+                            />
+                        </div>
+                    </div>
+                }
+            >
+                <PatientFiltersPanel
+                    filters={filters}
+                    professionals={professionals}
+                    onChange={update}
+                />
+            </DsDrawer>
         </ClinicLayout>
     );
 }

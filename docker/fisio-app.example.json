@@ -1,0 +1,38 @@
+// Modelo da configuração do bin/fisio-app. Nenhum script lê este arquivo.
+// Para usar: cp docker/fisio-app.example.json docker/fisio-app.json
+// e edite o seu (ele fica fora do git). Sem o seu arquivo, valem os padrões
+// indicados abaixo. Linhas que começam com // são comentário (o editor pode
+// marcar como erro de JSON; o fisio-app ignora).
+{
+  // Página que o "fisio-app new" e o "fisio-app open" abrem no navegador.
+  // {porta} vira a porta que o Docker deu à tarefa. Exemplos:
+  //   "http://localhost:{porta}/clinica/login"   login da clínica (padrão)
+  //   "http://localhost:{porta}/admin"           admin
+  "abrir": "http://localhost:{porta}/clinica/login",
+
+  // O que o "fisio-app new" abre na pasta da tarefa. Opções:
+  //   "cursor"               Cursor
+  //   "code"                 VS Code, se o comando "code" estiver instalado no terminal
+  //   "Visual Studio Code"   VS Code pelo nome do aplicativo (Mac, sem instalar o comando)
+  //   "PhpStorm", "Zed"...   qualquer aplicativo do Mac, pelo nome
+  //   "terminal"             janela nova do Terminal na pasta, já com o claude rodando
+  //   "tmux"                 o claude rodando no tmux, na pasta da tarefa: se você já está
+  //                          dentro do tmux, abre uma janela nova nele; se não, cria uma
+  //                          sessão com o nome da tarefa e abre o Terminal conectado a ela
+  //                          (volte com "tmux attach -t <tarefa>"). Precisa do tmux
+  //   "nenhum"               o terminal normal do sistema na pasta, só o shell. É o padrão
+  "editor": "code",
+
+  // Com o que o banco de uma tarefa nova começa:
+  //   "seed"      migrations + DatabaseSeeder (clínicas, pacientes e exercícios de demonstração). Padrão
+  //   "copiar"    cópia do banco do checkout principal (o do DB_* do seu .env), mais as migrations da branch
+  //   "vazio"     só as migrations
+  //   um caminho  arquivo .sql ou .sql.gz (pg_dump) importado, mais as migrations
+  "banco_inicial": "seed",
+
+  // O ambiente desliga o que fala com gente de verdade: WhatsApp
+  // (WHATSAPP_ENABLED=false, credenciais do Twilio vazias) e e-mail
+  // (MAIL_MAILER=log). Chaves listadas aqui passam com o valor real do seu
+  // .env. Separe por vírgula. Padrão: "" (nenhuma).
+  "manter_env": ""
+}

@@ -47,7 +47,9 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        ClinicUser::updateOrCreate(
+        // withTrashed + restore: o seed volta ao estado conhecido mesmo se o
+        // usuário tiver sido excluído (soft delete, ADR 022).
+        ClinicUser::withTrashed()->updateOrCreate(
             ['email' => 'clevertonsantoscodev@gmail.com'],
             [
                 'clinic_id' => $clinic->id,
@@ -58,7 +60,7 @@ class DatabaseSeeder extends Seeder
                 'mestre'    => ClinicUser::MESTRE_YES,
                 'status'    => ClinicUser::STATUS_ACTIVE,
             ]
-        );
+        )->restore();
 
         Patient::updateOrCreate(
             [
@@ -101,7 +103,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            ClinicUser::updateOrCreate(
+            ClinicUser::withTrashed()->updateOrCreate(
                 ['email' => $data['email']],
                 [
                     'clinic_id' => $extraClinic->id,
@@ -112,7 +114,7 @@ class DatabaseSeeder extends Seeder
                     'mestre'    => ClinicUser::MESTRE_YES,
                     'status'    => ClinicUser::STATUS_ACTIVE,
                 ]
-            );
+            )->restore();
         }
 
         // Plano Start: apenas 1 paciente básico (sem massa de demonstração)

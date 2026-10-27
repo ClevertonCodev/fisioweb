@@ -63,6 +63,7 @@ export interface AssessmentAnswerOptionRecord {
 
 export interface Assessment {
     id: number;
+    patientId: number;
     status: AssessmentStatus;
     signedAt: string | null;
     template: AssessmentTemplate;

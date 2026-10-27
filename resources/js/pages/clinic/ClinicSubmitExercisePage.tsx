@@ -43,6 +43,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import SubmitExercisePrototype from '@/pages/clinic/exercise-submit-prototype/SubmitExercisePrototype';
+import { SUBMIT_VARIANTS } from '@/pages/clinic/exercise-submit-prototype/variants';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
 
 const ACCEPT_VIDEO =
     'video/mp4,video/mpeg,video/quicktime,video/x-msvideo,video/webm,video/x-flv,video/x-matroska';
@@ -65,6 +71,15 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function ClinicSubmitExercisePage() {
+    // PROTÓTIPO: tela v2 por ?variant= (O = esta tela v1).
+    const variant = usePrototypeVariant(SUBMIT_VARIANTS, 'A');
+    if (import.meta.env.DEV && variant !== 'O') {
+        return <SubmitExercisePrototype variant={variant} />;
+    }
+    return <ClinicSubmitExerciseV1 />;
+}
+
+function ClinicSubmitExerciseV1() {
     const navigate = useNavigate();
     const { data: physioAreas = [] } = useClinicExerciseOptions();
     const { submit, status, progress, error, reset } = useSubmitExercise();
@@ -147,6 +162,9 @@ export default function ClinicSubmitExercisePage() {
 
     return (
         <ClinicLayout>
+            {import.meta.env.DEV && (
+                <PrototypeSwitcher variants={SUBMIT_VARIANTS} current="O" />
+            )}
             <div className="flex h-full flex-col">
                 <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur">
                     <div className="flex items-center justify-between gap-4 px-6 py-4">

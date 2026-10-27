@@ -1,0 +1,80 @@
+# Suba sempre pelo bin/fisio-app: ele dá a cada pasta de trabalho (checkout ou
+# worktree) um projeto com nome próprio. Não coloque container_name nem porta
+# fixa aqui: a segunda worktree esbarraria na primeira, ou pior, passaria a
+# usar o banco dela sem dar erro nenhum.
+name: ${AMBIENTE_NOME:?suba pelo bin/fisio-app}
+
+x-php: &php
+  # Construída na primeira vez a partir do dev.Dockerfile e reaproveitada por
+  # todas as pastas, porque o nome da imagem é o mesmo.
+  image: fisioweb-dev-local:php8.5
+  # Roda com o seu usuário, senão vendor/, storage/ e logs ficam com dono root na sua máquina.
+  user: "${AMBIENTE_UID:-1000}:${AMBIENTE_GID:-1000}"
+  working_dir: /var/www/html
+  environment:
+    HOME: /tmp
+    COMPOSER_HOME: /tmp/composer
+  volumes:
+    # A pasta onde o bin/fisio-app rodou, não a deste compose: o compose pode
+    # vir de outro checkout.
+    - ${AMBIENTE_CODIGO:?suba pelo bin/fisio-app}:/var/www/html
+    # .env gerado pelo bin/fisio-app a partir do .env do checkout principal,
+    # apontando para o Postgres deste ambiente. Troca o .env só dentro do
+    # container; o da sua máquina não muda.
+    - ${AMBIENTE_ENV:?suba pelo bin/fisio-app}:/var/www/html/.env:ro
+    # Numa worktree, o .git é um arquivo que aponta para o .git do checkout
+    # principal pelo caminho do Mac. No mesmo caminho aqui dentro, o git funciona
+    # (o tests/Architecture usa git ls-files).
+    - ${AMBIENTE_GIT:?suba pelo bin/fisio-app}:${AMBIENTE_GIT}:ro
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:18-alpine
+    # Banco de desenvolvimento: sem garantia de durabilidade, mais rápido.
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
+    environment:
+      POSTGRES_DB: fisioweb
+      POSTGRES_USER: fisioweb
+      POSTGRES_PASSWORD: fisioweb
+    volumes:
+      - pgsql:/var/lib/postgresql
+    # Porta sorteada, para abrir o banco num cliente: veja o AMBIENTE.md da pasta.
+    ports:
+      - "127.0.0.1::5432"
+    # O "fisio-app db-copiar" lê o banco do checkout principal, que roda no Mac.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "fisioweb", "-U", "fisioweb"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  web:
+    <<: *php
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    # Vários workers: a SPA dispara várias chamadas à API ao mesmo tempo.
+    environment:
+      HOME: /tmp
+      COMPOSER_HOME: /tmp/composer
+      PHP_CLI_SERVER_WORKERS: "4"
+    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+    # Porta sorteada: bin/fisio-app url.
+    ports:
+      - "127.0.0.1::8000"
+
+  # Worker da fila (QUEUE_CONNECTION=database), como o systemd de produção.
+  queue:
+    <<: *php
+    command: ["php", "artisan", "queue:work", "--tries=1", "--timeout=0"]
+
+volumes:
+  pgsql:

@@ -1,4 +1,5 @@
 import type {
+    AgendaPreferences,
     Appointment,
     Assessment,
     AssessmentSummary,
@@ -8,10 +9,13 @@ import type {
     Exercise,
     FilterCategory,
     Patient,
+    PatientAppointmentHistoryItem,
     PatientEvolution,
     PatientFile,
     PatientQuestionnaire,
     Program,
+    ServiceType,
+    ServiceTypeDraft,
 } from '@/domain/clinic';
 import type { PatientStatus } from '@/domain/clinic/patient';
 
@@ -41,7 +45,6 @@ export interface PatientWriteDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
-    isActive?: boolean;
 }
 
 /** DTO de atualização de paciente — sem senha (application concern, camelCase) */
@@ -69,7 +72,6 @@ export interface PatientUpdateDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
-    isActive?: boolean;
 }
 
 export interface PatientListParams {
@@ -101,7 +103,9 @@ export interface PatientsRepository {
     update(id: string, dto: PatientUpdateDto): Promise<Patient>;
     uploadPhoto(id: string, file: File): Promise<Patient>;
     deletePhoto(id: string): Promise<Patient>;
-    bulkInactivate(ids: string[]): Promise<void>;
+    /** Devolve quantos pacientes foram inativados. */
+    bulkInactivate(ids: string[]): Promise<number>;
+    reactivate(id: string): Promise<Patient>;
 }
 
 export interface ExerciseListParams {
@@ -141,6 +145,7 @@ export interface AppointmentListParams {
     to?: string;
     clinicUserId?: string;
     status?: string;
+    patientId?: string;
 }
 
 /** DTO de escrita para criar/editar consulta (camelCase). */
@@ -173,6 +178,38 @@ export interface AppointmentsRepository {
         status: import('@/domain/clinic').AppointmentStatus,
     ): Promise<Appointment>;
     cancel(id: string): Promise<Appointment>;
+    /**
+     * Uma página do histórico do paciente, da consulta mais recente para a
+     * mais antiga. `null` quando o usuário não pode vê-lo (404 da API).
+     */
+    patientHistory(
+        patientId: string,
+        page: number,
+    ): Promise<PatientAppointmentHistoryPage | null>;
+}
+
+export interface PatientAppointmentHistoryPage {
+    items: PatientAppointmentHistoryItem[];
+    total: number;
+    perPage: number;
+    currentPage: number;
+    lastPage: number;
+}
+
+/** Preferências da agenda salvas na conta do usuário (`/clinic/me/preferences`). */
+export interface AgendaPreferencesRepository {
+    /** Só os valores salvos; o que faltar fica com o padrão. */
+    get(): Promise<Partial<AgendaPreferences>>;
+    save<K extends keyof AgendaPreferences>(
+        key: K,
+        value: AgendaPreferences[K],
+    ): Promise<void>;
+}
+
+export interface ServiceTypesRepository {
+    list(): Promise<ServiceType[]>;
+    /** Substitui a lista inteira (ordem do array = posição). */
+    replace(items: ServiceTypeDraft[]): Promise<ServiceType[]>;
 }
 
 /** Estado de conexão Google Calendar do usuário autenticado (camelCase). */
@@ -224,6 +261,7 @@ export interface ProgramListParams {
     search?: string;
     status?: string;
     withoutPatient?: boolean;
+    patientId?: string;
 }
 
 export interface ProgramListResult {

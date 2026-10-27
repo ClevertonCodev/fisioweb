@@ -5,13 +5,13 @@ alwaysApply: true
 <!-- SPECKIT START -->
 # Fisioweb — Spec Kit Context
 
-Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md`, skills em `.claude/skills/` e mapa resumido em `.cursor/rules/fisioweb-skills.mdc`.
+Spec-Driven Development ativo. Regras de projeto em `CLAUDE.md` / `AGENTS.md`, skills em `.claude/skills/`, `.cursor/skills/` e `.agents/skills/` (as três canônicas) e mapa em `.cursor/rules/fisioweb-skills.mdc`.
 
 | Arquivo | Conteúdo |
 |---------|----------|
 | `CLAUDE.md` / `AGENTS.md` | Overview, stack, comandos, princípios não-negociáveis |
 | `.cursor/rules/fisioweb-skills.mdc` | Skill map — **consultar antes de implementar** |
-| `.claude/skills/` | Skills detalhadas por tarefa (backend, frontend, security, speckit-*) |
+| `.claude/skills/`, `.cursor/skills/` e `.agents/skills/` | Skills detalhadas (mesmo conteúdo; atualizar as três; `bash bin/verificar-skills.sh`) |
 | `.specify/memory/constitution.md` | Princípios Spec Kit (local; template se ainda não ratificado) |
 | `specs/_shared/` | Artefatos compartilhados entre features (ex.: UI patterns) |
 | `specs/*/` | Spec, plan, tasks e contratos da feature ativa |
@@ -34,13 +34,12 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 
 ## Skills — consultar sempre (conforme escopo)
 
-**Leia o `SKILL.md` relevante antes de codar.** Skills em `.cursor/skills/<nome>/` (symlink para `.claude/skills/`).
+**Leia o `SKILL.md` relevante antes de codar.** Cursor: `.cursor/skills/<nome>/`. Claude Code: `.claude/skills/<nome>/`. Antigravity: `.agents/skills/<nome>/`. As três canônicas — mantenha iguais (`bash bin/verificar-skills.sh`).
 
 ### Backend
 | Tarefa | Skill |
 |--------|-------|
-| Fronteira entre módulos, contrato público, eventos, ADR | `architecture-paradigm-modular-monolith` |
-| CRUD modular (Controller → Service → Repository → Route) | `backend-module` |
+| Fronteira entre módulos, CRUD no módulo, contrato público, eventos, ADR | `architecture-paradigm-modular-monolith` |
 | Eloquent (Model, scopes, casts, observers, transações) | `laravel-eloquent` |
 | Job async (WhatsApp, PDF, R2, e-mail) | `laravel-queues` |
 | Enum, DTO readonly, Value Object, match | `php-modern` |
@@ -52,8 +51,9 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 | DDD (domain → application → infra → page → route) | `frontend-ddd` |
 | Hooks, performance, React 19 | `frontend-react` |
 | Testes Vitest + RTL | `frontend-testing` |
-| **Componentes, cores, sidebar, popover, cursor** | **`frontend-ui-patterns`** |
-| DataTable, Forms RHF+Zod, Dialog | `forms-shadcn` |
+| **Componentes, cores, sidebar, popover, cursor (telas v1)** | **`frontend-ui-patterns`** |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, dark mode)** | **`design-system`** |
+| DataTable, Forms RHF+Zod, Dialog (telas v1) | `forms-shadcn` |
 | apiClient, Repository, JWT multi-guard | `api-client` |
 
 ### Cross-cutting
@@ -70,7 +70,7 @@ Referência completa: `.cursor/spec-kit-comandos.md`
 5. **HTTP só via `apiClient`:** guards JWT inferidos pela URL (`/admin/*` → admin, `/clinic/*` → clinic).
 6. **`domain/` puro:** camelCase, sem `_at`, sem `ApiXxx`, sem WriteDto, sem constantes de UI.
 7. **Form com 2+ campos → RHF + Zod** (não copiar pages legadas com `useState`).
-8. **UI:** tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`.
+8. **UI:** telas v1 com tokens Tailwind/shadcn, `AdminLayout`/`ClinicLayout`, cursor pointer em clicáveis — ver `frontend-ui-patterns` e `specs/_shared/frontend-ui-patterns.md`. Telas v2 usam `@/components/ds` — ver `design-system`; nunca as duas bibliotecas na mesma tela.
 9. **PHP:** Laravel Pint; sem `declare(strict_types=1)` por convenção atual; Controller → Service → Repository → Model; null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
 
 ## Stack

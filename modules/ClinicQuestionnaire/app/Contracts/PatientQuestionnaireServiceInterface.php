@@ -29,10 +29,10 @@ interface PatientQuestionnaireServiceInterface
     /**
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function showForPublic(int $id): PatientQuestionnaire;
+    public function showForPublic(string $token): PatientQuestionnaire;
 
     /**
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function submitPublicAnswer(int $id, array $answers): PatientQuestionnaire;
+    public function submitPublicAnswer(string $token, array $answers): PatientQuestionnaire;
 }

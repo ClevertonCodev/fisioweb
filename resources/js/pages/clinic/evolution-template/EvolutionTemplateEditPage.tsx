@@ -15,6 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { EvolutionTemplate } from '@/domain/clinic';
+import {
+    PrototypeSwitcher,
+    usePrototypeVariant,
+} from '@/pages/clinic/PrototypeSwitcher';
+
+import EditorPrototype from './evolution-template-prototype/EditorPrototype';
+import { EDITOR_VARIANTS } from './evolution-template-prototype/shared';
 
 function validate(name: string, sections: DraftSection[]): string | null {
     if (!name.trim()) return 'Informe o nome do template.';
@@ -34,7 +41,22 @@ function validate(name: string, sections: DraftSection[]): string | null {
     return null;
 }
 
+/**
+ * PROTÓTIPO: em desenvolvimento, ?variant= troca a tela pela do DS v2
+ * (evolution-template-prototype); O = esta tela. Desligado nos testes (o
+ * Vitest roda com DEV ligado).
+ */
+const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
+
 export default function EvolutionTemplateEditPage() {
+    const variant = usePrototypeVariant(EDITOR_VARIANTS, 'A');
+    if (PROTOTYPE && variant !== 'O') {
+        return <EditorPrototype variant={variant} />;
+    }
+    return <EvolutionTemplateEditPageV1 />;
+}
+
+function EvolutionTemplateEditPageV1() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const updateTemplate = useUpdateEvolutionTemplate();
@@ -76,6 +98,9 @@ export default function EvolutionTemplateEditPage() {
                     navigate('/clinica/templates/evolucoes');
                 }}
             />
+            {PROTOTYPE && (
+                <PrototypeSwitcher variants={EDITOR_VARIANTS} current="O" />
+            )}
         </ClinicLayout>
     );
 }

@@ -6,6 +6,8 @@ export type ExerciseReviewStatus = 'pending' | 'approved' | 'rejected';
 export interface Exercise {
     id: string;
     title: string;
+    /** Como fazer o exercício (texto para o paciente). */
+    description: string;
     thumbnailUrl: string;
     videoUrl: string;
     specialty: string;

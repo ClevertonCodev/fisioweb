@@ -178,6 +178,16 @@ apiClient.interceptors.response.use(
             return Promise.reject(error);
         }
 
+        // Nas rotas de entrar e de senha, 401 é "credencial errada", não
+        // sessão vencida: o erro vai para a tela, sem renovar nem recarregar.
+        if (
+            /\/auth\/(login|forgot-password|reset-password)$/.test(
+                originalRequest.url ?? '',
+            )
+        ) {
+            return Promise.reject(error);
+        }
+
         const urlGuard = inferGuardFromApiUrl(originalRequest.url);
 
         const isRefreshRequest = originalRequest.url?.includes('/auth/refresh');

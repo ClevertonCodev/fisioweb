@@ -1,26 +1,19 @@
 import { ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useIsMobile } from '@/hooks/use-mobile';
 
-import { ClinicSidebar } from './ClinicSidebar';
+import { ClinicTopbar } from './ClinicTopbar';
 
 interface ClinicLayoutProps {
     children: ReactNode;
 }
 
 export function ClinicLayout({ children }: ClinicLayoutProps) {
-    const isMobile = useIsMobile();
-
     return (
         <TooltipProvider>
-            <div className="flex h-screen w-full bg-background">
-                <ClinicSidebar />
-                <main
-                    className={`min-h-0 flex-1 overflow-auto ${isMobile ? 'pt-14' : ''}`}
-                >
-                    {children}
-                </main>
+            <div className="flex h-screen w-full flex-col bg-background font-ds">
+                <ClinicTopbar />
+                <main className="min-h-0 flex-1 overflow-auto">{children}</main>
             </div>
         </TooltipProvider>
     );

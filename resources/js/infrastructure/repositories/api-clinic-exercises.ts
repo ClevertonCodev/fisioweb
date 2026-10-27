@@ -27,6 +27,7 @@ interface ApiRelation {
 interface ApiExercise {
     id: number;
     name: string;
+    description: string | null;
     physio_area: ApiRelation | null;
     physio_subarea: ApiRelation | null;
     body_region: ApiRelation | null;
@@ -66,6 +67,7 @@ function toEntity(raw: ApiExercise): Exercise {
     return {
         id: String(raw.id),
         title: raw.name ?? '',
+        description: raw.description ?? '',
         thumbnailUrl: video?.thumbnail_url ?? '',
         videoUrl: video?.cdn_url ?? video?.url ?? '',
         specialty: raw.physio_area?.name ?? '',

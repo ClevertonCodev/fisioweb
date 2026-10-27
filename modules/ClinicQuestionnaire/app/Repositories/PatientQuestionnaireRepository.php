@@ -2,7 +2,9 @@
 
 namespace Modules\ClinicQuestionnaire\Repositories;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireRepositoryInterface;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaireAnswer;
@@ -15,7 +17,7 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
             ->forClinic($clinicId)
             ->where('patient_id', $patientId)
             ->whereHas('template')
-            ->with(['clinicUser', 'template'])
+            ->with(['clinic', 'clinicUser', 'template'])
             ->latest()
             ->get();
     }
@@ -24,6 +26,7 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
     {
         return PatientQuestionnaire::query()
             ->with([
+                'clinic',
                 'clinicUser',
                 'template' => fn ($q) => $q->withTrashed()->with('sections.questions'),
                 'answers',
@@ -31,15 +34,24 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
             ->findOrFail($id);
     }
 
-    public function findForPublic(int $id): PatientQuestionnaire
+    public function findForPublic(string $token): PatientQuestionnaire
     {
+        if (!Str::isUuid($token)) {
+            throw (new ModelNotFoundException)->setModel(PatientQuestionnaire::class);
+        }
+
         return PatientQuestionnaire::query()
             ->with(['template.sections.questions'])
-            ->findOrFail($id);
+            ->where('public_token', $token)
+            ->firstOrFail();
     }
 
     public function create(array $data): PatientQuestionnaire
     {
+        if (empty($data['public_token'])) {
+            $data['public_token'] = (string) Str::uuid();
+        }
+
         return PatientQuestionnaire::query()->create($data);
     }
 

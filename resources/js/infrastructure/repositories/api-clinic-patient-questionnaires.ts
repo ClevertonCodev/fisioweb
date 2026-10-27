@@ -42,6 +42,8 @@ interface ApiPatientQuestionnaireDto {
     modality: 'presencial' | 'remoto';
     answered_at: string | null;
     expires_at: string | null;
+    public_token: string;
+    share_url: string | null;
     created_at: string;
     answers?: Array<{
         id: number;
@@ -67,6 +69,8 @@ function toPatientQuestionnaire(
         modality: raw.modality,
         answeredAt: raw.answered_at,
         expiresAt: raw.expires_at,
+        publicToken: raw.public_token,
+        shareUrl: raw.share_url ?? null,
         createdAt: raw.created_at,
     };
 }

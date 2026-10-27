@@ -10,6 +10,9 @@ export const can = {
     sign: (role?: ClinicRole) => role === 'admin' || role === 'physiotherapist',
     bulkInactivate: (role?: ClinicRole) =>
         role === 'admin' || role === 'secretary',
+    reactivate: (role?: ClinicRole) => role === 'admin' || role === 'secretary',
     manageClinicalRecords: (role?: ClinicRole) =>
         role === 'admin' || role === 'physiotherapist',
+    manageServiceTypes: (role?: ClinicRole) =>
+        role === 'admin' || role === 'secretary',
 };

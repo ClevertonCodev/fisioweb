@@ -6,12 +6,12 @@ metadata:
   triggers: frontend, react, ddd, domain, application, infrastructure, ports, repository, mapper, loader, page, EntityListPage, EntityNewPage, EntityEditPage, camelCase
   scope: implementation
   output-format: code
-  related-skills: frontend-react, frontend-testing, backend-module
+  related-skills: frontend-react, frontend-testing, architecture-paradigm-modular-monolith
 ---
 
 # Frontend DDD (fisioweb)
 
-Arquitetura obrigatória do `resources/js/`. Referência completa em `frontend-standards-fisio.md` e `AGENTS.md`. Esta skill é o **resumo acionável + templates** prontos pra uso.
+Arquitetura obrigatória do `resources/js/`. Referência completa em `frontend-standards-fisio.md` e `CLAUDE.md`. Esta skill é o **resumo acionável + templates** prontos pra uso.
 
 ## Quando usar
 
@@ -28,7 +28,7 @@ Arquitetura obrigatória do `resources/js/`. Referência completa em `frontend-s
 |--------------|----------|
 | Hooks customizados, useEffect, memo, useMemo, useCallback, useActionState, useOptimistic | [`frontend-react`](../frontend-react/SKILL.md) |
 | Escrever teste de hook/página/repository com Vitest+RTL | [`frontend-testing`](../frontend-testing/SKILL.md) |
-| Backend que vai servir esta feature | [`../backend-module/SKILL.md`](../backend-module/SKILL.md) |
+| Backend que vai servir esta feature | [`../architecture-paradigm-modular-monolith/SKILL.md`](../architecture-paradigm-modular-monolith/SKILL.md) |
 
 ## Estrutura de pastas — responsabilidade por camada
 

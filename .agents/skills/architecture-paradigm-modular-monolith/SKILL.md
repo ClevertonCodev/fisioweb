@@ -7,7 +7,7 @@ description: Projetar e evoluir somente o backend Laravel do fisioweb como monol
 
 Use esta skill como criterio arquitetural para o backend antes de implementar features que atravessam mais de um modulo Laravel. O objetivo e manter um unico deploy backend, mas tratar `modules/<Module>` como bounded contexts com contratos explicitos e minimo conhecimento interno entre si.
 
-Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `frontend-ddd`, `forms-shadcn`, `frontend-react`, `frontend-ui-patterns`, `frontend-testing` e `api-client`.
+Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `frontend-ddd`, `forms-shadcn`, `frontend-react`, `frontend-ui-patterns` (telas v1), `design-system` (telas v2), `frontend-testing` e `api-client`.
 
 ## Principios
 
@@ -36,7 +36,6 @@ Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `front
 | Estou fazendo | Carregue tambem |
 |--------------|-----------------|
 | Definir responsabilidades internas, DTOs, interfaces e Service/UseCase | [`backend-clean-code`](../backend-clean-code/SKILL.md) |
-| CRUD/backend dentro de um modulo | [`backend-module`](../backend-module/SKILL.md) |
 | Entidade, relacionamento, query ou transacao | [`laravel-eloquent`](../laravel-eloquent/SKILL.md) |
 | Job async ou listener com fila | [`laravel-queues`](../laravel-queues/SKILL.md) |
 | DTO, Enum, Value Object ou contrato tipado | [`php-modern`](../php-modern/SKILL.md) |
@@ -50,7 +49,7 @@ Esta skill nao define arquitetura do frontend. Para React/TypeScript, use `front
 - Tabelas tem dono unico. Outro modulo nao escreve nelas diretamente.
 - Shared code deve ser pequeno, estavel e tecnico. Nao colocar regra de negocio em `app/` ou helpers globais para "compartilhar".
 - Eventos carregam identificadores e snapshots minimos, nao modelos Eloquent completos.
-- `Contracts/` do `backend-module` tambem contem interfaces internas de Repository/Service. Nem todo arquivo em `Contracts/` e automaticamente contrato publico entre modulos.
+- Nem todo arquivo em `Contracts/` de um modulo e contrato publico entre modulos; interfaces internas de Repository/Service ficam no modulo dono.
 
 ## Decision Matrix
 

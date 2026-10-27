@@ -1,0 +1,40 @@
+---
+description: Ciclo de trabalho e Definição de Pronto do fisioweb (ai-harness)
+alwaysApply: true
+---
+
+# Ciclo de trabalho
+
+Cada etapa tem uma skill em `.cursor/skills/`, e cada uma diz qual é a próxima:
+
+`refinar` → `escrever-plano` (cria `.ai-workbench/NNN-<slug>/` com `README.md`
+e `plans/`) → `criar-tarefas` (salva em `tasks/` da feature) →
+`implementar-tarefa` (teste primeiro, termina na Definição de Pronto) →
+`revisao-adversaria`.
+
+Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`, `plans/`,
+`tasks/`, `evidence/`, `review/` e `DEFERRED.md`; a raiz tem um `DEFERRED.md`
+para o que não pertence a nenhuma feature. Detalhes na seção "Pasta de
+trabalho" da Definição de Pronto.
+
+# Definição de Pronto
+
+Uma tarefa **não** está pronta só porque o código roda. Antes de dizer que
+terminou, passe por cada item que se aplica de
+`docs/ai-harness/DEFINITION_OF_DONE.md` e só afirme que está pronto quando todos
+passarem, dizendo qual item pulou e por quê.
+
+Dois itens são os mais fáceis de pular:
+
+- **Smoke test com evidência** em `.ai-workbench/<feature>/evidence/<tarefa>/`, com o
+  `SUMMARY.md` que o revisor lê, incluindo o caso de outra clínica. Pulou? Diga
+  o motivo também no pedido ao revisor.
+- **Revisão adversária** com a skill `revisao-adversaria`, até o veredito
+  APROVADO, no máximo 3 rodadas.
+
+`bash bin/verificar.sh` roda os testes e as verificações nos arquivos que
+mudaram desde a `main`. O que ficar fora do escopo vai para o `DEFERRED.md` da
+feature na hora em que a decisão for tomada.
+
+Os subagentes `revisor-adversario` e `verificador-de-achados` ficam em
+`.cursor/agents/` e apontam para as instruções em `.claude/agents/`.

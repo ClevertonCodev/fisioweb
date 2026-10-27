@@ -1,8 +1,9 @@
-import { Mail, Shield } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import loginBg from '@/assets/login-bg.jpg';
+import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { forgotPassword } from '@/infrastructure/api/auth.service';
@@ -43,13 +44,14 @@ export default function AdminForgotPasswordPage() {
             <div className="absolute inset-0 bg-background/30 backdrop-blur-[2px]" />
 
             <div className="relative z-10 flex w-[90%] max-w-[420px] flex-col items-center rounded-3xl border border-border/40 bg-card/70 p-10 shadow-2xl backdrop-blur-xl">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-                    <Shield className="h-8 w-8 text-primary" />
-                </div>
+                <AppLogo className="mb-4 h-16 w-16" />
 
-                <h1 className="mb-1 text-2xl font-bold tracking-tight text-foreground">
-                    FisioClinic
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                    IVS
                 </h1>
+                <p className="mb-1 text-sm text-muted-foreground">
+                    Fisioterapia e Saúde
+                </p>
                 <h2 className="mt-4 mb-2 font-serif text-2xl font-bold text-foreground italic">
                     Recuperar Senha
                 </h2>
@@ -61,7 +63,8 @@ export default function AdminForgotPasswordPage() {
                 {success ? (
                     <div className="w-full space-y-4">
                         <div className="rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-center text-sm text-green-700 dark:text-green-400">
-                            E-mail de recuperação enviado. Verifique sua caixa
+                            Se houver uma conta com este e-mail, enviamos um
+                            link para criar uma senha nova. Verifique sua caixa
                             de entrada.
                         </div>
                         <Button

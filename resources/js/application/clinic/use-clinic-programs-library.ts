@@ -1,7 +1,14 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+    useInfiniteQuery,
+    useQuery,
+    useQueryClient,
+} from '@tanstack/react-query';
 
 import { apiClinicProgramsLibraryRepository } from '@/infrastructure/repositories';
-import type { ClinicProgramsLibraryParams } from '@/infrastructure/repositories/api-clinic-programs-library';
+import type {
+    ClinicProgramsLibraryParams,
+    SharedProgram,
+} from '@/infrastructure/repositories/api-clinic-programs-library';
 
 const PROGRAMS_LIBRARY_KEY = ['clinic', 'programs-library'] as const;
 
@@ -38,10 +45,39 @@ export function useInfiniteClinicProgramsLibrary(
     });
 }
 
-export function useClinicProgramLibraryDetail(id: number | null) {
+export async function listAllClinicProgramsLibrary(
+    params?: Omit<ClinicProgramsLibraryParams, 'page' | 'perPage'>,
+) {
+    const items: SharedProgram[] = [];
+    for (let page = 1; ; page++) {
+        const result = await apiClinicProgramsLibraryRepository.list({
+            ...params,
+            page,
+            perPage: 200,
+        });
+        items.push(...result.data);
+        if (page >= result.meta.lastPage || result.data.length === 0) {
+            return [...new Map(items.map((p) => [p.id, p])).values()];
+        }
+    }
+}
+
+export function useClinicProgramLibraryDetail(
+    id: number | null,
+    enabled = true,
+) {
     return useQuery({
         queryKey: [...PROGRAMS_LIBRARY_KEY, 'detail', id],
         queryFn: () => apiClinicProgramsLibraryRepository.getDetail(id!),
-        enabled: !!id,
+        enabled: !!id && enabled,
     });
+}
+
+export function useFetchClinicProgramLibraryDetail() {
+    const queryClient = useQueryClient();
+    return (id: number) =>
+        queryClient.fetchQuery({
+            queryKey: [...PROGRAMS_LIBRARY_KEY, 'detail', id],
+            queryFn: () => apiClinicProgramsLibraryRepository.getDetail(id),
+        });
 }

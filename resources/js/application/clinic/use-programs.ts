@@ -36,6 +36,35 @@ export function useClinicProgramsQuery(
     });
 }
 
+const ALL_PAGES_PER_PAGE = 200;
+
+export async function listAllClinicPrograms(
+    params?: Omit<ProgramListParams, 'page' | 'perPage'>,
+): Promise<Program[]> {
+    const items: Program[] = [];
+    for (let page = 1; ; page++) {
+        const result = await apiClinicProgramsRepository.list({
+            ...params,
+            page,
+            perPage: ALL_PAGES_PER_PAGE,
+        });
+        items.push(...result.items);
+        if (page >= result.lastPage || result.items.length === 0) {
+            return [...new Map(items.map((p) => [p.id, p])).values()];
+        }
+    }
+}
+
+export function useAllClinicPrograms(
+    params?: Omit<ProgramListParams, 'page' | 'perPage'>,
+) {
+    return useQuery({
+        queryKey: ['clinic-programs', 'all', params ?? {}],
+        queryFn: () => listAllClinicPrograms(params),
+        staleTime: Infinity,
+    });
+}
+
 export function listMyModelsPaginated(params?: ProgramListParams) {
     return apiClinicProgramsRepository.list({
         ...params,
@@ -102,15 +131,24 @@ export function findClinicProgram(id: string): Promise<Program | null> {
     return apiClinicProgramsRepository.getById(id);
 }
 
-export function useClinicProgram(id: string | undefined) {
+export function useClinicProgram(id: string | undefined, enabled = true) {
     return useQuery({
         queryKey: ['clinic-programs', id],
         queryFn: () =>
             id
                 ? apiClinicProgramsRepository.getById(id)
                 : Promise.resolve(null),
-        enabled: !!id,
+        enabled: !!id && enabled,
     });
+}
+
+export function useFetchClinicProgram() {
+    const queryClient = useQueryClient();
+    return (id: string) =>
+        queryClient.fetchQuery({
+            queryKey: ['clinic-programs', id],
+            queryFn: () => apiClinicProgramsRepository.getById(id),
+        });
 }
 
 export function useCreateClinicProgram() {

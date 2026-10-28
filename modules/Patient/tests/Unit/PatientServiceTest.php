@@ -158,6 +158,26 @@ class PatientServiceTest extends TestCase
         ], $overrides);
     }
 
+    public function test_find_for_clinic_returns_patient_of_same_clinic(): void
+    {
+        $patient            = $this->makePatient();
+        $patient->clinic_id = 5;
+        $this->repository->shouldReceive('find')->with(1)->once()->andReturn($patient);
+
+        $this->assertSame($patient, $this->service->findForClinic(5, 1));
+    }
+
+    public function test_find_for_clinic_returns_null_for_other_clinic_or_missing(): void
+    {
+        $patient            = $this->makePatient();
+        $patient->clinic_id = 7;
+        $this->repository->shouldReceive('find')->with(1)->once()->andReturn($patient);
+        $this->repository->shouldReceive('find')->with(99)->once()->andReturn(null);
+
+        $this->assertNull($this->service->findForClinic(5, 1));
+        $this->assertNull($this->service->findForClinic(5, 99));
+    }
+
     private function makePatient(array $attributes = []): Patient
     {
         $patient     = new Patient(array_merge($this->validData(), $attributes));

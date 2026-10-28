@@ -98,8 +98,10 @@ const EDIT_STEP_LABELS: Record<ProgramStep, string> = {
 const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
 export default function ProgramNewPage() {
+    const location = useLocation();
     const variant = usePrototypeVariant(BUILDER_VARIANTS, 'A');
-    if (PROTOTYPE && variant !== 'O') {
+    const asModel = location.state?.asModel === true;
+    if (PROTOTYPE && variant !== 'O' && !asModel) {
         return <ProgramBuilderPrototype variant={variant} />;
     }
     return <ProgramNewPageV1 />;
@@ -130,9 +132,26 @@ function ProgramNewPageV1() {
     const updateProgram = useUpdateClinicProgram();
 
     const editMode: boolean = location.state?.editMode === true;
+    const asModel: boolean = location.state?.asModel === true;
     const editProgramId: string | undefined = location.state?.programId;
     const initialProgram = location.state?.program;
-    const STEP_LABELS = editMode ? EDIT_STEP_LABELS : NEW_STEP_LABELS;
+    const STEP_LABELS = editMode
+        ? asModel
+            ? {
+                  1: 'Editar modelo',
+                  2: 'Configurar exercícios',
+                  3: 'Configurar exercícios',
+                  4: 'Detalhes do modelo',
+              }
+            : EDIT_STEP_LABELS
+        : asModel
+          ? {
+                1: 'Novo modelo',
+                2: 'Configurar exercícios',
+                3: 'Configurar exercícios',
+                4: 'Detalhes do modelo',
+            }
+          : NEW_STEP_LABELS;
 
     const [step, setStep] = useState<ProgramStep>(1);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -151,7 +170,7 @@ function ProgramNewPageV1() {
     const [shareError, setShareError] = useState<string | null>(null);
 
     const { draft, hasDraft, scheduleSave, clearDraft, restoreDraft } =
-        useProgramDraft(step, selectedIds, groups);
+        useProgramDraft(step, selectedIds, groups, !editMode && !asModel);
 
     // Auto-save debounced ao mudar estado do wizard
     useEffect(() => {
@@ -171,7 +190,7 @@ function ProgramNewPageV1() {
             clearDraft(); // cópia de programa tem prioridade sobre rascunho
             setInitialTitle(
                 initialProgram.title
-                    ? editMode
+                    ? editMode || asModel || initialProgram.id === ''
                         ? initialProgram.title
                         : `${initialProgram.title} (Cópia)`
                     : '',
@@ -427,20 +446,19 @@ function ProgramNewPageV1() {
             })),
         );
 
+        const patientId = asModel ? null : details.patientId;
         const dto = {
             title: details.title,
-            patientId: details.patientId,
+            patientId,
             message: details.message,
             startDate: details.startDate || null,
             endDate: details.endDate || null,
-            status: (details.patientId ? 'active' : 'draft') as
-                | 'active'
-                | 'draft',
+            status: (patientId ? 'active' : 'draft') as 'active' | 'draft',
             groups: groupsPayload,
             exercises: exercisesPayload,
         };
 
-        const shouldShare = Boolean(details.patientId);
+        const shouldShare = Boolean(patientId);
 
         if (shouldShare) {
             setShareProgram(null);
@@ -460,7 +478,11 @@ function ProgramNewPageV1() {
                             setSharePhase('ready');
                             return;
                         }
-                        navigate(`/clinica/programas/${editProgramId}`);
+                        navigate(
+                            asModel
+                                ? '/clinica/programas/meus-modelos'
+                                : `/clinica/programas/${editProgramId}`,
+                        );
                     },
                     onError: (error) => {
                         if (!shouldShare) return;
@@ -482,7 +504,11 @@ function ProgramNewPageV1() {
                         setSharePhase('ready');
                         return;
                     }
-                    navigate('/clinica/programas');
+                    navigate(
+                        asModel
+                            ? '/clinica/programas/meus-modelos'
+                            : '/clinica/programas',
+                    );
                 },
                 onError: (error) => {
                     if (!shouldShare) return;
@@ -524,7 +550,11 @@ function ProgramNewPageV1() {
 
     const handleWizardBack = () => {
         if (step === 1) {
-            navigate('/clinica/programas');
+            navigate(
+                asModel
+                    ? '/clinica/programas/meus-modelos'
+                    : '/clinica/programas',
+            );
             return;
         }
         if (step === 2 && editingExercise) {
@@ -653,6 +683,7 @@ function ProgramNewPageV1() {
                                 initialTitle={initialTitle}
                                 initialMessage={initialMessage}
                                 initialPatientId={queryPatientId}
+                                skipPatient={asModel}
                                 onSave={handleSaveProgram}
                                 isSaving={
                                     createProgram.isPending ||

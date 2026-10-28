@@ -21,11 +21,12 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { evolutionDetailBlocks } from '@/application/clinic/evolution-sheet-text';
 import { can } from '@/application/clinic/permissions';
+import type { ProgramOrigin } from '@/application/clinic/program-detail';
 import { useDeleteEvolution } from '@/application/clinic/use-evolutions';
 import { useDeletePatientFile } from '@/application/clinic/use-patient-files';
 import {
@@ -263,6 +264,7 @@ export function RecordBody({
     patientEmail?: string;
 }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const src = item.source;
     const questionnaireId =
         src.kind === 'questionario' ? String(src.item.id) : null;
@@ -516,7 +518,11 @@ export function RecordBody({
                     icon={<ExternalLink />}
                     label="Abrir programa"
                     onClick={() =>
-                        navigate(`/clinica/programas/${p.id}/editar`)
+                        navigate(`/clinica/programas/${p.id}`, {
+                            state: {
+                                from: `${location.pathname}${location.search}`,
+                            } satisfies ProgramOrigin,
+                        })
                     }
                 />
             </div>

@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import type {
     ProgramListParams,
     ProgramListResult,
@@ -112,6 +114,10 @@ function mapGroup(raw: ApiTreatmentPlanGroup): ProgramGroup {
     };
 }
 
+function dayOnly(value: string | null | undefined): string | null {
+    return value ? value.slice(0, 10) : null;
+}
+
 function toEntity(raw: ApiTreatmentPlan): Program {
     const groups = (raw.groups ?? []).map(mapGroup);
     const exerciseCount =
@@ -130,8 +136,8 @@ function toEntity(raw: ApiTreatmentPlan): Program {
         professionalName: raw.clinic_user?.name ?? null,
         professionalPhotoUrl: raw.clinic_user?.photo_url ?? null,
         exerciseCount,
-        startDate: raw.start_date ?? '',
-        endDate: raw.end_date ?? null,
+        startDate: dayOnly(raw.start_date) ?? '',
+        endDate: dayOnly(raw.end_date),
         message: raw.message ?? '',
         groups,
         status: raw.status === 'cancelled' ? 'completed' : raw.status,
@@ -190,8 +196,8 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
                 per_page: params?.perPage ?? 10,
                 ...(params?.search ? { search: params.search } : {}),
                 ...(params?.status ? { status: params.status } : {}),
-                ...(params?.withoutPatient ? { without_patient: 1 } : {}),
                 ...(params?.patientId ? { patient_id: params.patientId } : {}),
+                ...(params?.withoutPatient ? { without_patient: 1 } : {}),
             },
         });
         return {
@@ -206,11 +212,18 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
-            `/clinic/treatment-plans/${id}`,
-        );
-        if (!data?.data) return null;
-        return toEntity(data.data);
+        try {
+            const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
+                `/clinic/treatment-plans/${id}`,
+            );
+            if (!data?.data) return null;
+            return toEntity(data.data);
+        } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 
     async create(dto) {

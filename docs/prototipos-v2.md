@@ -12,21 +12,18 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 
 ## Programas
 
-- [ ] **Histórico de programas** — `/clinica/programas/historico`
+- [x] **Histórico de programas** — `/clinica/programas/historico`
   - Variante A, "Histórico v2": cartões iguais aos da lista de pacientes, progresso na cor do status.
-  - Código: `resources/js/pages/clinic/program/program-history-prototype/` · commits `74b9990`, `ecf614a`, `e795b4f`
-  - Dados de exemplo: `TreatmentPlanHistoryDemoSeeder` (módulo TreatmentProgram).
-  - [ ] Levar os filtros para a API: status derivado (visualizado ou não), profissional, validade e "criado entre". Hoje a v1 filtra só dentro da página, e o protótipo busca 200 e filtra no navegador.
-  - [ ] Criar um menu de ações (kebab) no DS (`DsActionsMenu`); o protótipo usa Radix com o estilo do menu "Opções" do `DsTable`.
-  - [ ] Duplicar, transformar em modelo e excluir são stub no protótipo.
+  - Tela de verdade: `ProgramHistoryPage` + `DsActionsMenu`. Decisão: [ADR 023](adr/023-listagens-programas-v2-substitui-a-v1.md).
+  - [x] Menu de ações no DS (`DsActionsMenu`); duplicar, transformar em modelo e excluir rascunho (só admin) são reais.
+  - [ ] Levar os filtros para a API: status derivado, profissional, validade e "criado entre". Hoje a tela busca 200 e filtra no navegador (`DEFERRED.md` da feature 008).
 
-- [ ] **Biblioteca de exercícios** — `/clinica/programas/exercicios`
+- [x] **Biblioteca de exercícios** — `/clinica/programas/exercicios`
   - Variante D, "Biblioteca v2", com rolagem infinita; modal do exercício na variante A, "Ficha clínica".
-  - Código: `resources/js/pages/clinic/program/exercise-library-prototype/` · commit `139748e`
-  - [ ] Mandar os filtros para a API, que já aceita `search`, `physio_area_id`, `physio_subarea_id`, `body_region_id`, `difficulty_level` e `movement_form`; hoje o front filtra só o que já carregou.
-  - [ ] Filtro de favoritos e de origem (catálogo × enviados pela clínica) na API.
-  - [ ] "Usar em novo programa" e "Usar em novo modelo" são stub.
-  - `/clinica/exercicios` (menu de cima) mostra a mesma biblioteca D, sem as abas de Programas (`menu` no `ExerciseLibraryPrototype`).
+  - Tela de verdade: `ExerciseLibraryPage`. A URL `/clinica/exercicios` mostra a mesma grade, sem as abas. Decisão: [ADR 023](adr/023-listagens-programas-v2-substitui-a-v1.md).
+  - [x] "Usar em novo programa" e "Usar em novo modelo" abrem o assistente v1 com o exercício.
+  - [x] Busca e dificuldade única vão para a API; especialidade/região/favoritos recortam no cliente.
+  - [ ] Mandar especialidade, região, forma e favoritos para a API (`DEFERRED.md` da feature 008).
 
 - [ ] **Enviar exercício** — `/clinica/exercicios/enviar`
   - Variante A, "Seções + prévia ao lado": vídeo, informações e fotos do PDF, com prévia da biblioteca e checklist.
@@ -34,11 +31,11 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Levar as regras de vídeo para o backend: em pé (9:16), até 20 MB, qualidade mínima. Hoje o backend aceita até 500 MB e não confere orientação nem duração (sem ffprobe), então a validação do navegador é burlável.
   - [ ] O envio é simulado no protótipo; o recorte de imagem da v1 ficou de fora.
 
-- [ ] **Modelos de programas** — `/clinica/programas/modelos` e `/clinica/programas/meus-modelos`
+- [x] **Modelos de programas** — `/clinica/programas/modelos` e `/clinica/programas/meus-modelos`
   - Variante C, "Mapa do corpo": clicar na região do corpo filtra; cada modelo aparece como uma sessão dividida pelos blocos.
-  - Código: `resources/js/pages/clinic/program/program-models-prototype/` · commit `dcd91d3`
-  - [ ] "Nossos modelos" × "Meus modelos" como seletor na linha dos filtros, sem linha extra na caixa.
-  - [ ] Região do corpo vinda do modelo ou dos exercícios (hoje é deduzida por palavras do título).
+  - Tela de verdade: `ProgramModelsPage`. Decisão: [ADR 023](adr/023-listagens-programas-v2-substitui-a-v1.md).
+  - [x] "Nossos modelos" × "Meus modelos" como seletor na linha dos filtros.
+  - [ ] Região do corpo vinda do modelo ou dos exercícios (hoje é deduzida por palavras do título). `DEFERRED.md` da feature 008.
   - [ ] Listagem da API trazendo o resumo dos blocos; filtros na API.
 
 - [ ] **Assistente de programa** — `/clinica/programas/novo` (criar, usar modelo, cópia e edição)
@@ -47,10 +44,14 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] A escolha de exercícios usa o mesmo componente da biblioteca (`selection`).
   - [ ] "Voltar" é um botão do mesmo tamanho, ao lado do "Avançar"; início e término em dois calendários separados.
 
-- [ ] **Detalhe do programa** — `/clinica/programas/:id`
+- [x] **Detalhe do programa** — `/clinica/programas/:id`
   - Variante A, "Painel do programa": paciente, situação e validade em barra; números (exercícios, dias que faltam, vezes que completou, quando abriu); blocos com cada exercício em cartão, a dose em pedaços e o vídeo num modal.
-  - Código: `resources/js/pages/clinic/program/program-detail-prototype/`
-  - [ ] PDF, texto do prontuário e copiar link já são reais; WhatsApp, duplicar, transformar em modelo e excluir são stub.
+  - Tela de verdade: `ProgramDetailPage` + `program-detail/ProgramDetailPanel`; números e dose em `application/clinic/program-detail`. Feature `.ai-workbench/011-clinic-programa-detalhe-ds`.
+  - [x] Rascunho mostra só os exercícios e o aviso "Continuar editando"; outra clínica vê "Programa não encontrado".
+  - [x] Duplicar, transformar em modelo e excluir rascunho (só admin) são reais.
+  - [x] Menu ⋯ com copiar link, PDF e texto para prontuário; duplicar abre a cópia e excluir volta ao Histórico.
+  - [x] WhatsApp com `wa.me` e o link do programa, mesma mensagem do diálogo de compartilhar.
+  - [x] "Voltar" voltando para a origem; "Abrir programa" do prontuário abrindo o painel.
 
 ## Pacientes
 

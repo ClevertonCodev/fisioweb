@@ -1,3 +1,4 @@
+import { AxiosError, type AxiosResponse } from 'axios';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { apiClient } from '@/infrastructure/api/client';
@@ -59,6 +60,20 @@ function makePaginatedResponse(items: ReturnType<typeof makeApiPlan>[]) {
 }
 
 describe('apiClinicProgramsRepository.list', () => {
+    it('manda o recorte por paciente como patient_id', async () => {
+        mockGet.mockResolvedValueOnce(makePaginatedResponse([]));
+
+        await apiClinicProgramsRepository.list({
+            page: 2,
+            perPage: 200,
+            patientId: '10',
+        });
+
+        expect(mockGet).toHaveBeenCalledWith('/clinic/treatment-plans', {
+            params: { page: 2, per_page: 200, patient_id: '10' },
+        });
+    });
+
     it('mapeia exercises_count, foto do paciente, profissional e engajamento', async () => {
         mockGet.mockResolvedValueOnce(makePaginatedResponse([makeApiPlan()]));
 
@@ -158,5 +173,59 @@ describe('apiClinicProgramsRepository.fetchPdfBlob', () => {
             responseType: 'blob',
         });
         expect(result).toBe(blob);
+    });
+});
+
+describe('apiClinicProgramsRepository.getById', () => {
+    it('devolve null quando a API responde 404 (outra clínica ou excluído)', async () => {
+        mockGet.mockRejectedValueOnce(
+            new AxiosError('Not Found', '404', undefined, undefined, {
+                status: 404,
+            } as AxiosResponse),
+        );
+
+        await expect(
+            apiClinicProgramsRepository.getById('99'),
+        ).resolves.toBeNull();
+    });
+
+    it('repassa erro que não é 404', async () => {
+        mockGet.mockRejectedValueOnce(
+            new AxiosError('Server Error', '500', undefined, undefined, {
+                status: 500,
+            } as AxiosResponse),
+        );
+
+        await expect(apiClinicProgramsRepository.getById('99')).rejects.toThrow(
+            'Server Error',
+        );
+    });
+});
+
+describe('apiClinicProgramsRepository: datas do programa', () => {
+    it('guarda início e fim só com o dia, sem virar o dia anterior no fuso de Brasília', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiPlan({
+                    start_date: '2026-08-10T00:00:00.000000Z',
+                    end_date: '2026-09-29T00:00:00.000000Z',
+                }),
+            },
+        });
+
+        const program = await apiClinicProgramsRepository.getById('7');
+
+        expect(program?.startDate).toBe('2026-08-10');
+        expect(program?.endDate).toBe('2026-09-29');
+    });
+
+    it('mantém o fim vazio como null', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: { data: makeApiPlan({ end_date: null }) },
+        });
+
+        const program = await apiClinicProgramsRepository.getById('7');
+
+        expect(program?.endDate).toBeNull();
     });
 });

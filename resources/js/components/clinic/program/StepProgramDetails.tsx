@@ -30,6 +30,7 @@ interface StepProgramDetailsProps {
     initialStartDate?: string;
     initialEndDate?: string;
     isSaving?: boolean;
+    skipPatient?: boolean;
     onSave: (details: {
         title: string;
         patientId: number | null;
@@ -49,6 +50,7 @@ export function StepProgramDetails({
     initialStartDate,
     initialEndDate = '',
     isSaving = false,
+    skipPatient = false,
     onSave,
 }: StepProgramDetailsProps) {
     // useIsMobile já entrega o valor certo no primeiro render; espelhar isso em
@@ -82,8 +84,8 @@ export function StepProgramDetails({
     const handleSubmit = () => {
         onSave({
             title,
-            patientId,
-            patientName: displayedPatientName,
+            patientId: skipPatient ? null : patientId,
+            patientName: skipPatient ? '' : displayedPatientName,
             startDate,
             endDate,
             message,
@@ -98,9 +100,11 @@ export function StepProgramDetails({
 
     const saveLabel = isSaving
         ? 'Salvando...'
-        : patientId
-          ? 'Salvar e enviar programa'
-          : 'Salvar';
+        : skipPatient
+          ? 'Salvar modelo'
+          : patientId
+            ? 'Salvar e enviar programa'
+            : 'Salvar';
 
     const summary = (
         <ProgramSummary
@@ -137,78 +141,87 @@ export function StepProgramDetails({
                             className="h-12 w-full max-w-none text-base"
                         />
 
-                        <Popover
-                            open={patientOpen}
-                            onOpenChange={setPatientOpen}
-                        >
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className="h-12 w-full max-w-none cursor-pointer justify-between font-normal"
-                                >
-                                    <span
-                                        className={cn(
-                                            'truncate',
-                                            !displayedPatientName &&
-                                                'text-muted-foreground',
-                                        )}
-                                    >
-                                        {displayedPatientName ||
-                                            'Enviar para...'}
-                                    </span>
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                                className="w-[var(--radix-popover-trigger-width)] p-0"
-                                align="start"
+                        {skipPatient ? (
+                            <p className="text-sm text-muted-foreground">
+                                Este modelo fica sem paciente. Depois de salvar,
+                                ele aparece em Meus modelos.
+                            </p>
+                        ) : (
+                            <Popover
+                                open={patientOpen}
+                                onOpenChange={setPatientOpen}
                             >
-                                <Command>
-                                    <CommandInput placeholder="Pesquisar paciente..." />
-                                    <CommandEmpty>
-                                        Nenhum paciente encontrado.
-                                    </CommandEmpty>
-                                    <CommandGroup>
-                                        {patientId && (
-                                            <CommandItem
-                                                onSelect={() => {
-                                                    setPatientId(null);
-                                                    setPatientName('');
-                                                    setPatientOpen(false);
-                                                }}
-                                                className="cursor-pointer text-muted-foreground italic"
-                                            >
-                                                Remover paciente
-                                            </CommandItem>
-                                        )}
-                                        {patients.map((p) => (
-                                            <CommandItem
-                                                key={p.id}
-                                                value={p.name}
-                                                onSelect={() => {
-                                                    setPatientId(Number(p.id));
-                                                    setPatientName(p.name);
-                                                    setPatientOpen(false);
-                                                }}
-                                                className="cursor-pointer"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        'mr-2 h-4 w-4',
-                                                        patientId ===
-                                                            Number(p.id)
-                                                            ? 'opacity-100'
-                                                            : 'opacity-0',
-                                                    )}
-                                                />
-                                                {p.name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="h-12 w-full max-w-none cursor-pointer justify-between font-normal"
+                                    >
+                                        <span
+                                            className={cn(
+                                                'truncate',
+                                                !displayedPatientName &&
+                                                    'text-muted-foreground',
+                                            )}
+                                        >
+                                            {displayedPatientName ||
+                                                'Enviar para...'}
+                                        </span>
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    className="w-[var(--radix-popover-trigger-width)] p-0"
+                                    align="start"
+                                >
+                                    <Command>
+                                        <CommandInput placeholder="Pesquisar paciente..." />
+                                        <CommandEmpty>
+                                            Nenhum paciente encontrado.
+                                        </CommandEmpty>
+                                        <CommandGroup>
+                                            {patientId && (
+                                                <CommandItem
+                                                    onSelect={() => {
+                                                        setPatientId(null);
+                                                        setPatientName('');
+                                                        setPatientOpen(false);
+                                                    }}
+                                                    className="cursor-pointer text-muted-foreground italic"
+                                                >
+                                                    Remover paciente
+                                                </CommandItem>
+                                            )}
+                                            {patients.map((p) => (
+                                                <CommandItem
+                                                    key={p.id}
+                                                    value={p.name}
+                                                    onSelect={() => {
+                                                        setPatientId(
+                                                            Number(p.id),
+                                                        );
+                                                        setPatientName(p.name);
+                                                        setPatientOpen(false);
+                                                    }}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            'mr-2 h-4 w-4',
+                                                            patientId ===
+                                                                Number(p.id)
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0',
+                                                        )}
+                                                    />
+                                                    {p.name}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        )}
 
                         <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                             <div className="w-full min-w-0">

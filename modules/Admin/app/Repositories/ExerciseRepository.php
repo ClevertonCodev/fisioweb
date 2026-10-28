@@ -40,7 +40,10 @@ class ExerciseRepository implements ExerciseRepositoryInterface
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('muscle_group', 'like', "%{$search}%")
-                    ->orWhere('therapeutic_goal', 'like', "%{$search}%");
+                    ->orWhere('therapeutic_goal', 'like', "%{$search}%")
+                    ->orWhereHas('physioArea', fn ($r) => $r->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('physioSubarea', fn ($r) => $r->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('bodyRegion', fn ($r) => $r->where('name', 'like', "%{$search}%"));
             });
         }
 

@@ -80,6 +80,26 @@ class ExerciseControllerTest extends TestCase
         $this->assertTrue($found['is_favorite']);
     }
 
+    public function test_index_search_matches_specialty_and_body_region_names(): void
+    {
+        $neuro    = PhysioArea::create(['name' => 'Neurologia']);
+        $ombro    = BodyRegion::create(['name' => 'Ombro']);
+        $byArea   = $this->makeExercise(['name' => 'Ponte', 'physio_area_id' => $neuro->id]);
+        $byRegion = $this->makeExercise(['name' => 'Elevação lateral', 'body_region_id' => $ombro->id]);
+        $other    = $this->makeExercise(['name' => 'Agachamento']);
+
+        $ids = fn (string $search) => collect(
+            $this->actingAs($this->clinicUser, 'clinic')
+                ->getJson('/api/clinic/exercises?search=' . $search)
+                ->assertOk()
+                ->json('data.data')
+        )->pluck('id')->all();
+
+        $this->assertSame([$byArea->id], $ids('Neurologia'));
+        $this->assertSame([$byRegion->id], $ids('Ombro'));
+        $this->assertNotContains($other->id, $ids('Neurologia'));
+    }
+
     public function test_index_requires_authentication(): void
     {
         $this->getJson('/api/clinic/exercises')->assertUnauthorized();

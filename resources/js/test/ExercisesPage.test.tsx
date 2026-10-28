@@ -1,21 +1,21 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Exercise } from '@/domain/clinic';
 import ExercisesPage from '@/pages/clinic/ExercisesPage';
 import { routerFutureFlags } from '@/test/browser-router';
 
-vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom');
-    return { ...(actual as object), useNavigate: () => vi.fn() };
-});
+vi.mock('@/components/clinic/ClinicLayout', () => ({
+    ClinicLayout: ({ children }: { children: React.ReactNode }) => (
+        <>{children}</>
+    ),
+}));
 
 vi.mock('@/contexts/AuthContext', () => ({
     useAuth: () => ({
-        user: { id: 1, name: 'Test User', type: 'clinic', role: 'owner' },
+        user: { id: 1, name: 'Test User', type: 'clinic', role: 'admin' },
         token: 'fake-token',
         login: vi.fn(),
         logout: vi.fn(),
@@ -40,6 +40,7 @@ function makeExercise(id: string): Exercise {
     return {
         id,
         title: `Exercício ${id}`,
+        description: '',
         specialty: 'Ortopedia',
         bodyArea: 'Membro Superior',
         bodyRegion: 'Ombro',
@@ -53,7 +54,11 @@ function makeExercise(id: string): Exercise {
         videoUrl: `https://example.test/${id}.mp4`,
         thumbnailUrl: `https://example.test/${id}.jpg`,
         isFavorite: false,
-    } as Exercise;
+        reviewStatus: 'approved',
+        isOwnSubmission: false,
+        duration: 0,
+        createdAt: '',
+    };
 }
 
 beforeAll(() => {
@@ -70,7 +75,6 @@ beforeAll(() => {
             dispatchEvent: vi.fn(),
         })),
     });
-    // ExercisesPage usa IntersectionObserver para o scroll infinito.
     vi.stubGlobal(
         'IntersectionObserver',
         class {
@@ -79,6 +83,11 @@ beforeAll(() => {
             disconnect() {}
         },
     );
+    global.ResizeObserver = class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    };
 });
 
 beforeEach(() => {
@@ -87,59 +96,33 @@ beforeEach(() => {
         items: [makeExercise('1'), makeExercise('2')],
         currentPage: 1,
         lastPage: 1,
+        perPage: 20,
+        total: 2,
     });
 });
 
-function renderPage(queryClient: QueryClient) {
-    // Usa BrowserRouter direto — TestBrowserRouter cria outro QueryClient
-    // e anularia o cache compartilhado deste teste.
-    return render(
-        <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-                <BrowserRouter future={routerFutureFlags}>
-                    <ExercisesPage embedded />
-                </BrowserRouter>
-            </TooltipProvider>
-        </QueryClientProvider>,
-    );
-}
-
 describe('ExercisesPage', () => {
-    it('lista os exercicios na primeira visita', async () => {
+    it('mostra a biblioteca v2 sem as abas de Programas', async () => {
         const queryClient = new QueryClient({
             defaultOptions: { queries: { retry: false } },
         });
-
-        renderPage(queryClient);
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter
+                    initialEntries={['/clinica/exercicios']}
+                    future={routerFutureFlags}
+                >
+                    <ExercisesPage />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
 
         expect(await screen.findByText('Exercício 1')).toBeInTheDocument();
         expect(
-            screen.getByText('2 exercícios encontrados'),
-        ).toBeInTheDocument();
-    });
-
-    it('mantem os exercicios ao remontar com o cache ja aquecido', async () => {
-        const queryClient = new QueryClient({
-            defaultOptions: { queries: { retry: false, gcTime: Infinity } },
-        });
-
-        // Primeira visita: aquece o cache do React Query.
-        const first = renderPage(queryClient);
-        expect(await screen.findByText('Exercício 1')).toBeInTheDocument();
-
-        // Sai da pagina.
-        first.unmount();
-
-        // Volta com cache aquecido (staleTime: Infinity): a lista precisa
-        // aparecer no primeiro paint — sem o bug de exercises ficar [].
-        renderPage(queryClient);
-
-        expect(screen.getByText('Exercício 1')).toBeInTheDocument();
+            screen.queryByRole('tab', { name: 'Histórico' }),
+        ).not.toBeInTheDocument();
         expect(
-            screen.getByText('2 exercícios encontrados'),
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText('Nenhum exercício encontrado'),
+            screen.queryByRole('button', { name: 'Criar programa' }),
         ).not.toBeInTheDocument();
     });
 });

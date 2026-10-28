@@ -1,3 +1,4 @@
+import { parseDate } from '@/application/clinic/dates';
 import type { Appointment, Program } from '@/domain/clinic';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -62,6 +63,10 @@ function time(value: string): number {
     return new Date(value).getTime();
 }
 
+function dayTime(value: string): number {
+    return parseDate(value)?.getTime() ?? Number.NaN;
+}
+
 /**
  * Números do painel do prontuário a partir das consultas e programas que a
  * API já devolveu filtrados pelo paciente. Para o fisioterapeuta, a lista
@@ -103,14 +108,15 @@ export function patientCareStats(
         ...appointments
             .filter((a) => a.status !== 'cancelled')
             .map((a) => time(a.startsAt)),
-        ...programs.map((p) => time(p.startDate)),
+        ...programs.map((p) => dayTime(p.startDate)),
     ].filter((t) => !Number.isNaN(t) && t <= nowTime);
     const since = startTimes.length ? new Date(Math.min(...startTimes)) : null;
 
     const activeProgram =
         [...programs]
             .filter((p) => p.status === 'active' || p.status === 'sent')
-            .sort((a, b) => time(b.startDate) - time(a.startDate))[0] ?? null;
+            .sort((a, b) => dayTime(b.startDate) - dayTime(a.startDate))[0] ??
+        null;
 
     return {
         completed,

@@ -6,9 +6,9 @@ use App\Helpers\ValidationHelper;
 use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Modules\Pdf\Contracts\PdfGeneratorInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
+use Modules\TreatmentProgram\Http\Requests\ListTreatmentPlansRequest;
 use Modules\TreatmentProgram\Http\Requests\StoreTreatmentPlanRequest;
 use Modules\TreatmentProgram\Http\Requests\UpdateTreatmentPlanRequest;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
@@ -24,7 +24,7 @@ class TreatmentPlanController extends ClinicAuthenticatedController
         protected ProgramPdfQrCodeGenerator $pdfQrCodeGenerator,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(ListTreatmentPlansRequest $request): JsonResponse
     {
         $clinicId = $this->clinicId();
         $filters  = $request->only(['search', 'status', 'patient_id', 'physio_area_id', 'without_patient']);

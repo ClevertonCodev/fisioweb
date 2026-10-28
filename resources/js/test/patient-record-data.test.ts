@@ -1,12 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { PatientQuestionnaire, Program } from '@/domain/clinic';
 import {
     buildRecordItems,
     matchesSearch,
     tabFromSearchParam,
     type RecordItem,
 } from '@/pages/clinic/patient/patient-record/data';
-import type { PatientQuestionnaire } from '@/domain/clinic';
 
 function item(
     kind: RecordItem['kind'],
@@ -68,11 +68,13 @@ describe('buildRecordItems', () => {
         patch: Partial<PatientQuestionnaire>,
     ): PatientQuestionnaire => ({
         id: 1,
+        clinicId: 1,
         patientId: 1,
         clinicUserId: 1,
         questionnaireTemplateId: 1,
         modality: 'remoto',
         status: 'pending',
+        publicToken: 'test-token',
         shareUrl: 'https://example.com/q',
         expiresAt: null,
         answeredAt: null,
@@ -122,8 +124,7 @@ describe('buildRecordItems', () => {
                     clinicUserId: 1,
                     evolutionTemplateId: 1,
                     title: 'Sessão',
-                    generatedText:
-                        '**Conduta:** Alongamento — detalhe.',
+                    generatedText: '**Conduta:** Alongamento — detalhe.',
                     notes: null,
                     checkedItems: [],
                     status: 'signed',
@@ -138,5 +139,49 @@ describe('buildRecordItems', () => {
         });
         expect(row?.subtitle).not.toContain('**');
         expect(row?.evolutionSheet?.[0]?.section).toBe('Conduta');
+    });
+});
+
+describe('buildRecordItems: data do programa no fuso de Brasília', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
+
+    it('mostra o programa no dia de início, sem voltar um dia', () => {
+        vi.stubEnv('TZ', 'America/Sao_Paulo');
+        const program = {
+            id: '61',
+            title: 'Programa em casa',
+            patientId: '108',
+            patientName: 'Paciente Teste',
+            patientPhotoUrl: null,
+            patientPhone: null,
+            patientEmail: null,
+            shareUrl: null,
+            professionalId: '1',
+            professionalName: 'Fisio Teste',
+            professionalPhotoUrl: null,
+            exerciseCount: 3,
+            startDate: '2026-08-10',
+            endDate: null,
+            message: '',
+            groups: [],
+            status: 'active',
+            patientViewedAt: null,
+            patientCompletedCount: 0,
+            createdAt: '2026-08-10T12:00:00Z',
+        } satisfies Program;
+
+        const [row] = buildRecordItems({
+            appointments: [],
+            evolutions: [],
+            assessments: [],
+            questionnaires: [],
+            files: [],
+            programs: [program],
+        });
+
+        expect(row?.date?.getDate()).toBe(10);
+        expect(row?.date?.getMonth()).toBe(7);
     });
 });

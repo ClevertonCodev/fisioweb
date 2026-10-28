@@ -55,10 +55,16 @@ export function useProgramHistoryActions({
     onDuplicated,
     onDeleted,
 }: ProgramActionsOptions = {}) {
-    const { mutate: duplicate } = useDuplicateClinicProgram();
-    const { mutate: toModel } = useConvertToModelClinicProgram();
-    const { mutate: deleteProgram } = useDeleteClinicProgram();
+    const { mutate: duplicate, isPending: duplicating } =
+        useDuplicateClinicProgram();
+    const { mutate: toModel, isPending: convertingToModel } =
+        useConvertToModelClinicProgram();
+    const { mutate: deleteProgram, isPending: deleting } =
+        useDeleteClinicProgram();
     const [toDelete, setToDelete] = useState<Program | null>(null);
+    // Enquanto uma cópia ou um modelo está sendo criado, o segundo clique
+    // criaria outro registro.
+    const busy = duplicating || convertingToModel;
 
     const run = useCallback(
         async (key: HistoryActionKey, program: Program) => {
@@ -106,11 +112,13 @@ export function useProgramHistoryActions({
                     return;
                 }
                 case 'duplicate':
+                    if (busy) return;
                     duplicate(program.id, {
                         onSuccess: (copy) => onDuplicated?.(copy),
                     });
                     return;
                 case 'model':
+                    if (busy) return;
                     toModel(program.id);
                     return;
                 case 'delete':
@@ -118,7 +126,7 @@ export function useProgramHistoryActions({
                     return;
             }
         },
-        [duplicate, toModel, onDuplicated],
+        [busy, duplicate, toModel, onDuplicated],
     );
 
     const deleteModal = (
@@ -137,13 +145,18 @@ export function useProgramHistoryActions({
                     <DsButton
                         variant="destructive"
                         label="Excluir"
+                        loading={deleting}
                         onClick={() => {
+                            // O modal só fecha quando a exclusão volta; se
+                            // falhar, fica aberto com o aviso de erro.
                             if (toDelete) {
                                 deleteProgram(toDelete.id, {
-                                    onSuccess: () => onDeleted?.(),
+                                    onSuccess: () => {
+                                        setToDelete(null);
+                                        onDeleted?.();
+                                    },
                                 });
                             }
-                            setToDelete(null);
                         }}
                     />
                 </div>
@@ -156,8 +169,10 @@ export function useProgramHistoryActions({
         </DsModal>
     );
 
-    return { run, deleteModal };
+    return { run, deleteModal, busy };
 }
+
+const BUSY_REASON = 'Aguarde: a ação anterior ainda está em andamento.';
 
 /** Por que o link do programa não pode ser copiado, ou null se pode. */
 function linkBlockedReason(program: Program, isDraft: boolean): string | null {
@@ -175,10 +190,13 @@ export function ProgramActionsMenu({
     program,
     onAction,
     withShortcuts = false,
+    busy = false,
 }: {
     program: Program;
     onAction: (key: HistoryActionKey, program: Program) => void;
     withShortcuts?: boolean;
+    /** Uma cópia ou um modelo ainda está sendo criado. */
+    busy?: boolean;
 }) {
     const { user } = useAuth();
     const role = user?.role as ClinicRole | undefined;
@@ -206,11 +224,15 @@ export function ProgramActionsMenu({
                     key: 'duplicate',
                     label: 'Duplicar',
                     icon: <Copy />,
+                    disabled: busy,
+                    disabledReason: BUSY_REASON,
                 },
                 {
                     key: 'model',
                     label: 'Transformar em modelo',
                     icon: <BookmarkCheck />,
+                    disabled: busy,
+                    disabledReason: BUSY_REASON,
                 },
                 ...(isDraft
                     ? [
@@ -234,25 +256,24 @@ export function ProgramActionsMenu({
 export function ProgramHistoryCardFooter({
     program,
     onAction,
+    busy = false,
 }: {
     program: Program;
     onAction: (key: HistoryActionKey, program: Program) => void;
+    busy?: boolean;
 }) {
-    const hasPatient = Boolean(program.patientId);
+    const linkBlocked = linkBlockedReason(program, program.status === 'draft');
 
     return (
         <div className="relative z-10 -mx-5 -mb-5 grid grid-cols-4 divide-x divide-ds-border-subtle border-t border-ds-border-subtle">
             {SHORTCUTS.map((a) => {
-                const disabled = a.key === 'link' && !hasPatient;
+                const blocked = a.key === 'link' ? linkBlocked : null;
+                const disabled = blocked !== null;
                 const Icon = a.icon;
                 return (
                     <DsTooltip
                         key={a.key}
-                        content={
-                            disabled
-                                ? `${a.label} (programa sem paciente)`
-                                : a.label
-                        }
+                        content={blocked ? `${a.label}: ${blocked}` : a.label}
                         asChild
                     >
                         <button
@@ -268,7 +289,11 @@ export function ProgramHistoryCardFooter({
                 );
             })}
             <div className="flex items-center justify-center">
-                <ProgramActionsMenu program={program} onAction={onAction} />
+                <ProgramActionsMenu
+                    program={program}
+                    onAction={onAction}
+                    busy={busy}
+                />
             </div>
         </div>
     );

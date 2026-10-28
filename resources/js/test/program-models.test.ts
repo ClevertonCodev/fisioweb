@@ -3,11 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
     activeModelFilterCount,
     applyModelFilters,
+    doseOf,
     fromMine,
     INITIAL_MODEL_FILTERS,
     modelChips,
     regionsOf,
     removeModelChip,
+    scheduleOf,
+    type ModelExercise,
     type ModelSummary,
 } from '@/application/clinic/program-models';
 import type { Program } from '@/domain/clinic';
@@ -89,5 +92,45 @@ describe('fromMine', () => {
         } as Program);
         expect(mapped.origin).toBe('meus');
         expect(mapped.author).toBe('Ana');
+    });
+});
+
+describe('doseOf e scheduleOf (exercício do modelo)', () => {
+    const base: ModelExercise = {
+        id: 'e1',
+        title: 'Ponte',
+        thumbnailUrl: '',
+        videoUrl: '',
+        days: [],
+        period: null,
+        setsMin: 3,
+        setsMax: 3,
+        repsMin: 10,
+        repsMax: 12,
+        loadMin: null,
+        loadMax: null,
+        restTime: null,
+        notes: null,
+    };
+
+    it('carga 0 e descanso 0 não viram "0 kg" nem "0 s de descanso"', () => {
+        expect(
+            doseOf({ ...base, loadMin: 0, loadMax: 0, restTime: 0 }),
+        ).toEqual([
+            { key: 'sets', value: '3', unit: 'séries' },
+            { key: 'reps', value: '10–12', unit: 'repetições' },
+        ]);
+    });
+
+    it('sem dias e sem período não tem agenda; com os sete dias é "Todos os dias"', () => {
+        expect(scheduleOf(base)).toBeNull();
+        expect(
+            scheduleOf({
+                ...base,
+                days: [0, 1, 2, 3, 4, 5, 6],
+                period: 'tarde',
+            }),
+        ).toBe('Todos os dias · Tarde');
+        expect(scheduleOf({ ...base, days: [5, 1] })).toBe('Seg, Sex');
     });
 });

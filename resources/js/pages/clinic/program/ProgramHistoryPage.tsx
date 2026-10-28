@@ -85,7 +85,7 @@ export default function ProgramHistoryPage() {
         apiPatientId ? { patientId: apiPatientId } : undefined,
     );
     const { data: professionals = [] } = useClinicProfessionals();
-    const { run, deleteModal } = useProgramHistoryActions();
+    const { run, deleteModal, busy } = useProgramHistoryActions();
 
     const sorted = useMemo(
         () =>
@@ -257,6 +257,7 @@ export default function ProgramHistoryPage() {
                             <ProgramHistoryCardFooter
                                 program={p}
                                 onAction={run}
+                                busy={busy}
                             />
                         )}
                     />

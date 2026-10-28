@@ -527,6 +527,37 @@ describe('ProgramHistoryPage', () => {
         expect(screen.getByText('32 por página')).toBeInTheDocument();
     });
 
+    it('excluir o único cartão da última página volta para a página anterior', async () => {
+        const user = userEvent.setup();
+        const all = Array.from({ length: 17 }, (_, i) =>
+            program({
+                id: String(i + 1),
+                patientId: String(i + 1),
+                patientName: `Paciente ${i + 1}`,
+                title: `Programa ${i + 1}`,
+                status: i === 16 ? 'draft' : 'active',
+            }),
+        );
+        listPrograms.mockResolvedValue(listResult(all));
+        renderPage();
+        await screen.findByRole('link', { name: 'Paciente 1' });
+        await user.click(
+            screen.getAllByRole('button', { name: 'Próxima página' })[0]!,
+        );
+        await screen.findByRole('link', { name: 'Paciente 17' });
+
+        listPrograms.mockResolvedValue(listResult(all.slice(0, 16)));
+        await user.click(screen.getByRole('button', { name: 'Mais ações' }));
+        await user.click(
+            screen.getByRole('menuitem', { name: 'Excluir rascunho' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Excluir' }));
+
+        expect(
+            await screen.findByRole('link', { name: 'Paciente 16' }),
+        ).toBeInTheDocument();
+    });
+
     it('copia o link, abre o PDF e copia o texto do prontuário pelo rodapé', async () => {
         const user = userEvent.setup();
         const withShare = program({
@@ -584,6 +615,22 @@ describe('ProgramHistoryPage', () => {
                 'Texto copiado para a área de transferência.',
             ),
         );
+    });
+
+    it('no rascunho o rodapé deixa Copiar link desabilitado, como o menu', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(
+            listResult([program({ status: 'draft' })]),
+        );
+        renderPage();
+        await screen.findByRole('link', { name: 'Ana Souza' });
+
+        const link = screen.getByRole('button', {
+            name: 'Copiar link do programa',
+        });
+        expect(link).toBeDisabled();
+        await user.click(link);
+        expect(getById).not.toHaveBeenCalled();
     });
 
     it('fisioterapeuta vê Excluir desabilitado e não dispara o DELETE', async () => {

@@ -17,7 +17,8 @@ class ListTreatmentPlansRequest extends FormRequest
             // Sem esta regra, um id não numérico chega ao banco e vira 500.
             'patient_id'     => ['nullable', 'integer'],
             'physio_area_id' => ['nullable', 'integer'],
-            'per_page'       => ['nullable', 'integer', 'min:1'],
+            // 200 é o maior pedido do front (o Histórico busca de 200 em 200).
+            'per_page'       => ['nullable', 'integer', 'min:1', 'max:200'],
         ];
     }
 }

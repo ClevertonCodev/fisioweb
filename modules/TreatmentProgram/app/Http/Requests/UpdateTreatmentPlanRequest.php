@@ -3,6 +3,7 @@
 namespace Modules\TreatmentProgram\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Models\TreatmentPlanExercise;
@@ -51,7 +52,12 @@ class UpdateTreatmentPlanRequest extends FormRequest
 
     protected function currentPatientId(): ?int
     {
-        $patientId = TreatmentPlan::query()->whereKey($this->route('id'))->value('patient_id');
+        // Só plano da própria clínica: com plano de outra, o "mesmo paciente"
+        // daria resposta diferente e revelaria quem é o paciente dele.
+        $patientId = TreatmentPlan::query()
+            ->whereKey($this->route('id'))
+            ->where('clinic_id', (int) Auth::guard('clinic')->user()?->clinic_id)
+            ->value('patient_id');
 
         return is_null($patientId) ? null : (int) $patientId;
     }

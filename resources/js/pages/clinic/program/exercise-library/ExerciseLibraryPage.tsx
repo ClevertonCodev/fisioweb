@@ -34,6 +34,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
+import { useDebounce } from '@/lib/use-debounce';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import { ProgramsPageShell } from '../programs-shell/ProgramsPageShell';
@@ -73,11 +74,14 @@ export default function ExerciseLibraryPage({
         setFilters((prev) => ({ ...prev, ...patch }));
     const clearFilters = () => setFilters(INITIAL_LIBRARY_FILTERS);
 
-    const apiParams = libraryApiParams(filters);
+    // Uma requisição quando a pessoa para de digitar, não uma por tecla.
+    const search = useDebounce(filters.search, 300);
+    const apiParams = libraryApiParams({ ...filters, search });
     const {
         data,
         isLoading,
         isError,
+        isPlaceholderData,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -95,10 +99,12 @@ export default function ExerciseLibraryPage({
     );
     const filtered = useMemo(
         () =>
+            // Até a resposta da busca chegar, a lista anterior é recortada
+            // aqui mesmo pelo texto digitado.
             applyLibraryFilters(loaded, filters, {
-                skipSearch: Boolean(apiParams.search),
+                skipSearch: Boolean(apiParams.search) && !isPlaceholderData,
             }),
-        [loaded, filters, apiParams.search],
+        [loaded, filters, apiParams.search, isPlaceholderData],
     );
 
     useEffect(() => {

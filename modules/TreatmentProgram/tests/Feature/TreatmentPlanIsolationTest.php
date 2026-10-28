@@ -175,6 +175,23 @@ class TreatmentPlanIsolationTest extends TestCase
         $this->assertDatabaseHas('clinic_treatment_plans', ['id' => $id, 'title' => 'Plano da clínica A']);
     }
 
+    public function test_update_of_another_clinic_plan_does_not_reveal_its_patient(): void
+    {
+        $patientA = Patient::factory()->create(['clinic_id' => $this->adminA->clinic_id]);
+        $otherA   = Patient::factory()->create(['clinic_id' => $this->adminA->clinic_id]);
+        $this->planA->update(['patient_id' => $patientA->id]);
+
+        // Se o paciente certo desse uma resposta diferente de um qualquer, a
+        // clínica B descobriria quem é o paciente do plano da A.
+        $right = $this->actingAs($this->adminB, 'clinic')
+            ->putJson("/api/clinic/treatment-plans/{$this->planA->id}", ['patient_id' => $patientA->id]);
+        $wrong = $this->actingAs($this->adminB, 'clinic')
+            ->putJson("/api/clinic/treatment-plans/{$this->planA->id}", ['patient_id' => $otherA->id]);
+
+        $this->assertSame($wrong->status(), $right->status());
+        $this->assertSame($wrong->getContent(), $right->getContent());
+    }
+
     public function test_destroy_draft_removes_own_draft_only(): void
     {
         foreach ([$this->adminA, $this->adminB] as $user) {

@@ -263,6 +263,29 @@ describe('ProgramDetailPage (painel v2)', () => {
         expect(getById).toHaveBeenCalledWith('999');
     });
 
+    it('falha da API (rede ou 500) mostra erro com "Tentar de novo", não "não encontrado"', async () => {
+        getById.mockRejectedValueOnce(new Error('Network Error'));
+        const user = userEvent.setup();
+        renderPage();
+
+        expect(
+            await screen.findByText('Não foi possível carregar o programa'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('Programa não encontrado'),
+        ).not.toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Tentar de novo' }),
+        );
+        expect(
+            await screen.findByRole('heading', {
+                level: 1,
+                name: 'Prevenção de Quedas — Equilíbrio e Marcha',
+            }),
+        ).toBeInTheDocument();
+    });
+
     it('tocar na miniatura abre o vídeo no modal', async () => {
         const user = userEvent.setup();
         renderPage();
@@ -415,6 +438,48 @@ describe('ProgramDetailPage (painel v2)', () => {
             }),
         ).toBeInTheDocument();
         expect(getById).toHaveBeenCalledWith('77');
+    });
+
+    it('Duplicar de novo enquanto a cópia não chega não cria segunda cópia', async () => {
+        duplicateProgram.mockReturnValue(new Promise(() => {}));
+        const user = userEvent.setup();
+        renderPage();
+
+        for (let i = 0; i < 2; i++) {
+            await user.click(
+                await screen.findByRole('button', { name: 'Mais ações' }),
+            );
+            await user.click(
+                screen.getByRole('menuitem', { name: 'Duplicar' }),
+            );
+        }
+
+        expect(duplicateProgram).toHaveBeenCalledTimes(1);
+    });
+
+    it('Excluir espera a exclusão: o modal fica aberto e não exclui duas vezes', async () => {
+        getById.mockResolvedValue(
+            program({ status: 'draft', patientViewedAt: null }),
+        );
+        destroyProgram.mockReturnValue(new Promise(() => {}));
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.click(
+            await screen.findByRole('button', { name: 'Mais ações' }),
+        );
+        await user.click(
+            screen.getByRole('menuitem', { name: 'Excluir rascunho' }),
+        );
+        const confirm = screen.getByRole('button', { name: 'Excluir' });
+        await user.click(confirm);
+        await user.click(confirm);
+
+        expect(destroyProgram).toHaveBeenCalledTimes(1);
+        expect(
+            screen.getByRole('heading', { name: 'Excluir rascunho' }),
+        ).toBeInTheDocument();
+        expect(confirm).toBeDisabled();
     });
 
     it('admin exclui o rascunho, confirma e volta ao Histórico', async () => {

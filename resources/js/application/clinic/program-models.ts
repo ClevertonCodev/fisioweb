@@ -1,3 +1,9 @@
+import {
+    daysLabel,
+    doseFrom,
+    type DosePart,
+    scheduleText,
+} from '@/application/clinic/exercise-dose';
 import type { AdminProgram, AdminProgramExercise } from '@/domain/admin';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 
@@ -125,58 +131,13 @@ export function myExercise(e: ProgramExercise): ModelExercise {
     };
 }
 
-const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const PERIOD = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' } as const;
-
-function range(min: number | null, max: number | null): string | null {
-    if (min == null && max == null) return null;
-    if (min != null && max != null && min !== max) return `${min}–${max}`;
-    return String(min ?? max);
+export function doseOf(e: ModelExercise): DosePart[] {
+    return doseFrom(e);
 }
 
-export function daysLabel(days: number[]): string | null {
-    if (days.length === 0) return null;
-    if (days.length === 7) return 'Todos os dias';
-    return [...days]
-        .sort()
-        .map((d) => DAYS[d])
-        .join(', ');
-}
-
-export interface Dose {
-    key: string;
-    value: string;
-    unit: string;
-}
-
-export function doseOf(e: ModelExercise): Dose[] {
-    const sets = range(e.setsMin, e.setsMax);
-    const reps = range(e.repsMin, e.repsMax);
-    const load = range(e.loadMin, e.loadMax);
-    return [
-        sets && {
-            key: 'sets',
-            value: sets,
-            unit: sets === '1' ? 'série' : 'séries',
-        },
-        reps && {
-            key: 'reps',
-            value: reps,
-            unit: reps === '1' ? 'repetição' : 'repetições',
-        },
-        load && { key: 'load', value: load, unit: 'kg' },
-        e.restTime != null && {
-            key: 'rest',
-            value: `${e.restTime} s`,
-            unit: 'de descanso',
-        },
-    ].filter(Boolean) as Dose[];
-}
-
+/** No modelo, sem dias e sem período não há agenda para mostrar. */
 export function scheduleOf(e: ModelExercise): string | null {
-    const parts = [daysLabel(e.days), e.period ? PERIOD[e.period] : null];
-    const text = parts.filter(Boolean).join(' · ');
-    return text || null;
+    return scheduleText(daysLabel(e.days), e.period) || null;
 }
 
 export function formatDate(iso: string | null): string | null {

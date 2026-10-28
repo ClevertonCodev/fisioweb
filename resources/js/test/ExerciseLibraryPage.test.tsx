@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -233,8 +233,10 @@ describe('ExerciseLibraryPage', () => {
             screen.getByRole('searchbox', { name: 'Pesquisar exercícios' }),
             'dog',
         );
-        expect(listPaginated).toHaveBeenCalledWith(
-            expect.objectContaining({ search: 'dog' }),
+        await waitFor(() =>
+            expect(listPaginated).toHaveBeenCalledWith(
+                expect.objectContaining({ search: 'dog' }),
+            ),
         );
 
         await user.click(screen.getByRole('button', { name: 'Favoritos' }));
@@ -243,6 +245,33 @@ describe('ExerciseLibraryPage', () => {
         );
         expect(screen.getByText('Bird Dog')).toBeInTheDocument();
         expect(screen.queryByText('Agachamento')).not.toBeInTheDocument();
+    });
+
+    it('a busca espera a pessoa parar de digitar e não zera a lista enquanto carrega', async () => {
+        const user = userEvent.setup();
+        listPaginated.mockImplementation((params?: { search?: string }) =>
+            params?.search
+                ? new Promise(() => {})
+                : Promise.resolve(pageResult([exercise()])),
+        );
+        renderPage();
+        await screen.findByText('Bird Dog');
+
+        await user.type(
+            screen.getByRole('searchbox', { name: 'Pesquisar exercícios' }),
+            'dog',
+        );
+        await waitFor(() =>
+            expect(listPaginated).toHaveBeenCalledWith(
+                expect.objectContaining({ search: 'dog' }),
+            ),
+        );
+
+        const searches = listPaginated.mock.calls
+            .map(([p]) => (p as { search?: string }).search)
+            .filter(Boolean);
+        expect(searches).toEqual(['dog']);
+        expect(screen.getByText('Bird Dog')).toBeInTheDocument();
     });
 
     it('com Só favoritos zerando a página 1, a rolagem busca a página 2', async () => {

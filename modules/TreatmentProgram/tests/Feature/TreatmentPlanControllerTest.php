@@ -149,6 +149,18 @@ class TreatmentPlanControllerTest extends TestCase
         $this->assertNotNull($response->json('data.data.0.patient_viewed_at'));
     }
 
+    public function test_index_limits_per_page_to_200(): void
+    {
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?per_page=200')
+            ->assertOk();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?per_page=201')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('per_page');
+    }
+
     public function test_index_does_not_list_plans_from_other_clinic(): void
     {
         $otherUser = ClinicUser::factory()->create();

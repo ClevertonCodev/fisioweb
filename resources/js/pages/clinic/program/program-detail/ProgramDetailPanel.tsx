@@ -86,7 +86,7 @@ function WhatsAppButton({ program }: { program: Program }) {
 function DetailActions({ program }: { program: Program }) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { run, deleteModal } = useProgramHistoryActions({
+    const { run, deleteModal, busy } = useProgramHistoryActions({
         // A cópia herda a origem: o "Voltar" dela volta para o mesmo lugar.
         onDuplicated: (copy) =>
             navigate(`/clinica/programas/${copy.id}`, {
@@ -114,6 +114,7 @@ function DetailActions({ program }: { program: Program }) {
                 program={program}
                 onAction={run}
                 withShortcuts
+                busy={busy}
             />
             {deleteModal}
         </div>

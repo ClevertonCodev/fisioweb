@@ -2,13 +2,13 @@ import { useParams } from 'react-router-dom';
 
 import { useClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
-import { DsEmptyState } from '@/components/ds';
+import { DsButton, DsEmptyState } from '@/components/ds';
 
 import { ProgramDetailPanel } from './program-detail/ProgramDetailPanel';
 
 function Body() {
     const { id } = useParams();
-    const { data: program, isLoading } = useClinicProgram(id);
+    const { data: program, isLoading, isError, refetch } = useClinicProgram(id);
     if (isLoading) {
         return (
             <div
@@ -16,6 +16,25 @@ function Body() {
                 aria-label="Carregando programa"
                 className="h-full animate-pulse bg-ds-surface-body"
             />
+        );
+    }
+    // 404 vira `null` no repositório; erro aqui é rede ou 500, não "não existe".
+    if (isError) {
+        return (
+            <div className="flex h-full items-center justify-center bg-ds-surface-body font-ds">
+                <DsEmptyState
+                    variant="error"
+                    title="Não foi possível carregar o programa"
+                    description="Confira a conexão e tente de novo."
+                    action={
+                        <DsButton
+                            variant="secondary"
+                            label="Tentar de novo"
+                            onClick={() => void refetch()}
+                        />
+                    }
+                />
+            </div>
         );
     }
     if (!program) {

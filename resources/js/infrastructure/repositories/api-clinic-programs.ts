@@ -203,7 +203,6 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
                 ...(params?.status ? { status: params.status } : {}),
                 ...(params?.patientId ? { patient_id: params.patientId } : {}),
                 ...(params?.withoutPatient ? { without_patient: 1 } : {}),
-                ...(params?.patientId ? { patient_id: params.patientId } : {}),
             },
         });
         return {

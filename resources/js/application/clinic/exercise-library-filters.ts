@@ -219,7 +219,6 @@ export function setFacet(
     return { facets: { ...f.facets, [key]: values } };
 }
 
-/** Params that the clinic exercises index already accepts. */
 export function libraryApiParams(f: LibraryFilters): {
     search?: string;
     difficultyLevel?: 'easy' | 'medium' | 'hard';

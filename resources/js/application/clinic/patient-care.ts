@@ -63,7 +63,6 @@ function time(value: string): number {
     return new Date(value).getTime();
 }
 
-/** `startDate` do programa é só o dia: montado no fuso local, não em UTC. */
 function dayTime(value: string): number {
     return parseDate(value)?.getTime() ?? Number.NaN;
 }

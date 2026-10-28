@@ -1,7 +1,3 @@
-/**
- * Dose e agenda de um exercício em texto, iguais no painel do programa, no
- * montador e na aba Modelos. Cada tela adapta os próprios campos para cá.
- */
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const PERIOD = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' } as const;
 
@@ -31,11 +27,9 @@ function range(min: Num, max: Num) {
     return String(min ?? max);
 }
 
-/** "3 séries · 10 repetições · 2 kg · 30 s de descanso", em pedaços. */
 export function doseFrom(d: DoseInput): DosePart[] {
     const sets = range(d.setsMin, d.setsMax);
     const reps = range(d.repsMin, d.repsMax);
-    // Carga 0 e descanso 0 são "sem carga" e "sem descanso": não viram pedaço.
     const load = d.loadMin || d.loadMax ? range(d.loadMin, d.loadMax) : null;
     return [
         sets && {
@@ -57,7 +51,6 @@ export function doseFrom(d: DoseInput): DosePart[] {
     ].filter(Boolean) as DosePart[];
 }
 
-/** "Seg, Qua, Sex"; os sete viram "Todos os dias"; sem dias, null. */
 export function daysLabel(days: number[]): string | null {
     if (days.length === 0) return null;
     if (days.length === 7) return 'Todos os dias';
@@ -67,7 +60,6 @@ export function daysLabel(days: number[]): string | null {
         .join(', ');
 }
 
-/** Dias e período juntos: "Seg, Sex · Manhã". */
 export function scheduleText(
     days: string | null,
     period: ExercisePeriod | null,

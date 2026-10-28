@@ -45,7 +45,6 @@ export function useInfiniteClinicProgramsLibrary(
     });
 }
 
-/** Todas as páginas do catálogo: os filtros de Nossos modelos rodam no navegador. */
 export async function listAllClinicProgramsLibrary(
     params?: Omit<ClinicProgramsLibraryParams, 'page' | 'perPage'>,
 ) {
@@ -74,7 +73,6 @@ export function useClinicProgramLibraryDetail(
     });
 }
 
-/** Detalhe sob demanda, no mesmo cache de `useClinicProgramLibraryDetail`. */
 export function useFetchClinicProgramLibraryDetail() {
     const queryClient = useQueryClient();
     return (id: number) =>

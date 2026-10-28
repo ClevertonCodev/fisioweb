@@ -38,10 +38,6 @@ export function useClinicProgramsQuery(
 
 const ALL_PAGES_PER_PAGE = 200;
 
-/**
- * Todas as páginas da listagem. Os filtros do Histórico e de Meus modelos
- * ainda rodam no navegador, então a tela precisa do conjunto inteiro.
- */
 export async function listAllClinicPrograms(
     params?: Omit<ProgramListParams, 'page' | 'perPage'>,
 ): Promise<Program[]> {
@@ -54,7 +50,6 @@ export async function listAllClinicPrograms(
         });
         items.push(...result.items);
         if (page >= result.lastPage || result.items.length === 0) {
-            // Entre um pedido e outro a lista pode andar e repetir um item.
             return [...new Map(items.map((p) => [p.id, p])).values()];
         }
     }
@@ -147,7 +142,6 @@ export function useClinicProgram(id: string | undefined, enabled = true) {
     });
 }
 
-/** Detalhe sob demanda (grupos e exercícios), no mesmo cache de `useClinicProgram`. */
 export function useFetchClinicProgram() {
     const queryClient = useQueryClient();
     return (id: string) =>

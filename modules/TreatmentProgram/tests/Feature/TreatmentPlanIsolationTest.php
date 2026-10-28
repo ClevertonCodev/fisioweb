@@ -181,8 +181,6 @@ class TreatmentPlanIsolationTest extends TestCase
         $otherA   = Patient::factory()->create(['clinic_id' => $this->adminA->clinic_id]);
         $this->planA->update(['patient_id' => $patientA->id]);
 
-        // Se o paciente certo desse uma resposta diferente de um qualquer, a
-        // clínica B descobriria quem é o paciente do plano da A.
         $right = $this->actingAs($this->adminB, 'clinic')
             ->putJson("/api/clinic/treatment-plans/{$this->planA->id}", ['patient_id' => $patientA->id]);
         $wrong = $this->actingAs($this->adminB, 'clinic')

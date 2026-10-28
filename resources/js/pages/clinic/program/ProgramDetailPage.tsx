@@ -18,7 +18,6 @@ function Body() {
             />
         );
     }
-    // 404 vira `null` no repositório; erro aqui é rede ou 500, não "não existe".
     if (isError) {
         return (
             <div className="flex h-full items-center justify-center bg-ds-surface-body font-ds">

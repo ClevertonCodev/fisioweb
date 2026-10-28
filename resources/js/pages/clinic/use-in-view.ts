@@ -1,9 +1,5 @@
 import { useEffect, useState, type RefObject } from 'react';
 
-/**
- * Vira true na primeira vez que o elemento chega perto da tela e fica assim.
- * Serve para adiar busca de detalhe até o cartão aparecer.
- */
 export function useInView(
     ref: RefObject<Element | null>,
     rootMargin = '200px',

@@ -9,7 +9,6 @@ import type { Program, ProgramExercise } from '@/domain/clinic';
 
 export type { DosePart };
 
-/** "3 séries · 10 repetições · 2 kg · 30 s de descanso", em pedaços. */
 export function doseParts(e: ProgramExercise): DosePart[] {
     return doseFrom({
         setsMin: e.seriesMin,
@@ -22,7 +21,6 @@ export function doseParts(e: ProgramExercise): DosePart[] {
     });
 }
 
-/** "Seg, Qua, Sex · Manhã". Sem dias marcados, o exercício é de todo dia. */
 export function scheduleOf(e: ProgramExercise): string {
     return scheduleText(daysLabel(e.days) ?? 'Todos os dias', e.period);
 }
@@ -62,11 +60,6 @@ function validityStat(program: Program): PanelStat {
     return { key: 'validity', label: 'Faltam', value: days(daysLeft) };
 }
 
-/**
- * Os números do topo do painel do programa. O rascunho ainda não chegou ao
- * paciente: validade, conclusões e abertura não dizem nada, então fica só a
- * contagem de exercícios e a tela mostra o aviso.
- */
 export function programPanel(program: Program): ProgramPanel {
     const total = program.groups.reduce((n, g) => n + g.exercises.length, 0);
     const exercises: PanelStat = {
@@ -91,8 +84,7 @@ export function programPanel(program: Program): ProgramPanel {
                 key: 'viewed',
                 label: 'Paciente abriu',
                 value: program.patientViewedAt
-                    ? // "28/09/26": o ano com quatro dígitos estoura o cartão no celular.
-                      new Date(program.patientViewedAt).toLocaleDateString(
+                    ? new Date(program.patientViewedAt).toLocaleDateString(
                           'pt-BR',
                           { day: '2-digit', month: '2-digit', year: '2-digit' },
                       )
@@ -102,17 +94,12 @@ export function programPanel(program: Program): ProgramPanel {
     };
 }
 
-/** Estado de navegação de quem abre o programa: de onde a pessoa veio. */
 export interface ProgramOrigin {
     from: string;
 }
 
 const PROGRAM_BACK_FALLBACK = '/clinica/programas/historico';
 
-/**
- * Para onde o botão "Voltar" leva. Só aceita caminho da própria área da
- * clínica: o `state` da navegação pode vir de qualquer lugar.
- */
 export function programBackPath(state: unknown): string {
     const from = (state as Partial<ProgramOrigin> | null)?.from;
     if (typeof from === 'string' && from.startsWith('/clinica/')) {

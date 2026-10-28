@@ -91,7 +91,6 @@ function Row({
     dragHandle?: ReactNode;
     dragging?: boolean;
 }) {
-    // Exercício sem dose ainda não tem agenda: só "Sem dose".
     const schedule = exercise.isConfigured ? scheduleOf(exercise) : null;
     return (
         <div

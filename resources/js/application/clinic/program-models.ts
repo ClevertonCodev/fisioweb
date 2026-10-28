@@ -135,7 +135,6 @@ export function doseOf(e: ModelExercise): DosePart[] {
     return doseFrom(e);
 }
 
-/** No modelo, sem dias e sem período não há agenda para mostrar. */
 export function scheduleOf(e: ModelExercise): string | null {
     return scheduleText(daysLabel(e.days), e.period) || null;
 }
@@ -245,7 +244,6 @@ const REGION_WORDS: [Region, RegExp][] = [
     ['equilibrio', /queda|equilibrio|idoso/],
 ];
 
-/** Heurística: região sai de palavras do título e da descrição. */
 export function regionsOf(m: ModelSummary): Region[] {
     const text = normalize(`${m.title} ${m.description}`);
     return REGION_WORDS.filter(([, re]) => re.test(text)).map(([r]) => r);

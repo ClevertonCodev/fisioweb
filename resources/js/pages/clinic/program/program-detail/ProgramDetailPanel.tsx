@@ -1,9 +1,3 @@
-/**
- * Painel do programa (DS v2): no topo, o paciente, o status e a validade em
- * barra; uma faixa de números; embaixo, os grupos com cada exercício em
- * cartão, a dose em pedaços e o vídeo num modal. O rascunho troca os números
- * que só fazem sentido depois do envio por um aviso.
- */
 import {
     ArrowLeft,
     CalendarClock,
@@ -48,7 +42,6 @@ function editPath(program: Program) {
     return `/clinica/programas/${program.id}/editar`;
 }
 
-/** Por que o WhatsApp não pode ser usado agora, ou null se pode. */
 function whatsAppBlockedReason(program: Program, url: string | null) {
     if (program.status === 'draft') {
         return 'Rascunho: o paciente ainda não recebeu';
@@ -73,7 +66,6 @@ function WhatsAppButton({ program }: { program: Program }) {
         />
     );
     if (!blocked) return button;
-    // Botão desabilitado não recebe hover: a dica fica no invólucro.
     return (
         <DsTooltip content={blocked} asChild>
             <span tabIndex={0} className="inline-flex rounded-ds-md">
@@ -87,7 +79,6 @@ function DetailActions({ program }: { program: Program }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { run, deleteModal, busy } = useProgramHistoryActions({
-        // A cópia herda a origem: o "Voltar" dela volta para o mesmo lugar.
         onDuplicated: (copy) =>
             navigate(`/clinica/programas/${copy.id}`, {
                 state: location.state,

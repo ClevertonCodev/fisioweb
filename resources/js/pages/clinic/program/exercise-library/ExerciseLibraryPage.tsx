@@ -74,7 +74,6 @@ export default function ExerciseLibraryPage({
         setFilters((prev) => ({ ...prev, ...patch }));
     const clearFilters = () => setFilters(INITIAL_LIBRARY_FILTERS);
 
-    // Uma requisição quando a pessoa para de digitar, não uma por tecla.
     const search = useDebounce(filters.search, 300);
     const apiParams = libraryApiParams({ ...filters, search });
     const {
@@ -99,8 +98,6 @@ export default function ExerciseLibraryPage({
     );
     const filtered = useMemo(
         () =>
-            // Até a resposta da busca chegar, a lista anterior é recortada
-            // aqui mesmo pelo texto digitado.
             applyLibraryFilters(loaded, filters, {
                 skipSearch: Boolean(apiParams.search) && !isPlaceholderData,
             }),
@@ -148,8 +145,6 @@ export default function ExerciseLibraryPage({
     const isFiltered = filters.search !== '' || filterCount > 0;
     const chips = libraryChips(filters);
     const facetProps = { exercises: loaded, filters, onChange: update };
-    // Favoritos e facetas recortam só o que já veio: com página por vir, o
-    // vazio ainda não é final e a rolagem precisa continuar buscando.
     const searchingMore = filtered.length === 0 && Boolean(hasNextPage);
 
     const emptyState = isError ? (

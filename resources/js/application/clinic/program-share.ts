@@ -1,8 +1,3 @@
-/**
- * Mensagem que leva o programa ao paciente (WhatsApp e e-mail). Fica num
- * lugar só para o diálogo depois de salvar e o painel do programa mandarem o
- * mesmo texto.
- */
 import type { Program } from '@/domain/clinic';
 
 function shareText(program: Program): string {
@@ -18,14 +13,12 @@ function shareText(program: Program): string {
         .join('\n\n');
 }
 
-/** `https://wa.me/<dígitos>?text=...`, ou null sem telefone. */
 export function programWhatsAppUrl(program: Program): string | null {
     const phone = (program.patientPhone ?? '').replace(/\D/g, '');
     if (!phone) return null;
     return `https://wa.me/${phone}?text=${encodeURIComponent(shareText(program))}`;
 }
 
-/** `mailto:` com assunto e o mesmo texto, ou null sem e-mail. */
 export function programMailtoUrl(program: Program): string | null {
     const email = program.patientEmail?.trim();
     if (!email) return null;

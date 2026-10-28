@@ -96,10 +96,6 @@ function mineDetail(model: ModelSummary, p: Program): ModelDetail {
     };
 }
 
-/**
- * Detalhe (grupos e exercícios) de um modelo. A listagem não traz os grupos,
- * então cada cartão só pede o detalhe quando `enabled` (visível ou aberto).
- */
 export function useModelDetail(
     model: ModelSummary | null,
     enabled = true,
@@ -129,7 +125,6 @@ export function useModelDetail(
     return { detail, isLoading: query.isLoading, isError: query.isError };
 }
 
-/** Busca o detalhe na hora da ação (usar ou editar), sem depender do cartão. */
 export function useFetchModelDetail() {
     const fetchLibrary = useFetchClinicProgramLibraryDetail();
     const fetchMine = useFetchClinicProgram();

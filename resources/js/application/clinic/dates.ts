@@ -1,8 +1,3 @@
-/**
- * Datas que a API manda. `YYYY-MM-DD` é só o dia (início e fim de programa,
- * por exemplo): monta no fuso local, porque `new Date('2026-08-10')` é
- * meia-noite em UTC e vira o dia anterior em Brasília. Com hora, é instante.
- */
 export function parseDate(value: string | null): Date | null {
     if (!value) return null;
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {

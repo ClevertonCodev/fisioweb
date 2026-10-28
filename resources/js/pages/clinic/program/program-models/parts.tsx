@@ -1,7 +1,3 @@
-/**
- * Peças da listagem v2 de modelos: sessão com barra dos grupos, mapa e
- * ações reais de Meus modelos (editar, duplicar, excluir rascunho).
- */
 import {
     CalendarDays,
     Copy,
@@ -43,9 +39,6 @@ import {
 
 export const NEW_PROGRAM_PATH = '/clinica/programas/novo';
 
-// ---------------------------------------------------------------- exercícios
-
-/** Dose em pedaços: o número forte e a unidade apagada. */
 export function DoseLine({ exercise }: { exercise: ModelExercise }) {
     const dose = doseOf(exercise);
     if (dose.length === 0) {
@@ -136,8 +129,6 @@ export function GroupSections({ groups }: { groups: ModelGroup[] }) {
     );
 }
 
-// ---------------------------------------------------------------- ações
-
 export type ModelActionKey = 'edit' | 'duplicate' | 'delete';
 
 const MODEL_ACTIONS: {
@@ -165,7 +156,6 @@ export function useModelActions() {
         };
     }, []);
 
-    /** O assistente parte dos grupos, que a listagem não traz. */
     const openWizard = async (
         model: ModelSummary,
         state: Record<string, unknown>,
@@ -173,7 +163,6 @@ export function useModelActions() {
         try {
             const detail = await fetchDetail(model);
             if (!detail) throw new Error('Modelo não encontrado.');
-            // Saiu da lista enquanto o detalhe vinha: não puxa a pessoa de volta.
             if (!mounted.current) return;
             navigate(NEW_PROGRAM_PATH, {
                 state: { ...state, program: detail.source },
@@ -185,7 +174,6 @@ export function useModelActions() {
 
     const run = (key: ModelActionKey, model: ModelSummary) => {
         if (key === 'edit') {
-            // Edita como modelo: sem paciente, rascunho, volta a Meus modelos.
             void openWizard(model, {
                 editMode: true,
                 asModel: true,
@@ -240,7 +228,6 @@ export function useModelActions() {
     };
 }
 
-/** "Usar modelo": busca o detalhe (grupos) no clique e abre o assistente. */
 export function UseModelButton({
     model,
     size = 'md',
@@ -270,7 +257,6 @@ export function UseModelButton({
     );
 }
 
-/** "…" com editar/duplicar/excluir; só os modelos da clínica têm. */
 export function ModelActionsMenu({
     model,
     onAction,
@@ -300,8 +286,6 @@ export function ModelActionsMenu({
         </div>
     );
 }
-
-// ---------------------------------------------------------------- filtros
 
 function multiLabel(name: string, selected: string[]): string {
     if (selected.length === 0) return name;

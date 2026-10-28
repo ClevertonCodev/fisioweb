@@ -49,7 +49,6 @@ export function programsTabPath(
 
 interface LastPaths {
     programas: string;
-    /** Com a busca da URL: o recorte `?patientId=` do prontuário. */
     historico: string;
 }
 

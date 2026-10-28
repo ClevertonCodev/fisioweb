@@ -1,7 +1,3 @@
-/**
- * Peças da biblioteca v2: cartão com vídeo, player e ficha. "Usar em novo
- * programa/modelo" abre o assistente v1 com o exercício já no grupo.
- */
 import {
     Check,
     Maximize,
@@ -29,9 +25,6 @@ import type { Exercise } from '@/domain/clinic';
 
 import { DIFFICULTY, type LibraryFilters } from './shared';
 
-// ---------------------------------------------------------------- vídeo do cartão
-
-/** Um vídeo por vez: dar play em outro pausa o anterior. */
 let current: HTMLVideoElement | null = null;
 
 function playOnly(video: HTMLVideoElement) {
@@ -40,11 +33,6 @@ function playOnly(video: HTMLVideoElement) {
     void video.play();
 }
 
-/**
- * O vídeo do ExerciseCard da v1: play no centro com o véu da marca no hover,
- * botão "parar" redondo enquanto toca, tela cheia no canto. Clicar fora
- * desses botões chama `onOpen` (sem ele, o resto do vídeo não reage).
- */
 export function CardVideo({
     exercise,
     onOpen,
@@ -53,7 +41,6 @@ export function CardVideo({
     topRight,
     bottomLeft,
 }: {
-    /** Só título e mídia: serve também para o exercício de um modelo. */
     exercise: Pick<Exercise, 'title' | 'videoUrl' | 'thumbnailUrl'>;
     onOpen?: () => void;
     className?: string;
@@ -112,7 +99,6 @@ export function CardVideo({
                 onEnded={() => setPlaying(false)}
                 className="size-full object-cover"
             />
-            {/* Véu da marca no hover (o bg-primary/25 da v1). */}
             <div className="pointer-events-none absolute inset-0 transition-colors duration-200 group-hover/video:bg-ds-primary-80/25" />
 
             <button
@@ -134,7 +120,6 @@ export function CardVideo({
                         <span className="size-2.5 rounded-[2px] bg-white" />
                     </span>
                 ) : (
-                    // Mesmo tamanho do play da referência (~24 px de triângulo).
                     <Play className="ml-0.5 size-8 fill-current" />
                 )}
             </button>
@@ -167,8 +152,6 @@ export function CardVideo({
     );
 }
 
-// ---------------------------------------------------------------- favorito, info, selos
-
 export function FavoriteButton({
     exercise,
     onToggle,
@@ -176,7 +159,6 @@ export function FavoriteButton({
 }: {
     exercise: Exercise;
     onToggle: (e: Exercise) => void;
-    /** overlay: sobre o vídeo, só aparece no hover se não for favorito. */
     look?: 'overlay' | 'plain';
 }) {
     const label = exercise.isFavorite
@@ -220,7 +202,6 @@ export function DifficultyBadge({ exercise }: { exercise: Exercise }) {
     );
 }
 
-/** O aviso da v1 para envio da clínica que ainda não foi aprovado. */
 export function ReviewBadge({ exercise }: { exercise: Exercise }) {
     if (!exercise.isOwnSubmission || exercise.reviewStatus === 'approved') {
         return null;
@@ -234,8 +215,6 @@ export function ReviewBadge({ exercise }: { exercise: Exercise }) {
     );
 }
 
-// ---------------------------------------------------------------- modal (VideoPlayerModal v1)
-
 function formatTime(time: number): string {
     const m = Math.floor(time / 60);
     const s = Math.floor(time % 60);
@@ -245,7 +224,6 @@ function formatTime(time: number): string {
 const controlBtn =
     'flex size-7 cursor-pointer items-center justify-center rounded-ds-md text-white outline-0 hover:bg-white/20 focus-visible:shadow-ds-focus [&_svg]:size-3.5';
 
-/** O player da v1: ±10 s, som, tempo e tela cheia sobre o vídeo. */
 export function ModalPlayer({
     exercise,
     className,
@@ -411,11 +389,6 @@ export function metaOf(e: Exercise): string[] {
     ].filter(Boolean);
 }
 
-/**
- * O VideoPlayerModal da v1 no DsModal: vídeo à esquerda (45%), selo de
- * dificuldade, objetivo, metadados separados por "•" e a estrela.
- * `withActions` acrescenta "Usar em novo programa/modelo".
- */
 export function ExercisePlayerModal({
     exercise,
     onClose,
@@ -427,7 +400,6 @@ export function ExercisePlayerModal({
     onClose: () => void;
     onToggleFavorite: (e: Exercise) => void;
     withActions?: boolean;
-    /** Mostra a descrição ("como fazer") além do objetivo. */
     showDescription?: boolean;
 }) {
     const { startProgram, startModel } = useExerciseActions();
@@ -521,32 +493,19 @@ export function ExercisePlayerModal({
     );
 }
 
-// ---------------------------------------------------------------- filtros (ExerciseFilters v1)
-
-// ---------------------------------------------------------------- variantes
-
 export interface VariantProps {
-    /** Já filtrados. */
     filtered: Exercise[];
-    /** Todos (contagem das facetas e o aberto no modal). */
     all: Exercise[];
     filters: LibraryFilters;
     onChange: (patch: Partial<LibraryFilters>) => void;
     onClearFilters: () => void;
     onToggleFavorite: (e: Exercise) => void;
     isLoading: boolean;
-    /** Erro ou lista vazia já decidida (null = há resultados). */
     emptyState: ReactNode;
     canSubmit?: boolean;
     onSubmit?: () => void;
-    /**
-     * Topo da caixa de filtros: as abas Histórico/Exercícios/Programas na
-     * biblioteca; no assistente de programa, o grupo que recebe os exercícios.
-     */
     tabs?: ReactNode;
-    /** Modo seleção (assistente de programa): marcar exercícios no cartão e no modal. */
     selection?: LibrarySelection;
-    /** Sem a caixa de filtros: a página já mostrou busca e dropdowns. */
     embedded?: boolean;
     sentinel?: ReactNode;
 }
@@ -556,7 +515,6 @@ export interface LibrarySelection {
     onToggle: (e: Exercise) => void;
 }
 
-/** Círculo de marcar no canto do vídeo (modo seleção). */
 export function SelectToggle({
     exercise,
     selected,

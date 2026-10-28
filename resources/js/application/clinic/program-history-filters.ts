@@ -74,7 +74,6 @@ export function formatLong(value: string | null): string {
 
 export function uiStatusOf(program: Program): UiStatus {
     if (program.status === 'draft') return 'draft';
-    // Completou = paciente concluiu (contador) ou plano marcado completed
     if (program.patientCompletedCount > 0 || program.status === 'completed') {
         return 'completed';
     }

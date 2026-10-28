@@ -1,4 +1,3 @@
-/** Ficha clínica do exercício (modal A). */
 import {
     Activity,
     ArrowLeftRight,
@@ -32,11 +31,8 @@ interface ModalProps {
     exercise: Exercise | null;
     onClose: () => void;
     onToggleFavorite: (e: Exercise) => void;
-    /** No assistente de programa: o rodapé vira "Adicionar ao programa". */
     selection?: LibrarySelection;
 }
-
-// ---------------------------------------------------------------- conteúdo
 
 function formatDuration(seconds: number): string {
     const m = Math.floor(seconds / 60);
@@ -44,7 +40,6 @@ function formatDuration(seconds: number): string {
     return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-/** A descrição vira passos: uma frase por passo. */
 function stepsOf(e: Exercise): string[] {
     return (e.description || '')
         .split(/(?<=[.!?])\s+/)
@@ -112,7 +107,6 @@ function Eyebrow({ icon, children }: { icon: ReactNode; children: string }) {
     );
 }
 
-/** Passos numerados ("Como fazer"). */
 function Steps({ exercise }: { exercise: Exercise }) {
     const steps = stepsOf(exercise);
     if (steps.length === 0) {
@@ -138,10 +132,6 @@ function Steps({ exercise }: { exercise: Exercise }) {
     );
 }
 
-/**
- * Ficha técnica em linhas leves com ícone: uma coluna como lateral no
- * computador, 2–3 colunas embaixo em telas menores.
- */
 function FactList({ exercise }: { exercise: Exercise }) {
     return (
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-1">
@@ -178,7 +168,6 @@ function Badges({ exercise: e }: { exercise: Exercise }) {
     );
 }
 
-/** No assistente: marcar ou tirar o exercício do programa. */
 function SelectionFooter({
     exercise,
     selection,
@@ -202,7 +191,6 @@ function SelectionFooter({
     );
 }
 
-/** Rodapé: só as ações de usar o exercício (o favorito fica no corpo). */
 function Footer({
     exercise,
     selection,
@@ -216,7 +204,6 @@ function Footer({
         return <SelectionFooter exercise={exercise} selection={selection} />;
     }
     return (
-        // No celular, os dois lado a lado, na largura toda, com rótulo curto.
         <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end sm:gap-3">
             <DsButton
                 variant="secondary"
@@ -226,7 +213,6 @@ function Footer({
             />
             <DsButton
                 size={isMobile ? 'full' : 'md'}
-                // No celular, sem ícone para o rótulo caber em meia largura.
                 {...(isMobile
                     ? {}
                     : { iconPosition: 'left' as const, icon: <Dumbbell /> })}
@@ -237,14 +223,6 @@ function Footer({
     );
 }
 
-// ---------------------------------------------------------------- A: ficha clínica
-
-/**
- * Três colunas no computador: o vídeo do cartão (256 px) com o botão de
- * favoritar logo abaixo; os selos, o objetivo num bloco da cor da marca e
- * os passos numerados; e a ficha técnica como lateral. Em telas menores a
- * ficha desce para baixo. O rodapé fica só com as ações de usar.
- */
 function ModalA({
     exercise: e,
     onClose,
@@ -256,7 +234,6 @@ function ModalA({
         open: e !== null,
         onOpenChange: (o: boolean) => !o && onClose(),
         title: e?.title,
-        // No celular a linha de baixo do título sai: região e subárea já estão na ficha.
         meta:
             e && !isMobile
                 ? [e.bodyArea, e.bodyRegion].filter(Boolean).join(' · ')
@@ -265,7 +242,6 @@ function ModalA({
     };
     const body = e && (
         <div className="grid gap-6 sm:grid-cols-[256px_minmax(0,1fr)] lg:grid-cols-[256px_minmax(0,1fr)_300px] lg:gap-8">
-            {/* O mesmo vídeo do cartão da biblioteca: quadrado, 256 px. */}
             <div className="mx-auto flex w-full max-w-64 flex-col gap-3 sm:mx-0">
                 <CardVideo
                     exercise={e}
@@ -322,7 +298,6 @@ function ModalA({
         </div>
     );
 
-    // No celular, gaveta que sobe de baixo na largura toda; no computador, modal.
     return isMobile ? (
         <DsDrawer {...shell} placement="bottom" surfaceClass="max-h-[92dvh]">
             {body}

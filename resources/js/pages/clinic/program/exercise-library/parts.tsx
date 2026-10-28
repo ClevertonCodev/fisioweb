@@ -1,4 +1,3 @@
-/** Chips, esqueleto e filtros da biblioteca v2. */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import {
@@ -20,7 +19,6 @@ import {
     type LibraryFilters,
 } from './shared';
 
-/** Chips da v1: só aparecem com filtro, com "Limpar filtros". */
 export function ActiveChips({
     filters,
     onChange,
@@ -41,10 +39,6 @@ export function ActiveChips({
     );
 }
 
-/**
- * Rolagem infinita da v1 (20 por vez), simulada sobre a lista local.
- * Volta para 20 quando os filtros mudam (favoritar não reinicia).
- */
 export function useInfiniteSlice(
     items: Exercise[],
     filters: LibraryFilters,
@@ -104,10 +98,6 @@ export function CardSkeletons({
     );
 }
 
-/**
- * Gaveta do celular no padrão do Histórico v2: os mesmos filtros da barra,
- * em grupos de checkbox e radio.
- */
 export function LibraryFiltersPanel({
     exercises,
     filters,
@@ -175,7 +165,6 @@ export function LibraryFiltersPanel({
     );
 }
 
-/** Favoritos como dropdown, igual aos outros filtros da barra. */
 export function FavoritesDropdown({
     filters,
     onChange,

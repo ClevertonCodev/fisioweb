@@ -40,7 +40,6 @@ export function useInfiniteExercises(
                 : undefined,
         initialPageParam: 1,
         staleTime: Infinity,
-        // Trocar a busca mantém a lista anterior até a nova chegar.
         placeholderData: keepPreviousData,
     });
 }

@@ -52,8 +52,6 @@ class UpdateTreatmentPlanRequest extends FormRequest
 
     protected function currentPatientId(): ?int
     {
-        // Só plano da própria clínica: com plano de outra, o "mesmo paciente"
-        // daria resposta diferente e revelaria quem é o paciente dele.
         $patientId = TreatmentPlan::query()
             ->whereKey($this->route('id'))
             ->where('clinic_id', (int) Auth::guard('clinic')->user()?->clinic_id)

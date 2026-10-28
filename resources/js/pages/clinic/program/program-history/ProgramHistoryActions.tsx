@@ -45,9 +45,7 @@ const SHORTCUTS: {
 ];
 
 export interface ProgramActionsOptions {
-    /** Depois de duplicar com sucesso (o painel abre a cópia). */
     onDuplicated?: (copy: Program) => void;
-    /** Depois de excluir com sucesso (o painel volta ao Histórico). */
     onDeleted?: () => void;
 }
 
@@ -62,8 +60,6 @@ export function useProgramHistoryActions({
     const { mutate: deleteProgram, isPending: deleting } =
         useDeleteClinicProgram();
     const [toDelete, setToDelete] = useState<Program | null>(null);
-    // Enquanto uma cópia ou um modelo está sendo criado, o segundo clique
-    // criaria outro registro.
     const busy = duplicating || convertingToModel;
 
     const run = useCallback(
@@ -147,8 +143,6 @@ export function useProgramHistoryActions({
                         label="Excluir"
                         loading={deleting}
                         onClick={() => {
-                            // O modal só fecha quando a exclusão volta; se
-                            // falhar, fica aberto com o aviso de erro.
                             if (toDelete) {
                                 deleteProgram(toDelete.id, {
                                     onSuccess: () => {
@@ -174,18 +168,12 @@ export function useProgramHistoryActions({
 
 const BUSY_REASON = 'Aguarde: a ação anterior ainda está em andamento.';
 
-/** Por que o link do programa não pode ser copiado, ou null se pode. */
 function linkBlockedReason(program: Program, isDraft: boolean): string | null {
     if (!program.patientId) return 'Programa sem paciente.';
     if (isDraft) return 'Rascunho: o paciente ainda não recebeu.';
     return null;
 }
 
-/**
- * Menu ⋯ do programa. Com `withShortcuts`, entram no topo os atalhos que no
- * Histórico ficam no rodapé do cartão (link, PDF, texto) — é o caso do
- * painel do programa, que não tem rodapé.
- */
 export function ProgramActionsMenu({
     program,
     onAction,
@@ -195,7 +183,6 @@ export function ProgramActionsMenu({
     program: Program;
     onAction: (key: HistoryActionKey, program: Program) => void;
     withShortcuts?: boolean;
-    /** Uma cópia ou um modelo ainda está sendo criado. */
     busy?: boolean;
 }) {
     const { user } = useAuth();

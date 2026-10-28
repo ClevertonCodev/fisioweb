@@ -1,8 +1,3 @@
-/**
- * Grade D da biblioteca: cartão sem moldura, rolagem infinita e modal da
- * ficha. Com `selection` (assistente), o cartão marca o exercício e o
- * modal vira "Adicionar ao programa".
- */
 import {
     Gauge,
     PersonStanding,
@@ -40,7 +35,6 @@ import {
 const GRID =
     'grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] sm:gap-x-6 sm:gap-y-8';
 
-/** Os filtros da barra (e da gaveta do celular). */
 const BAR_FACETS: FacetKey[] = ['specialty', 'bodyRegion', 'difficulty'];
 
 export function VariantD(props: VariantProps) {
@@ -63,7 +57,6 @@ export function VariantD(props: VariantProps) {
                     aria-label="Seções, busca e filtros"
                     className="flex flex-col gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-3 shadow-ds-xs sm:p-4"
                 >
-                    {/* No celular, as abas vão quase até a borda para caberem as três. */}
                     {props.tabs && (
                         <div className="-mx-3 border-b border-ds-border-subtle px-1.5 pb-3 sm:-mx-4 sm:px-4 sm:pb-4">
                             {props.tabs}
@@ -126,7 +119,6 @@ export function VariantD(props: VariantProps) {
                     <div
                         className={dsCn(
                             'flex min-h-8 items-center',
-                            // No celular, sem filtro não ocupa espaço.
                             filterCount === 0 && 'max-sm:hidden',
                         )}
                     >

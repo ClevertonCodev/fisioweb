@@ -31,7 +31,6 @@ export function ProgramsPageShell({
     chips: ReactNode;
     children: ReactNode;
     hideTabs?: boolean;
-    /** Rota do menu Exercícios: biblioteca sem criar programa no cabeçalho. */
     hideCreateProgram?: boolean;
 }) {
     const navigate = useNavigate();

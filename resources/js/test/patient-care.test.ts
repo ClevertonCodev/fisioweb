@@ -176,7 +176,6 @@ describe('patientCareStats', () => {
             NOW,
         );
 
-        // startDate é só o dia: meia-noite local, não UTC.
         expect(stats.since).toEqual(new Date(2026, 3, 22));
         expect(stats.monthsInCare).toBe(6);
     });
@@ -236,7 +235,6 @@ describe('patientAppointmentsWindow', () => {
 });
 
 describe('patientCareStats no fuso de Brasília', () => {
-    // Troca o fuso no processo do teste (pool forks, padrão do Vitest 4).
     afterEach(() => {
         vi.unstubAllEnvs();
     });

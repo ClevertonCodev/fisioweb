@@ -1,7 +1,3 @@
-/**
- * Mapa do corpo da listagem de modelos: clicar na região recorta a lista.
- * A região ainda sai do título e da descrição (`regionsOf`).
- */
 import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 
@@ -31,9 +27,6 @@ export interface VariantProps {
     emptyState: ReactNode;
 }
 
-// ---------------------------------------------------------------- corpo
-
-/** Pontos sobre a silhueta, no sistema do viewBox (200 × 440). */
 const SPOTS: { region: Region; x: number; y: number }[] = [
     { region: 'cervical', x: 100, y: 70 },
     { region: 'ombro', x: 62, y: 88 },
@@ -51,7 +44,6 @@ const LABEL = Object.fromEntries(
 ) as Record<Region, string>;
 
 function Silhouette() {
-    // Formas simples e simétricas: o espelho do lado esquerdo é 200 - x.
     const arm =
         'M60 84 Q42 90 38 128 L31 208 Q30 222 40 222 Q47 220 48 208 L56 140 Z';
     const leg =
@@ -128,7 +120,6 @@ function BodyMap({
                 })}
             </div>
 
-            {/* As regiões também em lista: equilíbrio não tem lugar no corpo. */}
             <div className="flex flex-wrap justify-center gap-2">
                 {REGIONS.map((r) => {
                     const count = counts[r.key];
@@ -160,8 +151,6 @@ function BodyMap({
     );
 }
 
-// ---------------------------------------------------------------- sessão
-
 const SEGMENT = [
     'bg-ds-primary-80 text-white ds-dark:bg-ds-primary-70',
     'bg-ds-primary-30 text-ds-primary-120',
@@ -169,7 +158,6 @@ const SEGMENT = [
     'bg-ds-primary-20 text-ds-primary-120',
 ];
 
-/** A sessão numa barra: um pedaço por bloco, do tamanho dele. */
 function SessionBar({
     model,
     detail,
@@ -226,11 +214,9 @@ function SessionCard({ model }: { model: ModelSummary }) {
     const ref = useRef<HTMLElement>(null);
     const inView = useInView(ref);
     const [open, setOpen] = useState(false);
-    // A listagem não traz os grupos: o detalhe só vem quando o cartão aparece.
     const { detail, isError } = useModelDetail(model, inView || open);
     const thumbs = exercisesOf(detail);
     const regions = regionsOf(model);
-    // A aba já diz de onde veio; o cartão fica com o que ajuda a escolher.
     const facts = [
         regions.length > 0 &&
             `Trabalha: ${regions.map((r) => LABEL[r]).join(', ')}`,
@@ -334,12 +320,9 @@ function SessionCard({ model }: { model: ModelSummary }) {
     );
 }
 
-// ---------------------------------------------------------------- variante
-
 export function VariantC({ models, isLoading, emptyState }: VariantProps) {
     const [region, setRegion] = useState<Region | null>(null);
     const resultsRef = useRef<HTMLElement>(null);
-    // Sem o mapa ao lado (celular, tablet), descer até os modelos.
     const pick = (r: Region | null) => {
         setRegion(r);
         if (r && !window.matchMedia('(min-width: 1024px)').matches) {
@@ -356,7 +339,6 @@ export function VariantC({ models, isLoading, emptyState }: VariantProps) {
             models.filter((m) => regionsOf(m).includes(r.key)).length,
         ]),
     ) as Record<Region, number>;
-    // A região some se os filtros de cima zerarem ela.
     const active = region && counts[region] > 0 ? region : null;
     const shown = active
         ? models.filter((m) => regionsOf(m).includes(active))

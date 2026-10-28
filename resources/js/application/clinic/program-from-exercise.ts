@@ -1,6 +1,5 @@
 import type { Exercise, Program } from '@/domain/clinic';
 
-/** Programa sintético com um grupo e o exercício escolhido na biblioteca. */
 export function programDraftFromExercise(exercise: Exercise): Program {
     return {
         id: '',

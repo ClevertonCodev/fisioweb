@@ -143,7 +143,6 @@ describe('buildRecordItems', () => {
 });
 
 describe('buildRecordItems: data do programa no fuso de Brasília', () => {
-    // Troca o fuso no processo do teste (pool forks, padrão do Vitest 4).
     afterEach(() => {
         vi.unstubAllEnvs();
     });

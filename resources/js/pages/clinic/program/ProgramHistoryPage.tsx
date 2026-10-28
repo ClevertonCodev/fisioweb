@@ -66,8 +66,6 @@ export default function ProgramHistoryPage() {
     const isMobile = useIsMobile();
     const [searchParams, setSearchParams] = useSearchParams();
     const patientId = searchParams.get('patientId');
-    // Só id numérico vai para a API; lixo na URL cai no recorte do navegador
-    // e vira lista vazia, não erro do banco.
     const apiPatientId =
         patientId && /^\d+$/.test(patientId) ? patientId : null;
 
@@ -80,7 +78,6 @@ export default function ProgramHistoryPage() {
             page: patch.page ?? 1,
         }));
 
-    // O recorte do prontuário vai para a API; os demais filtros, no navegador.
     const { data, isLoading, isError } = useAllClinicPrograms(
         apiPatientId ? { patientId: apiPatientId } : undefined,
     );

@@ -94,7 +94,6 @@ const EDIT_STEP_LABELS: Record<ProgramStep, string> = {
  * PROTÓTIPO: em desenvolvimento, ?variant= troca o assistente pelo do DS v2
  * (program-builder-prototype); O = esta tela. Fora dos testes, que cobrem
  * esta tela (o Vitest roda com DEV ligado).
- * `asModel` sempre cai nesta tela: o protótipo não tem modo sem paciente.
  */
 const PROTOTYPE = import.meta.env.DEV && import.meta.env.MODE !== 'test';
 
@@ -170,7 +169,6 @@ function ProgramNewPageV1() {
     const [shareProgram, setShareProgram] = useState<Program | null>(null);
     const [shareError, setShareError] = useState<string | null>(null);
 
-    // Editar ou montar modelo não mexe no rascunho do "Novo programa".
     const { draft, hasDraft, scheduleSave, clearDraft, restoreDraft } =
         useProgramDraft(step, selectedIds, groups, !editMode && !asModel);
 

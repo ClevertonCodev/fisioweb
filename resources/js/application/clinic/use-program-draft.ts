@@ -24,11 +24,6 @@ function loadFromStorage(): ProgramDraft | null {
     }
 }
 
-/**
- * Rascunho do "Novo programa". Com `enabled` falso (editar ou montar modelo),
- * o hook não lê, não grava e não apaga o rascunho de quem estava no meio de
- * um programa novo.
- */
 export function useProgramDraft(
     step: ProgramStep,
     selectedIds: string[],
@@ -66,7 +61,6 @@ export function useProgramDraft(
         });
     }, [enabled]);
 
-    // O que cada timer ainda vai gravar; ao sair da tela, grava na hora.
     const pendingLocalRef = useRef<(() => void) | null>(null);
     const pendingBackendRef = useRef<(() => void) | null>(null);
 

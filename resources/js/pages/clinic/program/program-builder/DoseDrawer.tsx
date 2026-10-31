@@ -1,13 +1,12 @@
 /**
- * PROTÓTIPO (descartável): o painel de dose de um exercício, o
- * EditExercisePanel da v1 no DS (RHF + Zod). Mesmos campos; de novo, os
- * atalhos "3 × 10" e o "Aplicar ao grupo", que copia a dose para todos os
- * exercícios do grupo.
+ * O painel de dose de um exercício (RHF + Zod), com os atalhos "3 × 10" e o
+ * "Aplicar ao grupo", que copia a dose para todos os exercícios do grupo.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
+import type { Dose } from '@/application/clinic/program-builder';
 import {
     DsButton,
     DsCheckbox,
@@ -20,8 +19,6 @@ import {
 import type { ProgramExercise } from '@/domain/clinic';
 import { CardVideo } from '@/pages/clinic/program/exercise-library/media';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
-
-import type { Dose } from './builder';
 
 const DAYS = [
     { value: 1, short: 'S', label: 'Segunda' },
@@ -202,10 +199,12 @@ function Form({
                             key={`${sets}x${reps}`}
                             type="button"
                             onClick={() => {
+                                // Máximo igual ao mínimo: vazio, o backend
+                                // completaria com o padrão do catálogo.
                                 setValue('setsMin', String(sets));
-                                setValue('setsMax', '');
+                                setValue('setsMax', String(sets));
                                 setValue('repsMin', String(reps));
-                                setValue('repsMax', '');
+                                setValue('repsMax', String(reps));
                             }}
                             className="h-8 cursor-pointer rounded-ds-full border border-ds-border-default bg-ds-surface-default px-3 font-ds-mono text-ds-caption text-ds-content-secondary outline-0 hover:border-ds-primary-40 hover:text-ds-content-brand focus-visible:shadow-ds-focus"
                         >
@@ -286,7 +285,7 @@ function Form({
                     <Legend>Descanso</Legend>
                     <DsSelect
                         aria-label="Descanso entre séries"
-                        placeholder="Sem descanso"
+                        placeholder="Padrão do exercício"
                         options={REST}
                         {...register('rest')}
                     />

@@ -1,6 +1,7 @@
 import { AxiosError, type AxiosResponse } from 'axios';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { buildProgramWriteDto } from '@/application/clinic/program-write';
 import { apiClient } from '@/infrastructure/api/client';
 import { apiClinicProgramsRepository } from '@/infrastructure/repositories/api-clinic-programs';
 
@@ -8,6 +9,7 @@ vi.mock('@/infrastructure/api/client', () => ({
     apiClient: {
         get: vi.fn(),
         post: vi.fn(),
+        put: vi.fn(),
     },
 }));
 
@@ -227,5 +229,126 @@ describe('apiClinicProgramsRepository: datas do programa', () => {
         const program = await apiClinicProgramsRepository.getById('7');
 
         expect(program?.endDate).toBeNull();
+    });
+});
+
+describe('apiClinicProgramsRepository.update: payload da edição', () => {
+    const dto = {
+        title: 'Joelho',
+        patientId: null,
+        message: '',
+        startDate: '2026-11-01',
+        endDate: null,
+        groups: [
+            { id: 7, name: 'Principal', sortOrder: 0 },
+            { name: 'Novo', sortOrder: 1 },
+        ],
+        exercises: [
+            {
+                id: 70,
+                exerciseId: 100,
+                groupIndex: 0,
+                days: [],
+                period: null,
+                setsMin: 3,
+                setsMax: 3,
+            },
+            {
+                exerciseId: 200,
+                groupIndex: 1,
+                days: [1],
+                period: 'manha' as const,
+                setsMin: null,
+                setsMax: null,
+            },
+        ],
+    };
+
+    it('manda o id do que já existe e omite o do que é novo', async () => {
+        vi.mocked(apiClient.put).mockResolvedValueOnce({
+            data: { data: makeApiPlan() },
+        });
+        await apiClinicProgramsRepository.update('5', dto);
+
+        const payload = vi.mocked(apiClient.put).mock.calls[0]?.[1] as Record<
+            string,
+            unknown[]
+        >;
+        expect(payload.groups).toEqual([
+            { id: 7, name: 'Principal', sort_order: 0 },
+            { name: 'Novo', sort_order: 1 },
+        ]);
+        expect(payload.exercises?.[0]).toMatchObject({
+            id: 70,
+            exercise_id: 100,
+        });
+        expect(payload.exercises?.[1]).not.toHaveProperty('id');
+    });
+
+    it('manda null para tirar paciente, mensagem e término (em vez de omitir)', async () => {
+        vi.mocked(apiClient.put).mockResolvedValueOnce({
+            data: { data: makeApiPlan() },
+        });
+        await apiClinicProgramsRepository.update('5', dto);
+
+        const payload = vi.mocked(apiClient.put).mock.calls[0]?.[1] as Record<
+            string,
+            unknown
+        >;
+        expect(payload).toMatchObject({
+            patient_id: null,
+            message: null,
+            end_date: null,
+        });
+        expect(payload).not.toHaveProperty('status');
+    });
+});
+
+describe('apiClinicProgramsRepository: período do exercício', () => {
+    it('o período do assistente (manha/tarde/noite) chega ao backend em inglês', async () => {
+        vi.mocked(apiClient.post).mockResolvedValueOnce({
+            data: { data: makeApiPlan() },
+        });
+        await apiClinicProgramsRepository.create(
+            buildProgramWriteDto({
+                details: {
+                    title: 'X',
+                    patientId: '',
+                    message: '',
+                    startDate: null,
+                    endDate: null,
+                },
+                groups: [
+                    {
+                        id: 'g',
+                        name: 'G',
+                        exercises: (
+                            ['manha', 'tarde', 'noite', null] as const
+                        ).map((period, i) => ({
+                            id: `e${i}`,
+                            exerciseId: '10',
+                            title: '',
+                            thumbnailUrl: '',
+                            videoUrl: '',
+                            days: [],
+                            period,
+                            seriesMin: null,
+                            seriesMax: null,
+                            isConfigured: false,
+                        })),
+                    },
+                ],
+            }),
+        );
+
+        const payload = vi.mocked(apiClient.post).mock.calls[0]?.[1] as {
+            exercises: { period: string | null }[];
+        };
+        expect(payload.exercises.map((e) => e.period)).toEqual([
+            'morning',
+            'afternoon',
+            'night',
+            null,
+        ]);
     });
 });

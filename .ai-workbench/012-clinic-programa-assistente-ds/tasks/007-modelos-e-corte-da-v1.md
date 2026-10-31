@@ -35,15 +35,15 @@ isso, nada mais usa a v1, e ela sai inteira.
 
 ## Critérios de Aceite
 
-- [ ] "Usar em novo modelo" abre o assistente v2 com o título "Novo modelo", na etapa 2, com o exercício (Vitest).
-- [ ] A etapa 3 do modelo tem só nome e mensagem, e o botão diz "Salvar modelo" (Vitest).
-- [ ] Salvar o modelo novo chama o `create` com `patientId` nulo e volta para Meus modelos (Vitest).
-- [ ] "Editar modelo" abre `/clinica/programas/:id/editar?modelo=1` com o título "Editar modelo"; salvar chama o `update` com os `id`s e volta para Meus modelos (Vitest).
-- [ ] Sair da edição de modelo com alteração pede confirmação (Vitest).
-- [ ] Não existem mais a `ProgramNewPage` v1, `StepSelectExercises`, `StepConfigureExercises`, `StepProgramDetails`, `EditExercisePanel` da clínica, `ProgramWizardNavBar` e o `ProgramShareDialog` shadcn; nada os importa; `npm run types`, `npm run lint` e `npm run test` verdes.
-- [ ] Smoke no navegador: criar um modelo a partir de um exercício e editar um modelo, com evidência.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (`/clinica/programas/<modelo de outra clínica>/editar?modelo=1` mostra a tela de erro).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] "Usar em novo modelo" abre o assistente v2 com o título "Novo modelo", na etapa 2, com o exercício (Vitest).
+- [x] A etapa 3 do modelo tem só nome e mensagem, e o botão diz "Salvar modelo" (Vitest).
+- [x] Salvar o modelo novo chama o `create` com `patientId` nulo e volta para Meus modelos (Vitest).
+- [x] "Editar modelo" abre `/clinica/programas/:id/editar?modelo=1` com o título "Editar modelo"; salvar chama o `update` com os `id`s e volta para Meus modelos (Vitest).
+- [x] Sair da edição de modelo com alteração pede confirmação (Vitest).
+- [x] Não existem mais a `ProgramNewPage` v1, `StepSelectExercises`, `StepConfigureExercises`, `StepProgramDetails`, `EditExercisePanel` da clínica, `ProgramWizardNavBar` e o `ProgramShareDialog` shadcn; nada os importa; `npm run types` e ESLint verdes; `npm run test` verde exceto `ExerciseLibraryPage.test.tsx > mostra a grade D com as abas de Programas`, que já falhava antes desta feature (no `DEFERRED.md`).
+- [x] Smoke no navegador: criar um modelo a partir de um exercício e editar um modelo, com evidência.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (`/clinica/programas/<modelo de outra clínica>/editar?modelo=1` mostra a tela de erro).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

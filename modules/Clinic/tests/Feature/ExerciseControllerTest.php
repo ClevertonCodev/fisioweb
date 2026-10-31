@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Models\BodyRegion;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
@@ -98,6 +99,26 @@ class ExerciseControllerTest extends TestCase
         $this->assertSame([$byArea->id], $ids('Neurologia'));
         $this->assertSame([$byRegion->id], $ids('Ombro'));
         $this->assertNotContains($other->id, $ids('Neurologia'));
+    }
+
+    public function test_index_search_ignores_case_like_in_postgres(): void
+    {
+        // O LIKE do Postgres diferencia maiúscula; o PRAGMA faz o sqlite dos
+        // testes se comportar igual, para o teste pegar a regressão.
+        DB::statement('PRAGMA case_sensitive_like = ON');
+        $squat = $this->makeExercise(['name' => 'Agachamento livre']);
+        $this->makeExercise(['name' => 'Ponte']);
+
+        foreach (['agach', 'AGACH', 'Agach'] as $search) {
+            $ids = collect(
+                $this->actingAs($this->clinicUser, 'clinic')
+                    ->getJson('/api/clinic/exercises?search=' . $search)
+                    ->assertOk()
+                    ->json('data.data'),
+            )->pluck('id')->all();
+
+            $this->assertSame([$squat->id], $ids, "busca por {$search}");
+        }
     }
 
     public function test_index_requires_authentication(): void

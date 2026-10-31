@@ -1,4 +1,34 @@
-import type { Exercise, Program } from '@/domain/clinic';
+import type { Exercise, Program, ProgramExercise } from '@/domain/clinic';
+
+/**
+ * O exercício da biblioteca como entra no programa: com a dose padrão do
+ * catálogo, que é o que o backend aplica quando a clínica não define outra.
+ */
+export function programExerciseFrom(
+    exercise: Exercise,
+    id: string,
+): ProgramExercise {
+    const sets = exercise.sets ?? null;
+    const repetitions = exercise.repetitions ?? null;
+    return {
+        id,
+        exerciseId: exercise.id,
+        title: exercise.title,
+        thumbnailUrl: exercise.thumbnailUrl,
+        videoUrl: exercise.videoUrl,
+        days: [],
+        period: null,
+        seriesMin: sets,
+        seriesMax: sets,
+        repetitionsMin: repetitions,
+        repetitionsMax: repetitions,
+        loadMin: null,
+        loadMax: null,
+        restTime: exercise.restTime ?? null,
+        notes: null,
+        isConfigured: sets !== null || repetitions !== null,
+    };
+}
 
 export function programDraftFromExercise(exercise: Exercise): Program {
     return {
@@ -21,26 +51,7 @@ export function programDraftFromExercise(exercise: Exercise): Program {
             {
                 id: 'group-1',
                 name: 'Novo grupo',
-                exercises: [
-                    {
-                        id: exercise.id,
-                        exerciseId: exercise.id,
-                        title: exercise.title,
-                        thumbnailUrl: exercise.thumbnailUrl,
-                        videoUrl: exercise.videoUrl,
-                        days: [],
-                        period: null,
-                        seriesMin: null,
-                        seriesMax: null,
-                        repetitionsMin: null,
-                        repetitionsMax: null,
-                        loadMin: null,
-                        loadMax: null,
-                        restTime: null,
-                        notes: null,
-                        isConfigured: false,
-                    },
-                ],
+                exercises: [programExerciseFrom(exercise, exercise.id)],
             },
         ],
         status: 'draft',

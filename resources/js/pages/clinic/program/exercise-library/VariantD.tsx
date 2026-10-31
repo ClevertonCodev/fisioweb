@@ -44,8 +44,10 @@ export function VariantD(props: VariantProps) {
     const [drawer, setDrawer] = useState(false);
     const open = all.find((e) => e.id === openId) ?? null;
     const local = useInfiniteSlice(filtered, filters);
-    const visible = props.embedded ? filtered : local.visible;
-    const sentinel = props.embedded ? props.sentinel : local.sentinel;
+    // Com `sentinel` de fora, a paginação é da API (não recorta no cliente).
+    const remote = props.embedded || props.sentinel !== undefined;
+    const visible = remote ? filtered : local.visible;
+    const sentinel = remote ? props.sentinel : local.sentinel;
     const filterCount = activeFilterCount(filters);
     const isMobile = useIsMobile();
     const facetProps = { exercises: all, filters, onChange };

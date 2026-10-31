@@ -38,16 +38,16 @@ porque o fluxo de modelo ainda depende dele).
 
 ## Critérios de Aceite
 
-- [ ] `/clinica/programas/novo` mostra o assistente v2 sem `?variant=` e sem o seletor de variantes (Vitest).
-- [ ] O novo vazio abre na etapa 1; "Usar em novo programa" e "Usar modelo" abrem na etapa 2 com os grupos e as doses certos (Vitest).
-- [ ] O exercício novo entra com a dose do catálogo, e a barra "com dose" bate com os cards (Vitest).
-- [ ] Salvar com paciente chama o `create` sem `status`, com grupos e exercícios na ordem, e abre o diálogo de envio com o link real (Vitest).
-- [ ] Salvar sem paciente vai para Meus modelos (Vitest).
-- [ ] Erro da API mostra a mensagem no diálogo e mantém o assistente montado (Vitest).
-- [ ] Nenhum arquivo fora de `*-prototype` importa da pasta do protótipo.
-- [ ] Smoke no navegador (desktop e celular): criar um programa com paciente e outro sem, com evidência.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (o paciente de outra clínica dá 422, coberto no backend).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] `/clinica/programas/novo` mostra o assistente v2 sem `?variant=` e sem o seletor de variantes (Vitest).
+- [x] O novo vazio abre na etapa 1; "Usar em novo programa" e "Usar modelo" abrem na etapa 2 com os grupos e as doses certos (Vitest).
+- [x] O exercício novo entra com a dose do catálogo, e a barra "com dose" bate com os cards (Vitest).
+- [x] Salvar com paciente chama o `create` sem `status`, com grupos e exercícios na ordem, e abre o diálogo de envio com o link real (Vitest).
+- [x] Salvar sem paciente vai para Meus modelos (Vitest).
+- [x] Erro da API mostra a mensagem no diálogo e mantém o assistente montado (Vitest).
+- [x] Nenhum arquivo fora de `*-prototype` importa da pasta do protótipo.
+- [x] Smoke no navegador (desktop e celular): criar um programa com paciente e outro sem, com evidência.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (o paciente de outra clínica dá 422, coberto no backend).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

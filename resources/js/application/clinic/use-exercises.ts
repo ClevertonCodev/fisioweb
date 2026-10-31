@@ -10,13 +10,6 @@ import { apiClinicExercisesRepository } from '@/infrastructure/repositories';
 
 import type { ExerciseListParams } from './ports';
 
-export function useExercises() {
-    return useQuery({
-        queryKey: ['exercises'],
-        queryFn: () => apiClinicExercisesRepository.list(),
-    });
-}
-
 export function listExercisesPaginated(params?: ExerciseListParams) {
     return apiClinicExercisesRepository.listPaginated(params);
 }

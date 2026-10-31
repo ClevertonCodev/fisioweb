@@ -25,4 +25,18 @@ class ExerciseCatalogReadService implements ExerciseCatalogReadServiceInterface
             restTime: $exercise->rest_time,
         );
     }
+
+    public function visibleToClinic(array $exerciseIds, int $clinicId): array
+    {
+        if (empty($exerciseIds)) {
+            return [];
+        }
+
+        return Exercise::query()
+            ->whereIn('id', $exerciseIds)
+            ->visibleToClinic($clinicId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
 }

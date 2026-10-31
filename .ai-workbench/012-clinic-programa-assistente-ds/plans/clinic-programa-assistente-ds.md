@@ -114,7 +114,7 @@ exercises[]: { id?: number, exercise_id, group_index, days_of_week, period,
 - **Status sem `status` no payload:** se o paciente foi removido, `draft`; se era `draft` e ganhou paciente, `active`; senão, mantém. Se `status` vier, vale como hoje (compatibilidade).
 - **`patient_id` mudou (troca ou remoção):** `public_token` novo. O link antigo dá 404 em todas as rotas `patient/programs/{publicToken}`.
 - **Saída:** a mesma de hoje (envelope `data`, com `groups.exercises` e os `id`s), agora com `public_token`/`share_url` novos quando trocar.
-- **Outra clínica:** 404, como hoje (o repositório filtra por `clinic_id`).
+- **Outra clínica:** 404, como hoje (o controller confere a clínica do plano antes do service).
 
 A listagem `GET /api/clinic/exercises` não muda. Ela já devolve `sets`,
 `repetitions` e `rest_time` do Model; o front só passa a mapear esses campos.
@@ -122,7 +122,7 @@ A listagem `GET /api/clinic/exercises` não muda. Ela já devolve `sets`,
 ### Permissões e isolamento
 
 - **Permissões:** `TreatmentPlanPolicy::create`/`update` liberam todos os papéis da clínica (`admin`, `physiotherapist`, `secretary`). Não muda.
-- **Clínica:** o filtro por `clinic_id` continua no repositório (busca do plano) e no `ValidatesPatientOfClinic` (paciente).
+- **Clínica:** a clínica do plano é conferida no controller antes do service (o repositório busca só por id), e o paciente no `ValidatesPatientOfClinic`.
 - **Exercício:** a regra de exercício visível fica na validação do FormRequest, pelo contrato público do Admin, nunca pelo Model `Exercise`.
 - **Paciente:** o link público é a única chave do paciente para o programa; trocá-lo quando o paciente muda é o que separa os dois. As execuções já guardam o `patient_id` de quem fez, e as leituras filtram por ele.
 

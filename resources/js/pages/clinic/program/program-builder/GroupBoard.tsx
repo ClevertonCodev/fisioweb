@@ -1,9 +1,8 @@
 /**
- * PROTÓTIPO (descartável): os grupos do programa (StepConfigureExercises da
- * v1 no DS). Arrastar reordena e troca de grupo (dnd-kit, como na v1);
- * cada linha mostra a dose em pedaços ou "Sem dose" em destaque. De novo:
- * nomes prontos para grupo novo e o "adicionar neste grupo" que volta à
- * biblioteca já mirando o grupo.
+ * Os grupos do programa (etapa "Montar e dosar"). Arrastar reordena e troca
+ * de grupo (dnd-kit); cada linha mostra a dose em pedaços ou "Sem dose" em
+ * destaque. Nomes prontos para grupo novo e o "adicionar neste grupo" que
+ * volta à biblioteca já mirando o grupo.
  */
 import {
     closestCorners,
@@ -37,11 +36,11 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
+import type { ProgramBuilder } from '@/application/clinic/program-builder';
+import { doseParts, scheduleOf } from '@/application/clinic/program-detail';
 import { DsButton, dsCn, DsInput } from '@/components/ds';
 import type { ProgramExercise, ProgramGroup } from '@/domain/clinic';
 import { CardVideo } from '@/pages/clinic/program/exercise-library/media';
-
-import { doseParts, scheduleOf, type ProgramBuilder } from './builder';
 
 const GROUP_NAMES = [
     'Aquecimento',

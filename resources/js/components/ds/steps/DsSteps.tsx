@@ -14,6 +14,8 @@ export interface StepsProps {
     current?: number;
     vertical?: boolean;
     className?: string;
+    /** Com ele, o círculo de cada passo vira botão que leva àquele passo. */
+    onStepClick?: (index: number) => void;
 }
 
 // Trilha horizontal: linha que passa pelo centro do círculo (antes e depois dele).
@@ -25,7 +27,10 @@ export function DsSteps({
     current = 0,
     vertical = false,
     className,
+    onStepClick,
 }: StepsProps) {
+    const Circle = onStepClick ? 'button' : 'span';
+
     function getState(index: number): StepState {
         if (index < current) return 'done';
         if (index === current) return 'current';
@@ -78,13 +83,22 @@ export function DsSteps({
                                       ),
                             )}
                         >
-                            <span
+                            <Circle
+                                {...(onStepClick
+                                    ? {
+                                          type: 'button' as const,
+                                          'aria-label': `${index + 1}. ${step.label}`,
+                                          onClick: () => onStepClick(index),
+                                      }
+                                    : {})}
                                 className={dsCn(
                                     'relative z-[1] grid size-11 flex-none place-items-center rounded-ds-pill border-2 border-ds-border-subtle bg-ds-surface-default text-ds-body-xs leading-none font-semibold text-ds-content-subtle transition-[background,border-color,color] duration-200 [&_svg]:size-5',
                                     state === 'done' &&
                                         'border-ds-primary-80 bg-ds-primary-80 text-ds-white',
                                     state === 'current' &&
                                         'border-ds-primary-80 text-ds-content-brand',
+                                    onStepClick &&
+                                        'cursor-pointer outline-0 hover:border-ds-primary-60 focus-visible:shadow-ds-focus',
                                 )}
                             >
                                 {state === 'done' ? (
@@ -95,7 +109,7 @@ export function DsSteps({
                                 ) : (
                                     index + 1
                                 )}
-                            </span>
+                            </Circle>
                         </span>
                         <span
                             className={dsCn(

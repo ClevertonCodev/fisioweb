@@ -66,6 +66,32 @@ function makePaginatorResponse(
 }
 
 describe('apiClinicExercisesRepository.list', () => {
+    it('traz a dose padrão do catálogo (séries, repetições e descanso)', async () => {
+        mockGet.mockResolvedValueOnce(
+            makePaginatorResponse([
+                makeApiExercise({ sets: 3, repetitions: 12, rest_time: 45 }),
+                makeApiExercise({
+                    id: 2,
+                    sets: null,
+                    repetitions: null,
+                    rest_time: null,
+                }),
+            ]),
+        );
+        const [withDose, withoutDose] =
+            await apiClinicExercisesRepository.list();
+        expect(withDose).toMatchObject({
+            sets: 3,
+            repetitions: 12,
+            restTime: 45,
+        });
+        expect(withoutDose).toMatchObject({
+            sets: null,
+            repetitions: null,
+            restTime: null,
+        });
+    });
+
     it('requisita /clinic/exercises com per_page 200', async () => {
         mockGet.mockResolvedValueOnce(makePaginatorResponse([]));
         await apiClinicExercisesRepository.list();

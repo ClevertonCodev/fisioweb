@@ -1,13 +1,15 @@
 /**
- * PROTÓTIPO (descartável): a lateral "Seu programa" da etapa de escolher
- * (SelectedExercisesList da v1 no DS). Os grupos aparecem desde o começo;
- * tocar no grupo faz dele o que recebe os próximos exercícios marcados.
+ * A lateral "Seu programa" da etapa de escolher. Os grupos aparecem desde o
+ * começo; tocar no grupo faz dele o que recebe os próximos exercícios
+ * marcados.
  */
 import { CircleDot, MousePointerClick, Plus, X } from 'lucide-react';
 
+import {
+    exerciseCount,
+    type ProgramBuilder,
+} from '@/application/clinic/program-builder';
 import { DsButton, dsCn } from '@/components/ds';
-
-import { exerciseCount, type ProgramBuilder } from './builder';
 
 export function ProgramTray({ builder }: { builder: ProgramBuilder }) {
     const { groups, target, total } = builder;

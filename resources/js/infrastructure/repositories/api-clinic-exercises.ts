@@ -40,6 +40,9 @@ interface ApiExercise {
     is_favorite: boolean;
     review_status: ExerciseReviewStatus | null;
     is_own_submission: boolean;
+    sets?: number | null;
+    repetitions?: number | null;
+    rest_time?: number | null;
     videos: ApiVideo[];
     created_at: string;
 }
@@ -84,6 +87,9 @@ function toEntity(raw: ApiExercise): Exercise {
         isFavorite: raw.is_favorite ?? false,
         reviewStatus: raw.review_status ?? 'approved',
         isOwnSubmission: raw.is_own_submission ?? false,
+        sets: raw.sets ?? null,
+        repetitions: raw.repetitions ?? null,
+        restTime: raw.rest_time ?? null,
         createdAt: raw.created_at ?? '',
     };
 }

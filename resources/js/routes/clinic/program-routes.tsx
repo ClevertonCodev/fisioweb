@@ -1,7 +1,6 @@
 import { type QueryClient } from '@tanstack/react-query';
 import { Navigate, type RouteObject } from 'react-router-dom';
 
-import { listExercisesPaginated } from '@/application/clinic/use-exercises';
 import { findClinicProgram } from '@/application/clinic/use-programs';
 import { ClinicLoaderError } from '@/components/clinic/ClinicLoaderError';
 import ProgramDetailPage from '@/pages/clinic/program/ProgramDetailPage';
@@ -26,26 +25,7 @@ export function programClinicRoutes(queryClient: QueryClient): RouteObject[] {
         {
             path: '/clinica/programas/novo',
             element: <ProgramNewPage />,
-            loader: async () => {
-                await queryClient.fetchInfiniteQuery({
-                    queryKey: ['exercises-infinite'],
-                    queryFn: ({ pageParam }) =>
-                        listExercisesPaginated({
-                            page: pageParam as number,
-                            perPage: 20,
-                        }),
-                    getNextPageParam: (
-                        lastPage: Awaited<
-                            ReturnType<typeof listExercisesPaginated>
-                        >,
-                    ) =>
-                        lastPage.currentPage < lastPage.lastPage
-                            ? lastPage.currentPage + 1
-                            : undefined,
-                    initialPageParam: 1,
-                });
-                return null;
-            },
+            errorElement: <ClinicLoaderError />,
         },
         {
             path: '/clinica/programas/:id',

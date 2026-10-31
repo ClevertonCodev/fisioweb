@@ -134,12 +134,23 @@ function LocationState() {
             novo programa
             {location.state?.editMode && <span>modo edição</span>}
             {location.state?.asModel && <span>como modelo</span>}
+            {location.state?.from && <span>de {location.state.from}</span>}
             {location.state?.programId && (
                 <span>id {location.state.programId}</span>
             )}
             <span>{program?.title}</span>
             <span>{program?.groups?.[0]?.name}</span>
             <span>{exerciseTitle}</span>
+        </div>
+    );
+}
+
+function EditLocation() {
+    const location = useLocation();
+    return (
+        <div>
+            editor {location.pathname}
+            {location.search}
         </div>
     );
 }
@@ -169,7 +180,7 @@ function renderPage(url = '/clinica/programas/modelos') {
                     />
                     <Route
                         path="/clinica/programas/:id/editar"
-                        element={<div>editor de programa</div>}
+                        element={<EditLocation />}
                     />
                 </Routes>
             </MemoryRouter>
@@ -298,9 +309,13 @@ describe('ProgramModelsPage', () => {
         expect(screen.getByText('novo programa')).toBeInTheDocument();
         expect(screen.getByText('Aquecimento')).toBeInTheDocument();
         expect(screen.getByText('Bird Dog')).toBeInTheDocument();
+        // O "Voltar" do assistente volta para os modelos.
+        expect(
+            screen.getByText('de /clinica/programas/modelos'),
+        ).toBeInTheDocument();
     });
 
-    it('em Meus modelos Editar abre o assistente como modelo, não o editor de programa', async () => {
+    it('em Meus modelos Editar abre a edição do modelo pela URL, como modelo', async () => {
         const user = userEvent.setup();
         getMine.mockResolvedValue(
             myProgram({
@@ -323,14 +338,12 @@ describe('ProgramModelsPage', () => {
         await user.click(
             screen.getByRole('menuitem', { name: 'Editar modelo' }),
         );
-        expect(await screen.findByText('novo programa')).toBeInTheDocument();
-        expect(screen.getByText('modo edição')).toBeInTheDocument();
-        expect(screen.getByText('como modelo')).toBeInTheDocument();
-        expect(screen.getByText('id 9')).toBeInTheDocument();
-        expect(screen.getByText('Fortalecimento')).toBeInTheDocument();
         expect(
-            screen.queryByText('editor de programa'),
-        ).not.toBeInTheDocument();
+            await screen.findByText(
+                'editor /clinica/programas/9/editar?modelo=1',
+            ),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('novo programa')).not.toBeInTheDocument();
     });
 
     it('não busca o detalhe de cada modelo ao abrir a lista', async () => {

@@ -1,9 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { useProgramBuilder } from '@/application/clinic/program-builder';
 import type { ProgramExercise, ProgramGroup } from '@/domain/clinic';
-import { useProgramBuilder } from '@/pages/clinic/program/program-builder-prototype/builder';
-import { GroupBoard } from '@/pages/clinic/program/program-builder-prototype/GroupBoard';
+import { GroupBoard } from '@/pages/clinic/program/program-builder/GroupBoard';
 
 function exercise(overrides: Partial<ProgramExercise>): ProgramExercise {
     return {

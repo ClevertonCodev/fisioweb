@@ -8,6 +8,7 @@ use Modules\Admin\Models\BodyRegion;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
 use Modules\Admin\Models\User as AdminUser;
+use Modules\Clinic\Models\Clinic;
 use Tests\TestCase;
 
 class ExerciseCatalogReadServiceTest extends TestCase
@@ -48,5 +49,33 @@ class ExerciseCatalogReadServiceTest extends TestCase
     public function test_returns_null_for_missing_exercise(): void
     {
         $this->assertNull($this->service()->findPrescriptionDefaults(999999));
+    }
+
+    public function test_visible_to_clinic_keeps_approved_and_own_exercises_only(): void
+    {
+        $admin      = AdminUser::factory()->create();
+        $physioArea = PhysioArea::create(['name' => 'Joelho']);
+        $bodyRegion = BodyRegion::create(['name' => 'Joelho']);
+        $make       = fn (array $attributes) => Exercise::create(array_merge([
+            'name'           => 'Exercício',
+            'physio_area_id' => $physioArea->id,
+            'body_region_id' => $bodyRegion->id,
+            'created_by'     => $admin->id,
+            'is_active'      => true,
+        ], $attributes));
+
+        $clinicId     = Clinic::factory()->create()->id;
+        $approved     = $make(['review_status' => Exercise::REVIEW_APPROVED]);
+        $ownPending   = $make(['review_status' => Exercise::REVIEW_PENDING, 'clinic_id' => $clinicId]);
+        $otherPending = $make(['review_status' => Exercise::REVIEW_PENDING, 'clinic_id' => Clinic::factory()->create()->id]);
+
+        $visible = $this->service()->visibleToClinic(
+            [$approved->id, $ownPending->id, $otherPending->id, 999999],
+            $clinicId,
+        );
+
+        sort($visible);
+        $this->assertSame([$approved->id, $ownPending->id], $visible);
+        $this->assertSame([], $this->service()->visibleToClinic([], $clinicId));
     }
 }

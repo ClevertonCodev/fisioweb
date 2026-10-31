@@ -32,17 +32,17 @@ perde a tela. Ao salvar, o assistente manda os `id`s de grupos e exercícios
 
 ## Critérios de Aceite
 
-- [ ] `/clinica/programas/:id/editar` abre o assistente na etapa 2 com os dados do programa, e o F5 mantém a tela (Vitest).
-- [ ] Salvar chama o `update` com os `id`s de grupos e exercícios existentes, sem `status`; exercício novo vai sem `id` (Vitest).
-- [ ] Com paciente, o diálogo de envio sempre abre; sem paciente, volta ao painel (Vitest).
-- [ ] Início passado é mantido; escolher outra data passada não é possível (Vitest).
-- [ ] Sair com alteração abre "Descartar alterações?"; sem alteração, sai direto (Vitest).
-- [ ] Editar o programa 7 com séries registradas mantém o histórico no link do paciente (smoke, com evidência).
-- [ ] Trocar o paciente mostra o link novo no diálogo, e o antigo dá "Programa não encontrado" (smoke, com evidência).
-- [ ] Abrir `/clinica/programas/<id de outra clínica>/editar` mostra a tela de erro, sem dados (smoke e teste backend que já existe).
-- [ ] A `ProgramEditPage` v1 não existe mais e nada a importa.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] `/clinica/programas/:id/editar` abre o assistente na etapa 2 com os dados do programa, e o F5 mantém a tela (Vitest).
+- [x] Salvar chama o `update` com os `id`s de grupos e exercícios existentes, sem `status`; exercício novo vai sem `id` (Vitest).
+- [x] Com paciente, o diálogo de envio sempre abre; sem paciente, volta ao painel (Vitest).
+- [x] Início passado é mantido; escolher outra data passada não é possível (Vitest).
+- [x] Sair com alteração abre "Descartar alterações?"; sem alteração, sai direto (Vitest).
+- [x] Editar o programa 7 com séries registradas mantém o histórico no link do paciente (smoke, com evidência).
+- [x] Trocar o paciente mostra o link novo no diálogo, e o antigo dá "Programa não encontrado" (smoke, com evidência).
+- [x] Abrir `/clinica/programas/<id de outra clínica>/editar` mostra a tela de erro, sem dados (smoke e teste backend que já existe).
+- [x] A `ProgramEditPage` v1 não existe mais e nada a importa.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

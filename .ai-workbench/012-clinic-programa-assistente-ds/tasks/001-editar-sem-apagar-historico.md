@@ -24,21 +24,21 @@ ADR 021: o que sai é apagado, não arquivado (decisão do usuário).
 - **Exercícios:** cada exercício aceita `id` opcional. Com `id`, atualiza grupo, ordem, dose, dias, período e notas no lugar, mantendo as séries registradas; sem `id`, cria (com os padrões do catálogo, como hoje); os que não vieram são apagados, levando só as séries deles.
 - **`id` alheio:** `id` de grupo ou exercício que não pertence a este programa (mesmo que seja de outro programa da mesma clínica) responde 422 e não muda nada.
 - **Compatível com a v1:** um payload sem nenhum `id` continua funcionando e se comporta como hoje (tudo é criado, o antigo é apagado).
-- **Isolamento:** a busca do plano continua filtrada por `clinic_id` no repositório; programa de outra clínica responde 404.
+- **Isolamento:** o controller confere a clínica do plano antes do service (o repositório busca só por id); programa de outra clínica responde 404.
 - **ADR 025** em `docs/adr/`: editar programa não apaga o histórico do paciente (sincronizar por id; o que sai é apagado). A tarefa 002 completa o mesmo ADR com o link novo ao trocar de paciente.
 
 ## Critérios de Aceite
 
-- [ ] Editar a dose de um exercício com séries registradas mantém o mesmo `id` e as séries (PHPUnit).
-- [ ] Mudar a ordem ou o grupo de um exercício mantém o `id` e as séries (PHPUnit).
-- [ ] Tirar um exercício apaga só as séries dele; as dos outros ficam (PHPUnit).
-- [ ] Renomear e reordenar grupos mantém os `id`s dos grupos (PHPUnit).
-- [ ] `id` de grupo ou exercício de outro programa responde 422 e nada muda no banco (PHPUnit).
-- [ ] Payload sem `id` continua aceito (a v1 de edição segue funcionando até a tarefa 006).
-- [ ] O `PUT` no programa de outra clínica continua 404, sem revelar nada (`TreatmentPlanIsolationTest` verde).
-- [ ] ADR 025 escrito.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] Editar a dose de um exercício com séries registradas mantém o mesmo `id` e as séries (PHPUnit).
+- [x] Mudar a ordem ou o grupo de um exercício mantém o `id` e as séries (PHPUnit).
+- [x] Tirar um exercício apaga só as séries dele; as dos outros ficam (PHPUnit).
+- [x] Renomear e reordenar grupos mantém os `id`s dos grupos (PHPUnit).
+- [x] `id` de grupo ou exercício de outro programa responde 422 e nada muda no banco (PHPUnit).
+- [x] Payload sem `id` continua aceito (a v1 de edição segue funcionando até a tarefa 006).
+- [x] O `PUT` no programa de outra clínica continua 404, sem revelar nada (`TreatmentPlanIsolationTest` verde).
+- [x] ADR 025 escrito.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 
@@ -46,7 +46,7 @@ ADR 021: o que sai é apagado, não arquivado (decisão do usuário).
 
 ## Notas de Implementação
 
-- **Branch:** a definir com o usuário antes de começar (a feature 011 está em `feat/clinic-historico-exercicios-programas`, sem push).
+- **Branch:** `feat/clinic-programa-assistente-ds` (criada a partir de `feat/clinic-historico-exercicios-programas`).
 - **Exemplo no código:** `docs/adr/021-editar-modelo-de-evolucao-nao-apaga-historico.md` (a regra de sincronizar por id); `modules/TreatmentProgram/tests/Feature/TreatmentPlanIsolationTest.php` e `modules/TreatmentProgram/tests/Feature/Patient/PatientProgramExecutionTest.php` (montar plano com séries registradas).
 - **Skills:** `backend-clean-code`, `laravel-eloquent`, `php-testing`, `domain-modeling` (ADR).
 

@@ -14,6 +14,7 @@ import type {
     PatientFile,
     PatientQuestionnaire,
     Program,
+    ProgramExercise,
     ServiceType,
     ServiceTypeDraft,
 } from '@/domain/clinic';
@@ -234,10 +235,13 @@ export interface GoogleCalendarRepository {
 }
 
 export interface ProgramExerciseWriteDto {
+    /** Exercício que já existe no programa (edição): atualiza no lugar. */
+    id?: number;
     exerciseId: number;
     groupIndex: number | null;
     days: number[];
-    period: 'morning' | 'afternoon' | 'night' | null;
+    /** Período no vocabulário do domínio; o repositório traduz para a API. */
+    period: ProgramExercise['period'];
     setsMin: number | null;
     setsMax: number | null;
     repetitionsMin?: number | null;
@@ -254,9 +258,8 @@ export interface ProgramWriteDto {
     message: string;
     startDate: string | null;
     endDate: string | null;
-    /** 'active' quando enviado para um paciente; omitir para rascunho */
-    status?: 'draft' | 'active';
-    groups: { name: string; sortOrder: number }[];
+    /** `id` em grupo que já existe no programa (edição): atualiza no lugar. */
+    groups: { id?: number; name: string; sortOrder: number }[];
     exercises: ProgramExerciseWriteDto[];
 }
 

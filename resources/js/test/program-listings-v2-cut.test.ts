@@ -13,6 +13,10 @@ const PAGES = [
     'resources/js/pages/clinic/program/program-history/ProgramHistoryActions.tsx',
     'resources/js/pages/clinic/program/exercise-library/VariantD.tsx',
     'resources/js/pages/clinic/program/program-models/VariantC.tsx',
+    'resources/js/pages/clinic/program/ProgramNewPage.tsx',
+    'resources/js/pages/clinic/program/ProgramEditPage.tsx',
+    'resources/js/pages/clinic/program/program-builder/ProgramBuilder.tsx',
+    'resources/js/pages/clinic/program/program-builder/DetailsStep.tsx',
 ];
 
 describe('corte v1 das listagens de Programas', () => {
@@ -21,15 +25,5 @@ describe('corte v1 das listagens de Programas', () => {
         expect(src).not.toMatch(/PrototypeSwitcher/);
         expect(src).not.toMatch(/-prototype/);
         expect(src).not.toMatch(/\?variant=/);
-    });
-});
-
-describe('assistente v1 com asModel', () => {
-    it('não entrega o modo modelo ao protótipo em desenvolvimento', () => {
-        const src = readFileSync(
-            'resources/js/pages/clinic/program/ProgramNewPage.tsx',
-            'utf8',
-        );
-        expect(src).toMatch(/variant !== 'O' && !asModel/);
     });
 });

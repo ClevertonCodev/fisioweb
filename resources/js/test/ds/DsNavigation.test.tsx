@@ -253,6 +253,22 @@ const STEPS = [
 ];
 
 describe('DsSteps', () => {
+    it('com onStepClick, cada passo vira botão e avisa o índice', async () => {
+        const onStepClick = vi.fn();
+        const user = userEvent.setup();
+        render(<DsSteps steps={STEPS} current={1} onStepClick={onStepClick} />);
+
+        await user.click(screen.getByRole('button', { name: /Pagamento/ }));
+
+        expect(onStepClick).toHaveBeenCalledWith(2);
+    });
+
+    it('sem onStepClick, nenhum passo é botão', () => {
+        render(<DsSteps steps={STEPS} />);
+
+        expect(screen.queryAllByRole('button')).toHaveLength(0);
+    });
+
     it('renderiza um item por passo com os rótulos', () => {
         render(<DsSteps steps={STEPS} />);
 

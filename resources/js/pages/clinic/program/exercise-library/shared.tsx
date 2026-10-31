@@ -1,29 +1,32 @@
-import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import {
-    FACETS,
+    applyLibraryFilters,
     facetLabel,
     facetOptions,
+    FACETS,
+    INITIAL_LIBRARY_FILTERS,
+    libraryApiParams,
     setFacet,
     type FacetKey,
     type LibraryFilters,
 } from '@/application/clinic/exercise-library-filters';
 import {
-    listExercisesPaginated,
+    useInfiniteExercises,
     useToggleExerciseFavorite,
 } from '@/application/clinic/use-exercises';
 import { DsDropdown } from '@/components/ds';
 import type { Exercise } from '@/domain/clinic';
+import { useDebounce } from '@/lib/use-debounce';
 
 export {
-    DIFFICULTY,
-    FACETS,
-    INITIAL_LIBRARY_FILTERS as INITIAL_FILTERS,
     activeLibraryFilterCount as activeFilterCount,
     applyLibraryFilters as applyFilters,
+    DIFFICULTY,
     facetLabel,
     facetOptions,
+    FACETS,
+    INITIAL_LIBRARY_FILTERS as INITIAL_FILTERS,
     libraryApiParams,
     libraryChips,
     removeLibraryChip as removeChip,
@@ -45,30 +48,75 @@ export interface FiltersProps {
     onChange: (patch: Partial<LibraryFilters>) => void;
 }
 
-export function useExerciseLibrary() {
-    const query = useQuery({
-        queryKey: ['exercises', 'library-all'],
-        queryFn: () => listExercisesPaginated({ page: 1, perPage: 200 }),
-    });
-    const toggle = useToggleExerciseFavorite();
+/**
+ * A biblioteca paginada pela API: busca e dificuldade vão para o servidor,
+ * os outros filtros recortam o que já veio, e o `sentinel` no fim da grade
+ * pede a próxima página ao aparecer. É a mesma da aba Exercícios e a da
+ * seleção do assistente de programa.
+ */
+export function usePagedExerciseLibrary() {
+    const [filters, setFilters] = useState<LibraryFilters>(
+        INITIAL_LIBRARY_FILTERS,
+    );
     const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    const update = (patch: Partial<LibraryFilters>) =>
+        setFilters((prev) => ({ ...prev, ...patch }));
+    const clearFilters = () => setFilters(INITIAL_LIBRARY_FILTERS);
 
-    const exercises = useMemo(
+    const search = useDebounce(filters.search, 300);
+    const apiParams = libraryApiParams({ ...filters, search });
+    const {
+        data,
+        isLoading,
+        isError,
+        isPlaceholderData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteExercises({ ...apiParams, perPage: 20 });
+    const toggleFavorite = useToggleExerciseFavorite();
+
+    const loaded = useMemo(
         () =>
-            (query.data?.items ?? [])
-                .map((e) =>
-                    e.id in overrides
-                        ? { ...e, isFavorite: overrides[e.id] as boolean }
-                        : e,
-                )
-                .sort((a, b) => a.title.localeCompare(b.title, 'pt-BR')),
-        [query.data, overrides],
+            (data?.pages.flatMap((p) => p.items) ?? []).map((exercise) =>
+                exercise.id in overrides
+                    ? { ...exercise, isFavorite: overrides[exercise.id] }
+                    : exercise,
+            ),
+        [data, overrides],
+    );
+    const filtered = useMemo(
+        () =>
+            applyLibraryFilters(loaded, filters, {
+                skipSearch: Boolean(apiParams.search) && !isPlaceholderData,
+            }),
+        [loaded, filters, apiParams.search, isPlaceholderData],
     );
 
-    const toggleFavorite = (exercise: Exercise) => {
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (
+                    entries[0]?.isIntersecting &&
+                    hasNextPage &&
+                    !isFetchingNextPage
+                ) {
+                    void fetchNextPage();
+                }
+            },
+            { threshold: 0.1 },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, filtered.length]);
+
+    const onToggleFavorite = (exercise: Exercise) => {
         const next = !exercise.isFavorite;
         setOverrides((prev) => ({ ...prev, [exercise.id]: next }));
-        toggle.mutate(exercise.id, {
+        toggleFavorite.mutate(exercise.id, {
             onSuccess: ({ isFavorite }) =>
                 setOverrides((prev) => ({
                     ...prev,
@@ -83,11 +131,32 @@ export function useExerciseLibrary() {
         });
     };
 
+    const searchingMore = filtered.length === 0 && Boolean(hasNextPage);
+    const sentinel = (
+        <>
+            {searchingMore && (
+                <p
+                    role="status"
+                    className="text-ds-body-sm text-ds-content-muted"
+                >
+                    Procurando nos próximos exercícios…
+                </p>
+            )}
+            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
+        </>
+    );
+
     return {
-        exercises,
-        isLoading: query.isLoading,
-        isError: query.isError,
-        toggleFavorite,
+        filters,
+        update,
+        clearFilters,
+        loaded,
+        filtered,
+        isLoading,
+        isError,
+        searchingMore,
+        onToggleFavorite,
+        sentinel,
     };
 }
 

@@ -36,14 +36,17 @@ class ExerciseRepository implements ExerciseRepositoryInterface
         }
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('muscle_group', 'like', "%{$search}%")
-                    ->orWhere('therapeutic_goal', 'like', "%{$search}%")
-                    ->orWhereHas('physioArea', fn ($r) => $r->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('physioSubarea', fn ($r) => $r->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('bodyRegion', fn ($r) => $r->where('name', 'like', "%{$search}%"));
+            // LOWER dos dois lados: no Postgres o LIKE diferencia maiúscula,
+            // e "agachamento" precisa achar "Agachamento".
+            $search   = '%' . mb_strtolower($filters['search']) . '%';
+            $contains = fn ($q, string $column) => $q->whereRaw("LOWER({$column}) LIKE ?", [$search]);
+            $query->where(function ($q) use ($contains) {
+                $contains($q, 'name');
+                $q->orWhere(fn ($r) => $contains($r, 'muscle_group'))
+                    ->orWhere(fn ($r) => $contains($r, 'therapeutic_goal'))
+                    ->orWhereHas('physioArea', fn ($r) => $contains($r, 'name'))
+                    ->orWhereHas('physioSubarea', fn ($r) => $contains($r, 'name'))
+                    ->orWhereHas('bodyRegion', fn ($r) => $contains($r, 'name'));
             });
         }
 

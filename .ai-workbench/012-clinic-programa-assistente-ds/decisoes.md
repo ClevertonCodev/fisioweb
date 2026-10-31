@@ -43,3 +43,9 @@ Decisões com o usuário:
 - Programas do painel admin (`/admin/programas`).
 - Área/subárea e duração do programa (a API aceita, a tela não mostra hoje).
 - Mudanças visuais além do protótipo A.
+
+## Sessão 2026-10-28 (revisão adversária)
+
+- **Rascunho que já tinha o paciente, salvo de novo com ele** → vira ativo (envio). Decidido pelo agente na rodada 2 da revisão, seguindo as decisões "rascunho que ganha paciente vira ativo (é o envio)" e "com paciente, sempre abre o diálogo de envio": sem isso o diálogo mostrava "Programa enviado" com um link que dá 404 (o link público não abre rascunho). Substitui a correção da rodada 1 (R1 casos-de-borda 013), que deixava esse rascunho como rascunho. **Confirmar com o usuário.**
+- **Tirar o paciente pela tela** → o seletor de paciente ganhou a opção "Nenhum paciente (vai para Meus modelos)": o seletor de escolha única não deixava limpar, então a decisão "tirar o paciente na edição" era impossível pela tela.
+- **Dose do atalho ("3 × 12")** → grava máximo igual ao mínimo; o backend completa a dose por par (nunca faixa invertida) e recusa mínimo acima do máximo.

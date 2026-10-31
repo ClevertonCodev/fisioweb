@@ -13,4 +13,13 @@ interface ExerciseCatalogReadServiceInterface
      * exercício não existir.
      */
     public function findPrescriptionDefaults(int $exerciseId): ?ExercisePrescriptionDefaults;
+
+    /**
+     * Dos ids pedidos, os que a clínica enxerga na biblioteca: aprovados no
+     * catálogo ou enviados por ela.
+     *
+     * @param  int[]  $exerciseIds
+     * @return int[]
+     */
+    public function visibleToClinic(array $exerciseIds, int $clinicId): array;
 }

@@ -63,7 +63,13 @@ export function ProgramsPageShell({
                                                 icon={<Plus />}
                                                 label="Criar programa"
                                                 onClick={() =>
-                                                    navigate(NEW_PROGRAM_PATH)
+                                                    navigate(NEW_PROGRAM_PATH, {
+                                                        state: {
+                                                            from:
+                                                                location.pathname +
+                                                                location.search,
+                                                        },
+                                                    })
                                                 }
                                             />
                                         </div>
@@ -73,7 +79,13 @@ export function ProgramsPageShell({
                                                 icon={<Plus />}
                                                 label="Criar programa"
                                                 onClick={() =>
-                                                    navigate(NEW_PROGRAM_PATH)
+                                                    navigate(NEW_PROGRAM_PATH, {
+                                                        state: {
+                                                            from:
+                                                                location.pathname +
+                                                                location.search,
+                                                        },
+                                                    })
                                                 }
                                             />
                                         </div>

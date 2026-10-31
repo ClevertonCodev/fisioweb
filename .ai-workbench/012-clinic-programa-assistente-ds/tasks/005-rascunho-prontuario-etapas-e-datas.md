@@ -33,16 +33,16 @@ do novo e o "Voltar" para a origem.
 
 ## Critérios de Aceite
 
-- [ ] Rascunho salvo aparece com Restaurar e Descartar no novo vazio e no novo pelo prontuário (Vitest).
-- [ ] O rascunho não aparece nem é salvo vindo de exercício ou de "Usar modelo" (Vitest).
-- [ ] Restaurar repõe etapa e grupos; salvar o programa apaga o rascunho (Vitest).
-- [ ] Com `?patientId=`, a etapa 3 abre com o paciente escolhido (Vitest).
-- [ ] Clicar nas etapas leva direto, só com exercício no programa (Vitest).
-- [ ] Início antes de hoje e término antes do início são recusados no novo (Vitest).
-- [ ] Voltar na etapa 1 vai ao prontuário quando veio de lá, e ao Histórico entrando direto (Vitest).
-- [ ] Smoke no navegador: rascunho restaurado depois de recarregar a página e entrada pelo prontuário, com evidência.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (o rascunho é por usuário da clínica; paciente de outra clínica dá 422 no backend).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] Rascunho salvo aparece com Restaurar e Descartar no novo vazio e no novo pelo prontuário (Vitest).
+- [x] O rascunho não aparece nem é salvo vindo de exercício ou de "Usar modelo" (Vitest).
+- [x] Restaurar repõe etapa e grupos; salvar o programa apaga o rascunho (Vitest).
+- [x] Com `?patientId=`, a etapa 3 abre com o paciente escolhido (Vitest).
+- [x] Clicar nas etapas leva direto, só com exercício no programa (Vitest).
+- [x] Início antes de hoje e término antes do início são recusados no novo (Vitest).
+- [x] Voltar na etapa 1 vai ao prontuário quando veio de lá, e ao Histórico entrando direto (Vitest).
+- [x] Smoke no navegador: rascunho restaurado depois de recarregar a página e entrada pelo prontuário, com evidência.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (o rascunho é por usuário da clínica; paciente de outra clínica dá 422 no backend).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

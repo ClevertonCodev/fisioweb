@@ -7,7 +7,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
@@ -144,6 +144,7 @@ const MODEL_ACTIONS: {
 
 export function useModelActions() {
     const navigate = useNavigate();
+    const location = useLocation();
     const fetchDetail = useFetchModelDetail();
     const { mutate: duplicate } = useDuplicateClinicProgram();
     const { mutate: deleteProgram } = useDeleteClinicProgram();
@@ -165,7 +166,12 @@ export function useModelActions() {
             if (!detail) throw new Error('Modelo não encontrado.');
             if (!mounted.current) return;
             navigate(NEW_PROGRAM_PATH, {
-                state: { ...state, program: detail.source },
+                // A origem, para o "Voltar" do assistente voltar aos modelos.
+                state: {
+                    ...state,
+                    program: detail.source,
+                    from: location.pathname + location.search,
+                },
             });
         } catch {
             toast.error('Não foi possível abrir o modelo. Tente novamente.');
@@ -174,11 +180,8 @@ export function useModelActions() {
 
     const run = (key: ModelActionKey, model: ModelSummary) => {
         if (key === 'edit') {
-            void openWizard(model, {
-                editMode: true,
-                asModel: true,
-                programId: model.id,
-            });
+            // Carrega pela URL (o F5 não perde a edição), como modelo.
+            navigate(`/clinica/programas/${model.id}/editar?modelo=1`);
             return;
         }
         if (key === 'duplicate') {

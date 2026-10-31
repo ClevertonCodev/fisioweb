@@ -7,23 +7,15 @@ import {
     Stethoscope,
     Upload,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
     activeLibraryFilterCount,
-    applyLibraryFilters,
-    INITIAL_LIBRARY_FILTERS,
-    libraryApiParams,
     libraryChips,
     removeLibraryChip,
-    type LibraryFilters,
 } from '@/application/clinic/exercise-library-filters';
 import { can } from '@/application/clinic/permissions';
-import {
-    useInfiniteExercises,
-    useToggleExerciseFavorite,
-} from '@/application/clinic/use-exercises';
 import {
     DsButton,
     DsDrawer,
@@ -33,14 +25,12 @@ import {
 } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
-import type { Exercise } from '@/domain/clinic';
-import { useDebounce } from '@/lib/use-debounce';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
 
 import { ProgramsPageShell } from '../programs-shell/ProgramsPageShell';
 
 import { FavoritesDropdown, LibraryFiltersPanel } from './parts';
-import { FacetDropdown } from './shared';
+import { FacetDropdown, usePagedExerciseLibrary } from './shared';
 import { VariantD } from './VariantD';
 
 const SUBMIT_PATH = '/clinica/exercicios/enviar';
@@ -63,89 +53,24 @@ export default function ExerciseLibraryPage({
     const isMobile = useIsMobile();
     const { user } = useAuth();
     const canSubmit = can.manageUsers(user?.role as ClinicRole | undefined);
-    const [filters, setFilters] = useState<LibraryFilters>(
-        INITIAL_LIBRARY_FILTERS,
-    );
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [overrides, setOverrides] = useState<Record<string, boolean>>({});
-    const sentinelRef = useRef<HTMLDivElement>(null);
-
-    const update = (patch: Partial<LibraryFilters>) =>
-        setFilters((prev) => ({ ...prev, ...patch }));
-    const clearFilters = () => setFilters(INITIAL_LIBRARY_FILTERS);
-
-    const search = useDebounce(filters.search, 300);
-    const apiParams = libraryApiParams({ ...filters, search });
     const {
-        data,
+        filters,
+        update,
+        clearFilters,
+        loaded,
+        filtered,
         isLoading,
         isError,
-        isPlaceholderData,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-    } = useInfiniteExercises({ ...apiParams, perPage: 20 });
-    const toggleFavorite = useToggleExerciseFavorite();
-
-    const loaded = useMemo(
-        () =>
-            (data?.pages.flatMap((p) => p.items) ?? []).map((exercise) =>
-                exercise.id in overrides
-                    ? { ...exercise, isFavorite: overrides[exercise.id] }
-                    : exercise,
-            ),
-        [data, overrides],
-    );
-    const filtered = useMemo(
-        () =>
-            applyLibraryFilters(loaded, filters, {
-                skipSearch: Boolean(apiParams.search) && !isPlaceholderData,
-            }),
-        [loaded, filters, apiParams.search, isPlaceholderData],
-    );
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (
-                    entries[0]?.isIntersecting &&
-                    hasNextPage &&
-                    !isFetchingNextPage
-                ) {
-                    void fetchNextPage();
-                }
-            },
-            { threshold: 0.1 },
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [fetchNextPage, hasNextPage, isFetchingNextPage, filtered.length]);
-
-    const onToggleFavorite = (exercise: Exercise) => {
-        const next = !exercise.isFavorite;
-        setOverrides((prev) => ({ ...prev, [exercise.id]: next }));
-        toggleFavorite.mutate(exercise.id, {
-            onSuccess: ({ isFavorite }) =>
-                setOverrides((prev) => ({
-                    ...prev,
-                    [exercise.id]: isFavorite,
-                })),
-            onError: () =>
-                setOverrides((prev) => {
-                    const copy = { ...prev };
-                    delete copy[exercise.id];
-                    return copy;
-                }),
-        });
-    };
+        searchingMore,
+        onToggleFavorite,
+        sentinel,
+    } = usePagedExerciseLibrary();
 
     const filterCount = activeLibraryFilterCount(filters);
     const isFiltered = filters.search !== '' || filterCount > 0;
     const chips = libraryChips(filters);
     const facetProps = { exercises: loaded, filters, onChange: update };
-    const searchingMore = filtered.length === 0 && Boolean(hasNextPage);
 
     const emptyState = isError ? (
         <DsEmptyState
@@ -278,23 +203,7 @@ export default function ExerciseLibraryPage({
                     onToggleFavorite={onToggleFavorite}
                     isLoading={isLoading}
                     emptyState={emptyState}
-                    sentinel={
-                        <>
-                            {searchingMore && (
-                                <p
-                                    role="status"
-                                    className="text-ds-body-sm text-ds-content-muted"
-                                >
-                                    Procurando nos próximos exercícios…
-                                </p>
-                            )}
-                            <div
-                                ref={sentinelRef}
-                                className="h-4"
-                                aria-hidden="true"
-                            />
-                        </>
-                    }
+                    sentinel={sentinel}
                 />
             </ProgramsPageShell>
             <DsDrawer

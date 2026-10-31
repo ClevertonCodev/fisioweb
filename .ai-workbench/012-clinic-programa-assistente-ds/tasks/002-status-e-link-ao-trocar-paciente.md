@@ -27,21 +27,21 @@ um `public_token` novo.
   - Qualquer outro caso: mantém (concluído e arquivado continuam como estão).
 - **`status` explícito:** se vier no payload, continua valendo como hoje, por compatibilidade.
 - **Paciente mudou** (troca por outro ou remoção): o plano ganha `public_token` novo. O antigo responde 404 em todas as rotas `patient/programs/{publicToken}`. Editar sem mexer no paciente mantém o link.
-- **Isolamento:** a validação de paciente da própria clínica (`ValidatesPatientOfClinic`) não muda. As execuções e cargas continuam filtradas pelo `patient_id` de quem fez, então o paciente novo, pelo link novo, não vê o que o anterior registrou.
+- **Isolamento:** a validação de paciente da própria clínica (`ValidatesPatientOfClinic`) não muda. As execuções e cargas continuam filtradas pelo `patient_id` de quem fez, e "visto"/"concluído N vezes" (na linha do plano) são zerados na troca, então o paciente novo, pelo link novo, não vê o que o anterior registrou (corrigido na revisão adversária, rodada 1).
 - **ADR 025:** completar com a decisão do link novo ao trocar de paciente (se a tarefa 001 ainda não o criou, criar aqui).
 
 ## Critérios de Aceite
 
-- [ ] Criar sem `status`, com paciente, grava `active` e dispara a ativação; sem paciente, grava `draft` (PHPUnit).
-- [ ] Editar um rascunho dando paciente, sem `status`, grava `active` e dispara `TreatmentPlanActivated` (PHPUnit).
-- [ ] Editar um programa concluído e um arquivado sem `status` mantém a situação (PHPUnit).
-- [ ] Editar tirando o paciente grava `draft` (PHPUnit).
-- [ ] Trocar o paciente gera `public_token` novo; o antigo dá 404 no `show` e ao iniciar uma execução (PHPUnit).
-- [ ] Tirar o paciente também troca o link; editar sem mexer no paciente mantém o link (PHPUnit).
-- [ ] Pelo link novo, o paciente novo não recebe as cargas do anterior (PHPUnit).
-- [ ] `status` explícito no payload continua valendo (a v1 segue funcionando).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (`TreatmentPlanIsolationTest` verde).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] Criar sem `status`, com paciente, grava `active` e dispara a ativação; sem paciente, grava `draft` (PHPUnit).
+- [x] Editar um rascunho dando paciente, sem `status`, grava `active` e dispara `TreatmentPlanActivated` (PHPUnit).
+- [x] Editar um programa concluído e um arquivado sem `status` mantém a situação (PHPUnit).
+- [x] Editar tirando o paciente grava `draft` (PHPUnit).
+- [x] Trocar o paciente gera `public_token` novo; o antigo dá 404 no `show` e ao iniciar uma execução (PHPUnit).
+- [x] Tirar o paciente também troca o link; editar sem mexer no paciente mantém o link (PHPUnit).
+- [x] Pelo link novo, o paciente novo não recebe as cargas do anterior (PHPUnit).
+- [x] `status` explícito no payload continua valendo (a v1 segue funcionando).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (`TreatmentPlanIsolationTest` verde).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

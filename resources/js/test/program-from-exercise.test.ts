@@ -42,4 +42,27 @@ describe('programDraftFromExercise', () => {
         expect(draft.patientId).toBeNull();
         expect(draft.status).toBe('draft');
     });
+
+    it('o exercício entra com a dose padrão do catálogo', () => {
+        const draft = programDraftFromExercise(
+            exercise({ sets: 3, repetitions: 12, restTime: 45 }),
+        );
+        expect(draft.groups[0]?.exercises[0]).toMatchObject({
+            seriesMin: 3,
+            seriesMax: 3,
+            repetitionsMin: 12,
+            repetitionsMax: 12,
+            restTime: 45,
+            isConfigured: true,
+        });
+    });
+
+    it('sem dose no catálogo, o exercício entra sem dose', () => {
+        const draft = programDraftFromExercise(exercise());
+        expect(draft.groups[0]?.exercises[0]).toMatchObject({
+            seriesMin: null,
+            repetitionsMin: null,
+            isConfigured: false,
+        });
+    });
 });

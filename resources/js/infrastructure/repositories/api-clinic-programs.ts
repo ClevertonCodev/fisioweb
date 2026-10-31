@@ -150,16 +150,19 @@ function toEntity(raw: ApiTreatmentPlan): Program {
 function toApiPayload(dto: ProgramWriteDto) {
     return {
         title: dto.title,
-        patient_id: dto.patientId ?? undefined,
-        message: dto.message || undefined,
-        start_date: dto.startDate || undefined,
-        end_date: dto.endDate || undefined,
-        status: dto.status ?? undefined,
+        // null de verdade (não omitido): na edição, é o que tira o paciente,
+        // a mensagem ou o término.
+        patient_id: dto.patientId ?? null,
+        message: dto.message || null,
+        start_date: dto.startDate || null,
+        end_date: dto.endDate || null,
         groups: dto.groups.map((g, i) => ({
+            ...(g.id !== undefined ? { id: g.id } : {}),
             name: g.name,
             sort_order: g.sortOrder ?? i,
         })),
         exercises: dto.exercises.map((e, i) => ({
+            ...(e.id !== undefined ? { id: e.id } : {}),
             exercise_id: e.exerciseId,
             group_index: e.groupIndex,
             days_of_week: e.days.length > 0 ? e.days : null,

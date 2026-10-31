@@ -17,7 +17,7 @@ import {
     type MouseEvent,
     type ReactNode,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { programDraftFromExercise } from '@/application/clinic/program-from-exercise';
 import { DsBadge, DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
@@ -364,16 +364,21 @@ export function ModalPlayer({
 
 export function useExerciseActions() {
     const navigate = useNavigate();
+    const location = useLocation();
+    // A origem, para o "Voltar" do novo programa voltar à biblioteca (o novo
+    // modelo volta sempre para Meus modelos).
+    const from = location.pathname + location.search;
     return {
         startProgram: (e: Exercise) =>
             navigate('/clinica/programas/novo', {
-                state: { program: programDraftFromExercise(e) },
+                state: { program: programDraftFromExercise(e), from },
             }),
         startModel: (e: Exercise) =>
             navigate('/clinica/programas/novo', {
                 state: {
                     program: programDraftFromExercise(e),
                     asModel: true,
+                    from,
                 },
             }),
     };

@@ -21,7 +21,7 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 - [x] **Biblioteca de exercícios** — `/clinica/programas/exercicios`
   - Variante D, "Biblioteca v2", com rolagem infinita; modal do exercício na variante A, "Ficha clínica".
   - Tela de verdade: `ExerciseLibraryPage`. A URL `/clinica/exercicios` mostra a mesma grade, sem as abas. Decisão: [ADR 023](adr/023-listagens-programas-v2-substitui-a-v1.md).
-  - [x] "Usar em novo programa" e "Usar em novo modelo" abrem o assistente v1 com o exercício.
+  - [x] "Usar em novo programa" e "Usar em novo modelo" abrem o assistente v2 com o exercício, já com a dose padrão do catálogo.
   - [x] Busca e dificuldade única vão para a API; especialidade/região/favoritos recortam no cliente.
   - [ ] Mandar especialidade, região, forma e favoritos para a API (`DEFERRED.md` da feature 008).
 
@@ -38,11 +38,12 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] Região do corpo vinda do modelo ou dos exercícios (hoje é deduzida por palavras do título). `DEFERRED.md` da feature 008.
   - [ ] Listagem da API trazendo o resumo dos blocos; filtros na API.
 
-- [ ] **Assistente de programa** — `/clinica/programas/novo` (criar, usar modelo, cópia e edição)
-  - Variante A, "Três etapas": Exercícios → Montar e dosar → Paciente e envio.
-  - Código: `resources/js/pages/clinic/program/program-builder-prototype/` · commit `811f7a7`
-  - [ ] A escolha de exercícios usa o mesmo componente da biblioteca (`selection`).
-  - [ ] "Voltar" é um botão do mesmo tamanho, ao lado do "Avançar"; início e término em dois calendários separados.
+- [x] **Assistente de programa** — `/clinica/programas/novo` e `/clinica/programas/:id/editar` (criar, usar modelo, a partir de exercício, editar programa, criar e editar modelo)
+  - Variante A, "Três etapas": Exercícios → Montar e dosar → Paciente e envio (no modelo, "Nome e mensagem").
+  - Tela de verdade: `ProgramNewPage` / `ProgramEditPage` + `program-builder/ProgramBuilder`; estado e payload em `application/clinic/program-builder` e `program-write`. A v1 saiu. Feature `.ai-workbench/012-clinic-programa-assistente-ds`; decisões no [ADR 025](adr/025-editar-programa-nao-apaga-historico-e-troca-link-ao-trocar-paciente.md).
+  - [x] A escolha de exercícios usa o mesmo componente da biblioteca (`selection`).
+  - [x] "Voltar" é um botão do mesmo tamanho, ao lado do "Avançar"; início e término em dois calendários separados.
+  - [x] Editar mantém o histórico do paciente; trocar o paciente gera link novo.
 
 - [x] **Detalhe do programa** — `/clinica/programas/:id`
   - Variante A, "Painel do programa": paciente, situação e validade em barra; números (exercícios, dias que faltam, vezes que completou, quando abriu); blocos com cada exercício em cartão, a dose em pedaços e o vídeo num modal.

@@ -24,13 +24,13 @@ quais ids são visíveis para a clínica, e recusar o resto com 422.
 
 ## Critérios de Aceite
 
-- [ ] Criar com exercício privado de outra clínica responde 422 e não cria nada (PHPUnit).
-- [ ] Editar acrescentando exercício privado de outra clínica responde 422 e não muda nada (PHPUnit).
-- [ ] Exercício aprovado do catálogo e exercício enviado pela própria clínica (mesmo pendente) passam (PHPUnit).
-- [ ] Exercício que já estava no programa continua aceito na edição (PHPUnit).
-- [ ] O `TreatmentProgram` não importa o Model `Exercise` (só o contrato).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] Criar com exercício privado de outra clínica responde 422 e não cria nada (PHPUnit).
+- [x] Editar acrescentando exercício privado de outra clínica responde 422 e não muda nada (PHPUnit).
+- [x] Exercício aprovado do catálogo e exercício enviado pela própria clínica (mesmo pendente) passam (PHPUnit).
+- [x] Exercício que já estava no programa continua aceito na edição (PHPUnit).
+- [x] O `TreatmentProgram` não importa o Model `Exercise` (só o contrato).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda manualmente.
 
 ## Depende de
 

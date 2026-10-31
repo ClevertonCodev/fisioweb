@@ -30,10 +30,10 @@ class PatientProgramResponseMapper
             'professional_registration' => $professional?->document,
             'clinic_name'               => $plan->clinic?->name,
             'clinic_slug'               => $plan->clinic?->slug,
-            'start_date'        => $plan->start_date?->toDateString(),
-            'end_date'          => $plan->end_date?->toDateString(),
-            'status'            => $this->statusMapper->map($plan),
-            'exercise_count'    => (int) ($plan->exercises_count ?? $plan->exercises()->count()),
+            'start_date'                => $plan->start_date?->toDateString(),
+            'end_date'                  => $plan->end_date?->toDateString(),
+            'status'                    => $this->statusMapper->map($plan),
+            'exercise_count'            => (int) ($plan->exercises_count ?? $plan->exercises()->count()),
         ];
     }
 

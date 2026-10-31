@@ -1,34 +1,30 @@
 /**
- * PROTÓTIPO (descartável): o estado do assistente de programa, sem tela.
- * Os grupos existem desde o começo (a v1 só cria o grupo na etapa 2), e
- * um deles recebe os exercícios marcados na biblioteca. A entrada por
- * modelo, cópia ou edição segue as regras da v1 (ProgramNewPage).
+ * O estado do assistente de programa (novo, edição e modelo), sem tela. Os
+ * grupos existem desde o começo, e um deles recebe os exercícios marcados na
+ * biblioteca. O programa que chega (modelo, exercício ou o próprio programa
+ * na edição) vira grupos aqui.
  */
 import { useState } from 'react';
 
+import { programExerciseFrom } from '@/application/clinic/program-from-exercise';
 import type { Exercise, ProgramExercise, ProgramGroup } from '@/domain/clinic';
 
 export const FIRST_GROUP_NAME = 'Exercícios';
 
 export function fromExercise(e: Exercise): ProgramExercise {
-    return {
-        id: `${e.id}-${Date.now()}`,
-        exerciseId: e.id,
-        title: e.title,
-        thumbnailUrl: e.thumbnailUrl,
-        videoUrl: e.videoUrl,
-        days: [],
-        period: null,
-        seriesMin: null,
-        seriesMax: null,
-        repetitionsMin: null,
-        repetitionsMax: null,
-        loadMin: null,
-        loadMax: null,
-        restTime: null,
-        notes: null,
-        isConfigured: false,
-    };
+    return programExerciseFrom(e, nextId(e.id));
+}
+
+/** Tem dose de verdade: séries ou repetições definidas. */
+export function hasDose(
+    e: Pick<
+        ProgramExercise,
+        'seriesMin' | 'seriesMax' | 'repetitionsMin' | 'repetitionsMax'
+    >,
+): boolean {
+    return [e.seriesMin, e.seriesMax, e.repetitionsMin, e.repetitionsMax].some(
+        (v) => v != null,
+    );
 }
 
 // ---------------------------------------------------------------- entrada
@@ -36,9 +32,12 @@ export function fromExercise(e: Exercise): ProgramExercise {
 type Raw = Record<string, unknown>;
 
 const str = (v: unknown) => (v == null ? '' : String(v));
+/** Primeiro valor numérico; dado legado como "60s" vira 60, lixo vira null. */
 const num = (...vs: unknown[]) => {
     const v = vs.find((x) => x != null);
-    return v == null ? null : Number(v);
+    if (v == null) return null;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) ? n : null;
 };
 const ADMIN_PERIOD: Record<string, ProgramExercise['period']> = {
     morning: 'manha',
@@ -50,18 +49,22 @@ const ADMIN_PERIOD: Record<string, ProgramExercise['period']> = {
 };
 
 /**
- * O programa que chega pela navegação (modelo, cópia ou edição), no
- * formato do domínio ou cru da API, vira grupos do assistente.
+ * O programa que chega (modelo do sistema, modelo da clínica, exercício ou o
+ * próprio programa na edição) vira grupos do assistente. O modelo do sistema
+ * vem no formato do admin, daí os campos alternativos.
  */
 export function fromIncoming(
     program: Raw | undefined,
-    editMode: boolean,
+    keepTitle: boolean,
 ): { title: string; message: string; groups: ProgramGroup[] } | null {
     const groups = program?.groups as Raw[] | undefined;
     if (!program || !groups) return null;
     const title = str(program.title);
+    // Programa salvo usado como base vira "(Cópia)"; exercício (sem id),
+    // edição e modelo mantêm o nome.
+    const copy = !keepTitle && str(program.id) !== '';
     return {
-        title: title ? (editMode ? title : `${title} (Cópia)`) : '',
+        title: title && copy ? `${title} (Cópia)` : title,
         message: str(program.message) || str(program.description),
         groups: groups.map((g, gi) => ({
             id: str(g.id) || `grupo-${gi}`,
@@ -69,7 +72,7 @@ export function fromIncoming(
             exercises: ((g.exercises as Raw[] | undefined) ?? []).map(
                 (ex, ei) => {
                     const inner = (ex.exercise as Raw | undefined) ?? {};
-                    return {
+                    const exercise = {
                         id: str(ex.id) || `grupo-${gi}-ex-${ei}`,
                         exerciseId: str(ex.exerciseId) || str(inner.id),
                         title: str(ex.title) || str(inner.name),
@@ -95,8 +98,8 @@ export function fromIncoming(
                         loadMax: num(ex.loadMax, ex.load_max),
                         restTime: num(ex.restTime, ex.rest_time),
                         notes: (ex.notes as string | null) ?? null,
-                        isConfigured: true,
                     };
+                    return { ...exercise, isConfigured: hasDose(exercise) };
                 },
             ),
         })),
@@ -104,6 +107,12 @@ export function fromIncoming(
 }
 
 // ---------------------------------------------------------------- estado
+
+let seq = 0;
+/** Id local de grupo ou exercício ainda não salvo. */
+function nextId(prefix: string) {
+    return `${prefix}-${Date.now()}-${++seq}`;
+}
 
 /** A dose de um exercício (o que o painel edita). */
 export type Dose = Pick<
@@ -119,9 +128,6 @@ export type Dose = Pick<
     | 'restTime'
     | 'notes'
 >;
-
-let seq = 0;
-const nextId = (prefix: string) => `${prefix}-${Date.now()}-${++seq}`;
 
 export function useProgramBuilder(initial: ProgramGroup[]) {
     const [groups, setGroups] = useState<ProgramGroup[]>(() =>
@@ -263,9 +269,6 @@ export function useProgramBuilder(initial: ProgramGroup[]) {
 export type ProgramBuilder = ReturnType<typeof useProgramBuilder>;
 
 // ---------------------------------------------------------------- textos
-
-export { doseParts, scheduleOf } from '@/application/clinic/program-detail';
-export type { DosePart } from '@/application/clinic/program-detail';
 
 export function exerciseCount(n: number): string {
     return `${n} ${n === 1 ? 'exercício' : 'exercícios'}`;

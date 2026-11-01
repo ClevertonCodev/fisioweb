@@ -26,6 +26,11 @@ export interface Exercise {
     reviewStatus: ExerciseReviewStatus;
     /** True quando o exercício foi enviado pela própria clínica logada. */
     isOwnSubmission: boolean;
+    /** Dose padrão do catálogo: o que o programa usa quando a clínica não define. */
+    sets?: number | null;
+    repetitions?: number | null;
+    /** Descanso padrão, em segundos. */
+    restTime?: number | null;
     createdAt: string;
 }
 

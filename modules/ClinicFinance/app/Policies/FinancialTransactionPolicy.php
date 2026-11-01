@@ -4,22 +4,23 @@ namespace Modules\ClinicFinance\Policies;
 
 use Modules\ClinicFinance\Models\FinancialTransaction;
 
+/** Administrador (também pelo Gate::before) e secretária, sempre da clínica do lançamento. */
 class FinancialTransactionPolicy
 {
     public function viewAny($user): bool
     {
-        return $user->isAdmin();
+        return FinanceAccess::canUse($user);
     }
 
     public function view($user, FinancialTransaction $transaction): bool
     {
-        return $user->isAdmin()
+        return FinanceAccess::canUse($user)
             && (int) $user->clinic_id === (int) $transaction->clinic_id;
     }
 
     public function create($user): bool
     {
-        return $user->isAdmin();
+        return FinanceAccess::canUse($user);
     }
 
     public function update($user, FinancialTransaction $transaction): bool
@@ -32,8 +33,11 @@ class FinancialTransactionPolicy
         return $this->view($user, $transaction);
     }
 
-    public function restore($user, FinancialTransaction $transaction): bool
+    /** Sem o lançamento, confere só o papel; a posse fica no Service (404 se for de outra clínica). */
+    public function restore($user, ?FinancialTransaction $transaction = null): bool
     {
-        return $this->view($user, $transaction);
+        return is_null($transaction)
+            ? FinanceAccess::canUse($user)
+            : $this->view($user, $transaction);
     }
 }

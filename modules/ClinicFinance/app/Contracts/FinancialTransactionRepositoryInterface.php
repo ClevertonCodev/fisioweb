@@ -12,6 +12,9 @@ interface FinancialTransactionRepositoryInterface
 
     public function findOrFail(int $id): FinancialTransaction;
 
+    /** O lançamento fora da lixeira, travado até o fim da transação (nulo se não existe ou está na lixeira). */
+    public function findLocked(int $id): ?FinancialTransaction;
+
     public function findTrashed(int $id): ?FinancialTransaction;
 
     public function create(array $data): FinancialTransaction;
@@ -23,6 +26,9 @@ interface FinancialTransactionRepositoryInterface
     public function restore(FinancialTransaction $transaction): FinancialTransaction;
 
     public function paginateForClinic(int $clinicId, array $filters = []): LengthAwarePaginator;
+
+    /** Soma do líquido de todos os lançamentos que os mesmos filtros da listagem trazem (todas as páginas). */
+    public function sumNetForClinic(int $clinicId, array $filters = []): float;
 
     public function paginateTrashedForClinic(int $clinicId, array $filters = []): LengthAwarePaginator;
 
@@ -36,6 +42,12 @@ interface FinancialTransactionRepositoryInterface
      * @return array{received: float, pending_income: float, paid: float, pending_expense: float}
      */
     public function aggregateSummary(int $clinicId, array $filters = []): array;
+
+    /**
+     * Líquido realizado (entrada recebida − saída paga) com data em [$from, $before).
+     * Sem $from, soma tudo antes de $before. Pendentes ficam de fora.
+     */
+    public function realizedNetBetween(int $clinicId, ?string $from, string $before): float;
 
     /**
      * @return Collection<int, object>
@@ -56,4 +68,11 @@ interface FinancialTransactionRepositoryInterface
      * @return Collection<int, object>
      */
     public function categoryBreakdownRows(int $clinicId, array $filters = []): Collection;
+
+    /**
+     * Soma do líquido por dia e tipo, todos os status, entre `$from` e `$to` (inclusive).
+     *
+     * @return Collection<int, FinancialTransaction>
+     */
+    public function dailyNetTotalsRows(int $clinicId, string $from, string $to): Collection;
 }

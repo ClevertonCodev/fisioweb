@@ -45,7 +45,8 @@ class ExtractionReadinessTest extends TestCase
         $financeMigrations = glob($projectRoot . '/modules/ClinicFinance/database/migrations/*clinic_financial*.php') ?: [];
 
         $this->assertSame([], $clinicMigrations, 'Financial migrations must not live in modules/Clinic.');
-        $this->assertCount(4, $financeMigrations, 'ClinicFinance must own the four clinic_financial_* migrations.');
+        // As quatro originais e as quatro da feature 013 (paciente, comprovantes, séries e o vínculo da série).
+        $this->assertCount(8, $financeMigrations, 'ClinicFinance must own the clinic_financial_* migrations.');
     }
 
     public function test_clinic_scheduling_has_all_required_extraction_readiness_criteria(): void

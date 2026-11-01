@@ -38,16 +38,73 @@ export interface FinancialTransaction {
     updatedAt?: string;
     deletedAt?: string;
     deletedBy?: { id: string; name: string } | null;
+    /** Parcela ou ocorrência de uma série; `null` no lançamento avulso. */
+    series?: TransactionSeries | null;
+    /** Quantos comprovantes o lançamento tem (vem na listagem). */
+    attachmentsCount?: number;
+    /** Quem pagou a entrada; `null` sem paciente. */
+    patient?: TransactionPatient | null;
+    /** O atendimento da agenda que a entrada paga; `null` sem atendimento. */
+    appointment?: TransactionAppointment | null;
 }
+
+/** O paciente da entrada: só id e nome. */
+export interface TransactionPatient {
+    id: string;
+    name: string | null;
+}
+
+/** O atendimento ligado à entrada. */
+export interface TransactionAppointment {
+    id: string;
+    startsAt: string | null;
+}
+
+/** Um atendimento do paciente, para o seletor do modal. */
+export interface FinancePatientAppointment {
+    id: string;
+    startsAt: string;
+    title: string | null;
+}
+
+export type FinancialSeriesKind = 'installments' | 'recurrence';
+
+/** A posição do lançamento na série: "2/6" no parcelamento (`total` só nele). */
+export interface TransactionSeries {
+    id: string;
+    kind: FinancialSeriesKind;
+    index: number;
+    total: number | null;
+}
+
+/** De quanto em quanto a recorrência se repete. */
+export type RecurrenceFrequency = 'weekly' | 'monthly' | 'yearly';
+
+/** "Repetir" do lançamento novo; na recorrência, `endsOn` nulo é "sem data para acabar". */
+export type TransactionRepeat =
+    | { kind: 'none' }
+    | { kind: 'installments'; total: number }
+    | {
+          kind: 'recurrence';
+          frequency: RecurrenceFrequency;
+          endsOn: string | null;
+      };
+
+/** Editar ou excluir um lançamento de série: só este, ou este e os próximos pendentes. */
+export type SeriesScope = 'only' | 'following';
 
 export interface MonthlySummary {
     period: { year: number; month: number };
     income: { received: number; pending: number };
     expense: { paid: number; pending: number };
     openingBalance: number;
+    openingBalanceSource: OpeningBalanceSource;
     available: number;
     forecast: number;
 }
+
+/** Saldo inicial digitado no mês, ou calculado do mês anterior. */
+export type OpeningBalanceSource = 'typed' | 'computed';
 
 export interface OpeningBalance {
     year: number;
@@ -55,8 +112,29 @@ export interface OpeningBalance {
     amount: number;
 }
 
+/** Entrou e saiu num dia (líquido, todos os status), somado no servidor. */
+export interface FinanceCalendarDay {
+    date: string;
+    income: number;
+    expense: number;
+}
+
+/** Só os dias do mês que têm lançamento. */
+export interface FinanceCalendarMonth {
+    period: string;
+    days: FinanceCalendarDay[];
+}
+
 export interface FinanceListParams {
     period?: string;
+    /** YYYY-MM-DD, sem `period`: com `period`, o servidor ignora `from` e `to`. */
+    from?: string;
+    to?: string;
+    /**
+     * YYYY-MM-DD (o fim do mês na tela): só pendências com data até esse dia,
+     * com as atrasadas de antes, da mais antiga para a mais nova. Ignora `period`.
+     */
+    overdueUntil?: string;
     type?: FinancialTransactionType;
     status?: FinancialTransactionStatus;
     categoryId?: string;
@@ -77,31 +155,15 @@ export type FinanceFilterPreset =
     | 'saidas_concluidas'
     | 'saidas_pendentes';
 
-export interface FinanceFilters {
-    filterPreset: FinanceFilterPreset;
-    categoryId?: string;
-    paymentMethod?: PaymentMethod;
-    q: string;
-}
-
-export const FILTER_PRESET_LABELS: Record<FinanceFilterPreset, string> = {
-    todas: 'Todas as transações',
-    entradas: 'Entradas',
-    entradas_recebidas: 'Entradas recebidas',
-    entradas_pendentes: 'Entradas não recebidas',
-    saidas: 'Saídas',
-    saidas_concluidas: 'Saídas concluídas',
-    saidas_pendentes: 'Saídas pendentes',
-};
-
-export const DEFAULT_FINANCE_FILTERS: FinanceFilters = {
-    filterPreset: 'todas',
-    q: '',
-};
-
 export interface PaginatedResult<T> {
     data: T[];
-    meta: { page: number; perPage: number; total: number };
+    meta: {
+        page: number;
+        perPage: number;
+        total: number;
+        /** Soma líquida de todas as páginas; só vem com `overdueUntil`. */
+        netTotal?: number;
+    };
 }
 
 export interface ReportSummary {
@@ -118,14 +180,6 @@ export interface IncomeVsExpensePoint {
     date: string;
     income: number;
     expense: number;
-}
-
-export interface CategoryDistributionPoint {
-    categoryId: number;
-    name: string;
-    type: FinancialTransactionType;
-    total: number;
-    percentage: number;
 }
 
 export interface MonthlyComparisonPoint {
@@ -154,6 +208,12 @@ export interface FinanceTransactionWriteDto {
     grossAmount: number;
     feeAmount?: number;
     notes?: string | null;
+    /** Só no lançamento novo; sem repetição, não vai. */
+    repeat?: TransactionRepeat;
+    /** Só na entrada; `null` tira o paciente. Na saída não vai (o servidor limpa). */
+    patientId?: string | null;
+    /** Atendimento do paciente escolhido; `null` sem atendimento. */
+    appointmentId?: string | null;
 }
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {

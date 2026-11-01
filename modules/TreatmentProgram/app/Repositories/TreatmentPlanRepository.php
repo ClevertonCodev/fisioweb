@@ -48,7 +48,7 @@ class TreatmentPlanRepository implements TreatmentPlanRepositoryInterface
             $query->where('physio_area_id', $filters['physio_area_id']);
         }
 
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $query->latest()->orderByDesc('id')->paginate($perPage)->withQueryString();
     }
 
     public function create(array $data): TreatmentPlan

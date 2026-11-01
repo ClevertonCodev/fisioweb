@@ -28,6 +28,12 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         return $this->model->findOrFail($id);
     }
 
+    public function findLocked(int $id): ?FinancialTransaction
+    {
+        // O escopo de SoftDeletes deixa de fora o que está na lixeira, também depois de esperar a trava.
+        return $this->model->newQuery()->lockForUpdate()->find($id);
+    }
+
     public function findTrashed(int $id): ?FinancialTransaction
     {
         return $this->model->onlyTrashed()->find($id);
@@ -43,7 +49,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         $transaction = $this->findOrFail($id);
         $transaction->update($data);
 
-        return $transaction->refresh()->load(['category', 'createdBy', 'deletedBy']);
+        return $transaction->refresh()->load(['category', 'createdBy:id,name', 'deletedBy:id,name']);
     }
 
     public function softDelete(FinancialTransaction $transaction, int $deletedByUserId): void
@@ -59,27 +65,39 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         $transaction->save();
         $transaction->restore();
 
-        return $transaction->refresh()->load(['category', 'createdBy']);
+        return $transaction->refresh()->load(['category', 'createdBy:id,name']);
     }
 
     public function paginateForClinic(int $clinicId, array $filters = []): LengthAwarePaginator
     {
         $query = $this->baseQuery($clinicId, $filters)
-            ->with(['category', 'createdBy']);
+            // Quem lançou e quem excluiu vão só com `id` e `name`: o usuário inteiro levaria
+            // e-mail, CPF, papel e os dados do Google para a secretária.
+            ->with(['category', 'createdBy:id,name', 'financialSeries'])
+            ->withCount('attachments');
 
         return $this->paginateSorted($query, $filters);
+    }
+
+    public function sumNetForClinic(int $clinicId, array $filters = []): float
+    {
+        return (float) $this->baseQuery($clinicId, $filters, forAggregation: true)->sum('net_amount');
     }
 
     public function paginateTrashedForClinic(int $clinicId, array $filters = []): LengthAwarePaginator
     {
         $query = $this->model->onlyTrashed()
             ->forClinic($clinicId)
-            ->with(['category', 'deletedBy']);
+            ->with(['category', 'deletedBy:id,name', 'financialSeries']);
 
-        $this->applyPeriodFilter($query, $clinicId, $filters);
+        // A lixeira das Configurações não tem mês: sem período pedido, vem todo o histórico,
+        // o último excluído primeiro (sem isto, o padrão seria só o mês atual).
+        if (!empty($filters['period']) || !empty($filters['from']) || !empty($filters['to'])) {
+            $this->applyPeriodFilter($query, $clinicId, $filters);
+        }
         $this->applySearchFilter($query, $filters);
 
-        return $this->paginateSorted($query, $filters);
+        return $this->paginateSorted($query, ['sort' => '-deleted_at', ...$filters]);
     }
 
     public function listForExport(int $clinicId, array $range): Collection
@@ -97,7 +115,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         $query = $this->baseQuery($clinicId, $filters, forAggregation: true);
 
         $rows = $query
-            ->selectRaw('type, status, SUM(gross_amount) as total')
+            ->selectRaw('type, status, SUM(net_amount) as total')
             ->groupBy('type', 'status')
             ->get();
 
@@ -127,6 +145,26 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         ];
     }
 
+    public function realizedNetBetween(int $clinicId, ?string $from, string $before): float
+    {
+        $total = $this->model->newQuery()
+            ->forClinic($clinicId)
+            ->when(!is_null($from), fn (Builder $q) => $q->where('date', '>=', $from))
+            ->where('date', '<', $before)
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN type = ? AND status = ? THEN net_amount WHEN type = ? AND status = ? THEN -net_amount ELSE 0 END), 0) as total',
+                [
+                    FinancialTransactionType::Entrada->value,
+                    FinancialTransactionStatus::Recebido->value,
+                    FinancialTransactionType::Saida->value,
+                    FinancialTransactionStatus::Pago->value,
+                ],
+            )
+            ->value('total');
+
+        return (float) $total;
+    }
+
     public function incomeVsExpenseRows(int $clinicId, array $filters = []): Collection
     {
         $range = $this->resolveDateRange($clinicId, $filters);
@@ -134,7 +172,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         return $this->model->newQuery()
             ->forClinic($clinicId)
             ->whereBetween('date', [$range['from'], $range['to']])
-            ->selectRaw('date, type, SUM(gross_amount) as total')
+            ->selectRaw('date, type, SUM(net_amount) as total')
             ->groupBy('date', 'type')
             ->orderBy('date')
             ->get();
@@ -148,7 +186,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
             ->forClinic($clinicId)
             ->whereBetween('date', [$range['from'], $range['to']])
             ->join('clinic_financial_categories as c', 'c.id', '=', 'clinic_financial_transactions.financial_category_id')
-            ->selectRaw('c.id as category_id, c.name, clinic_financial_transactions.type, SUM(gross_amount) as total')
+            ->selectRaw('c.id as category_id, c.name, clinic_financial_transactions.type, SUM(net_amount) as total')
             ->groupBy('c.id', 'c.name', 'clinic_financial_transactions.type');
 
         if (!empty($filters['type'])) {
@@ -169,7 +207,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         $rows = $this->model->newQuery()
             ->forClinic($clinicId)
             ->whereBetween('date', [$start->toDateString(), $end->copy()->endOfMonth()->toDateString()])
-            ->selectRaw("{$yearExpr} as year, {$monthExpr} as month, type, SUM(gross_amount) as total")
+            ->selectRaw("{$yearExpr} as year, {$monthExpr} as month, type, SUM(net_amount) as total")
             ->groupBy(DB::raw($yearExpr), DB::raw($monthExpr), 'type')
             ->get();
 
@@ -188,7 +226,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
             ->forClinic($clinicId)
             ->whereBetween('date', [$range['from'], $range['to']])
             ->join('clinic_financial_categories as c', 'c.id', '=', 'clinic_financial_transactions.financial_category_id')
-            ->selectRaw('c.id as category_id, c.name, clinic_financial_transactions.type, COUNT(*) as count, SUM(gross_amount) as total')
+            ->selectRaw('c.id as category_id, c.name, clinic_financial_transactions.type, COUNT(*) as count, SUM(net_amount) as total')
             ->groupBy('c.id', 'c.name', 'clinic_financial_transactions.type');
 
         if (!empty($filters['type'])) {
@@ -198,13 +236,31 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         return $query->orderByDesc('total')->get();
     }
 
+    public function dailyNetTotalsRows(int $clinicId, string $from, string $to): Collection
+    {
+        return $this->model->newQuery()
+            ->forClinic($clinicId)
+            // Semiaberto: no SQLite a data fica gravada com hora, e o BETWEEN cortaria o último dia.
+            ->where('date', '>=', $from)
+            ->where('date', '<', Carbon::parse($to)->addDay()->toDateString())
+            ->selectRaw('date, type, SUM(net_amount) as total')
+            ->groupBy('date', 'type')
+            ->orderBy('date')
+            ->get();
+    }
+
     private function baseQuery(int $clinicId, array $filters, bool $forAggregation = false): Builder
     {
         $query = $forAggregation
             ? $this->model->newQuery()->forClinic($clinicId)
             : $this->model->newQuery()->forClinic($clinicId);
 
-        $this->applyPeriodFilter($query, $clinicId, $filters);
+        if (!empty($filters['overdue_until'])) {
+            $this->applyOverdueFilter($query, $filters['overdue_until']);
+        } else {
+            // A listagem com busca vai em todo o histórico; as somas continuam no mês.
+            $this->applyPeriodFilter($query, $clinicId, $filters, searchSpansHistory: !$forAggregation);
+        }
         $this->applyTypeStatusFilters($query, $filters);
         $this->applyCategoryFilter($query, $filters);
         $this->applyPaymentMethodFilter($query, $filters);
@@ -218,15 +274,30 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
         return $query;
     }
 
-    private function applyPeriodFilter(Builder $query, int $clinicId, array $filters): void
+    /**
+     * "A receber" e "a pagar": só pendências, com data até `$until` (o fim do mês na tela),
+     * sem início, para as atrasadas de meses anteriores não sumirem.
+     */
+    private function applyOverdueFilter(Builder $query, string $until): void
+    {
+        $query->where('status', FinancialTransactionStatus::Pendente->value)
+            // whereDate: no SQLite a data fica gravada com hora, e o último dia ficaria de fora.
+            ->whereDate('date', '<=', $until);
+    }
+
+    private function applyPeriodFilter(Builder $query, int $clinicId, array $filters, bool $searchSpansHistory = false): void
     {
         if (empty($filters['period']) && empty($filters['from']) && empty($filters['to'])) {
+            if ($searchSpansHistory && !empty($filters['q'])) {
+                return;
+            }
             $filters['period'] = now()->format('Y-m');
         }
 
         if (!empty($filters['period'])) {
             $timezone = DB::table('clinics')->where('id', $clinicId)->value('timezone') ?? config('app.timezone');
-            $start    = Carbon::createFromFormat('Y-m', $filters['period'], $timezone)->startOfMonth();
+            // "!" zera o dia: sem ele, no dia 31 "2026-09" vira 31/09 → 01/10.
+            $start    = Carbon::createFromFormat('!Y-m', $filters['period'], $timezone)->startOfMonth();
             $end      = $start->copy()->endOfMonth();
             $query->whereBetween('date', [$start->toDateString(), $end->toDateString()]);
 
@@ -237,7 +308,8 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
             $query->where('date', '>=', $filters['from']);
         }
         if (!empty($filters['to'])) {
-            $query->where('date', '<=', $filters['to']);
+            // whereDate: no SQLite a data fica gravada com hora, e `from = to = dia` voltaria vazio.
+            $query->whereDate('date', '<=', $filters['to']);
         }
     }
 
@@ -284,17 +356,27 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
             return;
         }
 
-        $term = '%' . $filters['q'] . '%';
-        $query->where(function (Builder $q) use ($term) {
-            $q->where('description', 'like', $term)
-                ->orWhere('type', 'like', $term)
-                ->orWhereHas('category', fn (Builder $cat) => $cat->where('name', 'like', $term));
+        // LOWER dos dois lados: no Postgres o LIKE diferencia maiúscula, e "aluguel" precisa
+        // achar "Aluguel". O termo vai em mb_strtolower porque o LOWER do sqlite só baixa ASCII.
+        // "%" e "_" digitados são texto: escapados com "!" (o ESCAPE '!' vale igual no Postgres,
+        // no SQLite e no MySQL, e com ele a barra invertida deixa de ser especial no Postgres).
+        $term     = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($filters['q'])) . '%';
+        $contains = fn (Builder $q, string $column) => $q->whereRaw("LOWER({$column}) LIKE ? ESCAPE '!'", [$term]);
+        // Nome do paciente: os ids vêm do contrato de Patient (o Service preenche `q_patient_ids`).
+        $patientIds = array_values(array_filter(array_map('intval', (array) ($filters['q_patient_ids'] ?? []))));
+        $query->where(function (Builder $q) use ($contains, $patientIds) {
+            $contains($q, 'description');
+            $q->orWhereHas('category', fn (Builder $cat) => $contains($cat, 'name'));
+            if (!empty($patientIds)) {
+                $q->orWhereIn('patient_id', $patientIds);
+            }
         });
     }
 
     private function paginateSorted(Builder $query, array $filters): LengthAwarePaginator
     {
-        $sort      = $filters['sort'] ?? '-date';
+        // Pendências: da mais antiga (a mais atrasada) para a mais nova.
+        $sort      = $filters['sort'] ?? (empty($filters['overdue_until']) ? '-date' : 'date');
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $column    = ltrim($sort, '-');
 
@@ -305,9 +387,12 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
             'gross_amount' => 'gross_amount',
             'status'       => 'status',
             'category'     => 'financial_category_id',
+            'deleted_at'   => 'deleted_at',
         ];
 
-        $query->orderBy($sortMap[$column] ?? 'date', $direction);
+        // Desempate pelo id: sem ele, os empates (todos do mesmo dia) mudam de ordem entre as páginas no Postgres.
+        $query->orderBy($sortMap[$column] ?? 'date', $direction)
+            ->orderBy($this->model->getQualifiedKeyName(), $direction);
 
         $perPage = (int) ($filters['per_page'] ?? 25);
         if (!in_array($perPage, [10, 25, 50], true)) {
@@ -342,7 +427,7 @@ class FinancialTransactionRepository implements FinancialTransactionRepositoryIn
 
         $period = $filters['period'] ?? now()->format('Y-m');
         $tz     = DB::table('clinics')->where('id', $clinicId)->value('timezone') ?? config('app.timezone');
-        $start  = Carbon::createFromFormat('Y-m', $period, $tz)->startOfMonth();
+        $start  = Carbon::createFromFormat('!Y-m', $period, $tz)->startOfMonth();
 
         return [
             'from' => $start->toDateString(),

@@ -1,3 +1,5 @@
+import { isAxiosError } from 'axios';
+
 import type {
     ProgramListParams,
     ProgramListResult,
@@ -112,6 +114,10 @@ function mapGroup(raw: ApiTreatmentPlanGroup): ProgramGroup {
     };
 }
 
+function dayOnly(value: string | null | undefined): string | null {
+    return value ? value.slice(0, 10) : null;
+}
+
 function toEntity(raw: ApiTreatmentPlan): Program {
     const groups = (raw.groups ?? []).map(mapGroup);
     const exerciseCount =
@@ -130,8 +136,8 @@ function toEntity(raw: ApiTreatmentPlan): Program {
         professionalName: raw.clinic_user?.name ?? null,
         professionalPhotoUrl: raw.clinic_user?.photo_url ?? null,
         exerciseCount,
-        startDate: raw.start_date ?? '',
-        endDate: raw.end_date ?? null,
+        startDate: dayOnly(raw.start_date) ?? '',
+        endDate: dayOnly(raw.end_date),
         message: raw.message ?? '',
         groups,
         status: raw.status === 'cancelled' ? 'completed' : raw.status,
@@ -144,16 +150,19 @@ function toEntity(raw: ApiTreatmentPlan): Program {
 function toApiPayload(dto: ProgramWriteDto) {
     return {
         title: dto.title,
-        patient_id: dto.patientId ?? undefined,
-        message: dto.message || undefined,
-        start_date: dto.startDate || undefined,
-        end_date: dto.endDate || undefined,
-        status: dto.status ?? undefined,
+        // null de verdade (não omitido): na edição, é o que tira o paciente,
+        // a mensagem ou o término.
+        patient_id: dto.patientId ?? null,
+        message: dto.message || null,
+        start_date: dto.startDate || null,
+        end_date: dto.endDate || null,
         groups: dto.groups.map((g, i) => ({
+            ...(g.id !== undefined ? { id: g.id } : {}),
             name: g.name,
             sort_order: g.sortOrder ?? i,
         })),
         exercises: dto.exercises.map((e, i) => ({
+            ...(e.id !== undefined ? { id: e.id } : {}),
             exercise_id: e.exerciseId,
             group_index: e.groupIndex,
             days_of_week: e.days.length > 0 ? e.days : null,
@@ -190,8 +199,8 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
                 per_page: params?.perPage ?? 10,
                 ...(params?.search ? { search: params.search } : {}),
                 ...(params?.status ? { status: params.status } : {}),
-                ...(params?.withoutPatient ? { without_patient: 1 } : {}),
                 ...(params?.patientId ? { patient_id: params.patientId } : {}),
+                ...(params?.withoutPatient ? { without_patient: 1 } : {}),
             },
         });
         return {
@@ -206,11 +215,18 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
     },
 
     async getById(id) {
-        const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
-            `/clinic/treatment-plans/${id}`,
-        );
-        if (!data?.data) return null;
-        return toEntity(data.data);
+        try {
+            const { data } = await apiClient.get<{ data: ApiTreatmentPlan }>(
+                `/clinic/treatment-plans/${id}`,
+            );
+            if (!data?.data) return null;
+            return toEntity(data.data);
+        } catch (error) {
+            if (isAxiosError(error) && error.response?.status === 404) {
+                return null;
+            }
+            throw error;
+        }
     },
 
     async create(dto) {

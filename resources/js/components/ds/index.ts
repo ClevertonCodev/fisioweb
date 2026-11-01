@@ -163,6 +163,9 @@ export type { PaginationProps } from './pagination/DsPagination';
 export { DsModal } from './modal/DsModal';
 export type { ModalProps, ModalSize } from './modal/DsModal';
 
+export { DsActionsMenu } from './actions-menu/DsActionsMenu';
+export type { ActionsMenuItem } from './actions-menu/DsActionsMenu';
+
 export { DsDrawer } from './drawer/DsDrawer';
 export type {
     DrawerPlacement,

@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
+use Modules\Patient\Contracts\Public\PatientDirectoryReadServiceInterface;
 use Modules\Patient\Repositories\PatientRepository;
+use Modules\Patient\Services\PatientDirectoryReadService;
 use Modules\Patient\Services\PatientService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -51,6 +53,7 @@ class PatientServiceProvider extends ServiceProvider
     {
         $this->app->bind(PatientRepositoryInterface::class, PatientRepository::class);
         $this->app->bind(PatientServiceInterface::class, PatientService::class);
+        $this->app->bind(PatientDirectoryReadServiceInterface::class, PatientDirectoryReadService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

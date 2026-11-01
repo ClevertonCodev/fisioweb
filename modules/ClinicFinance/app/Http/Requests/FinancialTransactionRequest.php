@@ -10,6 +10,8 @@ use Modules\ClinicFinance\Enums\PaymentMethod;
 
 abstract class FinancialTransactionRequest extends FormRequest
 {
+    use ValidatesTransactionPeople;
+
     public function authorize(): bool
     {
         return true;
@@ -42,6 +44,7 @@ abstract class FinancialTransactionRequest extends FormRequest
             'gross_amount'           => ['required', 'numeric', 'gt:0'],
             'fee_amount'             => ['nullable', 'numeric', 'gte:0'],
             'notes'                  => ['nullable', 'string'],
+            ...$this->peopleRules(),
         ];
     }
 
@@ -50,6 +53,7 @@ abstract class FinancialTransactionRequest extends FormRequest
         if (!$this->has('fee_amount')) {
             $this->merge(['fee_amount' => 0]);
         }
+        $this->preparePeople();
     }
 
     public function withValidator($validator): void
@@ -60,6 +64,7 @@ abstract class FinancialTransactionRequest extends FormRequest
             if ($fee > $gross) {
                 $validator->errors()->add('fee_amount', 'A taxa não pode ser maior que o valor bruto.');
             }
+            $this->validatePeople($validator);
         });
     }
 }

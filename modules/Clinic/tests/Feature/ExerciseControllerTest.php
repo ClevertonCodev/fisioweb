@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Models\BodyRegion;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
@@ -78,6 +79,68 @@ class ExerciseControllerTest extends TestCase
         $items = $response->json('data.data');
         $found = collect($items)->firstWhere('id', $exercise->id);
         $this->assertTrue($found['is_favorite']);
+    }
+
+    public function test_index_search_matches_specialty_and_body_region_names(): void
+    {
+        $neuro    = PhysioArea::create(['name' => 'Neurologia']);
+        $ombro    = BodyRegion::create(['name' => 'Ombro']);
+        $byArea   = $this->makeExercise(['name' => 'Ponte', 'physio_area_id' => $neuro->id]);
+        $byRegion = $this->makeExercise(['name' => 'Elevação lateral', 'body_region_id' => $ombro->id]);
+        $other    = $this->makeExercise(['name' => 'Agachamento']);
+
+        $ids = fn (string $search) => collect(
+            $this->actingAs($this->clinicUser, 'clinic')
+                ->getJson('/api/clinic/exercises?search=' . $search)
+                ->assertOk()
+                ->json('data.data')
+        )->pluck('id')->all();
+
+        $this->assertSame([$byArea->id], $ids('Neurologia'));
+        $this->assertSame([$byRegion->id], $ids('Ombro'));
+        $this->assertNotContains($other->id, $ids('Neurologia'));
+    }
+
+    public function test_index_search_ignores_case_like_in_postgres(): void
+    {
+        // O LIKE do Postgres diferencia maiúscula; o PRAGMA faz o sqlite dos
+        // testes se comportar igual, para o teste pegar a regressão.
+        DB::statement('PRAGMA case_sensitive_like = ON');
+
+        // A conexão sqlite em memória é a mesma em todos os testes e o rollback
+        // não desfaz PRAGMA. O finally desliga antes do tearDown, que desconecta
+        // (um beforeApplicationDestroyed rodaria depois, numa conexão nova).
+        try {
+            $this->assertSame(0, (int) DB::selectOne("SELECT 'A' LIKE 'a' AS hit")->hit, 'PRAGMA não pegou');
+
+            $shoulder = BodyRegion::create(['name' => 'Ombro']);
+            $squat    = $this->makeExercise(['name' => 'Agachamento livre', 'muscle_group' => 'Quadríceps']);
+            $raise    = $this->makeExercise(['name' => 'Elevação lateral', 'body_region_id' => $shoulder->id]);
+            $bridge   = $this->makeExercise(['name' => 'élevação pélvica']);
+
+            $cases = [
+                'agach' => [$squat->id],
+                'AGACH' => [$squat->id],
+                'Agach' => [$squat->id],
+                'QUADR' => [$squat->id],
+                'OMBRO' => [$raise->id],
+                // Só ASCII no LOWER do sqlite: o termo precisa vir em mb_strtolower.
+                'ÉLEV'  => [$bridge->id],
+            ];
+
+            foreach ($cases as $search => $expected) {
+                $ids = collect(
+                    $this->actingAs($this->clinicUser, 'clinic')
+                        ->getJson('/api/clinic/exercises?search=' . urlencode($search))
+                        ->assertOk()
+                        ->json('data.data'),
+                )->pluck('id')->all();
+
+                $this->assertSame($expected, $ids, "busca por {$search}");
+            }
+        } finally {
+            DB::statement('PRAGMA case_sensitive_like = OFF');
+        }
     }
 
     public function test_index_requires_authentication(): void

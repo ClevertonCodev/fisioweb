@@ -63,14 +63,14 @@ class CreateFinancialTransactionTest extends TestCase
         ]);
     }
 
-    public function test_secretary_cannot_access_finances(): void
+    public function test_physiotherapist_cannot_access_finances(): void
     {
-        $secretary = ClinicUser::factory()->create([
+        $physiotherapist = ClinicUser::factory()->create([
             'clinic_id' => $this->clinic->id,
-            'role'      => ClinicUser::ROLE_SECRETARY,
+            'role'      => ClinicUser::ROLE_PHYSIOTHERAPIST,
         ]);
 
-        $this->actingAs($secretary, 'clinic')
+        $this->actingAs($physiotherapist, 'clinic')
             ->getJson('/api/clinic/finances/transactions')
             ->assertForbidden();
     }

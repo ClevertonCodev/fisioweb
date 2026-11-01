@@ -40,6 +40,9 @@ interface ApiExercise {
     is_favorite: boolean;
     review_status: ExerciseReviewStatus | null;
     is_own_submission: boolean;
+    sets?: number | null;
+    repetitions?: number | null;
+    rest_time?: number | null;
     videos: ApiVideo[];
     created_at: string;
 }
@@ -84,6 +87,9 @@ function toEntity(raw: ApiExercise): Exercise {
         isFavorite: raw.is_favorite ?? false,
         reviewStatus: raw.review_status ?? 'approved',
         isOwnSubmission: raw.is_own_submission ?? false,
+        sets: raw.sets ?? null,
+        repetitions: raw.repetitions ?? null,
+        restTime: raw.rest_time ?? null,
         createdAt: raw.created_at ?? '',
     };
 }
@@ -109,6 +115,19 @@ export const apiClinicExercisesRepository: ExercisesRepository = {
                 params: {
                     page: params?.page ?? 1,
                     per_page: params?.perPage ?? 20,
+                    ...(params?.search ? { search: params.search } : {}),
+                    ...(params?.physioAreaId
+                        ? { physio_area_id: params.physioAreaId }
+                        : {}),
+                    ...(params?.bodyRegionId
+                        ? { body_region_id: params.bodyRegionId }
+                        : {}),
+                    ...(params?.difficultyLevel
+                        ? { difficulty_level: params.difficultyLevel }
+                        : {}),
+                    ...(params?.movementForm
+                        ? { movement_form: params.movementForm }
+                        : {}),
                 },
             },
         );

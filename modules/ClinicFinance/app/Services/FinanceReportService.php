@@ -122,8 +122,12 @@ class FinanceReportService implements FinanceReportServiceInterface
 
     public function categoryBreakdown(int $clinicId, array $filters = []): array
     {
-        $rows  = $this->transactionRepository->categoryBreakdownRows($clinicId, $filters);
-        $grand = max(0.01, (float) $rows->sum('total'));
+        $rows = $this->transactionRepository->categoryBreakdownRows($clinicId, $filters);
+
+        // A % de cada categoria é dentro do seu tipo: entrada sobre entradas, saída sobre saídas.
+        $totalsByType = $rows
+            ->groupBy(fn ($row) => $this->typeKey($row->type))
+            ->map(fn ($group) => max(0.01, (float) $group->sum('total')));
 
         return $rows->map(fn ($row) => [
             'category_id' => (int) $row->category_id,
@@ -131,8 +135,13 @@ class FinanceReportService implements FinanceReportServiceInterface
             'type'        => $row->type,
             'count'       => (int) $row->count,
             'total'       => round((float) $row->total, 2),
-            'percentage'  => round(((float) $row->total / $grand) * 100, 1),
+            'percentage'  => round(((float) $row->total / $totalsByType[$this->typeKey($row->type)]) * 100, 1),
         ])->all();
+    }
+
+    private function typeKey(FinancialTransactionType|string $type): string
+    {
+        return $type instanceof FinancialTransactionType ? $type->value : $type;
     }
 
     private function variation(float $current, float $previous): ?float

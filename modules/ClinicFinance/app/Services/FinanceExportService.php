@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\ClinicFinance\Contracts\FinanceExportServiceInterface;
 use Modules\ClinicFinance\Contracts\FinancialTransactionRepositoryInterface;
+use Modules\ClinicFinance\Contracts\TransactionPeopleServiceInterface;
 use Modules\ClinicFinance\Services\Export\FinanceCsvExporter;
 use Modules\ClinicFinance\Services\Export\FinancePdfExporter;
 use Modules\ClinicFinance\Services\Export\FinanceXlsxExporter;
@@ -18,6 +19,7 @@ class FinanceExportService implements FinanceExportServiceInterface
         protected FinanceCsvExporter $csvExporter,
         protected FinanceXlsxExporter $xlsxExporter,
         protected FinancePdfExporter $pdfExporter,
+        protected TransactionPeopleServiceInterface $people,
     ) {}
 
     /**
@@ -33,6 +35,9 @@ class FinanceExportService implements FinanceExportServiceInterface
                 'message' => 'intervalo sem transações para exportar',
             ], 422);
         }
+
+        // A coluna "Paciente" lê o nome pelo contrato de Patient.
+        $this->people->attachTo($clinicId, $transactions);
 
         $filename = 'financas-' . now()->format('Y-m-d');
 
@@ -59,8 +64,9 @@ class FinanceExportService implements FinanceExportServiceInterface
                 'to'   => $now->copy()->endOfMonth()->toDateString(),
             ],
             'previous_month' => [
-                'from' => $now->copy()->subMonth()->startOfMonth()->toDateString(),
-                'to'   => $now->copy()->subMonth()->endOfMonth()->toDateString(),
+                // Do dia 1º: no dia 31, `subMonth()` transborda e cai no mês atual.
+                'from' => $now->copy()->startOfMonth()->subMonthNoOverflow()->toDateString(),
+                'to'   => $now->copy()->startOfMonth()->subMonthNoOverflow()->endOfMonth()->toDateString(),
             ],
             'custom' => [
                 'from' => Carbon::parse($validated['from'])->toDateString(),

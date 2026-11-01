@@ -373,7 +373,10 @@ function emptyProgramPage(items: Program[] = []) {
 function LocationProbe() {
     const location = useLocation();
     const navigate = useNavigate();
-    const state = location.state as { openNewAppointment?: boolean } | null;
+    const state = location.state as {
+        openNewAppointment?: boolean;
+        from?: string;
+    } | null;
     return (
         <>
             <output aria-label="url atual">
@@ -382,6 +385,7 @@ function LocationProbe() {
             <output aria-label="estado da navegação">
                 {state?.openNewAppointment ? 'openNewAppointment' : ''}
             </output>
+            <output aria-label="origem">{state?.from ?? ''}</output>
             <button type="button" onClick={() => navigate(-1)}>
                 voltar do navegador
             </button>
@@ -1494,5 +1498,29 @@ describe('prontuário do paciente (painel B)', () => {
         expect(
             screen.queryByRole('dialog', { name: 'Excluir questionário' }),
         ).not.toBeInTheDocument();
+    });
+
+    it('"Abrir programa" na gaveta abre o painel do programa levando o prontuário como origem', async () => {
+        const user = userEvent.setup();
+        listPrograms.mockResolvedValue(emptyProgramPage([makeProgram()]));
+
+        renderPage('/clinica/pacientes/108');
+
+        await user.click(await screen.findByRole('tab', { name: /Programas/ }));
+        await user.click(
+            await screen.findByRole('button', { name: /Programa em casa/ }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Programa em casa',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Abrir programa' }),
+        );
+
+        expect(currentUrl()).toBe('/clinica/programas/61');
+        expect(
+            screen.getByRole('status', { name: 'origem', hidden: true })
+                .textContent,
+        ).toMatch(/^\/clinica\/pacientes\/108/);
     });
 });

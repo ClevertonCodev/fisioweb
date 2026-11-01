@@ -17,7 +17,7 @@ class FinanceXlsxExporter
      */
     public function export(Collection $transactions, string $filename = 'financas.xlsx'): StreamedResponse
     {
-        $headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Método', 'Valor bruto', 'Taxa', 'Valor líquido', 'Status'];
+        $headers = ['Data', 'Descrição', 'Categoria', 'Paciente', 'Tipo', 'Método', 'Valor bruto', 'Taxa', 'Valor líquido', 'Status'];
         $rows    = [];
 
         foreach ($transactions as $transaction) {
@@ -25,8 +25,9 @@ class FinanceXlsxExporter
                 $transaction->date instanceof \DateTimeInterface
                     ? $transaction->date->format('d/m/Y')
                     : (string) $transaction->date,
-                $transaction->description,
-                $transaction->category->name ?? '',
+                SpreadsheetText::forXlsx($transaction->description),
+                SpreadsheetText::forXlsx($transaction->category->name ?? ''),
+                SpreadsheetText::forXlsx($transaction->patient['name'] ?? ''),
                 $transaction->type->value ?? (string) $transaction->type,
                 $transaction->payment_method->value ?? (string) $transaction->payment_method,
                 (float) $transaction->gross_amount,

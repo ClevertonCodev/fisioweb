@@ -3,8 +3,10 @@ import type {
     FinanceTransactionWriteDto,
     FinancialTransaction,
     MonthlySummary,
-    OpeningBalance,
     PaginatedResult,
+    SeriesScope,
+    TransactionRepeat,
+    TransactionSeries,
 } from '@/domain/clinic/finance';
 import { apiClient } from '@/infrastructure/api/client';
 
@@ -33,11 +35,34 @@ interface ApiTransaction {
     updated_at?: string;
     deleted_at?: string;
     deleted_by?: { id: number; name: string } | null;
+    series?: {
+        id: number;
+        kind: string;
+        index: number;
+        total: number | null;
+    } | null;
+    attachments_count?: number;
+    patient?: { id: number; name: string | null } | null;
+    appointment?: { id: number; starts_at: string | null } | null;
 }
 
 interface ApiPaginated<T> {
     data: T[];
-    meta: { page: number; perPage: number; total: number };
+    meta: {
+        page: number;
+        perPage: number;
+        total: number;
+        netTotal?: number | string;
+    };
+}
+
+function mapMeta(
+    meta: ApiPaginated<unknown>['meta'],
+): PaginatedResult<unknown>['meta'] {
+    const { netTotal, ...rest } = meta;
+    return netTotal === undefined || netTotal === null
+        ? rest
+        : { ...rest, netTotal: Number(netTotal) };
 }
 
 function mapCategory(raw: ApiCategory) {
@@ -71,6 +96,24 @@ function mapTransaction(raw: ApiTransaction): FinancialTransaction {
         deletedBy: raw.deleted_by
             ? { id: String(raw.deleted_by.id), name: raw.deleted_by.name }
             : null,
+        series: raw.series
+            ? {
+                  id: String(raw.series.id),
+                  kind: raw.series.kind as TransactionSeries['kind'],
+                  index: raw.series.index,
+                  total: raw.series.total,
+              }
+            : null,
+        attachmentsCount: raw.attachments_count,
+        patient: raw.patient
+            ? { id: String(raw.patient.id), name: raw.patient.name }
+            : null,
+        appointment: raw.appointment
+            ? {
+                  id: String(raw.appointment.id),
+                  startsAt: raw.appointment.starts_at,
+              }
+            : null,
     };
 }
 
@@ -85,7 +128,30 @@ function toApiWriteDto(dto: FinanceTransactionWriteDto) {
         gross_amount: dto.grossAmount,
         fee_amount: dto.feeAmount ?? 0,
         notes: dto.notes ?? null,
+        // Paciente e atendimento: só na entrada (na saída não vão e o servidor limpa).
+        ...(dto.patientId !== undefined
+            ? {
+                  patient_id: dto.patientId ? Number(dto.patientId) : null,
+                  appointment_id: dto.appointmentId
+                      ? Number(dto.appointmentId)
+                      : null,
+              }
+            : {}),
+        // Sem repetição, o campo não vai (o servidor trata como "não repete").
+        ...(dto.repeat && dto.repeat.kind !== 'none'
+            ? { repeat: toApiRepeat(dto.repeat) }
+            : {}),
     };
+}
+
+function toApiRepeat(repeat: Exclude<TransactionRepeat, { kind: 'none' }>) {
+    return repeat.kind === 'recurrence'
+        ? {
+              kind: repeat.kind,
+              frequency: repeat.frequency,
+              ends_on: repeat.endsOn,
+          }
+        : repeat;
 }
 
 function buildParams(params: FinanceListParams = {}) {
@@ -96,6 +162,9 @@ function buildParams(params: FinanceListParams = {}) {
 
     return {
         period: params.period,
+        from: params.from,
+        to: params.to,
+        overdue_until: params.overdueUntil,
         type: params.type,
         status: params.status,
         category_id: params.categoryId ? Number(params.categoryId) : undefined,
@@ -118,7 +187,7 @@ export const apiClinicFinanceTransactionsRepository = {
         );
         return {
             data: data.data.map(mapTransaction),
-            meta: data.meta,
+            meta: mapMeta(data.meta),
         };
     },
 
@@ -131,7 +200,7 @@ export const apiClinicFinanceTransactionsRepository = {
         );
         return {
             data: data.data.map(mapTransaction),
-            meta: data.meta,
+            meta: mapMeta(data.meta),
         };
     },
 
@@ -145,24 +214,43 @@ export const apiClinicFinanceTransactionsRepository = {
         return mapTransaction(data.data);
     },
 
+    /** `scope` só no lançamento de série; a repetição não muda na edição. */
     async update(
         id: string,
         dto: FinanceTransactionWriteDto,
+        scope?: SeriesScope,
     ): Promise<FinancialTransaction> {
         const { data } = await apiClient.put<{ data: ApiTransaction }>(
             `/clinic/finances/transactions/${id}`,
-            toApiWriteDto(dto),
+            {
+                ...toApiWriteDto({ ...dto, repeat: undefined }),
+                ...(scope ? { scope } : {}),
+            },
         );
         return mapTransaction(data.data);
     },
 
-    async remove(id: string): Promise<void> {
-        await apiClient.delete(`/clinic/finances/transactions/${id}`);
+    async remove(id: string, scope?: SeriesScope): Promise<void> {
+        const url = `/clinic/finances/transactions/${id}`;
+        if (scope) await apiClient.delete(url, { params: { scope } });
+        else await apiClient.delete(url);
     },
 
     async restore(id: string): Promise<FinancialTransaction> {
         const { data } = await apiClient.post<{ data: ApiTransaction }>(
             `/clinic/finances/transactions/${id}/restore`,
+        );
+        return mapTransaction(data.data);
+    },
+
+    /** Baixa em um clique (e o "Desfazer"): muda só o status. */
+    async setStatus(
+        id: string,
+        status: FinancialTransaction['status'],
+    ): Promise<FinancialTransaction> {
+        const { data } = await apiClient.patch<{ data: ApiTransaction }>(
+            `/clinic/finances/transactions/${id}/status`,
+            { status },
         );
         return mapTransaction(data.data);
     },
@@ -180,26 +268,10 @@ export const apiClinicFinanceSummaryRepository = {
             income: raw.income as MonthlySummary['income'],
             expense: raw.expense as MonthlySummary['expense'],
             openingBalance: Number(raw.opening_balance),
+            openingBalanceSource:
+                raw.opening_balance_source === 'typed' ? 'typed' : 'computed',
             available: Number(raw.available),
             forecast: Number(raw.forecast),
-        };
-    },
-};
-
-export const apiClinicFinanceOpeningBalanceRepository = {
-    async upsert(payload: OpeningBalance): Promise<OpeningBalance> {
-        const { data } = await apiClient.put<{ data: Record<string, unknown> }>(
-            '/clinic/finances/opening-balance',
-            {
-                year: payload.year,
-                month: payload.month,
-                amount: payload.amount,
-            },
-        );
-        return {
-            year: Number(data.data.year),
-            month: Number(data.data.month),
-            amount: Number(data.data.amount),
         };
     },
 };

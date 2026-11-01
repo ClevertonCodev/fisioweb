@@ -19,13 +19,13 @@ A correção valida o `patient_id` com a busca de paciente acessível do Patient
 
 ## Critérios de Aceite
 
-- [ ] O teste que reproduz a falha foi escrito antes da correção e estava vermelho.
-- [ ] `POST /api/clinic/treatment-plans` com `patient_id` da B devolve 422. A resposta não contém nome, CPF nem telefone do paciente da B, e nenhum plano é criado.
-- [ ] `PUT` de plano da A trocando `patient_id` para um paciente da B devolve 422, e o plano continua igual.
-- [ ] Nenhum `TreatmentPlanCreated` ou `TreatmentPlanActivated` é disparado no caso negado (`Event::fake`).
-- [ ] Plano com paciente da própria clínica e plano sem paciente continuam funcionando.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`).
+- [x] O teste que reproduz a falha foi escrito antes da correção e estava vermelho.
+- [x] `POST /api/clinic/treatment-plans` com `patient_id` da B devolve 422. A resposta não contém nome, CPF nem telefone do paciente da B, e nenhum plano é criado.
+- [x] `PUT` de plano da A trocando `patient_id` para um paciente da B devolve 422, e o plano continua igual.
+- [x] Nenhum `TreatmentPlanCreated` ou `TreatmentPlanActivated` é disparado no caso negado (`Event::fake`).
+- [x] Plano com paciente da própria clínica e plano sem paciente continuam funcionando.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade.
+- [ ] Definição de Pronto cumprida (falta: decisão do usuário após a rodada 3 da revisão adversária na branch da 008) (`docs/ai-harness/DEFINITION_OF_DONE.md`).
 
 ## Depende de
 
@@ -44,3 +44,14 @@ A correção valida o `patient_id` com a busca de paciente acessível do Patient
 1. Como admin da A, crie um plano pela tela de programas escolhendo um paciente da A → salva normalmente.
 2. Pela API, `POST /api/clinic/treatment-plans` com o `patient_id` de um paciente da B → 422, sem dados do paciente no corpo.
 3. Confira na clínica B que nenhum plano novo apareceu na ficha desse paciente.
+
+## Como foi feito (2026-10-22)
+
+Feita antes da tarefa 003, a pedido do usuário, na branch
+`feat/clinic-historico-exercicios-programas`. O contrato público do Patient
+ganhou `findForClinic(int $clinicId, int $id): ?Patient` (só regra de clínica),
+e os dois Requests usam o trait `ValidatesPatientOfClinic`, que chama esse
+contrato e responde 422 "Paciente não encontrado.". O `exists:patients,id` saiu
+(a busca já cobre id inexistente). No editar, reenviar o paciente que o plano já tem não é checado, para plano de paciente removido (soft delete) continuar editável. Quando a 003 criar a busca que recebe o
+usuário inteiro (para a 013), o trait passa a chamá-la. Testes em
+`TreatmentPlanIsolationTest` e `PatientServiceTest`.

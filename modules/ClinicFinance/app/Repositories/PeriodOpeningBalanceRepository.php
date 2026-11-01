@@ -20,6 +20,18 @@ class PeriodOpeningBalanceRepository implements PeriodOpeningBalanceRepositoryIn
             ->first();
     }
 
+    public function findLatestBefore(int $clinicId, int $year, int $month): ?PeriodOpeningBalance
+    {
+        return $this->model
+            ->where('clinic_id', $clinicId)
+            ->where(fn ($q) => $q
+                ->where('year', '<', $year)
+                ->orWhere(fn ($q) => $q->where('year', $year)->where('month', '<', $month)))
+            ->orderByDesc('year')
+            ->orderByDesc('month')
+            ->first();
+    }
+
     public function upsert(int $clinicId, int $year, int $month, string $amount, int $updatedByUserId): PeriodOpeningBalance
     {
         return $this->model->updateOrCreate(
@@ -33,5 +45,14 @@ class PeriodOpeningBalanceRepository implements PeriodOpeningBalanceRepositoryIn
                 'updated_by_user_id'  => $updatedByUserId,
             ],
         );
+    }
+
+    public function deleteForPeriod(int $clinicId, int $year, int $month): void
+    {
+        $this->model
+            ->where('clinic_id', $clinicId)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->delete();
     }
 }

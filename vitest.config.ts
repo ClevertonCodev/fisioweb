@@ -4,6 +4,7 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         globals: true,
+        pool: 'forks',
         setupFiles: ['./resources/js/test/setup.ts'],
         // Skills: scripts testados com node:test, não com Vitest.
         exclude: [

@@ -1,4 +1,5 @@
 import {
+    keepPreviousData,
     useInfiniteQuery,
     useMutation,
     useQuery,
@@ -9,28 +10,30 @@ import { apiClinicExercisesRepository } from '@/infrastructure/repositories';
 
 import type { ExerciseListParams } from './ports';
 
-export function useExercises() {
-    return useQuery({
-        queryKey: ['exercises'],
-        queryFn: () => apiClinicExercisesRepository.list(),
-    });
-}
-
 export function listExercisesPaginated(params?: ExerciseListParams) {
     return apiClinicExercisesRepository.listPaginated(params);
 }
 
-export function useInfiniteExercises() {
+export function useInfiniteExercises(
+    params?: Omit<ExerciseListParams, 'page'>,
+) {
     return useInfiniteQuery({
-        queryKey: ['exercises-infinite'],
+        queryKey: params
+            ? ['exercises-infinite', params]
+            : ['exercises-infinite'],
         queryFn: ({ pageParam }) =>
-            listExercisesPaginated({ page: pageParam as number, perPage: 20 }),
+            listExercisesPaginated({
+                ...params,
+                page: pageParam as number,
+                perPage: params?.perPage ?? 20,
+            }),
         getNextPageParam: (lastPage) =>
             lastPage.currentPage < lastPage.lastPage
                 ? lastPage.currentPage + 1
                 : undefined,
         initialPageParam: 1,
         staleTime: Infinity,
+        placeholderData: keepPreviousData,
     });
 }
 

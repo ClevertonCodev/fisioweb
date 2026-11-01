@@ -28,15 +28,18 @@ export function useProgramDraft(
     step: ProgramStep,
     selectedIds: string[],
     groups: ProgramGroup[],
+    enabled = true,
 ) {
-    const [draft, setDraft] = useState<ProgramDraft | null>(loadFromStorage);
+    const [draft, setDraft] = useState<ProgramDraft | null>(() =>
+        enabled ? loadFromStorage() : null,
+    );
     const localTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const backendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const initialFetchDone = useRef(false);
 
     // On mount: busca do backend e prefere o rascunho mais recente
     useEffect(() => {
-        if (initialFetchDone.current) return;
+        if (!enabled || initialFetchDone.current) return;
         initialFetchDone.current = true;
 
         programDraftRepository.get().then((backendDraft) => {
@@ -56,13 +59,31 @@ export function useProgramDraft(
                 return backendDraft;
             });
         });
-    }, []);
+    }, [enabled]);
+
+    const pendingLocalRef = useRef<(() => void) | null>(null);
+    const pendingBackendRef = useRef<(() => void) | null>(null);
+
+    useEffect(
+        () => () => {
+            if (localTimerRef.current) clearTimeout(localTimerRef.current);
+            if (backendTimerRef.current) clearTimeout(backendTimerRef.current);
+            pendingLocalRef.current?.();
+            pendingBackendRef.current?.();
+        },
+        [],
+    );
 
     const scheduleSave = useCallback(() => {
+        if (!enabled) return;
+        const isEmpty = selectedIds.length === 0 && groups.length === 0;
+
         // 500ms → localStorage (feedback imediato)
         if (localTimerRef.current) clearTimeout(localTimerRef.current);
-        localTimerRef.current = setTimeout(() => {
-            if (selectedIds.length === 0 && groups.length === 0) return;
+        pendingLocalRef.current = () => {
+            pendingLocalRef.current = null;
+            localTimerRef.current = null;
+            if (isEmpty) return;
             try {
                 localStorage.setItem(
                     DRAFT_KEY,
@@ -76,12 +97,18 @@ export function useProgramDraft(
             } catch {
                 // quota exceeded — silencioso
             }
-        }, 500);
+        };
+        localTimerRef.current = setTimeout(
+            () => pendingLocalRef.current?.(),
+            500,
+        );
 
         // 3s → backend (persistência cross-device)
         if (backendTimerRef.current) clearTimeout(backendTimerRef.current);
-        backendTimerRef.current = setTimeout(() => {
-            if (selectedIds.length === 0 && groups.length === 0) return;
+        pendingBackendRef.current = () => {
+            pendingBackendRef.current = null;
+            backendTimerRef.current = null;
+            if (isEmpty) return;
             const payload: ProgramDraft = {
                 step,
                 selectedIds,
@@ -91,18 +118,25 @@ export function useProgramDraft(
             programDraftRepository.save(payload).catch(() => {
                 // falha silenciosa — localStorage já garantiu o rascunho local
             });
-        }, 3000);
-    }, [step, selectedIds, groups]);
+        };
+        backendTimerRef.current = setTimeout(
+            () => pendingBackendRef.current?.(),
+            3000,
+        );
+    }, [enabled, step, selectedIds, groups]);
 
     const clearDraft = useCallback(() => {
+        if (!enabled) return;
         if (localTimerRef.current) clearTimeout(localTimerRef.current);
         if (backendTimerRef.current) clearTimeout(backendTimerRef.current);
+        pendingLocalRef.current = null;
+        pendingBackendRef.current = null;
         localStorage.removeItem(DRAFT_KEY);
         setDraft(null);
         programDraftRepository.discard().catch(() => {
             // silencioso
         });
-    }, []);
+    }, [enabled]);
 
     const restoreDraft = useCallback((): ProgramDraft | null => {
         const d = draft;

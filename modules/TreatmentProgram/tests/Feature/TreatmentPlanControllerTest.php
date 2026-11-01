@@ -149,6 +149,18 @@ class TreatmentPlanControllerTest extends TestCase
         $this->assertNotNull($response->json('data.data.0.patient_viewed_at'));
     }
 
+    public function test_index_limits_per_page_to_200(): void
+    {
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?per_page=200')
+            ->assertOk();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?per_page=201')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('per_page');
+    }
+
     public function test_index_does_not_list_plans_from_other_clinic(): void
     {
         $otherUser = ClinicUser::factory()->create();
@@ -166,6 +178,53 @@ class TreatmentPlanControllerTest extends TestCase
         $response->assertOk();
         $titles = collect($response->json('data.data'))->pluck('title')->all();
         $this->assertNotContains('Plano de outra clínica', $titles);
+    }
+
+    public function test_index_filters_by_patient_id_only_inside_own_clinic(): void
+    {
+        $patient      = Patient::factory()->create(['clinic_id' => $this->clinicUser->clinic_id]);
+        $otherPatient = Patient::factory()->create(['clinic_id' => $this->clinicUser->clinic_id]);
+        $otherUser    = ClinicUser::factory()->create();
+        $foreign      = Patient::factory()->create(['clinic_id' => $otherUser->clinic_id]);
+
+        TreatmentPlan::create([
+            'clinic_id'      => $this->clinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+            'patient_id'     => $patient->id,
+            'title'          => 'Plano do paciente',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+        TreatmentPlan::create([
+            'clinic_id'      => $this->clinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+            'patient_id'     => $otherPatient->id,
+            'title'          => 'Plano de outro paciente',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+        TreatmentPlan::create([
+            'clinic_id'      => $otherUser->clinic_id,
+            'clinic_user_id' => $otherUser->id,
+            'patient_id'     => $foreign->id,
+            'title'          => 'Plano de outra clínica',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+
+        $own = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans?per_page=50&patient_id={$patient->id}");
+        $own->assertOk();
+        $this->assertSame(['Plano do paciente'], collect($own->json('data.data'))->pluck('title')->all());
+
+        $other = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans?per_page=50&patient_id={$foreign->id}");
+        $other->assertOk()->assertJsonCount(0, 'data.data');
+    }
+
+    public function test_index_rejects_non_numeric_patient_id_with_422(): void
+    {
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/treatment-plans?patient_id=abc')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('patient_id');
     }
 
     public function test_duplicate_creates_copy_with_suffix_no_patient_and_draft_status(): void
@@ -242,6 +301,26 @@ class TreatmentPlanControllerTest extends TestCase
             'sets_min'          => 3,
             'repetitions_min'   => 10,
         ]);
+    }
+
+    public function test_show_returns_404_without_data_for_plan_from_other_clinic(): void
+    {
+        $otherUser = ClinicUser::factory()->create();
+
+        $otherPlan = TreatmentPlan::create([
+            'clinic_id'      => $otherUser->clinic_id,
+            'clinic_user_id' => $otherUser->id,
+            'title'          => 'Plano Privado',
+            'message'        => 'Mensagem privada',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/treatment-plans/{$otherPlan->id}")
+            ->assertNotFound()
+            ->assertJsonMissingPath('data')
+            ->assertDontSee('Plano Privado')
+            ->assertDontSee('Mensagem privada');
     }
 
     public function test_duplicate_returns_404_for_plan_from_other_clinic(): void

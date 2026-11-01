@@ -9,6 +9,8 @@ interface PatientServiceInterface
 {
     public function find(int $id): ?Patient;
 
+    public function findForClinic(int $clinicId, int $id): ?Patient;
+
     public function list(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
     public function create(array $data, int $clinicId): Patient;

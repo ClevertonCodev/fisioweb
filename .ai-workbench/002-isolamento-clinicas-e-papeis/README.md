@@ -15,7 +15,7 @@ Fecha as falhas da auditoria em que uma clínica alcança dados de outra (usuár
 | [002 · `Gate::before` nega o admin em recurso de outra clínica](tasks/002-gate-before-por-clinica.md) | a fazer | | |
 | [003 · Busca de paciente acessível no Patient e todos os módulos usando ela](tasks/003-busca-de-paciente-acessivel.md) | a fazer | | |
 | [004 · Padronizar as checagens restantes, unificar o 404 e criar a trava de arquitetura](tasks/004-padronizar-checagens-e-trava.md) | a fazer | | |
-| [005 · Plano de tratamento só aceita paciente acessível](tasks/005-plano-so-com-paciente-acessivel.md) | a fazer | | |
+| [005 · Plano de tratamento só aceita paciente acessível](tasks/005-plano-so-com-paciente-acessivel.md) | concluída na branch `feat/clinic-historico-exercicios-programas` (2026-10-22) | | |
 | [006 · Favoritos e plano só com exercício visível para a clínica](tasks/006-exercicios-visiveis-favoritos-e-plano.md) | a fazer | | |
 | [007 · Modelos de evolução só do sistema ou da própria clínica](tasks/007-modelos-de-evolucao-por-clinica.md) | a fazer | | |
 | [008 · Remover o questionário público e validar `question_id` contra o template](tasks/008-remover-questionario-publico.md) | a fazer | | |

@@ -96,6 +96,58 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->service->uploadFile($file);
     }
 
+    public function test_upload_file_as_stores_under_the_given_name_and_never_trusts_the_client_extension(): void
+    {
+        $file = UploadedFile::fake()->createWithContent('x.html', "%PDF-1.4\n<script>alert(1)</script>");
+
+        $result = $this->service->uploadFileAs($file, 'clinics/7/finances/transactions/3', 'abc.pdf', 'application/pdf');
+
+        $this->assertSame('clinics/7/finances/transactions/3/abc.pdf', $result['path']);
+        $this->assertSame('abc.pdf', $result['filename']);
+        $this->assertSame('x.html', $result['original_filename']);
+        $this->assertSame('application/pdf', $result['mime_type']);
+        $this->assertArrayNotHasKey('cdn_url', $result);
+        $this->assertArrayNotHasKey('url', $result);
+        Storage::disk('r2')->assertExists('clinics/7/finances/transactions/3/abc.pdf');
+    }
+
+    public function test_upload_file_as_sends_the_content_type_explicitly_and_does_not_log_the_path(): void
+    {
+        Log::spy();
+        $file = UploadedFile::fake()->createWithContent('x.html', "%PDF-1.4\n<script>alert(1)</script>");
+
+        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
+        Storage::shouldReceive('putFileAs')
+            ->once()
+            ->with('clinics/7/finances/transactions/3', $file, 'abc.pdf', \Mockery::on(
+                fn ($options) => is_array($options) && ($options['ContentType'] ?? null) === 'application/pdf',
+            ))
+            ->andReturn('clinics/7/finances/transactions/3/abc.pdf');
+
+        $this->service->uploadFileAs($file, 'clinics/7/finances/transactions/3', 'abc.pdf', 'application/pdf');
+
+        Log::shouldNotHaveReceived('info');
+    }
+
+    public function test_upload_file_as_failure_does_not_log_the_file_name(): void
+    {
+        $logged = [];
+        Log::shouldReceive('error')->once()->andReturnUsing(function ($message, $context) use (&$logged) {
+            $logged = $context;
+        });
+        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
+        Storage::shouldReceive('putFileAs')->once()->andReturn(false);
+
+        try {
+            $this->service->uploadFileAs(UploadedFile::fake()->create('r.pdf'), 'clinics/7/finances/transactions/3', 'segredo.pdf', 'application/pdf');
+            $this->fail('Devia lançar RuntimeException.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('Failed to upload file', $e->getMessage());
+        }
+
+        $this->assertStringNotContainsString('segredo', json_encode($logged));
+    }
+
     public function test_should_return_success_and_errors_on_upload_multiple_files(): void
     {
         $file1 = UploadedFile::fake()->create('photo1.png');
@@ -145,6 +197,37 @@ class CloudflareR2ServiceFileTest extends TestCase
         $result = $this->service->deleteFile('non-existent/file.png');
 
         $this->assertFalse($result);
+    }
+
+    public function test_delete_private_file_removes_the_file_and_logs_only_the_folder(): void
+    {
+        $this->service->uploadFileAs(UploadedFile::fake()->create('r.pdf'), 'clinics/7/finances/transactions/3', 'segredo.pdf', 'application/pdf');
+        $logged = [];
+        Log::shouldReceive('info')->andReturnUsing(function ($message, $context = []) use (&$logged) {
+            $logged[] = [$message, $context];
+        });
+
+        $this->assertTrue($this->service->deletePrivateFile('clinics/7/finances/transactions/3/segredo.pdf'));
+
+        Storage::disk('r2')->assertMissing('clinics/7/finances/transactions/3/segredo.pdf');
+        $this->assertNotEmpty($logged);
+        $this->assertStringNotContainsString('segredo', json_encode($logged));
+        $this->assertFalse($this->service->deletePrivateFile('clinics/7/finances/transactions/3/segredo.pdf'));
+    }
+
+    public function test_delete_private_file_failure_does_not_carry_the_file_name(): void
+    {
+        Storage::shouldReceive('disk')->with('r2')->andReturnSelf();
+        Storage::shouldReceive('exists')->once()->andThrow(new \RuntimeException('Unable to check existence for: clinics/7/finances/transactions/3/segredo.pdf'));
+
+        try {
+            $this->service->deletePrivateFile('clinics/7/finances/transactions/3/segredo.pdf');
+            $this->fail('Devia lançar RuntimeException.');
+        } catch (\RuntimeException $e) {
+            // O report() de quem chama registra a exceção e as anteriores: nenhuma leva o nome.
+            $this->assertStringNotContainsString('segredo', $e->getMessage());
+            $this->assertNull($e->getPrevious());
+        }
     }
 
     public function test_should_return_true_for_existing_file_on_file_exists(): void

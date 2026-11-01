@@ -189,4 +189,62 @@ describe('useProgramDraft', () => {
         expect(restored).toMatchObject({ step: 4, selectedIds: ['rest'] });
         expect(result.current.hasDraft).toBe(false);
     });
+
+    it('desligado não lê, não grava e não apaga o rascunho existente', () => {
+        vi.useFakeTimers();
+        const existing = {
+            step: 2,
+            selectedIds: ['meu'],
+            groups: [],
+            savedAt: 1000,
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(existing));
+        const groups: ProgramGroup[] = [
+            { id: 'g1', name: 'Grupo do modelo', exercises: [] },
+        ];
+
+        const { result } = renderHook(() =>
+            useProgramDraft(2, ['10'], groups, false),
+        );
+        expect(result.current.hasDraft).toBe(false);
+
+        act(() => {
+            result.current.scheduleSave();
+            vi.advanceTimersByTime(3500);
+            result.current.clearDraft();
+        });
+
+        expect(getMock).not.toHaveBeenCalled();
+        expect(saveMock).not.toHaveBeenCalled();
+        expect(discardMock).not.toHaveBeenCalled();
+        expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}')).toEqual(
+            existing,
+        );
+    });
+
+    it('ao sair da tela grava na hora o que estava pendente e não deixa timer solto', () => {
+        vi.useFakeTimers();
+        getMock.mockResolvedValue(null);
+        saveMock.mockResolvedValue(undefined);
+        const groups: ProgramGroup[] = [
+            { id: 'g1', name: 'Grupo 1', exercises: [] },
+        ];
+        const { result, unmount } = renderHook(() =>
+            useProgramDraft(2, ['10'], groups),
+        );
+        act(() => {
+            result.current.scheduleSave();
+        });
+
+        unmount();
+        expect(
+            JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '{}'),
+        ).toMatchObject({ selectedIds: ['10'] });
+        expect(saveMock).toHaveBeenCalledTimes(1);
+
+        localStorage.removeItem(DRAFT_KEY);
+        vi.advanceTimersByTime(5000);
+        expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
+        expect(saveMock).toHaveBeenCalledTimes(1);
+    });
 });

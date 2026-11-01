@@ -78,4 +78,30 @@ class FinancialCategory extends Model
             ->orderBy('display_order')
             ->orderBy('name');
     }
+
+    /**
+     * As do sistema e as da clínica, ligadas ou não, com `disabled_for_clinic`
+     * quando a clínica desligou uma do sistema. Para a tela de Configurações.
+     */
+    public function scopeManageableForClinic(Builder $query, int $clinicId): Builder
+    {
+        return $query
+            ->where(function (Builder $q) use ($clinicId) {
+                $q->where(function (Builder $system) {
+                    $system
+                        ->where('origin', FinancialCategoryOrigin::System->value)
+                        ->where('active', true);
+                })->orWhere(function (Builder $custom) use ($clinicId) {
+                    $custom
+                        ->where('origin', FinancialCategoryOrigin::Custom->value)
+                        ->where('clinic_id', $clinicId);
+                });
+            })
+            ->withExists(['overrides as disabled_for_clinic' => function (Builder $override) use ($clinicId) {
+                $override->where('clinic_id', $clinicId);
+            }])
+            ->orderBy('type')
+            ->orderBy('display_order')
+            ->orderBy('name');
+    }
 }

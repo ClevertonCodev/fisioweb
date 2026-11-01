@@ -107,6 +107,33 @@ describe('can.manageClinicalRecords', () => {
     });
 });
 
+describe('can.manageFinances', () => {
+    it('permite admin e secretary', () => {
+        expect(can.manageFinances('admin')).toBe(true);
+        expect(can.manageFinances('secretary')).toBe(true);
+    });
+
+    it('nega physiotherapist', () => {
+        expect(can.manageFinances('physiotherapist')).toBe(false);
+    });
+
+    it('nega quando role é undefined', () => {
+        expect(can.manageFinances(undefined)).toBe(false);
+    });
+});
+
+describe('can.manageFinanceSettings', () => {
+    it('permite apenas admin', () => {
+        expect(can.manageFinanceSettings('admin')).toBe(true);
+        expect(can.manageFinanceSettings('secretary')).toBe(false);
+        expect(can.manageFinanceSettings('physiotherapist')).toBe(false);
+    });
+
+    it('nega quando role é undefined', () => {
+        expect(can.manageFinanceSettings(undefined)).toBe(false);
+    });
+});
+
 describe('matriz de permissões — todos os roles cobertos', () => {
     it.each(ROLES)(
         'role %s sempre retorna boolean em todas as permissões',

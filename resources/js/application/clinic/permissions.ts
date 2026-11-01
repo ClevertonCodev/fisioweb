@@ -15,4 +15,9 @@ export const can = {
         role === 'admin' || role === 'physiotherapist',
     manageServiceTypes: (role?: ClinicRole) =>
         role === 'admin' || role === 'secretary',
+    /** Finanças: lançar, editar, excluir, lixeira, resumo, relatório e exportar. */
+    manageFinances: (role?: ClinicRole) =>
+        role === 'admin' || role === 'secretary',
+    /** Configurações de Finanças: categorias e saldo inicial. */
+    manageFinanceSettings: (role?: ClinicRole) => role === 'admin',
 };

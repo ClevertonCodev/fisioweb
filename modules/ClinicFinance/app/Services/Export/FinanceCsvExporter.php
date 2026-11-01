@@ -31,7 +31,7 @@ class FinanceCsvExporter
      */
     private function headers(): array
     {
-        return ['Data', 'Descrição', 'Categoria', 'Tipo', 'Método', 'Valor bruto', 'Taxa', 'Valor líquido', 'Status'];
+        return ['Data', 'Descrição', 'Categoria', 'Paciente', 'Tipo', 'Método', 'Valor bruto', 'Taxa', 'Valor líquido', 'Status'];
     }
 
     /**
@@ -43,8 +43,9 @@ class FinanceCsvExporter
             $transaction->date instanceof \DateTimeInterface
                 ? $transaction->date->format('d/m/Y')
                 : (string) $transaction->date,
-            $transaction->description,
-            $transaction->category->name ?? '',
+            SpreadsheetText::forCsv($transaction->description),
+            SpreadsheetText::forCsv($transaction->category->name ?? ''),
+            SpreadsheetText::forCsv($transaction->patient['name'] ?? ''),
             $transaction->type->value ?? (string) $transaction->type,
             $transaction->payment_method->value ?? (string) $transaction->payment_method,
             number_format((float) $transaction->gross_amount, 2, ',', '.'),

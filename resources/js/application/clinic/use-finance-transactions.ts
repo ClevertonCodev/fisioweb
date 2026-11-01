@@ -1,23 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import type { ApiErrorResponse } from '@/domain/api';
 import type {
     FinanceListParams,
     FinanceTransactionWriteDto,
-    OpeningBalance,
+    FinancialSeriesKind,
+    SeriesScope,
 } from '@/domain/clinic/finance';
 import {
-    apiClinicFinanceOpeningBalanceRepository,
     apiClinicFinanceSummaryRepository,
     apiClinicFinanceTransactionsRepository,
 } from '@/infrastructure/repositories/api-clinic-finance-transactions';
-
-export function useFinanceTransactions(params: FinanceListParams = {}) {
-    return useQuery({
-        queryKey: ['finance', 'transactions', params],
-        queryFn: () => apiClinicFinanceTransactionsRepository.list(params),
-    });
-}
 
 export function useFinanceTrash(params: FinanceListParams = {}) {
     return useQuery({
@@ -38,9 +32,15 @@ export function useCreateFinanceTransaction() {
     return useMutation({
         mutationFn: (dto: FinanceTransactionWriteDto) =>
             apiClinicFinanceTransactionsRepository.create(dto),
-        onSuccess: () => {
+        onSuccess: (_saved, dto) => {
             qc.invalidateQueries({ queryKey: ['finance'] });
-            toast.success('Transação registrada.');
+            toast.success(
+                dto.repeat?.kind === 'installments'
+                    ? `${dto.repeat.total} parcelas lançadas.`
+                    : dto.repeat?.kind === 'recurrence'
+                      ? 'Lançamento recorrente salvo. As próximas ocorrências já estão nos pendentes.'
+                      : 'Lançamento salvo.',
+            );
         },
     });
 }
@@ -51,25 +51,52 @@ export function useUpdateFinanceTransaction() {
         mutationFn: ({
             id,
             dto,
+            scope,
         }: {
             id: string;
             dto: FinanceTransactionWriteDto;
-        }) => apiClinicFinanceTransactionsRepository.update(id, dto),
+            /** Só no lançamento de série. */
+            scope?: SeriesScope;
+        }) => apiClinicFinanceTransactionsRepository.update(id, dto, scope),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['finance'] });
-            toast.success('Transação atualizada.');
+            toast.success('Lançamento atualizado.');
         },
     });
+}
+
+function deletedMessage(
+    input: string | { scope?: SeriesScope; kind?: FinancialSeriesKind },
+): string {
+    if (typeof input === 'string' || input.scope !== 'following')
+        return 'Lançamento enviado para a lixeira.';
+    return input.kind === 'recurrence'
+        ? 'Repetição encerrada. Esta e as próximas pendentes foram para a lixeira.'
+        : 'Parcelas enviadas para a lixeira.';
 }
 
 export function useDeleteFinanceTransaction() {
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) =>
-            apiClinicFinanceTransactionsRepository.remove(id),
-        onSuccess: () => {
+        /** O id, ou o id com o `scope` (e a espécie da série, para o aviso) no lançamento de série. */
+        mutationFn: (
+            input:
+                | string
+                | {
+                      id: string;
+                      scope?: SeriesScope;
+                      kind?: FinancialSeriesKind;
+                  },
+        ) =>
+            typeof input === 'string'
+                ? apiClinicFinanceTransactionsRepository.remove(input)
+                : apiClinicFinanceTransactionsRepository.remove(
+                      input.id,
+                      input.scope,
+                  ),
+        onSuccess: (_void, input) => {
             qc.invalidateQueries({ queryKey: ['finance'] });
-            toast.success('Transação excluída.');
+            toast.success(deletedMessage(input));
         },
     });
 }
@@ -79,21 +106,19 @@ export function useRestoreFinanceTransaction() {
     return useMutation({
         mutationFn: (id: string) =>
             apiClinicFinanceTransactionsRepository.restore(id),
-        onSuccess: () => {
+        // Invalida tudo de ['finance']: calendário, dia, pendências, resumo e relatório.
+        onSuccess: (restored) => {
             qc.invalidateQueries({ queryKey: ['finance'] });
-            toast.success('Transação restaurada.');
+            const day = restored.date.slice(0, 10).split('-').reverse();
+            toast.success(
+                `Lançamento restaurado. Ele voltou para ${day.join('/')}.`,
+            );
         },
-    });
-}
-
-export function useUpdateOpeningBalance() {
-    const qc = useQueryClient();
-    return useMutation({
-        mutationFn: (payload: OpeningBalance) =>
-            apiClinicFinanceOpeningBalanceRepository.upsert(payload),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ['finance'] });
-            toast.success('Saldo inicial atualizado.');
+        onError: (err: ApiErrorResponse) => {
+            toast.error(
+                err?.response?.data?.message ??
+                    'Não foi possível restaurar o lançamento.',
+            );
         },
     });
 }

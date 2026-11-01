@@ -18,16 +18,3 @@ export function useFinanceValuesVisibility() {
 
     return { hidden, toggle };
 }
-
-export function formatFinanceMoney(
-    value: number,
-    hidden: boolean,
-    locale = 'pt-BR',
-    currency = 'BRL',
-): string {
-    if (hidden) return '•••';
-    return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency,
-    }).format(value);
-}

@@ -7,17 +7,30 @@ use Modules\ClinicFinance\Contracts\FinancialCategoryRepositoryInterface;
 use Modules\ClinicFinance\Enums\FinancialCategoryOrigin;
 use Modules\ClinicFinance\Models\ClinicCategoryOverride;
 use Modules\ClinicFinance\Models\FinancialCategory;
+use Modules\ClinicFinance\Models\FinancialSeries;
 
 class FinancialCategoryRepository implements FinancialCategoryRepositoryInterface
 {
     public function __construct(
         protected FinancialCategory $model,
         protected ClinicCategoryOverride $overrideModel,
+        protected FinancialSeries $seriesModel,
     ) {}
 
     public function listAvailableForClinic(int $clinicId, ?string $type = null): Collection
     {
         $query = $this->model->availableForClinic($clinicId);
+
+        if (!is_null($type)) {
+            $query->where('type', $type);
+        }
+
+        return $query->get();
+    }
+
+    public function listManageableForClinic(int $clinicId, ?string $type = null): Collection
+    {
+        $query = $this->model->manageableForClinic($clinicId);
 
         if (!is_null($type)) {
             $query->where('type', $type);
@@ -48,25 +61,33 @@ class FinancialCategoryRepository implements FinancialCategoryRepositoryInterfac
         ]);
     }
 
-    public function toggleActive(int $clinicId, FinancialCategory $category): FinancialCategory
+    public function isDisabledForClinic(int $clinicId, int $categoryId): bool
     {
-        if ($category->origin === FinancialCategoryOrigin::System) {
-            $override = $this->overrideModel->firstOrNew([
-                'clinic_id'              => $clinicId,
-                'financial_category_id'  => $category->id,
-            ]);
+        return $this->overrideModel->newQuery()
+            ->where('clinic_id', $clinicId)
+            ->where('financial_category_id', $categoryId)
+            ->where('active', false)
+            ->exists();
+    }
 
-            if ($override->exists && $override->active === false) {
-                $override->delete();
-            } else {
-                $override->active = false;
-                $override->save();
-            }
+    public function setDisabledForClinic(int $clinicId, int $categoryId, bool $disabled): void
+    {
+        $override = $this->overrideModel->firstOrNew([
+            'clinic_id'             => $clinicId,
+            'financial_category_id' => $categoryId,
+        ]);
 
-            return $category->refresh();
+        if ($disabled) {
+            $override->active = false;
+            $override->save();
+        } elseif ($override->exists) {
+            $override->delete();
         }
+    }
 
-        $category->update(['active' => !$category->active]);
+    public function setActive(FinancialCategory $category, bool $active): FinancialCategory
+    {
+        $category->update(['active' => $active]);
 
         return $category->refresh();
     }
@@ -78,6 +99,7 @@ class FinancialCategoryRepository implements FinancialCategoryRepositoryInterfac
 
     public function hasTransactions(FinancialCategory $category): bool
     {
-        return $category->transactions()->exists();
+        return $category->transactions()->withTrashed()->exists()
+            || $this->seriesModel->newQuery()->where('financial_category_id', $category->id)->exists();
     }
 }

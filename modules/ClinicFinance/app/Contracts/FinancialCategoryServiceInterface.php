@@ -10,7 +10,7 @@ interface FinancialCategoryServiceInterface
     /**
      * @return Collection<int, FinancialCategory>
      */
-    public function list(int $clinicId, ?string $type = null): Collection;
+    public function list(int $clinicId, ?string $type = null, bool $includeInactive = false): Collection;
 
     public function create(int $clinicId, array $data): FinancialCategory;
 

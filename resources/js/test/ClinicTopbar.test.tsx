@@ -82,6 +82,24 @@ describe('ClinicTopbar', () => {
         ).toBeInTheDocument();
     });
 
+    it('mostra Finanças e esconde Usuários para a secretária', () => {
+        authState.user = {
+            ...authState.user,
+            name: 'Carla Secretaria',
+            role: 'secretary',
+        };
+
+        renderTopbar();
+
+        expect(screen.getByRole('link', { name: 'Finanças' })).toHaveAttribute(
+            'href',
+            '/clinica/financas',
+        );
+        expect(
+            screen.queryByRole('link', { name: 'Usuários' }),
+        ).not.toBeInTheDocument();
+    });
+
     it('esconde Finanças e Usuários do hamburger do fisioterapeuta', async () => {
         authState.user = {
             ...authState.user,

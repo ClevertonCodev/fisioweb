@@ -25,10 +25,18 @@ function mapCategory(raw: ApiCategory): FinancialCategory {
 }
 
 export const apiClinicFinanceCategoriesRepository = {
-    async list(type?: FinancialTransactionType): Promise<FinancialCategory[]> {
+    /** `includeInactive` traz também as desligadas (tela de Configurações). */
+    async list(
+        type?: FinancialTransactionType,
+        options?: { includeInactive?: boolean },
+    ): Promise<FinancialCategory[]> {
+        const params = {
+            ...(type ? { type } : {}),
+            ...(options?.includeInactive ? { include_inactive: 1 } : {}),
+        };
         const { data } = await apiClient.get<{ data: ApiCategory[] }>(
             '/clinic/finances/categories',
-            { params: type ? { type } : undefined },
+            { params: Object.keys(params).length ? params : undefined },
         );
         return data.data.map(mapCategory);
     },

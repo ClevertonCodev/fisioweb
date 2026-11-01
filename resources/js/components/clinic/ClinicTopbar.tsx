@@ -68,7 +68,7 @@ export function getClinicNavItems(role?: ClinicRole): ClinicNavItem[] {
             shortLabel: 'Exercícios',
             path: '/clinica/exercicios',
         },
-        ...(can.manageUsers(role)
+        ...(can.manageFinances(role)
             ? [
                   {
                       icon: DollarSign,
@@ -76,6 +76,10 @@ export function getClinicNavItems(role?: ClinicRole): ClinicNavItem[] {
                       shortLabel: 'Finanças',
                       path: '/clinica/financas',
                   },
+              ]
+            : []),
+        ...(can.manageUsers(role)
+            ? [
                   {
                       icon: User,
                       label: 'Usuários',

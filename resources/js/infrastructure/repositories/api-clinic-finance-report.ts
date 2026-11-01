@@ -1,6 +1,5 @@
 import type {
     CategoryBreakdownRow,
-    CategoryDistributionPoint,
     FinanceListParams,
     IncomeVsExpensePoint,
     MonthlyComparisonPoint,
@@ -31,17 +30,6 @@ export const apiClinicFinanceReportRepository = {
             '/clinic/finances/reports/income-vs-expense',
             { params: { period: params.period } },
         );
-        return data.data;
-    },
-
-    async getCategoryDistribution(
-        params: FinanceListParams = {},
-    ): Promise<CategoryDistributionPoint[]> {
-        const { data } = await apiClient.get<{
-            data: CategoryDistributionPoint[];
-        }>('/clinic/finances/reports/category-distribution', {
-            params: { period: params.period, limit: 5 },
-        });
         return data.data;
     },
 

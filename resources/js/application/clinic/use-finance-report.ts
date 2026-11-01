@@ -18,14 +18,6 @@ export function useFinanceIncomeVsExpense(params: FinanceListParams = {}) {
     });
 }
 
-export function useFinanceCategoryDistribution(params: FinanceListParams = {}) {
-    return useQuery({
-        queryKey: ['finance', 'report', 'category-distribution', params],
-        queryFn: () =>
-            apiClinicFinanceReportRepository.getCategoryDistribution(params),
-    });
-}
-
 export function useFinanceMonthlyComparison() {
     return useQuery({
         queryKey: ['finance', 'report', 'monthly-comparison'],

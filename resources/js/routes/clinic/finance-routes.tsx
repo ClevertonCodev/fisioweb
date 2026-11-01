@@ -1,6 +1,6 @@
 import { type RouteObject } from 'react-router-dom';
 
-import { RequireClinicAdmin } from '@/components/clinic/RequireClinicAdmin';
+import { RequireFinanceAccess } from '@/components/clinic/RequireFinanceAccess';
 import FinancesCategoriesPage from '@/pages/clinic/finances/FinancesCategoriesPage';
 import FinancesPage from '@/pages/clinic/finances/FinancesPage';
 import FinancesTrashPage from '@/pages/clinic/finances/FinancesTrashPage';
@@ -9,25 +9,25 @@ export const financeRoutes: RouteObject[] = [
     {
         path: '/clinica/financas',
         element: (
-            <RequireClinicAdmin>
+            <RequireFinanceAccess>
                 <FinancesPage />
-            </RequireClinicAdmin>
+            </RequireFinanceAccess>
         ),
     },
     {
         path: '/clinica/financas/lixeira',
         element: (
-            <RequireClinicAdmin>
+            <RequireFinanceAccess>
                 <FinancesTrashPage />
-            </RequireClinicAdmin>
+            </RequireFinanceAccess>
         ),
     },
     {
         path: '/clinica/financas/categorias',
         element: (
-            <RequireClinicAdmin>
+            <RequireFinanceAccess>
                 <FinancesCategoriesPage />
-            </RequireClinicAdmin>
+            </RequireFinanceAccess>
         ),
     },
 ];

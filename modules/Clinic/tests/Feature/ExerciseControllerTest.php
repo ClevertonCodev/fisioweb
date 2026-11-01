@@ -106,18 +106,40 @@ class ExerciseControllerTest extends TestCase
         // O LIKE do Postgres diferencia maiúscula; o PRAGMA faz o sqlite dos
         // testes se comportar igual, para o teste pegar a regressão.
         DB::statement('PRAGMA case_sensitive_like = ON');
-        $squat = $this->makeExercise(['name' => 'Agachamento livre']);
-        $this->makeExercise(['name' => 'Ponte']);
 
-        foreach (['agach', 'AGACH', 'Agach'] as $search) {
-            $ids = collect(
-                $this->actingAs($this->clinicUser, 'clinic')
-                    ->getJson('/api/clinic/exercises?search=' . $search)
-                    ->assertOk()
-                    ->json('data.data'),
-            )->pluck('id')->all();
+        // A conexão sqlite em memória é a mesma em todos os testes e o rollback
+        // não desfaz PRAGMA. O finally desliga antes do tearDown, que desconecta
+        // (um beforeApplicationDestroyed rodaria depois, numa conexão nova).
+        try {
+            $this->assertSame(0, (int) DB::selectOne("SELECT 'A' LIKE 'a' AS hit")->hit, 'PRAGMA não pegou');
 
-            $this->assertSame([$squat->id], $ids, "busca por {$search}");
+            $shoulder = BodyRegion::create(['name' => 'Ombro']);
+            $squat    = $this->makeExercise(['name' => 'Agachamento livre', 'muscle_group' => 'Quadríceps']);
+            $raise    = $this->makeExercise(['name' => 'Elevação lateral', 'body_region_id' => $shoulder->id]);
+            $bridge   = $this->makeExercise(['name' => 'élevação pélvica']);
+
+            $cases = [
+                'agach' => [$squat->id],
+                'AGACH' => [$squat->id],
+                'Agach' => [$squat->id],
+                'QUADR' => [$squat->id],
+                'OMBRO' => [$raise->id],
+                // Só ASCII no LOWER do sqlite: o termo precisa vir em mb_strtolower.
+                'ÉLEV'  => [$bridge->id],
+            ];
+
+            foreach ($cases as $search => $expected) {
+                $ids = collect(
+                    $this->actingAs($this->clinicUser, 'clinic')
+                        ->getJson('/api/clinic/exercises?search=' . urlencode($search))
+                        ->assertOk()
+                        ->json('data.data'),
+                )->pluck('id')->all();
+
+                $this->assertSame($expected, $ids, "busca por {$search}");
+            }
+        } finally {
+            DB::statement('PRAGMA case_sensitive_like = OFF');
         }
     }
 

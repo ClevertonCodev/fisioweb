@@ -3,6 +3,7 @@
 namespace Modules\Patient\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Models\Patient;
@@ -124,5 +125,34 @@ class PatientRepository implements PatientRepositoryInterface
         $patient->update($data);
 
         return $patient->fresh();
+    }
+
+    public function namesForClinic(int $clinicId, array $ids): Collection
+    {
+        if (empty($ids)) {
+            return collect();
+        }
+
+        return DB::table('patients')
+            ->where('clinic_id', $clinicId)
+            ->whereIn('id', array_values(array_unique($ids)))
+            ->get(['id', 'name']);
+    }
+
+    public function searchNamesForClinic(int $clinicId, string $term, int $limit, bool $withTrashed = false): Collection
+    {
+        // LOWER dos dois lados: no Postgres o LIKE diferencia maiúscula. O termo vai em
+        // mb_strtolower porque o LOWER do sqlite só baixa ASCII. "%" e "_" digitados são texto:
+        // escapados com "!" (o ESCAPE '!' vale igual no Postgres, no SQLite e no MySQL).
+        $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($term)) . '%';
+
+        return DB::table('patients')
+            ->where('clinic_id', $clinicId)
+            ->when(!$withTrashed, fn ($q) => $q->whereNull('deleted_at'))
+            ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$pattern])
+            ->orderBy('name')
+            ->orderBy('id')
+            ->limit($limit)
+            ->get(['id', 'name']);
     }
 }

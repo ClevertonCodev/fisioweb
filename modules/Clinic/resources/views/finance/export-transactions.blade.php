@@ -18,8 +18,11 @@
                 <th>Data</th>
                 <th>Descrição</th>
                 <th>Categoria</th>
+                <th>Paciente</th>
                 <th>Tipo</th>
-                <th>Valor</th>
+                <th>Valor bruto</th>
+                <th>Taxa</th>
+                <th>Valor líquido</th>
                 <th>Status</th>
             </tr>
         </thead>
@@ -29,8 +32,11 @@
                     <td>{{ $transaction->date?->format('d/m/Y') }}</td>
                     <td>{{ $transaction->description }}</td>
                     <td>{{ $transaction->category->name ?? '' }}</td>
+                    <td>{{ $transaction->patient['name'] ?? '' }}</td>
                     <td>{{ $transaction->type->label() ?? $transaction->type }}</td>
                     <td>R$ {{ number_format((float) $transaction->gross_amount, 2, ',', '.') }}</td>
+                    <td>R$ {{ number_format((float) $transaction->fee_amount, 2, ',', '.') }}</td>
+                    <td>R$ {{ number_format((float) $transaction->net_amount, 2, ',', '.') }}</td>
                     <td>{{ $transaction->status->label() ?? $transaction->status }}</td>
                 </tr>
             @endforeach

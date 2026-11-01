@@ -23,7 +23,7 @@ class FinancialCategoryController extends ClinicAuthenticatedController
         $type     = $request->query('type');
 
         return response()->json([
-            'data' => $this->categoryService->list($clinicId, $type),
+            'data' => $this->categoryService->list($clinicId, $type, $request->boolean('include_inactive')),
         ]);
     }
 
@@ -44,7 +44,7 @@ class FinancialCategoryController extends ClinicAuthenticatedController
         $clinicId = $this->clinicId();
         $updated  = $this->categoryService->toggle($clinicId, $category);
 
-        return response()->json(['data' => ['id' => $updated->id, 'active' => true]]);
+        return response()->json(['data' => ['id' => $updated->id, 'active' => $updated->active]]);
     }
 
     public function destroy(FinancialCategory $category): JsonResponse

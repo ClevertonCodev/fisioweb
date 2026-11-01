@@ -37,7 +37,7 @@ Como estava até a feature 012:
    - Payload sem nenhum `id` continua aceito e se comporta como antes (tudo é criado), por compatibilidade da API.
 2. **Trocar ou tirar o paciente gera link novo e zera o que era do anterior.** Quando o `patient_id` muda, o plano ganha `public_token` novo, e o antigo passa a responder 404. `patient_viewed_at` e `patient_completed_count`, que ficam na linha do plano, voltam a vazio e zero: o paciente novo não herda "visto" nem "concluído" do anterior. As execuções, séries e feedbacks guardam o `patient_id` de quem fez e continuam lá, filtrados por paciente. Editar sem mexer no paciente mantém o link e esses contadores.
 3. **O status é decidido no backend.** Sem `status` no payload:
-   - rascunho salvo com paciente vira ativo (é o envio: o assistente mostra o link na hora, e o link público não abre rascunho). Para o rascunho que já tinha o paciente, esta regra foi decidida na revisão adversária e aguarda confirmação do usuário (`decisoes.md` da feature 012, sessão de 2026-10-28);
+   - rascunho salvo com paciente vira ativo (é o envio: o assistente mostra o link na hora, e o link público não abre rascunho). Para o rascunho que já tinha o paciente, esta regra foi decidida na revisão adversária e confirmada pelo usuário em 2026-10-30 (`decisoes.md` da feature 012);
    - tirar o paciente torna o programa rascunho;
    - no resto, a situação se mantém (concluído e arquivado não reativam).
 

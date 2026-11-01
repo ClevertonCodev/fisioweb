@@ -20,10 +20,42 @@ class AppointmentExternalSyncService implements AppointmentCancelFromExternalSou
             ->with('clinic:id,timezone')
             ->find($appointmentId);
 
-        if (is_null($appointment)) {
-            return null;
+        return is_null($appointment) ? null : $this->toSnapshot($appointment);
+    }
+
+    public function listForPatientInClinic(int $clinicId, int $patientId, int $limit = 50): array
+    {
+        return Appointment::query()
+            ->with('clinic:id,timezone')
+            ->forClinic($clinicId)
+            ->where('patient_id', $patientId)
+            ->where('status', '!=', AppointmentStatus::Cancelled->value)
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()
+            ->map(fn (Appointment $appointment) => $this->toSnapshot($appointment))
+            ->values()
+            ->all();
+    }
+
+    public function getSnapshotsByIds(int $clinicId, array $appointmentIds): array
+    {
+        if (empty($appointmentIds)) {
+            return [];
         }
 
+        return Appointment::query()
+            ->with('clinic:id,timezone')
+            ->forClinic($clinicId)
+            ->whereIn('id', array_values(array_unique($appointmentIds)))
+            ->get()
+            ->mapWithKeys(fn (Appointment $appointment) => [(int) $appointment->id => $this->toSnapshot($appointment)])
+            ->all();
+    }
+
+    private function toSnapshot(Appointment $appointment): AppointmentSnapshotDTO
+    {
         return new AppointmentSnapshotDTO(
             id: (int) $appointment->id,
             clinicId: (int) $appointment->clinic_id,

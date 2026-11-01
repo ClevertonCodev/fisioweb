@@ -46,6 +46,12 @@ Decisões com o usuário:
 
 ## Sessão 2026-10-28 (revisão adversária)
 
-- **Rascunho que já tinha o paciente, salvo de novo com ele** → vira ativo (envio). Decidido pelo agente na rodada 2 da revisão, seguindo as decisões "rascunho que ganha paciente vira ativo (é o envio)" e "com paciente, sempre abre o diálogo de envio": sem isso o diálogo mostrava "Programa enviado" com um link que dá 404 (o link público não abre rascunho). Substitui a correção da rodada 1 (R1 casos-de-borda 013), que deixava esse rascunho como rascunho. **Confirmar com o usuário.**
+- **Rascunho que já tinha o paciente, salvo de novo com ele** → vira ativo (envio). Decidido pelo agente na rodada 2 da revisão, seguindo as decisões "rascunho que ganha paciente vira ativo (é o envio)" e "com paciente, sempre abre o diálogo de envio": sem isso o diálogo mostrava "Programa enviado" com um link que dá 404 (o link público não abre rascunho). Substitui a correção da rodada 1 (R1 casos-de-borda 013), que deixava esse rascunho como rascunho. **Confirmado pelo usuário em 2026-10-30.**
 - **Tirar o paciente pela tela** → o seletor de paciente ganhou a opção "Nenhum paciente (vai para Meus modelos)": o seletor de escolha única não deixava limpar, então a decisão "tirar o paciente na edição" era impossível pela tela.
 - **Dose do atalho ("3 × 12")** → grava máximo igual ao mínimo; o backend completa a dose por par (nunca faixa invertida) e recusa mínimo acima do máximo.
+
+## Sessão 2026-10-30
+
+- **Correção da busca sem maiúscula (depois da rodada 3)** → o usuário pediu uma 4ª revisão só nessa correção (`review/000-feature-012/rodada-4-busca.md`).
+- **Branch da 013 (Finanças)** → a 013 é feita nesta mesma branch, `feat/clinic-programa-assistente-ds`.
+- **Resultado da 4ª revisão** → APROVADO COM RESSALVAS, com 1 Major: o `PRAGMA case_sensitive_like = ON` do teste vazava para os testes seguintes, porque a conexão sqlite em memória é compartilhada. Corrigido com `try/finally` no teste. O `beforeApplicationDestroyed` sugerido pelo revisor não serve: roda depois do rollback, que desconecta, e o `OFF` cai numa conexão nova. Prova: uma sonda rodada depois do teste vê o LIKE ignorando maiúscula. No mesmo teste entraram os Minors 002 a 004: as colunas `muscle_group` e `body_region` e o acento (`ÉLEV`, que pega a troca por `strtolower`), além de uma conferência de que o PRAGMA pegou. As mutações (`strtolower`, `muscle_group` e região sem LOWER) ficam vermelhas.

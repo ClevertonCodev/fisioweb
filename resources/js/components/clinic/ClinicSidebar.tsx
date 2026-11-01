@@ -52,15 +52,17 @@ function SidebarContent({
             activePath: '/clinica/programas',
         },
         { icon: Play, label: 'Exercícios', path: '/clinica/exercicios' },
-        ...(can.manageUsers(role)
+        ...(can.manageFinances(role)
             ? [
                   {
                       icon: DollarSign,
                       label: 'Finanças',
                       path: '/clinica/financas',
                   },
-                  { icon: User, label: 'Usuários', path: '/clinica/usuarios' },
               ]
+            : []),
+        ...(can.manageUsers(role)
+            ? [{ icon: User, label: 'Usuários', path: '/clinica/usuarios' }]
             : []),
     ];
 

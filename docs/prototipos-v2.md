@@ -131,15 +131,16 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 
 ## Finanças
 
-- [ ] **Finanças** — `/clinica/financas` (abas por `?aba=lancamentos|relatorio|configuracoes`; `/clinica/financas/categorias` e `/lixeira` abrem Configurações na seção certa)
+- [x] **Finanças** — `/clinica/financas` (abas por `?aba=lancamentos|relatorio|configuracoes`; `/clinica/financas/categorias` e `/lixeira` abrem Configurações na seção certa)
   - Lançamentos na variante C, "Calendário de caixa": o mês em grade, cada dia com o que entrou e saiu; o dia escolhido lista os lançamentos ao lado; embaixo, a receber e a pagar, com os atrasados marcados e um botão para dar baixa.
-  - Comuns: resumo do mês (disponível em destaque, saldo inicial editável), lançamento (entrada × saída, categorias mais usadas em chips, taxa da maquininha com o líquido), exportar (Excel, PDF, CSV), relatório (dia a dia, 12 meses, por categoria e tabela) e configurações (categorias, saldo inicial, lixeira, repasses).
-  - Código: `resources/js/pages/clinic/finances/finance-prototype/`
-  - [ ] Buscar o mês inteiro por outro caminho: a lista da API pagina em no máximo 50, e o protótipo busca 2 páginas (até 100).
-  - [ ] Dar baixa (recebido/pago) direto na lista de pendências: hoje só editando o lançamento.
-  - [ ] A % do `category-breakdown` é sobre entradas + saídas; o relatório recalcula por tipo. Decidir se a API passa a mandar por tipo.
-  - [ ] Cores dos gráficos: entradas `--ds-chart-c1` (azul) e saídas `--ds-chart-negative` (vermelho), validadas para daltonismo nos dois temas; verde + vermelho falha.
-  - [ ] Lançar, editar, excluir, dar baixa, restaurar, mexer em categoria e salvar o saldo inicial são stub (exportar já é real).
+  - Comuns: resumo do mês (disponível em destaque, saldo inicial editável), lançamento (entrada × saída, categorias mais usadas em chips, taxa da maquininha com o líquido), exportar (Excel, PDF, CSV), relatório (dia a dia, 12 meses, por categoria e tabela) e configurações (categorias, saldo inicial, lixeira). O cartão de repasses saiu (vira feature própria).
+  - Tela de verdade em todos os ambientes, sem `?variant=`: `resources/js/pages/clinic/finances/` (`FinanceShell`, `CashCalendar`, `TransactionModal`, `ReportTab`, `SettingsTab`...) · feature `.ai-workbench/013-clinic-financas-ds/`. A v1 (`components/clinic/finances/*`) e o protótipo saíram (tarefa 012). Administrador e secretária entram; fisioterapeuta não.
+  - [x] Buscar o mês inteiro por outro caminho: o calendário usa os totais por dia do servidor (`GET finances/calendar`) e a lista do dia pagina de 25 em 25.
+  - [x] Dar baixa (recebido/pago) direto na lista de pendências, com "Desfazer" (`PATCH transactions/{id}/status`).
+  - [x] A % do `category-breakdown` vem da API dentro do tipo (entrada sobre entradas, saída sobre saídas); a tela não recalcula.
+  - [x] Cores dos gráficos: entradas `--ds-chart-c1` (azul) e saídas `--ds-chart-negative` (vermelho), validadas para daltonismo nos dois temas; verde + vermelho falha.
+  - [x] Lançar, editar, excluir, dar baixa, restaurar, mexer em categoria e salvar o saldo inicial gravam na API, tudo no líquido.
+  - [x] Paciente e atendimento, comprovantes, parcelamento e recorrência no lançamento (tarefas 013 a 017 da feature). Comprovante tem pré-requisito de deploy: a regra de WAF do ADR 026.
 
 ## Modelos de evolução
 

@@ -244,3 +244,4 @@ comprovante. Como estava antes da 013:
 
 - [ADR 006](006-clinic-finance-extraction.md): `ClinicFinance` é o dono, e os paths REST não mudam.
 - Feature `.ai-workbench/013-clinic-financas-ds/` (decisões e plano).
+- [ADR 027](027-importante-pendencias-antes-do-deploy-financas.md): **IMPORTANTE**, o que falta antes do deploy (regra de WAF e três decisões).

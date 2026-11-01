@@ -2,7 +2,7 @@
 
 Hoje Finanças é uma tela v1 em que só o administrador entra, e o calendário do protótipo C é todo de mentira. Esta feature faz o calendário de caixa, o relatório e as configurações funcionarem de verdade, somando o líquido, e acrescenta parcelamento, recorrência, paciente e comprovante. Quem ganha é o administrador e a secretária que cuidam do caixa.
 
-- **Status:** implementada; revisão adversária em 3 rodadas (Crítico da 3ª corrigido com teste, sem 4ª rodada). Pré-requisito de deploy: regra de WAF do comprovante (ADR 026).
+- **Status:** implementada; revisão adversária em 3 rodadas (Crítico da 3ª corrigido com teste, sem 4ª rodada). **Antes do deploy: [ADR 027](../../docs/adr/027-importante-pendencias-antes-do-deploy-financas.md)** (regra de WAF do comprovante e três decisões).
 - **Branch:** `feat/clinic-programa-assistente-ds` (a mesma da 012, por decisão do usuário)
 - **Plano:** [`plans/clinic-financas-ds.md`](plans/clinic-financas-ds.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)

@@ -109,17 +109,49 @@ export function toFormValues(
 export function problemsOf(
     name: string,
     sections: EvolutionTemplateSectionFormValue[],
+    description = '',
 ): string[] {
     const out: string[] = [];
-    if (!name.trim()) out.push('Dê um nome ao modelo.');
+    const trimmedName = name.trim();
+    if (!trimmedName) out.push('Dê um nome ao modelo.');
+    else if (trimmedName.length > 255)
+        out.push('O nome do modelo deve ter no máximo 255 caracteres.');
+
+    if (description.length > 2000)
+        out.push('A descrição deve ter no máximo 2000 caracteres.');
+
     if (sections.length === 0) out.push('Adicione ao menos uma seção.');
     sections.forEach((s, i) => {
-        if (!s.title.trim()) out.push(`A seção ${i + 1} está sem título.`);
+        const trimmedTitle = s.title.trim();
+        if (!trimmedTitle) out.push(`A seção ${i + 1} está sem título.`);
+        else if (trimmedTitle.length > 255)
+            out.push(
+                `O título da seção ${i + 1} deve ter no máximo 255 caracteres.`,
+            );
+
         if (s.items.length === 0) out.push(`A seção ${i + 1} não tem itens.`);
         s.items.forEach((it, j) => {
-            if (!it.label.trim() || !it.printText.trim()) {
+            const trimmedLabel = it.label.trim();
+            const trimmedPrint = it.printText.trim();
+            if (!trimmedLabel || !trimmedPrint) {
                 out.push(
-                    `Item ${j + 1} da seção ${i + 1}: falta ${!it.label.trim() ? 'o nome' : 'o texto do prontuário'}.`,
+                    `Item ${j + 1} da seção ${i + 1}: falta ${!trimmedLabel ? 'o nome' : 'o texto do prontuário'}.`,
+                );
+            } else {
+                if (trimmedLabel.length > 500) {
+                    out.push(
+                        `Item ${j + 1} da seção ${i + 1}: o nome deve ter no máximo 500 caracteres.`,
+                    );
+                }
+                if (trimmedPrint.length > 2000) {
+                    out.push(
+                        `Item ${j + 1} da seção ${i + 1}: o texto do prontuário deve ter no máximo 2000 caracteres.`,
+                    );
+                }
+            }
+            if (it.hasFreeText && it.placeholder.length > 255) {
+                out.push(
+                    `Item ${j + 1} da seção ${i + 1}: a dica do complemento deve ter no máximo 255 caracteres.`,
                 );
             }
         });

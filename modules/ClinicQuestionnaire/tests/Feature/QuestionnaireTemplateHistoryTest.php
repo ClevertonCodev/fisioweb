@@ -44,7 +44,16 @@ class QuestionnaireTemplateHistoryTest extends TestCase
 
     public function test_editing_and_deleting_a_used_questionnaire_template_preserves_patient_answers_and_restricts_question_deletion(): void
     {
-        [$template, $section, $q1, $q2] = $this->createQuestionnaireWithTwoQuestions($this->clinicA->id);
+        [$unused, $unusedSection, $unusedQ1] = $this->createQuestionnaireWithTwoQuestions($this->clinicA->id);
+        [$template, $section, $q1, $q2]      = $this->createQuestionnaireWithTwoQuestions($this->clinicA->id);
+
+        // Excluir questionário nunca usado apaga fisicamente perguntas, seções e template.
+        $this->actingAs($this->adminA, 'clinic')
+            ->deleteJson("/api/clinic/questionnaire-templates/{$unused->id}")
+            ->assertOk();
+        $this->assertDatabaseMissing('clinic_questionnaire_templates', ['id' => $unused->id]);
+        $this->assertDatabaseMissing('clinic_questionnaire_sections', ['id' => $unusedSection->id]);
+        $this->assertDatabaseMissing('clinic_questionnaire_questions', ['id' => $unusedQ1->id]);
 
         $sent = PatientQuestionnaire::forceCreate([
             'clinic_id'                 => $this->clinicA->id,

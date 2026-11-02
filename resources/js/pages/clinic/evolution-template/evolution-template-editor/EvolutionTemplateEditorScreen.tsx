@@ -84,12 +84,18 @@ export function EvolutionTemplateEditorScreen({
     });
 
     const watchedName = useWatch({ control: form.control, name: 'name' }) ?? '';
+    const watchedDescription =
+        useWatch({ control: form.control, name: 'description' }) ?? '';
     const watchedSections = (useWatch({
         control: form.control,
         name: 'sections',
     }) ?? []) as EvolutionTemplateSectionFormValue[];
 
-    const problems = problemsOf(watchedName, watchedSections);
+    const problems = problemsOf(
+        watchedName,
+        watchedSections,
+        watchedDescription,
+    );
     const itemTotal = watchedSections.reduce(
         (sum, s) => sum + s.items.length,
         0,
@@ -160,6 +166,7 @@ export function EvolutionTemplateEditorScreen({
             const currentProblems = problemsOf(
                 form.getValues('name'),
                 form.getValues('sections'),
+                form.getValues('description'),
             );
             if (currentProblems[0]) {
                 toast.error(currentProblems[0]);

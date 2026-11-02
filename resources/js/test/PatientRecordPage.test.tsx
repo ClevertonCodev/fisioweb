@@ -1459,6 +1459,91 @@ describe('prontuário do paciente (painel B)', () => {
         );
     });
 
+    it('Repetir a sessão descarta item arquivado ao salvar e usa texto livre se o modelo foi desativado', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([
+            makeEvolutionTemplate({
+                id: 1,
+                name: 'Modelo Ativo',
+                isActive: true,
+            }),
+            makeEvolutionTemplate({
+                id: 2,
+                name: 'Modelo Inativo',
+                isActive: false,
+            }),
+        ]);
+        const previousSigned = makeEvolution({
+            id: 50,
+            title: 'Sessão anterior',
+            status: 'signed',
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 20, freeTextValue: null },
+                { itemId: 999, freeTextValue: 'item arquivado' },
+            ],
+            generatedText: '**Conduta:**\nAquecimento global',
+        });
+        listEvolutions.mockResolvedValue([previousSigned]);
+        createEvolution.mockResolvedValue(previousSigned);
+
+        const { unmount } = renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Nova evolução' }));
+        expect(
+            await screen.findByRole('heading', { name: 'Nova evolução' }),
+        ).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: /Repetir a sessão/ }),
+        );
+        expect(screen.getByRole('checkbox', { name: 'Aquecer' })).toBeChecked();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(createEvolution).toHaveBeenCalled();
+        });
+        const dto = createEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            freeTextValues: { itemId: number; value: string }[];
+        };
+        expect(dto.checkedItemIds).toEqual([20]);
+        expect(dto.freeTextValues).toEqual([]);
+        unmount();
+
+        // Se o modelo da sessão anterior foi desativado, Repetir a sessão cai para texto livre
+        listEvolutions.mockResolvedValue([
+            makeEvolution({
+                id: 51,
+                title: 'Sessão de modelo inativo',
+                status: 'signed',
+                evolutionTemplateId: 2,
+                checkedItems: [{ itemId: 20, freeTextValue: null }],
+                generatedText: 'Texto gravado na sessão antiga.',
+            }),
+        ]);
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+        await user.click(screen.getByRole('button', { name: 'Nova evolução' }));
+        await user.click(
+            await screen.findByRole('button', { name: /Repetir a sessão/ }),
+        );
+        expect(
+            screen.getByRole('textbox', { name: 'Texto da evolução' }),
+        ).toHaveValue('Texto gravado na sessão antiga.');
+    });
+
     it('fisioterapeuta não exclui evolução; secretária não exclui arquivo de outro', async () => {
         const user = userEvent.setup();
         role = 'physiotherapist';

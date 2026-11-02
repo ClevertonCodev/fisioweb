@@ -132,23 +132,40 @@ export function useEvolutionComposer(
 
     const repeatLast = () => {
         if (!last) return;
-        if (last.checkedItems.length > 0) {
-            if (last.evolutionTemplateId) {
-                setTemplateId(last.evolutionTemplateId);
-            }
-            setMode('template');
-            setChecked(new Set(last.checkedItems.map((c) => c.itemId)));
-            setFreeTexts(
-                Object.fromEntries(
-                    last.checkedItems
-                        .filter((c) => c.freeTextValue)
-                        .map((c) => [c.itemId, c.freeTextValue as string]),
+        const targetTemplate =
+            last.evolutionTemplateId != null
+                ? availableTemplates.find(
+                      (t) => t.id === last.evolutionTemplateId && t.isActive,
+                  )
+                : availableTemplates.find(
+                      (t) => t.id === templateId && t.isActive,
+                  );
+
+        if (last.checkedItems.length > 0 && targetTemplate) {
+            const validItemIds = new Set(
+                targetTemplate.sections.flatMap((s) =>
+                    s.items.map((i) => i.id),
                 ),
             );
-            toast.info(
-                `${last.checkedItems.length} itens da última sessão marcados. Ajuste o que mudou.`,
+            const validCheckedItems = last.checkedItems.filter((c) =>
+                validItemIds.has(c.itemId),
             );
-            return;
+            if (validCheckedItems.length > 0) {
+                setTemplateId(targetTemplate.id);
+                setMode('template');
+                setChecked(new Set(validCheckedItems.map((c) => c.itemId)));
+                setFreeTexts(
+                    Object.fromEntries(
+                        validCheckedItems
+                            .filter((c) => c.freeTextValue)
+                            .map((c) => [c.itemId, c.freeTextValue as string]),
+                    ),
+                );
+                toast.info(
+                    `${validCheckedItems.length} itens da última sessão marcados. Ajuste o que mudou.`,
+                );
+                return;
+            }
         }
         setMode('free');
         setFreeText(last.generatedText ?? '');
@@ -162,24 +179,42 @@ export function useEvolutionComposer(
         updateEvolution.isPending ||
         signEvolution.isPending;
 
-    const buildDto = (): EvolutionWriteDto =>
-        mode === 'template'
-            ? {
-                  title: title.trim(),
-                  evolutionTemplateId: template?.id ?? null,
-                  checkedItemIds: Array.from(checked),
-                  freeTextValues: freeTextValuesPayload(checked, freeTexts),
-                  generatedText: generated || null,
-                  notes: notes.trim() || null,
-              }
-            : {
-                  title: title.trim(),
-                  evolutionTemplateId: null,
-                  checkedItemIds: [],
-                  freeTextValues: [],
-                  generatedText: freeText.trim() || null,
-                  notes: notes.trim() || null,
-              };
+    const buildDto = (): EvolutionWriteDto => {
+        if (mode === 'template') {
+            const activeItemIds = template
+                ? new Set(
+                      template.sections.flatMap((s) =>
+                          s.items.map((i) => i.id),
+                      ),
+                  )
+                : null;
+            const effectiveChecked = activeItemIds
+                ? new Set(
+                      Array.from(checked).filter((id) => activeItemIds.has(id)),
+                  )
+                : checked;
+            return {
+                title: title.trim(),
+                evolutionTemplateId: template?.id ?? null,
+                checkedItemIds: Array.from(effectiveChecked),
+                freeTextValues: freeTextValuesPayload(
+                    effectiveChecked,
+                    freeTexts,
+                ),
+                generatedText: generated || null,
+                notes: notes.trim() || null,
+            };
+        }
+
+        return {
+            title: title.trim(),
+            evolutionTemplateId: null,
+            checkedItemIds: [],
+            freeTextValues: [],
+            generatedText: freeText.trim() || null,
+            notes: notes.trim() || null,
+        };
+    };
 
     const save = async (sign: boolean) => {
         if (!title.trim()) {

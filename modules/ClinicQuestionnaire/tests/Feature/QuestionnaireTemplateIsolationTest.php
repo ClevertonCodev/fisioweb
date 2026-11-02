@@ -93,6 +93,6 @@ class QuestionnaireTemplateIsolationTest extends TestCase
         $this->actingAs($this->adminA, 'clinic')
             ->deleteJson("/api/clinic/questionnaire-templates/{$this->templateA->id}")
             ->assertOk();
-        $this->assertSoftDeleted('clinic_questionnaire_templates', ['id' => $this->templateA->id]);
+        $this->assertDatabaseMissing('clinic_questionnaire_templates', ['id' => $this->templateA->id]);
     }
 }

@@ -155,7 +155,12 @@ class EvolutionTemplateRepository implements EvolutionTemplateRepositoryInterfac
             return;
         }
 
-        $template->allSections()->each(fn ($section) => $section->allItems()->delete());
+        $sectionIds = $this->sectionIdsForTemplate($template);
+        if (!empty($sectionIds)) {
+            EvolutionTemplateItem::query()
+                ->whereIn('evolution_template_section_id', $sectionIds)
+                ->delete();
+        }
         $template->allSections()->delete();
         $template->forceDelete();
     }

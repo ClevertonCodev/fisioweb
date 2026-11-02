@@ -41,6 +41,16 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
         $template = QuestionnaireTemplate::withTrashed()->find($questionnaire->questionnaire_template_id);
         if (!is_null($template)) {
             $sections = $template->allSections()
+                ->with([
+                    'allQuestions' => function ($q) use ($answeredQuestionIds) {
+                        $q->where(function ($sub) use ($answeredQuestionIds) {
+                            $sub->whereNull('archived_at');
+                            if (!empty($answeredQuestionIds)) {
+                                $sub->orWhereIn('id', $answeredQuestionIds);
+                            }
+                        });
+                    },
+                ])
                 ->where(function ($q) use ($answeredQuestionIds) {
                     $q->whereNull('archived_at');
                     if (!empty($answeredQuestionIds)) {
@@ -48,16 +58,9 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
                     }
                 })
                 ->get()
-                ->each(function ($section) use ($answeredQuestionIds) {
-                    $questions = $section->allQuestions()
-                        ->where(function ($q) use ($answeredQuestionIds) {
-                            $q->whereNull('archived_at');
-                            if (!empty($answeredQuestionIds)) {
-                                $q->orWhereIn('id', $answeredQuestionIds);
-                            }
-                        })
-                        ->get();
-                    $section->setRelation('questions', $questions);
+                ->each(function ($section) {
+                    $section->setRelation('questions', $section->allQuestions);
+                    $section->unsetRelation('allQuestions');
                 });
             $template->setRelation('sections', $sections);
         }

@@ -384,4 +384,27 @@ describe('EvolutionTemplateNewPage e EvolutionTemplateEditPage (DS v2)', () => {
             '/clinica/pacientes/108',
         );
     });
+
+    it('problemsOf reporta também quando algum campo ultrapassa o limite máximo de caracteres', async () => {
+        const { problemsOf } =
+            await import('@/pages/clinic/evolution-template/evolution-template-editor/schema');
+        const longText = 'x'.repeat(256);
+        expect(
+            problemsOf(longText, [
+                {
+                    key: 's1',
+                    title: 'Condutas',
+                    items: [
+                        {
+                            key: 'i1',
+                            label: 'Bicicleta',
+                            printText: 'Bicicleta sem carga.',
+                            hasFreeText: false,
+                            placeholder: '',
+                        },
+                    ],
+                },
+            ]),
+        ).toContain('O nome do modelo deve ter no máximo 255 caracteres.');
+    });
 });

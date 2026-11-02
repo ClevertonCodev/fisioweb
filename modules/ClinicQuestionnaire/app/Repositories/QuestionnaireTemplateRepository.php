@@ -4,6 +4,8 @@ namespace Modules\ClinicQuestionnaire\Repositories;
 
 use Illuminate\Support\Collection;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateRepositoryInterface;
+use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+use Modules\ClinicQuestionnaire\Models\PatientQuestionnaireAnswer;
 use Modules\ClinicQuestionnaire\Models\QuestionnaireQuestion;
 use Modules\ClinicQuestionnaire\Models\QuestionnaireSection;
 use Modules\ClinicQuestionnaire\Models\QuestionnaireTemplate;
@@ -133,7 +135,40 @@ class QuestionnaireTemplateRepository implements QuestionnaireTemplateRepository
 
     public function delete(QuestionnaireTemplate $template): void
     {
-        $template->delete();
+        if ($this->hasQuestionnairesOrAnswers($template)) {
+            $template->delete();
+
+            return;
+        }
+
+        $sectionIds = $this->sectionIdsForTemplate($template);
+        if (!empty($sectionIds)) {
+            QuestionnaireQuestion::query()
+                ->whereIn('questionnaire_section_id', $sectionIds)
+                ->delete();
+        }
+        $template->allSections()->delete();
+        $template->forceDelete();
+    }
+
+    private function hasQuestionnairesOrAnswers(QuestionnaireTemplate $template): bool
+    {
+        if (
+            PatientQuestionnaire::withTrashed()
+                ->where('questionnaire_template_id', $template->id)
+                ->exists()
+        ) {
+            return true;
+        }
+
+        $questionIds = $this->questionIdsForTemplate($template);
+        if (empty($questionIds)) {
+            return false;
+        }
+
+        return PatientQuestionnaireAnswer::query()
+            ->whereIn('questionnaire_question_id', $questionIds)
+            ->exists();
     }
 
     public function existsActiveForClinic(int $clinicId, int $templateId): bool

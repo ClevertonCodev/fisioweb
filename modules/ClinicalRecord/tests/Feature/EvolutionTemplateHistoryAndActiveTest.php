@@ -524,6 +524,277 @@ class EvolutionTemplateHistoryAndActiveTest extends TestCase
             ->assertJsonValidationErrors(['checked_item_ids.0']);
     }
 
+    public function test_evolution_list_brings_checked_item_text_and_section_even_when_archived(): void
+    {
+        [$template, $section, $item1] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $template->id,
+                'checked_item_ids'      => [$item1->id],
+            ])
+            ->assertCreated();
+
+        $item1->forceFill(['archived_at' => now()])->save();
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->getJson("/api/clinic/patients/{$this->patientA->id}/evolutions")
+            ->assertOk()
+            ->assertJsonPath('data.0.checked_items.0.item.id', $item1->id)
+            ->assertJsonPath('data.0.checked_items.0.item.print_text', 'Bicicleta sem carga')
+            ->assertJsonPath('data.0.checked_items.0.item.section.id', $section->id)
+            ->assertJsonPath('data.0.checked_items.0.item.section.title', 'Condutas');
+    }
+
+    public function test_updating_draft_can_switch_to_another_template_and_mark_its_items(): void
+    {
+        [$templateA, , $itemA1]    = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$templateB, , $itemB1]    = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateB->id,
+                'checked_item_ids'      => [$itemB1->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', $templateB->id);
+
+        $this->assertDatabaseHas('clinic_patient_evolution_checked_items', [
+            'patient_evolution_id'       => $draftId,
+            'evolution_template_item_id' => $itemB1->id,
+        ]);
+        $this->assertDatabaseMissing('clinic_patient_evolution_checked_items', [
+            'patient_evolution_id'       => $draftId,
+            'evolution_template_item_id' => $itemA1->id,
+        ]);
+    }
+
+    public function test_updating_draft_to_free_mode_clears_its_template(): void
+    {
+        [$templateA, , $itemA1] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => null,
+                'checked_item_ids'      => [],
+                'generated_text'        => 'Texto livre da sessão.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', null)
+            ->assertJsonPath('data.generated_text', 'Texto livre da sessão.');
+
+        $this->assertDatabaseMissing('clinic_patient_evolution_checked_items', [
+            'patient_evolution_id' => $draftId,
+        ]);
+    }
+
+    public function test_updating_draft_rejects_switch_to_inactive_or_other_clinic_template(): void
+    {
+        [$templateA, , $itemA1]          = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$inactive, , $inactiveItem]     = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$foreign, , $foreignItem]       = $this->createClinicTemplateWithTwoItems($this->clinicB->id);
+        $inactive->forceFill(['is_active' => false])->save();
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        foreach ([[$inactive, $inactiveItem], [$foreign, $foreignItem]] as [$target, $targetItem]) {
+            $this->actingAs($this->physioA, 'clinic')
+                ->putJson("/api/clinic/evolutions/{$draftId}", [
+                    'title'                 => 'Rascunho',
+                    'evolution_template_id' => $target->id,
+                    'checked_item_ids'      => [$targetItem->id],
+                ])
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['evolution_template_id']);
+        }
+
+        $this->assertDatabaseHas('clinic_patient_evolutions', [
+            'id'                    => $draftId,
+            'evolution_template_id' => $templateA->id,
+        ]);
+    }
+
+    public function test_draft_of_deleted_template_still_saves_its_checked_items_when_template_is_kept(): void
+    {
+        [$template, , $item1] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $template->id,
+                'checked_item_ids'      => [$item1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->deleteJson("/api/clinic/evolution-templates/{$template->id}")
+            ->assertOk();
+        $this->assertSoftDeleted('clinic_evolution_templates', ['id' => $template->id]);
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho ajustado',
+                'evolution_template_id' => $template->id,
+                'checked_item_ids'      => [$item1->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', $template->id);
+
+        $this->assertDatabaseHas('clinic_patient_evolution_checked_items', [
+            'patient_evolution_id'       => $draftId,
+            'evolution_template_item_id' => $item1->id,
+        ]);
+    }
+
+    public function test_updating_draft_switch_to_system_template_passes_and_to_deleted_template_returns_422(): void
+    {
+        [$templateA, , $itemA1]     = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$deleted, , $deletedItem]  = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        $deleted->delete();
+        $systemItem = EvolutionTemplateItem::query()
+            ->whereHas('section', fn ($q) => $q->where('evolution_template_id', $this->systemTemplate->id))
+            ->firstOrFail();
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $deleted->id,
+                'checked_item_ids'      => [$deletedItem->id],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['evolution_template_id']);
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $this->systemTemplate->id,
+                'checked_item_ids'      => [$systemItem->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', $this->systemTemplate->id);
+    }
+
+    public function test_switching_template_does_not_carry_items_already_checked_in_previous_template(): void
+    {
+        [$templateA, , $itemA1, $itemA2] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$templateB]                     = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id, $itemA2->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        // A1 é arquivado depois de marcado; A2 continua ativo. Nenhum dos dois vale no modelo B.
+        $itemA1->forceFill(['archived_at' => now()])->save();
+
+        foreach ([$itemA1, $itemA2] as $itemFromA) {
+            $this->actingAs($this->physioA, 'clinic')
+                ->putJson("/api/clinic/evolutions/{$draftId}", [
+                    'title'                 => 'Rascunho',
+                    'evolution_template_id' => $templateB->id,
+                    'checked_item_ids'      => [$itemFromA->id],
+                ])
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['checked_item_ids.0']);
+        }
+
+        $this->assertDatabaseHas('clinic_patient_evolutions', [
+            'id'                    => $draftId,
+            'evolution_template_id' => $templateA->id,
+        ]);
+    }
+
+    public function test_switching_template_without_checked_item_ids_clears_items_of_previous_template(): void
+    {
+        [$templateA, , $itemA1] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+        [$templateB]            = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateB->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', $templateB->id);
+
+        $this->assertDatabaseMissing('clinic_patient_evolution_checked_items', [
+            'patient_evolution_id' => $draftId,
+        ]);
+    }
+
+    public function test_updating_draft_without_template_field_keeps_current_template(): void
+    {
+        [$templateA, , $itemA1, $itemA2] = $this->createClinicTemplateWithTwoItems($this->clinicA->id);
+
+        $draftId = $this->actingAs($this->physioA, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patientA->id}/evolutions", [
+                'title'                 => 'Rascunho',
+                'evolution_template_id' => $templateA->id,
+                'checked_item_ids'      => [$itemA1->id],
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($this->physioA, 'clinic')
+            ->putJson("/api/clinic/evolutions/{$draftId}", [
+                'title'            => 'Rascunho',
+                'checked_item_ids' => [$itemA1->id, $itemA2->id],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.evolution_template_id', $templateA->id);
+    }
+
     /**
      * @return array{0: EvolutionTemplate, 1: EvolutionTemplateSection, 2: EvolutionTemplateItem, 3: EvolutionTemplateItem}
      */

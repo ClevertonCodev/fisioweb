@@ -1459,6 +1459,54 @@ describe('prontuário do paciente (painel B)', () => {
         );
     });
 
+    it('Gerenciar modelos com evolução preenchida pede confirmação antes de sair', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([makeEvolutionTemplate()]);
+
+        renderPage('/clinica/pacientes/108');
+        await user.click(
+            await screen.findByRole('button', { name: 'Nova evolução' }),
+        );
+        await screen.findByRole('heading', { name: 'Nova evolução' });
+
+        await user.type(
+            screen.getByRole('textbox', { name: 'Notas' }),
+            'Paciente relatou dor',
+        );
+        await user.click(
+            screen.getByRole('button', { name: 'Gerenciar modelos' }),
+        );
+
+        const confirm = await screen.findByRole('dialog', {
+            name: 'Sair sem salvar?',
+        });
+        expect(currentUrl()).toBe('/clinica/pacientes/108');
+
+        await user.click(
+            within(confirm).getByRole('button', { name: 'Continuar editando' }),
+        );
+        expect(
+            screen.queryByRole('dialog', { name: 'Sair sem salvar?' }),
+        ).not.toBeInTheDocument();
+        expect(screen.getByRole('textbox', { name: 'Notas' })).toHaveValue(
+            'Paciente relatou dor',
+        );
+
+        await user.click(
+            screen.getByRole('button', { name: 'Gerenciar modelos' }),
+        );
+        await user.click(
+            within(
+                await screen.findByRole('dialog', {
+                    name: 'Sair sem salvar?',
+                }),
+            ).getByRole('button', { name: 'Sair sem salvar' }),
+        );
+        expect(currentUrl()).toBe(
+            '/clinica/templates/evolucoes?returnTo=%2Fclinica%2Fpacientes%2F108',
+        );
+    });
+
     it('Repetir a sessão descarta item arquivado ao salvar e usa texto livre se o modelo foi desativado', async () => {
         const user = userEvent.setup();
         listEvolutionTemplates.mockResolvedValue([
@@ -1604,6 +1652,179 @@ describe('prontuário do paciente (painel B)', () => {
         expect(dto.evolutionTemplateId).toBe(1);
     });
 
+    it('rascunho com item arquivado: a folha mostra o mesmo texto que é salvo', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([
+            makeEvolutionTemplate({
+                sections: [
+                    {
+                        id: 10,
+                        title: 'Conduta',
+                        sortOrder: 1,
+                        items: [
+                            {
+                                id: 20,
+                                label: 'Aquecer',
+                                printText: 'Aquecimento global',
+                                hasFreeText: false,
+                                freeTextPlaceholder: null,
+                                sortOrder: 1,
+                            },
+                            {
+                                id: 21,
+                                label: 'Gelo',
+                                printText: 'Crioterapia aplicada',
+                                hasFreeText: false,
+                                freeTextPlaceholder: null,
+                                sortOrder: 2,
+                            },
+                        ],
+                    },
+                ],
+            }),
+        ]);
+        const draft = makeEvolution({
+            id: 14,
+            title: 'Rascunho com arquivado',
+            status: 'draft',
+            signedAt: null,
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 20, freeTextValue: null },
+                {
+                    itemId: 999,
+                    freeTextValue: '15 min',
+                    item: {
+                        label: 'Bicicleta',
+                        printText: 'Bicicleta sem carga',
+                        hasFreeText: true,
+                        freeTextPlaceholder: 'minutos',
+                        sortOrder: 3,
+                        sectionId: 10,
+                        sectionTitle: 'Conduta',
+                        sectionSortOrder: 1,
+                    },
+                },
+            ],
+            generatedText:
+                '**Conduta:**\nAquecimento global\nBicicleta sem carga — 15 min',
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        updateEvolution.mockResolvedValue(draft);
+
+        renderPage('/clinica/pacientes/108');
+        await user.click(
+            await screen.findByRole('button', {
+                name: /Rascunho com arquivado/,
+            }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho com arquivado',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        await screen.findByRole('heading', { name: 'Editar evolução' });
+
+        await user.click(
+            await screen.findByRole('checkbox', { name: 'Aquecer' }),
+        );
+        await user.click(screen.getByRole('checkbox', { name: 'Gelo' }));
+
+        const sheet = screen.getByRole('article', {
+            name: 'Folha da evolução',
+        });
+        expect(sheet).not.toHaveTextContent('Aquecimento global');
+        expect(sheet).toHaveTextContent('Crioterapia aplicada');
+        expect(sheet).toHaveTextContent('Bicicleta sem carga — 15 min');
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(updateEvolution).toHaveBeenCalledTimes(1);
+        });
+        const dto = updateEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            generatedText: string | null;
+        };
+        expect([...dto.checkedItemIds].sort()).toEqual([21, 999]);
+        expect(dto.generatedText).toBe(
+            '**Conduta:**\nCrioterapia aplicada\nBicicleta sem carga — 15 min',
+        );
+    });
+
+    it('rascunho com item arquivado deixa desmarcar o item arquivado', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([makeEvolutionTemplate()]);
+        const draft = makeEvolution({
+            id: 15,
+            title: 'Rascunho para desmarcar',
+            status: 'draft',
+            signedAt: null,
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 20, freeTextValue: null },
+                {
+                    itemId: 999,
+                    freeTextValue: null,
+                    item: {
+                        label: 'Bicicleta',
+                        printText: 'Bicicleta sem carga',
+                        hasFreeText: false,
+                        freeTextPlaceholder: null,
+                        sortOrder: 3,
+                        sectionId: 10,
+                        sectionTitle: 'Conduta',
+                        sectionSortOrder: 1,
+                    },
+                },
+            ],
+            generatedText:
+                '**Conduta:**\nAquecimento global\nBicicleta sem carga',
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        updateEvolution.mockResolvedValue(draft);
+
+        renderPage('/clinica/pacientes/108');
+        await user.click(
+            await screen.findByRole('button', {
+                name: /Rascunho para desmarcar/,
+            }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho para desmarcar',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        await screen.findByRole('heading', { name: 'Editar evolução' });
+
+        const archived = await screen.findByRole('checkbox', {
+            name: /Bicicleta/,
+        });
+        expect(archived).toBeChecked();
+        await user.click(archived);
+
+        const sheet = screen.getByRole('article', {
+            name: 'Folha da evolução',
+        });
+        expect(sheet).not.toHaveTextContent('Bicicleta sem carga');
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(updateEvolution).toHaveBeenCalledTimes(1);
+        });
+        const dto = updateEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            generatedText: string | null;
+        };
+        expect(dto.checkedItemIds).toEqual([20]);
+        expect(dto.generatedText).toBe('**Conduta:**\nAquecimento global');
+    });
+
     it('rascunho cujo item foi todo arquivado salva o texto gravado em vez de lista vazia', async () => {
         const user = userEvent.setup();
         listEvolutionTemplates.mockResolvedValue([makeEvolutionTemplate()]);
@@ -1718,12 +1939,14 @@ describe('prontuário do paciente (painel B)', () => {
             checkedItemIds: number[];
             freeTextValues: { itemId: number; value: string }[];
             generatedText: string | null;
+            evolutionTemplateId: number | null;
         };
         expect(dto.checkedItemIds).toEqual(expect.arrayContaining([20, 999]));
         expect(dto.freeTextValues).toEqual([
             { itemId: 999, value: 'complemento antigo' },
         ]);
         expect(dto.generatedText).toBe(savedText);
+        expect(dto.evolutionTemplateId).toBe(1);
     });
 
     it('fisioterapeuta não exclui evolução; secretária não exclui arquivo de outro', async () => {

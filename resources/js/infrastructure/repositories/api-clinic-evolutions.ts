@@ -42,6 +42,9 @@ interface ApiEvolutionCheckedItemDto {
     id?: number;
     evolution_template_item_id: number;
     free_text_value: string | null;
+    item?: ApiEvolutionTemplateItemDto & {
+        section?: { id: number; title: string; sort_order: number } | null;
+    };
 }
 
 interface ApiClinicUserDto {
@@ -102,9 +105,24 @@ function toTemplate(raw: ApiEvolutionTemplateDto): EvolutionTemplate {
 }
 
 function toCheckedItem(raw: ApiEvolutionCheckedItemDto): EvolutionCheckedItem {
+    const item = raw.item;
+    const section = item?.section;
     return {
         itemId: raw.evolution_template_item_id,
         freeTextValue: raw.free_text_value,
+        item:
+            item && section
+                ? {
+                      label: item.label,
+                      printText: item.print_text,
+                      hasFreeText: item.has_free_text,
+                      freeTextPlaceholder: item.free_text_placeholder,
+                      sortOrder: item.sort_order,
+                      sectionId: section.id,
+                      sectionTitle: section.title,
+                      sectionSortOrder: section.sort_order,
+                  }
+                : undefined,
     };
 }
 

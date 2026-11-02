@@ -1,4 +1,4 @@
-import { DsCheckbox, DsInput, DsModal } from '@/components/ds';
+import { DsButton, DsCheckbox, DsInput, DsModal } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PatientEvolution } from '@/domain/clinic';
 
@@ -74,7 +74,11 @@ function Composer({
                                                 className="flex flex-col gap-2"
                                             >
                                                 <DsCheckbox
-                                                    label={i.label}
+                                                    label={
+                                                        i.archived
+                                                            ? `${i.label} (arquivado)`
+                                                            : i.label
+                                                    }
                                                     checked={on}
                                                     onCheckedChange={() =>
                                                         c.toggle(i.id)
@@ -185,6 +189,31 @@ function Composer({
                     </footer>
                 </article>
             </div>
+            <DsModal
+                open={c.leaveConfirmOpen}
+                onOpenChange={(o) => !o && c.cancelLeave()}
+                size="sm"
+                title="Sair sem salvar?"
+                footer={
+                    <div className="flex w-full justify-end gap-3">
+                        <DsButton
+                            variant="secondary"
+                            label="Continuar editando"
+                            onClick={c.cancelLeave}
+                        />
+                        <DsButton
+                            variant="destructive"
+                            label="Sair sem salvar"
+                            onClick={c.confirmLeave}
+                        />
+                    </div>
+                }
+            >
+                <p className="text-ds-body-sm text-ds-content-secondary">
+                    O que você escreveu nesta evolução será perdido. Salve o
+                    rascunho antes se quiser continuar depois.
+                </p>
+            </DsModal>
         </DsModal>
     );
 }

@@ -143,6 +143,77 @@ class QuestionnaireTemplateHistoryTest extends TestCase
         QuestionnaireQuestion::query()->whereKey($q1->id)->delete();
     }
 
+    public function test_answered_questionnaire_does_not_show_questions_or_sections_added_after_it_was_answered(): void
+    {
+        [$template, $section, $q1, $q2] = $this->createQuestionnaireWithTwoQuestions($this->clinicA->id);
+
+        $answered = PatientQuestionnaire::forceCreate([
+            'clinic_id'                 => $this->clinicA->id,
+            'patient_id'                => $this->patientA->id,
+            'clinic_user_id'            => $this->adminA->id,
+            'questionnaire_template_id' => $template->id,
+            'modality'                  => 'presencial',
+            'status'                    => PatientQuestionnaire::STATUS_ANSWERED,
+            'answered_at'               => now(),
+        ]);
+        PatientQuestionnaireAnswer::forceCreate([
+            'patient_questionnaire_id'  => $answered->id,
+            'questionnaire_question_id' => $q1->id,
+            'answer'                    => 7,
+        ]);
+        $pending = PatientQuestionnaire::forceCreate([
+            'clinic_id'                 => $this->clinicA->id,
+            'patient_id'                => $this->patientA->id,
+            'clinic_user_id'            => $this->adminA->id,
+            'questionnaire_template_id' => $template->id,
+            'modality'                  => 'remoto',
+            'status'                    => PatientQuestionnaire::STATUS_PENDING,
+        ]);
+
+        $this->travel(1)->minutes();
+
+        $this->actingAs($this->adminA, 'clinic')
+            ->putJson("/api/clinic/questionnaire-templates/{$template->id}", [
+                'title'    => $template->title,
+                'sections' => [
+                    [
+                        'id'         => $section->id,
+                        'title'      => $section->title,
+                        'sort_order' => 0,
+                        'questions'  => [
+                            ['id' => $q1->id, 'label' => $q1->label, 'type' => $q1->type, 'sort_order' => 0],
+                            ['id'    => $q2->id, 'label' => $q2->label, 'type' => $q2->type, 'sort_order' => 1],
+                            ['label' => 'Pergunta nova', 'type' => 'text', 'sort_order' => 2],
+                        ],
+                    ],
+                    [
+                        'title'      => 'Seção nova',
+                        'sort_order' => 1,
+                        'questions'  => [
+                            ['label' => 'Outra pergunta nova', 'type' => 'text', 'sort_order' => 0],
+                        ],
+                    ],
+                ],
+            ])
+            ->assertOk();
+
+        // O respondido mostra só o que existia quando o paciente respondeu (q1 respondida, q2 em branco).
+        $this->actingAs($this->adminA, 'clinic')
+            ->getJson("/api/clinic/patients/{$this->patientA->id}/questionnaires/{$answered->id}")
+            ->assertOk()
+            ->assertJsonCount(1, 'data.template.sections')
+            ->assertJsonCount(2, 'data.template.sections.0.questions')
+            ->assertJsonPath('data.template.sections.0.questions.0.id', $q1->id)
+            ->assertJsonPath('data.template.sections.0.questions.1.id', $q2->id);
+
+        // O pendente mostra o modelo atual, com as perguntas novas.
+        $this->actingAs($this->adminA, 'clinic')
+            ->getJson("/api/clinic/patients/{$this->patientA->id}/questionnaires/{$pending->id}")
+            ->assertOk()
+            ->assertJsonCount(2, 'data.template.sections')
+            ->assertJsonCount(3, 'data.template.sections.0.questions');
+    }
+
     public function test_section_or_question_id_from_another_questionnaire_or_clinic_returns_422(): void
     {
         [$templateA, $sectionA]             = $this->createQuestionnaireWithTwoQuestions($this->clinicA->id);

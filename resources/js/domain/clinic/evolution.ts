@@ -24,9 +24,21 @@ export interface EvolutionTemplate {
     sections: EvolutionTemplateSection[];
 }
 
+export interface EvolutionCheckedItemDetail {
+    label: string;
+    printText: string;
+    hasFreeText: boolean;
+    freeTextPlaceholder: string | null;
+    sortOrder: number;
+    sectionId: number;
+    sectionTitle: string;
+    sectionSortOrder: number;
+}
+
 export interface EvolutionCheckedItem {
     itemId: number;
     freeTextValue: string | null;
+    item?: EvolutionCheckedItemDetail;
 }
 
 export interface PatientEvolution {

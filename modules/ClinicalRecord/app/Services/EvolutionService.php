@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\ClinicalRecord\Contracts\EvolutionRepositoryInterface;
 use Modules\ClinicalRecord\Contracts\EvolutionServiceInterface;
 use Modules\ClinicalRecord\Events\EvolutionRecorded;
+use Modules\ClinicalRecord\Models\EvolutionTemplateItem;
 use Modules\ClinicalRecord\Models\PatientEvolution;
 
 class EvolutionService implements EvolutionServiceInterface
@@ -35,7 +36,7 @@ class EvolutionService implements EvolutionServiceInterface
     {
         $templateId     = !is_null($dto['evolution_template_id'] ?? null) ? (int) $dto['evolution_template_id'] : null;
         $checkedItemIds = $dto['checked_item_ids'] ?? [];
-        $this->ensureValidTemplateAndItems($clinicId, $templateId, $checkedItemIds);
+        $this->ensureValidTemplateAndItems($clinicId, $templateId, $templateId, $checkedItemIds);
 
         return DB::transaction(function () use ($dto, $clinicId, $patientId, $clinicUserId, $checkedItemIds) {
             $freeTextValues = $dto['free_text_values'] ?? [];
@@ -73,21 +74,26 @@ class EvolutionService implements EvolutionServiceInterface
             ]);
         }
 
-        $checkedItemIds = $dto['checked_item_ids'] ?? null;
-        if (!is_null($checkedItemIds)) {
-            $alreadyChecked = $evolution->checkedItems()
-                ->pluck('evolution_template_item_id')
-                ->map(fn ($id) => (int) $id)
-                ->all();
-            $this->ensureValidCheckedItemsForUpdate(
-                (int) $evolution->clinic_id,
-                !is_null($evolution->evolution_template_id) ? (int) $evolution->evolution_template_id : null,
-                $checkedItemIds,
-                $alreadyChecked,
-            );
-        }
+        $currentTemplateId = !is_null($evolution->evolution_template_id) ? (int) $evolution->evolution_template_id : null;
+        $templateId        = array_key_exists('evolution_template_id', $dto)
+            ? (!is_null($dto['evolution_template_id']) ? (int) $dto['evolution_template_id'] : null)
+            : $currentTemplateId;
+        $templateChanged = $templateId !== $currentTemplateId;
+        $checkedItemIds = $dto['checked_item_ids'] ?? ($templateChanged ? [] : null);
+        $alreadyChecked = $templateChanged ? [] : $evolution->checkedItems()
+            ->pluck('evolution_template_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
-        return DB::transaction(function () use ($evolution, $dto, $checkedItemIds) {
+        $this->ensureValidTemplateAndItems(
+            (int) $evolution->clinic_id,
+            $templateChanged ? $templateId : null,
+            $templateId,
+            $checkedItemIds ?? [],
+            $alreadyChecked,
+        );
+
+        return DB::transaction(function () use ($evolution, $dto, $checkedItemIds, $templateId) {
             $freeTextValues = $dto['free_text_values'] ?? [];
             $generatedText  = $dto['generated_text'] ?? null;
 
@@ -100,8 +106,9 @@ class EvolutionService implements EvolutionServiceInterface
             }
 
             $evolution = $this->repository->update($evolution, [
-                'title'          => $dto['title'] ?? $evolution->title,
-                'generated_text' => array_key_exists('generated_text', $dto)
+                'evolution_template_id' => $templateId,
+                'title'                 => $dto['title'] ?? $evolution->title,
+                'generated_text'        => array_key_exists('generated_text', $dto)
                     ? $generatedText
                     : $evolution->generated_text,
                 'notes'          => array_key_exists('notes', $dto) ? $dto['notes'] : $evolution->notes,
@@ -177,10 +184,23 @@ class EvolutionService implements EvolutionServiceInterface
         $evolution->delete();
     }
 
-    private function ensureValidTemplateAndItems(int $clinicId, ?int $templateId, array $checkedItemIds): void
-    {
-        if (!is_null($templateId)) {
-            $template = $this->repository->findActiveTemplateForClinic($templateId, $clinicId);
+    /**
+     * Confere o modelo (quando $templateToCheck não é null) e cada item marcado.
+     * Item que já estava marcado no rascunho ($alreadyCheckedIds) passa mesmo
+     * que tenha sido arquivado depois (ADR 021).
+     *
+     * @param  array<int, int|string>  $checkedItemIds
+     * @param  array<int, int>  $alreadyCheckedIds
+     */
+    private function ensureValidTemplateAndItems(
+        int $clinicId,
+        ?int $templateToCheck,
+        ?int $itemsTemplateId,
+        array $checkedItemIds,
+        array $alreadyCheckedIds = [],
+    ): void {
+        if (!is_null($templateToCheck)) {
+            $template = $this->repository->findActiveTemplateForClinic($templateToCheck, $clinicId);
             if (is_null($template)) {
                 throw ValidationException::withMessages([
                     'evolution_template_id' => ['O modelo de evolução informado não está ativo ou não pertence a esta clínica.'],
@@ -188,52 +208,6 @@ class EvolutionService implements EvolutionServiceInterface
             }
         }
 
-        if (empty($checkedItemIds)) {
-            return;
-        }
-
-        $items  = $this->repository->findTemplateItems($checkedItemIds)->keyBy('id');
-        $errors = [];
-
-        foreach ($checkedItemIds as $index => $rawId) {
-            $item         = $items->get((int) $rawId);
-            $section      = $item?->section;
-            $itemTemplate = $section?->template;
-
-            $availableAndActive = !is_null($itemTemplate)
-                && is_null($itemTemplate->deleted_at)
-                && (bool) $itemTemplate->is_active
-                && ((bool) $itemTemplate->is_system || (int) $itemTemplate->clinic_id === $clinicId);
-
-            $matchesTemplate = is_null($templateId)
-                || (!is_null($itemTemplate) && (int) $itemTemplate->id === $templateId);
-
-            if (
-                is_null($item)
-                || !is_null($item->archived_at)
-                || is_null($section)
-                || !is_null($section->archived_at)
-                || !$availableAndActive
-                || !$matchesTemplate
-            ) {
-                $errors["checked_item_ids.{$index}"] = 'O item informado foi arquivado ou não pertence a um modelo ativo desta clínica.';
-            }
-        }
-
-        if (!empty($errors)) {
-            throw ValidationException::withMessages($errors);
-        }
-    }
-
-    /**
-     * @param  array<int, int>  $alreadyCheckedIds
-     */
-    private function ensureValidCheckedItemsForUpdate(
-        int $clinicId,
-        ?int $templateId,
-        array $checkedItemIds,
-        array $alreadyCheckedIds,
-    ): void {
         if (empty($checkedItemIds)) {
             return;
         }
@@ -248,26 +222,7 @@ class EvolutionService implements EvolutionServiceInterface
                 continue;
             }
 
-            $item         = $items->get($id);
-            $section      = $item?->section;
-            $itemTemplate = $section?->template;
-
-            $availableAndActive = !is_null($itemTemplate)
-                && is_null($itemTemplate->deleted_at)
-                && (bool) $itemTemplate->is_active
-                && ((bool) $itemTemplate->is_system || (int) $itemTemplate->clinic_id === $clinicId);
-
-            $matchesTemplate = is_null($templateId)
-                || (!is_null($itemTemplate) && (int) $itemTemplate->id === $templateId);
-
-            if (
-                is_null($item)
-                || !is_null($item->archived_at)
-                || is_null($section)
-                || !is_null($section->archived_at)
-                || !$availableAndActive
-                || !$matchesTemplate
-            ) {
+            if (!$this->isUsableItem($items->get($id), $clinicId, $itemsTemplateId)) {
                 $errors["checked_item_ids.{$index}"] = 'O item informado foi arquivado ou não pertence a um modelo ativo desta clínica.';
             }
         }
@@ -275,6 +230,24 @@ class EvolutionService implements EvolutionServiceInterface
         if (!empty($errors)) {
             throw ValidationException::withMessages($errors);
         }
+    }
+
+    private function isUsableItem(?EvolutionTemplateItem $item, int $clinicId, ?int $templateId): bool
+    {
+        $section      = $item?->section;
+        $itemTemplate = $section?->template;
+
+        if (is_null($item) || !is_null($item->archived_at) || is_null($section) || !is_null($section->archived_at) || is_null($itemTemplate)) {
+            return false;
+        }
+
+        $availableAndActive = is_null($itemTemplate->deleted_at)
+            && (bool) $itemTemplate->is_active
+            && ((bool) $itemTemplate->is_system || (int) $itemTemplate->clinic_id === $clinicId);
+
+        $matchesTemplate = is_null($templateId) || (int) $itemTemplate->id === $templateId;
+
+        return $availableAndActive && $matchesTemplate;
     }
 
     private function eventPayload(PatientEvolution $evolution, string $recordedAt): array

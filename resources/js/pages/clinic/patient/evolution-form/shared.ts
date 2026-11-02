@@ -14,7 +14,7 @@ import {
     useSignEvolution,
     useUpdateEvolution,
 } from '@/application/clinic/use-evolutions';
-import type { PatientEvolution } from '@/domain/clinic';
+import type { EvolutionTemplate, PatientEvolution } from '@/domain/clinic';
 
 export type EvolutionMode = 'template' | 'free';
 
@@ -46,6 +46,56 @@ function initialFreeTexts(
         if (ci.freeTextValue) texts[ci.itemId] = ci.freeTextValue;
     });
     return texts;
+}
+
+/**
+ * O modelo como a tela mostra: o modelo atual mais os itens arquivados que o
+ * rascunho ainda tem marcados (ADR 021). Assim o item arquivado aparece, pode
+ * ser desmarcado e entra na folha igual ao texto que o servidor gera.
+ */
+function withArchivedCheckedItems(
+    template: EvolutionTemplate | undefined,
+    evolution: PatientEvolution | undefined,
+): { template: EvolutionTemplate | undefined; archivedIds: Set<number> } {
+    const archivedIds = new Set<number>();
+    if (
+        !template ||
+        !evolution ||
+        template.id !== evolution.evolutionTemplateId
+    )
+        return { template, archivedIds };
+
+    const onTemplate = new Set(
+        template.sections.flatMap((s) => s.items.map((i) => i.id)),
+    );
+    const sections = template.sections.map((s) => ({
+        ...s,
+        items: [...s.items],
+    }));
+    evolution.checkedItems.forEach(({ itemId, item }) => {
+        if (!item || onTemplate.has(itemId)) return;
+        let section = sections.find((s) => s.id === item.sectionId);
+        if (!section) {
+            section = {
+                id: item.sectionId,
+                title: item.sectionTitle,
+                sortOrder: item.sectionSortOrder,
+                items: [],
+            };
+            sections.push(section);
+        }
+        section.items.push({
+            id: itemId,
+            label: item.label,
+            printText: item.printText,
+            hasFreeText: item.hasFreeText,
+            freeTextPlaceholder: item.freeTextPlaceholder,
+            sortOrder: item.sortOrder,
+        });
+        archivedIds.add(itemId);
+    });
+
+    return { template: { ...template, sections }, archivedIds };
 }
 
 export function useEvolutionComposer(
@@ -106,8 +156,24 @@ export function useEvolutionComposer(
     );
     const [notes, setNotes] = useState(() => evolutionToEdit?.notes ?? '');
     const [titleError, setTitleError] = useState(false);
+    // Depois que a pessoa mexe em algo, sair para os modelos pede confirmação.
+    const [touched, setTouched] = useState(false);
+    const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+    const touching =
+        <A extends unknown[]>(fn: (...args: A) => void) =>
+        (...args: A) => {
+            setTouched(true);
+            fn(...args);
+        };
 
-    const template = availableTemplates.find((t) => t.id === templateId);
+    const { template, archivedIds } = useMemo(
+        () =>
+            withArchivedCheckedItems(
+                availableTemplates.find((t) => t.id === templateId),
+                evolutionToEdit,
+            ),
+        [availableTemplates, templateId, evolutionToEdit],
+    );
     const activeItemIds = template
         ? new Set(template.sections.flatMap((s) => s.items.map((i) => i.id)))
         : null;
@@ -115,7 +181,8 @@ export function useEvolutionComposer(
         evolutionToEdit?.checkedItems.map((c) => c.itemId) ?? [],
     );
     // Evolução nova só manda item que ainda está no modelo. Rascunho reenvia
-    // o que já estava marcado, mesmo que o item tenha sido arquivado depois.
+    // o que já estava marcado, mesmo que o item tenha sido arquivado depois;
+    // sem os dados do item a tela não o mostra e mantém o texto gravado.
     const keptChecked = activeItemIds
         ? new Set(
               Array.from(checked).filter(
@@ -231,7 +298,9 @@ export function useEvolutionComposer(
                 });
             return {
                 title: title.trim(),
-                evolutionTemplateId: template?.id ?? null,
+                // O modelo escolhido, mesmo fora da lista (modelo excluído):
+                // mandar null aqui seria pedir ao servidor para tirar o modelo.
+                evolutionTemplateId: templateId,
                 checkedItemIds: Array.from(keptChecked),
                 freeTextValues: freeTextValuesPayload(keptChecked, freeTexts),
                 generatedText:
@@ -288,49 +357,61 @@ export function useEvolutionComposer(
         }
     };
 
+    function leaveToTemplates() {
+        setLeaveConfirmOpen(false);
+        onClose();
+        navigate(
+            `/clinica/templates/evolucoes?returnTo=${encodeURIComponent(
+                `/clinica/pacientes/${patientId}`,
+            )}`,
+        );
+    }
+
     return {
         loading: templates.isLoading,
         templates: availableTemplates,
         template,
         manageTemplates: () => {
-            onClose();
-            navigate(
-                `/clinica/templates/evolucoes?returnTo=${encodeURIComponent(
-                    `/clinica/pacientes/${patientId}`,
-                )}`,
-            );
+            if (touched) setLeaveConfirmOpen(true);
+            else leaveToTemplates();
         },
+        leaveConfirmOpen,
+        cancelLeave: () => setLeaveConfirmOpen(false),
+        confirmLeave: leaveToTemplates,
         sections: template
             ? [...template.sections]
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((s) => ({
                       ...s,
-                      items: [...s.items].sort(
-                          (a, b) => a.sortOrder - b.sortOrder,
-                      ),
+                      items: [...s.items]
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map((i) => ({
+                              ...i,
+                              archived: archivedIds.has(i.id),
+                          })),
                   }))
             : [],
         last,
         title,
-        setTitle: (v: string) => {
+        setTitle: touching((v: string) => {
             setTitle(v);
             if (v.trim()) setTitleError(false);
-        },
+        }),
         titleError,
         mode,
-        setMode,
-        pickTemplate,
+        setMode: touching(setMode),
+        pickTemplate: touching(pickTemplate),
         checked,
-        toggle,
+        toggle: touching(toggle),
         freeTexts,
-        setFree,
+        setFree: touching(setFree),
         freeText,
-        setFreeText,
+        setFreeText: touching(setFreeText),
         notes,
-        setNotes,
+        setNotes: touching(setNotes),
         blocks,
         generated,
-        repeatLast,
+        repeatLast: touching(repeatLast),
         empty,
         saving,
         save,

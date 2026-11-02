@@ -38,6 +38,8 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
             ->map(fn ($qid) => (int) $qid)
             ->all();
 
+        $answeredAt = $questionnaire->answered_at;
+
         $template = QuestionnaireTemplate::withTrashed()->find($questionnaire->questionnaire_template_id);
         if (!is_null($template)) {
             $sections = $template->allSections()
@@ -58,10 +60,20 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
                     }
                 })
                 ->get()
-                ->each(function ($section) {
-                    $section->setRelation('questions', $section->allQuestions);
+                ->each(function ($section) use ($answeredAt, $answeredQuestionIds) {
+                    $questions = $section->allQuestions;
+                    if (!is_null($answeredAt)) {
+                        $questions = $questions
+                            ->filter(fn ($question) => in_array((int) $question->id, $answeredQuestionIds, true)
+                                || $question->created_at?->lte($answeredAt))
+                            ->values();
+                    }
+                    $section->setRelation('questions', $questions);
                     $section->unsetRelation('allQuestions');
                 });
+            if (!is_null($answeredAt)) {
+                $sections = $sections->filter(fn ($section) => $section->questions->isNotEmpty())->values();
+            }
             $template->setRelation('sections', $sections);
         }
 

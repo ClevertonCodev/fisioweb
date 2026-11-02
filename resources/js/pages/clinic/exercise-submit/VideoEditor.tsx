@@ -1,20 +1,20 @@
-/**
- * PROTÓTIPO (descartável): "Ajustar vídeo" antes de enviar. Corta o quadro
- * para 9:16 (formato de celular), corta início e fim e grava de novo no
- * navegador (canvas + MediaRecorder, ~2,5 Mbps), o que também reduz o
- * tamanho. Sem servidor e sem ffmpeg: o processamento leva o tempo do trecho.
- */
 import { Scissors } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { DsButton, DsModal, DsSwitch, dsCn } from '@/components/ds';
+import { DsButton, dsCn, DsModal } from '@/components/ds';
 
 import { useObjectUrl } from './use-object-url';
-import { MAX_VIDEO_MB, readVideoInfo, type VideoInfo } from './video-rules';
+import {
+    isSquareVideo,
+    MAX_VIDEO_MB,
+    pickRecorderMime,
+    readVideoInfo,
+    squareCrop,
+    type VideoInfo,
+} from './video-rules';
 
-const TARGET = 9 / 16;
 const BITRATE = 2_500_000;
-const MAX_OUT_HEIGHT = 1280;
+const MAX_OUT_SIDE = 1080;
 
 function fmt(t: number): string {
     const m = Math.floor(t / 60);
@@ -23,26 +23,8 @@ function fmt(t: number): string {
     return `${m}:${String(s).padStart(2, '0')}.${d}`;
 }
 
-function pickMime(): string {
-    const options = [
-        'video/mp4;codecs=avc1',
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8',
-        'video/webm',
-    ];
-    return (
-        options.find((m) => MediaRecorder.isTypeSupported(m)) ?? 'video/webm'
-    );
-}
+type Crop = ReturnType<typeof squareCrop>;
 
-interface Crop {
-    /** Fração da largura que o corte ocupa (1 = sem corte). */
-    width: number;
-    /** Posição 0–1 do corte na faixa que sobra. */
-    offset: number;
-}
-
-/** Corta e regrava o trecho escolhido. */
 async function renderClip(
     file: File,
     info: VideoInfo,
@@ -57,26 +39,21 @@ async function renderClip(
     video.playsInline = true;
     await new Promise((r) => (video.onloadedmetadata = r));
 
-    const srcW = Math.round(info.width * crop.width);
-    const srcX = Math.round((info.width - srcW) * crop.offset);
-    const scale = Math.min(1, MAX_OUT_HEIGHT / info.height);
-    const outW = Math.round((srcW * scale) / 2) * 2;
-    const outH = Math.round((info.height * scale) / 2) * 2;
+    const out = Math.round(Math.min(crop.size, MAX_OUT_SIDE) / 2) * 2;
 
     const canvas = document.createElement('canvas');
-    canvas.width = outW;
-    canvas.height = outH;
+    canvas.width = out;
+    canvas.height = out;
     const ctx = canvas.getContext('2d')!;
     const stream = canvas.captureStream(30);
 
-    // O som passa por um grafo de áudio que não toca nos alto-falantes.
     const audio = new AudioContext();
     const source = audio.createMediaElementSource(video);
     const dest = audio.createMediaStreamDestination();
     source.connect(dest);
     dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
 
-    const mime = pickMime();
+    const mime = pickRecorderMime() ?? 'video/webm';
     const recorder = new MediaRecorder(stream, {
         mimeType: mime,
         videoBitsPerSecond: BITRATE,
@@ -91,7 +68,17 @@ async function renderClip(
     let running = true;
     const draw = () => {
         if (!running) return;
-        ctx.drawImage(video, srcX, 0, srcW, info.height, 0, 0, outW, outH);
+        ctx.drawImage(
+            video,
+            crop.x,
+            crop.y,
+            crop.size,
+            crop.size,
+            0,
+            0,
+            out,
+            out,
+        );
         onProgress(
             Math.min(
                 1,
@@ -134,12 +121,10 @@ export function VideoEditor({
     const url = useObjectUrl(open ? file : null);
     const preview = useRef<HTMLVideoElement>(null);
     const [info, setInfo] = useState<VideoInfo | null>(null);
-    const [cropOn, setCropOn] = useState(true);
     const [offset, setOffset] = useState(0.5);
     const [range, setRange] = useState<[number, number]>([0, 0]);
     const [progress, setProgress] = useState<number | null>(null);
 
-    // Ajuste durante o render: ao abrir com outro arquivo, recomeça.
     const [seen, setSeen] = useState<File | null>(null);
     if (open && file && seen !== file) {
         setSeen(file);
@@ -154,7 +139,6 @@ export function VideoEditor({
             if (!alive) return;
             setInfo(i);
             setRange([0, i.duration]);
-            setCropOn(i.width / i.height > TARGET + 0.02);
             setOffset(0.5);
         });
         return () => {
@@ -162,12 +146,21 @@ export function VideoEditor({
         };
     }, [open, file, info]);
 
-    const canCrop = info ? info.width / info.height > TARGET + 0.02 : false;
-    const crop: Crop = {
-        width:
-            info && cropOn && canCrop ? (info.height * TARGET) / info.width : 1,
-        offset,
-    };
+    const square = info ? isSquareVideo(info.width, info.height) : true;
+    const portrait = info ? info.height > info.width : false;
+    // Já quadrado: grava o quadro inteiro (a folga do 1:1 não vira corte).
+    const crop: Crop | null = info
+        ? square
+            ? { x: 0, y: 0, size: Math.min(info.width, info.height) }
+            : squareCrop(info.width, info.height, offset)
+        : null;
+    /** Quanto do lado maior sobra fora do quadrado, de 0 a 1. */
+    const leftover =
+        info && !square
+            ? 1 -
+              Math.min(info.width, info.height) /
+                  Math.max(info.width, info.height)
+            : 0;
     const [start, end] = range;
     const clip = Math.max(0, end - start);
     const estimateMb = (clip * BITRATE) / 8 / 1024 / 1024;
@@ -181,7 +174,7 @@ export function VideoEditor({
     };
 
     const apply = async () => {
-        if (!file || !info) return;
+        if (!file || !info || !crop) return;
         setProgress(0);
         preview.current?.pause();
         const out = await renderClip(file, info, crop, start, end, setProgress);
@@ -195,7 +188,7 @@ export function VideoEditor({
             onOpenChange={(o) => !o && !processing && onClose()}
             closeOnBackdrop={!processing}
             title="Ajustar vídeo"
-            meta="Corte para o formato de celular e escolha o trecho"
+            meta="Corte em quadrado (1:1) e escolha o trecho"
             size="lg"
             footer={
                 <div className="flex w-full flex-wrap items-center gap-3">
@@ -229,7 +222,6 @@ export function VideoEditor({
         >
             {url && info ? (
                 <div className="flex flex-col gap-5">
-                    {/* Vídeo original com a janela 9:16 por cima. */}
                     <div
                         className="relative mx-auto max-h-[48vh] w-full overflow-hidden rounded-ds-lg bg-black"
                         style={{
@@ -249,48 +241,72 @@ export function VideoEditor({
                             }}
                             className="size-full object-contain"
                         />
-                        {crop.width < 1 && (
-                            <>
-                                <div
-                                    className="pointer-events-none absolute inset-y-0 left-0 bg-black/60"
-                                    style={{
-                                        width: `${(1 - crop.width) * offset * 100}%`,
-                                    }}
-                                />
-                                <div
-                                    className="pointer-events-none absolute inset-y-0 border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]"
-                                    style={{
-                                        left: `${(1 - crop.width) * offset * 100}%`,
-                                        width: `${crop.width * 100}%`,
-                                    }}
-                                />
-                                <div
-                                    className="pointer-events-none absolute inset-y-0 right-0 bg-black/60"
-                                    style={{
-                                        width: `${(1 - crop.width) * (1 - offset) * 100}%`,
-                                    }}
-                                />
-                            </>
-                        )}
+                        {leftover > 0 &&
+                            (portrait ? (
+                                <>
+                                    <div
+                                        className="pointer-events-none absolute inset-x-0 top-0 bg-black/60"
+                                        style={{
+                                            height: `${leftover * offset * 100}%`,
+                                        }}
+                                    />
+                                    <div
+                                        className="pointer-events-none absolute inset-x-0 border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]"
+                                        style={{
+                                            top: `${leftover * offset * 100}%`,
+                                            height: `${(1 - leftover) * 100}%`,
+                                        }}
+                                    />
+                                    <div
+                                        className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/60"
+                                        style={{
+                                            height: `${leftover * (1 - offset) * 100}%`,
+                                        }}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <div
+                                        className="pointer-events-none absolute inset-y-0 left-0 bg-black/60"
+                                        style={{
+                                            width: `${leftover * offset * 100}%`,
+                                        }}
+                                    />
+                                    <div
+                                        className="pointer-events-none absolute inset-y-0 border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]"
+                                        style={{
+                                            left: `${leftover * offset * 100}%`,
+                                            width: `${(1 - leftover) * 100}%`,
+                                        }}
+                                    />
+                                    <div
+                                        className="pointer-events-none absolute inset-y-0 right-0 bg-black/60"
+                                        style={{
+                                            width: `${leftover * (1 - offset) * 100}%`,
+                                        }}
+                                    />
+                                </>
+                            ))}
                     </div>
 
                     <div className="grid gap-5 sm:grid-cols-2">
                         <div className="flex flex-col gap-3">
-                            <DsSwitch
-                                label="Cortar para em pé (9:16)"
-                                description={
-                                    canCrop
-                                        ? 'O vídeo está mais largo que a tela do celular.'
-                                        : 'O vídeo já está em pé.'
-                                }
-                                checked={cropOn && canCrop}
-                                disabled={!canCrop || processing}
-                                onCheckedChange={(on) => setCropOn(on === true)}
-                            />
+                            <div>
+                                <p className="text-ds-body-sm font-semibold text-ds-content-primary">
+                                    Corte quadrado (1:1)
+                                </p>
+                                <p className="text-ds-caption text-ds-content-muted">
+                                    {square
+                                        ? 'O vídeo já está quadrado.'
+                                        : portrait
+                                          ? 'O vídeo está mais alto que um quadrado.'
+                                          : 'O vídeo está mais largo que um quadrado.'}
+                                </p>
+                            </div>
                             <label
                                 className={dsCn(
                                     'flex flex-col gap-1.5',
-                                    crop.width === 1 && 'opacity-50',
+                                    square && 'opacity-50',
                                 )}
                             >
                                 <span className="text-ds-caption font-medium text-ds-content-secondary">
@@ -302,15 +318,19 @@ export function VideoEditor({
                                     max={1}
                                     step={0.01}
                                     value={offset}
-                                    disabled={crop.width === 1 || processing}
+                                    disabled={square || processing}
                                     onChange={(e) =>
                                         setOffset(Number(e.target.value))
                                     }
                                     className="w-full cursor-pointer accent-[var(--ds-color-primary-80)]"
                                 />
                                 <span className="flex justify-between text-ds-caption text-ds-content-muted">
-                                    <span>Esquerda</span>
-                                    <span>Direita</span>
+                                    <span>
+                                        {portrait ? 'Em cima' : 'Esquerda'}
+                                    </span>
+                                    <span>
+                                        {portrait ? 'Embaixo' : 'Direita'}
+                                    </span>
                                 </span>
                             </label>
                         </div>

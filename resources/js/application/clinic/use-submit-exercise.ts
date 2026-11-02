@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
+import { authErrorMessage } from '@/application/clinic/clinic-password';
+import {
+    ALLOWED_IMAGE_TYPES,
+    ALLOWED_VIDEO_TYPES,
+    MAX_IMAGE_MB,
+    MAX_VIDEO_MB,
+} from '@/application/clinic/exercise-media-limits';
 import { uploadAndSyncClinicVideoReferenceImages } from '@/application/clinic/upload-video-reference-images';
 import { apiClient } from '@/infrastructure/api/client';
 import {
@@ -8,18 +15,8 @@ import {
     apiClinicVideosRepository,
 } from '@/infrastructure/repositories';
 
-const ALLOWED_VIDEO_MIMES = [
-    'video/mp4',
-    'video/mpeg',
-    'video/quicktime',
-    'video/x-msvideo',
-    'video/webm',
-    'video/x-flv',
-    'video/x-matroska',
-];
-const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20MB
-const ALLOWED_THUMBNAIL_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_VIDEO_SIZE = MAX_VIDEO_MB * 1024 * 1024;
+const MAX_THUMBNAIL_SIZE = MAX_IMAGE_MB * 1024 * 1024;
 
 export interface PhysioAreaOption {
     id: number;
@@ -70,6 +67,51 @@ function uploadToPresignedUrl(
     });
 }
 
+/** Status 4xx de um erro do axios que veio sem mensagem; `null` se não for o caso. */
+function rejectedStatus(err: unknown): number | null {
+    if (typeof err !== 'object' || err === null || !('isAxiosError' in err)) {
+        return null;
+    }
+    const status = (err as { response?: { status?: number } }).response?.status;
+    return status !== undefined && status >= 400 && status < 500
+        ? status
+        : null;
+}
+
+function isHttpError(err: unknown): boolean {
+    return typeof err === 'object' && err !== null && 'isAxiosError' in err;
+}
+
+/** Mensagem do back-end em 4xx; erro HTTP sem ela não mostra o texto do axios. */
+function submitErrorMessage(err: unknown): string {
+    const status = rejectedStatus(err);
+    const fallback =
+        status !== null
+            ? `O servidor recusou o envio (código ${status}). Tente de novo.`
+            : isHttpError(err)
+              ? 'Não foi possível falar com o servidor. Tente de novo.'
+              : err instanceof Error
+                ? err.message
+                : 'Erro ao enviar exercício.';
+    return authErrorMessage(err, fallback);
+}
+
+/** Sem "tente de novo": reenviar o formulário criaria um segundo exercício. */
+function referenceImagesWarning(err: unknown): string {
+    const status = rejectedStatus(err);
+    const reason = authErrorMessage(
+        err,
+        status !== null
+            ? `o servidor recusou as fotos (código ${status})`
+            : isHttpError(err)
+              ? 'o servidor não respondeu'
+              : err instanceof Error
+                ? err.message
+                : 'erro desconhecido',
+    ).replace(/\.$/, '');
+    return `O exercício foi enviado, mas as fotos do PDF não foram salvas (${reason}). Não envie o exercício de novo: ele já está na biblioteca.`;
+}
+
 export type SubmitStatus =
     | 'idle'
     | 'uploading'
@@ -99,6 +141,7 @@ export function useSubmitExercise() {
     const [status, setStatus] = useState<SubmitStatus>('idle');
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
+    const [warning, setWarning] = useState<string | null>(null);
     const abortRef = useRef<AbortController | null>(null);
 
     const reset = useCallback(() => {
@@ -107,6 +150,7 @@ export function useSubmitExercise() {
         setStatus('idle');
         setProgress(0);
         setError(null);
+        setWarning(null);
     }, []);
 
     const abort = useCallback(() => {
@@ -118,30 +162,31 @@ export function useSubmitExercise() {
 
     const mutation = useMutation({
         mutationFn: async (input: SubmitExerciseInput) => {
-            if (!ALLOWED_VIDEO_MIMES.includes(input.videoFile.type)) {
+            if (!ALLOWED_VIDEO_TYPES.includes(input.videoFile.type)) {
                 throw new Error(
                     'Formato não suportado. Use: MP4, MPEG, MOV, AVI, WebM, FLV, MKV.',
                 );
             }
             if (input.videoFile.size > MAX_VIDEO_SIZE) {
                 throw new Error(
-                    `O vídeo excede o tamanho máximo de ${MAX_VIDEO_SIZE / 1024 / 1024}MB.`,
+                    `O vídeo excede o tamanho máximo de ${MAX_VIDEO_MB}MB.`,
                 );
             }
             if (input.thumbnailFile) {
-                if (
-                    !ALLOWED_THUMBNAIL_MIMES.includes(input.thumbnailFile.type)
-                ) {
+                if (!ALLOWED_IMAGE_TYPES.includes(input.thumbnailFile.type)) {
                     throw new Error('Thumbnail deve ser JPEG, PNG ou WebP.');
                 }
                 if (input.thumbnailFile.size > MAX_THUMBNAIL_SIZE) {
-                    throw new Error('A thumbnail não pode exceder 5MB.');
+                    throw new Error(
+                        `A thumbnail não pode exceder ${MAX_IMAGE_MB}MB.`,
+                    );
                 }
             }
 
             const ac = new AbortController();
             abortRef.current = ac;
             setError(null);
+            setWarning(null);
             setProgress(0);
 
             setStatus('uploading');
@@ -195,12 +240,18 @@ export function useSubmitExercise() {
                 videoId: presigned.video_id,
             });
 
+            // O exercício já existe: falhar aqui deixaria o formulário pronto
+            // para reenviar e criar um segundo exercício.
             const refs = (input.referenceImages ?? []).filter(Boolean);
             if (refs.length > 0) {
-                await uploadAndSyncClinicVideoReferenceImages(
-                    presigned.video_id,
-                    input.referenceImages ?? [],
-                );
+                try {
+                    await uploadAndSyncClinicVideoReferenceImages(
+                        presigned.video_id,
+                        input.referenceImages ?? [],
+                    );
+                } catch (err) {
+                    setWarning(referenceImagesWarning(err));
+                }
             }
 
             setStatus('completed');
@@ -215,20 +266,24 @@ export function useSubmitExercise() {
                 setStatus('idle');
                 return;
             }
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Erro ao enviar exercício.',
-            );
+            setError(submitErrorMessage(err));
             setStatus('error');
         },
     });
 
+    const { mutateAsync } = mutation;
+    /** Resolve com o exercício criado ou `null`; a falha fica em `error`. */
+    const submit = useCallback(
+        (input: SubmitExerciseInput) => mutateAsync(input).catch(() => null),
+        [mutateAsync],
+    );
+
     return {
-        submit: mutation.mutateAsync,
+        submit,
         status,
         progress,
         error,
+        warning,
         abort,
         reset,
     };

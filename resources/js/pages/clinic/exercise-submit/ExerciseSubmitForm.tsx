@@ -1,11 +1,11 @@
-/**
- * PROTÓTIPO A: uma página só, em três seções numeradas (Vídeo,
- * Informações, Imagens), com a prévia da biblioteca e um checklist fixos ao
- * lado. A seção fica verde quando está completa.
- */
 import { CheckCircle2, Circle, FileText, Send } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import {
+    useClinicExerciseOptions,
+    useSubmitExercise,
+} from '@/application/clinic';
 import { DsAlert, DsButton, DsCard, dsCn } from '@/components/ds';
 
 import { InfoFields } from './fields';
@@ -15,11 +15,116 @@ import {
     SectionTitle,
     SubmitProgress,
     SubmitSuccess,
+    useSubmitForm,
     VideoDropzone,
+    type FormValues,
 } from './shared';
-import { LIBRARY_PATH, type SubmitDraft } from './SubmitExercisePrototype';
+import { useObjectUrl } from './use-object-url';
 
-export function SubmitA({ draft }: { draft: SubmitDraft }) {
+export const LIBRARY_PATH = '/clinica/exercicios';
+
+export function useSubmitDraft() {
+    const form = useSubmitForm();
+    const { data: areas = [] } = useClinicExerciseOptions();
+    const {
+        submit: submitToApi,
+        status,
+        progress,
+        error: submitError,
+        warning: submitWarning,
+        reset,
+    } = useSubmitExercise();
+
+    const [video, setVideoState] = useState<File | null>(null);
+    const [videoError, setVideoError] = useState<string | null>(null);
+    const [videoBlocked, setVideoBlocked] = useState(false);
+    const [cover, setCover] = useState<File | null>(null);
+    const [ref1, setRef1] = useState<File | null>(null);
+    const [ref2, setRef2] = useState<File | null>(null);
+    const videoUrl = useObjectUrl(video);
+    const coverUrl = useObjectUrl(cover);
+
+    const setVideo = (f: File | null) => {
+        setVideoState(f);
+        setVideoError(null);
+        if (!f) form.setValue('duration', '');
+    };
+
+    const values = form.watch();
+    const categoryName =
+        areas.find((a) => String(a.id) === values.physioAreaId)?.name ?? '';
+
+    const submit = form.handleSubmit(async (formValues) => {
+        if (!video) {
+            setVideoError('Escolha o vídeo do exercício.');
+            return;
+        }
+        if (videoBlocked) {
+            setVideoError('Ajuste o vídeo antes de enviar.');
+            return;
+        }
+
+        const parsedDuration = formValues.duration
+            ? parseInt(formValues.duration, 10)
+            : undefined;
+
+        await submitToApi({
+            name: formValues.name.trim(),
+            physioAreaId: Number(formValues.physioAreaId),
+            difficultyLevel: formValues.difficultyLevel,
+            description: formValues.description?.trim() || null,
+            videoFile: video,
+            thumbnailFile: cover,
+            referenceImages: [ref1, ref2],
+            duration:
+                parsedDuration !== undefined && !Number.isNaN(parsedDuration)
+                    ? parsedDuration
+                    : undefined,
+        });
+    });
+
+    const resetAll = () => {
+        reset();
+        form.reset();
+        setVideoState(null);
+        setVideoError(null);
+        setVideoBlocked(false);
+        setCover(null);
+        setRef1(null);
+        setRef2(null);
+    };
+
+    return {
+        form,
+        values: values as FormValues,
+        areas,
+        categoryName,
+        video,
+        setVideo,
+        videoError,
+        setVideoError,
+        videoBlocked,
+        setVideoBlocked,
+        videoUrl,
+        cover,
+        setCover,
+        coverUrl,
+        ref1,
+        setRef1,
+        ref2,
+        setRef2,
+        status,
+        progress,
+        submitError,
+        submitWarning,
+        submit,
+        resetAll,
+    };
+}
+
+export type SubmitDraft = ReturnType<typeof useSubmitDraft>;
+
+export function ExerciseSubmitForm({ draft }: { draft: SubmitDraft }) {
     const navigate = useNavigate();
     const v = draft.values;
     const infoDone = Boolean(v.name?.trim() && v.physioAreaId);
@@ -40,12 +145,18 @@ export function SubmitA({ draft }: { draft: SubmitDraft }) {
         },
     ];
 
-    if (draft.status !== 'idle') {
+    const isSubmitting =
+        draft.status === 'uploading' ||
+        draft.status === 'confirming' ||
+        draft.status === 'saving';
+
+    if (draft.status === 'completed' || isSubmitting) {
         return (
             <DsCard className="mx-auto w-full max-w-3xl">
                 {draft.status === 'completed' ? (
                     <SubmitSuccess
                         name={v.name}
+                        warning={draft.submitWarning}
                         onAnother={draft.resetAll}
                         onLibrary={() => navigate(LIBRARY_PATH)}
                     />
@@ -71,7 +182,7 @@ export function SubmitA({ draft }: { draft: SubmitDraft }) {
                         <SectionTitle
                             n={1}
                             title="Vídeo"
-                            description="Grave na horizontal ou vertical, com boa luz. A duração é lida sozinha."
+                            description="Grave em quadrado (1:1, como post do Instagram), com boa luz. A duração é lida sozinha."
                             done={draft.video !== null && !draft.videoBlocked}
                         />
                         <VideoDropzone
@@ -155,6 +266,16 @@ export function SubmitA({ draft }: { draft: SubmitDraft }) {
                         </div>
                     </div>
                 </DsCard>
+
+                {draft.submitError && (
+                    <DsAlert
+                        variant="danger"
+                        mode="rich"
+                        title="Não foi possível enviar o exercício"
+                    >
+                        {draft.submitError}
+                    </DsAlert>
+                )}
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
                     <DsButton

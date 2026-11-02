@@ -1,7 +1,10 @@
+import {
+    ALLOWED_IMAGE_TYPES,
+    MAX_IMAGE_MB,
+} from '@/application/clinic/exercise-media-limits';
 import { apiClinicVideosRepository } from '@/infrastructure/repositories';
 
-const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_SIZE = 5 * 1024 * 1024;
+const MAX_SIZE = MAX_IMAGE_MB * 1024 * 1024;
 
 type ReferenceImageInput =
     | File
@@ -24,11 +27,13 @@ function uploadToPresignedUrl(url: string, file: File): Promise<void> {
 }
 
 async function uploadFile(videoId: number, file: File): Promise<string> {
-    if (!ALLOWED_MIMES.includes(file.type)) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
         throw new Error('Imagem de referência deve ser JPEG, PNG ou WebP.');
     }
     if (file.size > MAX_SIZE) {
-        throw new Error('Cada imagem de referência não pode exceder 5MB.');
+        throw new Error(
+            `Cada imagem de referência não pode exceder ${MAX_IMAGE_MB}MB.`,
+        );
     }
 
     // Após confirm-upload o vídeo está completed → usa replace

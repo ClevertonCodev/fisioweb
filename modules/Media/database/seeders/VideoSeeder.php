@@ -91,5 +91,11 @@ class VideoSeeder extends Seeder
         }
 
         $this->command->info('Vídeos do R2 criados: ' . count($videos) . ' (com 2 imagens de referência cada)');
+
+        if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql') {
+            \Illuminate\Support\Facades\DB::statement(
+                "SELECT setval(pg_get_serial_sequence('media_videos', 'id'), COALESCE((SELECT MAX(id) FROM media_videos), 1), true)",
+            );
+        }
     }
 }

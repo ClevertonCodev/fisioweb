@@ -1,8 +1,3 @@
-/**
- * PROTÓTIPO (descartável): peças comuns às variantes da tela "Enviar
- * exercício" no DS v2. O envio é simulado (nada vai para a API); o recorte
- * de imagem da v1 (ImageCropModal, shadcn) ficou de fora.
- */
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
     AlertTriangle,
@@ -17,17 +12,12 @@ import {
     UploadCloud,
     XCircle,
 } from 'lucide-react';
-import {
-    useEffect,
-    useRef,
-    useState,
-    type DragEvent,
-    type ReactNode,
-} from 'react';
+import { useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import type { SubmitStatus } from '@/application/clinic/use-submit-exercise';
 import {
     DsAlert,
     DsBadge,
@@ -38,12 +28,16 @@ import {
     type BadgeVariant,
 } from '@/components/ds';
 
+import { ExerciseImageCropModal } from './ExerciseImageCropModal';
 import { useObjectUrl } from './use-object-url';
 import {
+    canEditVideoInBrowser,
     checkVideo,
     hasBlocking,
+    MAX_IMAGE_MB,
     MAX_VIDEO_MB,
     readVideoInfo,
+    validateExerciseImage,
     type CheckState,
     type VideoCheck,
 } from './video-rules';
@@ -108,14 +102,6 @@ export function formatSize(bytes: number): string {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-// ---------------------------------------------------------------- vídeo
-
-/**
- * Área de soltar o vídeo. Ao escolher, o arquivo é conferido (formato,
- * tamanho, em pé, qualidade) e vira prévia: o vídeo toca ali mesmo, a
- * duração é lida do arquivo, o quadro atual pode virar capa e "Ajustar
- * vídeo" corta para 9:16 e escolhe o trecho.
- */
 export function VideoDropzone({
     file,
     onFile,
@@ -129,7 +115,6 @@ export function VideoDropzone({
     onFile: (file: File | null) => void;
     onDuration?: (seconds: number) => void;
     onCapture?: (frame: File) => void;
-    /** true quando alguma regra impede o envio. */
     onValidity?: (blocking: boolean) => void;
     error?: string | null;
     compact?: boolean;
@@ -141,22 +126,27 @@ export function VideoDropzone({
     const [checks, setChecks] = useState<VideoCheck[] | null>(null);
     const [editing, setEditing] = useState(false);
     const url = useObjectUrl(file);
+    const canEdit = canEditVideoInBrowser();
+    // Só vale a leitura do último vídeo escolhido.
+    const lastPicked = useRef<File | null>(null);
 
     const pick = (f: File | null) => {
+        lastPicked.current = f;
         setLocalError(null);
         setChecks(null);
         onFile(f);
-        if (!f) {
-            onValidity?.(false);
-            return;
-        }
+        // Até as regras serem conferidas, o vídeo não pode ser enviado.
+        onValidity?.(f !== null);
+        if (!f) return;
         readVideoInfo(f)
             .then((info) => {
+                if (lastPicked.current !== f) return;
                 const result = checkVideo(info);
                 setChecks(result);
                 onValidity?.(hasBlocking(result));
             })
             .catch(() => {
+                if (lastPicked.current !== f) return;
                 setLocalError('Não foi possível ler este vídeo.');
                 onValidity?.(true);
             });
@@ -222,14 +212,16 @@ export function VideoDropzone({
                                 {formatSize(file.size)}
                             </p>
                         </div>
-                        <DsButton
-                            variant="secondary"
-                            size="sm"
-                            iconPosition="left"
-                            icon={<Scissors />}
-                            label="Ajustar vídeo"
-                            onClick={() => setEditing(true)}
-                        />
+                        {canEdit && (
+                            <DsButton
+                                variant="secondary"
+                                size="sm"
+                                iconPosition="left"
+                                icon={<Scissors />}
+                                label="Ajustar vídeo"
+                                onClick={() => setEditing(true)}
+                            />
+                        )}
                         {onCapture && (
                             <DsButton
                                 variant="tertiary"
@@ -321,7 +313,7 @@ export function VideoDropzone({
                                 : 'Arraste o vídeo ou clique para escolher'}
                         </span>
                         <span className="mt-1 block text-ds-caption text-ds-content-muted">
-                            Em pé (formato de celular) · MP4, MOV ou WebM · até{' '}
+                            Quadrado (1:1) · MP4, MOV ou WebM · até{' '}
                             {MAX_VIDEO_MB} MB
                         </span>
                     </span>
@@ -333,17 +325,19 @@ export function VideoDropzone({
                     mode="rich"
                     title="Este vídeo ainda não pode ser enviado"
                     actions={
-                        <DsButton
-                            size="sm"
-                            iconPosition="left"
-                            icon={<Scissors />}
-                            label="Ajustar vídeo"
-                            onClick={() => setEditing(true)}
-                        />
+                        canEdit ? (
+                            <DsButton
+                                size="sm"
+                                iconPosition="left"
+                                icon={<Scissors />}
+                                label="Ajustar vídeo"
+                                onClick={() => setEditing(true)}
+                            />
+                        ) : undefined
                     }
                 >
                     {failing.map((c) => c.detail).join(' · ')}.{' '}
-                    {fixHint(failing)}
+                    {fixHint(failing, canEdit)}
                 </DsAlert>
             )}
             {message && (
@@ -351,28 +345,34 @@ export function VideoDropzone({
                     {message}
                 </p>
             )}
-            <VideoEditor
-                file={file}
-                open={editing}
-                onClose={() => setEditing(false)}
-                onApply={(out) => {
-                    setEditing(false);
-                    pick(out);
-                    toast.success(`Vídeo ajustado (${formatSize(out.size)}).`);
-                }}
-            />
+            {canEdit && (
+                <VideoEditor
+                    file={file}
+                    open={editing}
+                    onClose={() => setEditing(false)}
+                    onApply={(out) => {
+                        setEditing(false);
+                        pick(out);
+                        toast.success(
+                            `Vídeo ajustado (${formatSize(out.size)}).`,
+                        );
+                    }}
+                />
+            )}
         </div>
     );
 }
 
-/** O que fazer em "Ajustar vídeo" para cada regra que falhou. */
-function fixHint(failing: VideoCheck[]): string {
+function fixHint(failing: VideoCheck[], canEdit: boolean): string {
     const keys = failing.map((c) => c.key);
+    if (!canEdit) {
+        return `Grave ou exporte o vídeo quadrado (1:1) e com até ${MAX_VIDEO_MB} MB.`;
+    }
     if (keys.includes('type')) {
         return 'Grave de novo ou exporte em MP4; “Ajustar vídeo” também gera um arquivo novo.';
     }
     const steps = [
-        keys.includes('orientation') && 'corte para em pé',
+        keys.includes('shape') && 'corte em quadrado',
         keys.includes('size') && 'escolha um trecho menor',
     ].filter(Boolean);
     return `Em “Ajustar vídeo”, ${steps.join(' e ')}.`;
@@ -394,24 +394,38 @@ const CHECK_STYLE: Record<CheckState, { icon: ReactNode; className: string }> =
         },
     };
 
-// ---------------------------------------------------------------- imagens
-
-/** Espaço de imagem (capa ou referência) com prévia e remover. */
+/** Espaço de imagem (capa ou referência) com validação, recorte no DS v2, prévia e remover. */
 export function ImageSlot({
     label,
     hint,
     file,
     onFile,
     aspect = 'aspect-square',
+    cropAspect,
 }: {
     label: string;
     hint: string;
     file: File | null;
     onFile: (file: File | null) => void;
     aspect?: string;
+    cropAspect?: number;
 }) {
     const input = useRef<HTMLInputElement>(null);
     const url = useObjectUrl(file);
+    const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
+    const [imageError, setImageError] = useState<string | null>(null);
+
+    const handleFilePicked = (picked: File | null) => {
+        if (!picked) return;
+        const validationError = validateExerciseImage(picked);
+        if (validationError) {
+            setImageError(validationError);
+            return;
+        }
+        setImageError(null);
+        setPendingCropFile(picked);
+    };
+
     return (
         <div className="flex flex-col gap-2">
             <input
@@ -420,7 +434,7 @@ export function ImageSlot({
                 accept={ACCEPT_IMAGE}
                 className="hidden"
                 onChange={(e) => {
-                    onFile(e.target.files?.[0] ?? null);
+                    handleFilePicked(e.target.files?.[0] ?? null);
                     e.target.value = '';
                 }}
             />
@@ -452,7 +466,10 @@ export function ImageSlot({
                                 <button
                                     type="button"
                                     aria-label={`Remover ${label}`}
-                                    onClick={() => onFile(null)}
+                                    onClick={() => {
+                                        setImageError(null);
+                                        onFile(null);
+                                    }}
                                     className="flex size-8 cursor-pointer items-center justify-center rounded-ds-md bg-white/90 text-ds-danger-120 outline-0 hover:bg-white focus-visible:shadow-ds-focus [&_svg]:size-4"
                                 >
                                     <Trash2 />
@@ -470,7 +487,7 @@ export function ImageSlot({
                             <ImagePlus />
                         </span>
                         <span className="text-ds-caption text-ds-content-muted">
-                            {hint}
+                            {hint} · até {MAX_IMAGE_MB} MB
                         </span>
                     </button>
                 )}
@@ -478,11 +495,33 @@ export function ImageSlot({
             <p className="text-ds-caption font-medium text-ds-content-secondary">
                 {label}
             </p>
+            {imageError && (
+                <p className="text-ds-caption text-ds-status-danger-content">
+                    {imageError}
+                </p>
+            )}
+            <ExerciseImageCropModal
+                open={pendingCropFile !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPendingCropFile(null);
+                }}
+                imageFile={pendingCropFile}
+                title={`Recortar ${label}`}
+                aspect={cropAspect}
+                onConfirm={(cropped) => {
+                    setPendingCropFile(null);
+                    // O recorte regrava a imagem e ela pode crescer.
+                    const croppedError = validateExerciseImage(cropped);
+                    if (croppedError) {
+                        setImageError(croppedError);
+                        return;
+                    }
+                    onFile(cropped);
+                }}
+            />
         </div>
     );
 }
-
-// ---------------------------------------------------------------- prévia
 
 /** Como o exercício vai aparecer na biblioteca (cartão da D). */
 export function LibraryPreview({
@@ -553,51 +592,6 @@ export function LibraryPreview({
     );
 }
 
-// ---------------------------------------------------------------- envio simulado
-
-export type SubmitStatus =
-    | 'idle'
-    | 'uploading'
-    | 'confirming'
-    | 'saving'
-    | 'completed';
-
-/** Simula o envio da v1 (upload com progresso → confirmar → salvar). */
-export function useFakeSubmit() {
-    const [status, setStatus] = useState<SubmitStatus>('idle');
-    const [progress, setProgress] = useState(0);
-    const timers = useRef<number[]>([]);
-
-    useEffect(() => () => timers.current.forEach(clearTimeout), []);
-
-    const submit = () => {
-        setStatus('uploading');
-        setProgress(0);
-        for (let i = 1; i <= 20; i++) {
-            timers.current.push(
-                window.setTimeout(() => setProgress(i * 5), i * 90),
-            );
-        }
-        timers.current.push(
-            window.setTimeout(() => setStatus('confirming'), 1900),
-            window.setTimeout(() => setStatus('saving'), 2600),
-            window.setTimeout(() => {
-                setStatus('completed');
-                toast.info('Protótipo: nada foi enviado de verdade.');
-            }, 3300),
-        );
-    };
-
-    const reset = () => {
-        timers.current.forEach(clearTimeout);
-        timers.current = [];
-        setStatus('idle');
-        setProgress(0);
-    };
-
-    return { status, progress, submit, reset };
-}
-
 const PHASES = ['Enviando vídeo', 'Confirmando upload', 'Salvando exercício'];
 const PHASE_INDEX: Record<SubmitStatus, number> = {
     idle: 0,
@@ -605,6 +599,7 @@ const PHASE_INDEX: Record<SubmitStatus, number> = {
     confirming: 1,
     saving: 2,
     completed: 3,
+    error: 0,
 };
 
 export function SubmitProgress({
@@ -648,10 +643,12 @@ export function SubmitProgress({
 
 export function SubmitSuccess({
     name,
+    warning,
     onAnother,
     onLibrary,
 }: {
     name: string;
+    warning?: string | null;
     onAnother: () => void;
     onLibrary: () => void;
 }) {
@@ -669,6 +666,11 @@ export function SubmitSuccess({
                     equipe aprovar, ele fica disponível para outras clínicas.
                 </p>
             </div>
+            {warning && (
+                <DsAlert variant="warning" className="max-w-md text-left">
+                    {warning}
+                </DsAlert>
+            )}
             <div className="flex flex-wrap justify-center gap-3">
                 <DsButton
                     variant="secondary"
@@ -681,7 +683,6 @@ export function SubmitSuccess({
     );
 }
 
-/** Título de seção numerado (1 Vídeo, 2 Informações…). */
 export function SectionTitle({
     n,
     title,

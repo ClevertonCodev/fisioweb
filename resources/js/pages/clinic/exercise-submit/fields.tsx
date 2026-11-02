@@ -1,4 +1,3 @@
-/** PROTÓTIPO (descartável): campos do exercício com RHF + componentes Ds*. */
 import { Controller } from 'react-hook-form';
 
 import {
@@ -9,8 +8,8 @@ import {
     DsTextarea,
 } from '@/components/ds';
 
+import type { SubmitDraft } from './ExerciseSubmitForm';
 import { DIFFICULTIES } from './shared';
-import type { SubmitDraft } from './SubmitExercisePrototype';
 
 export function InfoFields({ draft }: { draft: SubmitDraft }) {
     const {

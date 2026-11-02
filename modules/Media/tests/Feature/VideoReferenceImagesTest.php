@@ -99,7 +99,15 @@ class VideoReferenceImagesTest extends TestCase
             'role'      => ClinicUser::ROLE_ADMIN,
         ]);
         $area  = PhysioArea::create(['name' => 'Área Clínica Ref']);
-        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+        $paths = [
+            'thumbnails/videos/clinic-ref-1.jpeg',
+            'thumbnails/videos/clinic-ref-2.png',
+        ];
+        $video = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => ['issued_image_paths' => $paths],
+        ]);
 
         $exercise = Exercise::create([
             'name'                         => 'Envio clínica',
@@ -110,11 +118,6 @@ class VideoReferenceImagesTest extends TestCase
             'is_active'                    => true,
         ]);
         $exercise->videos()->attach($video->id);
-
-        $paths = [
-            'thumbnails/videos/clinic-ref-1.jpeg',
-            'thumbnails/videos/clinic-ref-2.png',
-        ];
 
         $this->actingAs($user, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [

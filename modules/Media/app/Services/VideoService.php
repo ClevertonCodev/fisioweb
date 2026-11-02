@@ -15,6 +15,9 @@ use Modules\Media\Repositories\VideoRepository;
 
 class VideoService implements VideoServiceInterface
 {
+    /** Quantos paths emitidos pelo presigned de substituição ficam guardados por vídeo (as 2 fotos do PDF, com folga para trocas). */
+    private const MAX_ISSUED_IMAGE_PATHS = 10;
+
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
@@ -78,12 +81,18 @@ class VideoService implements VideoServiceInterface
         return $this->videoRepository->paginate($perPage);
     }
 
+    public function isOwnedByClinic(int $videoId, int $clinicId): bool
+    {
+        return $this->videoRepository->isOwnedByClinic($videoId, $clinicId);
+    }
+
     public function requestPresignedUpload(
         string $filename,
         string $mimeType,
         int $size,
         ?string $directory = 'videos',
         ?Model $uploadable = null,
+        ?int $clinicId = null,
     ): array {
         if (empty($directory)) {
             throw new \InvalidArgumentException('Diretório não informado');
@@ -102,6 +111,7 @@ class VideoService implements VideoServiceInterface
             'status'            => Video::STATUS_PENDING,
             'uploadable_type'   => $uploadable?->getMorphClass(),
             'uploadable_id'     => $uploadable?->id,
+            'clinic_id'         => $clinicId,
             'metadata'          => [
                 'original_name' => $filename,
                 'upload_method' => 'presigned',
@@ -233,6 +243,7 @@ class VideoService implements VideoServiceInterface
 
         $metadata                           = $video->metadata ?? [];
         $metadata['pending_thumbnail_path'] = $path;
+        $metadata['issued_image_paths']     = array_slice([...($metadata['issued_image_paths'] ?? []), $path], -self::MAX_ISSUED_IMAGE_PATHS);
 
         $this->videoRepository->update($videoId, [
             'metadata' => $metadata,
@@ -347,6 +358,21 @@ class VideoService implements VideoServiceInterface
         }
 
         return $this->formatVideo($video);
+    }
+
+    public function ensureReferenceImagesBelongToVideo(int $videoId, array $referenceImagePaths): void
+    {
+        $metadata = $this->videoRepository->findOrFail($videoId)->metadata ?? [];
+        $allowed  = [
+            ...($metadata['issued_image_paths'] ?? []),
+            ...array_column($metadata['reference_images'] ?? [], 'file_path'),
+        ];
+
+        foreach ($referenceImagePaths as $path) {
+            if (!in_array($path, $allowed, true)) {
+                throw new \InvalidArgumentException('Imagem de referência não autorizada para este vídeo.');
+            }
+        }
     }
 
     protected function formatVideo(Video $video): array

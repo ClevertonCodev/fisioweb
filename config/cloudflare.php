@@ -33,7 +33,7 @@ return [
     /*
      * Video Upload Settings
      */
-    'max_video_size' => env('CLOUDFLARE_MAX_VIDEO_SIZE', 524288000), // 500MB default
+    'max_video_size' => env('CLOUDFLARE_MAX_VIDEO_SIZE', 20971520), // 20MB default
 
     'allowed_video_mimes' => [
         'video/mp4',

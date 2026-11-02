@@ -24,7 +24,10 @@ class ExerciseIsolationTest extends TestCase
         ]);
         // Pré-condição: id do usuário ≠ id da clínica, para que trocar um pelo outro seja detectável.
         $this->assertNotSame($clinic->id, $author->id);
-        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+        $video = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+        ]);
 
         $id = $this->actingAs($author, 'clinic')
             ->postJson('/api/clinic/exercises', [

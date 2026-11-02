@@ -108,10 +108,35 @@ export function useEvolutionComposer(
     const [titleError, setTitleError] = useState(false);
 
     const template = availableTemplates.find((t) => t.id === templateId);
+    const activeItemIds = template
+        ? new Set(template.sections.flatMap((s) => s.items.map((i) => i.id)))
+        : null;
+    const alreadyCheckedIds = new Set(
+        evolutionToEdit?.checkedItems.map((c) => c.itemId) ?? [],
+    );
+    // Evolução nova só manda item que ainda está no modelo. Rascunho reenvia
+    // o que já estava marcado, mesmo que o item tenha sido arquivado depois.
+    const keptChecked = activeItemIds
+        ? new Set(
+              Array.from(checked).filter(
+                  (id) =>
+                      activeItemIds.has(id) ||
+                      (evolutionToEdit != null && alreadyCheckedIds.has(id)),
+              ),
+          )
+        : checked;
+    const keptOffTemplate = activeItemIds
+        ? Array.from(keptChecked).filter((id) => !activeItemIds.has(id))
+        : [];
     const blocks = evolutionSheetBlocks(template, checked, freeTexts);
     const rebuilt = buildEvolutionSheetText(template, checked, freeTexts);
     const savedSheetText = evolutionToEdit?.generatedText ?? '';
-    const generated = template ? rebuilt : savedSheetText;
+    const generated =
+        keptOffTemplate.length > 0 && !rebuilt.trim()
+            ? savedSheetText
+            : template
+              ? rebuilt
+              : savedSheetText;
 
     const toggle = (id: number) =>
         setChecked((prev) => {
@@ -172,7 +197,12 @@ export function useEvolutionComposer(
         toast.info('Texto da última sessão copiado. Ajuste o que mudou.');
     };
 
-    const body = mode === 'template' ? generated : freeText;
+    const body =
+        mode === 'template'
+            ? keptOffTemplate.length > 0
+                ? savedSheetText || generated
+                : generated
+            : freeText;
     const empty = !body.trim() && !notes.trim();
     const saving =
         createEvolution.isPending ||
@@ -181,27 +211,35 @@ export function useEvolutionComposer(
 
     const buildDto = (): EvolutionWriteDto => {
         if (mode === 'template') {
-            const activeItemIds = template
-                ? new Set(
-                      template.sections.flatMap((s) =>
-                          s.items.map((i) => i.id),
-                      ),
+            const onTemplateNow = activeItemIds
+                ? Array.from(keptChecked).filter((id) => activeItemIds.has(id))
+                : [];
+            const onTemplateBefore = activeItemIds
+                ? Array.from(alreadyCheckedIds).filter((id) =>
+                      activeItemIds.has(id),
                   )
-                : null;
-            const effectiveChecked = activeItemIds
-                ? new Set(
-                      Array.from(checked).filter((id) => activeItemIds.has(id)),
-                  )
-                : checked;
+                : [];
+            const visibleChecksUnchanged =
+                onTemplateNow.length === onTemplateBefore.length &&
+                onTemplateNow.every((id) => onTemplateBefore.includes(id)) &&
+                onTemplateNow.every((id) => {
+                    const original =
+                        evolutionToEdit?.checkedItems.find(
+                            (item) => item.itemId === id,
+                        )?.freeTextValue ?? '';
+                    return (freeTexts[id] ?? '').trim() === original.trim();
+                });
             return {
                 title: title.trim(),
                 evolutionTemplateId: template?.id ?? null,
-                checkedItemIds: Array.from(effectiveChecked),
-                freeTextValues: freeTextValuesPayload(
-                    effectiveChecked,
-                    freeTexts,
-                ),
-                generatedText: generated || null,
+                checkedItemIds: Array.from(keptChecked),
+                freeTextValues: freeTextValuesPayload(keptChecked, freeTexts),
+                generatedText:
+                    keptOffTemplate.length > 0
+                        ? visibleChecksUnchanged
+                            ? savedSheetText.trim() || null
+                            : null
+                        : generated || null,
                 notes: notes.trim() || null,
             };
         }

@@ -1544,6 +1544,188 @@ describe('prontuário do paciente (painel B)', () => {
         ).toHaveValue('Texto gravado na sessão antiga.');
     });
 
+    it('salvar rascunho reenvia item já marcado que saiu do modelo, o complemento e o texto gravado', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([makeEvolutionTemplate()]);
+        const savedText =
+            '**Conduta:**\nAquecimento global\nItem que saiu — complemento antigo';
+        const draft = makeEvolution({
+            id: 11,
+            title: 'Rascunho lombar',
+            status: 'draft',
+            signedAt: null,
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 20, freeTextValue: null },
+                { itemId: 999, freeTextValue: 'complemento antigo' },
+            ],
+            generatedText: savedText,
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        updateEvolution.mockResolvedValue(draft);
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', { name: /Rascunho lombar/ }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho lombar/ }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho lombar',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        expect(
+            await screen.findByRole('heading', { name: 'Editar evolução' }),
+        ).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(updateEvolution).toHaveBeenCalled();
+        });
+        const dto = updateEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            freeTextValues: { itemId: number; value: string }[];
+            generatedText: string | null;
+            evolutionTemplateId: number | null;
+        };
+        expect(dto.checkedItemIds).toEqual(expect.arrayContaining([20, 999]));
+        expect(dto.freeTextValues).toEqual([
+            { itemId: 999, value: 'complemento antigo' },
+        ]);
+        expect(dto.generatedText).toBe(savedText);
+        expect(dto.evolutionTemplateId).toBe(1);
+    });
+
+    it('rascunho cujo item foi todo arquivado salva o texto gravado em vez de lista vazia', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([makeEvolutionTemplate()]);
+        const savedText = '**Conduta:**\nItem que saiu — complemento antigo';
+        const draft = makeEvolution({
+            id: 12,
+            title: 'Rascunho sem item visível',
+            status: 'draft',
+            signedAt: null,
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 999, freeTextValue: 'complemento antigo' },
+            ],
+            generatedText: savedText,
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        updateEvolution.mockResolvedValue(draft);
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', {
+                    name: /Rascunho sem item visível/,
+                }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho sem item visível/ }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho sem item visível',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        expect(
+            await screen.findByRole('heading', { name: 'Editar evolução' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('article', { name: 'Folha da evolução' }),
+        ).toHaveTextContent('complemento antigo');
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(updateEvolution).toHaveBeenCalled();
+        });
+        const dto = updateEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            freeTextValues: { itemId: number; value: string }[];
+            generatedText: string | null;
+            evolutionTemplateId: number | null;
+        };
+        expect(dto.evolutionTemplateId).toBe(1);
+        expect(dto.checkedItemIds).toEqual([999]);
+        expect(dto.freeTextValues).toEqual([
+            { itemId: 999, value: 'complemento antigo' },
+        ]);
+        expect(dto.generatedText).toBe(savedText);
+    });
+
+    it('rascunho cujo modelo sumiu da lista reenvia o item marcado e o texto gravado', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([]);
+        const savedText = 'Texto gravado quando o modelo ainda existia.';
+        const draft = makeEvolution({
+            id: 13,
+            title: 'Rascunho de modelo removido',
+            status: 'draft',
+            signedAt: null,
+            evolutionTemplateId: 1,
+            checkedItems: [
+                { itemId: 20, freeTextValue: null },
+                { itemId: 999, freeTextValue: 'complemento antigo' },
+            ],
+            generatedText: savedText,
+        });
+        listEvolutions.mockResolvedValue([draft]);
+        updateEvolution.mockResolvedValue(draft);
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', {
+                    name: /Rascunho de modelo removido/,
+                }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(
+            screen.getByRole('button', { name: /Rascunho de modelo removido/ }),
+        );
+        const drawer = await screen.findByRole('dialog', {
+            name: 'Rascunho de modelo removido',
+        });
+        await user.click(
+            within(drawer).getByRole('button', { name: 'Editar rascunho' }),
+        );
+        expect(
+            await screen.findByRole('heading', { name: 'Editar evolução' }),
+        ).toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar rascunho' }),
+        );
+        await waitFor(() => {
+            expect(updateEvolution).toHaveBeenCalled();
+        });
+        const dto = updateEvolution.mock.calls[0]?.[1] as {
+            checkedItemIds: number[];
+            freeTextValues: { itemId: number; value: string }[];
+            generatedText: string | null;
+        };
+        expect(dto.checkedItemIds).toEqual(expect.arrayContaining([20, 999]));
+        expect(dto.freeTextValues).toEqual([
+            { itemId: 999, value: 'complemento antigo' },
+        ]);
+        expect(dto.generatedText).toBe(savedText);
+    });
+
     it('fisioterapeuta não exclui evolução; secretária não exclui arquivo de outro', async () => {
         const user = userEvent.setup();
         role = 'physiotherapist';

@@ -16,17 +16,24 @@ class EvolutionTemplateItem extends Model
         'has_free_text',
         'free_text_placeholder',
         'sort_order',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
             'has_free_text' => 'boolean',
+            'archived_at'   => 'datetime',
         ];
     }
 
     public function section(): BelongsTo
     {
         return $this->belongsTo(EvolutionTemplateSection::class, 'evolution_template_section_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('archived_at');
     }
 }

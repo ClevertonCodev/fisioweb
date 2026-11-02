@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireRepositoryInterface;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaireAnswer;
+use Modules\ClinicQuestionnaire\Models\QuestionnaireTemplate;
 
 class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryInterface
 {
@@ -24,14 +25,46 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
 
     public function find(int $id): PatientQuestionnaire
     {
-        return PatientQuestionnaire::query()
+        $questionnaire = PatientQuestionnaire::query()
             ->with([
                 'clinic',
                 'clinicUser',
-                'template' => fn ($q) => $q->withTrashed()->with('sections.questions'),
                 'answers',
             ])
             ->findOrFail($id);
+
+        $answeredQuestionIds = $questionnaire->answers
+            ->pluck('questionnaire_question_id')
+            ->map(fn ($qid) => (int) $qid)
+            ->all();
+
+        $template = QuestionnaireTemplate::withTrashed()->find($questionnaire->questionnaire_template_id);
+        if (!is_null($template)) {
+            $sections = $template->allSections()
+                ->where(function ($q) use ($answeredQuestionIds) {
+                    $q->whereNull('archived_at');
+                    if (!empty($answeredQuestionIds)) {
+                        $q->orWhereHas('allQuestions', fn ($qq) => $qq->whereIn('id', $answeredQuestionIds));
+                    }
+                })
+                ->get()
+                ->each(function ($section) use ($answeredQuestionIds) {
+                    $questions = $section->allQuestions()
+                        ->where(function ($q) use ($answeredQuestionIds) {
+                            $q->whereNull('archived_at');
+                            if (!empty($answeredQuestionIds)) {
+                                $q->orWhereIn('id', $answeredQuestionIds);
+                            }
+                        })
+                        ->get();
+                    $section->setRelation('questions', $questions);
+                });
+            $template->setRelation('sections', $sections);
+        }
+
+        $questionnaire->setRelation('template', $template);
+
+        return $questionnaire;
     }
 
     public function findForPublic(string $token): PatientQuestionnaire

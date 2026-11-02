@@ -27,16 +27,18 @@ class QuestionnaireQuestion extends Model
         'scale_max',
         'required',
         'sort_order',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'options'    => 'array',
-            'scale_min'  => 'integer',
-            'scale_max'  => 'integer',
-            'required'   => 'boolean',
-            'sort_order' => 'integer',
+            'options'     => 'array',
+            'scale_min'   => 'integer',
+            'scale_max'   => 'integer',
+            'required'    => 'boolean',
+            'sort_order'  => 'integer',
+            'archived_at' => 'datetime',
         ];
     }
 

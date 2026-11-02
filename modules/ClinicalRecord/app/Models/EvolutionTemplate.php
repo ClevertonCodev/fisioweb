@@ -5,9 +5,12 @@ namespace Modules\ClinicalRecord\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EvolutionTemplate extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'clinic_evolution_templates';
 
     protected $fillable = [
@@ -32,6 +35,13 @@ class EvolutionTemplate extends Model
     }
 
     public function sections(): HasMany
+    {
+        return $this->hasMany(EvolutionTemplateSection::class)
+            ->whereNull('archived_at')
+            ->orderBy('sort_order');
+    }
+
+    public function allSections(): HasMany
     {
         return $this->hasMany(EvolutionTemplateSection::class)->orderBy('sort_order');
     }

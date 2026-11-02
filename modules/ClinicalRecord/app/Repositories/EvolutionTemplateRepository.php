@@ -5,7 +5,9 @@ namespace Modules\ClinicalRecord\Repositories;
 use Illuminate\Support\Collection;
 use Modules\ClinicalRecord\Contracts\EvolutionTemplateRepositoryInterface;
 use Modules\ClinicalRecord\Models\EvolutionTemplate;
+use Modules\ClinicalRecord\Models\EvolutionTemplateItem;
 use Modules\ClinicalRecord\Models\PatientEvolution;
+use Modules\ClinicalRecord\Models\PatientEvolutionCheckedItem;
 
 class EvolutionTemplateRepository implements EvolutionTemplateRepositoryInterface
 {
@@ -13,7 +15,6 @@ class EvolutionTemplateRepository implements EvolutionTemplateRepositoryInterfac
     {
         return EvolutionTemplate::query()
             ->availableForClinic($clinicId)
-            ->active()
             ->with('sections.items')
             ->get();
     }
@@ -37,40 +38,125 @@ class EvolutionTemplateRepository implements EvolutionTemplateRepositoryInterfac
         return $template->fresh();
     }
 
-    public function replaceSections(EvolutionTemplate $template, array $sections): void
+    public function syncSections(EvolutionTemplate $template, array $sections): void
     {
-        $template->sections()->each(fn ($section) => $section->items()->delete());
-        $template->sections()->delete();
+        $existingSections = $template->allSections()->get()->keyBy('id');
+        $existingItems    = $existingSections->isNotEmpty()
+            ? EvolutionTemplateItem::query()
+                ->whereIn('evolution_template_section_id', $existingSections->keys())
+                ->get()
+                ->keyBy('id')
+            : collect();
 
-        foreach ($sections as $sectionData) {
-            $section = $template->sections()->create([
-                'title'      => $sectionData['title'],
-                'sort_order' => $sectionData['sort_order'] ?? 0,
-            ]);
+        $keptSectionIds = [];
+        $keptItemIds    = [];
 
-            foreach ($sectionData['items'] ?? [] as $itemData) {
-                $section->items()->create([
-                    'label'                 => $itemData['label'],
-                    'print_text'            => $itemData['print_text'],
-                    'has_free_text'         => $itemData['has_free_text'] ?? false,
-                    'free_text_placeholder' => $itemData['free_text_placeholder'] ?? null,
-                    'sort_order'            => $itemData['sort_order'] ?? 0,
-                ]);
+        foreach ($sections as $sIndex => $sectionData) {
+            $sectionId    = isset($sectionData['id']) ? (int) $sectionData['id'] : null;
+            $sectionAttrs = [
+                'title'       => $sectionData['title'],
+                'sort_order'  => $sectionData['sort_order'] ?? $sIndex,
+                'archived_at' => null,
+            ];
+
+            if (!is_null($sectionId) && $existingSections->has($sectionId)) {
+                $section = $existingSections->get($sectionId);
+                $section->update($sectionAttrs);
+            } else {
+                $section = $template->allSections()->create($sectionAttrs);
+            }
+
+            $keptSectionIds[] = (int) $section->id;
+
+            foreach ($sectionData['items'] ?? [] as $iIndex => $itemData) {
+                $itemId    = isset($itemData['id']) ? (int) $itemData['id'] : null;
+                $itemAttrs = [
+                    'evolution_template_section_id' => $section->id,
+                    'label'                         => $itemData['label'],
+                    'print_text'                    => $itemData['print_text'],
+                    'has_free_text'                 => (bool) ($itemData['has_free_text'] ?? false),
+                    'free_text_placeholder'         => $itemData['free_text_placeholder'] ?? null,
+                    'sort_order'                    => $itemData['sort_order'] ?? $iIndex,
+                    'archived_at'                   => null,
+                ];
+
+                if (!is_null($itemId) && $existingItems->has($itemId)) {
+                    $item = $existingItems->get($itemId);
+                    $item->update($itemAttrs);
+                } else {
+                    $item = $section->allItems()->create($itemAttrs);
+                }
+
+                $keptItemIds[] = (int) $item->id;
             }
         }
+
+        if ($existingSections->isNotEmpty()) {
+            EvolutionTemplateItem::query()
+                ->whereIn('evolution_template_section_id', $existingSections->keys())
+                ->whereNotIn('id', $keptItemIds)
+                ->whereNull('archived_at')
+                ->update(['archived_at' => now()]);
+        }
+
+        $template->allSections()
+            ->whereNotIn('id', $keptSectionIds)
+            ->whereNull('archived_at')
+            ->update(['archived_at' => now()]);
+    }
+
+    public function sectionIdsForTemplate(EvolutionTemplate $template): array
+    {
+        return $template->allSections()
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function itemIdsForTemplate(EvolutionTemplate $template): array
+    {
+        $sectionIds = $this->sectionIdsForTemplate($template);
+        if (empty($sectionIds)) {
+            return [];
+        }
+
+        return EvolutionTemplateItem::query()
+            ->whereIn('evolution_template_section_id', $sectionIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     public function hasEvolutions(EvolutionTemplate $template): bool
     {
-        return PatientEvolution::query()
-            ->where('evolution_template_id', $template->id)
+        if (
+            PatientEvolution::withTrashed()
+                ->where('evolution_template_id', $template->id)
+                ->exists()
+        ) {
+            return true;
+        }
+
+        $itemIds = $this->itemIdsForTemplate($template);
+        if (empty($itemIds)) {
+            return false;
+        }
+
+        return PatientEvolutionCheckedItem::query()
+            ->whereIn('evolution_template_item_id', $itemIds)
             ->exists();
     }
 
     public function delete(EvolutionTemplate $template): void
     {
-        $template->sections()->each(fn ($section) => $section->items()->delete());
-        $template->sections()->delete();
-        $template->delete();
+        if ($this->hasEvolutions($template)) {
+            $template->delete();
+
+            return;
+        }
+
+        $template->allSections()->each(fn ($section) => $section->allItems()->delete());
+        $template->allSections()->delete();
+        $template->forceDelete();
     }
 }

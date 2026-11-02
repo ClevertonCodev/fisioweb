@@ -17,6 +17,16 @@ interface QuestionnaireTemplateRepositoryInterface
 
     public function replaceSections(QuestionnaireTemplate $template, array $sections): void;
 
+    /**
+     * @return array<int, int>
+     */
+    public function sectionIdsForTemplate(QuestionnaireTemplate $template): array;
+
+    /**
+     * @return array<int, int>
+     */
+    public function questionIdsForTemplate(QuestionnaireTemplate $template): array;
+
     public function delete(QuestionnaireTemplate $template): void;
 
     public function existsActiveForClinic(int $clinicId, int $templateId): bool;

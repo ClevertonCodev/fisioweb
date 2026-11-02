@@ -32,19 +32,19 @@ class EvolutionTemplatePolicyTest extends TestCase
         }
     }
 
-    public function test_any_role_can_create(): void
+    public function test_only_physiotherapist_can_create_directly(): void
     {
-        foreach ($this->allRoles() as $role) {
-            $this->assertTrue($this->policy->create($this->user($role)));
-        }
+        $this->assertTrue($this->policy->create($this->user(ClinicUser::ROLE_PHYSIOTHERAPIST)));
+        $this->assertFalse($this->policy->create($this->user(ClinicUser::ROLE_SECRETARY)));
+        $this->assertFalse($this->policy->create($this->user(ClinicUser::ROLE_ADMIN)));
     }
 
-    public function test_any_role_can_update(): void
+    public function test_only_physiotherapist_can_update_directly(): void
     {
         $template = new EvolutionTemplate;
-        foreach ($this->allRoles() as $role) {
-            $this->assertTrue($this->policy->update($this->user($role), $template));
-        }
+        $this->assertTrue($this->policy->update($this->user(ClinicUser::ROLE_PHYSIOTHERAPIST), $template));
+        $this->assertFalse($this->policy->update($this->user(ClinicUser::ROLE_SECRETARY), $template));
+        $this->assertFalse($this->policy->update($this->user(ClinicUser::ROLE_ADMIN), $template));
     }
 
     public function test_no_role_can_delete_directly(): void

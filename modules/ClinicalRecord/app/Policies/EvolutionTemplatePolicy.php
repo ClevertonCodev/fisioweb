@@ -18,12 +18,12 @@ class EvolutionTemplatePolicy
 
     public function create($user): bool
     {
-        return true;
+        return $user->isPhysiotherapist();
     }
 
     public function update($user, EvolutionTemplate $template): bool
     {
-        return true;
+        return $user->isPhysiotherapist();
     }
 
     public function delete($user, EvolutionTemplate $template): bool

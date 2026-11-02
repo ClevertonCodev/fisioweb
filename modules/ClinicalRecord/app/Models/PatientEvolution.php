@@ -53,7 +53,7 @@ class PatientEvolution extends Model
 
     public function template(): BelongsTo
     {
-        return $this->belongsTo(EvolutionTemplate::class, 'evolution_template_id');
+        return $this->belongsTo(EvolutionTemplate::class, 'evolution_template_id')->withTrashed();
     }
 
     public function checkedItems(): HasMany

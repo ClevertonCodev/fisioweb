@@ -15,5 +15,7 @@ interface EvolutionTemplateServiceInterface
 
     public function update(EvolutionTemplate $template, array $dto): EvolutionTemplate;
 
+    public function setActive(EvolutionTemplate $template, bool $isActive): EvolutionTemplate;
+
     public function destroy(EvolutionTemplate $template): void;
 }

@@ -39,6 +39,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::post('/', [EvolutionTemplateController::class, 'store'])->name('store');
         Route::get('{id}', [EvolutionTemplateController::class, 'show'])->name('show');
         Route::put('{id}', [EvolutionTemplateController::class, 'update'])->name('update');
+        Route::patch('{id}/active', [EvolutionTemplateController::class, 'updateActive'])->name('active');
         Route::delete('{id}', [EvolutionTemplateController::class, 'destroy'])->name('destroy');
     });
 

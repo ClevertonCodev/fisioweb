@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateRepositoryInterface;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateServiceInterface;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireTemplateCreated;
@@ -57,6 +58,10 @@ class QuestionnaireTemplateService implements QuestionnaireTemplateServiceInterf
 
     public function update(QuestionnaireTemplate $template, array $dto): QuestionnaireTemplate
     {
+        if (isset($dto['sections'])) {
+            $this->ensureIdsBelongToTemplate($template, $dto['sections']);
+        }
+
         return DB::transaction(function () use ($template, $dto) {
             $template = $this->repository->update($template, [
                 'title'       => $dto['title'] ?? $template->title,
@@ -74,6 +79,44 @@ class QuestionnaireTemplateService implements QuestionnaireTemplateServiceInterf
     public function destroy(QuestionnaireTemplate $template): void
     {
         $this->repository->delete($template);
+    }
+
+    private function ensureIdsBelongToTemplate(QuestionnaireTemplate $template, array $sections): void
+    {
+        $validSectionIds  = array_flip($this->repository->sectionIdsForTemplate($template));
+        $validQuestionIds = array_flip($this->repository->questionIdsForTemplate($template));
+        $seenSectionIds   = [];
+        $seenQuestionIds  = [];
+        $errors           = [];
+
+        foreach ($sections as $sIndex => $section) {
+            if (isset($section['id'])) {
+                $sectionId = (int) $section['id'];
+                if (isset($seenSectionIds[$sectionId])) {
+                    $errors["sections.{$sIndex}.id"] = 'Seção repetida no questionário.';
+                } elseif (!isset($validSectionIds[$sectionId])) {
+                    $errors["sections.{$sIndex}.id"] = 'A seção informada não pertence a este questionário.';
+                }
+                $seenSectionIds[$sectionId] = true;
+            }
+
+            foreach ($section['questions'] ?? [] as $qIndex => $question) {
+                if (!isset($question['id'])) {
+                    continue;
+                }
+                $questionId = (int) $question['id'];
+                if (isset($seenQuestionIds[$questionId])) {
+                    $errors["sections.{$sIndex}.questions.{$qIndex}.id"] = 'Pergunta repetida no questionário.';
+                } elseif (!isset($validQuestionIds[$questionId])) {
+                    $errors["sections.{$sIndex}.questions.{$qIndex}.id"] = 'A pergunta informada não pertence a este questionário.';
+                }
+                $seenQuestionIds[$questionId] = true;
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 
     private function dispatchEvent(object $event): void

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Modules\ClinicalRecord\Contracts\EvolutionTemplateServiceInterface;
 use Modules\ClinicalRecord\Http\Requests\StoreEvolutionTemplateRequest;
+use Modules\ClinicalRecord\Http\Requests\UpdateEvolutionTemplateActiveRequest;
 use Modules\ClinicalRecord\Http\Requests\UpdateEvolutionTemplateRequest;
+use Modules\ClinicalRecord\Models\EvolutionTemplate;
 
 class EvolutionTemplateController extends ClinicAuthenticatedController
 {
@@ -25,6 +27,8 @@ class EvolutionTemplateController extends ClinicAuthenticatedController
 
     public function store(StoreEvolutionTemplateRequest $request): JsonResponse
     {
+        $this->authorize('create', EvolutionTemplate::class);
+
         $clinicId = $this->clinicId();
         $template = $this->templateService->create($request->validated(), $clinicId);
 
@@ -58,11 +62,34 @@ class EvolutionTemplateController extends ClinicAuthenticatedController
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
-        if ((int) $template->clinic_id !== $clinicId) {
+        if ($template->is_system || (int) $template->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
+        $this->authorize('update', $template);
+
         $template = $this->templateService->update($template, $request->validated());
+
+        return response()->json(['data' => $template]);
+    }
+
+    public function updateActive(UpdateEvolutionTemplateActiveRequest $request, int $id): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+
+        try {
+            $template = $this->templateService->find($id);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Template não encontrado.'], 404);
+        }
+
+        if ($template->is_system || (int) $template->clinic_id !== $clinicId) {
+            return response()->json(['message' => 'Template não encontrado.'], 404);
+        }
+
+        $this->authorize('update', $template);
+
+        $template = $this->templateService->setActive($template, (bool) $request->validated('is_active'));
 
         return response()->json(['data' => $template]);
     }
@@ -77,7 +104,7 @@ class EvolutionTemplateController extends ClinicAuthenticatedController
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 
-        if ((int) $template->clinic_id !== $clinicId) {
+        if ($template->is_system || (int) $template->clinic_id !== $clinicId) {
             return response()->json(['message' => 'Template não encontrado.'], 404);
         }
 

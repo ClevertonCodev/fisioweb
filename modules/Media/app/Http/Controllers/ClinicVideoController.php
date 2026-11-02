@@ -19,8 +19,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
     public function requestPresignedUploadUrl(PresignedVideoUploadRequest $request): JsonResponse
     {
-        $this->ensureClinicAdmin();
-
         try {
             $result = $this->videoService->requestPresignedUpload(
                 $request->validated('filename'),
@@ -43,8 +41,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
     public function requestPresignedThumbnailUrl(int $video, PresignedThumbnailUploadRequest $request): JsonResponse
     {
-        $this->ensureClinicAdmin();
-
         try {
             $this->ensureOwnedVideo($video);
 
@@ -71,8 +67,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
     public function requestPresignedThumbnailReplaceUrl(int $video, PresignedThumbnailUploadRequest $request): JsonResponse
     {
-        $this->ensureClinicAdmin();
-
         try {
             $this->ensureOwnedVideo($video);
 
@@ -99,16 +93,13 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
     public function confirmUpload(Request $request, int $video): JsonResponse
     {
-        $this->ensureClinicAdmin();
-
         $validated = $request->validate([
             'thumbnail_path'    => ['nullable', 'string', 'max:512'],
             'original_filename' => ['nullable', 'string', 'max:255'],
             'duration'          => ['nullable', 'integer', 'min:0'],
-            'metadata'          => ['nullable', 'array'],
         ]);
 
-        $metadata         = isset($validated['metadata']) ? $validated['metadata'] : null;
+        // Sem `metadata` do cliente: ele guarda a lista de imagens autorizadas do vídeo.
         $duration         = isset($validated['duration']) ? (int) $validated['duration'] : null;
         $originalFilename = $validated['original_filename'] ?? null;
 
@@ -120,7 +111,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
                 $validated['thumbnail_path'] ?? null,
                 $originalFilename,
                 $duration,
-                $metadata,
             );
 
             return response()->json([
@@ -144,8 +134,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
     public function syncReferenceImages(Request $request, int $video): JsonResponse
     {
-        $this->ensureClinicAdmin();
-
         $validated = $request->validate([
             'reference_image_paths'   => ['present', 'array', 'max:2'],
             'reference_image_paths.*' => ['string', 'max:512'],
@@ -153,6 +141,7 @@ class ClinicVideoController extends ClinicAuthenticatedController
 
         try {
             $this->ensureOwnedVideo($video);
+            $this->videoService->ensureReferenceImagesBelongToVideo($video, $validated['reference_image_paths'] ?? []);
 
             $result = $this->videoService->syncReferenceImages(
                 $video,
@@ -171,13 +160,6 @@ class ClinicVideoController extends ClinicAuthenticatedController
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);
-        }
-    }
-
-    private function ensureClinicAdmin(): void
-    {
-        if (!$this->clinicUser()->isAdmin()) {
-            abort(403, 'Apenas administradores da clínica podem enviar vídeos de exercício.');
         }
     }
 

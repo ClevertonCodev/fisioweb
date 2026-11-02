@@ -37,7 +37,6 @@ class RouteServiceProvider extends ServiceProvider
             ->group(function () {
                 require module_path($this->name, '/routes/admin.php');
                 require module_path($this->name, '/routes/clinic.php');
-                require module_path($this->name, '/routes/patient.php');
             });
     }
 }

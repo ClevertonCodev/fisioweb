@@ -11,6 +11,7 @@ import { DsButton, DsModal } from '@/components/ds';
 import { getCroppedImageBlob } from '@/lib/crop-image';
 
 import { useObjectUrl } from './use-object-url';
+import { croppedImageName } from './video-rules';
 
 function buildInitialCrop(
     mediaWidth: number,
@@ -118,12 +119,9 @@ export function ExerciseImageCropModal({
                 pixelCrop,
                 mimeType,
             );
-            const extension = imageFile?.name?.split('.').pop() || 'jpg';
-            const name =
-                imageFile?.name?.replace(/\.[^.]+$/, '') || 'thumbnail';
             const croppedFile = new File(
                 [blob],
-                `${name}-cropped.${extension}`,
+                croppedImageName(imageFile?.name ?? '', blob.type),
                 { type: blob.type },
             );
             onConfirm(croppedFile);

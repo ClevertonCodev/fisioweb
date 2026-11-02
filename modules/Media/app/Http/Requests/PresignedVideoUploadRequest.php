@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class PresignedVideoUploadRequest extends FormRequest
 {
+    /** Teto do tamanho declarado, 20 MB para clínica e admin; o env só pode baixar o limite. */
+    public const MAX_VIDEO_SIZE = 20971520;
+
     public function authorize(): bool
     {
         return true;
@@ -13,7 +16,7 @@ class PresignedVideoUploadRequest extends FormRequest
 
     public function rules(): array
     {
-        $maxSize      = (int) config('cloudflare.max_video_size', 20971520);
+        $maxSize      = $this->maxVideoSize();
         $allowedMimes = implode(',', config('cloudflare.allowed_video_mimes', []));
 
         return [
@@ -25,7 +28,7 @@ class PresignedVideoUploadRequest extends FormRequest
 
     public function messages(): array
     {
-        $maxSizeMB = (int) (config('cloudflare.max_video_size', 20971520) / 1048576);
+        $maxSizeMB = (int) ($this->maxVideoSize() / 1048576);
 
         return [
             'filename.required'  => 'O nome do arquivo é obrigatório.',
@@ -36,5 +39,13 @@ class PresignedVideoUploadRequest extends FormRequest
             'size.min'           => 'O arquivo deve ter pelo menos 1 byte.',
             'size.max'           => "O tamanho do arquivo não pode exceder {$maxSizeMB}MB.",
         ];
+    }
+
+    private function maxVideoSize(): int
+    {
+        $configured = (int) config('cloudflare.max_video_size', self::MAX_VIDEO_SIZE);
+
+        // Env vazio ou inválido vira 0: usa o teto em vez de recusar todo vídeo.
+        return $configured > 0 ? min($configured, self::MAX_VIDEO_SIZE) : self::MAX_VIDEO_SIZE;
     }
 }

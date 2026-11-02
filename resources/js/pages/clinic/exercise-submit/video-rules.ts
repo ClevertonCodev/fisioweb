@@ -1,17 +1,11 @@
-export const MAX_VIDEO_MB = 20;
-export const MAX_IMAGE_MB = 5;
+import {
+    ALLOWED_IMAGE_TYPES,
+    ALLOWED_VIDEO_TYPES,
+    MAX_IMAGE_MB,
+    MAX_VIDEO_MB,
+} from '@/application/clinic/exercise-media-limits';
 
-export const ALLOWED_VIDEO_TYPES = [
-    'video/mp4',
-    'video/mpeg',
-    'video/quicktime',
-    'video/x-msvideo',
-    'video/webm',
-    'video/x-flv',
-    'video/x-matroska',
-];
-
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+export { ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_IMAGE_MB, MAX_VIDEO_MB };
 
 export interface VideoInfo {
     width: number;
@@ -19,6 +13,28 @@ export interface VideoInfo {
     duration: number;
     size: number;
     type: string;
+}
+
+const RECORDER_MIME_TYPES = [
+    'video/mp4;codecs=avc1',
+    'video/mp4',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm',
+];
+
+/** Primeiro formato (MP4 ou WebM) que o MediaRecorder do navegador sabe gravar. */
+export function pickRecorderMime(): string | null {
+    if (
+        typeof MediaRecorder === 'undefined' ||
+        typeof MediaRecorder.isTypeSupported !== 'function'
+    ) {
+        return null;
+    }
+    return (
+        RECORDER_MIME_TYPES.find((m) => MediaRecorder.isTypeSupported(m)) ??
+        null
+    );
 }
 
 /** Confere se o navegador suporta regravação de vídeo com canvas + MediaRecorder. */
@@ -30,7 +46,25 @@ export function canEditVideoInBrowser(): boolean {
     ) {
         return false;
     }
-    return typeof HTMLCanvasElement.prototype.captureStream === 'function';
+    return (
+        typeof HTMLCanvasElement.prototype.captureStream === 'function' &&
+        pickRecorderMime() !== null
+    );
+}
+
+const IMAGE_EXTENSIONS: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+};
+
+/** Nome do arquivo recortado, com a extensão do tipo que o canvas gerou de fato. */
+export function croppedImageName(
+    originalName: string,
+    mimeType: string,
+): string {
+    const base = originalName.replace(/\.[^.]+$/, '') || 'imagem';
+    return `${base}-cropped.${IMAGE_EXTENSIONS[mimeType] ?? 'jpg'}`;
 }
 
 /** Valida formato (JPEG, PNG ou WebP) e tamanho máximo (5 MB) de imagem de capa/referência. */
@@ -96,9 +130,29 @@ function ratioLabel(w: number, h: number): string {
     return near ? near[1] : r.toFixed(2);
 }
 
+/** Quadrado (1:1, como post do Instagram), com a mesma folga do rótulo de proporção. */
+export function isSquareVideo(width: number, height: number): boolean {
+    return ratioLabel(width, height) === '1:1';
+}
+
+/** Maior quadrado dentro do quadro; `offset` (0 a 1) desliza o corte pelo lado que sobra. */
+export function squareCrop(
+    width: number,
+    height: number,
+    offset: number,
+): { x: number; y: number; size: number } {
+    const size = Math.min(width, height);
+    return {
+        x: Math.round((width - size) * offset),
+        y: Math.round((height - size) * offset),
+        size,
+    };
+}
+
 /** Uma linha por regra; "fail" impede o envio, "warn" só avisa. */
 export function checkVideo(info: VideoInfo): VideoCheck[] {
     const portrait = info.height > info.width;
+    const square = isSquareVideo(info.width, info.height);
     const ratio = ratioLabel(info.width, info.height);
     const shortSide = Math.min(info.width, info.height);
     const typeOk = ALLOWED_VIDEO_TYPES.includes(info.type);
@@ -118,12 +172,12 @@ export function checkVideo(info: VideoInfo): VideoCheck[] {
             state: info.size <= MAX_VIDEO_MB * 1024 * 1024 ? 'ok' : 'fail',
         },
         {
-            key: 'orientation',
-            label: 'Em pé (formato de celular)',
-            detail: portrait
-                ? `${ratio} · ${info.width}×${info.height}`
-                : `Deitado (${ratio}) · precisa estar em pé`,
-            state: portrait ? (ratio === '9:16' ? 'ok' : 'warn') : 'fail',
+            key: 'shape',
+            label: 'Quadrado (1:1)',
+            detail: square
+                ? `1:1 · ${info.width}×${info.height}`
+                : `${portrait ? 'Em pé' : 'Deitado'} (${ratio}) · precisa ser quadrado`,
+            state: square ? 'ok' : 'fail',
         },
         {
             key: 'quality',

@@ -230,4 +230,232 @@ class ClinicVideoIsolationTest extends TestCase
             ])
             ->assertOk();
     }
+
+    public function test_non_admin_gets_403_before_payload_validation(): void
+    {
+        $physio = ClinicUser::factory()->create([
+            'clinic_id' => Clinic::factory()->create()->id,
+            'role'      => ClinicUser::ROLE_PHYSIOTHERAPIST,
+        ]);
+
+        $this->actingAs($physio, 'clinic')
+            ->postJson('/api/clinic/media/videos/presigned-upload-request', [])
+            ->assertForbidden();
+    }
+
+    public function test_clinic_reference_images_only_accept_paths_issued_for_the_same_video(): void
+    {
+        $clinicA  = Clinic::factory()->create();
+        $clinicB  = Clinic::factory()->create();
+        $adminA   = $this->clinicAdmin($clinicA);
+        $adminB   = $this->clinicAdmin($clinicB);
+        $videoOfA = \Modules\Media\Models\Video::factory()->create([
+            'clinic_id' => $clinicA->id,
+            'status'    => \Modules\Media\Models\Video::STATUS_COMPLETED,
+        ]);
+        $videoOfB = \Modules\Media\Models\Video::factory()->create([
+            'clinic_id' => $clinicB->id,
+            'status'    => \Modules\Media\Models\Video::STATUS_COMPLETED,
+        ]);
+
+        $thumbPayload = [
+            'filename'  => 'ref.jpg',
+            'mime_type' => 'image/jpeg',
+            'size'      => 102400,
+        ];
+
+        $pathOfA = $this->actingAs($adminA, 'clinic')
+            ->postJson("/api/clinic/media/videos/{$videoOfA->id}/presigned-thumbnail-replace-request", $thumbPayload)
+            ->assertOk()
+            ->json('data.path');
+
+        foreach ([$pathOfA, $videoOfA->path, 'thumbnails/videos/inventado.jpg'] as $foreign) {
+            $this->actingAs($adminB, 'clinic')
+                ->putJson("/api/clinic/media/videos/{$videoOfB->id}/reference-images", [
+                    'reference_image_paths' => [$foreign],
+                ])
+                ->assertStatus(422);
+        }
+
+        $first = $this->actingAs($adminB, 'clinic')
+            ->postJson("/api/clinic/media/videos/{$videoOfB->id}/presigned-thumbnail-replace-request", $thumbPayload)
+            ->json('data.path');
+        $second = $this->actingAs($adminB, 'clinic')
+            ->postJson("/api/clinic/media/videos/{$videoOfB->id}/presigned-thumbnail-replace-request", $thumbPayload)
+            ->json('data.path');
+
+        $this->actingAs($adminB, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$videoOfB->id}/reference-images", [
+                'reference_image_paths' => [$first, $second],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.metadata.reference_images.0.file_path', $first)
+            ->assertJsonPath('data.metadata.reference_images.1.file_path', $second);
+
+        // Mandar de novo o que já está salvo continua valendo.
+        $this->actingAs($adminB, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$videoOfB->id}/reference-images", [
+                'reference_image_paths' => [$second],
+            ])
+            ->assertOk();
+    }
+
+    public function test_presigned_upload_keeps_20mb_cap_even_if_env_allows_more(): void
+    {
+        // O infra/provision.sh antigo gravava CLOUDFLARE_MAX_VIDEO_SIZE=524288000.
+        config(['cloudflare.max_video_size' => 524288000]);
+
+        $payload = [
+            'filename'  => 'grande.mp4',
+            'mime_type' => 'video/mp4',
+            'size'      => 20971520 + 1,
+        ];
+
+        $this->actingAs($this->clinicAdmin(), 'clinic')
+            ->postJson('/api/clinic/media/videos/presigned-upload-request', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['size']);
+
+        $this->actingAs(AdminUser::factory()->create(), 'admin')
+            ->postJson('/api/admin/media/videos/presigned-upload-request', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['size']);
+    }
+
+    public function test_clinic_confirm_upload_metadata_cannot_authorize_reference_image_paths(): void
+    {
+        $clinic  = Clinic::factory()->create();
+        $admin   = $this->clinicAdmin($clinic);
+        $foreign = 'thumbnails/videos/de-outra-clinica.jpg';
+
+        $videoId = (int) $this->actingAs($admin, 'clinic')
+            ->postJson('/api/clinic/media/videos/presigned-upload-request', [
+                'filename'  => 'ponte.mp4',
+                'mime_type' => 'video/mp4',
+                'size'      => 1024,
+            ])
+            ->json('data.video_id');
+
+        $this->actingAs($admin, 'clinic')
+            ->postJson("/api/clinic/media/videos/{$videoId}/confirm-upload", [
+                'duration' => 30,
+                'metadata' => [
+                    'issued_image_paths' => [$foreign],
+                    'reference_images'   => [['file_path' => $foreign]],
+                ],
+            ])
+            ->assertOk();
+
+        $this->actingAs($admin, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$videoId}/reference-images", [
+                'reference_image_paths' => [$foreign],
+            ])
+            ->assertStatus(422);
+    }
+
+    public function test_presigned_upload_accepts_exactly_20mb_and_respects_lower_env_limit(): void
+    {
+        $clinicAdmin = $this->clinicAdmin();
+        $payload     = fn (int $size) => ['filename' => 'ponte.mp4', 'mime_type' => 'video/mp4', 'size' => $size];
+
+        $this->actingAs($clinicAdmin, 'clinic')
+            ->postJson('/api/clinic/media/videos/presigned-upload-request', $payload(20971520))
+            ->assertOk();
+
+        config(['cloudflare.max_video_size' => 10485760]);
+
+        $this->actingAs($clinicAdmin, 'clinic')
+            ->postJson('/api/clinic/media/videos/presigned-upload-request', $payload(10485761))
+            ->assertStatus(422)
+            ->assertJsonPath('errors.size.0', 'O tamanho do arquivo não pode exceder 10MB.');
+    }
+
+    public function test_presigned_upload_falls_back_to_20mb_when_env_limit_is_empty_or_invalid(): void
+    {
+        $clinicAdmin = $this->clinicAdmin();
+
+        foreach (['', 0, 'abc'] as $invalid) {
+            config(['cloudflare.max_video_size' => $invalid]);
+
+            $this->actingAs($clinicAdmin, 'clinic')
+                ->postJson('/api/clinic/media/videos/presigned-upload-request', [
+                    'filename'  => 'ponte.mp4',
+                    'mime_type' => 'video/mp4',
+                    'size'      => 1024,
+                ])
+                ->assertOk();
+        }
+    }
+
+    public function test_clinic_can_resend_reference_images_already_saved_on_the_video(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $saved  = 'thumbnails/videos/ja-salva.jpg';
+        $video  = \Modules\Media\Models\Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => \Modules\Media\Models\Video::STATUS_COMPLETED,
+            'metadata'  => ['reference_images' => [['file_path' => $saved]]],
+        ]);
+
+        $this->actingAs($this->clinicAdmin($clinic), 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => [$saved],
+            ])
+            ->assertOk();
+    }
+
+    public function test_only_the_last_ten_issued_image_paths_are_accepted(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $admin  = $this->clinicAdmin($clinic);
+        $video  = \Modules\Media\Models\Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => \Modules\Media\Models\Video::STATUS_COMPLETED,
+        ]);
+
+        $paths = [];
+        for ($i = 0; $i < 11; $i++) {
+            $paths[] = $this->actingAs($admin, 'clinic')
+                ->postJson("/api/clinic/media/videos/{$video->id}/presigned-thumbnail-replace-request", [
+                    'filename'  => "ref-{$i}.jpg",
+                    'mime_type' => 'image/jpeg',
+                    'size'      => 1024,
+                ])
+                ->json('data.path');
+        }
+
+        $this->actingAs($admin, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => [$paths[0]],
+            ])
+            ->assertStatus(422);
+
+        $this->actingAs($admin, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => [$paths[10]],
+            ])
+            ->assertOk();
+    }
+
+    public function test_patient_video_routes_are_removed_and_do_not_expose_clinic_videos(): void
+    {
+        $clinicA = Clinic::factory()->create();
+        $clinicB = Clinic::factory()->create();
+        $video   = \Modules\Media\Models\Video::factory()->create([
+            'clinic_id' => $clinicA->id,
+            'status'    => \Modules\Media\Models\Video::STATUS_PENDING,
+        ]);
+        $patientOfB = \Modules\Patient\Models\Patient::factory()->create([
+            'clinic_id' => $clinicB->id,
+        ]);
+
+        // O app do paciente recebe o vídeo pelo programa (/api/patient/programs/{token}).
+        $this->actingAs($patientOfB, 'patient')
+            ->getJson('/api/patient/media/videos')
+            ->assertNotFound();
+
+        $this->actingAs($patientOfB, 'patient')
+            ->getJson("/api/patient/media/videos/{$video->id}")
+            ->assertNotFound();
+    }
 }

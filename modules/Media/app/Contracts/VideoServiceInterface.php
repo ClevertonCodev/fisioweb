@@ -59,4 +59,13 @@ interface VideoServiceInterface
      * @return array<string, mixed>
      */
     public function syncReferenceImages(int $videoId, array $referenceImagePaths): array;
+
+    /**
+     * Garante que cada path foi gerado pelo presigned de substituição deste vídeo (`requestPresignedThumbnailReplace`) ou já está salvo nas imagens de referência dele.
+     *
+     * @param  list<string>  $referenceImagePaths
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function ensureReferenceImagesBelongToVideo(int $videoId, array $referenceImagePaths): void;
 }

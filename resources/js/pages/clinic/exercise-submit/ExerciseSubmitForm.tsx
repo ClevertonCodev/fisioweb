@@ -31,6 +31,7 @@ export function useSubmitDraft() {
         status,
         progress,
         error: submitError,
+        warning: submitWarning,
         reset,
     } = useSubmitExercise();
 
@@ -115,6 +116,7 @@ export function useSubmitDraft() {
         status,
         progress,
         submitError,
+        submitWarning,
         submit,
         resetAll,
     };
@@ -154,6 +156,7 @@ export function ExerciseSubmitForm({ draft }: { draft: SubmitDraft }) {
                 {draft.status === 'completed' ? (
                     <SubmitSuccess
                         name={v.name}
+                        warning={draft.submitWarning}
                         onAnother={draft.resetAll}
                         onLibrary={() => navigate(LIBRARY_PATH)}
                     />
@@ -179,7 +182,7 @@ export function ExerciseSubmitForm({ draft }: { draft: SubmitDraft }) {
                         <SectionTitle
                             n={1}
                             title="Vídeo"
-                            description="Grave em pé (formato de celular), com boa luz. A duração é lida sozinha."
+                            description="Grave em quadrado (1:1, como post do Instagram), com boa luz. A duração é lida sozinha."
                             done={draft.video !== null && !draft.videoBlocked}
                         />
                         <VideoDropzone

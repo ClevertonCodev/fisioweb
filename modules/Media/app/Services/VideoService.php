@@ -15,6 +15,9 @@ use Modules\Media\Repositories\VideoRepository;
 
 class VideoService implements VideoServiceInterface
 {
+    /** Quantos paths emitidos pelo presigned de substituição ficam guardados por vídeo (as 2 fotos do PDF, com folga para trocas). */
+    private const MAX_ISSUED_IMAGE_PATHS = 10;
+
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
@@ -240,6 +243,7 @@ class VideoService implements VideoServiceInterface
 
         $metadata                           = $video->metadata ?? [];
         $metadata['pending_thumbnail_path'] = $path;
+        $metadata['issued_image_paths']     = array_slice([...($metadata['issued_image_paths'] ?? []), $path], -self::MAX_ISSUED_IMAGE_PATHS);
 
         $this->videoRepository->update($videoId, [
             'metadata' => $metadata,
@@ -354,6 +358,21 @@ class VideoService implements VideoServiceInterface
         }
 
         return $this->formatVideo($video);
+    }
+
+    public function ensureReferenceImagesBelongToVideo(int $videoId, array $referenceImagePaths): void
+    {
+        $metadata = $this->videoRepository->findOrFail($videoId)->metadata ?? [];
+        $allowed  = [
+            ...($metadata['issued_image_paths'] ?? []),
+            ...array_column($metadata['reference_images'] ?? [], 'file_path'),
+        ];
+
+        foreach ($referenceImagePaths as $path) {
+            if (!in_array($path, $allowed, true)) {
+                throw new \InvalidArgumentException('Imagem de referência não autorizada para este vídeo.');
+            }
+        }
     }
 
     protected function formatVideo(Video $video): array

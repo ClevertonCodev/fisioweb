@@ -28,7 +28,7 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 - [x] **Enviar exercício** — `/clinica/exercicios/enviar`
   - Variante A, "Seções + prévia ao lado": vídeo, informações e fotos do PDF, com prévia da biblioteca e checklist.
   - Tela de verdade em todos os ambientes, sem `?variant=`: `ClinicSubmitExercisePage` + `exercise-submit/` · feature `.ai-workbench/015-clinic-enviar-exercicio-ds/`. A v1 e a pasta `exercise-submit-prototype/` saíram.
-  - [x] Limite de tamanho do vídeo alinhado em 20 MB no backend (`config/cloudflare.php`) e isolamento de `/api/clinic/media/videos/*` e `video_id` por clínica; orientação em pé, qualidade e duração seguem conferidas no navegador (`DEFERRED.md` da feature 015 para `ffprobe` no servidor).
+  - [x] Limite de tamanho do vídeo alinhado em 20 MB no backend (`config/cloudflare.php`) e isolamento de `/api/clinic/media/videos/*` e `video_id` por clínica; formato quadrado (1:1), qualidade e duração seguem conferidas no navegador (`DEFERRED.md` da feature 015 para `ffprobe` no servidor).
   - [x] Envio real pela API via `useSubmitExercise` e recorte de imagem no DS v2 (`ExerciseImageCropModal` em `DsModal`) para a capa e as 2 fotos de referência do PDF.
 
 - [x] **Modelos de programas** — `/clinica/programas/modelos` e `/clinica/programas/meus-modelos`

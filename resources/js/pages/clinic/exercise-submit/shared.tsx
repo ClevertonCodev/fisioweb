@@ -127,22 +127,26 @@ export function VideoDropzone({
     const [editing, setEditing] = useState(false);
     const url = useObjectUrl(file);
     const canEdit = canEditVideoInBrowser();
+    // Só vale a leitura do último vídeo escolhido.
+    const lastPicked = useRef<File | null>(null);
 
     const pick = (f: File | null) => {
+        lastPicked.current = f;
         setLocalError(null);
         setChecks(null);
         onFile(f);
-        if (!f) {
-            onValidity?.(false);
-            return;
-        }
+        // Até as regras serem conferidas, o vídeo não pode ser enviado.
+        onValidity?.(f !== null);
+        if (!f) return;
         readVideoInfo(f)
             .then((info) => {
+                if (lastPicked.current !== f) return;
                 const result = checkVideo(info);
                 setChecks(result);
                 onValidity?.(hasBlocking(result));
             })
             .catch(() => {
+                if (lastPicked.current !== f) return;
                 setLocalError('Não foi possível ler este vídeo.');
                 onValidity?.(true);
             });
@@ -309,7 +313,7 @@ export function VideoDropzone({
                                 : 'Arraste o vídeo ou clique para escolher'}
                         </span>
                         <span className="mt-1 block text-ds-caption text-ds-content-muted">
-                            Em pé (formato de celular) · MP4, MOV ou WebM · até{' '}
+                            Quadrado (1:1) · MP4, MOV ou WebM · até{' '}
                             {MAX_VIDEO_MB} MB
                         </span>
                     </span>
@@ -362,13 +366,13 @@ export function VideoDropzone({
 function fixHint(failing: VideoCheck[], canEdit: boolean): string {
     const keys = failing.map((c) => c.key);
     if (!canEdit) {
-        return 'Grave ou exporte o vídeo em pé (9:16) e com até 20 MB.';
+        return `Grave ou exporte o vídeo quadrado (1:1) e com até ${MAX_VIDEO_MB} MB.`;
     }
     if (keys.includes('type')) {
         return 'Grave de novo ou exporte em MP4; “Ajustar vídeo” também gera um arquivo novo.';
     }
     const steps = [
-        keys.includes('orientation') && 'corte para em pé',
+        keys.includes('shape') && 'corte em quadrado',
         keys.includes('size') && 'escolha um trecho menor',
     ].filter(Boolean);
     return `Em “Ajustar vídeo”, ${steps.join(' e ')}.`;
@@ -505,8 +509,14 @@ export function ImageSlot({
                 title={`Recortar ${label}`}
                 aspect={cropAspect}
                 onConfirm={(cropped) => {
-                    onFile(cropped);
                     setPendingCropFile(null);
+                    // O recorte regrava a imagem e ela pode crescer.
+                    const croppedError = validateExerciseImage(cropped);
+                    if (croppedError) {
+                        setImageError(croppedError);
+                        return;
+                    }
+                    onFile(cropped);
                 }}
             />
         </div>
@@ -633,10 +643,12 @@ export function SubmitProgress({
 
 export function SubmitSuccess({
     name,
+    warning,
     onAnother,
     onLibrary,
 }: {
     name: string;
+    warning?: string | null;
     onAnother: () => void;
     onLibrary: () => void;
 }) {
@@ -654,6 +666,11 @@ export function SubmitSuccess({
                     equipe aprovar, ele fica disponível para outras clínicas.
                 </p>
             </div>
+            {warning && (
+                <DsAlert variant="warning" className="max-w-md text-left">
+                    {warning}
+                </DsAlert>
+            )}
             <div className="flex flex-wrap justify-center gap-3">
                 <DsButton
                     variant="secondary"

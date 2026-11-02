@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Clinic\Auth\ActiveClinicUserProvider;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
+use Modules\Clinic\Contracts\ClinicRegistrationServiceInterface;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
 use Modules\Clinic\Contracts\ClinicUserPreferenceRepositoryInterface;
@@ -29,6 +30,7 @@ use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\ClinicUserPreferenceRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
 use Modules\Clinic\Services\ActivityLogger;
+use Modules\Clinic\Services\ClinicRegistrationService;
 use Modules\Clinic\Services\ClinicService;
 use Modules\Clinic\Services\ClinicUserPreferenceService;
 use Modules\Clinic\Services\ClinicUserService;
@@ -74,6 +76,7 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(ClinicUserServiceInterface::class, ClinicUserService::class);
         $this->app->bind(ClinicRepositoryInterface::class, ClinicRepository::class);
         $this->app->bind(ClinicServiceInterface::class, ClinicService::class);
+        $this->app->bind(ClinicRegistrationServiceInterface::class, ClinicRegistrationService::class);
         $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
         $this->app->bind(DashboardServiceInterface::class, DashboardService::class);
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogger::class);
@@ -116,6 +119,14 @@ class ClinicServiceProvider extends ServiceProvider
         // Uma conta por rota: pedir links não gasta as tentativas de redefinir.
         RateLimiter::for('clinic-password', fn (Request $request) => Limit::perMinute(5)
             ->by($request->path() . '|' . $request->ip())
+            ->response($tooMany));
+
+        RateLimiter::for('clinic-register', fn (Request $request) => Limit::perMinute(5)
+            ->by('clinic-register|' . $request->ip())
+            ->response($tooMany));
+
+        RateLimiter::for('clinic-slug-check', fn (Request $request) => Limit::perMinute(30)
+            ->by('clinic-slug-check|' . $request->ip())
             ->response($tooMany));
     }
 

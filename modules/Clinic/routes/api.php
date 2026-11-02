@@ -2,10 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Clinic\Http\Controllers\AuthController;
+use Modules\Clinic\Http\Controllers\ClinicRegistrationController;
 use Modules\Clinic\Http\Controllers\PasswordResetController;
 
 Route::prefix('clinic/auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:clinic-login');
+    Route::post('register', [ClinicRegistrationController::class, 'register'])->middleware('throttle:clinic-register');
+    Route::get('slug-availability', [ClinicRegistrationController::class, 'slugAvailability'])->middleware('throttle:clinic-slug-check');
+    Route::post('verify-email', [ClinicRegistrationController::class, 'verifyEmail'])->middleware('throttle:clinic-password');
+    Route::post('verify-email/resend', [ClinicRegistrationController::class, 'resendVerification'])->middleware('throttle:clinic-password');
     Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('throttle:clinic-password');
     Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('throttle:clinic-password');
 

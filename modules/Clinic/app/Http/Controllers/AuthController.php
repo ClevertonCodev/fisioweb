@@ -10,6 +10,8 @@ use Modules\Clinic\Models\ClinicUser;
 
 class AuthController extends BaseAuthController
 {
+    private ?string $blockedReasonMessage = null;
+
     protected function guardName(): string
     {
         return 'clinic';
@@ -20,15 +22,31 @@ class AuthController extends BaseAuthController
         return $this->attemptLogin($request->validated());
     }
 
-    /** Usuário desativado pelo administrador da clínica não entra. */
+    /**
+     * Usuário desativado pelo administrador da clínica ou com e-mail ainda
+     * não confirmado não entra. Só é checado após a senha correta.
+     */
     protected function canLogIn(Authenticatable $user): bool
     {
-        return $user instanceof ClinicUser
-            && (int) $user->status === ClinicUser::STATUS_ACTIVE;
+        $this->blockedReasonMessage = null;
+
+        if (!$user instanceof ClinicUser || (int) $user->status !== ClinicUser::STATUS_ACTIVE) {
+            $this->blockedReasonMessage = 'Seu acesso está desativado. Fale com o administrador da clínica.';
+
+            return false;
+        }
+
+        if (is_null($user->email_verified_at)) {
+            $this->blockedReasonMessage = "Confirme seu e-mail para entrar. Enviamos o link para {$user->email}.";
+
+            return false;
+        }
+
+        return true;
     }
 
     protected function blockedLoginMessage(): string
     {
-        return 'Seu acesso está desativado. Fale com o administrador da clínica.';
+        return $this->blockedReasonMessage ?? 'Seu acesso está desativado. Fale com o administrador da clínica.';
     }
 }

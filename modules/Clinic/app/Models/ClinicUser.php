@@ -56,6 +56,8 @@ class ClinicUser extends Authenticatable implements JWTSubject
         'clinic_id',
         'name',
         'email',
+        'email_verified_at',
+        'terms_accepted_at',
         'password',
         'role',
         'mestre',
@@ -78,6 +80,7 @@ class ClinicUser extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at'       => 'datetime',
+            'terms_accepted_at'       => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
             'password'                => 'hashed',
             'status'                  => 'integer',

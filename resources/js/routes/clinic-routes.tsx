@@ -8,6 +8,7 @@ import ClinicLoginPage from '@/pages/clinic/ClinicLoginPage';
 import ClinicRegisterPage from '@/pages/clinic/ClinicRegisterPage';
 import ClinicResetPasswordPage from '@/pages/clinic/ClinicResetPasswordPage';
 import ClinicSubmitExercisePage from '@/pages/clinic/ClinicSubmitExercisePage';
+import ClinicVerifyEmailPage from '@/pages/clinic/ClinicVerifyEmailPage';
 import DashboardPage from '@/pages/clinic/DashboardPage';
 import ExercisesPage from '@/pages/clinic/ExercisesPage';
 import ImpersonatePage from '@/pages/clinic/ImpersonatePage';
@@ -24,6 +25,10 @@ export function clinicRoutes(queryClient: QueryClient): RouteObject[] {
     return [
         { path: '/clinica/login', element: <ClinicLoginPage /> },
         { path: '/clinica/criar-conta', element: <ClinicRegisterPage /> },
+        {
+            path: '/clinica/confirmar-email',
+            element: <ClinicVerifyEmailPage />,
+        },
         {
             path: '/clinica/recuperar-senha',
             element: <ClinicForgotPasswordPage />,

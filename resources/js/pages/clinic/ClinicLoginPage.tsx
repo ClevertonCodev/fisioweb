@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
-import { authErrorMessage } from '@/application/clinic';
+import {
+    authErrorMessage,
+    resendClinicVerification,
+} from '@/application/clinic';
 import {
     AuthLayout,
     PasswordInput,
@@ -28,7 +31,10 @@ export default function ClinicLoginPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [error, setError] = useState<string | null>(null);
+    const [resentMessage, setResentMessage] = useState<string | null>(null);
+    const [resending, setResending] = useState(false);
     const {
+        control,
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
@@ -37,8 +43,14 @@ export default function ClinicLoginPage() {
         defaultValues: { email: '', password: '' },
     });
 
+    const watchedEmail = useWatch({ control, name: 'email' }) ?? '';
+    const isUnverifiedError = Boolean(
+        error && /confirme seu e-mail/i.test(error),
+    );
+
     const submit = handleSubmit(async ({ email, password }) => {
         setError(null);
+        setResentMessage(null);
         try {
             await login('clinic', {
                 email: email ?? '',
@@ -54,6 +66,28 @@ export default function ClinicLoginPage() {
             );
         }
     });
+
+    const handleResendVerification = async () => {
+        const targetEmail = watchedEmail.trim();
+        if (!targetEmail || resending) return;
+
+        setResending(true);
+        try {
+            await resendClinicVerification(targetEmail);
+            setResentMessage(
+                `Enviamos um novo link de confirmação para ${targetEmail}.`,
+            );
+        } catch (err) {
+            setError(
+                authErrorMessage(
+                    err,
+                    'Não foi possível reenviar o link agora. Tente de novo.',
+                ),
+            );
+        } finally {
+            setResending(false);
+        }
+    };
 
     return (
         <AuthLayout
@@ -73,8 +107,23 @@ export default function ClinicLoginPage() {
         >
             <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
                 {error && (
-                    <DsAlert variant="danger" mode="compact">
-                        {error}
+                    <div className="flex flex-col gap-2">
+                        <DsAlert variant="danger" mode="compact">
+                            {error}
+                        </DsAlert>
+                        {isUnverifiedError && (
+                            <TextLink
+                                onClick={() => void handleResendVerification()}
+                                className="self-start text-ds-caption"
+                            >
+                                Reenviar e-mail de confirmação
+                            </TextLink>
+                        )}
+                    </div>
+                )}
+                {resentMessage && (
+                    <DsAlert variant="success" mode="compact">
+                        {resentMessage}
                     </DsAlert>
                 )}
                 <DsInput

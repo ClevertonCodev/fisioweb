@@ -15,6 +15,7 @@ export { apiClinicPatientsRepository } from './api-clinic-patients';
 export { apiClinicProfileRepository } from './api-clinic-profile';
 export { apiClinicProgramsRepository } from './api-clinic-programs';
 export { apiClinicProgramsLibraryRepository } from './api-clinic-programs-library';
+export { apiClinicRegistrationRepository } from './api-clinic-registration';
 export { apiClinicServiceTypesRepository } from './api-clinic-service-types';
 export { apiClinicUsersRepository } from './api-clinic-users';
 export { apiClinicVideosRepository } from './api-clinic-videos';

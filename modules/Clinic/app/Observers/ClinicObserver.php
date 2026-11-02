@@ -10,20 +10,25 @@ class ClinicObserver
 {
     public function created(Clinic $clinic): void
     {
+        if ($clinic->skipMasterUserObserver) {
+            return;
+        }
+
         // withTrashed: o e-mail de um usuário excluído continua ocupado no índice único.
         if (ClinicUser::withTrashed()->where('email', $clinic->email)->exists()) {
             return;
         }
 
         ClinicUser::create([
-            'clinic_id' => $clinic->id,
-            'name'      => $clinic->name,
-            'email'     => $clinic->email,
-            'password'  => Hash::make($clinic->document),
-            'document'  => $clinic->document,
-            'role'      => ClinicUser::ROLE_ADMIN,
-            'mestre'    => ClinicUser::MESTRE_YES,
-            'status'    => ClinicUser::STATUS_ACTIVE,
+            'clinic_id'         => $clinic->id,
+            'name'              => $clinic->name,
+            'email'             => $clinic->email,
+            'email_verified_at' => now(),
+            'password'          => Hash::make($clinic->document),
+            'document'          => $clinic->document,
+            'role'              => ClinicUser::ROLE_ADMIN,
+            'mestre'            => ClinicUser::MESTRE_YES,
+            'status'            => ClinicUser::STATUS_ACTIVE,
         ]);
     }
 }

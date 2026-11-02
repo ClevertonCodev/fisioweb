@@ -170,8 +170,8 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [ ] A clínica 1 do seed é PJ com documento de 11 dígitos ("CNPJ incompleto"): corrigir o seed.
   - [ ] Situação fica só para leitura (na v1 o mestre muda); decidir se continua assim. Salvar é stub.
 
-- [ ] **Criar conta** — `/clinica/criar-conta`
-  - Variante A, "Três passos": o mesmo cartão do login em três passos (clínica, acesso, endereço dos links), com força da senha e resumo antes de criar.
-  - Código: `resources/js/pages/clinic/register-prototype/`
-  - [ ] O auto-cadastro não existe no backend (a v1 também só avisa); criar a conta é stub.
-  - [ ] Conferir no backend se o endereço (slug) está livre; o protótipo só marca `clinica-cleverton` como usado.
+- [x] **Criar conta** — `/clinica/criar-conta`
+  - Variante A, "Três passos": o mesmo cartão do login em três passos (clínica, acesso, endereço dos links), com força da senha, aceite de Termos de Uso / LGPD e resumo antes de criar.
+  - Tela de verdade em todos os ambientes, sem `?variant=`: `ClinicRegisterPage` + `ClinicVerifyEmailPage` (`/clinica/confirmar-email`) · feature `.ai-workbench/014-clinic-criar-conta-ds/`. A v1 e a pasta `register-prototype/` saíram; decisões no [ADR 028](adr/028-auto-cadastro-da-clinica-com-confirmacao-de-email.md).
+  - [x] Auto-cadastro real no backend (`POST /api/clinic/auth/register`) criando a clínica ativa no plano `Premium` e o usuário mestre com a senha escolhida, exigindo confirmação de e-mail antes do primeiro login.
+  - [x] Conferência real no backend se o endereço (`slug`) está livre (`GET /api/clinic/auth/slug-availability`).

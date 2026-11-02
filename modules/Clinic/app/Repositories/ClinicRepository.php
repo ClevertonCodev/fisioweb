@@ -5,6 +5,7 @@ namespace Modules\Clinic\Repositories;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Clinic\Contracts\ClinicRepositoryInterface;
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Models\ClinicUser;
 
 class ClinicRepository implements ClinicRepositoryInterface
 {
@@ -65,6 +66,39 @@ class ClinicRepository implements ClinicRepositoryInterface
         return $this->model->create($data);
     }
 
+    public function createWithoutMasterUserObserver(array $data): Clinic
+    {
+        $clinic                         = new Clinic($data);
+        $clinic->skipMasterUserObserver = true;
+        $clinic->save();
+
+        return $clinic;
+    }
+
+    public function createMasterUser(array $data): ClinicUser
+    {
+        return ClinicUser::create($data);
+    }
+
+    public function findClinicUserWithClinic(int $clinicUserId): ?ClinicUser
+    {
+        return ClinicUser::with('clinic')->find($clinicUserId);
+    }
+
+    public function findActiveUnverifiedUserByEmail(string $email): ?ClinicUser
+    {
+        return ClinicUser::query()
+            ->where('email', mb_strtolower(trim($email)))
+            ->where('status', ClinicUser::STATUS_ACTIVE)
+            ->whereNull('email_verified_at')
+            ->first();
+    }
+
+    public function markClinicUserEmailVerified(ClinicUser $user): void
+    {
+        $user->forceFill(['email_verified_at' => now()])->save();
+    }
+
     public function update(int $id, array $data): Clinic
     {
         $clinic = $this->model->findOrFail($id);
@@ -76,5 +110,10 @@ class ClinicRepository implements ClinicRepositoryInterface
     public function delete(int $id): bool
     {
         return (bool) $this->model->findOrFail($id)->delete();
+    }
+
+    public function slugExistsWithTrashed(string $slug): bool
+    {
+        return $this->model->withTrashed()->where('slug', $slug)->exists();
     }
 }

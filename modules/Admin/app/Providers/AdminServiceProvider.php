@@ -11,6 +11,7 @@ use Modules\Admin\Contracts\ExerciseServiceInterface;
 use Modules\Admin\Contracts\Public\AssessmentTemplateReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
+use Modules\Admin\Contracts\Public\PlanCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ProgramCatalogReadServiceInterface;
 use Modules\Admin\Repositories\AdminProgramRepository;
 use Modules\Admin\Repositories\ExerciseRepository;
@@ -19,6 +20,7 @@ use Modules\Admin\Services\AssessmentTemplateReadService;
 use Modules\Admin\Services\ExerciseCatalogReadService;
 use Modules\Admin\Services\ExerciseService;
 use Modules\Admin\Services\ExerciseSubmissionService;
+use Modules\Admin\Services\PlanCatalogReadService;
 use Modules\Admin\Services\ProgramCatalogReadService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -58,6 +60,7 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->bind(AssessmentTemplateReadServiceInterface::class, AssessmentTemplateReadService::class);
         $this->app->bind(ExerciseCatalogReadServiceInterface::class, ExerciseCatalogReadService::class);
         $this->app->bind(ProgramCatalogReadServiceInterface::class, ProgramCatalogReadService::class);
+        $this->app->bind(PlanCatalogReadServiceInterface::class, PlanCatalogReadService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

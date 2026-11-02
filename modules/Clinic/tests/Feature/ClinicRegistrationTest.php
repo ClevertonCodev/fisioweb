@@ -163,6 +163,56 @@ class ClinicRegistrationTest extends TestCase
             ->assertJsonValidationErrors(['email']);
     }
 
+    /** E-mails gravados pelo admin guardam a maiúscula digitada; o cadastro compara sem ela. */
+    public function test_register_rejects_email_already_used_with_different_case(): void
+    {
+        Clinic::factory()->create(['email' => 'Contato@OutraClinica.com.br']);
+        ClinicUser::factory()->create(['email' => 'Joao@Fisio.com']);
+
+        foreach (['contato@outraclinica.com.br', 'joao@fisio.com', 'JOAO@FISIO.COM'] as $email) {
+            $this->postJson('/api/clinic/auth/register', $this->validPayload(['email' => $email]))
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['email']);
+        }
+    }
+
+    public function test_resend_verification_finds_pending_user_typed_with_different_case(): void
+    {
+        Queue::fake();
+
+        $this->postJson('/api/clinic/auth/register', $this->validPayload())->assertCreated();
+        $pending = ClinicUser::where('email', 'contato@movimento.com.br')->firstOrFail();
+
+        Queue::fake(); // limpa o job do register
+
+        $this->postJson('/api/clinic/auth/verify-email/resend', ['email' => 'Contato@Movimento.com.br'])->assertOk();
+
+        Queue::assertPushed(
+            SendClinicEmailVerificationJob::class,
+            fn (SendClinicEmailVerificationJob $job): bool => $job->clinicUserId === (int) $pending->id,
+        );
+    }
+
+    /**
+     * O backfill roda antes dos seeders: usuário criado pelo seeder precisa
+     * nascer confirmado, senão as contas de desenvolvimento levam 403.
+     */
+    public function test_dev_seeder_users_are_born_verified_and_can_log_in(): void
+    {
+        Clinic::factory()->create(['email' => 'clevertonsantoscodev@gmail.com']);
+
+        $this->seed(\Modules\Clinic\Database\Seeders\ClinicUserSeeder::class);
+
+        foreach (['ana.paula@fisioelite.com', 'carlos.admin@fisioelite.com', 'mariana.secretaria@fisioelite.com'] as $email) {
+            $this->assertNotNull(ClinicUser::where('email', $email)->firstOrFail()->email_verified_at);
+
+            $this->postJson('/api/clinic/auth/login', [
+                'email'    => $email,
+                'password' => '12345678',
+            ])->assertOk();
+        }
+    }
+
     public function test_register_rejects_duplicate_and_invalid_documents_for_pf_and_pj(): void
     {
         Clinic::factory()->create(['document' => '11222333000181']);

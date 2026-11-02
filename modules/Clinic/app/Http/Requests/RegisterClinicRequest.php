@@ -72,8 +72,9 @@ class RegisterClinicRequest extends FormRequest
                     if (!is_string($value)) {
                         return;
                     }
-                    $inClinics = Clinic::withTrashed()->where('email', $value)->exists();
-                    $inUsers   = ClinicUser::withTrashed()->where('email', $value)->exists();
+                    // LOWER: e-mails gravados pelo admin guardam a maiúscula digitada.
+                    $inClinics = Clinic::withTrashed()->whereRaw('LOWER(email) = ?', [$value])->exists();
+                    $inUsers   = ClinicUser::withTrashed()->whereRaw('LOWER(email) = ?', [$value])->exists();
 
                     if ($inClinics || $inUsers) {
                         $fail('Este e-mail já está em uso.');

@@ -20,6 +20,23 @@ class LoginSecurityTest extends TestCase
         ])->assertOk()->assertJsonStructure(['access_token']);
     }
 
+    /**
+     * O cadastro grava o e-mail em minúsculas e o admin grava como foi digitado.
+     * No Postgres a comparação diferencia maiúsculas: o login precisa ignorá-las.
+     */
+    public function test_login_ignores_email_case_for_new_and_legacy_users(): void
+    {
+        ClinicUser::factory()->create(['email' => 'maria@clinica.com.br']);
+        ClinicUser::factory()->create(['email' => 'Joao@Fisio.com']);
+
+        foreach (['Maria@Clinica.com.br', 'joao@fisio.com', 'JOAO@FISIO.COM', ' Joao@Fisio.com '] as $typed) {
+            $this->postJson('/api/clinic/auth/login', [
+                'email'    => $typed,
+                'password' => 'password',
+            ])->assertOk()->assertJsonStructure(['access_token']);
+        }
+    }
+
     public function test_inactive_user_with_right_password_gets_403_without_token(): void
     {
         $user = ClinicUser::factory()->create(['status' => ClinicUser::STATUS_INACTIVE]);

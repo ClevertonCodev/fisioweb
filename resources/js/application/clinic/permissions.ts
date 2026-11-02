@@ -13,6 +13,8 @@ export const can = {
     reactivate: (role?: ClinicRole) => role === 'admin' || role === 'secretary',
     manageClinicalRecords: (role?: ClinicRole) =>
         role === 'admin' || role === 'physiotherapist',
+    manageEvolutionTemplates: (role?: ClinicRole) =>
+        role === 'admin' || role === 'physiotherapist',
     manageServiceTypes: (role?: ClinicRole) =>
         role === 'admin' || role === 'secretary',
     /** Finanças: lançar, editar, excluir, lixeira, resumo, relatório e exportar. */

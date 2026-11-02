@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
@@ -52,11 +53,21 @@ export function useEvolutionComposer(
     onClose: () => void,
     evolutionToEdit?: PatientEvolution,
 ) {
+    const navigate = useNavigate();
     const templates = useEvolutionTemplates();
     const evolutions = usePatientEvolutions(patientId);
     const createEvolution = useCreateEvolution(patientId);
     const updateEvolution = useUpdateEvolution(patientId);
     const signEvolution = useSignEvolution(patientId);
+
+    const availableTemplates = useMemo(
+        () =>
+            (templates.data ?? []).filter(
+                (t) =>
+                    t.isActive || t.id === evolutionToEdit?.evolutionTemplateId,
+            ),
+        [templates.data, evolutionToEdit?.evolutionTemplateId],
+    );
 
     const last: PatientEvolution | undefined = useMemo(
         () =>
@@ -96,7 +107,7 @@ export function useEvolutionComposer(
     const [notes, setNotes] = useState(() => evolutionToEdit?.notes ?? '');
     const [titleError, setTitleError] = useState(false);
 
-    const template = templates.data?.find((t) => t.id === templateId);
+    const template = availableTemplates.find((t) => t.id === templateId);
     const blocks = evolutionSheetBlocks(template, checked, freeTexts);
     const rebuilt = buildEvolutionSheetText(template, checked, freeTexts);
     const savedSheetText = evolutionToEdit?.generatedText ?? '';
@@ -206,8 +217,16 @@ export function useEvolutionComposer(
 
     return {
         loading: templates.isLoading,
-        templates: templates.data ?? [],
+        templates: availableTemplates,
         template,
+        manageTemplates: () => {
+            onClose();
+            navigate(
+                `/clinica/templates/evolucoes?returnTo=${encodeURIComponent(
+                    `/clinica/pacientes/${patientId}`,
+                )}`,
+            );
+        },
         sections: template
             ? [...template.sections]
                   .sort((a, b) => a.sortOrder - b.sortOrder)

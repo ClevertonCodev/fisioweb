@@ -18,7 +18,10 @@ function sortedSections(template: EvolutionTemplate) {
         }));
 }
 
-export function itemLine(item: EvolutionTemplateItem, free?: string): string {
+export function itemLine(
+    item: Pick<EvolutionTemplateItem, 'printText' | 'hasFreeText'>,
+    free?: string,
+): string {
     return item.hasFreeText && free?.trim()
         ? `${item.printText} — ${free.trim()}`
         : item.printText;

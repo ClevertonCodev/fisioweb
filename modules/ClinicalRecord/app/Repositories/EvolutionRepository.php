@@ -15,7 +15,7 @@ class EvolutionRepository implements EvolutionRepositoryInterface
         return PatientEvolution::query()
             ->forClinic($clinicId)
             ->where('patient_id', $patientId)
-            ->with(['clinicUser', 'template'])
+            ->with(['clinicUser', 'template', 'checkedItems'])
             ->latest()
             ->get();
     }

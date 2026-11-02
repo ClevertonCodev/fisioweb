@@ -5,6 +5,7 @@ import {
     Building2,
     ChevronDown,
     Copy,
+    FileText,
     LogOut,
     MessageCircle,
     User,
@@ -99,6 +100,12 @@ export function ClinicAccountMenu() {
                   },
               ]
             : []),
+        {
+            icon: FileText,
+            label: 'Modelos de evolução',
+            description: 'Itens prontos que viram texto no prontuário',
+            path: '/clinica/templates/evolucoes',
+        },
         {
             icon: Bell,
             label: 'Notificações',

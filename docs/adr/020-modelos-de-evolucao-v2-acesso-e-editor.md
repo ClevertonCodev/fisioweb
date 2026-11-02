@@ -32,10 +32,10 @@ Como está hoje:
 
 1. **Antes de liberar o editor v2, o backend para de apagar e recriar itens** (detalhado no [ADR 021](021-editar-modelo-de-evolucao-nao-apaga-historico.md)). A edição passa a atualizar por id: item com `id` é atualizado, item novo é criado, e item removido é desativado (soft delete ou `is_active = false`), nunca apagado. A FK de `checked_items` deixa de ser `cascadeOnDelete` (passa a `restrictOnDelete`), para que um erro futuro não apague histórico em silêncio. O front manda o `id` de cada seção e de cada item que já existe.
 2. **Modelo do sistema:** abre no editor com um aviso de que ele não muda. O botão principal vira "Salvar como cópia" e cria um modelo novo da clínica (`POST /evolution-templates`) com o que foi ajustado; o original continua igual. Na lista, o cartão do sistema tem "Duplicar" no lugar de "Editar" e não tem o interruptor "Ativo".
-3. **"Experimentar"** usa o mesmo formato de texto do backend (`EvolutionService::generateText`): o título da seção em negrito, um item por linha e o complemento depois de " — ". Hoje isso está no componente `TryTemplate` (`evolution-template-prototype/parts.tsx`) e na função `lineOf` do `shared.ts`. Na tela real, as duas regras ficam iguais com teste, ou a prévia chama o endpoint de gerar texto.
+3. **"Experimentar"** usa o mesmo formato de texto do backend (`EvolutionService::generateText`): o título da seção em negrito, um item por linha e o complemento depois de " — ". Na tela real, `TryTemplate` compartilha `itemLine` de `resources/js/application/clinic/evolution-sheet-text.ts`, com testes nos dois lados.
 4. **Validação** no Zod e no Form Request: nome obrigatório, ao menos uma seção, título em toda seção, ao menos um item por seção, e nome e texto do prontuário em todo item. O rodapé mostra o primeiro problema e quantos faltam. A tela real segue RHF + Zod (o protótipo usa `useState`).
-5. **Ativar e desativar** usa uma rota própria (por exemplo `PATCH /evolution-templates/{id}/active`) que grava só `is_active`, sem mandar as seções. Modelo inativo some da escolha na nova evolução e continua na lista, com o selo "Inativo".
-6. **Excluir** aparece só para administrador, desabilitado com o motivo para os outros ([ADR 017](017-acao-sem-permissao-visivel-e-desabilitada.md)). O aviso diz que as evoluções já escritas continuam no prontuário. Isso só vale depois do item 1, ou com exclusão lógica do modelo.
+5. **Ativar e desativar** usa uma rota própria (`PATCH /api/clinic/evolution-templates/{id}/active`) que grava só `is_active`, sem mandar as seções. Modelo inativo some da escolha na nova evolução e continua na lista, com o selo "Inativo".
+6. **Permissões e exclusão:** administrador e fisioterapeuta criam, editam, duplicam e ativam/desativam modelos; secretário(a) só visualiza e experimenta (403 no backend nas rotas de escrita e botões com `aria-disabled="true"` e motivo no tooltip no front, conforme [ADR 017](017-acao-sem-permissao-visivel-e-desabilitada.md)). **Excluir** é exclusivo de administrador (desabilitado com o motivo para fisioterapeuta e secretário(a)). Se o modelo nunca foi usado em nenhuma evolução, é apagado fisicamente; se já foi usado, sofre exclusão lógica (`SoftDeletes`), mantendo seções e itens no banco e continuando visível nas evoluções já escritas (`withTrashed()`).
 7. **Largura:** as duas telas usam a largura máxima do DS, `max-w-(--breakpoint-ds-xl)` (1920px), como a lista de pacientes.
 
 ## Consequências
@@ -59,6 +59,6 @@ Como está hoje:
 - Guardar uma cópia do modelo dentro de cada evolução: resolve o histórico, mas duplica dado; o `generated_text` já guarda o que foi escrito.
 - Link só no menu do topo: o topo tem as áreas do dia a dia (agenda, pacientes, programas); modelo é configuração de vez em quando.
 
-## Em aberto
+## Resolvido no refinamento (feature 016)
 
-- Se secretário(a) deve criar e editar modelos (hoje pode). A tela segue a Policy; mudar a Policy é decisão de produto.
+- Secretário(a) só pode visualizar e experimentar modelos; criar, editar, duplicar e ativar/desativar ficam restritos a administrador e fisioterapeuta (`EvolutionTemplatePolicy::create` e `update`), e excluir fica restrito a administrador (`Gate::before`).

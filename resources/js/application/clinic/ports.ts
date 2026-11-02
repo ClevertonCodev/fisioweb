@@ -344,6 +344,7 @@ export interface EvolutionWriteDto {
 }
 
 export interface EvolutionTemplateItemWriteDto {
+    id?: number;
     label: string;
     printText: string;
     hasFreeText: boolean;
@@ -352,6 +353,7 @@ export interface EvolutionTemplateItemWriteDto {
 }
 
 export interface EvolutionTemplateSectionWriteDto {
+    id?: number;
     title: string;
     sortOrder: number;
     items: EvolutionTemplateItemWriteDto[];
@@ -373,6 +375,10 @@ export interface EvolutionsRepository {
     updateTemplate(
         id: string,
         dto: EvolutionTemplateWriteDto,
+    ): Promise<EvolutionTemplate>;
+    setTemplateActive(
+        id: string,
+        isActive: boolean,
     ): Promise<EvolutionTemplate>;
     destroyTemplate(id: string): Promise<void>;
     create(
@@ -438,6 +444,7 @@ export interface PatientQuestionnairesRepository {
 }
 
 export interface QuestionnaireTemplateQuestionWriteDto {
+    id?: number;
     label: string;
     type: 'multiple_choice' | 'checkbox' | 'scale' | 'text';
     options: string[] | null;
@@ -447,6 +454,7 @@ export interface QuestionnaireTemplateQuestionWriteDto {
 }
 
 export interface QuestionnaireTemplateSectionWriteDto {
+    id?: number;
     title: string;
     questions: QuestionnaireTemplateQuestionWriteDto[];
 }

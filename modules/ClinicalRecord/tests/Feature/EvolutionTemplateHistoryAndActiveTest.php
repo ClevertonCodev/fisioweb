@@ -209,7 +209,7 @@ class EvolutionTemplateHistoryAndActiveTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['checked_item_ids.0']);
 
-        // Evolução antiga continua mostrando os 2 itens marcados (inclusive o arquivado).
+        // Evolução antiga continua mostrando os 2 itens marcados (inclusive o arquivado) no show e na listagem do paciente.
         $oldCheckedIds = collect(
             $this->actingAs($this->physioA, 'clinic')
                 ->getJson("/api/clinic/evolutions/{$oldEvolutionId}")
@@ -218,6 +218,15 @@ class EvolutionTemplateHistoryAndActiveTest extends TestCase
         )->pluck('evolution_template_item_id')->all();
 
         $this->assertEqualsCanonicalizing([$item1->id, $item2->id], $oldCheckedIds);
+
+        $listedCheckedIds = collect(
+            $this->actingAs($this->physioA, 'clinic')
+                ->getJson("/api/clinic/patients/{$this->patientA->id}/evolutions")
+                ->assertOk()
+                ->json('data.0.checked_items')
+        )->pluck('evolution_template_item_id')->all();
+
+        $this->assertEqualsCanonicalizing([$item1->id, $item2->id], $listedCheckedIds);
     }
 
     public function test_section_or_item_id_from_another_template_or_another_clinic_returns_422(): void

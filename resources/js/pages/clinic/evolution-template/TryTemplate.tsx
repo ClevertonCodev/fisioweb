@@ -1,10 +1,9 @@
-/** PROTÓTIPO (descartável): "experimentar" um modelo de evolução. */
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 
+import { itemLine } from '@/application/clinic/evolution-sheet-text';
 import { dsCn, DsInput } from '@/components/ds';
-
-import { lineOf } from './shared';
+import type { EvolutionTemplate } from '@/domain/clinic';
 
 export interface TryItem {
     key: string;
@@ -13,15 +12,44 @@ export interface TryItem {
     hasFreeText: boolean;
     placeholder: string;
 }
+
 export interface TrySection {
     key: string;
     title: string;
     items: TryItem[];
 }
 
+export function sortedSections(t: EvolutionTemplate) {
+    return [...t.sections]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((s) => ({
+            ...s,
+            items: [...s.items].sort((a, b) => a.sortOrder - b.sortOrder),
+        }));
+}
+
+export function itemCount(t: EvolutionTemplate): number {
+    return t.sections.reduce((n, s) => n + s.items.length, 0);
+}
+
+export function toTrySections(t: EvolutionTemplate): TrySection[] {
+    return sortedSections(t).map((s) => ({
+        key: String(s.id),
+        title: s.title,
+        items: s.items.map((i) => ({
+            key: String(i.id),
+            label: i.label,
+            printText: i.printText,
+            hasFreeText: i.hasFreeText,
+            placeholder: i.freeTextPlaceholder ?? '',
+        })),
+    }));
+}
+
 /**
  * O modelo como o fisioterapeuta usa na evolução: tocar nos itens monta o
- * texto do prontuário embaixo, ao vivo. Serve de prévia na lista e no editor.
+ * texto do prontuário embaixo, ao vivo, compartilhando `itemLine` de
+ * `evolution-sheet-text.ts` (mesmo formato de `EvolutionService::generateText`).
  */
 export function TryTemplate({
     sections,
@@ -37,7 +65,7 @@ export function TryTemplate({
             s,
             items: s.items.filter((i) => on[i.key] && i.printText.trim()),
         }))
-        .filter((x) => x.items.length);
+        .filter((x) => x.items.length > 0);
 
     return (
         <div className="flex flex-col gap-4">
@@ -98,7 +126,9 @@ export function TryTemplate({
                             <div key={s.key}>
                                 <p className="font-semibold">{s.title}:</p>
                                 {items.map((i) => (
-                                    <p key={i.key}>{lineOf(i, free[i.key])}</p>
+                                    <p key={i.key}>
+                                        {itemLine(i, free[i.key])}
+                                    </p>
                                 ))}
                             </div>
                         ))}

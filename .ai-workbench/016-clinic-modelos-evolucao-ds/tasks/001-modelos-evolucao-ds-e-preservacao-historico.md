@@ -52,16 +52,16 @@ Unifica em uma única entrega na branch `feat/clinic-modelos-evolucao-ds` as dua
 
 ## Critérios de Aceite
 
-- [ ] Editar um modelo usado numa evolução assinada mantém os `checked_items` e `free_text_value` dela (PHPUnit e smoke test).
-- [ ] Remover um item ou seção arquiva (`archived_at`), a nova evolução não o oferece, e a evolução antiga continua mostrando o item marcado (PHPUnit e smoke test).
-- [ ] Enviar `id` de seção ou item de outro modelo ou de outra clínica responde 422 (PHPUnit).
-- [ ] `PATCH /api/clinic/evolution-templates/{id}/active` grava apenas `is_active` e não mexe nas seções; modelo do sistema e de outra clínica respondem 404 (PHPUnit e smoke test).
-- [ ] `DELETE` apaga fisicamente modelo nunca usado e faz soft delete preservando seções, itens e exibição nas evoluções antigas quando já usado; mesma proteção aplicada em `ClinicQuestionnaire` (PHPUnit).
-- [ ] Secretária recebe 403 nas rotas de escrita (`POST`, `PUT`, `PATCH .../active`, `DELETE`) e vê os botões de escrita desabilitados com motivo no front; fisioterapeuta vê "Excluir" desabilitado com motivo e recebe 403 no `DELETE` (PHPUnit, Vitest e smoke test).
-- [ ] As três telas (`/clinica/templates/evolucoes`, `/novo`, `/:id/editar`) renderizam no DS v2 (variante A, `max-w-(--breakpoint-ds-xl)`), com editor em RHF + Zod, prévia "Experimentar" alinhada ao backend, "Salvar como cópia" no modelo do sistema e links no `ClinicAccountMenu` e na gaveta "Nova evolução" com `?returnTo=` (Vitest e smoke test).
-- [ ] A v1, `TemplateSectionBuilder`, `TemplatePreview`, `evolution-template-prototype/` e `PrototypeSwitcher.tsx` foram removidos e `docs/prototipos-v2.md` está atualizado (Vitest).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (404 no GET, PUT, PATCH e DELETE).
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda quando quiser.
+- [x] Editar um modelo usado numa evolução assinada mantém os `checked_items` e `free_text_value` dela (PHPUnit e smoke test).
+- [x] Remover um item ou seção arquiva (`archived_at`), a nova evolução não o oferece, e a evolução antiga continua mostrando o item marcado (PHPUnit e smoke test).
+- [x] Enviar `id` de seção ou item de outro modelo ou de outra clínica responde 422 (PHPUnit).
+- [x] `PATCH /api/clinic/evolution-templates/{id}/active` grava apenas `is_active` e não mexe nas seções; modelo do sistema e de outra clínica respondem 404 (PHPUnit e smoke test).
+- [x] `DELETE` apaga fisicamente modelo nunca usado e faz soft delete preservando seções, itens e exibição nas evoluções antigas quando já usado; mesma proteção aplicada em `ClinicQuestionnaire` (PHPUnit).
+- [x] Secretária recebe 403 nas rotas de escrita (`POST`, `PUT`, `PATCH .../active`, `DELETE`) e vê os botões de escrita desabilitados com motivo no front; fisioterapeuta vê "Excluir" desabilitado com motivo e recebe 403 no `DELETE` (PHPUnit, Vitest e smoke test).
+- [x] As três telas (`/clinica/templates/evolucoes`, `/novo`, `/:id/editar`) renderizam no DS v2 (variante A, `max-w-(--breakpoint-ds-xl)`), com editor em RHF + Zod, prévia "Experimentar" alinhada ao backend, "Salvar como cópia" no modelo do sistema e links no `ClinicAccountMenu` e na gaveta "Nova evolução" com `?returnTo=` (Vitest e smoke test).
+- [x] A v1, `TemplateSectionBuilder`, `TemplatePreview`, `evolution-template-prototype/` e `PrototypeSwitcher.tsx` foram removidos e `docs/prototipos-v2.md` está atualizado (Vitest).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade (404 no GET, PUT, PATCH e DELETE).
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`), menos a revisão adversária, que o usuário roda quando quiser.
 
 ## Depende de
 

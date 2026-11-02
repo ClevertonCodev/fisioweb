@@ -1416,6 +1416,49 @@ describe('prontuário do paciente (painel B)', () => {
         expect(dto.checkedItemIds).toEqual([]);
     });
 
+    it('nova evolução só oferece modelos ativos e tem link Gerenciar modelos com returnTo', async () => {
+        const user = userEvent.setup();
+        listEvolutionTemplates.mockResolvedValue([
+            makeEvolutionTemplate({
+                id: 1,
+                name: 'Modelo Ativo',
+                isActive: true,
+            }),
+            makeEvolutionTemplate({
+                id: 2,
+                name: 'Modelo Inativo',
+                isActive: false,
+            }),
+        ]);
+
+        renderPage('/clinica/pacientes/108');
+        await waitFor(() => {
+            expect(
+                screen.getByRole('heading', { name: 'QA Mobile' }),
+            ).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: 'Nova evolução' }));
+        expect(
+            await screen.findByRole('heading', { name: 'Nova evolução' }),
+        ).toBeInTheDocument();
+
+        const select = screen.getByLabelText('Modelo');
+        expect(
+            within(select).getByRole('option', { name: 'Modelo Ativo' }),
+        ).toBeInTheDocument();
+        expect(
+            within(select).queryByRole('option', { name: 'Modelo Inativo' }),
+        ).not.toBeInTheDocument();
+
+        await user.click(
+            screen.getByRole('button', { name: 'Gerenciar modelos' }),
+        );
+        expect(currentUrl()).toBe(
+            '/clinica/templates/evolucoes?returnTo=%2Fclinica%2Fpacientes%2F108',
+        );
+    });
+
     it('fisioterapeuta não exclui evolução; secretária não exclui arquivo de outro', async () => {
         const user = userEvent.setup();
         role = 'physiotherapist';

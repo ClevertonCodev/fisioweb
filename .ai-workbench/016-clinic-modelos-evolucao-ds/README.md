@@ -2,7 +2,7 @@
 
 Impede que editar ou desativar modelos de evolução (e questionários) apague o histórico de evoluções e respostas já registradas (ADR 021) e substitui a v1 e os protótipos de `/clinica/templates/evolucoes`, `/novo` e `/:id/editar` pelas telas oficiais no Design System v2 com links de acesso no menu da conta e na gaveta "Nova evolução" (ADR 020).
 
-- **Status:** em andamento
+- **Status:** concluída
 - **Branch:** `feat/clinic-modelos-evolucao-ds`
 - **Plano:** [`plans/clinic-modelos-evolucao-ds.md`](plans/clinic-modelos-evolucao-ds.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)
@@ -12,7 +12,7 @@ Impede que editar ou desativar modelos de evolução (e questionários) apague o
 
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
-| [`001-modelos-evolucao-ds-e-preservacao-historico`](tasks/001-modelos-evolucao-ds-e-preservacao-historico.md) | em andamento | ainda não criada | - |
+| [`001-modelos-evolucao-ds-e-preservacao-historico`](tasks/001-modelos-evolucao-ds-e-preservacao-historico.md) | concluída | ainda não criada | - |
 
 ## Pastas
 

@@ -9,6 +9,7 @@ export const questionTypeLabels: Record<QuestionType, string> = {
 
 export interface DraftQuestion {
     _key: string;
+    id?: number;
     label: string;
     type: QuestionType;
     options: string[];
@@ -19,6 +20,7 @@ export interface DraftQuestion {
 
 export interface DraftSection {
     _key: string;
+    id?: number;
     title: string;
     questions: DraftQuestion[];
 }

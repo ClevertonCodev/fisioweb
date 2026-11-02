@@ -147,9 +147,11 @@ function toTemplateWritePayload(dto: EvolutionTemplateWriteDto) {
         description: dto.description,
         is_active: dto.isActive ?? true,
         sections: dto.sections.map((s) => ({
+            ...(s.id !== undefined ? { id: s.id } : {}),
             title: s.title,
             sort_order: s.sortOrder,
             items: s.items.map((item) => ({
+                ...(item.id !== undefined ? { id: item.id } : {}),
                 label: item.label,
                 print_text: item.printText,
                 has_free_text: item.hasFreeText,
@@ -190,6 +192,13 @@ export const apiClinicEvolutionsRepository: EvolutionsRepository = {
         const res = await apiClient.put<{ data: ApiEvolutionTemplateDto }>(
             `/clinic/evolution-templates/${id}`,
             toTemplateWritePayload(dto),
+        );
+        return toTemplate(res.data.data);
+    },
+    async setTemplateActive(id, isActive) {
+        const res = await apiClient.patch<{ data: ApiEvolutionTemplateDto }>(
+            `/clinic/evolution-templates/${id}/active`,
+            { is_active: isActive },
         );
         return toTemplate(res.data.data);
     },

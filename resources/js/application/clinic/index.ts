@@ -1,5 +1,6 @@
 export * from './clinic-password';
 export * from './clinic-profile-form';
+export * from './clinic-register';
 export * from './download-program-pdf';
 export * from './evolution-sheet-text';
 export * from './exercise-library-filters';

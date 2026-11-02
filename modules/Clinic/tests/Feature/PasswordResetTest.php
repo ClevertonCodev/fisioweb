@@ -29,6 +29,26 @@ class PasswordResetTest extends TestCase
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
     }
 
+    public function test_forgot_password_and_reset_ignore_email_case(): void
+    {
+        Notification::fake();
+
+        $user = ClinicUser::factory()->create(['email' => 'Joao@Fisio.com']);
+
+        $this->postJson('/api/clinic/auth/forgot-password', ['email' => 'joao@fisio.com'])->assertOk();
+
+        Notification::assertSentTo($user, ResetPassword::class);
+
+        $token = Password::broker('clinic_users')->createToken($user);
+
+        $this->postJson('/api/clinic/auth/reset-password', [
+            'token'                 => $token,
+            'email'                 => 'JOAO@FISIO.COM',
+            'password'              => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
+        ])->assertOk();
+    }
+
     /** Sem conta, a resposta é a mesma: não revela quem é cliente. */
     public function test_forgot_password_answers_the_same_for_unknown_email(): void
     {

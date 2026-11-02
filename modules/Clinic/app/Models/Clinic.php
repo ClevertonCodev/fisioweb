@@ -37,6 +37,13 @@ class Clinic extends Model
 
     public const DEFAULT_WORKING_DAYS = [1, 2, 3, 4, 5];
 
+    /**
+     * Quando true, o ClinicObserver::created não cria o usuário mestre
+     * automático (usado no auto-cadastro, que já cria o mestre com a senha
+     * escolhida na mesma transação).
+     */
+    public bool $skipMasterUserObserver = false;
+
     protected $fillable = [
         'name',
         'email',
@@ -55,13 +62,15 @@ class Clinic extends Model
         'working_end',
         'working_days',
         'plan_id',
+        'terms_accepted_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'status'       => 'integer',
-            'working_days' => 'array',
+            'status'            => 'integer',
+            'working_days'      => 'array',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 

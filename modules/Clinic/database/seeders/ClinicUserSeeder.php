@@ -70,6 +70,8 @@ class ClinicUserSeeder extends Seeder
                     'mestre'    => $data['mestre'],
                     'status'    => ClinicUser::STATUS_ACTIVE,
                     'photo_url' => $cdn . '/' . self::PHOTO,
+                    // O backfill de email_verified_at roda antes do seed.
+                    'email_verified_at' => now(),
                 ],
             );
 

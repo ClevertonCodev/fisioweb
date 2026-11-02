@@ -37,9 +37,10 @@ class ClinicUserService implements ClinicUserServiceInterface
         unset($data['mestre']);
 
         return ClinicUser::create(array_merge($data, [
-            'clinic_id' => $clinicId,
-            'mestre'    => ClinicUser::MESTRE_NO,
-            'status'    => $data['status'] ?? ClinicUser::STATUS_ACTIVE,
+            'clinic_id'         => $clinicId,
+            'mestre'            => ClinicUser::MESTRE_NO,
+            'status'            => $data['status'] ?? ClinicUser::STATUS_ACTIVE,
+            'email_verified_at' => $data['email_verified_at'] ?? now(),
         ]));
     }
 

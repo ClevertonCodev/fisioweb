@@ -59,6 +59,8 @@ class DatabaseSeeder extends Seeder
                 'role'      => ClinicUser::ROLE_ADMIN,
                 'mestre'    => ClinicUser::MESTRE_YES,
                 'status'    => ClinicUser::STATUS_ACTIVE,
+                // O backfill de email_verified_at roda antes do seed.
+                'email_verified_at' => now(),
             ]
         )->restore();
 
@@ -106,13 +108,14 @@ class DatabaseSeeder extends Seeder
             ClinicUser::withTrashed()->updateOrCreate(
                 ['email' => $data['email']],
                 [
-                    'clinic_id' => $extraClinic->id,
-                    'name'      => $data['admin'],
-                    'password'  => '12345678',
-                    'document'  => $data['document'],
-                    'role'      => ClinicUser::ROLE_ADMIN,
-                    'mestre'    => ClinicUser::MESTRE_YES,
-                    'status'    => ClinicUser::STATUS_ACTIVE,
+                    'clinic_id'         => $extraClinic->id,
+                    'name'              => $data['admin'],
+                    'password'          => '12345678',
+                    'document'          => $data['document'],
+                    'role'              => ClinicUser::ROLE_ADMIN,
+                    'mestre'            => ClinicUser::MESTRE_YES,
+                    'status'            => ClinicUser::STATUS_ACTIVE,
+                    'email_verified_at' => now(),
                 ]
             )->restore();
         }

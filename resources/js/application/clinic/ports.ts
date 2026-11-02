@@ -547,3 +547,36 @@ export interface DashboardRepository {
         scope?: import('@/domain/clinic/dashboard').DashboardScope,
     ): Promise<import('@/domain/clinic/dashboard').PatientAcquisition>;
 }
+
+export interface ClinicRegistrationWriteDto {
+    name: string;
+    typePerson: 'PF' | 'PJ';
+    document: string;
+    email: string;
+    phone?: string | null;
+    slug: string;
+    password: string;
+    passwordConfirmation: string;
+    termsAccepted: boolean;
+}
+
+export interface ClinicSlugAvailability {
+    available: boolean;
+    reason: 'taken' | 'reserved' | 'invalid' | null;
+}
+
+export interface ClinicEmailVerificationInput {
+    id: number;
+    hash: string;
+    expires: number;
+    signature: string;
+}
+
+export interface ClinicRegistrationRepository {
+    register(
+        dto: ClinicRegistrationWriteDto,
+    ): Promise<{ clinicId: number; email: string }>;
+    checkSlug(slug: string): Promise<ClinicSlugAvailability>;
+    verifyEmail(input: ClinicEmailVerificationInput): Promise<void>;
+    resendVerification(email: string): Promise<void>;
+}

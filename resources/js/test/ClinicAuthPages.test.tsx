@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     requestClinicPasswordReset,
+    resendClinicVerification,
     resetClinicPassword,
 } from '@/application/clinic';
 import ClinicForgotPasswordPage from '@/pages/clinic/ClinicForgotPasswordPage';
@@ -21,10 +22,12 @@ vi.mock('@/contexts/AuthContext', () => ({
 vi.mock('@/application/clinic', async (importOriginal) => ({
     ...(await importOriginal<typeof import('@/application/clinic')>()),
     requestClinicPasswordReset: vi.fn(),
+    resendClinicVerification: vi.fn(),
     resetClinicPassword: vi.fn(),
 }));
 
 const mockRequest = vi.mocked(requestClinicPasswordReset);
+const mockResendVerification = vi.mocked(resendClinicVerification);
 const mockReset = vi.mocked(resetClinicPassword);
 
 function apiError(status: number, data: Record<string, unknown>) {
@@ -127,6 +130,40 @@ describe('Login da clínica', () => {
 
         expect(await screen.findByText(message)).toBeInTheDocument();
         expect(screen.queryByText('Painel da clínica')).not.toBeInTheDocument();
+    });
+
+    it('oferece reenviar o e-mail de confirmação quando o login é barrado por falta de confirmação', async () => {
+        login.mockRejectedValueOnce(
+            apiError(403, {
+                message:
+                    'Confirme seu e-mail para entrar. Enviamos o link para ana@clinica.test.',
+            }),
+        );
+        mockResendVerification.mockResolvedValueOnce(undefined);
+        renderAt('/clinica/login');
+
+        await userEvent.type(
+            screen.getByLabelText('E-mail'),
+            'ana@clinica.test',
+        );
+        await userEvent.type(screen.getByLabelText('Senha'), 'segredo123');
+        await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+        expect(
+            await screen.findByText(/Confirme seu e-mail para entrar/),
+        ).toBeInTheDocument();
+
+        const resendLink = screen.getByRole('button', {
+            name: 'Reenviar e-mail de confirmação',
+        });
+        await userEvent.click(resendLink);
+
+        expect(mockResendVerification).toHaveBeenCalledWith('ana@clinica.test');
+        expect(
+            await screen.findByText(
+                /Enviamos um novo link de confirmação para ana@clinica\.test/i,
+            ),
+        ).toBeInTheDocument();
     });
 
     it('não mostra a mensagem interna de um erro 500', async () => {

@@ -99,7 +99,10 @@ class VideoReferenceImagesTest extends TestCase
             'role'      => ClinicUser::ROLE_ADMIN,
         ]);
         $area  = PhysioArea::create(['name' => 'Área Clínica Ref']);
-        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+        $video = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+        ]);
 
         $exercise = Exercise::create([
             'name'                         => 'Envio clínica',

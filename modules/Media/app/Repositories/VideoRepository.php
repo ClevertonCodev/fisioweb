@@ -18,6 +18,14 @@ class VideoRepository
         return $this->model->find($id);
     }
 
+    public function isOwnedByClinic(int $videoId, int $clinicId): bool
+    {
+        return $this->model
+            ->whereKey($videoId)
+            ->where('clinic_id', $clinicId)
+            ->exists();
+    }
+
     public function findOrFail(int $id): Video
     {
         return $this->model->findOrFail($id);

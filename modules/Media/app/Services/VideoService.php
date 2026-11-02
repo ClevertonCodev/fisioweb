@@ -78,12 +78,18 @@ class VideoService implements VideoServiceInterface
         return $this->videoRepository->paginate($perPage);
     }
 
+    public function isOwnedByClinic(int $videoId, int $clinicId): bool
+    {
+        return $this->videoRepository->isOwnedByClinic($videoId, $clinicId);
+    }
+
     public function requestPresignedUpload(
         string $filename,
         string $mimeType,
         int $size,
         ?string $directory = 'videos',
         ?Model $uploadable = null,
+        ?int $clinicId = null,
     ): array {
         if (empty($directory)) {
             throw new \InvalidArgumentException('Diretório não informado');
@@ -102,6 +108,7 @@ class VideoService implements VideoServiceInterface
             'status'            => Video::STATUS_PENDING,
             'uploadable_type'   => $uploadable?->getMorphClass(),
             'uploadable_id'     => $uploadable?->id,
+            'clinic_id'         => $clinicId,
             'metadata'          => [
                 'original_name' => $filename,
                 'upload_method' => 'presigned',

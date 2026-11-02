@@ -1,9 +1,3 @@
-/**
- * PROTÓTIPO (descartável): "Ajustar vídeo" antes de enviar. Corta o quadro
- * para 9:16 (formato de celular), corta início e fim e grava de novo no
- * navegador (canvas + MediaRecorder, ~2,5 Mbps), o que também reduz o
- * tamanho. Sem servidor e sem ffmpeg: o processamento leva o tempo do trecho.
- */
 import { Scissors } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -36,13 +30,10 @@ function pickMime(): string {
 }
 
 interface Crop {
-    /** Fração da largura que o corte ocupa (1 = sem corte). */
     width: number;
-    /** Posição 0–1 do corte na faixa que sobra. */
     offset: number;
 }
 
-/** Corta e regrava o trecho escolhido. */
 async function renderClip(
     file: File,
     info: VideoInfo,
@@ -69,7 +60,6 @@ async function renderClip(
     const ctx = canvas.getContext('2d')!;
     const stream = canvas.captureStream(30);
 
-    // O som passa por um grafo de áudio que não toca nos alto-falantes.
     const audio = new AudioContext();
     const source = audio.createMediaElementSource(video);
     const dest = audio.createMediaStreamDestination();
@@ -139,7 +129,6 @@ export function VideoEditor({
     const [range, setRange] = useState<[number, number]>([0, 0]);
     const [progress, setProgress] = useState<number | null>(null);
 
-    // Ajuste durante o render: ao abrir com outro arquivo, recomeça.
     const [seen, setSeen] = useState<File | null>(null);
     if (open && file && seen !== file) {
         setSeen(file);
@@ -229,7 +218,6 @@ export function VideoEditor({
         >
             {url && info ? (
                 <div className="flex flex-col gap-5">
-                    {/* Vídeo original com a janela 9:16 por cima. */}
                     <div
                         className="relative mx-auto max-h-[48vh] w-full overflow-hidden rounded-ds-lg bg-black"
                         style={{

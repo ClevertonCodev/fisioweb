@@ -29,7 +29,10 @@ interface VideoServiceInterface
         int $size,
         ?string $directory = 'videos',
         ?Model $uploadable = null,
+        ?int $clinicId = null,
     ): array;
+
+    public function isOwnedByClinic(int $videoId, int $clinicId): bool;
 
     public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null, ?array $metadata = null): array;
 

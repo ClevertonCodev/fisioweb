@@ -24,7 +24,7 @@ class VideoFactory extends Factory
             'url'               => 'https://r2.example.com/videos/' . $filename,
             'cdn_url'           => 'https://cdn.example.com/videos/' . $filename,
             'mime_type'         => 'video/mp4',
-            'size'              => fake()->numberBetween(1048576, 524288000),
+            'size'              => fake()->numberBetween(1048576, 20971520),
             'duration'          => fake()->numberBetween(10, 3600),
             'width'             => fake()->randomElement([1280, 1920, 3840]),
             'height'            => fake()->randomElement([720, 1080, 2160]),

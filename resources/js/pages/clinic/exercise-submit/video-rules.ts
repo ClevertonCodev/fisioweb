@@ -1,10 +1,5 @@
-/**
- * PROTÓTIPO (descartável): regras do vídeo do exercício, conferidas no
- * navegador ao escolher o arquivo. O back-end hoje só confere tipo e o
- * tamanho declarado (até 500 MB em config/cloudflare.php) e não abre o
- * vídeo, então orientação e duração só existem aqui.
- */
 export const MAX_VIDEO_MB = 20;
+export const MAX_IMAGE_MB = 5;
 
 export const ALLOWED_VIDEO_TYPES = [
     'video/mp4',
@@ -16,12 +11,37 @@ export const ALLOWED_VIDEO_TYPES = [
     'video/x-matroska',
 ];
 
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export interface VideoInfo {
     width: number;
     height: number;
     duration: number;
     size: number;
     type: string;
+}
+
+/** Confere se o navegador suporta regravação de vídeo com canvas + MediaRecorder. */
+export function canEditVideoInBrowser(): boolean {
+    if (
+        typeof window === 'undefined' ||
+        typeof MediaRecorder === 'undefined' ||
+        typeof HTMLCanvasElement === 'undefined'
+    ) {
+        return false;
+    }
+    return typeof HTMLCanvasElement.prototype.captureStream === 'function';
+}
+
+/** Valida formato (JPEG, PNG ou WebP) e tamanho máximo (5 MB) de imagem de capa/referência. */
+export function validateExerciseImage(file: File): string | null {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        return 'Use uma imagem JPEG, PNG ou WebP.';
+    }
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+        return `A imagem não pode passar de ${MAX_IMAGE_MB} MB.`;
+    }
+    return null;
 }
 
 /** Lê largura, altura e duração do arquivo num <video> fora da tela. */

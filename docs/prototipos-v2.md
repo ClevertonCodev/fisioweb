@@ -25,11 +25,11 @@ O protótipo é referência, não código de produção: a tela real é reescrit
   - [x] Busca e dificuldade única vão para a API; especialidade/região/favoritos recortam no cliente.
   - [ ] Mandar especialidade, região, forma e favoritos para a API (`DEFERRED.md` da feature 008).
 
-- [ ] **Enviar exercício** — `/clinica/exercicios/enviar`
+- [x] **Enviar exercício** — `/clinica/exercicios/enviar`
   - Variante A, "Seções + prévia ao lado": vídeo, informações e fotos do PDF, com prévia da biblioteca e checklist.
-  - Código: `resources/js/pages/clinic/exercise-submit-prototype/` · commit `e86ad97`
-  - [ ] Levar as regras de vídeo para o backend: em pé (9:16), até 20 MB, qualidade mínima. Hoje o backend aceita até 500 MB e não confere orientação nem duração (sem ffprobe), então a validação do navegador é burlável.
-  - [ ] O envio é simulado no protótipo; o recorte de imagem da v1 ficou de fora.
+  - Tela de verdade em todos os ambientes, sem `?variant=`: `ClinicSubmitExercisePage` + `exercise-submit/` · feature `.ai-workbench/015-clinic-enviar-exercicio-ds/`. A v1 e a pasta `exercise-submit-prototype/` saíram.
+  - [x] Limite de tamanho do vídeo alinhado em 20 MB no backend (`config/cloudflare.php`) e isolamento de `/api/clinic/media/videos/*` e `video_id` por clínica; orientação em pé, qualidade e duração seguem conferidas no navegador (`DEFERRED.md` da feature 015 para `ffprobe` no servidor).
+  - [x] Envio real pela API via `useSubmitExercise` e recorte de imagem no DS v2 (`ExerciseImageCropModal` em `DsModal`) para a capa e as 2 fotos de referência do PDF.
 
 - [x] **Modelos de programas** — `/clinica/programas/modelos` e `/clinica/programas/meus-modelos`
   - Variante C, "Mapa do corpo": clicar na região do corpo filtra; cada modelo aparece como uma sessão dividida pelos blocos.

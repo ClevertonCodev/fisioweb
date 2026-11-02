@@ -39,17 +39,19 @@ class Video extends Model
         'status',
         'uploadable_type',
         'uploadable_id',
+        'clinic_id',
         'metadata',
     ];
 
     protected function casts(): array
     {
         return [
-            'size'     => 'integer',
-            'duration' => 'integer',
-            'width'    => 'integer',
-            'height'   => 'integer',
-            'metadata' => 'array',
+            'size'      => 'integer',
+            'duration'  => 'integer',
+            'width'     => 'integer',
+            'height'    => 'integer',
+            'clinic_id' => 'integer',
+            'metadata'  => 'array',
         ];
     }
 

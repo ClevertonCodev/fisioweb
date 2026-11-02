@@ -32,7 +32,8 @@ Quem é afetado: só os modelos da clínica (`is_system = false`) já usados em 
 2. **Item arquivado sai do modelo, mas não do histórico.** A nova evolução só oferece itens não arquivados. Uma evolução antiga continua mostrando o item marcado, com o rótulo e o texto da época.
 3. **O banco recusa apagar item usado.** A FK `evolution_template_item_id` passa de `cascadeOnDelete` para `restrictOnDelete`, assim um erro futuro falha alto em vez de apagar histórico em silêncio. A FK de `evolution_template_section_id` nos itens fica como está, porque seção e item são arquivados juntos, nunca apagados.
 4. **Ativar e desativar tem rota própria:** `PATCH /api/clinic/evolution-templates/{id}/active` com `{ is_active }`, que grava só esse campo. Nenhuma tela manda as seções para trocar a situação. Modelo inativo some da escolha na nova evolução e continua na lista.
-5. **Até a correção sair:** tirar da v1 o envio das seções no interruptor "Ativo" (ou esconder o interruptor). Não editar modelos da clínica que já foram usados.
+5. **Exclusão híbrida do modelo (`DELETE /api/clinic/evolution-templates/{id}`):** se o modelo nunca foi usado em nenhuma evolução nem possui itens marcados, apaga fisicamente itens, seções e modelo (`forceDelete`); se já foi usado, faz `SoftDeletes` no modelo (`deleted_at` em `clinic_evolution_templates`) mantendo seções e itens intactos, e `PatientEvolution::template()` usa `withTrashed()` para continuar exibindo o modelo e os itens marcados onde já foi usado.
+6. **Questionários (`ClinicQuestionnaire`) seguem a mesma proteção:** `archived_at` em `clinic_questionnaire_sections` e `clinic_questionnaire_questions`, FK `clinic_patient_questionnaire_answers.questionnaire_question_id` alterada para `restrictOnDelete`, sincronização por `id` no `PUT /api/clinic/questionnaire-templates/{id}` e preservação de seções/perguntas no `DELETE` (`SoftDeletes` com `withTrashed()`).
 
 ## Consequências
 

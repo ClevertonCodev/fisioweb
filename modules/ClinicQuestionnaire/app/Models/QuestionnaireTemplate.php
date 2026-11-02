@@ -41,6 +41,13 @@ class QuestionnaireTemplate extends Model
 
     public function sections(): HasMany
     {
+        return $this->hasMany(QuestionnaireSection::class)
+            ->whereNull('archived_at')
+            ->orderBy('sort_order');
+    }
+
+    public function allSections(): HasMany
+    {
         return $this->hasMany(QuestionnaireSection::class)->orderBy('sort_order');
     }
 

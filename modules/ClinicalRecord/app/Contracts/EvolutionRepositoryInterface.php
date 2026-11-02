@@ -3,6 +3,7 @@
 namespace Modules\ClinicalRecord\Contracts;
 
 use Illuminate\Support\Collection;
+use Modules\ClinicalRecord\Models\EvolutionTemplate;
 use Modules\ClinicalRecord\Models\PatientEvolution;
 
 interface EvolutionRepositoryInterface
@@ -14,6 +15,8 @@ interface EvolutionRepositoryInterface
     public function create(array $data): PatientEvolution;
 
     public function update(PatientEvolution $evolution, array $data): PatientEvolution;
+
+    public function findActiveTemplateForClinic(int $templateId, int $clinicId): ?EvolutionTemplate;
 
     public function findTemplateItems(array $checkedItemIds): Collection;
 

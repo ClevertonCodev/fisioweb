@@ -87,6 +87,27 @@ export function useUpdateEvolutionTemplate() {
     });
 }
 
+export function useToggleEvolutionTemplateActive() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+            repo.setTemplateActive(id, isActive),
+        onSuccess: (template) => {
+            const templateId = String(template.id);
+            queryClient.invalidateQueries({ queryKey: keys.templates() });
+            queryClient.invalidateQueries({
+                queryKey: keys.template(templateId),
+            });
+            toast.success(
+                template.isActive ? 'Modelo ativado' : 'Modelo desativado',
+            );
+        },
+        onError: () => {
+            toast.error('Erro ao alterar situação do modelo');
+        },
+    });
+}
+
 export function useDeleteEvolutionTemplate() {
     const queryClient = useQueryClient();
     return useMutation({

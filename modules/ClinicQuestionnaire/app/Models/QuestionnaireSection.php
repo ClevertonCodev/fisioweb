@@ -14,21 +14,30 @@ class QuestionnaireSection extends Model
         'questionnaire_template_id',
         'title',
         'sort_order',
+        'archived_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'sort_order' => 'integer',
+            'sort_order'  => 'integer',
+            'archived_at' => 'datetime',
         ];
     }
 
     public function template(): BelongsTo
     {
-        return $this->belongsTo(QuestionnaireTemplate::class, 'questionnaire_template_id');
+        return $this->belongsTo(QuestionnaireTemplate::class, 'questionnaire_template_id')->withTrashed();
     }
 
     public function questions(): HasMany
+    {
+        return $this->hasMany(QuestionnaireQuestion::class)
+            ->whereNull('archived_at')
+            ->orderBy('sort_order');
+    }
+
+    public function allQuestions(): HasMany
     {
         return $this->hasMany(QuestionnaireQuestion::class)->orderBy('sort_order');
     }

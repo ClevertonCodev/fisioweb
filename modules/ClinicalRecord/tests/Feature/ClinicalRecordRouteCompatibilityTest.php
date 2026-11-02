@@ -74,6 +74,7 @@ class ClinicalRecordRouteCompatibilityTest extends TestCase
             'api/clinic/assessments/{id}/sign'             => ['POST'],
             'api/clinic/evolution-templates'               => ['GET', 'HEAD', 'POST'],
             'api/clinic/evolution-templates/{id}'          => ['DELETE', 'GET', 'HEAD', 'PUT'],
+            'api/clinic/evolution-templates/{id}/active'   => ['PATCH'],
             'api/clinic/evolutions/{id}'                   => ['DELETE', 'GET', 'HEAD', 'PUT'],
             'api/clinic/evolutions/{id}/generate-text'     => ['POST'],
             'api/clinic/evolutions/{id}/pdf'               => ['GET', 'HEAD'],

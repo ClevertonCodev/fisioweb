@@ -144,21 +144,21 @@ O protótipo é referência, não código de produção: a tela real é reescrit
 
 ## Modelos de evolução
 
-- [ ] **Lista de modelos de evolução** — `/clinica/templates/evolucoes`
+- [x] **Lista de modelos de evolução** — `/clinica/templates/evolucoes`
   - Variante A, "Cartões com prévia": cada modelo em cartão com as seções em miniatura; "Experimentar" abre a gaveta onde se tocam os itens e aparece o texto do prontuário; o do sistema tem "Duplicar" no lugar de "Editar".
-  - Código: `resources/js/pages/clinic/evolution-template/evolution-template-prototype/ListPrototype.tsx`
+  - Código: `resources/js/pages/clinic/evolution-template/EvolutionTemplateListPage.tsx` e `TryTemplate.tsx` (v2 no lugar da v1; pasta `evolution-template-prototype/` e `PrototypeSwitcher.tsx` removidos) · feature `.ai-workbench/016-clinic-modelos-evolucao-ds/`.
   - Decisões: [ADR 020](adr/020-modelos-de-evolucao-v2-acesso-e-editor.md) e [ADR 021](adr/021-editar-modelo-de-evolucao-nao-apaga-historico.md).
-  - [ ] **Link para a tela:** hoje nenhum menu leva a ela. Pôr no menu da conta e na gaveta "Nova evolução" ("Gerenciar modelos").
-  - [ ] **Ativar e desativar** numa rota própria: o "Ativo" da v1 não grava (`is_active` é ignorado) e reenvia as seções, o que apaga a marcação das evoluções.
-  - [ ] Apagar os modelos "Exemplo" (`DEMO_TEMPLATES`, rotas `/exemploN`).
+  - [x] **Link para a tela:** no menu da conta (`ClinicAccountMenu`) para todos os perfis e na gaveta "Nova evolução" ("Gerenciar modelos", com `?returnTo=`).
+  - [x] **Ativar e desativar** em rota própria (`PATCH /api/clinic/evolution-templates/{id}/active`), sem reenviar as seções; modelo inativo exibe o selo "Inativo" e some da gaveta "Nova evolução".
+  - [x] Apagar os modelos "Exemplo" (`DEMO_TEMPLATES`, rotas `/exemploN`).
 
-- [ ] **Criar e editar modelo de evolução** — `/clinica/templates/evolucoes/novo` e `/:id/editar`
+- [x] **Criar e editar modelo de evolução** — `/clinica/templates/evolucoes/novo` e `/:id/editar`
   - Variante A, "Montar e ver ao vivo": seções em cartões, um item por linha (nome no botão, texto do prontuário, se pede complemento) e, ao lado, o modelo funcionando.
-  - Código: `resources/js/pages/clinic/evolution-template/evolution-template-prototype/EditorPrototype.tsx` e `EditorA.tsx`
-  - Decisões: [ADR 020](adr/020-modelos-de-evolucao-v2-acesso-e-editor.md).
-  - [ ] **Antes de tudo ([ADR 021](adr/021-editar-modelo-de-evolucao-nao-apaga-historico.md)):** editar um modelo apaga e recria os itens, e o `cascadeOnDelete` apaga os itens marcados das evoluções feitas com ele (até as assinadas). Sincronizar por id e trocar a FK para `restrictOnDelete`.
-  - [ ] Modelo do sistema salva como cópia da clínica.
-  - [ ] Formulário em RHF + Zod; salvar é stub.
+  - Código: `resources/js/pages/clinic/evolution-template/EvolutionTemplateNewPage.tsx`, `EvolutionTemplateEditPage.tsx` e `evolution-template-editor/` (v2 no lugar da v1; `TemplateSectionBuilder`, `TemplatePreview` e `evolution-template-prototype/` removidos) · feature `.ai-workbench/016-clinic-modelos-evolucao-ds/`.
+  - Decisões: [ADR 020](adr/020-modelos-de-evolucao-v2-acesso-e-editor.md) e [ADR 021](adr/021-editar-modelo-de-evolucao-nao-apaga-historico.md).
+  - [x] **Antes de tudo ([ADR 021](adr/021-editar-modelo-de-evolucao-nao-apaga-historico.md)):** sincronização por `id` no `PUT` (arquivando itens/seções removidos com `archived_at` e recusando `id` alheio com 422), FK `restrictOnDelete` em `checked_items` (e também nas respostas de `ClinicQuestionnaire`) e exclusão híbrida (física se nunca usado; soft delete preservando o histórico se já usado).
+  - [x] Modelo do sistema salva como cópia da clínica (`POST /api/clinic/evolution-templates`, sem enviar `id`s originais).
+  - [x] Formulário em RHF + Zod gravando pela API; admin e fisioterapeuta criam/editam/ativam, secretária só visualiza e só admin exclui (ações negadas ficam com `aria-disabled="true"` e motivo no tooltip, conforme ADR 017).
 
 ## Clínica
 

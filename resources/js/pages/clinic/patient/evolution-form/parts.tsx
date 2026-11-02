@@ -52,21 +52,41 @@ export function ModeSwitch({ c }: { c: EvolutionComposer }) {
 }
 
 export function TemplateSelect({ c }: { c: EvolutionComposer }) {
-    if (c.mode !== 'template' || c.templates.length === 0) return null;
+    if (c.mode !== 'template') return null;
     return (
-        <DsSelect
-            label="Modelo"
-            size="sm"
-            value={c.template?.id ?? ''}
-            options={c.templates.map((t) => ({
-                value: t.id,
-                label: t.name,
-            }))}
-            onValueChange={(value) => {
-                const id = Number(Array.isArray(value) ? value[0] : value);
-                if (!Number.isNaN(id)) c.pickTemplate(id);
-            }}
-        />
+        <div className="flex flex-col gap-1.5">
+            <div className="flex items-end justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    {c.templates.length > 0 ? (
+                        <DsSelect
+                            label="Modelo"
+                            size="sm"
+                            value={c.template?.id ?? ''}
+                            options={c.templates.map((t) => ({
+                                value: t.id,
+                                label: t.name,
+                            }))}
+                            onValueChange={(value) => {
+                                const id = Number(
+                                    Array.isArray(value) ? value[0] : value,
+                                );
+                                if (!Number.isNaN(id)) c.pickTemplate(id);
+                            }}
+                        />
+                    ) : (
+                        <p className="text-ds-caption text-ds-content-secondary">
+                            Nenhum modelo ativo no momento.
+                        </p>
+                    )}
+                </div>
+                <DsButton
+                    size="sm"
+                    variant="tertiary"
+                    label="Gerenciar modelos"
+                    onClick={c.manageTemplates}
+                />
+            </div>
+        </div>
     );
 }
 

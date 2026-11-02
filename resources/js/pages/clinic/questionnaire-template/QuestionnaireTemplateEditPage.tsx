@@ -54,9 +54,11 @@ function templateToDraftSections(
 ): DraftSection[] {
     return template.sections.map((s) => ({
         _key: crypto.randomUUID(),
+        id: s.id,
         title: s.title,
         questions: s.questions.map((q) => ({
             _key: crypto.randomUUID(),
+            id: q.id,
             label: q.label,
             type: q.type,
             options: q.options ?? [],
@@ -187,8 +189,10 @@ function QuestionnaireTemplateEditForm({
             title: title.trim(),
             description: description.trim() || null,
             sections: sections.map((s) => ({
+                ...(s.id !== undefined ? { id: s.id } : {}),
                 title: s.title.trim(),
                 questions: s.questions.map((q) => ({
+                    ...(q.id !== undefined ? { id: q.id } : {}),
                     label: q.label.trim(),
                     type: q.type,
                     options:

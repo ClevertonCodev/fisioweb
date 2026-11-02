@@ -100,9 +100,11 @@ export const apiClinicQuestionnaireTemplatesRepository: QuestionnaireTemplatesRe
                 title: dto.title,
                 description: dto.description,
                 sections: dto.sections.map((s, si) => ({
+                    ...(s.id !== undefined ? { id: s.id } : {}),
                     title: s.title,
                     sort_order: si,
                     questions: s.questions.map((q, qi) => ({
+                        ...(q.id !== undefined ? { id: q.id } : {}),
                         label: q.label,
                         type: q.type,
                         options: q.options,

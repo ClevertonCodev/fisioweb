@@ -4,6 +4,7 @@ namespace Modules\ClinicalRecord\Repositories;
 
 use Illuminate\Support\Collection;
 use Modules\ClinicalRecord\Contracts\EvolutionRepositoryInterface;
+use Modules\ClinicalRecord\Models\EvolutionTemplate;
 use Modules\ClinicalRecord\Models\EvolutionTemplateItem;
 use Modules\ClinicalRecord\Models\PatientEvolution;
 
@@ -14,7 +15,7 @@ class EvolutionRepository implements EvolutionRepositoryInterface
         return PatientEvolution::query()
             ->forClinic($clinicId)
             ->where('patient_id', $patientId)
-            ->with(['clinicUser', 'template'])
+            ->with(['clinicUser', 'template', 'checkedItems.item.section'])
             ->latest()
             ->get();
     }
@@ -44,11 +45,19 @@ class EvolutionRepository implements EvolutionRepositoryInterface
         return $evolution->fresh();
     }
 
+    public function findActiveTemplateForClinic(int $templateId, int $clinicId): ?EvolutionTemplate
+    {
+        return EvolutionTemplate::query()
+            ->availableForClinic($clinicId)
+            ->active()
+            ->find($templateId);
+    }
+
     public function findTemplateItems(array $checkedItemIds): Collection
     {
         return EvolutionTemplateItem::query()
             ->whereIn('id', $checkedItemIds)
-            ->with('section')
+            ->with('section.template')
             ->get()
             ->sortBy(fn ($item) => [$item->section->sort_order, $item->sort_order]);
     }

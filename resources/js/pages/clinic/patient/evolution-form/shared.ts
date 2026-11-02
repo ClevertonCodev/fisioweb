@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
@@ -13,7 +14,7 @@ import {
     useSignEvolution,
     useUpdateEvolution,
 } from '@/application/clinic/use-evolutions';
-import type { PatientEvolution } from '@/domain/clinic';
+import type { EvolutionTemplate, PatientEvolution } from '@/domain/clinic';
 
 export type EvolutionMode = 'template' | 'free';
 
@@ -47,16 +48,76 @@ function initialFreeTexts(
     return texts;
 }
 
+/**
+ * O modelo como a tela mostra: o modelo atual mais os itens arquivados que o
+ * rascunho ainda tem marcados (ADR 021). Assim o item arquivado aparece, pode
+ * ser desmarcado e entra na folha igual ao texto que o servidor gera.
+ */
+function withArchivedCheckedItems(
+    template: EvolutionTemplate | undefined,
+    evolution: PatientEvolution | undefined,
+): { template: EvolutionTemplate | undefined; archivedIds: Set<number> } {
+    const archivedIds = new Set<number>();
+    if (
+        !template ||
+        !evolution ||
+        template.id !== evolution.evolutionTemplateId
+    )
+        return { template, archivedIds };
+
+    const onTemplate = new Set(
+        template.sections.flatMap((s) => s.items.map((i) => i.id)),
+    );
+    const sections = template.sections.map((s) => ({
+        ...s,
+        items: [...s.items],
+    }));
+    evolution.checkedItems.forEach(({ itemId, item }) => {
+        if (!item || onTemplate.has(itemId)) return;
+        let section = sections.find((s) => s.id === item.sectionId);
+        if (!section) {
+            section = {
+                id: item.sectionId,
+                title: item.sectionTitle,
+                sortOrder: item.sectionSortOrder,
+                items: [],
+            };
+            sections.push(section);
+        }
+        section.items.push({
+            id: itemId,
+            label: item.label,
+            printText: item.printText,
+            hasFreeText: item.hasFreeText,
+            freeTextPlaceholder: item.freeTextPlaceholder,
+            sortOrder: item.sortOrder,
+        });
+        archivedIds.add(itemId);
+    });
+
+    return { template: { ...template, sections }, archivedIds };
+}
+
 export function useEvolutionComposer(
     patientId: string,
     onClose: () => void,
     evolutionToEdit?: PatientEvolution,
 ) {
+    const navigate = useNavigate();
     const templates = useEvolutionTemplates();
     const evolutions = usePatientEvolutions(patientId);
     const createEvolution = useCreateEvolution(patientId);
     const updateEvolution = useUpdateEvolution(patientId);
     const signEvolution = useSignEvolution(patientId);
+
+    const availableTemplates = useMemo(
+        () =>
+            (templates.data ?? []).filter(
+                (t) =>
+                    t.isActive || t.id === evolutionToEdit?.evolutionTemplateId,
+            ),
+        [templates.data, evolutionToEdit?.evolutionTemplateId],
+    );
 
     const last: PatientEvolution | undefined = useMemo(
         () =>
@@ -95,12 +156,54 @@ export function useEvolutionComposer(
     );
     const [notes, setNotes] = useState(() => evolutionToEdit?.notes ?? '');
     const [titleError, setTitleError] = useState(false);
+    // Depois que a pessoa mexe em algo, sair para os modelos pede confirmação.
+    const [touched, setTouched] = useState(false);
+    const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+    const touching =
+        <A extends unknown[]>(fn: (...args: A) => void) =>
+        (...args: A) => {
+            setTouched(true);
+            fn(...args);
+        };
 
-    const template = templates.data?.find((t) => t.id === templateId);
+    const { template, archivedIds } = useMemo(
+        () =>
+            withArchivedCheckedItems(
+                availableTemplates.find((t) => t.id === templateId),
+                evolutionToEdit,
+            ),
+        [availableTemplates, templateId, evolutionToEdit],
+    );
+    const activeItemIds = template
+        ? new Set(template.sections.flatMap((s) => s.items.map((i) => i.id)))
+        : null;
+    const alreadyCheckedIds = new Set(
+        evolutionToEdit?.checkedItems.map((c) => c.itemId) ?? [],
+    );
+    // Evolução nova só manda item que ainda está no modelo. Rascunho reenvia
+    // o que já estava marcado, mesmo que o item tenha sido arquivado depois;
+    // sem os dados do item a tela não o mostra e mantém o texto gravado.
+    const keptChecked = activeItemIds
+        ? new Set(
+              Array.from(checked).filter(
+                  (id) =>
+                      activeItemIds.has(id) ||
+                      (evolutionToEdit != null && alreadyCheckedIds.has(id)),
+              ),
+          )
+        : checked;
+    const keptOffTemplate = activeItemIds
+        ? Array.from(keptChecked).filter((id) => !activeItemIds.has(id))
+        : [];
     const blocks = evolutionSheetBlocks(template, checked, freeTexts);
     const rebuilt = buildEvolutionSheetText(template, checked, freeTexts);
     const savedSheetText = evolutionToEdit?.generatedText ?? '';
-    const generated = template ? rebuilt : savedSheetText;
+    const generated =
+        keptOffTemplate.length > 0 && !rebuilt.trim()
+            ? savedSheetText
+            : template
+              ? rebuilt
+              : savedSheetText;
 
     const toggle = (id: number) =>
         setChecked((prev) => {
@@ -121,54 +224,104 @@ export function useEvolutionComposer(
 
     const repeatLast = () => {
         if (!last) return;
-        if (last.checkedItems.length > 0) {
-            if (last.evolutionTemplateId) {
-                setTemplateId(last.evolutionTemplateId);
-            }
-            setMode('template');
-            setChecked(new Set(last.checkedItems.map((c) => c.itemId)));
-            setFreeTexts(
-                Object.fromEntries(
-                    last.checkedItems
-                        .filter((c) => c.freeTextValue)
-                        .map((c) => [c.itemId, c.freeTextValue as string]),
+        const targetTemplate =
+            last.evolutionTemplateId != null
+                ? availableTemplates.find(
+                      (t) => t.id === last.evolutionTemplateId && t.isActive,
+                  )
+                : availableTemplates.find(
+                      (t) => t.id === templateId && t.isActive,
+                  );
+
+        if (last.checkedItems.length > 0 && targetTemplate) {
+            const validItemIds = new Set(
+                targetTemplate.sections.flatMap((s) =>
+                    s.items.map((i) => i.id),
                 ),
             );
-            toast.info(
-                `${last.checkedItems.length} itens da última sessão marcados. Ajuste o que mudou.`,
+            const validCheckedItems = last.checkedItems.filter((c) =>
+                validItemIds.has(c.itemId),
             );
-            return;
+            if (validCheckedItems.length > 0) {
+                setTemplateId(targetTemplate.id);
+                setMode('template');
+                setChecked(new Set(validCheckedItems.map((c) => c.itemId)));
+                setFreeTexts(
+                    Object.fromEntries(
+                        validCheckedItems
+                            .filter((c) => c.freeTextValue)
+                            .map((c) => [c.itemId, c.freeTextValue as string]),
+                    ),
+                );
+                toast.info(
+                    `${validCheckedItems.length} itens da última sessão marcados. Ajuste o que mudou.`,
+                );
+                return;
+            }
         }
         setMode('free');
         setFreeText(last.generatedText ?? '');
         toast.info('Texto da última sessão copiado. Ajuste o que mudou.');
     };
 
-    const body = mode === 'template' ? generated : freeText;
+    const body =
+        mode === 'template'
+            ? keptOffTemplate.length > 0
+                ? savedSheetText || generated
+                : generated
+            : freeText;
     const empty = !body.trim() && !notes.trim();
     const saving =
         createEvolution.isPending ||
         updateEvolution.isPending ||
         signEvolution.isPending;
 
-    const buildDto = (): EvolutionWriteDto =>
-        mode === 'template'
-            ? {
-                  title: title.trim(),
-                  evolutionTemplateId: template?.id ?? null,
-                  checkedItemIds: Array.from(checked),
-                  freeTextValues: freeTextValuesPayload(checked, freeTexts),
-                  generatedText: generated || null,
-                  notes: notes.trim() || null,
-              }
-            : {
-                  title: title.trim(),
-                  evolutionTemplateId: null,
-                  checkedItemIds: [],
-                  freeTextValues: [],
-                  generatedText: freeText.trim() || null,
-                  notes: notes.trim() || null,
-              };
+    const buildDto = (): EvolutionWriteDto => {
+        if (mode === 'template') {
+            const onTemplateNow = activeItemIds
+                ? Array.from(keptChecked).filter((id) => activeItemIds.has(id))
+                : [];
+            const onTemplateBefore = activeItemIds
+                ? Array.from(alreadyCheckedIds).filter((id) =>
+                      activeItemIds.has(id),
+                  )
+                : [];
+            const visibleChecksUnchanged =
+                onTemplateNow.length === onTemplateBefore.length &&
+                onTemplateNow.every((id) => onTemplateBefore.includes(id)) &&
+                onTemplateNow.every((id) => {
+                    const original =
+                        evolutionToEdit?.checkedItems.find(
+                            (item) => item.itemId === id,
+                        )?.freeTextValue ?? '';
+                    return (freeTexts[id] ?? '').trim() === original.trim();
+                });
+            return {
+                title: title.trim(),
+                // O modelo escolhido, mesmo fora da lista (modelo excluído):
+                // mandar null aqui seria pedir ao servidor para tirar o modelo.
+                evolutionTemplateId: templateId,
+                checkedItemIds: Array.from(keptChecked),
+                freeTextValues: freeTextValuesPayload(keptChecked, freeTexts),
+                generatedText:
+                    keptOffTemplate.length > 0
+                        ? visibleChecksUnchanged
+                            ? savedSheetText.trim() || null
+                            : null
+                        : generated || null,
+                notes: notes.trim() || null,
+            };
+        }
+
+        return {
+            title: title.trim(),
+            evolutionTemplateId: null,
+            checkedItemIds: [],
+            freeTextValues: [],
+            generatedText: freeText.trim() || null,
+            notes: notes.trim() || null,
+        };
+    };
 
     const save = async (sign: boolean) => {
         if (!title.trim()) {
@@ -204,41 +357,61 @@ export function useEvolutionComposer(
         }
     };
 
+    function leaveToTemplates() {
+        setLeaveConfirmOpen(false);
+        onClose();
+        navigate(
+            `/clinica/templates/evolucoes?returnTo=${encodeURIComponent(
+                `/clinica/pacientes/${patientId}`,
+            )}`,
+        );
+    }
+
     return {
         loading: templates.isLoading,
-        templates: templates.data ?? [],
+        templates: availableTemplates,
         template,
+        manageTemplates: () => {
+            if (touched) setLeaveConfirmOpen(true);
+            else leaveToTemplates();
+        },
+        leaveConfirmOpen,
+        cancelLeave: () => setLeaveConfirmOpen(false),
+        confirmLeave: leaveToTemplates,
         sections: template
             ? [...template.sections]
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((s) => ({
                       ...s,
-                      items: [...s.items].sort(
-                          (a, b) => a.sortOrder - b.sortOrder,
-                      ),
+                      items: [...s.items]
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map((i) => ({
+                              ...i,
+                              archived: archivedIds.has(i.id),
+                          })),
                   }))
             : [],
         last,
         title,
-        setTitle: (v: string) => {
+        setTitle: touching((v: string) => {
             setTitle(v);
             if (v.trim()) setTitleError(false);
-        },
+        }),
         titleError,
         mode,
-        setMode,
-        pickTemplate,
+        setMode: touching(setMode),
+        pickTemplate: touching(pickTemplate),
         checked,
-        toggle,
+        toggle: touching(toggle),
         freeTexts,
-        setFree,
+        setFree: touching(setFree),
         freeText,
-        setFreeText,
+        setFreeText: touching(setFreeText),
         notes,
-        setNotes,
+        setNotes: touching(setNotes),
         blocks,
         generated,
-        repeatLast,
+        repeatLast: touching(repeatLast),
         empty,
         saving,
         save,

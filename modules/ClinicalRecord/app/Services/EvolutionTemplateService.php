@@ -36,7 +36,7 @@ class EvolutionTemplateService implements EvolutionTemplateServiceInterface
                 'is_active'   => true,
             ]);
 
-            $this->repository->replaceSections($template, $dto['sections'] ?? []);
+            $this->repository->syncSections($template, $dto['sections'] ?? []);
 
             return $this->find($template->id);
         });
@@ -50,6 +50,10 @@ class EvolutionTemplateService implements EvolutionTemplateServiceInterface
             ]);
         }
 
+        if (isset($dto['sections'])) {
+            $this->ensureIdsBelongToTemplate($template, $dto['sections']);
+        }
+
         return DB::transaction(function () use ($template, $dto) {
             $template = $this->repository->update($template, [
                 'name'        => $dto['name'] ?? $template->name,
@@ -57,11 +61,26 @@ class EvolutionTemplateService implements EvolutionTemplateServiceInterface
             ]);
 
             if (isset($dto['sections'])) {
-                $this->repository->replaceSections($template, $dto['sections']);
+                $this->repository->syncSections($template, $dto['sections']);
             }
 
             return $this->find($template->id);
         });
+    }
+
+    public function setActive(EvolutionTemplate $template, bool $isActive): EvolutionTemplate
+    {
+        if ($template->is_system) {
+            throw ValidationException::withMessages([
+                'template' => ['Templates do sistema não podem ser editados.'],
+            ]);
+        }
+
+        $this->repository->update($template, [
+            'is_active' => $isActive,
+        ]);
+
+        return $this->find($template->id);
     }
 
     public function destroy(EvolutionTemplate $template): void
@@ -72,12 +91,44 @@ class EvolutionTemplateService implements EvolutionTemplateServiceInterface
             ]);
         }
 
-        if ($this->repository->hasEvolutions($template)) {
-            throw ValidationException::withMessages([
-                'template' => ['Este template possui evoluções vinculadas e não pode ser removido.'],
-            ]);
+        $this->repository->delete($template);
+    }
+
+    private function ensureIdsBelongToTemplate(EvolutionTemplate $template, array $sections): void
+    {
+        $validSectionIds = array_flip($this->repository->sectionIdsForTemplate($template));
+        $validItemIds    = array_flip($this->repository->itemIdsForTemplate($template));
+        $seenSectionIds  = [];
+        $seenItemIds     = [];
+        $errors          = [];
+
+        foreach ($sections as $sIndex => $section) {
+            if (isset($section['id'])) {
+                $sectionId = (int) $section['id'];
+                if (isset($seenSectionIds[$sectionId])) {
+                    $errors["sections.{$sIndex}.id"] = 'Seção repetida no modelo.';
+                } elseif (!isset($validSectionIds[$sectionId])) {
+                    $errors["sections.{$sIndex}.id"] = 'A seção informada não pertence a este modelo.';
+                }
+                $seenSectionIds[$sectionId] = true;
+            }
+
+            foreach ($section['items'] ?? [] as $iIndex => $item) {
+                if (!isset($item['id'])) {
+                    continue;
+                }
+                $itemId = (int) $item['id'];
+                if (isset($seenItemIds[$itemId])) {
+                    $errors["sections.{$sIndex}.items.{$iIndex}.id"] = 'Item repetido no modelo.';
+                } elseif (!isset($validItemIds[$itemId])) {
+                    $errors["sections.{$sIndex}.items.{$iIndex}.id"] = 'O item informado não pertence a este modelo.';
+                }
+                $seenItemIds[$itemId] = true;
+            }
         }
 
-        $this->repository->delete($template);
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 }

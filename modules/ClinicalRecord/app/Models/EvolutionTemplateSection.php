@@ -14,15 +14,35 @@ class EvolutionTemplateSection extends Model
         'evolution_template_id',
         'title',
         'sort_order',
+        'archived_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'archived_at' => 'datetime',
+        ];
+    }
 
     public function template(): BelongsTo
     {
-        return $this->belongsTo(EvolutionTemplate::class, 'evolution_template_id');
+        return $this->belongsTo(EvolutionTemplate::class, 'evolution_template_id')->withTrashed();
     }
 
     public function items(): HasMany
     {
+        return $this->hasMany(EvolutionTemplateItem::class, 'evolution_template_section_id')
+            ->whereNull('archived_at')
+            ->orderBy('sort_order');
+    }
+
+    public function allItems(): HasMany
+    {
         return $this->hasMany(EvolutionTemplateItem::class, 'evolution_template_section_id')->orderBy('sort_order');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('archived_at');
     }
 }

@@ -189,9 +189,27 @@ describe('ClinicTopbar', () => {
             screen.queryByRole('button', { name: /Dados da clínica/ }),
         ).not.toBeInTheDocument();
         expect(
+            screen.getByRole('button', { name: /Modelos de evolução/ }),
+        ).toBeInTheDocument();
+        expect(
             screen.getByRole('button', { name: /Meu perfil/ }),
         ).toBeInTheDocument();
         expect(screen.queryByText('#10')).not.toBeInTheDocument();
+    });
+
+    it('mostra Modelos de evolução no menu da conta com destaque na rota ativa', async () => {
+        const user = userEvent.setup();
+        renderTopbar('/clinica/templates/evolucoes/novo');
+
+        await user.click(screen.getByRole('button', { name: 'Menu da conta' }));
+
+        const item = screen.getByRole('button', {
+            name: /Modelos de evolução/,
+        });
+        expect(item).toHaveTextContent(
+            'Itens prontos que viram texto no prontuário',
+        );
+        expect(item).toHaveClass('bg-ds-surface-subtle');
     });
 
     it('esconde o hamburger no desktop e a fileira de ícones no mobile', () => {

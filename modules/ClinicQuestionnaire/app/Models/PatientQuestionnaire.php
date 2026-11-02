@@ -72,7 +72,7 @@ class PatientQuestionnaire extends Model
 
     public function template(): BelongsTo
     {
-        return $this->belongsTo(QuestionnaireTemplate::class, 'questionnaire_template_id');
+        return $this->belongsTo(QuestionnaireTemplate::class, 'questionnaire_template_id')->withTrashed();
     }
 
     public function answers(): HasMany

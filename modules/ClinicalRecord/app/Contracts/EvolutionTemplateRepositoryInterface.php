@@ -15,7 +15,17 @@ interface EvolutionTemplateRepositoryInterface
 
     public function update(EvolutionTemplate $template, array $data): EvolutionTemplate;
 
-    public function replaceSections(EvolutionTemplate $template, array $sections): void;
+    public function syncSections(EvolutionTemplate $template, array $sections): void;
+
+    /**
+     * @return array<int, int>
+     */
+    public function sectionIdsForTemplate(EvolutionTemplate $template): array;
+
+    /**
+     * @return array<int, int>
+     */
+    public function itemIdsForTemplate(EvolutionTemplate $template): array;
 
     public function hasEvolutions(EvolutionTemplate $template): bool;
 

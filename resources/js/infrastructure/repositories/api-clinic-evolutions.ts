@@ -42,6 +42,9 @@ interface ApiEvolutionCheckedItemDto {
     id?: number;
     evolution_template_item_id: number;
     free_text_value: string | null;
+    item?: ApiEvolutionTemplateItemDto & {
+        section?: { id: number; title: string; sort_order: number } | null;
+    };
 }
 
 interface ApiClinicUserDto {
@@ -102,9 +105,24 @@ function toTemplate(raw: ApiEvolutionTemplateDto): EvolutionTemplate {
 }
 
 function toCheckedItem(raw: ApiEvolutionCheckedItemDto): EvolutionCheckedItem {
+    const item = raw.item;
+    const section = item?.section;
     return {
         itemId: raw.evolution_template_item_id,
         freeTextValue: raw.free_text_value,
+        item:
+            item && section
+                ? {
+                      label: item.label,
+                      printText: item.print_text,
+                      hasFreeText: item.has_free_text,
+                      freeTextPlaceholder: item.free_text_placeholder,
+                      sortOrder: item.sort_order,
+                      sectionId: section.id,
+                      sectionTitle: section.title,
+                      sectionSortOrder: section.sort_order,
+                  }
+                : undefined,
     };
 }
 
@@ -147,9 +165,11 @@ function toTemplateWritePayload(dto: EvolutionTemplateWriteDto) {
         description: dto.description,
         is_active: dto.isActive ?? true,
         sections: dto.sections.map((s) => ({
+            ...(s.id !== undefined ? { id: s.id } : {}),
             title: s.title,
             sort_order: s.sortOrder,
             items: s.items.map((item) => ({
+                ...(item.id !== undefined ? { id: item.id } : {}),
                 label: item.label,
                 print_text: item.printText,
                 has_free_text: item.hasFreeText,
@@ -190,6 +210,13 @@ export const apiClinicEvolutionsRepository: EvolutionsRepository = {
         const res = await apiClient.put<{ data: ApiEvolutionTemplateDto }>(
             `/clinic/evolution-templates/${id}`,
             toTemplateWritePayload(dto),
+        );
+        return toTemplate(res.data.data);
+    },
+    async setTemplateActive(id, isActive) {
+        const res = await apiClient.patch<{ data: ApiEvolutionTemplateDto }>(
+            `/clinic/evolution-templates/${id}/active`,
+            { is_active: isActive },
         );
         return toTemplate(res.data.data);
     },

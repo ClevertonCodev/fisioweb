@@ -1,22 +1,47 @@
 import { z } from 'zod';
 
 import type { ClinicProfile } from '@/domain/clinic/clinic-profile';
+import { isValidCnpj, isValidCpf } from '@/lib/br-document-validation';
+
+function digitsOf(value: string): string {
+    return value.replace(/\D/g, '');
+}
+
+function documentError(
+    typePerson: 'PF' | 'PJ',
+    document: string,
+): string | null {
+    const trimmed = document.trim();
+    const digits = digitsOf(document);
+
+    if (typePerson === 'PF') {
+        if (trimmed.length === 0) return 'CPF é obrigatório';
+        if (digits.length === 0) return 'CPF deve ser numérico';
+        if (digits.length !== 11) return 'CPF incompleto';
+        if (!isValidCpf(document)) return 'CPF inválido';
+        return null;
+    }
+
+    if (trimmed.length === 0) return 'CNPJ é obrigatório';
+    if (digits.length === 0) return 'CNPJ deve ser numérico';
+    if (digits.length !== 14) return 'CNPJ incompleto';
+    if (!isValidCnpj(document)) return 'CNPJ inválido';
+    return null;
+}
 
 export const clinicProfileFormSchema = z
     .object({
-        name: z.string().min(1, 'Nome é obrigatório'),
+        name: z.string().trim().min(1, 'Informe o nome da clínica.'),
         typePerson: z.enum(['PF', 'PJ'], {
             required_error: 'Tipo de pessoa é obrigatório',
         }),
-        document: z.string().min(1, 'Documento é obrigatório'),
+        document: z.string(),
         email: z
             .string()
+            .trim()
             .min(1, 'E-mail é obrigatório')
             .email('E-mail inválido'),
         phone: z.string().optional().default(''),
-        status: z.string().default('1'),
-        slug: z.string().min(1, 'Slug é obrigatório'),
-        planId: z.string().optional().default(''),
         zipCode: z.string().optional().default(''),
         address: z.string().optional().default(''),
         number: z.string().optional().default(''),
@@ -24,19 +49,21 @@ export const clinicProfileFormSchema = z
         state: z.string().optional().default(''),
     })
     .superRefine((data, ctx) => {
-        const requiredLen = data.typePerson === 'PJ' ? 14 : 11;
-        const label = data.typePerson === 'PJ' ? 'CNPJ' : 'CPF';
-        if (data.document.length === 0) {
+        const docError = documentError(data.typePerson, data.document);
+        if (docError) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: 'Documento é obrigatório',
+                message: docError,
                 path: ['document'],
             });
-        } else if (data.document.length < requiredLen) {
+        }
+
+        const cep = digitsOf(data.zipCode ?? '');
+        if (cep.length > 0 && cep.length !== 8) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: `${label} incompleto`,
-                path: ['document'],
+                message: 'CEP incompleto.',
+                path: ['zipCode'],
             });
         }
     });
@@ -49,12 +76,9 @@ export function clinicProfileToFormValues(
     return {
         name: profile.name,
         typePerson: profile.typePerson,
-        document: profile.document.replace(/\D/g, ''),
+        document: digitsOf(profile.document),
         email: profile.email,
         phone: profile.phone ?? '',
-        status: String(profile.status),
-        slug: profile.slug ?? '',
-        planId: profile.planId != null ? String(profile.planId) : '',
         zipCode: profile.zipCode ?? '',
         address: profile.address ?? '',
         number: profile.number ?? '',
@@ -63,18 +87,21 @@ export function clinicProfileToFormValues(
     };
 }
 
-export function clinicProfileFormToUpdateDto(values: ClinicProfileFormValues) {
+export function clinicProfileFormToUpdateDto(
+    values: ClinicProfileFormValues,
+    status: ClinicProfile['status'],
+) {
     return {
-        name: values.name,
+        name: values.name.trim(),
         typePerson: values.typePerson,
-        document: values.document,
-        email: values.email,
-        phone: values.phone || null,
-        status: parseInt(values.status, 10),
-        zipCode: values.zipCode || null,
-        address: values.address || null,
-        number: values.number || null,
-        city: values.city || null,
-        state: values.state || null,
+        document: digitsOf(values.document),
+        email: values.email.trim(),
+        phone: digitsOf(values.phone ?? '') || null,
+        status,
+        zipCode: digitsOf(values.zipCode ?? '') || null,
+        address: values.address.trim() || null,
+        number: values.number.trim() || null,
+        city: values.city.trim() || null,
+        state: values.state.trim() || null,
     };
 }

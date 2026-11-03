@@ -4,12 +4,14 @@ import {
     Calendar,
     Check,
     CheckCircle2,
-    Clock,
+    Eye,
     Loader2,
     Play,
+    RotateCcw,
+    Sparkles,
     UserCheck,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -22,16 +24,121 @@ import {
     usePatientProgram,
     useRegisterProgramView,
 } from '@/application/patient/use-patient-program';
-import { PatientNavbar } from '@/components/PatientNavbar';
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
+    DsBadge,
+    DsButton,
+    DsDrawer,
+    DsEmptyState,
+    DsPatientNavbar,
+    dsCn,
+} from '@/components/ds';
 import { VideoThumb } from '@/components/VideoThumb';
 import { PatientExercise } from '@/domain/patient/program';
+
+interface DoseMetric {
+    key: string;
+    label: string;
+    value: string;
+    unit: string;
+}
+
+function extractDoseMetrics(exercise: PatientExercise): DoseMetric[] {
+    const p = exercise.prescription;
+    const metrics: DoseMetric[] = [];
+
+    if (p.seriesMin) {
+        const val =
+            p.seriesMax && p.seriesMax !== p.seriesMin
+                ? `${p.seriesMin}–${p.seriesMax}`
+                : `${p.seriesMin}`;
+        metrics.push({
+            key: 'series',
+            label: 'Séries',
+            value: val,
+            unit: Number(p.seriesMin) === 1 && !p.seriesMax ? 'série' : 'séries',
+        });
+    }
+
+    if (p.repetitionsMin) {
+        const val =
+            p.repetitionsMax && p.repetitionsMax !== p.repetitionsMin
+                ? `${p.repetitionsMin}–${p.repetitionsMax}`
+                : `${p.repetitionsMin}`;
+        metrics.push({
+            key: 'reps',
+            label: 'Repetições',
+            value: val,
+            unit: 'reps',
+        });
+    }
+
+    if (p.loadMin) {
+        const val =
+            p.loadMax && p.loadMax !== p.loadMin
+                ? `${p.loadMin}–${p.loadMax}`
+                : `${p.loadMin}`;
+        metrics.push({
+            key: 'load',
+            label: 'Carga',
+            value: val,
+            unit: 'kg',
+        });
+    }
+
+    if (p.maintainFor) {
+        metrics.push({
+            key: 'hold',
+            label: 'Sustentar',
+            value: `${p.maintainFor}`,
+            unit: 'seg',
+        });
+    }
+
+    if (p.restTime) {
+        metrics.push({
+            key: 'rest',
+            label: 'Descanso',
+            value: `${p.restTime}`,
+            unit: 'seg',
+        });
+    }
+
+    if (exercise.period?.length) {
+        metrics.push({
+            key: 'period',
+            label: 'Período',
+            value: exercise.period.join(' / '),
+            unit: exercise.days?.length ? exercise.days.join(', ') : 'diário',
+        });
+    }
+
+    return metrics;
+}
+
+function formatDateRange(start?: string, end?: string): string {
+    const fmt = (d?: string) =>
+        d ? new Date(d).toLocaleDateString('pt-BR') : '—';
+    return `${fmt(start)} – ${fmt(end)}`;
+}
+
+function formatCrefito(reg?: string): string | null {
+    if (!reg || !/[A-Za-zÀ-ÿ]/u.test(reg)) return null;
+    return `CREFITO ${reg}`;
+}
+
+function cleanNotes(notes?: string): string | null {
+    if (!notes) return null;
+    return notes.replace(/^Descrição:\s*/i, '').trim() || null;
+}
+
+function targetSeriesCount(exercise: PatientExercise): number {
+    return Math.max(
+        1,
+        exercise.prescription.seriesMax ??
+            exercise.prescription.seriesMin ??
+            3,
+    );
+}
 
 export default function PatientProgramDetailPage() {
     const { clinicSlug: paramSlug, publicToken = '' } = useParams<{
@@ -49,6 +156,12 @@ export default function PatientProgramDetailPage() {
 
     const clinicSlug = paramSlug || program?.clinicSlug || '';
 
+    const [doneSeriesByExercise, setDoneSeriesByExercise] = useState<
+        Record<string, number>
+    >({});
+    const [previewExercise, setPreviewExercise] =
+        useState<PatientExercise | null>(null);
+
     useEffect(() => {
         if (publicToken && program) {
             registerView(publicToken);
@@ -65,341 +178,522 @@ export default function PatientProgramDetailPage() {
         }
     }, [program?.clinicSlug, paramSlug, publicToken, navigate]);
 
+    const allExercises = useMemo(
+        () => (program ? program.groups.flatMap((g) => g.exercises) : []),
+        [program],
+    );
+
+    const completedCount = useMemo(
+        () =>
+            allExercises.filter(
+                (ex) =>
+                    (doneSeriesByExercise[ex.id] ?? 0) >= targetSeriesCount(ex),
+            ).length,
+        [allExercises, doneSeriesByExercise],
+    );
+
     const listPath = clinicSlug ? patientProgramsListPath(clinicSlug) : '/';
 
     if (!publicToken) {
         return (
-            <div className="flex h-screen flex-col items-center justify-center overflow-y-auto p-4 text-center">
-                <p>ID do programa não fornecido.</p>
-                <Button className="mt-4" onClick={() => navigate(listPath)}>
-                    Voltar
-                </Button>
+            <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+                <DsPatientNavbar hideAuthAction showPrototypeBadge />
+                <div className="flex flex-1 items-center justify-center p-6">
+                    <DsEmptyState
+                        variant="error"
+                        title="Programa não informado"
+                        description="ID do programa não fornecido."
+                        action={
+                            <DsButton
+                                variant="primary"
+                                label="Voltar"
+                                onClick={() => navigate(listPath)}
+                            />
+                        }
+                    />
+                </div>
             </div>
         );
     }
 
     if (isLoading) {
         return (
-            <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background p-4 text-center text-muted-foreground">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p>Carregando programa…</p>
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 overflow-y-auto bg-ds-surface-body p-6 text-center font-ds text-ds-content-muted">
+                <Loader2 className="size-8 animate-spin text-ds-content-brand" />
+                <p className="text-ds-body-xs">Carregando programa…</p>
             </div>
         );
     }
 
     if (isError || !program) {
         return (
-            <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-                    <Activity className="h-7 w-7" />
+            <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+                <DsPatientNavbar hideAuthAction showPrototypeBadge />
+                <div className="flex flex-1 items-center justify-center p-6">
+                    <DsEmptyState
+                        variant="error"
+                        icon={<Activity />}
+                        title="Programa não encontrado"
+                        description="Programa de exercícios não encontrado."
+                        action={
+                            <DsButton
+                                variant="primary"
+                                label="Voltar aos programas"
+                                onClick={() => navigate(listPath)}
+                            />
+                        }
+                    />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                    Programa de exercícios não encontrado.
-                </p>
-                <Button onClick={() => navigate(listPath)}>
-                    Voltar aos programas
-                </Button>
             </div>
         );
     }
 
-    const totalExercises = program.groups.reduce(
-        (acc, g) => acc + g.exercises.length,
-        0,
-    );
+    const totalExercises = allExercises.length;
     const slug = clinicSlug || program.clinicSlug || '';
+    const canNavigate = Boolean(slug);
+    const crefito = formatCrefito(program.professionalRegistration);
 
-    const formatPrescription = (exercise: PatientExercise) => {
-        const p = exercise.prescription;
-        const parts = [];
+    const progressPct =
+        totalExercises > 0
+            ? Math.round((completedCount / totalExercises) * 100)
+            : 0;
 
-        if (exercise.days && exercise.days.length > 0)
-            parts.push(exercise.days.join(', '));
-
-        if (p.seriesMin && p.seriesMax)
-            parts.push(`De ${p.seriesMin} a ${p.seriesMax} séries`);
-        else if (p.seriesMin)
-            parts.push(
-                `${p.seriesMin} ${p.seriesMin === 1 ? 'série' : 'séries'}`,
-            );
-
-        if (p.repetitionsMin && p.repetitionsMax)
-            parts.push(
-                `De ${p.repetitionsMin} a ${p.repetitionsMax} repetições`,
-            );
-        else if (p.repetitionsMin)
-            parts.push(
-                `${p.repetitionsMin} ${p.repetitionsMin === 1 ? 'repetição' : 'repetições'}`,
-            );
-
-        if (p.loadMin && p.loadMax)
-            parts.push(`Carga de ${p.loadMin}kg a ${p.loadMax}kg`);
-        else if (p.loadMin) parts.push(`Carga de ${p.loadMin}kg`);
-
-        if (p.restTime) parts.push(`Descanso de ${p.restTime} seg`);
-        if (p.maintainFor) parts.push(`Manter por ${p.maintainFor} seg`);
-        if (p.intensity) parts.push(`Esforço ${p.intensity}`);
-
-        if (exercise.period && exercise.period.length > 0)
-            parts.push(
-                `Período d${exercise.period[0].toLowerCase() === 'manhã' ? 'a' : 'o'} ${exercise.period.join(', ')}`,
-            );
-
-        return parts.join(', ');
+    const toggleSeries = (exercise: PatientExercise, serieNumber: number) => {
+        setDoneSeriesByExercise((prev) => {
+            const current = prev[exercise.id] ?? 0;
+            const next =
+                current === serieNumber ? serieNumber - 1 : serieNumber;
+            return { ...prev, [exercise.id]: next };
+        });
     };
 
+    const toggleFullExercise = (exercise: PatientExercise) => {
+        const target = targetSeriesCount(exercise);
+        setDoneSeriesByExercise((prev) => {
+            const current = prev[exercise.id] ?? 0;
+            return {
+                ...prev,
+                [exercise.id]: current >= target ? 0 : target,
+            };
+        });
+    };
+
+    const radius = 34;
+    const circumference = 2 * Math.PI * radius;
+    const dashOffset = circumference - (progressPct / 100) * circumference;
+
     return (
-        <div className="scrollbar-thin flex h-screen flex-col overflow-y-auto bg-background transition-colors duration-200">
-            <PatientNavbar />
-            <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
-                {slug && (
-                    <button
-                        type="button"
-                        onClick={() => navigate(listPath)}
-                        className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                        <ArrowLeft className="h-3.5 w-3.5" />
-                        Meus programas
-                    </button>
-                )}
+        <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+            <DsPatientNavbar
+                clinicName={program.clinicName}
+                showPrototypeBadge
+            />
 
+            <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-6 pb-24 sm:px-6 sm:py-8">
+                {/* Topo com voltar e fisioterapeuta */}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    {canNavigate ? (
+                        <DsButton
+                            variant="tertiary"
+                            size="sm"
+                            iconPosition="left"
+                            icon={<ArrowLeft className="size-3.5" />}
+                            label="Meus programas"
+                            onClick={() => navigate(listPath)}
+                        />
+                    ) : (
+                        <span />
+                    )}
 
-                <div className="space-y-6">
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                            <span className="rounded-md border border-primary/10 bg-accent/60 px-2.5 py-0.5 font-mono text-[11px] font-bold tracking-widest text-primary uppercase">
-                                Programa
+                    <div className="flex items-center gap-2 rounded-ds-pill border border-ds-border-subtle bg-ds-surface-default px-3 py-1 text-ds-caption shadow-ds-xs">
+                        <UserCheck className="size-3.5 text-ds-content-brand" />
+                        <span className="font-semibold text-ds-content-primary">
+                            {program.professionalName}
+                        </span>
+                        {crefito && (
+                            <span className="text-ds-content-muted">
+                                · {crefito}
                             </span>
-                        </div>
-
-                        <h1 className="font-serif text-2xl leading-tight font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-                            {program.name}
-                        </h1>
-
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 text-xs text-muted-foreground sm:text-sm">
-                            <div className="flex items-center gap-1.5 font-medium">
-                                <Activity className="h-4 w-4 text-primary" />
-                                <span>{totalExercises} exercícios</span>
-                            </div>
-
-                            <span className="hidden text-border sm:inline">
-                                •
-                            </span>
-
-                            <div className="flex items-center gap-1.5 font-medium">
-                                <Clock className="h-4 w-4 text-primary" />
-                                <span>2 – 12 minutos</span>
-                            </div>
-
-                            <span className="hidden text-border sm:inline">
-                                •
-                            </span>
-
-                            <div className="flex items-center gap-1.5 font-medium">
-                                <Calendar className="h-4 w-4 text-primary" />
-                                <span>
-                                    {program.startDate
-                                        ? new Date(
-                                              program.startDate,
-                                          ).toLocaleDateString('pt-BR')
-                                        : '—'}{' '}
-                                    –{' '}
-                                    {program.endDate
-                                        ? new Date(
-                                              program.endDate,
-                                          ).toLocaleDateString('pt-BR')
-                                        : '—'}
-                                </span>
-                            </div>
-                        </div>
+                        )}
                     </div>
+                </div>
 
-                    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-xs transition-all hover:shadow-sm sm:p-4.5">
-                        <div className="flex items-center gap-3.5">
-                            {program.professionalPhotoUrl ? (
-                                <img
-                                    src={program.professionalPhotoUrl}
-                                    alt={program.professionalName}
-                                    className="h-12 w-12 rounded-full border-2 border-background object-cover shadow-xs ring-2 ring-primary/20"
-                                />
-                            ) : (
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-background bg-primary text-lg font-medium text-primary-foreground shadow-xs ring-2 ring-primary/20">
-                                    {program.professionalName.charAt(0)}
+                {/* Painel vivo de progresso circular */}
+                <section className="rounded-ds-2xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-sm sm:p-6">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="relative flex size-22 shrink-0 items-center justify-center">
+                                <svg
+                                    className="size-22 -rotate-90"
+                                    viewBox="0 0 84 84"
+                                >
+                                    <circle
+                                        cx="42"
+                                        cy="42"
+                                        r={radius}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="7"
+                                        className="text-ds-surface-subtle"
+                                    />
+                                    <circle
+                                        cx="42"
+                                        cy="42"
+                                        r={radius}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="7"
+                                        strokeLinecap="round"
+                                        strokeDasharray={circumference}
+                                        strokeDashoffset={dashOffset}
+                                        className="text-ds-primary-80 transition-all duration-300"
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                    <span className="font-ds-mono text-ds-body-md leading-none font-semibold text-ds-content-primary">
+                                        {progressPct}%
+                                    </span>
+                                    <span className="mt-0.5 font-ds-mono text-[10px] text-ds-content-muted">
+                                        {completedCount}/{totalExercises}
+                                    </span>
                                 </div>
-                            )}
+                            </div>
 
-                            <div className="space-y-0.5">
-                                <div className="flex items-center gap-1.5">
-                                    <h3 className="text-sm leading-snug font-semibold text-foreground sm:text-base">
-                                        {program.professionalName}
-                                    </h3>
-                                    <UserCheck className="h-3.5 w-3.5 text-primary" />
+                            <div className="min-w-0 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <DsBadge variant="primary" dot>
+                                        Checklist diário interativo
+                                    </DsBadge>
+                                    <span className="inline-flex items-center gap-1 text-ds-caption text-ds-content-muted">
+                                        <Calendar className="size-3.5 text-ds-content-brand" />
+                                        {formatDateRange(
+                                            program.startDate,
+                                            program.endDate,
+                                        )}
+                                    </span>
                                 </div>
-                                <p className="text-xs font-medium text-muted-foreground">
-                                    Fisioterapeuta
-                                    {program.professionalRegistration &&
-                                        /[A-Za-zÀ-ÿ]/u.test(
-                                            program.professionalRegistration,
-                                        ) &&
-                                        ` · CREFITO ${program.professionalRegistration}`}
+                                <h1 className="text-ds-h4 font-semibold tracking-tight text-ds-content-primary sm:text-ds-h3">
+                                    {program.name}
+                                </h1>
+                                <p className="text-ds-caption text-ds-content-muted">
+                                    Toque nas séries abaixo conforme realiza
+                                    cada exercício ou abra o modo guiado.
                                 </p>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-2 rounded-xl border border-border/60 bg-secondary/50 p-3.5">
-                        <div className="flex items-center justify-between text-xs font-medium">
-                            <span className="text-muted-foreground">
-                                Progresso do programa
-                            </span>
-                            <span className="font-bold text-foreground">
-                                0 de {totalExercises} concluídos (0%)
-                            </span>
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                                className="h-full rounded-full bg-primary transition-all duration-500"
-                                style={{ width: '0%' }}
+                        <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+                            <DsButton
+                                variant="primary"
+                                size="md"
+                                iconPosition="left"
+                                icon={<Play className="size-4 fill-current" />}
+                                label="Iniciar exercícios"
+                                disabled={!canNavigate}
+                                onClick={() =>
+                                    slug &&
+                                    navigate(
+                                        patientProgramExecutePath(
+                                            slug,
+                                            publicToken,
+                                        ),
+                                    )
+                                }
                             />
+                            <div className="flex items-center gap-1.5">
+                                {completedCount > 0 && (
+                                    <DsButton
+                                        variant="tertiary"
+                                        size="sm"
+                                        iconPosition="left"
+                                        icon={
+                                            <RotateCcw className="size-3.5" />
+                                        }
+                                        label="Zerar"
+                                        onClick={() =>
+                                            setDoneSeriesByExercise({})
+                                        }
+                                    />
+                                )}
+                                <DsButton
+                                    variant="secondary"
+                                    size="sm"
+                                    iconPosition="left"
+                                    icon={<CheckCircle2 className="size-3.5" />}
+                                    label={
+                                        completedCount > 0
+                                            ? `Confirmar (${completedCount}/${totalExercises})`
+                                            : 'Marcar exercícios como feitos'
+                                    }
+                                    disabled={!canNavigate}
+                                    onClick={() =>
+                                        slug &&
+                                        navigate(
+                                            patientProgramFeedbackPath(
+                                                slug,
+                                                publicToken,
+                                            ),
+                                        )
+                                    }
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div className="space-y-3">
-                    <button
-                        onClick={() =>
-                            slug &&
-                            navigate(
-                                patientProgramExecutePath(slug, publicToken),
-                            )
-                        }
-                        disabled={!slug}
-                        className="group relative flex w-full cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-xl border border-primary/20 bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-md transition-all duration-200 hover:bg-primary/95 hover:shadow-lg active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:text-base"
-                    >
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 transition-transform group-hover:scale-110">
-                            <Play className="ml-0.5 h-3.5 w-3.5 fill-current text-primary-foreground" />
+                {/* Lista de exercícios com player quadrado (1:1 tipo Instagram) e pílulas de série */}
+                {program.groups.map((group) => (
+                    <section key={group.id} className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-ds-body-md font-semibold text-ds-content-primary">
+                                {group.name}
+                            </h2>
+                            <span className="font-ds-mono text-ds-caption text-ds-content-muted">
+                                {group.exercises.length} itens
+                            </span>
                         </div>
-                        <span>Iniciar exercícios</span>
-                    </button>
 
-                    <button
-                        onClick={() =>
-                            slug &&
-                            navigate(
-                                patientProgramFeedbackPath(slug, publicToken),
-                            )
-                        }
-                        disabled={!slug}
-                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-xs font-medium text-foreground shadow-2xs transition-all hover:bg-secondary hover:shadow-xs active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-                    >
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                        <span>Marcar exercícios como feitos</span>
-                    </button>
-                </div>
+                        <div className="space-y-3">
+                            {group.exercises.map((exercise, idx) => {
+                                const target = targetSeriesCount(exercise);
+                                const done =
+                                    doneSeriesByExercise[exercise.id] ?? 0;
+                                const isComplete = done >= target;
+                                const metrics = extractDoseMetrics(exercise);
+                                const notes = cleanNotes(exercise.notes);
 
-                <div className="pt-2">
-                    <Accordion
-                        type="multiple"
-                        defaultValue={program.groups.map((g) => g.id)}
-                        className="space-y-4"
-                    >
-                        {program.groups.map((group) => (
-                            <AccordionItem
-                                key={group.id}
-                                value={group.id}
-                                className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs transition-all duration-200"
-                            >
-                                <AccordionTrigger className="group p-4 transition-colors hover:bg-secondary/40 hover:no-underline sm:p-5">
-                                    <div className="flex w-full items-center justify-between pr-4">
-                                        <span className="font-serif text-lg leading-none font-bold text-foreground sm:text-xl">
-                                            {group.name}
-                                        </span>
-                                        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-primary/10 bg-accent/80 font-sans text-xs font-bold text-accent-foreground">
-                                            {group.exercises.length}
-                                        </div>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="border-t border-border/50 bg-background/50 px-3 pt-1 pb-3 sm:px-4 sm:pb-4">
-                                    <div className="mt-3 flex flex-col gap-3">
-                                        {group.exercises.map((exercise) => (
-                                            <div
-                                                key={exercise.id}
-                                                className="overflow-hidden rounded-xl border border-border bg-card shadow-2xs transition-all duration-300 hover:bg-secondary/30"
+                                return (
+                                    <article
+                                        key={exercise.id}
+                                        className={dsCn(
+                                            'rounded-ds-2xl border p-4 shadow-ds-xs transition-all sm:p-5',
+                                            isComplete
+                                                ? 'border-ds-status-success-border bg-ds-status-success-surface/40'
+                                                : 'border-ds-border-subtle bg-ds-surface-default',
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3.5 sm:gap-4">
+                                            {/* Botão circular de check rápido */}
+                                            <button
+                                                type="button"
+                                                aria-label={`Marcar ${exercise.name} como concluído`}
+                                                onClick={() =>
+                                                    toggleFullExercise(exercise)
+                                                }
+                                                className={dsCn(
+                                                    'flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-ds-full border-2 font-ds-mono text-ds-caption font-semibold transition-all sm:size-10',
+                                                    isComplete
+                                                        ? 'border-ds-primary-80 bg-ds-primary-80 text-ds-white'
+                                                        : 'border-ds-border-subtle bg-ds-surface-subtle text-ds-content-muted hover:border-ds-primary-80',
+                                                )}
                                             >
-                                                <div className="flex items-center gap-3.5 p-3 sm:gap-4 sm:p-3.5">
-                                                    <div className="group relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-24">
-                                                        <VideoThumb
-                                                            videoUrl={
-                                                                exercise.videoUrl
-                                                            }
-                                                            thumbnailUrl={
-                                                                exercise.thumbnailUrl
-                                                            }
-                                                        />
-                                                    </div>
+                                                {isComplete ? (
+                                                    <Check className="size-4 sm:size-5" />
+                                                ) : (
+                                                    String(idx + 1).padStart(
+                                                        2,
+                                                        '0',
+                                                    )
+                                                )}
+                                            </button>
 
-                                                    <div className="min-w-0 flex-1 space-y-1">
-                                                        <h4
+                                            {/* Player quadrado 1:1 (estilo post do Instagram) */}
+                                            <div className="group relative aspect-square size-24 shrink-0 overflow-hidden rounded-ds-xl bg-ds-surface-subtle sm:size-28">
+                                                <VideoThumb
+                                                    videoUrl={exercise.videoUrl}
+                                                    thumbnailUrl={
+                                                        exercise.thumbnailUrl
+                                                    }
+                                                />
+                                            </div>
+
+                                            {/* Texto e pílulas de série */}
+                                            <div className="min-w-0 flex-1 space-y-2.5">
+                                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <h3
                                                             onClick={() =>
-                                                                slug &&
-                                                                navigate(
-                                                                    patientExerciseDetailPath(
-                                                                        slug,
-                                                                        publicToken,
-                                                                        exercise.id,
-                                                                    ),
+                                                                setPreviewExercise(
+                                                                    exercise,
                                                                 )
                                                             }
-                                                            className="cursor-pointer text-sm leading-tight font-semibold text-foreground transition-colors hover:text-primary sm:text-base"
+                                                            className={dsCn(
+                                                                'cursor-pointer text-ds-body-sm font-semibold transition-colors hover:text-ds-content-brand',
+                                                                isComplete &&
+                                                                    'line-through opacity-75',
+                                                            )}
                                                         >
                                                             {exercise.name}
-                                                        </h4>
-                                                        <p className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-                                                            {formatPrescription(
-                                                                exercise,
-                                                            )}
+                                                        </h3>
+                                                        <p className="mt-0.5 text-ds-caption text-ds-content-muted">
+                                                            {metrics
+                                                                .map(
+                                                                    (m) =>
+                                                                        `${m.label}: ${m.value} ${m.unit}`,
+                                                                )
+                                                                .join(' · ')}
                                                         </p>
-                                                        {exercise.notes && (
-                                                            <p className="mt-1 line-clamp-1 text-xs text-foreground/80">
-                                                                <span className="font-semibold">
-                                                                    Orientações:
-                                                                </span>{' '}
-                                                                {exercise.notes.replace(
-                                                                    'Descrição: ',
-                                                                    '',
-                                                                )}
-                                                            </p>
-                                                        )}
                                                     </div>
 
-                                                    <div className="flex shrink-0 items-center gap-2">
-                                                        <button
-                                                            onClick={() =>
-                                                                slug &&
-                                                                navigate(
-                                                                    patientExerciseDetailPath(
-                                                                        slug,
-                                                                        publicToken,
-                                                                        exercise.id,
-                                                                    ),
-                                                                )
-                                                            }
-                                                            title="Ver exercício"
-                                                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-all hover:border-primary/30 hover:bg-accent sm:h-9 sm:w-9"
-                                                        >
-                                                            <Check className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
+                                                    <DsButton
+                                                        variant="tertiary"
+                                                        size="sm"
+                                                        iconPosition="left"
+                                                        icon={
+                                                            <Eye className="size-3.5" />
+                                                        }
+                                                        label="Espiar vídeo"
+                                                        onClick={() =>
+                                                            setPreviewExercise(
+                                                                exercise,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+
+                                                {/* Botões de cada série */}
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="font-ds-mono text-[11px] text-ds-content-muted">
+                                                        Séries:
+                                                    </span>
+                                                    {Array.from(
+                                                        { length: target },
+                                                        (_, i) => i + 1,
+                                                    ).map((serieNum) => {
+                                                        const checked =
+                                                            done >= serieNum;
+                                                        return (
+                                                            <button
+                                                                key={serieNum}
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    toggleSeries(
+                                                                        exercise,
+                                                                        serieNum,
+                                                                    )
+                                                                }
+                                                                className={dsCn(
+                                                                    'inline-flex cursor-pointer items-center gap-1.5 rounded-ds-pill border px-3 py-1 font-ds-mono text-ds-caption font-medium transition-all',
+                                                                    checked
+                                                                        ? 'border-ds-primary-80 bg-ds-primary-80 text-ds-white shadow-ds-xs'
+                                                                        : 'border-ds-border-subtle bg-ds-surface-subtle text-ds-content-secondary hover:border-ds-border-brand-subtle',
+                                                                )}
+                                                            >
+                                                                {checked && (
+                                                                    <Check className="size-3" />
+                                                                )}
+                                                                {serieNum}ª
+                                                                série
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
-                </div>
+                                        </div>
+
+                                        {notes && (
+                                            <p className="mt-3 border-t border-ds-border-subtle pt-2.5 text-ds-caption text-ds-content-secondary">
+                                                <span className="font-semibold">
+                                                    Dica:
+                                                </span>{' '}
+                                                {notes}
+                                            </p>
+                                        )}
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </section>
+                ))}
             </main>
+
+            {/* Gaveta lateral (DsDrawer) com player quadrado 1:1 */}
+            <DsDrawer
+                open={previewExercise !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPreviewExercise(null);
+                }}
+                placement="right"
+                size="md"
+                title={previewExercise?.name ?? 'Exercício'}
+                meta="Demonstração e prescrição"
+                footer={
+                    previewExercise && (
+                        <div className="flex w-full justify-between gap-2">
+                            <DsButton
+                                variant="secondary"
+                                label="Página completa"
+                                onClick={() =>
+                                    slug &&
+                                    navigate(
+                                        patientExerciseDetailPath(
+                                            slug,
+                                            publicToken,
+                                            previewExercise.id,
+                                        ),
+                                    )
+                                }
+                            />
+                            <DsButton
+                                variant="primary"
+                                iconPosition="left"
+                                icon={<Play className="size-4 fill-current" />}
+                                label="Treinar a partir deste"
+                                onClick={() =>
+                                    slug &&
+                                    navigate(
+                                        patientProgramExecutePath(
+                                            slug,
+                                            publicToken,
+                                            previewExercise.id,
+                                        ),
+                                    )
+                                }
+                            />
+                        </div>
+                    )
+                }
+            >
+                {previewExercise && (
+                    <div className="space-y-4">
+                        <div className="group relative mx-auto aspect-square w-full max-w-[360px] overflow-hidden rounded-ds-2xl bg-ds-surface-inverse">
+                            <VideoThumb
+                                size="lg"
+                                videoUrl={previewExercise.videoUrl}
+                                thumbnailUrl={previewExercise.thumbnailUrl}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                            {extractDoseMetrics(previewExercise).map((m) => (
+                                <div
+                                    key={m.key}
+                                    className="rounded-ds-lg border border-ds-border-subtle bg-ds-surface-subtle p-3"
+                                >
+                                    <p className="font-ds-mono text-[10px] tracking-wider text-ds-content-muted uppercase">
+                                        {m.label}
+                                    </p>
+                                    <p className="mt-0.5 font-ds-mono text-ds-body-md font-semibold text-ds-content-primary">
+                                        {m.value}{' '}
+                                        <span className="font-ds text-ds-caption font-normal text-ds-content-muted">
+                                            {m.unit}
+                                        </span>
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {cleanNotes(previewExercise.notes) && (
+                            <div className="flex items-start gap-2.5 rounded-ds-lg border border-ds-border-brand-subtle bg-ds-surface-brand-subtle p-3.5 text-ds-body-xs">
+                                <Sparkles className="mt-0.5 size-4 shrink-0 text-ds-content-brand" />
+                                <p className="text-ds-content-secondary">
+                                    {cleanNotes(previewExercise.notes)}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </DsDrawer>
         </div>
     );
 }

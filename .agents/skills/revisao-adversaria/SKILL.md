@@ -104,3 +104,21 @@ Diga ao usuário:
 
 Nada de `<pasta>/review/` ou `<pasta>/evidence/` vai para a PR,
 para uma issue ou para mensagem: essas pastas podem ter dado de paciente.
+
+## Depois do APROVADO: code review (uma vez por feature)
+
+O code review olha a branch inteira, e não a tarefa, então ele acontece **uma
+vez por feature**, nunca no meio dela. Com o veredito final APROVADO, pergunte
+por último **"Gostaria de fazer code review?"** só quando uma destas valer:
+
+- a revisão cobriu a feature inteira (a tarefa é `000-feature-<NNN>`, por
+  exemplo `review/000-feature-013/`);
+- todas as tarefas da tabela do `README.md` da feature estão `concluída` (esta
+  era a última).
+
+Não pergunte no meio da feature, com tarefa ainda pendente, nem quando a
+revisão foi chamada pela skill `correcao-rapida`: lá a pergunta é dela, no fim.
+
+Com o sim, siga `docs/ai-harness/CODE_REVIEW.md`: rodar `bin/code-review` numa
+sessão separada, mostrar os achados aqui, perguntar "Deseja corrigir?" e
+corrigir com teste primeiro.

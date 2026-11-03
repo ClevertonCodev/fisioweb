@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# Roda o /code-review do Claude Code numa sessão NOVA e separada (claude -p),
+# sem o contexto da sessão que escreveu o código, e salva o relatório em
+# .ai-workbench/code-review/review/ (fora do git).
+#
+# Uso:
+#   bin/code-review                 # nível high, o diff atual da branch
+#   bin/code-review medium          # outro nível: low | medium | high | xhigh | max
+#   bin/code-review high <alvo>     # alvo: branch, número de PR ou caminho
+#
+# A sessão nova só lê (modo plan): ela não edita nada. Quem chamou lê o
+# relatório, mostra os achados e pergunta "Deseja corrigir?".
+#
+# Custo: é uma sessão do Claude Code como outra qualquer. Não usa o contexto de
+# quem chamou, mas conta no limite de uso da conta; high numa branch grande pode
+# levar vários minutos.
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+NIVEL="${1:-high}"
+ALVO="${2:-}"
+case "$NIVEL" in
+    low | medium | high | xhigh | max) ;;
+    *)
+        echo "Nível inválido: $NIVEL (use low, medium, high, xhigh ou max)" >&2
+        exit 2
+        ;;
+esac
+
+if ! command -v claude >/dev/null 2>&1; then
+    echo "FALHOU: o CLI do Claude Code (claude) não está instalado nesta máquina." >&2
+    echo "Abra uma sessão nova na mesma branch e rode o code review por lá." >&2
+    exit 2
+fi
+
+BRANCH="$(git branch --show-current 2>/dev/null || true)"
+[ -z "$BRANCH" ] && BRANCH="detached-$(git rev-parse --short HEAD)"
+BRANCH_ARQUIVO="${BRANCH//\//-}"
+PASTA=".ai-workbench/code-review/review"
+mkdir -p "$PASTA"
+RELATORIO="$PASTA/${BRANCH_ARQUIVO}-$(date '+%Y-%m-%d-%H%M%S').md"
+
+CLASSIFICAR="$(cat <<'EOF'
+Abaixo está a saída de um code review do fisioweb (SaaS de clínicas de
+fisioterapia, Laravel + React, várias clínicas no mesmo banco). Não use
+ferramentas e não edite nada: só reescreva o relatório.
+
+Regras:
+- Português do Brasil.
+- Não acrescente, não junte e não remova achado. Mantenha arquivo e linha.
+- Classifique cada achado com uma gravidade e agrupe nesta ordem, com um título
+  por grupo (pule o grupo vazio):
+
+## Crítico
+Vazamento de dado entre clínicas ou entre pacientes, falha de autorização ou
+segurança, perda ou corrupção de dado, quebra em produção.
+## Alto
+Funcionalidade principal errada, regressão de comportamento que já existia,
+erro que o usuário encontra no uso normal.
+## Médio
+Caso de borda errado (vazio, limite, fuso, concorrência), teste que não prova o
+que diz, desvio das regras do CLAUDE.md com efeito concreto.
+## Menor
+Limpeza, simplificação, nome, duplicação, risco pequeno.
+
+Em cada achado: arquivo e linha, o defeito em uma frase e o cenário concreto
+(entrada ou estado → resultado errado). No fim, uma linha com a contagem:
+"Crítico: N · Alto: N · Médio: N · Menor: N". Sem achados, diga isso e
+mostre a contagem zerada.
+EOF
+)"
+
+BRUTO="${RELATORIO%.md}.bruto.txt"
+ERROS="${RELATORIO%.md}.erros.log"
+trap 'rm -f "$RELATORIO.tmp"; [ -s "$ERROS" ] || rm -f "$ERROS"' EXIT
+
+echo "1/2 Code review ($NIVEL) numa sessão nova, só leitura. Pode levar vários minutos."
+# Sem --max-findings: o /code-review grava essa escolha e ela passaria a valer
+# também nos /code-review que o usuário roda na mão.
+PEDIDO="/code-review $NIVEL${ALVO:+ $ALVO}"
+if ! claude -p "$PEDIDO" --permission-mode plan </dev/null >"$BRUTO" 2>"$ERROS"; then
+    echo "FALHOU: a sessão do code review terminou com erro. Veja $ERROS" >&2
+    exit 1
+fi
+
+# Saída vazia (ou só espaços) quer dizer que a revisão não aconteceu: classificar
+# isso daria "Crítico: 0 · Alto: 0..." e pareceria que está tudo certo.
+if ! grep -q '[^[:space:]]' "$BRUTO" 2>/dev/null; then
+    echo "FALHOU: a sessão do code review terminou sem devolver nada. Não é \"sem achados\": a revisão não aconteceu." >&2
+    [ -s "$ERROS" ] && echo "Erros em $ERROS" >&2
+    exit 1
+fi
+
+echo "2/2 Classificando por gravidade (Crítico, Alto, Médio, Menor) numa sessão nova."
+if ! claude -p "$CLASSIFICAR" --permission-mode plan <"$BRUTO" >"$RELATORIO.tmp" 2>>"$ERROS"; then
+    echo "FALHOU: a classificação terminou com erro (veja $ERROS). A saída sem classificação está em $BRUTO" >&2
+    exit 1
+fi
+
+# A classificação também precisa devolver algo, com a linha de contagem; sem ela
+# o relatório pareceria uma revisão limpa.
+if ! grep -q 'Crítico: [0-9]' "$RELATORIO.tmp" 2>/dev/null; then
+    echo "FALHOU: a classificação não devolveu o relatório com a contagem. A saída da revisão, sem classificação, está em $BRUTO" >&2
+    exit 1
+fi
+
+{
+    echo "# Code review · $BRANCH · $(date '+%Y-%m-%d %H:%M')"
+    echo
+    echo "Nível: $NIVEL · alvo: ${ALVO:-diff atual} · sessões separadas (claude -p, modo plan)"
+    echo "Saída original, sem classificação: \`$BRUTO\`"
+    echo
+    cat "$RELATORIO.tmp"
+} >"$RELATORIO"
+
+echo "Pronto: $RELATORIO"
+grep -E "Crítico: [0-9]+" "$RELATORIO" | tail -1

@@ -27,8 +27,9 @@ Quando houver `references/`, carregue só o arquivo necessário.
 de `.agents/agents/`, cada um numa conversa limpa (não passe o histórico desta).
 Revisão feita na mesma conversa de quem escreveu o código não conta.
 
-**Git:** não rode `git commit` nem `git push` sem o usuário pedir. Nunca leia
-nem commite `.env` ou segredos, e não ponha dado real de paciente em prompt,
+**Git:** não rode `git commit` nem `git push` sem o usuário pedir. Pode ler o
+`.env`, mas nunca mostre valor dele na conversa nem commite o arquivo (seção
+"`.env` e segredos" do `AGENTS.md`). Não ponha dado real de paciente em prompt,
 log ou evidência.
 
 Responda ao usuário em português do Brasil.

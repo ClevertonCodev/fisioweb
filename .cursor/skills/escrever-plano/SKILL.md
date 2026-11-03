@@ -11,7 +11,10 @@ conversa pode ter sido com outro agente ou já ter acabado. Se ele e a conversa
 discordam, pergunte ao usuário qual vale.
 
 **Não entreviste o usuário de novo**: se ainda há decisão em aberto (inclusive
-na seção "Em aberto" do `decisoes.md`), volte para a skill `refinar`.
+na seção "Em aberto" do `decisoes.md`), volte para a skill `refinar`. A única
+exceção são as perguntas pontuais do passo 5 ("Ataque o plano"), sobre furos
+que o plano escrito revelou. Se forem muitas, ou se mudarem o escopo, aí também
+é caso de voltar para o `refinar`.
 
 ## Passo a passo
 
@@ -107,7 +110,28 @@ Qualquer outra coisa que importe.
 
 </modelo-do-plano>
 
-5. **Escreva o `README.md` da feature** com o modelo abaixo. Ele é o índice:
+5. **Ataque o plano antes de seguir.** Releia o plano e o `decisoes.md`
+   juntos, como quem quer derrubar o plano, não item por item. Procure:
+   - **Contradição:** duas decisões que, sozinhas, fazem sentido, mas juntas
+     são impossíveis (uma história pede o que uma decisão proíbe, uma fatia
+     depende de outra que vem depois).
+   - **Termo vago:** palavra que daria duas implementações diferentes
+     ("recentes", "grande", "rápido", "ativos"). Troque por número ou regra.
+   - **Suposição não conferida:** "a API já devolve X", "o Model já tem Y",
+     "a tela já filtra Z". Confira no código. Se o código não confirma, a
+     suposição vira decisão ou tarefa.
+   - **Regra só no front:** validação ou limite que o plano põe na tela e não
+     no backend.
+   - **Borda faltando:** lista vazia, limite, dado antigo sem o campo novo,
+     duas pessoas editando ao mesmo tempo, outra clínica, papel sem permissão.
+   - **Conflito com ADR** de `docs/adr/`.
+
+   Cada achado vira uma pergunta ao usuário, uma por vez, com a sua resposta
+   recomendada. Grave a resposta no `decisoes.md` (sessão nova, como na skill
+   `refinar`) e ajuste o plano. Se forem muitas perguntas, ou se alguma mudar o
+   escopo, volte para a skill `refinar`. Sem achado, diga isso em uma linha.
+
+6. **Escreva o `README.md` da feature** com o modelo abaixo. Ele é o índice:
    as próximas skills atualizam a tabela de tarefas.
 
 <modelo-do-readme>
@@ -135,5 +159,5 @@ Qualquer outra coisa que importe.
 
 </modelo-do-readme>
 
-6. Diga ao usuário onde a feature foi criada e sugira o próximo passo: a skill
+7. Diga ao usuário onde a feature foi criada e sugira o próximo passo: a skill
    `criar-tarefas`.

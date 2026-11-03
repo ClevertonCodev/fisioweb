@@ -23,6 +23,7 @@ npm run format
 composer run test     # PHPUnit (backend)
 npm run test          # Vitest (frontend)
 npm run test:watch
+bin/code-review [nível] [alvo]   # /code-review numa sessão nova (padrão: high, diff atual)
 
 # Navegador headless (skill qa-navegador; 1ª vez: cd tools/screenshot && npm install)
 node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
@@ -133,6 +134,7 @@ Skills vivem em **`.claude/skills/`** (Claude Code), **`.cursor/skills/`** (Curs
 | Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.claude/skills/tech-debt-audit/SKILL.md) |
 | Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.claude/skills/domain-modeling/SKILL.md) |
 | Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.claude/skills/systematic-debugging/SKILL.md) |
+| Bug simples ou ajuste pequeno fora do ciclo (três linhas, teste vermelho, correção mínima) | [`correcao-rapida`](.claude/skills/correcao-rapida/SKILL.md) |
 
 ## Princípios não-negociáveis
 
@@ -150,11 +152,51 @@ Skills vivem em **`.claude/skills/`** (Claude Code), **`.cursor/skills/`** (Curs
 - **JS/TS:** Prettier (4 espaços, single quotes, organized imports), ESLint, TypeScript strict.
 - **Tipos:** entidades de negócio só em `domain/`. Sem `any` novo sem justificativa.
 
+## `.env` e segredos
+
+O agente pode ler o `.env` (para saber a `APP_URL`, o banco, a fila). O que não
+pode é **mostrar valor dele na conversa**: senha, token, chave, segredo ou URL
+com credencial. Para citar uma chave, use só o nome (`DB_PASSWORD`), nunca o
+valor. Se um valor aparecer na conversa (na saída de um comando, por exemplo),
+avise o usuário na hora, dizendo qual chave apareceu. Nunca commite o `.env`.
+
 ## Referências complementares
 
 - `frontend-standards-fisio.md` — documento original de padrões frontend (mantido como histórico; a fonte canônica agora são as skills).
 
 <!-- BEGIN ai-harness -->
+## Antes de começar: vibe code ou spec
+
+Todo **pedido novo do usuário** que muda código começa com uma pergunta, feita
+com a ferramenta de pergunta do agente (`AskUserQuestion` no Claude Code) ou em
+texto com as opções numeradas:
+
+1. **Classifique** o pedido: bug, ajuste (tela, texto, regra pequena) ou
+   funcionalidade.
+2. **Recomende** um caminho, com o motivo em uma linha:
+   - **Vibe code** (skill `correcao-rapida`): bug com reprodução clara ou ajuste
+     pequeno, sem migration, sem endpoint novo nem mudança no formato da
+     resposta, sem mexer em Policy, guard, papel ou filtro por `clinic_id` ou
+     por paciente, sem cruzar módulos, até uns 5 arquivos.
+   - **Spec** (o ciclo abaixo): todo o resto. Para bug de isolamento entre
+     clínicas, de permissão ou de dado de paciente, a recomendação é sempre
+     Spec, por menor que pareça.
+3. **Pergunte** "Vibe code ou Spec?", com a recomendação como primeira opção, e
+   siga a escolha do usuário. Se ele escolher Vibe code onde você recomendou
+   Spec, diga o risco numa linha e siga.
+
+Não pergunte quando:
+
+- o usuário já disse o caminho: `vibe:` ou `spec:` no começo do pedido, ou em
+  palavras;
+- o problema apareceu **durante** um processo em andamento (implementar uma
+  tarefa, smoke test, revisão adversária, correção rápida). Ele não é pedido
+  novo e segue a regra do próprio processo: corrija na tarefa, se for dela, ou
+  registre no `DEFERRED.md` da feature (ou da raiz) e avise o usuário. Nunca
+  abra um caminho novo por conta própria por causa dele;
+- o pedido não muda código: pergunta, explicação, documentação ou o próprio
+  harness (skills, regras, hooks).
+
 ## Ciclo de trabalho
 
 Cada etapa tem uma skill em `.claude/skills/` / `.cursor/skills/`, e cada uma diz qual é a próxima:

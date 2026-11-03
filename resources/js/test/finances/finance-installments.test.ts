@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -19,6 +20,33 @@ describe('parcelamento no formulário', () => {
             others: 300,
         });
         expect(installmentAmounts(null, 3)).toBeNull();
+    });
+
+    it('para qualquer valor e número de parcelas válidos, a soma fecha no centavo', () => {
+        // O formulário e o StoreFinancialTransactionRequest exigem ao menos
+        // R$ 0,01 por parcela: o valor em centavos é sempre >= o número de parcelas.
+        const parcelamentoValido = fc
+            .integer({ min: 2, max: 48 })
+            .chain((total) =>
+                fc.tuple(
+                    fc.integer({ min: total, max: 100_000_000 }),
+                    fc.constant(total),
+                ),
+            );
+
+        fc.assert(
+            fc.property(parcelamentoValido, ([cents, total]) => {
+                const result = installmentAmounts(cents / 100, total);
+                expect(result).not.toBeNull();
+                const first = Math.round(result!.first * 100);
+                const others = Math.round(result!.others * 100);
+
+                expect(first + others * (total - 1)).toBe(cents);
+                expect(others).toBeGreaterThanOrEqual(1);
+                expect(first).toBeGreaterThanOrEqual(others);
+                expect(first - others).toBeLessThan(total);
+            }),
+        );
     });
 
     it('aceita de 2 a 48 parcelas', () => {

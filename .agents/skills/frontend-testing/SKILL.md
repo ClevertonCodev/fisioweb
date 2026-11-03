@@ -72,6 +72,7 @@ npx vitest run -t "nome do teste"         # filtrar por nome
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Templates: Repository, hook React Query, página com loader, form, MSW-less | [`references/testing.md`](references/testing.md) | Implementar teste novo |
+| Teste por propriedade com `fast-check` (regra que vale para qualquer entrada) | [`references/property-testing.md`](references/property-testing.md) | Função pura de dinheiro, datas, formatação ou mapper ida e volta |
 
 ## Output esperado
 
@@ -98,3 +99,4 @@ Ao adicionar teste, entregue:
 | Testar custom hook isolado | `renderHook(() => useX())` + `act()` para state updates |
 | Testar Error Boundary | render dispara `throw` em filho, asserta fallback |
 | Mock condicional (sucesso vs erro) | `mockResolvedValueOnce` / `mockRejectedValueOnce` |
+| Função pura com regra para qualquer entrada (parcelas, centavos, parse/format) | Exemplos + uma propriedade com `fast-check` ([`references/property-testing.md`](references/property-testing.md)) |

@@ -45,6 +45,7 @@ Skills em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e 
 | Auditoria de débito técnico com arquivo e linha (só o usuário chama) | `tech-debt-audit` |
 | Explicar área antiga, glossário (`docs/glossario.md`), ADR | `domain-modeling` |
 | Investigar bug antes de corrigir | `systematic-debugging` |
+| Bug simples ou ajuste pequeno fora do ciclo | `correcao-rapida` |
 
 ## Princípios
 

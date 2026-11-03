@@ -145,6 +145,7 @@ Skills vivem em **`.claude/skills/`** (Claude Code), **`.cursor/skills/`** (Curs
 5. **`apiClient` é o único caminho HTTP.** Sem `fetch` direto. Veja [`api-client`](.claude/skills/api-client/SKILL.md).
 6. **Domain puro.** `domain/` só tem entidade em camelCase, sem `_at`, sem `ApiXxx`, sem `WriteDto`, sem constantes de UI.
 7. **Form com 2+ campos → RHF + Zod.** Algumas pages legadas usam `useState` (ex.: `FeatureNewPage`) — não copiar. Veja [`frontend-ddd/references/forms.md`](.claude/skills/frontend-ddd/references/forms.md).
+8. **Comentários:** não escreva comentário por padrão. O código se explica por nome e estrutura. Só ficam: tipagem tanto no frontend quando no backend exemplo (`@param`, `@return`, `@throws`, `@var` com shape de array) e um comentário curto quando o motivo for difícil de entender (lock, réplica, bug de terceiro, regra que o código não mostra). **Nunca** comente o que o código faz, id de tarefa ou decisão (`D36`, `tarefa 008`, `001`), nem o passo a passo do assert em teste. Vale para PHP, TS, Vue, CSS e testes. Na dúvida, apague.
 
 ## Code Style
 

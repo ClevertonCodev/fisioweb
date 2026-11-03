@@ -13,8 +13,6 @@ metadata:
 
 **Leia esta skill antes de implementar UI nova em tela v1** (tela v2 usa [`design-system`](../design-system/SKILL.md)). Ela complementa [`forms-shadcn`](../forms-shadcn/SKILL.md) (forms/listagens) com catálogo de componentes, cores, navegação e interação.
 
-Artefato compartilhado do Spec Kit: [`specs/_shared/frontend-ui-patterns.md`](../../../specs/_shared/frontend-ui-patterns.md)
-
 ## Quando usar
 
 > **Só para telas v1** (as que já existem, com `AdminLayout`/`ClinicLayout`). Tela v2 (nova) usa `@/components/ds` e a skill [`design-system`](../design-system/SKILL.md); não misture as duas bibliotecas na mesma tela.

@@ -28,4 +28,3 @@ GoogleCalendar passa a ser um módulo de integração pura:
 ## Validation
 
 - `modules/GoogleCalendar/tests/Feature/GoogleCalendarArchitectureTest.php`
-- `specs/011-google-calendar-decoupling/quickstart.md`

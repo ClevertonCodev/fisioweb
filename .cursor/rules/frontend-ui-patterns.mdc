@@ -14,8 +14,7 @@ alwaysApply: false
 Antes de criar ou estilizar telas v1, menus ou componentes visuais:
 
 1. Leia [`frontend-ui-patterns`](../skills/frontend-ui-patterns/SKILL.md)
-2. Artefato Spec Kit: [`specs/_shared/frontend-ui-patterns.md`](../../specs/_shared/frontend-ui-patterns.md)
-3. Identifique e siga o arquivo canônico do repo antes de criar layout, cor ou interação nova
-4. Popover flutuante = fundo claro (`bg-popover`); sidebar = escuro (`bg-sidebar`)
-5. Elementos clicáveis = `cursor-pointer`
-6. Forms/listagens usam [`forms-shadcn`](../skills/forms-shadcn/SKILL.md); estrutura de feature usa [`frontend-ddd`](../skills/frontend-ddd/SKILL.md)
+2. Identifique e siga o arquivo canônico do repo antes de criar layout, cor ou interação nova
+3. Popover flutuante = fundo claro (`bg-popover`); sidebar = escuro (`bg-sidebar`)
+4. Elementos clicáveis = `cursor-pointer`
+5. Forms/listagens usam [`forms-shadcn`](../skills/forms-shadcn/SKILL.md); estrutura de feature usa [`frontend-ddd`](../skills/frontend-ddd/SKILL.md)

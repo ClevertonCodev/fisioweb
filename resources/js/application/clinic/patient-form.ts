@@ -52,6 +52,7 @@ function isValidCpf(cpf: string): boolean {
 }
 
 import type { PatientDetail } from '@/domain/clinic/patient';
+import { formatDocument } from '@/lib/utils';
 
 import type { PatientUpdateDto, PatientWriteDto } from './ports';
 
@@ -172,7 +173,9 @@ export function toPatientFormValues(detail: PatientDetail): PatientFormValues {
     return {
         name: detail.name,
         is_foreign: detail.isForeign,
-        cpf: detail.cpf ?? '',
+        cpf: detail.isForeign
+            ? (detail.cpf ?? '')
+            : formatDocument(detail.cpf ?? ''),
         apelido: detail.apelido ?? '',
         use_apelido: detail.useApelido,
         birth_date: detail.birthDate ? detail.birthDate.slice(0, 10) : '',

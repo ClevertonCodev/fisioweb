@@ -403,6 +403,22 @@ describe('edição de paciente (tela de verdade)', () => {
         ).toBeNull();
     });
 
+    it('mostra com máscara o CPF que a API devolve só com dígitos', async () => {
+        renderEdit(detail({ cpf: '52998224725' }));
+
+        expect(
+            await screen.findByRole('textbox', { name: /cpf/i }),
+        ).toHaveValue('529.982.247-25');
+    });
+
+    it('mostra o documento do estrangeiro como a API devolve', async () => {
+        renderEdit(detail({ isForeign: true, cpf: 'AB123456' }));
+
+        expect(
+            await screen.findByRole('textbox', { name: /documento/i }),
+        ).toHaveValue('AB123456');
+    });
+
     it('trocar o id na URL com cache quente mostra o outro paciente', async () => {
         const user = userEvent.setup();
         const first = detail({ id: '7', name: 'Bruno Reis' });

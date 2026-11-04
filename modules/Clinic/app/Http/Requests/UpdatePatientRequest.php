@@ -14,6 +14,16 @@ class UpdatePatientRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $isForeign = filter_var($this->input('is_foreign'), FILTER_VALIDATE_BOOLEAN);
+        $cpf       = $this->input('cpf');
+
+        if (!$isForeign && is_string($cpf) && !empty($cpf)) {
+            $this->merge(['cpf' => preg_replace('/\D/', '', $cpf)]);
+        }
+    }
+
     public function rules(): array
     {
         $clinicId  = Auth::guard('clinic')->user()->clinic_id;

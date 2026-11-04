@@ -382,7 +382,8 @@ trazer_dependencias() {
     [ "$raiz" != "$principal" ] || return 0
     echo "Copiando vendor, node_modules e front compilado de $principal..."
     local d
-    for d in vendor node_modules public/build .claude/settings.local.json .vscode .idea; do
+    for d in vendor node_modules public/build .claude/settings.local.json .vscode .idea \
+             tools/screenshot/node_modules tools/screenshot/credentials.json; do
         clonar "$d"
     done
 }
@@ -506,7 +507,8 @@ ignorar_no_git() {
     if [ -s "$exclude" ] && [ -n "$(tail -c 1 "$exclude")" ]; then
         echo >> "$exclude"
     fi
-    for padrao in /CLAUDE.local.md /AMBIENTE.md /AMBIENTES.md /docker/fisio-app.json /.cursor/rules/ambiente-docker.mdc; do
+    for padrao in /CLAUDE.local.md /AMBIENTE.md /AMBIENTES.md /docker/fisio-app.json /.cursor/rules/ambiente-docker.mdc \
+        /tools/screenshot/credentials.json; do
         grep -qxF "$padrao" "$exclude" || echo "$padrao" >> "$exclude"
     done
 }

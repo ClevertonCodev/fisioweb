@@ -43,9 +43,11 @@ O `new`, em uns 2 minutos:
 
 1. cria a worktree `../fisioweb-agenda-semanal` com a branch `feat/agenda-semanal`
    (a partir da `origin/main`, sem seguir a main);
-2. copia `vendor/`, `node_modules/`, `public/build/`, `.vscode`, `.idea` e o
-   `.claude/settings.local.json` do checkout principal (clone do APFS: instantâneo
-   e sem ocupar espaço);
+2. copia `vendor/`, `node_modules/`, `public/build/`, `.vscode`, `.idea`, o
+   `.claude/settings.local.json` e o `node_modules` e o `credentials.json` do
+   `tools/screenshot/` do checkout principal (clone do APFS: instantâneo e sem
+   ocupar espaço). O `.env` não é copiado: é gerado a cada `up` a partir do `.env`
+   do principal (abaixo);
 3. escreve as instruções da pasta para o agente: `CLAUDE.local.md` (Claude Code)
    e `.cursor/rules/ambiente-docker.mdc` (Cursor);
 4. sobe PHP, Postgres e a fila e prepara o banco (`banco_inicial`, abaixo),

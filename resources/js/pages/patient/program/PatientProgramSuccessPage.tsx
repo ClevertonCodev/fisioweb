@@ -1,36 +1,49 @@
-import { CheckCircle2 } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { patientProgramsListPath } from '@/application/patient/patient-program-paths';
-import { Button } from '@/components/ui/button';
+import { PrototypeSwitcher } from '@/components/dev/PrototypeSwitcher';
+
+import {
+    ORIGINAL_NAME,
+    Original,
+} from './program-success-prototype/Original';
+import {
+    VARIANT_A_NAME,
+    VariantA,
+} from './program-success-prototype/VariantA';
+import type { ProgramSuccessViewProps } from './program-success-prototype/shared';
+
+const PROTOTYPE_VARIANTS = [
+    { key: 'original', label: ORIGINAL_NAME },
+    { key: 'A', label: VARIANT_A_NAME },
+];
 
 export default function PatientProgramSuccessPage() {
     const { clinicSlug = '' } = useParams<{ clinicSlug: string }>();
+    const [searchParams] = useSearchParams();
+    const variant = searchParams.get('variant') ?? 'original';
     const navigate = useNavigate();
 
+    const onBackToPrograms = () => {
+        navigate(clinicSlug ? patientProgramsListPath(clinicSlug) : '/');
+    };
+
+    const viewProps: ProgramSuccessViewProps = {
+        clinicSlug,
+        onBackToPrograms,
+    };
+
     return (
-        <div className="flex h-screen flex-col items-center justify-center overflow-y-auto bg-[#217b7e] p-6 text-center text-white">
-            <div className="mb-8 rounded-full bg-white/20 p-6">
-                <CheckCircle2 className="h-24 w-24 text-white" />
-            </div>
-
-            <h1 className="mb-2 text-3xl font-bold">Programa concluído</h1>
-            <h2 className="mb-12 text-2xl font-medium">com sucesso!</h2>
-
-            <Button
-                variant="outline"
-                size="lg"
-                className="w-full max-w-sm border-white bg-transparent text-white hover:bg-white/10"
-                onClick={() =>
-                    navigate(
-                        clinicSlug
-                            ? patientProgramsListPath(clinicSlug)
-                            : '/',
-                    )
-                }
-            >
-                Voltar aos programas
-            </Button>
-        </div>
+        <>
+            {variant === 'A' ? (
+                <VariantA {...viewProps} />
+            ) : (
+                <Original {...viewProps} />
+            )}
+            <PrototypeSwitcher
+                variants={PROTOTYPE_VARIANTS}
+                current={variant === 'A' ? 'A' : 'original'}
+            />
+        </>
     );
 }

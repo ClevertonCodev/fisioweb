@@ -6,37 +6,43 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Modules\Patient\Models\Patient;
+use Modules\TreatmentProgram\Contracts\CompletePatientProgramServiceInterface;
+use Modules\TreatmentProgram\Contracts\GetPatientProgramDetailServiceInterface;
+use Modules\TreatmentProgram\Contracts\ListPatientProgramsServiceInterface;
+use Modules\TreatmentProgram\Contracts\RegisterPatientProgramViewServiceInterface;
+use Modules\TreatmentProgram\Contracts\SavePatientProgramSeriesServiceInterface;
+use Modules\TreatmentProgram\Contracts\StartOrResumePatientProgramExecutionServiceInterface;
+use Modules\TreatmentProgram\Contracts\SubmitPatientProgramFeedbackServiceInterface;
+use Modules\TreatmentProgram\Contracts\UpdateUnfinishedExercisesServiceInterface;
 use Modules\TreatmentProgram\Http\Requests\Patient\SavePatientProgramSeriesRequest;
 use Modules\TreatmentProgram\Http\Requests\Patient\SubmitPatientProgramFeedbackRequest;
 use Modules\TreatmentProgram\Http\Requests\Patient\UpdateUnfinishedExercisesRequest;
-use Modules\TreatmentProgram\Services\PatientProgram\CompletePatientProgramService;
-use Modules\TreatmentProgram\Services\PatientProgram\GetPatientProgramDetailService;
-use Modules\TreatmentProgram\Services\PatientProgram\ListPatientProgramsService;
-use Modules\TreatmentProgram\Services\PatientProgram\RegisterPatientProgramViewService;
-use Modules\TreatmentProgram\Services\PatientProgram\SavePatientProgramSeriesService;
-use Modules\TreatmentProgram\Services\PatientProgram\StartOrResumePatientProgramExecutionService;
-use Modules\TreatmentProgram\Services\PatientProgram\SubmitPatientProgramFeedbackService;
-use Modules\TreatmentProgram\Services\PatientProgram\UpdateUnfinishedExercisesService;
 
 class PatientProgramController extends Controller
 {
     public function __construct(
-        protected ListPatientProgramsService $listService,
-        protected GetPatientProgramDetailService $detailService,
-        protected RegisterPatientProgramViewService $viewService,
-        protected StartOrResumePatientProgramExecutionService $startExecutionService,
-        protected SavePatientProgramSeriesService $saveSeriesService,
-        protected UpdateUnfinishedExercisesService $updateUnfinishedService,
-        protected SubmitPatientProgramFeedbackService $feedbackService,
-        protected CompletePatientProgramService $completeService,
+        protected ListPatientProgramsServiceInterface $listService,
+        protected GetPatientProgramDetailServiceInterface $detailService,
+        protected RegisterPatientProgramViewServiceInterface $viewService,
+        protected StartOrResumePatientProgramExecutionServiceInterface $startExecutionService,
+        protected SavePatientProgramSeriesServiceInterface $saveSeriesService,
+        protected UpdateUnfinishedExercisesServiceInterface $updateUnfinishedService,
+        protected SubmitPatientProgramFeedbackServiceInterface $feedbackService,
+        protected CompletePatientProgramServiceInterface $completeService,
     ) {}
 
     public function index(): JsonResponse
     {
-        /** @var Patient $patient */
-        $patient = Auth::guard('patient')->user();
-        $data    = $this->listService->execute($patient);
+        $user = Auth::guard('patient')->user();
+
+        if (is_null($user)) {
+            abort(401);
+        }
+
+        $data = $this->listService->execute(
+            (int) $user->getAuthIdentifier(),
+            (int) $user->getAttribute('clinic_id'),
+        );
 
         return response()->json(['data' => $data]);
     }

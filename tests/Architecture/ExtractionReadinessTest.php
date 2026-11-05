@@ -183,7 +183,8 @@ class ExtractionReadinessTest extends TestCase
         }
 
         $this->assertSame([], $clinicMigrations, 'Treatment/program migrations must not live in modules/Clinic.');
-        $this->assertCount(5, array_unique($ownerMigrations), 'TreatmentProgram must own the five prescription migrations.');
+        // Prescrição base, rascunho, engajamento, outcomes, execuções/séries e feedbacks do paciente.
+        $this->assertCount(9, array_unique($ownerMigrations), 'TreatmentProgram must own all clinic_treatment_plan and clinic_program_draft migrations.');
     }
 
     public function test_treatment_program_events_do_not_reference_models(): void

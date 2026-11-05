@@ -4,8 +4,9 @@ namespace Modules\TreatmentProgram\Services\PatientProgram;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
+use Modules\TreatmentProgram\Contracts\RegisterPatientProgramViewServiceInterface;
 
-class RegisterPatientProgramViewService
+class RegisterPatientProgramViewService implements RegisterPatientProgramViewServiceInterface
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,

@@ -100,4 +100,26 @@ class PatientProgramListTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(1, 'data');
     }
+
+    public function test_programs_with_mismatched_clinic_id_are_not_listed(): void
+    {
+        $patient = $this->createPatient();
+        $this->createActiveProgram($patient);
+
+        $otherClinicUser = ClinicUser::factory()->create();
+        TreatmentPlan::create([
+            'clinic_id'      => $otherClinicUser->clinic_id,
+            'clinic_user_id' => $this->clinicUser->id,
+            'patient_id'     => $patient->id,
+            'title'          => 'Plano com clinic_id inconsistente',
+            'status'         => TreatmentPlan::STATUS_ACTIVE,
+        ]);
+
+        $response = $this->actingAs($patient, 'patient')
+            ->getJson('/api/patient/programs');
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Programa de Reabilitação');
+    }
 }

@@ -3,11 +3,12 @@
 namespace Modules\TreatmentProgram\Services\PatientProgram;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Modules\TreatmentProgram\Contracts\GetPatientProgramDetailServiceInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
 use Modules\TreatmentProgram\Support\PatientProgramResponseMapper;
 
-class GetPatientProgramDetailService
+class GetPatientProgramDetailService implements GetPatientProgramDetailServiceInterface
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,

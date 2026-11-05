@@ -5,13 +5,14 @@ namespace Modules\TreatmentProgram\Services\PatientProgram;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\TreatmentProgram\Contracts\CompletePatientProgramServiceInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanFeedbackRepositoryInterface;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Models\TreatmentPlanExecution;
 
-class CompletePatientProgramService
+class CompletePatientProgramService implements CompletePatientProgramServiceInterface
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,

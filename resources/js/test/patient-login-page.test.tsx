@@ -322,3 +322,22 @@ describe('US3 — destino após o login', () => {
         });
     });
 });
+
+// ──────────────────────────────────────────────────────── US4 (Design System v2)
+
+describe('US4 — integração com Design System v2 (Option A final)', () => {
+    it('renderiza o layout oficial do Design System com navbar e branding IVS', () => {
+        renderAt(
+            '/clinica-cleverton/paciente/login',
+            '/:clinicSlug/paciente/login',
+        );
+
+        expect(screen.getByText('IVS')).toBeInTheDocument();
+        expect(screen.getByText('Fisioterapia e Saúde')).toBeInTheDocument();
+        expect(screen.getByText('Área do paciente')).toBeInTheDocument();
+        expect(screen.getByLabelText(/CPF ou e-mail/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Senha$/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
+    });
+});
+

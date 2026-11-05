@@ -215,3 +215,7 @@ export { DsDateField } from './date-field/DsDateField';
 export { DsAvatarPhotoField } from './photo/DsAvatarPhotoField';
 export { DEFAULT_CROP, DsPhotoCropModal } from './photo/DsPhotoCropModal';
 export type { CropParams } from './photo/DsPhotoCropModal';
+
+export { DsPatientNavbar } from './navbar/DsPatientNavbar';
+export type { DsPatientNavbarProps } from './navbar/DsPatientNavbar';
+

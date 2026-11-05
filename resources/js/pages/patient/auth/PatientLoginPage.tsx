@@ -1,15 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    ArrowLeft,
-    Building2,
-    ChevronRight,
-    Eye,
-    EyeOff,
-    Loader2,
-    Lock,
-    UserRound,
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Building2, ChevronRight, Lock, UserRound } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -24,21 +15,14 @@ import {
     useFindPatientClinics,
     usePatientLogin,
 } from '@/application/patient/use-patient-auth';
-import { PatientNavbar } from '@/components/PatientNavbar';
-import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { AppLogo } from '@/components/AppLogo';
+import { DsAlert } from '@/components/ds/alert/DsAlert';
+import { DsButton } from '@/components/ds/button/DsButton';
+import { DsInput } from '@/components/ds/input/DsInput';
+import { DsPatientNavbar } from '@/components/ds/navbar/DsPatientNavbar';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicOption } from '@/domain/patient/auth';
 import { getPatientClinicSlug, setPatientClinicSlug } from '@/infrastructure/api/client';
-import { cn } from '@/lib/utils';
 
 type Step = 'identifier' | 'clinic' | 'credentials';
 
@@ -54,10 +38,7 @@ export default function PatientLoginPage() {
         clinicSlug ? 'credentials' : 'identifier',
     );
     const [clinics, setClinics] = useState<ClinicOption[]>([]);
-    const [selectedClinic, setSelectedClinic] = useState<ClinicOption | null>(
-        null,
-    );
-    const [showPassword, setShowPassword] = useState(false);
+    const [selectedClinic, setSelectedClinic] = useState<ClinicOption | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const findClinics = useFindPatientClinics();
@@ -69,8 +50,11 @@ export default function PatientLoginPage() {
         mode: 'onSubmit',
     });
 
-    const resolveClinicSlug = (): string =>
-        clinicSlug ?? user?.clinicSlug ?? getPatientClinicSlug() ?? '';
+    const resolveClinicSlug = useCallback(
+        (): string =>
+            clinicSlug ?? user?.clinicSlug ?? getPatientClinicSlug() ?? '',
+        [clinicSlug, user?.clinicSlug],
+    );
 
     useEffect(() => {
         if (!isAuthenticated || guard !== 'patient') return;
@@ -81,7 +65,7 @@ export default function PatientLoginPage() {
         if (dest !== '/paciente/login') {
             navigate(dest, { replace: true });
         }
-    }, [isAuthenticated, guard, navigate, next, clinicSlug, user?.clinicSlug]);
+    }, [isAuthenticated, guard, navigate, next, resolveClinicSlug]);
 
     const clinicLabel = useMemo(() => {
         if (selectedClinic) return selectedClinic.name;
@@ -176,40 +160,65 @@ export default function PatientLoginPage() {
     const isSubmitting = login.isPending || findClinics.isPending;
 
     return (
-        <div className="flex min-h-screen flex-col bg-background">
-            <PatientNavbar hideAuthAction />
+        <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+            {/* Indicador de Protótipo no topo */}
+            <div className="border-b border-ds-border-brand-subtle bg-ds-surface-brand-subtle px-4 py-2 font-ds text-ds-caption text-ds-primary-80 ds-dark:text-ds-primary-40">
+                <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-flex size-2 rounded-full bg-ds-primary-80 animate-pulse" />
+                        <span className="font-semibold tracking-wide uppercase text-[11px]">
+                            Protótipo em Validação
+                        </span>
+                        <span className="hidden text-ds-content-subtle sm:inline">·</span>
+                        <span className="hidden text-ds-content-muted sm:inline">
+                            Design System v2 — Área do Paciente
+                        </span>
+                    </div>
+                    <span className="rounded-ds-full border border-ds-border-subtle bg-ds-surface-default px-2.5 py-0.5 font-ds-mono text-[10px] font-medium text-ds-content-primary">
+                        Opção A
+                    </span>
+                </div>
+            </div>
 
-            <main className="relative flex flex-1 items-center justify-center overflow-hidden px-4 py-10">
+            <DsPatientNavbar hideAuthAction showPrototypeBadge />
+
+            <main className="relative flex flex-1 flex-col items-center justify-center px-4 py-8 pb-24 sm:py-12 sm:pb-32">
+                {/* Efeito de luz ambiente de marca contido */}
                 <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background"
-                />
-                <div
-                    aria-hidden
-                    className="pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
-                />
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 overflow-hidden"
+                >
+                    <div className="absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-ds-primary-30/20 blur-3xl ds-dark:bg-ds-primary-80/10" />
+                </div>
 
                 <div className="relative z-10 w-full max-w-md">
+                    {/* Header do Card */}
                     <div className="mb-6 text-center">
-                        <h1 className="font-serif text-2xl font-semibold text-foreground sm:text-3xl">
+                        <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default shadow-ds-xs">
+                            <AppLogo className="size-7 ds-dark:text-ds-white" />
+                        </div>
+                        <h1 className="font-ds text-ds-h4 font-semibold tracking-tight text-ds-content-primary">
                             Área do paciente
                         </h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">
+                        <p className="mt-1 text-ds-body-xs text-ds-content-muted">
                             {step === 'clinic'
                                 ? 'Em qual clínica você quer entrar?'
                                 : 'Acesse seus programas de exercícios'}
                         </p>
                     </div>
 
-                    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8">
+                    {/* Container Principal */}
+                    <div className="rounded-ds-2xl border border-ds-border-subtle bg-ds-surface-default p-6 shadow-ds-sm sm:p-8">
                         {step === 'credentials' && clinicLabel && (
-                            <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-primary/20 bg-primary/5 px-3.5 py-3">
-                                <Building2 className="h-4 w-4 shrink-0 text-primary" />
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                            <div className="mb-5 flex items-center gap-3 rounded-ds-lg border border-ds-border-brand-subtle bg-ds-surface-brand-subtle p-3.5">
+                                <div className="flex size-8 shrink-0 items-center justify-center rounded-ds-md bg-ds-primary-80 text-white">
+                                    <Building2 className="size-4" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <span className="block text-[11px] font-semibold tracking-wider text-ds-primary-80 uppercase ds-dark:text-ds-primary-60">
                                         Entrando em
-                                    </p>
-                                    <p className="truncate text-sm font-semibold text-foreground capitalize">
+                                    </span>
+                                    <p className="truncate text-ds-body-xs font-semibold text-ds-content-primary capitalize">
                                         {clinicLabel}
                                     </p>
                                 </div>
@@ -217,188 +226,120 @@ export default function PatientLoginPage() {
                         )}
 
                         {error && (
-                            <div
-                                role="alert"
-                                aria-live="polite"
-                                className="mb-5 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-                            >
-                                {error}
+                            <div className="mb-5">
+                                <DsAlert variant="danger">
+                                    {error}
+                                </DsAlert>
                             </div>
                         )}
 
                         {step === 'clinic' ? (
-                            <div className="space-y-2">
+                            <div className="space-y-2.5">
                                 {clinics.map((clinic) => (
                                     <button
                                         key={clinic.id}
                                         type="button"
-                                        onClick={() =>
-                                            handleClinicChoice(clinic)
-                                        }
-                                        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3.5 text-left transition-colors hover:border-primary/40 hover:bg-accent"
+                                        onClick={() => handleClinicChoice(clinic)}
+                                        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-ds-lg border border-ds-border-subtle bg-ds-surface-default p-3.5 text-left transition-all hover:border-ds-primary-80 hover:bg-ds-surface-subtle hover:shadow-ds-xs"
                                     >
-                                        <span className="flex min-w-0 items-center gap-3">
-                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                <Building2 className="h-4 w-4" />
-                                            </span>
-                                            <span className="truncate text-sm font-medium text-foreground">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="flex size-9 shrink-0 items-center justify-center rounded-ds-md bg-ds-primary-20 text-ds-primary-80 ds-dark:bg-ds-primary-80/20 ds-dark:text-ds-primary-60">
+                                                <Building2 className="size-4.5" />
+                                            </div>
+                                            <span className="truncate text-ds-body-xs font-medium text-ds-content-primary">
                                                 {clinic.name}
                                             </span>
-                                        </span>
-                                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                        </div>
+                                        <ChevronRight className="size-4 text-ds-content-subtle" />
                                     </button>
                                 ))}
                             </div>
                         ) : (
-                            <Form {...form}>
-                                <form
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        if (step === 'identifier') {
-                                            void handleIdentifierSubmit();
-                                        } else {
-                                            void handleLogin(event);
+                            <form
+                                noValidate
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    if (step === 'identifier') {
+                                        void handleIdentifierSubmit();
+                                    } else {
+                                        void handleLogin(event);
+                                    }
+                                }}
+                                className="space-y-4"
+                            >
+                                <DsInput
+                                    label="CPF ou e-mail"
+                                    placeholder="000.000.000-00 ou seu e-mail"
+                                    autocomplete="username"
+                                    iconLeft={<UserRound className="size-4 text-ds-content-muted" />}
+                                    {...form.register('identifier')}
+                                    state={form.formState.errors.identifier ? 'error' : 'default'}
+                                    helper={form.formState.errors.identifier?.message}
+                                />
+
+                                {step === 'credentials' && (
+                                    <DsInput
+                                        type="password"
+                                        label="Senha"
+                                        placeholder="Sua senha"
+                                        autocomplete="current-password"
+                                        iconLeft={<Lock className="size-4 text-ds-content-muted" />}
+                                        {...form.register('password')}
+                                        state={form.formState.errors.password ? 'error' : 'default'}
+                                        helper={
+                                            form.formState.errors.password?.message ||
+                                            'Senha inicial fornecida pela clínica — normalmente o seu CPF, só os números.'
                                         }
-                                    }}
-                                    className="space-y-4"
-                                    noValidate
-                                >
-                                    <FormField
-                                        control={form.control}
-                                        name="identifier"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-sm font-medium text-foreground">
-                                                    CPF ou e-mail
-                                                </FormLabel>
-                                                <div className="relative">
-                                                    <UserRound className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            inputMode={
-                                                                field.value.includes(
-                                                                    '@',
-                                                                )
-                                                                    ? 'email'
-                                                                    : 'numeric'
-                                                            }
-                                                            autoComplete="username"
-                                                            placeholder="000.000.000-00 ou seu e-mail"
-                                                            className="h-12 rounded-xl pl-10 text-base"
-                                                        />
-                                                    </FormControl>
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
                                     />
+                                )}
 
-                                    {step === 'credentials' && (
-                                        <FormField
-                                            control={form.control}
-                                            name="password"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-sm font-medium text-foreground">
-                                                        Senha
-                                                    </FormLabel>
-                                                    <div className="relative">
-                                                        <Lock className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                type={
-                                                                    showPassword
-                                                                        ? 'text'
-                                                                        : 'password'
-                                                                }
-                                                                autoComplete="current-password"
-                                                                placeholder="Sua senha"
-                                                                className="h-12 rounded-xl px-10 text-base"
-                                                            />
-                                                        </FormControl>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setShowPassword(
-                                                                    !showPassword,
-                                                                )
-                                                            }
-                                                            aria-label={
-                                                                showPassword
-                                                                    ? 'Ocultar senha'
-                                                                    : 'Mostrar senha'
-                                                            }
-                                                            className="absolute top-1/2 right-3.5 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-                                                        >
-                                                            {showPassword ? (
-                                                                <EyeOff className="h-4 w-4" />
-                                                            ) : (
-                                                                <Eye className="h-4 w-4" />
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                    <FormMessage />
-                                                    <p className="pt-0.5 text-xs text-muted-foreground">
-                                                        Senha inicial fornecida
-                                                        pela clínica —
-                                                        normalmente o seu CPF,
-                                                        só os números.
-                                                    </p>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    )}
-
-                                    <Button
+                                <div className="pt-2">
+                                    <DsButton
                                         type="submit"
-                                        disabled={isSubmitting}
-                                        className={cn(
-                                            'h-12 w-full cursor-pointer rounded-xl text-base font-semibold',
-                                        )}
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Entrando…
-                                            </>
-                                        ) : step === 'identifier' ? (
-                                            'Continuar'
-                                        ) : (
-                                            'Entrar'
-                                        )}
-                                    </Button>
-                                </form>
-                            </Form>
+                                        variant="primary"
+                                        size="lg"
+                                        className="w-full justify-center"
+                                        label={
+                                            isSubmitting
+                                                ? 'Entrando…'
+                                                : step === 'identifier'
+                                                  ? 'Continuar'
+                                                  : 'Entrar'
+                                        }
+                                        loading={isSubmitting}
+                                    />
+                                </div>
+                            </form>
                         )}
 
                         {(step !== 'identifier' || !clinicSlug) && (
-                            <button
-                                type="button"
-                                onClick={handleBack}
-                                className="mt-5 flex w-full cursor-pointer items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                            >
-                                <ArrowLeft className="h-3.5 w-3.5" />
-                                Voltar
-                            </button>
+                            <div className="mt-4 pt-3 text-center border-t border-ds-border-subtle">
+                                <DsButton
+                                    type="button"
+                                    variant="tertiary"
+                                    size="sm"
+                                    iconPosition="left"
+                                    icon={<ArrowLeft className="size-3.5" />}
+                                    label="Voltar"
+                                    onClick={handleBack}
+                                    className="mx-auto"
+                                />
+                            </div>
                         )}
                     </div>
 
-                    <p className="mt-5 text-center text-sm text-muted-foreground">
+                    <p className="mt-5 text-center text-ds-caption text-ds-content-muted">
                         Não consegue entrar? Fale com a sua clínica.
                     </p>
 
                     {clinicSlug && (
-                        <p className="mt-2 text-center text-sm">
+                        <p className="mt-2 text-center text-ds-body-xs">
                             <button
                                 type="button"
                                 onClick={() =>
-                                    navigate(
-                                        patientProgramsListPath(clinicSlug),
-                                    )
+                                    navigate(patientProgramsListPath(clinicSlug))
                                 }
-                                className="cursor-pointer font-medium text-primary transition-colors hover:text-primary/80"
+                                className="cursor-pointer font-medium text-ds-primary-80 transition-colors hover:text-ds-primary-100 hover:underline ds-dark:text-ds-primary-60"
                             >
                                 Voltar aos programas
                             </button>

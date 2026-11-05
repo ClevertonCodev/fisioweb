@@ -399,6 +399,48 @@ class PatientControllerTest extends TestCase
         }
     }
 
+    public function test_update_stores_masked_cpf_as_digits(): void
+    {
+        $patient = $this->createPatientForClinic();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->putJson("/api/clinic/patients/{$patient->id}", [
+                'is_foreign' => false,
+                'cpf'        => '111.444.777-35',
+            ])
+            ->assertOk();
+
+        $this->assertSame('11144477735', $patient->fresh()->cpf);
+    }
+
+    public function test_update_rejects_masked_cpf_already_used_in_same_clinic(): void
+    {
+        $this->createPatientForClinic()->update(['cpf' => '11144477735']);
+        $patient = $this->createPatientForClinic();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->putJson("/api/clinic/patients/{$patient->id}", [
+                'is_foreign' => false,
+                'cpf'        => '111.444.777-35',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('cpf');
+    }
+
+    public function test_update_keeps_foreign_document_as_typed(): void
+    {
+        $patient = $this->createPatientForClinic();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->putJson("/api/clinic/patients/{$patient->id}", [
+                'is_foreign' => true,
+                'cpf'        => 'AB-123.456',
+            ])
+            ->assertOk();
+
+        $this->assertSame('AB-123.456', $patient->fresh()->cpf);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
     private function createPatientForClinic(): Patient

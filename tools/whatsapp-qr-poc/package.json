@@ -1,0 +1,13 @@
+{
+    "name": "whatsapp-qr-poc",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "node server.mjs"
+    },
+    "dependencies": {
+        "@whiskeysockets/baileys": "^6.7.21",
+        "express": "^4.21.2",
+        "qrcode": "^1.5.4"
+    }
+}

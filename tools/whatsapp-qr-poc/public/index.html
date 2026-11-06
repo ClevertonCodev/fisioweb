@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>POC WhatsApp QR (descartável)</title>
+        <style>
+            :root {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    sans-serif;
+                line-height: 1.45;
+                color: #111;
+                background: #f4f4f5;
+            }
+            body {
+                max-width: 520px;
+                margin: 2rem auto;
+                padding: 0 1rem 3rem;
+            }
+            .card {
+                background: #fff;
+                border-radius: 12px;
+                padding: 1.25rem 1.5rem;
+                box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+                margin-bottom: 1rem;
+            }
+            h1 {
+                font-size: 1.15rem;
+                margin: 0 0 0.35rem;
+            }
+            .warn {
+                font-size: 0.85rem;
+                color: #713f12;
+                background: #fef9c3;
+                border-radius: 8px;
+                padding: 0.65rem 0.75rem;
+                margin-bottom: 1rem;
+            }
+            label {
+                display: block;
+                font-size: 0.85rem;
+                font-weight: 600;
+                margin-top: 0.75rem;
+            }
+            input,
+            textarea,
+            button {
+                width: 100%;
+                box-sizing: border-box;
+                margin-top: 0.35rem;
+                padding: 0.55rem 0.65rem;
+                border-radius: 8px;
+                border: 1px solid #d4d4d8;
+                font: inherit;
+            }
+            button {
+                cursor: pointer;
+                background: #16a34a;
+                color: #fff;
+                border: none;
+                font-weight: 600;
+                margin-top: 1rem;
+            }
+            button.secondary {
+                background: #2563eb;
+            }
+            button:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            .status {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.65rem;
+                background: #f4f4f5;
+                border-radius: 8px;
+            }
+            .status.ok {
+                background: #dcfce7;
+            }
+            img.qr {
+                display: block;
+                margin: 0.75rem auto 0;
+            }
+            .log {
+                font-size: 0.8rem;
+                color: #52525b;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+        <p class="warn">
+            Protótipo local só para teste. Usa vínculo tipo WhatsApp Web (Baileys),
+            não a API oficial da Meta. Risco de bloqueio do número — use chip de
+            teste.
+        </p>
+
+        <div class="card">
+            <h1>1. Conectar WhatsApp</h1>
+            <p class="status" id="status">Aguardando…</p>
+            <p class="log" id="linkedAs"></p>
+            <p class="log" id="connError"></p>
+            <button type="button" class="secondary" id="btnConnect">
+                Gerar QR / reconectar
+            </button>
+            <button type="button" class="secondary" id="btnReset" style="margin-top: 0.5rem; background: #71717a">
+                Resetar sessão (apaga vínculo)
+            </button>
+            <img class="qr" id="qr" alt="" hidden />
+        </div>
+
+        <div class="card">
+            <h1>2. Enviar convite ao aluno</h1>
+            <label for="studentName">Nome do aluno</label>
+            <input id="studentName" placeholder="Maria Silva" />
+
+            <label for="phone">WhatsApp do aluno</label>
+            <input
+                id="phone"
+                placeholder="84991234567 ou 5584991234567"
+                inputmode="numeric"
+            />
+            <p class="log">
+                Dica: pode ser só DDD+número (84…). O servidor tenta com e sem o 9.
+            </p>
+
+            <label for="message">Mensagem (opcional)</label>
+            <textarea
+                id="message"
+                rows="3"
+                placeholder="Olá! Você foi convidado(a)…"
+            ></textarea>
+
+            <button type="button" id="btnSend" disabled>Enviar convite</button>
+            <p class="log" id="log"></p>
+        </div>
+
+        <script>
+            const statusEl = document.getElementById('status');
+            const qrEl = document.getElementById('qr');
+            const btnConnect = document.getElementById('btnConnect');
+            const btnReset = document.getElementById('btnReset');
+            const btnSend = document.getElementById('btnSend');
+            const logEl = document.getElementById('log');
+            const linkedAsEl = document.getElementById('linkedAs');
+            const connErrorEl = document.getElementById('connError');
+
+            function setStatus(text, ok) {
+                statusEl.textContent = text;
+                statusEl.className = ok ? 'status ok' : 'status';
+            }
+
+            async function refreshState() {
+                let data;
+                try {
+                    const res = await fetch('/api/state');
+                    data = await res.json();
+                } catch {
+                    setStatus(
+                        'Não alcançou o servidor. Rode npm start em tools/whatsapp-qr-poc e abra http://localhost:8787 (não abra o HTML direto).',
+                        false,
+                    );
+                    btnSend.disabled = true;
+                    return;
+                }
+
+                connErrorEl.textContent = data.lastError
+                    ? 'Aviso: ' + data.lastError
+                    : '';
+                linkedAsEl.textContent = data.linkedAs
+                    ? 'Sessão: ' + data.linkedAs
+                    : '';
+
+                if (data.phase === 'connected') {
+                    setStatus(
+                        'Conectado. No celular deve aparecer um dispositivo vinculado (WhatsApp Web).',
+                        true,
+                    );
+                    qrEl.hidden = true;
+                    btnSend.disabled = false;
+                    return;
+                }
+
+                btnSend.disabled = true;
+
+                if (data.phase === 'qr' && data.qrDataUrl) {
+                    setStatus(
+                        'Escaneie o QR no WhatsApp → Aparelhos conectados → Conectar aparelho.',
+                        false,
+                    );
+                    qrEl.src = data.qrDataUrl;
+                    qrEl.hidden = false;
+                    return;
+                }
+
+                if (data.phase === 'connecting') {
+                    setStatus('Conectando…', false);
+                    qrEl.hidden = true;
+                    return;
+                }
+
+                setStatus(
+                    'Desconectado. Clique em “Gerar QR” e escaneie no celular.',
+                    false,
+                );
+                qrEl.hidden = true;
+            }
+
+            btnConnect.addEventListener('click', async () => {
+                await fetch('/api/connect', { method: 'POST' });
+                logEl.textContent = '';
+                await refreshState();
+            });
+
+            btnReset.addEventListener('click', async () => {
+                if (
+                    !confirm(
+                        'Apaga o vínculo local e gera QR novo. No celular, remova o aparelho “Chrome” se ainda aparecer.',
+                    )
+                ) {
+                    return;
+                }
+                await fetch('/api/reset', { method: 'POST' });
+                logEl.textContent = '';
+                await refreshState();
+            });
+
+            btnSend.addEventListener('click', async () => {
+                logEl.textContent = 'Enviando…';
+                const res = await fetch('/api/send-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentName: document.getElementById('studentName').value,
+                        phone: document.getElementById('phone').value,
+                        message: document.getElementById('message').value,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    logEl.textContent = data.error ?? 'Erro';
+                    return;
+                }
+                logEl.textContent =
+                    'Enviado para ' +
+                    data.jid +
+                    (data.usedNumber ? ' (número ' + data.usedNumber + ')' : '');
+            });
+
+            setInterval(refreshState, 1500);
+            refreshState();
+        </script>
+    </body>
+</html>

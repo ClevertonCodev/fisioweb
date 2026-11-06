@@ -1,5 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Building2, ChevronRight, Lock, UserRound } from 'lucide-react';
+import {
+    ArrowLeft,
+    Building2,
+    ChevronRight,
+    Lock,
+    UserRound,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -22,7 +28,10 @@ import { DsInput } from '@/components/ds/input/DsInput';
 import { DsPatientNavbar } from '@/components/ds/navbar/DsPatientNavbar';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicOption } from '@/domain/patient/auth';
-import { getPatientClinicSlug, setPatientClinicSlug } from '@/infrastructure/api/client';
+import {
+    getPatientClinicSlug,
+    setPatientClinicSlug,
+} from '@/infrastructure/api/client';
 
 type Step = 'identifier' | 'clinic' | 'credentials';
 
@@ -38,7 +47,9 @@ export default function PatientLoginPage() {
         clinicSlug ? 'credentials' : 'identifier',
     );
     const [clinics, setClinics] = useState<ClinicOption[]>([]);
-    const [selectedClinic, setSelectedClinic] = useState<ClinicOption | null>(null);
+    const [selectedClinic, setSelectedClinic] = useState<ClinicOption | null>(
+        null,
+    );
     const [error, setError] = useState<string | null>(null);
 
     const findClinics = useFindPatientClinics();
@@ -161,25 +172,6 @@ export default function PatientLoginPage() {
 
     return (
         <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-            {/* Indicador de Protótipo no topo */}
-            <div className="border-b border-ds-border-brand-subtle bg-ds-surface-brand-subtle px-4 py-2 font-ds text-ds-caption text-ds-primary-80 ds-dark:text-ds-primary-40">
-                <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                        <span className="inline-flex size-2 rounded-full bg-ds-primary-80 animate-pulse" />
-                        <span className="font-semibold tracking-wide uppercase text-[11px]">
-                            Protótipo em Validação
-                        </span>
-                        <span className="hidden text-ds-content-subtle sm:inline">·</span>
-                        <span className="hidden text-ds-content-muted sm:inline">
-                            Design System v2 — Área do Paciente
-                        </span>
-                    </div>
-                    <span className="rounded-ds-full border border-ds-border-subtle bg-ds-surface-default px-2.5 py-0.5 font-ds-mono text-[10px] font-medium text-ds-content-primary">
-                        Opção A
-                    </span>
-                </div>
-            </div>
-
             <DsPatientNavbar hideAuthAction showPrototypeBadge />
 
             <main className="relative flex flex-1 flex-col items-center justify-center px-4 py-8 pb-24 sm:py-12 sm:pb-32">
@@ -227,9 +219,7 @@ export default function PatientLoginPage() {
 
                         {error && (
                             <div className="mb-5">
-                                <DsAlert variant="danger">
-                                    {error}
-                                </DsAlert>
+                                <DsAlert variant="danger">{error}</DsAlert>
                             </div>
                         )}
 
@@ -239,7 +229,9 @@ export default function PatientLoginPage() {
                                     <button
                                         key={clinic.id}
                                         type="button"
-                                        onClick={() => handleClinicChoice(clinic)}
+                                        onClick={() =>
+                                            handleClinicChoice(clinic)
+                                        }
                                         className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-ds-lg border border-ds-border-subtle bg-ds-surface-default p-3.5 text-left transition-all hover:border-ds-primary-80 hover:bg-ds-surface-subtle hover:shadow-ds-xs"
                                     >
                                         <div className="flex min-w-0 items-center gap-3">
@@ -271,10 +263,19 @@ export default function PatientLoginPage() {
                                     label="CPF ou e-mail"
                                     placeholder="000.000.000-00 ou seu e-mail"
                                     autocomplete="username"
-                                    iconLeft={<UserRound className="size-4 text-ds-content-muted" />}
+                                    iconLeft={
+                                        <UserRound className="size-4 text-ds-content-muted" />
+                                    }
                                     {...form.register('identifier')}
-                                    state={form.formState.errors.identifier ? 'error' : 'default'}
-                                    helper={form.formState.errors.identifier?.message}
+                                    state={
+                                        form.formState.errors.identifier
+                                            ? 'error'
+                                            : 'default'
+                                    }
+                                    helper={
+                                        form.formState.errors.identifier
+                                            ?.message
+                                    }
                                 />
 
                                 {step === 'credentials' && (
@@ -283,11 +284,18 @@ export default function PatientLoginPage() {
                                         label="Senha"
                                         placeholder="Sua senha"
                                         autocomplete="current-password"
-                                        iconLeft={<Lock className="size-4 text-ds-content-muted" />}
+                                        iconLeft={
+                                            <Lock className="size-4 text-ds-content-muted" />
+                                        }
                                         {...form.register('password')}
-                                        state={form.formState.errors.password ? 'error' : 'default'}
+                                        state={
+                                            form.formState.errors.password
+                                                ? 'error'
+                                                : 'default'
+                                        }
                                         helper={
-                                            form.formState.errors.password?.message ||
+                                            form.formState.errors.password
+                                                ?.message ||
                                             'Senha inicial fornecida pela clínica — normalmente o seu CPF, só os números.'
                                         }
                                     />
@@ -313,7 +321,7 @@ export default function PatientLoginPage() {
                         )}
 
                         {(step !== 'identifier' || !clinicSlug) && (
-                            <div className="mt-4 pt-3 text-center border-t border-ds-border-subtle">
+                            <div className="mt-4 border-t border-ds-border-subtle pt-3 text-center">
                                 <DsButton
                                     type="button"
                                     variant="tertiary"
@@ -337,7 +345,9 @@ export default function PatientLoginPage() {
                             <button
                                 type="button"
                                 onClick={() =>
-                                    navigate(patientProgramsListPath(clinicSlug))
+                                    navigate(
+                                        patientProgramsListPath(clinicSlug),
+                                    )
                                 }
                                 className="cursor-pointer font-medium text-ds-primary-80 transition-colors hover:text-ds-primary-100 hover:underline ds-dark:text-ds-primary-60"
                             >

@@ -97,10 +97,12 @@ export function DsPatientNavbar({
                         }
                         className={dsCn(
                             'group flex shrink-0 items-center gap-2.5 rounded-ds-md border-0 bg-transparent p-1 text-left transition-opacity',
-                            !isOnProgramList && clinicSlug && 'cursor-pointer hover:opacity-85',
+                            !isOnProgramList &&
+                                clinicSlug &&
+                                'cursor-pointer hover:opacity-85',
                         )}
                     >
-                        <AppLogo className="size-8 ds-dark:text-ds-white transition-transform group-hover:scale-105" />
+                        <AppLogo className="size-8 transition-transform group-hover:scale-105 ds-dark:text-ds-white" />
                         <div className="flex flex-col leading-tight">
                             <span className="font-ds text-ds-body-sm font-semibold tracking-tight text-ds-primary-80 ds-dark:text-ds-white">
                                 IVS
@@ -120,10 +122,13 @@ export function DsPatientNavbar({
                         </DsBadge>
                     )}
 
-                    {displayClinic && !isContextMode && (
+                    {displayClinic && (
                         <div className="hidden items-center gap-1.5 md:flex">
                             <span className="text-ds-content-subtle">·</span>
-                            <DsBadge variant="default" className="capitalize text-ds-caption">
+                            <DsBadge
+                                variant="default"
+                                className="text-ds-caption capitalize"
+                            >
                                 {displayClinic}
                             </DsBadge>
                         </div>
@@ -151,11 +156,13 @@ export function DsPatientNavbar({
 
                 {/* Right controls */}
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                    {isContextMode && current !== undefined && total !== undefined && (
-                        <span className="hidden font-ds-mono text-ds-caption text-ds-content-subtle tabular-nums sm:inline">
-                            {current}/{total}
-                        </span>
-                    )}
+                    {isContextMode &&
+                        current !== undefined &&
+                        total !== undefined && (
+                            <span className="hidden font-ds-mono text-ds-caption text-ds-content-subtle tabular-nums sm:inline">
+                                {current}/{total}
+                            </span>
+                        )}
 
                     <DsThemeToggle />
 
@@ -167,10 +174,10 @@ export function DsPatientNavbar({
                     ) : isPatientLogged ? (
                         <div className="flex items-center gap-2">
                             <div className="hidden text-right text-ds-caption sm:block">
-                                <p className="font-medium text-ds-content-primary leading-tight">
+                                <p className="leading-tight font-medium text-ds-content-primary">
                                     {firstName}
                                 </p>
-                                <p className="text-[11px] text-ds-content-muted leading-tight">
+                                <p className="text-[11px] leading-tight text-ds-content-muted">
                                     Paciente
                                 </p>
                             </div>

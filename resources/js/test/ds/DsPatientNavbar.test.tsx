@@ -30,7 +30,10 @@ vi.mock('@/contexts/AuthContext', () => ({
     }),
 }));
 
-function renderNavbar(props: DsPatientNavbarProps = {}, initialPath = '/clinica-cleverton/paciente/login') {
+function renderNavbar(
+    props: DsPatientNavbarProps = {},
+    initialPath = '/clinica-cleverton/paciente/login',
+) {
     function Wrapper({ children }: { children: ReactNode }) {
         return (
             <MemoryRouter initialEntries={[initialPath]}>
@@ -127,11 +130,24 @@ describe('DsPatientNavbar', () => {
             onBack,
         });
 
-        expect(screen.getByText('Exercício 1: Alongamento')).toBeInTheDocument();
+        expect(
+            screen.getByText('Exercício 1: Alongamento'),
+        ).toBeInTheDocument();
         expect(screen.getByText('1/5')).toBeInTheDocument();
 
         const backBtn = screen.getByRole('button', { name: /Voltar/i });
         await user.click(backBtn);
         expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('em modo contextual, mostra o nome da clínica quando ele é passado', () => {
+        renderNavbar({
+            title: 'Agachamento',
+            clinicName: 'Clínica Norte',
+            onBack: vi.fn(),
+        });
+
+        expect(screen.getByText('Agachamento')).toBeInTheDocument();
+        expect(screen.getByText('Clínica Norte')).toBeInTheDocument();
     });
 });

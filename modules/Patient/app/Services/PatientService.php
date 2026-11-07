@@ -58,6 +58,16 @@ class PatientService implements PatientServiceInterface
 
     public function update(int $id, array $data): Patient
     {
+        $current = $this->repository->find($id);
+
+        if (!is_null($current)) {
+            $newDefaultPassword = $this->defaultPasswordToFollow($current, $data);
+
+            if (!is_null($newDefaultPassword)) {
+                $data['password'] = $newDefaultPassword;
+            }
+        }
+
         $patient = $this->repository->update($id, $data);
 
         if ($patient->clinic_id) {
@@ -70,6 +80,23 @@ class PatientService implements PatientServiceInterface
         }
 
         return $patient;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function defaultPasswordToFollow(Patient $current, array $data): ?string
+    {
+        $oldDefault = $current->cpf ?: $current->email;
+        $newCpf     = array_key_exists('cpf', $data) ? $data['cpf'] : $current->cpf;
+        $newEmail   = array_key_exists('email', $data) ? $data['email'] : $current->email;
+        $newDefault = $newCpf ?: $newEmail;
+
+        if (empty($newDefault) || $newDefault === $oldDefault) {
+            return null;
+        }
+
+        return $newDefault;
     }
 
     public function bulkInactivate(int $clinicId, array $ids): int

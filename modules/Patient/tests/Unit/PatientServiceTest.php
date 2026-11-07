@@ -139,6 +139,7 @@ class PatientServiceTest extends TestCase
         $patient = $this->makePatient();
         $changes = ['name' => 'Novo Nome'];
 
+        $this->repository->shouldReceive('find')->once()->with(1)->andReturn($patient);
         $this->repository->shouldReceive('update')->once()->with(1, $changes)->andReturn($patient);
 
         $result = $this->service->update(1, $changes);

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 use Opcodes\LogViewer\Facades\LogViewer;
 
@@ -19,8 +20,12 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureLogViewer(): void
     {
-        LogViewer::auth(function ($request) {
-            return true;
+        LogViewer::auth(function (Request $request): bool {
+            if (!app()->isProduction()) {
+                return true;
+            }
+
+            return !empty($request->server('REMOTE_USER'));
         });
     }
 }

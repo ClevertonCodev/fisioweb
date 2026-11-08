@@ -266,7 +266,7 @@ APP_FAKER_LOCALE=pt_BR
 LOG_CHANNEL=stack
 LOG_STACK=daily
 LOG_DAILY_DAYS=14
-LOG_LEVEL=debug
+LOG_LEVEL=info
 
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
@@ -350,6 +350,21 @@ log "nginx + HTTPS (Cloudflare)"
 apt-get install -yq nginx
 rm -f /etc/nginx/sites-enabled/default
 
+LOG_VIEWER_HTPASSWD="/etc/nginx/fisioweb-log-viewer.htpasswd"
+LOG_VIEWER_USER=""
+LOG_VIEWER_PASSWORD=""
+if [[ ! -f "$LOG_VIEWER_HTPASSWD" ]]; then
+    LOG_VIEWER_USER="lv$(openssl rand -hex 4)"
+    LOG_VIEWER_PASSWORD="$(openssl rand -base64 18)"
+    HASH="$(printf '%s' "$LOG_VIEWER_PASSWORD" | openssl passwd -apr1 -stdin)"
+    (
+        umask 077
+        printf '%s:%s\n' "$LOG_VIEWER_USER" "$HASH" > "$LOG_VIEWER_HTPASSWD"
+    )
+    chown root:www-data "$LOG_VIEWER_HTPASSWD"
+    chmod 640 "$LOG_VIEWER_HTPASSWD"
+fi
+
 # Certificado: o ideal é o "Origin Certificate" da Cloudflare (ver
 # infra/README.md). Enquanto ele não existe, um autoassinado deixa o
 # nginx subir e funciona com a Cloudflare no modo SSL "Full".
@@ -397,6 +412,22 @@ server {
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
+
+    # O basic auth e o PHP ficam no mesmo location: um try_files para o
+    # index.php cairia no outro location e o \$remote_user chegaria vazio.
+    location ~ ^/log-viewer(/|\$) {
+        auth_basic "Logs";
+        auth_basic_user_file $LOG_VIEWER_HTPASSWD;
+
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php/fisioweb.sock;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root/index.php;
+        fastcgi_param SCRIPT_NAME /index.php;
+        fastcgi_param DOCUMENT_ROOT \$realpath_root;
+        fastcgi_param REMOTE_USER \$remote_user;
+        fastcgi_read_timeout 120;
+        fastcgi_hide_header X-Powered-By;
+    }
 
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
@@ -502,3 +533,12 @@ Servidor provisionado.
 
 Próximos passos estão em infra/README.md.
 EOF
+
+if [[ -n "$LOG_VIEWER_PASSWORD" ]]; then
+    cat <<EOF
+
+Log-viewer (guarde agora; esta senha não fica no repositório):
+  usuário: $LOG_VIEWER_USER
+  senha: $LOG_VIEWER_PASSWORD
+EOF
+fi

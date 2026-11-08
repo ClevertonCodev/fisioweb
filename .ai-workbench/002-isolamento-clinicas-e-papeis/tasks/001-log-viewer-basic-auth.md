@@ -24,14 +24,14 @@ A correção põe o log-viewer atrás de basic auth no nginx, e a aplicação s�
 
 ## Critérios de Aceite
 
-- [ ] Em `env=production`, sem `REMOTE_USER`: `GET /log-viewer`, `GET /log-viewer/api/files` e `DELETE /log-viewer/api/files/{id}` dão 403 (o teste `AuditLogViewerTest` da auditoria, invertido)
-- [ ] Em `env=production`, com `REMOTE_USER` no servidor: `GET /log-viewer/api/files` dá 200
-- [ ] Em `env=local`: 200 sem nada
-- [ ] Um cabeçalho `Remote-User` mandado pelo cliente não libera (403)
-- [ ] O `provision.sh` gera o `htpasswd`, o `auth_basic` e `LOG_LEVEL=info`, sem segredo gravado no repositório
-- [ ] O checklist do servidor atual está escrito
-- [ ] Não se aplica caso de outra clínica: a rota não é de clínica
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Em `env=production`, sem `REMOTE_USER`: `GET /log-viewer`, `GET /log-viewer/api/files` e `DELETE /log-viewer/api/files/{id}` dão 403 (o teste `AuditLogViewerTest` da auditoria, invertido)
+- [x] Em `env=production`, com `REMOTE_USER` no servidor: `GET /log-viewer/api/files` dá 200
+- [x] Em `env=local`: 200 sem nada
+- [x] Um cabeçalho `Remote-User` mandado pelo cliente não libera (403)
+- [x] O `provision.sh` gera o `htpasswd`, o `auth_basic` e `LOG_LEVEL=info`, sem segredo gravado no repositório
+- [x] O checklist do servidor atual está escrito
+- [x] Não se aplica caso de outra clínica: a rota não é de clínica
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

@@ -67,7 +67,11 @@ Estas regras repetem os "Princípios não-negociáveis" do `AGENTS.md` e as skil
 de `.claude/skills/`, escritas como itens para conferir no diff. Quem mudar uma
 regra lá muda aqui também, na mesma PR.
 
-### Isolamento e autorização (skill `security`)
+### Isolamento e autorização
+
+O isolamento é conferido duas vezes: no diff, com os itens abaixo, e no smoke
+test por HTTP (passo 3 de "Smoke test com evidência"), em que um usuário da
+clínica A tenta ver e mexer em dado da clínica B e não consegue.
 
 - Todo recurso da clínica é isolado por `clinic_id`: a query filtra pela clínica
   do usuário autenticado, e model carregado por id passa por Policy que compara

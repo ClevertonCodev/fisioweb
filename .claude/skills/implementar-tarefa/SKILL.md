@@ -35,6 +35,24 @@ ERRADO:  teste1, teste2, teste3  →  código1, código2, código3
 CERTO:   teste1 → código1,  teste2 → código2,  teste3 → código3
 ```
 
+## Inclua sempre o caso de outra clínica
+
+Todo endpoint, query ou Policy que a tarefa cria ou altera ganha um teste em que
+um usuário da **clínica B** tenta usar um recurso da **clínica A**:
+
+- ler pelo id e alterar ou apagar: resposta 404 ou 403, e o dado da A continua
+  igual no banco;
+- listar ou buscar: o recurso da A não aparece no resultado;
+- enviar um `clinic_id` ou `patient_id` da A no corpo: a requisição é recusada.
+
+Na área do paciente, o mesmo vale entre pacientes: o paciente B não vê nem
+altera nada do paciente A.
+
+Esse teste não fica para o fim: entra na lista do passo 1 e roda no ciclo
+vermelho-verde como os outros. Tarefa só de frontend, sem endpoint novo nem
+alterado, diz no relatório qual teste de outra clínica já cobre o endpoint que a
+tela usa. Se esse teste não existir, ele faz parte da tarefa.
+
 ## Passo a passo
 
 ### 0. Prepare
@@ -57,8 +75,8 @@ CERTO:   teste1 → código1,  teste2 → código2,  teste3 → código3
 - Quais classes, métodos, endpoints ou páginas vão mudar ou nascer, e em qual
   módulo (o dono do dado).
 - Quais comportamentos testar, do mais importante para o menos. Não dá para
-  testar tudo: inclua sempre o caso de outra clínica e, se houver regra de
-  papel, o de papel sem permissão.
+  testar tudo, mas o caso de outra clínica entra sempre (seção "Inclua sempre o
+  caso de outra clínica") e, se houver regra de papel, o de papel sem permissão.
 - Por quais camadas a fatia passa (migration → Model → Repository → Service →
   Controller + Policy → rota → `infrastructure/` → `application/` → página).
 - Tela com layout de referência (print, Figma)? Olhe antes de planejar.

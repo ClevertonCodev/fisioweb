@@ -50,10 +50,28 @@ Todo achado diz qual ângulo o encontrou.
 | `estrutura` | Regra de negócio no controller, camada pulada, Repository com regra, dependência em classe concreta, módulo importando Model/Repository/tabela de outro módulo, migration perigosa ou no módulo errado, listagem sem paginação, consulta dentro de laço (N+1), loader ou página chamando `infrastructure/`/`apiClient` |
 | `regras-fisioweb` | Cada item de "Regras do fisioweb" em `docs/ai-harness/DEFINITION_OF_DONE.md` e dos "Princípios não-negociáveis" do `CLAUDE.md` |
 
-**Padrão: rode os cinco.** `seguranca` e `regras-fisioweb` rodam em **toda**
-rodada, mesmo que o pedido não peça: uma correção pode abrir uma brecha de
-`clinic_id` enquanto conserta outra coisa. Se o pedido deixou um deles de fora,
-inclua e diga que incluiu. Inclua `estrutura` se o diff mexe em migration,
+### Isolamento por clínica é sempre `seguranca`
+
+Estes dois casos são **achado de `seguranca`**, nunca de `estrutura` nem de
+`regras-fisioweb`, e nunca Minor:
+
+- **query sem filtro pelo `clinic_id`** da clínica do usuário autenticado;
+- **model carregado por id sem validar a clínica** (sem Policy de posse que
+  compare `$user->clinic_id === $model->clinic_id`, nem filtro por `clinic_id`
+  na própria busca).
+
+Se o dado de outra clínica fica alcançável, é Crítico. Para provar, siga o
+caminho da rota até a query ou rode o teste de outra clínica.
+
+### Quais ângulos rodam
+
+**O ângulo `seguranca` nunca sai das rodadas.** Ele roda na primeira e em todas
+as seguintes, mesmo numa rodada focada e mesmo que o pedido não cite: uma
+correção pode abrir uma brecha de `clinic_id` enquanto conserta outra coisa.
+`regras-fisioweb` também roda em toda rodada. Se o pedido deixou um dos dois de
+fora, inclua e diga que incluiu.
+
+**Padrão: rode os cinco.** Inclua `estrutura` se o diff mexe em migration,
 model, fronteira de módulo ou listagem, e `lacuna-de-verificacao` se a correção
 mudou comportamento.
 

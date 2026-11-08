@@ -50,6 +50,14 @@ todas as camadas que a funcionalidade toca. Nunca uma camada inteira de uma vez
    comando, uma tela que alguém abre) e se nada nela depende de uma decisão que
    ninguém tomou. Se faltar decisão, volte ao usuário.
 
+   **Critério de aceite fixo.** Toda tarefa sai com a linha "Um usuário de
+   outra clínica não vê nem altera nada desta funcionalidade", escrita assim,
+   sem trocar o texto. Ela não sai nem numa tarefa só de tela: aí ela vale para
+   os endpoints que a tela usa. Se a tarefa mexe na área do paciente, acrescente
+   também "Um paciente não vê nem altera nada de outro paciente". Quem confere
+   esse critério é o teste de outra clínica da skill `implementar-tarefa` e o
+   smoke test por HTTP da Definição de Pronto.
+
 6. **Salve** cada tarefa em `.ai-workbench/<feature>/tasks/NNN-<slug>.md`,
    numerada em ordem de dependência (`001-...`, `002-...`), com o modelo abaixo.
    As "Histórias cobertas" da fatia vão para o campo **Histórias**.

@@ -74,7 +74,12 @@ Uma lista numerada e LONGA, cobrindo todos os aspectos, no formato:
 - Contrato de cada endpoint novo ou alterado: método, URL, guard, entrada e
   saída (envelope `data`)
 - Permissões: qual papel pode fazer cada ação, e qual Policy decide
-- Isolamento: onde o filtro por `clinic_id` (ou por paciente) precisa estar
+- Isolamento, obrigatório em todo plano: para cada endpoint, query ou job novo
+  ou alterado, onde o filtro por `clinic_id` precisa estar (na busca do
+  Repository, na Policy de posse ou nos dois) e de onde o `clinic_id` vem
+  (sempre da clínica do usuário autenticado, nunca da requisição). Na área do
+  paciente, o mesmo com o paciente autenticado. Se a funcionalidade não toca
+  dado de clínica nem de paciente, diga isso com todas as letras
 - Colaboração entre módulos: contrato público, DTO ou evento
 - Fila, integrações externas e cache, quando se aplicam
 - Decisões de arquitetura e o que foi trocado pelo quê (se criar fronteira nova,
@@ -122,6 +127,8 @@ Qualquer outra coisa que importe.
      suposição vira decisão ou tarefa.
    - **Regra só no front:** validação ou limite que o plano põe na tela e não
      no backend.
+   - **Isolamento sem lugar:** endpoint, query ou job do plano sem dizer onde
+     fica o filtro por `clinic_id`, ou com o `clinic_id` vindo da requisição.
    - **Borda faltando:** lista vazia, limite, dado antigo sem o campo novo,
      duas pessoas editando ao mesmo tempo, outra clínica, papel sem permissão.
    - **Conflito com ADR** de `docs/adr/`.

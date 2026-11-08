@@ -20,12 +20,12 @@ O operador precisa de um jeito de gerar e copiar o link de primeiro acesso sem c
 
 ## Critérios de Aceite
 
-- [ ] O bloco mostra o estado certo para o mestre com e sem senha (teste Vitest)
-- [ ] Gerar mostra o link, e o botão de copiar copia (teste Vitest com o clipboard mockado)
-- [ ] O texto do botão muda para "Gerar link de nova senha" quando `master_password_defined` é verdadeiro
-- [ ] Smoke de ponta a ponta com evidência e `SUMMARY.md`
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O bloco mostra o estado certo para o mestre com e sem senha (teste Vitest)
+- [x] Gerar mostra o link, e o botão de copiar copia (teste Vitest com o clipboard mockado)
+- [x] O texto do botão muda para "Gerar link de nova senha" quando `master_password_defined` é verdadeiro
+- [x] Smoke de ponta a ponta com evidência e `SUMMARY.md`
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

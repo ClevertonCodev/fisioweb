@@ -18,4 +18,16 @@ export interface Clinic {
     planId: number | null;
     planName: string | null;
     createdAt: string;
+    masterAccess: MasterAccess | null;
+}
+
+export interface MasterAccess {
+    passwordDefined: boolean;
+    lastLinkCreatedAt: string | null;
+}
+
+/** Link de primeiro acesso: o token só vem nesta resposta, uma vez. */
+export interface FirstAccessLink {
+    url: string;
+    createdAt: string;
 }

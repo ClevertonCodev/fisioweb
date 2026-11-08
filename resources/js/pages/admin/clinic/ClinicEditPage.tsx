@@ -45,6 +45,8 @@ import {
 import { SlugInput } from '@/components/ui/slug-input';
 import type { Clinic } from '@/domain/admin';
 
+import { MasterAccessCard } from './MasterAccessCard';
+
 // ─── Shell (loading / erro) ───────────────────────────────────────────────────
 
 export default function ClinicEditPage() {
@@ -67,7 +69,7 @@ export default function ClinicEditPage() {
             </AdminLayout>
         );
     }
-    if (error || !clinic) {
+    if (!clinic) {
         toast.error('Clínica não encontrada.');
         navigate('/admin/clinicas');
         return null;
@@ -559,6 +561,12 @@ function EditClinicForm({
                             </Card>
                         </form>
                     </Form>
+                    {clinic.masterAccess && (
+                        <MasterAccessCard
+                            clinicId={clinicId}
+                            masterAccess={clinic.masterAccess}
+                        />
+                    )}
                 </div>
             </div>
         </AdminLayout>

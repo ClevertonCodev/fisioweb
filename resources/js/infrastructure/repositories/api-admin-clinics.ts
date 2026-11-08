@@ -2,7 +2,7 @@ import type {
     ClinicWriteDto,
     ClinicsRepository,
 } from '@/application/admin/ports';
-import type { Clinic } from '@/domain/admin';
+import type { Clinic, MasterAccess } from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
 /** DTO interno — shape da API (infra concern) */
@@ -23,6 +23,16 @@ interface ApiClinicDto {
     plan_id?: number | null;
     plan?: { id: number; name: string } | null;
     created_at: string;
+    master_password_defined?: boolean;
+    first_access_link_created_at?: string | null;
+}
+
+function toMasterAccess(r: Record<string, unknown>): MasterAccess | null {
+    if (typeof r.master_password_defined !== 'boolean') return null;
+    return {
+        passwordDefined: r.master_password_defined,
+        lastLinkCreatedAt: (r.first_access_link_created_at as string) ?? null,
+    };
 }
 
 /** Mapper: API DTO → Domain Entity */
@@ -47,6 +57,7 @@ function toClinic(raw: ApiClinicDto | Record<string, unknown>): Clinic {
         planId: (r.plan_id as number) ?? null,
         planName: plan?.name ?? null,
         createdAt: r.created_at as string,
+        masterAccess: toMasterAccess(r),
     };
 }
 
@@ -153,6 +164,13 @@ export const apiClinicsRepository: ClinicsRepository = {
             `/admin/clinics/${id}/reactivate`,
         );
         return toClinic((data as { data: Record<string, unknown> }).data);
+    },
+
+    async generateFirstAccessLink(id) {
+        const { data } = await apiClient.post<{
+            data: { url: string; created_at: string };
+        }>(`/admin/clinics/${id}/first-access-link`);
+        return { url: data.data.url, createdAt: data.data.created_at };
     },
 
     async loginAs(id) {

@@ -25,7 +25,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | [001 · `/log-viewer` atrás de basic auth em produção](tasks/001-log-viewer-basic-auth.md) | concluída | | |
 | [002 · Trocar a senha derruba as outras sessões (clínica e admin)](tasks/002-troca-de-senha-derruba-sessoes.md) | concluída | | |
 | [003 · Mestre nasce sem senha e define a senha pelo link de primeiro acesso](tasks/003-mestre-sem-senha-e-primeiro-acesso.md) | concluída | | |
-| [004 · Bloco "Acesso do mestre" na tela da clínica do admin, com smoke de ponta a ponta](tasks/004-acesso-do-mestre-no-admin.md) | a fazer | | |
+| [004 · Bloco "Acesso do mestre" na tela da clínica do admin, com smoke de ponta a ponta](tasks/004-acesso-do-mestre-no-admin.md) | concluída | | |
 | [005 · Só o mestre troca o próprio e-mail e a própria senha](tasks/005-so-o-mestre-troca-email-e-senha.md) | a fazer | | |
 | [006 · Clínica cancelada não loga, perde as sessões e não se reativa sozinha](tasks/006-clinica-cancelada-sem-acesso.md) | a fazer | | |
 | [007 · Limite de tentativas no login, no forgot e no reset do admin](tasks/007-throttle-no-login-do-admin.md) | a fazer | | |

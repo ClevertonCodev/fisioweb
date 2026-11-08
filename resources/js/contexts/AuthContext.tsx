@@ -16,7 +16,9 @@ import {
     login as apiLogin,
     logout as apiLogout,
     refresh as apiRefresh,
+    completeClinicFirstAccess,
     decodeJwtExp,
+    type FirstAccessInput,
     type LoginCredentials,
 } from '@/infrastructure/api/auth.service';
 import {
@@ -38,6 +40,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
     login: (guard: AuthGuard, credentials: LoginCredentials) => Promise<void>;
+    completeFirstAccess: (input: FirstAccessInput) => Promise<void>;
     logout: (guard: AuthGuard) => Promise<void>;
     setUser: (user: User | null, guard: AuthGuard | null) => void;
     refreshSession: () => Promise<void>;
@@ -138,6 +141,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [scheduleExpiryWarning],
     );
 
+    const completeFirstAccess = useCallback(
+        async (input: FirstAccessInput) => {
+            const res = await completeClinicFirstAccess(input);
+            setState({
+                user: normalizeUser(res.user),
+                guard: 'clinic',
+                isAuthenticated: true,
+                isLoading: false,
+            });
+            scheduleExpiryWarning(res.access_token);
+        },
+        [scheduleExpiryWarning],
+    );
+
     const logout = useCallback(async (guard: AuthGuard) => {
         if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
         toast.dismiss('session-expiry-warning');
@@ -220,11 +237,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         () => ({
             ...state,
             login,
+            completeFirstAccess,
             logout,
             setUser,
             refreshSession,
         }),
-        [state, login, logout, setUser, refreshSession],
+        [state, login, completeFirstAccess, logout, setUser, refreshSession],
     );
 
     return (

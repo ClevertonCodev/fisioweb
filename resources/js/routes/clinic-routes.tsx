@@ -3,6 +3,7 @@ import { type RouteObject } from 'react-router-dom';
 
 import { RequireClinicAdmin } from '@/components/clinic/RequireClinicAdmin';
 import AgendaPage from '@/pages/clinic/AgendaPage';
+import ClinicFirstAccessPage from '@/pages/clinic/ClinicFirstAccessPage';
 import ClinicForgotPasswordPage from '@/pages/clinic/ClinicForgotPasswordPage';
 import ClinicLoginPage from '@/pages/clinic/ClinicLoginPage';
 import ClinicRegisterPage from '@/pages/clinic/ClinicRegisterPage';
@@ -36,6 +37,10 @@ export function clinicRoutes(queryClient: QueryClient): RouteObject[] {
         {
             path: '/clinica/redefinir-senha',
             element: <ClinicResetPasswordPage />,
+        },
+        {
+            path: '/clinica/primeiro-acesso',
+            element: <ClinicFirstAccessPage />,
         },
         { path: '/clinica/entrar', element: <ImpersonatePage /> },
 

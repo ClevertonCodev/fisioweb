@@ -23,6 +23,17 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
         return ClinicUserFactory::new();
     }
 
+    protected static function booted(): void
+    {
+        // Um link de primeiro acesso esquecido não pode trocar depois a senha que a pessoa definiu por outro caminho.
+        static::updating(function (self $user): void {
+            if ($user->isDirty('password') && !$user->isDirty('first_access_token_hash')) {
+                $user->first_access_token_hash       = null;
+                $user->first_access_token_created_at = null;
+            }
+        });
+    }
+
     public const GUARD_NAME = 'clinic';
 
     public const ROLE_ADMIN = 'admin';
@@ -76,22 +87,25 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
         'google_access_token',
         'google_refresh_token',
         'google_sync_token',
+        'first_access_token_hash',
+        'first_access_token_created_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at'       => 'datetime',
-            'terms_accepted_at'       => 'datetime',
-            'two_factor_confirmed_at' => 'datetime',
-            'password'                => 'hashed',
-            'status'                  => 'integer',
-            'mestre'                  => 'integer',
-            'google_access_token'     => 'encrypted',
-            'google_refresh_token'    => 'encrypted',
-            'google_sync_token'       => 'encrypted',
-            'google_token_expires_at' => 'datetime',
-            'google_connected_at'     => 'datetime',
+            'email_verified_at'             => 'datetime',
+            'terms_accepted_at'             => 'datetime',
+            'two_factor_confirmed_at'       => 'datetime',
+            'password'                      => 'hashed',
+            'status'                        => 'integer',
+            'mestre'                        => 'integer',
+            'google_access_token'           => 'encrypted',
+            'google_refresh_token'          => 'encrypted',
+            'google_sync_token'             => 'encrypted',
+            'google_token_expires_at'       => 'datetime',
+            'google_connected_at'           => 'datetime',
+            'first_access_token_created_at' => 'datetime',
         ];
     }
 

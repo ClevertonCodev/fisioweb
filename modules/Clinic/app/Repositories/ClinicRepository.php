@@ -77,7 +77,10 @@ class ClinicRepository implements ClinicRepositoryInterface
 
     public function createMasterUser(array $data): ClinicUser
     {
-        return ClinicUser::create($data);
+        $master = (new ClinicUser)->forceFill($data);
+        $master->save();
+
+        return $master;
     }
 
     public function findClinicUserWithClinic(int $clinicUserId): ?ClinicUser
@@ -97,6 +100,25 @@ class ClinicRepository implements ClinicRepositoryInterface
     public function markClinicUserEmailVerified(ClinicUser $user): void
     {
         $user->forceFill(['email_verified_at' => now()])->save();
+    }
+
+    public function findMasterUser(int $clinicId): ?ClinicUser
+    {
+        return ClinicUser::query()
+            ->where('clinic_id', $clinicId)
+            ->where('mestre', ClinicUser::MESTRE_YES)
+            ->orderBy('id')
+            ->first();
+    }
+
+    public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser
+    {
+        return ClinicUser::query()->where('first_access_token_hash', $hash)->lockForUpdate()->first();
+    }
+
+    public function saveClinicUser(ClinicUser $user, array $attributes): void
+    {
+        $user->forceFill($attributes)->save();
     }
 
     public function update(int $id, array $data): Clinic

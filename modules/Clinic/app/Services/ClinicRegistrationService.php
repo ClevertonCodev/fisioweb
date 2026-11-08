@@ -63,16 +63,17 @@ class ClinicRegistrationService implements ClinicRegistrationServiceInterface
             ]);
 
             $master = $this->clinicRepository->createMasterUser([
-                'clinic_id'         => $clinic->id,
-                'name'              => $data->name,
-                'email'             => $data->email,
-                'email_verified_at' => null,
-                'terms_accepted_at' => $termsAcceptedAt,
-                'password'          => Hash::make($data->password),
-                'document'          => $data->document,
-                'role'              => ClinicUser::ROLE_ADMIN,
-                'mestre'            => ClinicUser::MESTRE_YES,
-                'status'            => ClinicUser::STATUS_ACTIVE,
+                'clinic_id'           => $clinic->id,
+                'name'                => $data->name,
+                'email'               => $data->email,
+                'email_verified_at'   => null,
+                'terms_accepted_at'   => $termsAcceptedAt,
+                'password'            => Hash::make($data->password),
+                'password_changed_at' => now(),
+                'document'            => $data->document,
+                'role'                => ClinicUser::ROLE_ADMIN,
+                'mestre'              => ClinicUser::MESTRE_YES,
+                'status'              => ClinicUser::STATUS_ACTIVE,
             ]);
 
             SendClinicEmailVerificationJob::dispatch(clinicUserId: (int) $master->id)->afterCommit();

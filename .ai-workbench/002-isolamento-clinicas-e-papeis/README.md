@@ -2,7 +2,7 @@
 
 Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisioweb/run-1`: o `/log-viewer` aberto, o mestre com senha = CNPJ, a mídia de exercício aprovado, os favoritos, o e-mail com maiúsculas, o `generate-text`, o OAuth e o pull do Google, as sessões que sobrevivem à troca de senha, o questionário, o paciente desativado e os arquivos do prontuário públicos. Também traz quatro reforços. Ganham as clínicas, os pacientes e o operador, que deixam de ter contas e dados alcançáveis por quem não deveria.
 
-- **Status:** planejada
+- **Status:** em andamento
 - **Branch:** `fix/log-viewer-basic-auth` (tarefa 001, PR própria) e `feat/isolamento-clinicas-e-papeis` (o resto, uma PR só)
 - **Plano:** [`plans/correcoes-auditoria-controle-de-acesso.md`](plans/correcoes-auditoria-controle-de-acesso.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)
@@ -24,7 +24,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 |---|---|---|---|
 | [001 · `/log-viewer` atrás de basic auth em produção](tasks/001-log-viewer-basic-auth.md) | concluída | | |
 | [002 · Trocar a senha derruba as outras sessões (clínica e admin)](tasks/002-troca-de-senha-derruba-sessoes.md) | concluída | | |
-| [003 · Mestre nasce sem senha e define a senha pelo link de primeiro acesso](tasks/003-mestre-sem-senha-e-primeiro-acesso.md) | a fazer | | |
+| [003 · Mestre nasce sem senha e define a senha pelo link de primeiro acesso](tasks/003-mestre-sem-senha-e-primeiro-acesso.md) | concluída | | |
 | [004 · Bloco "Acesso do mestre" na tela da clínica do admin, com smoke de ponta a ponta](tasks/004-acesso-do-mestre-no-admin.md) | a fazer | | |
 | [005 · Só o mestre troca o próprio e-mail e a própria senha](tasks/005-so-o-mestre-troca-email-e-senha.md) | a fazer | | |
 | [006 · Clínica cancelada não loga, perde as sessões e não se reativa sozinha](tasks/006-clinica-cancelada-sem-acesso.md) | a fazer | | |

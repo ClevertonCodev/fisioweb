@@ -354,6 +354,21 @@ class ClinicRegistrationTest extends TestCase
             ->assertJsonStructure(['access_token']);
     }
 
+    public function test_the_operator_sees_the_self_registered_master_with_password_defined(): void
+    {
+        Queue::fake();
+
+        $clinicId = $this->postJson('/api/clinic/auth/register', $this->validPayload())
+            ->assertCreated()
+            ->json('data.clinic_id');
+
+        $this->actingAs(\Modules\Admin\Models\User::factory()->create(), 'admin')
+            ->getJson("/api/admin/clinics/{$clinicId}")
+            ->assertOk()
+            ->assertJsonPath('data.master_password_defined', true)
+            ->assertJsonPath('data.first_access_link_created_at', null);
+    }
+
     public function test_verify_email_rejects_expired_tampered_or_other_user_links(): void
     {
         Queue::fake();

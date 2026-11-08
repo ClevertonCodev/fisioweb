@@ -77,3 +77,10 @@ Fonte: a auditoria de controle de acesso `security-audit-skill/fisioweb/run-1`, 
 
 - **Não existe tela para a clínica trocar a mídia de um exercício já enviado: o que fazer com a proposta?** → Criar a tela. Hoje as rotas de mídia da clínica só são usadas no envio novo, então a proposta só aconteceria por chamada direta à API.
 - **Como fica a tela?** → Fica no modal do exercício da biblioteca v2. Ela aparece só quando o exercício foi enviado pela própria clínica e quem está logado é admin da clínica (as rotas de mídia são `clinic.admin`). O botão "Trocar imagens" abre a troca da thumbnail e das 2 imagens de referência, com o mesmo recorte do envio. Se o exercício está pendente ou rejeitado, a troca vale na hora. Se está aprovado, vira proposta: aparece o aviso "em revisão" e o modal mostra um selo até o operador decidir. O vídeo, o nome e o texto não mudam nessa tela.
+
+## Sessão 2026-11-08 (implementar-tarefa 003)
+
+- **O mestre da clínica que se cadastrou sozinha aparece como "senha definida" no admin?** → Sim. O auto-cadastro passa a gravar `password_changed_at` no mestre ao criar, e `master_password_defined` é só `password_changed_at` não nulo, sem deduzir pela origem da clínica. Para a clínica nada muda: o token do login sai depois.
+- **Link de primeiro acesso para mestre inativo?** → Não. Gerar o link pede um mestre ativo (422 sem ele), porque o guard recusa o token de usuário inativo e a sessão devolvida não funcionaria.
+- **O mestre que se cadastrou sozinho e não confirmou o e-mail pode usar o link?** → Sim, e o link confirma o e-mail: definir a senha pelo link grava `email_verified_at` quando ele está nulo. O operador entregou o link e responde pela pessoa, e sem envio de e-mail real é o único caminho para ela entrar (revisão adversária da 003, ACHADO-001).
+- **O link já gerado funciona em clínica cancelada?** → Não deve, mas isso fica na tarefa 006, junto com o login, o provider e o `login-as`: o `first-access` passa a recusar o mestre de clínica cancelada (revisão adversária da 003, ACHADO-008).

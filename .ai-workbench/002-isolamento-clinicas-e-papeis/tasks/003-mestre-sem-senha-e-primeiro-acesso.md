@@ -30,16 +30,16 @@ A abordagem é o mestre nascer sem senha utilizável e definir a própria senha 
 
 ## Critérios de Aceite
 
-- [ ] Depois de `POST /api/admin/clinics`, o login do mestre com o documento (com e sem máscara) dá 401 (o teste `AuditAuthCoreTest`/`VerifierAuthCoreTest` da auditoria, invertido)
-- [ ] O link gerado define a senha e devolve a sessão, e o login com a senha nova dá 200
-- [ ] O mesmo link usado de novo dá 422
-- [ ] O link anterior a um link novo dá 422
-- [ ] O link gerado para o mestre que já tem senha troca a senha e derruba o token antigo
-- [ ] O guard `clinic` no endpoint do operador dá 401
-- [ ] O auto-cadastro continua igual: o teste existente segue verde
-- [ ] A página `/clinica/primeiro-acesso` valida, conclui e mostra o link inválido (teste Vitest)
-- [ ] Um usuário de outra clínica não consegue gerar nem usar link da clínica A
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Depois de `POST /api/admin/clinics`, o login do mestre com o documento (com e sem máscara) dá 401 (o teste `AuditAuthCoreTest`/`VerifierAuthCoreTest` da auditoria, invertido)
+- [x] O link gerado define a senha e devolve a sessão, e o login com a senha nova dá 200
+- [x] O mesmo link usado de novo dá 422
+- [x] O link anterior a um link novo dá 422
+- [x] O link gerado para o mestre que já tem senha troca a senha e derruba o token antigo
+- [x] O guard `clinic` no endpoint do operador dá 401
+- [x] O auto-cadastro continua igual: o teste existente segue verde
+- [x] A página `/clinica/primeiro-acesso` valida, conclui e mostra o link inválido (teste Vitest)
+- [x] Um usuário de outra clínica não consegue gerar nem usar link da clínica A
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

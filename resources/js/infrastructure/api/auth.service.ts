@@ -31,6 +31,27 @@ export async function login(
     return data;
 }
 
+export interface FirstAccessInput {
+    token: string;
+    password: string;
+    passwordConfirmation: string;
+}
+
+export async function completeClinicFirstAccess(
+    input: FirstAccessInput,
+): Promise<LoginResponse> {
+    const { data } = await apiClient.post<LoginResponse>(
+        '/clinic/auth/first-access',
+        {
+            token: input.token,
+            password: input.password,
+            password_confirmation: input.passwordConfirmation,
+        },
+    );
+    setStoredAuth(data.access_token, 'clinic');
+    return data;
+}
+
 export async function logout(guard: AuthGuard): Promise<void> {
     try {
         await apiClient.post(`/${guard}/auth/logout`);

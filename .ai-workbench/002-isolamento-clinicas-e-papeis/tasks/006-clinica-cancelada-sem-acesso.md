@@ -26,6 +26,7 @@ A abordagem é recusar o usuário de clínica cancelada no login e em cada requi
 - [ ] O usuário de clínica inativa continua logando (200)
 - [ ] O `PUT /api/clinic/profile` ignora `status`. O teste usa uma clínica ativa que manda `status=-1` e confere que ela continua ativa. Não dá para testar com uma clínica cancelada, porque o mestre dela já leva 401.
 - [ ] O `login-as` em clínica cancelada dá 422
+- [ ] O link de primeiro acesso (`POST /api/clinic/auth/first-access`) do mestre de clínica cancelada dá o 422 genérico e não troca a senha (vem da revisão da 003)
 - [ ] Reativar pelo operador devolve o acesso
 - [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
 - [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)

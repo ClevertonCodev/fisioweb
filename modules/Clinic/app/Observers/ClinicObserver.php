@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Observers;
 
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 
@@ -24,7 +25,8 @@ class ClinicObserver
             'name'              => $clinic->name,
             'email'             => $clinic->email,
             'email_verified_at' => now(),
-            'password'          => Hash::make($clinic->document),
+            // Ninguém conhece esta senha: o mestre cria a dele pelo link de primeiro acesso.
+            'password'          => Hash::make(Str::random(64)),
             'document'          => $clinic->document,
             'role'              => ClinicUser::ROLE_ADMIN,
             'mestre'            => ClinicUser::MESTRE_YES,

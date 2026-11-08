@@ -26,6 +26,15 @@ interface ClinicRepositoryInterface
 
     public function markClinicUserEmailVerified(ClinicUser $user): void;
 
+    public function findMasterUser(int $clinicId): ?ClinicUser;
+
+    public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function saveClinicUser(ClinicUser $user, array $attributes): void;
+
     public function update(int $id, array $data): Clinic;
 
     public function delete(int $id): bool;

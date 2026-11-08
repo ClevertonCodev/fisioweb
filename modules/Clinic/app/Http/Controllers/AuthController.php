@@ -5,6 +5,8 @@ namespace Modules\Clinic\Http\Controllers;
 use App\Http\Controllers\BaseAuthController;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
+use Modules\Clinic\Contracts\MasterFirstAccessServiceInterface;
+use Modules\Clinic\Http\Requests\CompleteFirstAccessRequest;
 use Modules\Clinic\Http\Requests\LoginRequest;
 use Modules\Clinic\Models\ClinicUser;
 
@@ -20,6 +22,13 @@ class AuthController extends BaseAuthController
     public function login(LoginRequest $request): JsonResponse
     {
         return $this->attemptLogin($request->validated());
+    }
+
+    public function firstAccess(CompleteFirstAccessRequest $request, MasterFirstAccessServiceInterface $firstAccess): JsonResponse
+    {
+        $master = $firstAccess->complete($request->string('token')->value(), $request->string('password')->value());
+
+        return $this->respondWithToken(auth($this->guardName())->login($master));
     }
 
     /**

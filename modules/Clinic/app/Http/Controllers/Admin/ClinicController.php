@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
+use Modules\Clinic\Contracts\MasterFirstAccessServiceInterface;
 use Modules\Clinic\Http\Requests\Admin\CreateClinicRequest;
 use Modules\Clinic\Http\Requests\Admin\UpdateClinicRequest;
 use Modules\Clinic\Models\ClinicUser;
@@ -27,12 +28,12 @@ class ClinicController extends Controller
         ]);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(int $id, MasterFirstAccessServiceInterface $firstAccess): JsonResponse
     {
         try {
             $clinic = $this->clinicService->findById($id);
 
-            return response()->json(['data' => $clinic]);
+            return response()->json(['data' => $clinic->toArray() + $firstAccess->status($clinic)]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Fisioterapeuta não encontrado.'], 404);
         }
@@ -73,6 +74,15 @@ class ClinicController extends Controller
             $clinic = $this->clinicService->reactivate($id);
 
             return response()->json(['data' => $clinic, 'message' => 'Clínica reativada com sucesso.']);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Clínica não encontrada.'], 404);
+        }
+    }
+
+    public function firstAccessLink(int $id, MasterFirstAccessServiceInterface $firstAccess): JsonResponse
+    {
+        try {
+            return response()->json(['data' => $firstAccess->generateLink($id)->toArray()]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Clínica não encontrada.'], 404);
         }

@@ -16,7 +16,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Controller, useForm, type UseFormReturn } from 'react-hook-form';
+import {
+    Controller,
+    useForm,
+    useWatch,
+    type UseFormReturn,
+} from 'react-hook-form';
 import { toast } from 'sonner';
 
 import {
@@ -126,7 +131,7 @@ export function TransactionModal({
     } | null>(null);
 
     const submitting = form.formState.isSubmitting;
-    const formType = form.watch('type');
+    const formType = useWatch({ control: form.control, name: 'type' });
 
     const persist = async (
         dto: FinanceTransactionWriteDto,

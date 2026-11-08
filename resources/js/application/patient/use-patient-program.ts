@@ -28,11 +28,8 @@ export function usePatientProgram(publicToken: string) {
 
 export function useRegisterProgramView() {
     return useMutation({
-        mutationFn: async (publicToken: string) => {
-            try {
-                await registerPatientProgramView(publicToken);
-            } catch {}
-        },
+        mutationFn: (publicToken: string) =>
+            registerPatientProgramView(publicToken).catch(() => undefined),
     });
 }
 
@@ -70,7 +67,8 @@ export function useSubmitProgramFeedback() {
 export function useCompleteProgram() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (publicToken: string) => completePatientProgram(publicToken),
+        mutationFn: (publicToken: string) =>
+            completePatientProgram(publicToken),
         onSuccess: (_data, publicToken) => {
             void queryClient.invalidateQueries({
                 queryKey: ['patient', 'programs'],

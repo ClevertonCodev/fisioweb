@@ -261,7 +261,7 @@ function useLeaveGuard(enabled: boolean, releasedRef: { current: boolean }) {
         };
         window.addEventListener('beforeunload', warn);
         return () => window.removeEventListener('beforeunload', warn);
-    }, [enabled]);
+    }, [enabled, releasedRef]);
     return blocker;
 }
 

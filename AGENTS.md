@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Orientação para Cursor neste repositório. **Detalhes vivem nas skills em `.cursor/skills/`** — este arquivo aponta para onde olhar.
+Orientação para os agentes de IA neste repositório (Claude Code e Cursor). O `CLAUDE.md` só importa este arquivo. **Detalhes vivem nas skills em `.claude/skills/`**, que as duas ferramentas leem — este arquivo aponta para onde olhar.
 
 ## Project Overview
 
@@ -25,27 +25,22 @@ npm run test          # Vitest (frontend)
 npm run test:watch
 bin/code-review [nível] [alvo]   # /code-review numa sessão nova (padrão: high, diff atual)
 
-# Skills (após editar .claude/skills/ e .cursor/skills/)
-bash bin/verificar-skills.sh
-
 # Navegador headless (skill qa-navegador; 1ª vez: cd tools/screenshot && npm install)
 node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
 node tools/screenshot/flow.mjs roteiro.json            # fluxo caçando erro (--video só para bug)
 node tools/screenshot/frames.mjs video.webm --at 8,17  # vídeo → storyboard.png
 ```
 
-## Initial Setup
+## Várias tarefas ao mesmo tempo (Docker por worktree)
 
-```bash
-composer install && npm install
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret
-php artisan migrate
-npm run build
-```
+`bin/fisio-app` dá a cada pasta (checkout ou `git worktree`) o próprio PHP,
+Postgres e fila no Docker, com portas sorteadas: `fisio-app new <tarefa>` cria a
+worktree `../fisioweb-<tarefa>` e sobe tudo; `fisio-app remove <tarefa>` apaga.
+Numa worktree, o `CLAUDE.local.md` (Claude Code) ou a regra
+`.cursor/rules/ambiente-docker.mdc` (Cursor) da pasta diz como testar e ver no
+navegador. Detalhes em [`docker/README.md`](docker/README.md).
 
-## Cursor Cloud specific instructions
+## Cursor Cloud
 
 Ambiente versionado em `.cursor/environment.json` (Dockerfile + `cloud-agent-install.sh`).
 O Build roda o mesmo fluxo do CI: `composer install`, `npm install`, `npm run build`,
@@ -62,6 +57,17 @@ só de código/teste costumam bastar com o `.env.example` (SQLite, `MAIL_MAILER=
 `npm run dev` em terminal separado; usar port forwarding no painel do agente.
 
 Não use `bin/fisio-app` / Docker local na nuvem — é fluxo de worktree no Mac.
+
+## Initial Setup
+
+```bash
+composer install && npm install
+cp .env.example .env
+php artisan key:generate
+php artisan jwt:secret
+php artisan migrate
+npm run build
+```
 
 ## Stack
 
@@ -109,60 +115,60 @@ Path alias: `@` → `resources/js/` (definido em `tsconfig.json` e `vite.config.
 
 ## Skill Map — sempre consulte antes de implementar
 
-Skills vivem em **`.cursor/skills/`** (Cursor), **`.claude/skills/`** (Claude Code) e **`.agents/skills/`** (Antigravity). **As três árvores são canônicas** — pastas reais no repo, sem symlink entre elas. Cada skill tem `SKILL.md` e `references/`. Ao criar ou alterar uma skill, atualize **os três** caminhos com o mesmo conteúdo e rode `bash bin/verificar-skills.sh`. No Antigravity, subagentes ficam em `.agents/agents/` e regras em `.agents/rules/` (veja `.agents/rules/fisioweb-antigravity.md`).
+Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/`**. O Claude Code lê essas pastas, e o Cursor também as carrega (compatibilidade com o Claude). Não crie cópia em `.cursor/skills/`, `.cursor/agents/` nem `.agents/`: o Claude Code não lê `.agents/`, e uma cópia em `.cursor/` passa na frente da `.claude/` no Cursor. Cada skill tem `SKILL.md` (resumo + decisão rápida) e `references/`. No frontmatter de subagente, escreva a `description` numa linha só: o Cursor não lê o bloco `>` de várias linhas.
 
 ### Backend
 | Vou fazer | Skill |
 |-----------|-------|
-| SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | [`backend-clean-code`](.cursor/skills/backend-clean-code/SKILL.md) |
-| Fronteira entre módulos backend, CRUD dentro do módulo, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.cursor/skills/architecture-paradigm-modular-monolith/SKILL.md) |
-| Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.cursor/skills/laravel-eloquent/SKILL.md) |
-| Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.cursor/skills/laravel-queues/SKILL.md) |
-| Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.cursor/skills/php-modern/SKILL.md) |
-| Testes PHPUnit + Mockery + Laravel fakes | [`php-testing`](.cursor/skills/php-testing/SKILL.md) |
+| SOLID, Clean Code, DTO, Service/UseCase, inversão de dependência e separação de camadas | [`backend-clean-code`](.claude/skills/backend-clean-code/SKILL.md) |
+| Fronteira entre módulos backend, CRUD dentro do módulo, contratos públicos, eventos, ADR e extração futura | [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md) |
+| Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.claude/skills/laravel-eloquent/SKILL.md) |
+| Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.claude/skills/laravel-queues/SKILL.md) |
+| Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.claude/skills/php-modern/SKILL.md) |
+| Testes PHPUnit + Mockery + Laravel fakes | [`php-testing`](.claude/skills/php-testing/SKILL.md) |
 
 ### Frontend
 | Vou fazer | Skill |
 |-----------|-------|
-| Estrutura DDD (domain → application → infra → page → route) | [`frontend-ddd`](.cursor/skills/frontend-ddd/SKILL.md) |
-| Hooks customizados, performance, React 19 (useActionState, useOptimistic, use()) | [`frontend-react`](.cursor/skills/frontend-react/SKILL.md) |
-| Testes Vitest + React Testing Library | [`frontend-testing`](.cursor/skills/frontend-testing/SKILL.md) |
-| **UI: componentes, cores, sidebar, popover, cursor, layouts** | [`frontend-ui-patterns`](.cursor/skills/frontend-ui-patterns/SKILL.md) |
-| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, Poppins, dark mode)** | [`design-system`](.cursor/skills/design-system/SKILL.md) |
-| ListPage com DataTable, Forms RHF+Zod, Dialog, componentes custom | [`forms-shadcn`](.cursor/skills/forms-shadcn/SKILL.md) |
-| Usar `apiClient`, criar Repository, JWT multi-guard, impersonation | [`api-client`](.cursor/skills/api-client/SKILL.md) |
+| Estrutura DDD (domain → application → infra → page → route) | [`frontend-ddd`](.claude/skills/frontend-ddd/SKILL.md) |
+| Hooks customizados, performance, React 19 (useActionState, useOptimistic, use()) | [`frontend-react`](.claude/skills/frontend-react/SKILL.md) |
+| Testes Vitest + React Testing Library | [`frontend-testing`](.claude/skills/frontend-testing/SKILL.md) |
+| **UI: componentes, cores, sidebar, popover, cursor, layouts** | [`frontend-ui-patterns`](.claude/skills/frontend-ui-patterns/SKILL.md) |
+| **Telas v2: design system `@/components/ds` (tokens `--ds-*`, Poppins, dark mode)** | [`design-system`](.claude/skills/design-system/SKILL.md) |
+| ListPage com DataTable, Forms RHF+Zod, Dialog, componentes custom | [`forms-shadcn`](.claude/skills/forms-shadcn/SKILL.md) |
+| Usar `apiClient`, criar Repository, JWT multi-guard, impersonation | [`api-client`](.claude/skills/api-client/SKILL.md) |
 
 ### Cross-cutting
 | Vou fazer | Skill |
 |-----------|-------|
-| Autorização (Policies backend + permissions.ts + RequireClinicAdmin) | [`security`](.cursor/skills/security/SKILL.md) |
-| Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.cursor/skills/prototype/SKILL.md) |
-| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.cursor/skills/qa-navegador/SKILL.md) |
+| Revisão de segurança e autorização (Policies, `clinic_id`, permissions.ts, RequireClinicAdmin) | [`security-audit`](.claude/skills/security-audit/SKILL.md) |
+| Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.claude/skills/prototype/SKILL.md) |
+| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.claude/skills/qa-navegador/SKILL.md) |
 
 ### Diagnóstico e arquitetura
 | Vou fazer | Skill |
 |-----------|-------|
-| Levantar pontos de melhoria e candidatos a refatoração (relatório HTML com antes e depois; só o usuário chama) | [`improve-codebase-architecture`](.cursor/skills/improve-codebase-architecture/SKILL.md) |
-| Desenhar a interface de um módulo, decidir onde fica a costura, desenhar duas vezes antes de refatorar | [`codebase-design`](.cursor/skills/codebase-design/SKILL.md) |
-| Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.cursor/skills/tech-debt-audit/SKILL.md) |
-| Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.cursor/skills/domain-modeling/SKILL.md) |
-| Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.cursor/skills/systematic-debugging/SKILL.md) |
-| Bug simples ou ajuste pequeno fora do ciclo (três linhas, teste vermelho, correção mínima) | [`correcao-rapida`](.cursor/skills/correcao-rapida/SKILL.md) |
+| Levantar pontos de melhoria e candidatos a refatoração (relatório HTML com antes e depois; só o usuário chama) | [`improve-codebase-architecture`](.claude/skills/improve-codebase-architecture/SKILL.md) |
+| Desenhar a interface de um módulo, decidir onde fica a costura, desenhar duas vezes antes de refatorar | [`codebase-design`](.claude/skills/codebase-design/SKILL.md) |
+| Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.claude/skills/tech-debt-audit/SKILL.md) |
+| Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.claude/skills/domain-modeling/SKILL.md) |
+| Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.claude/skills/systematic-debugging/SKILL.md) |
+| Bug simples ou ajuste pequeno fora do ciclo (três linhas, teste vermelho, correção mínima) | [`correcao-rapida`](.claude/skills/correcao-rapida/SKILL.md) |
 
 ## Princípios não-negociáveis
 
 1. **Backend é fonte de verdade.** Frontend nunca decide autorização efetiva, validação de segurança, ou regra de negócio crítica. Frontend esconde para UX; backend protege para valer.
-2. **Backend limpo por padrão.** Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla. Veja [`backend-clean-code`](.cursor/skills/backend-clean-code/SKILL.md).
-3. **Monólito modular no backend.** Módulos não importam internals de outros módulos para regra de negócio. Veja [`architecture-paradigm-modular-monolith`](.cursor/skills/architecture-paradigm-modular-monolith/SKILL.md).
-4. **Camadas separadas no frontend.** Loader chama `application/`, nunca `infrastructure/`. Página não importa `apiClient`. Veja [`frontend-ddd`](.cursor/skills/frontend-ddd/SKILL.md).
-5. **`apiClient` é o único caminho HTTP.** Sem `fetch` direto. Veja [`api-client`](.cursor/skills/api-client/SKILL.md).
+2. **Backend limpo por padrão.** Controller não pensa; Service/UseCase decide; Repository busca/salva; DTO transporta; Entity/Model protege regra pequena; Interface desacopla. Veja [`backend-clean-code`](.claude/skills/backend-clean-code/SKILL.md).
+3. **Monólito modular no backend.** Módulos não importam internals de outros módulos para regra de negócio. Veja [`architecture-paradigm-modular-monolith`](.claude/skills/architecture-paradigm-modular-monolith/SKILL.md).
+4. **Camadas separadas no frontend.** Loader chama `application/`, nunca `infrastructure/`. Página não importa `apiClient`. Veja [`frontend-ddd`](.claude/skills/frontend-ddd/SKILL.md).
+5. **`apiClient` é o único caminho HTTP.** Sem `fetch` direto. Veja [`api-client`](.claude/skills/api-client/SKILL.md).
 6. **Domain puro.** `domain/` só tem entidade em camelCase, sem `_at`, sem `ApiXxx`, sem `WriteDto`, sem constantes de UI.
-7. **Form com 2+ campos → RHF + Zod.** Algumas pages legadas usam `useState` (ex.: `FeatureNewPage`) — não copiar. Veja [`frontend-ddd/references/forms.md`](.cursor/skills/frontend-ddd/references/forms.md).
+7. **Form com 2+ campos → RHF + Zod.** Algumas pages legadas usam `useState` (ex.: `FeatureNewPage`) — não copiar. Veja [`frontend-ddd/references/forms.md`](.claude/skills/frontend-ddd/references/forms.md).
 8. **Comentários:** não escreva comentário por padrão. O código se explica por nome e estrutura. Só ficam: tipagem tanto no frontend quando no backend exemplo (`@param`, `@return`, `@throws`, `@var` com shape de array) e um comentário curto quando o motivo for difícil de entender (lock, réplica, bug de terceiro, regra que o código não mostra). **Nunca** comente o que o código faz, id de tarefa ou decisão (`D36`, `tarefa 008`, `001`), nem o passo a passo do assert em teste. Vale para PHP, TS, Vue, CSS e testes. Na dúvida, apague.
 
 ## Code Style
 
-- **PHP:** Laravel Pint (`./vendor/bin/pint`). Sem `declare(strict_types=1)` por convenção atual — ver [`php-modern`](.cursor/skills/php-modern/SKILL.md). Null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
+- **PHP:** Laravel Pint (`./vendor/bin/pint`). Sem `declare(strict_types=1)` por convenção atual — ver [`php-modern`](.claude/skills/php-modern/SKILL.md). Null com `is_null()` / `!is_null()`; string vazia com `empty()` / `!empty()`.
 - **JS/TS:** Prettier (4 espaços, single quotes, organized imports), ESLint, TypeScript strict.
 - **Tipos:** entidades de negócio só em `domain/`. Sem `any` novo sem justificativa.
 
@@ -213,7 +219,7 @@ Não pergunte quando:
 
 ## Ciclo de trabalho
 
-Cada etapa tem uma skill em `.cursor/skills/` / `.claude/skills/`, e cada uma diz qual é a próxima:
+Cada etapa tem uma skill em `.claude/skills/`, e cada uma diz qual é a próxima:
 
 `refinar` (grava cada decisão no `decisoes.md` da feature) → `escrever-plano`
 (cria a pasta, se ainda não existe, com `README.md` e `plans/`) →

@@ -7,8 +7,8 @@ Review the relevant code with a code review mindset. Prioritize bugs, behavioral
 ## Regras do fisioweb a verificar
 
 1. **Correção** — caso de borda (null, lista vazia, data/fuso, paginação), condição invertida, escrita múltipla sem `DB::transaction`, exceção engolida.
-2. **Segurança / autorização** — endpoint sem Policy, falta de escopo por `clinic_id` (vazamento entre clínicas), guard JWT errado (`admin` vs `clinic`), mass assignment, FormRequest sem validação. Ver `.cursor/skills/security/SKILL.md`.
-3. **Arquitetura** — controller com regra de negócio; módulo importando Model/Repository de outro módulo; loader chamando `infrastructure/`; `fetch` em vez de `apiClient`; `domain/` com snake_case/`ApiXxx`; form com 2+ campos sem RHF + Zod. Ver `CLAUDE.md`.
+2. **Segurança / autorização** — endpoint sem Policy, falta de escopo por `clinic_id` (vazamento entre clínicas), guard JWT errado (`admin` vs `clinic`), mass assignment, FormRequest sem validação. Ver `.claude/skills/security-audit/SKILL.md`.
+3. **Arquitetura** — controller com regra de negócio; módulo importando Model/Repository de outro módulo; loader chamando `infrastructure/`; `fetch` em vez de `apiClient`; `domain/` com snake_case/`ApiXxx`; form com 2+ campos sem RHF + Zod. Ver `AGENTS.md`.
 4. **Desempenho** — N+1, query em loop, coleção inteira sem paginação.
 5. **Testes** — comportamento novo sem teste, teste que só verifica mock, caso de autorização não testado.
 

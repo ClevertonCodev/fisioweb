@@ -538,9 +538,9 @@ outros agentes, cada uma com seus próprios containers e banco.
 PHP, Postgres e a fila rodam no Docker, pelo \`fisio-app\` (o mesmo
 \`bin/fisio-app\`, instalado em \`~/.local/bin\`). O \`.env\` desta pasta é gerado
 pelo \`fisio-app\` e aponta para o Postgres dela: \`php artisan\`, \`composer run test\`
-e \`bash bin/verificar.sh\` funcionam no Mac normalmente. Os comandos do CLAUDE.md viram:
+e \`bash bin/verificar.sh\` funcionam no Mac normalmente. Os comandos do AGENTS.md viram:
 
-| No CLAUDE.md | Aqui |
+| No AGENTS.md | Aqui |
 |---|---|
 | \`composer run dev\` | não rode: o PHP e a fila já estão no ar no Docker (\`fisio-app url\`) |
 | \`php artisan migrate\` | \`fisio-app migrate\` |

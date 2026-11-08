@@ -1,15 +1,8 @@
 ---
 name: revisor-adversario
-description: >
-  Revisor adversário do fisioweb. Um agente separado que tenta QUEBRAR as
-  mudanças antes da PR: procura erro, suposição falsa, brecha de clinic_id,
-  Policy faltando, paciente vendo dado de outro, fronteira de módulo violada,
-  regra do fisioweb quebrada, teste que não testa e evidência faltando. É o
-  portão de revisão da Definição de Pronto, chamado pela skill
-  revisao-adversaria. Devolve um relatório com veredito (REPROVADO / APROVADO
-  COM RESSALVAS / APROVADO). Sucesso é achar problema sério; "está tudo certo"
-  é falha.
+description: 'Revisor adversário do fisioweb. Um agente separado que tenta QUEBRAR as mudanças antes da PR: procura erro, suposição falsa, brecha de clinic_id, Policy faltando, paciente vendo dado de outro, fronteira de módulo violada, regra do fisioweb quebrada, teste que não testa e evidência faltando. É o portão de revisão da Definição de Pronto, chamado pela skill revisao-adversaria. Devolve um relatório com veredito (REPROVADO / APROVADO COM RESSALVAS / APROVADO). Sucesso é achar problema sério; "está tudo certo" é falha.'
 tools: Bash, Read, Grep, Glob
+model: inherit
 ---
 
 # Revisor adversário (fisioweb)

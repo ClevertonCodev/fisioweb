@@ -17,8 +17,7 @@ As instruções de cada um ficam em `.claude/agents/<nome>.md`, a fonte única.
 | Agente | Como chamar |
 |---|---|
 | Claude Code | ferramenta Agent com `subagent_type: "revisor-adversario"` ou `"verificador-de-achados"` |
-| Cursor | o subagente de mesmo nome em `.cursor/agents/` |
-| Antigravity | o subagente de mesmo nome em `.agents/agents/` (`invoke_subagent`) |
+| Cursor | o subagente de mesmo nome, que o Cursor carrega de `.claude/agents/` |
 | Codex ou outro | um subagente novo, sem o histórico desta conversa, cuja instrução é o conteúdo inteiro de `.claude/agents/<nome>.md` seguido do pedido |
 
 Se o seu agente não consegue abrir subagente, pare e diga ao usuário: a

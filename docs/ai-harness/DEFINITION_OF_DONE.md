@@ -9,8 +9,8 @@ a esta mudança (uma refatoração não precisa de smoke test). Isso é diferent
 adiar, que é dizer que o item se aplica mas vai ficar para depois: nada desta
 lista pode ser adiado (veja "Trabalho adiado").
 
-O `CLAUDE.md` aponta para este arquivo. Os comandos estão na seção "Commands" do
-`CLAUDE.md`, e `bash bin/verificar.sh` roda os testes e as verificações na ordem
+O `AGENTS.md` (que o `CLAUDE.md` importa) aponta para este arquivo. Os comandos
+estão na seção "Commands" do `AGENTS.md`, e `bash bin/verificar.sh` roda os testes e as verificações na ordem
 certa.
 
 ## Escopo
@@ -63,7 +63,7 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
 
 ## Regras do fisioweb
 
-Estas regras repetem os "Princípios não-negociáveis" do `CLAUDE.md` e as skills
+Estas regras repetem os "Princípios não-negociáveis" do `AGENTS.md` e as skills
 de `.claude/skills/`, escritas como itens para conferir no diff. Quem mudar uma
 regra lá muda aqui também, na mesma PR.
 
@@ -317,7 +317,7 @@ depois o `verificador-de-achados`, e repete até passar.
 ## Documentação
 
 - Se mudou arquitetura, interface pública, convenção ou comando, atualize na
-  mesma PR o `CLAUDE.md` (e o `AGENTS.md`, que espelha ele), a skill em
+  mesma PR o `AGENTS.md` (o `CLAUDE.md` só importa ele), a skill em
   `.claude/skills/`, o ADR em `docs/adr/` ou o doc em `docs/`.
 - Critério de aceite da tarefa em `.ai-workbench/<feature>/tasks/` é marcado
   `[x]` só depois que a Definição de Pronto passou, e o status da tarefa é

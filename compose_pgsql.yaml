@@ -1,9 +1,8 @@
-# PostgreSQL standalone — use quando rodar o Laravel fora do Sail (php artisan serve).
+# PostgreSQL standalone — use quando rodar o Laravel direto no Mac (composer run dev).
 # Subir: docker compose -f compose_pgsql.yaml up -d
 # Parar:  docker compose -f compose_pgsql.yaml down
 #
 # Com este arquivo, ajuste no .env: DB_HOST=127.0.0.1
-# (DB_HOST=pgsql só funciona dentro da rede Docker do Sail)
 
 services:
     pgsql:

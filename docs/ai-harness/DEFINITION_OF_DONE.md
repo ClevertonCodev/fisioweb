@@ -203,7 +203,7 @@ que a sua mudança nunca produziria):
 
 **Passo a passo:**
 
-1. Suba o ambiente local (`composer run dev`, ou o Sail descrito em `SAIL.md`)
+1. Suba o ambiente local (`composer run dev`, ou o `bin/fisio-app` numa worktree)
    e confirme que o sistema abre em `APP_URL`. Use dados do seeder
    (`php artisan db:seed`) e garanta **duas clínicas** com usuários próprios,
    para poder testar o isolamento.

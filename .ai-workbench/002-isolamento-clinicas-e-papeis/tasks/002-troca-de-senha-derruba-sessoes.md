@@ -30,7 +30,7 @@ A abordagem é guardar quando a senha mudou e recusar todo token emitido antes d
 - [x] O usuário troca a própria senha: a resposta traz um `access_token` novo, que dá 200, e o antigo dá 401
 - [x] O SPA da edição de usuário guarda o token novo e não desloga quem trocou a própria senha (teste Vitest)
 - [x] O token de outra clínica não é afetado
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

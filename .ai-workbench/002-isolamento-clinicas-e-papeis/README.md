@@ -1,31 +1,49 @@
-# 002 · Isolamento entre clínicas e regras de papel
+# 002 · Correções da auditoria de controle de acesso
 
-Fecha as falhas da auditoria em que uma clínica alcança dados de outra (usuários, pacientes no plano, questionário público, vídeos, exercícios, modelos de evolução) e acerta duas regras de papel: a secretária só lê o prontuário e o fisioterapeuta vê só os pacientes dele. Ganham as clínicas e os pacientes, que passam a ter os dados isolados de verdade.
+Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisioweb/run-1`: o `/log-viewer` aberto, o mestre com senha = CNPJ, a mídia de exercício aprovado, os favoritos, o e-mail com maiúsculas, o `generate-text`, o OAuth e o pull do Google, as sessões que sobrevivem à troca de senha, o questionário, o paciente desativado e os arquivos do prontuário públicos. Também traz quatro reforços. Ganham as clínicas, os pacientes e o operador, que deixam de ter contas e dados alcançáveis por quem não deveria.
 
 - **Status:** planejada
-- **Branch:** `feat/isolamento-clinicas-e-papeis` (uma PR só, por decisão do usuário)
-- **Plano:** [`plans/isolamento-clinicas-e-papeis.md`](plans/isolamento-clinicas-e-papeis.md)
-- **Módulos:** núcleo `app/Http/Controllers`, `Clinic`, `Patient`, `ClinicScheduling`, `ClinicFinance`, `ClinicalRecord`, `ClinicQuestionnaire`, `TreatmentProgram`, `Media`, `tests/Architecture`, `docs/adr`. No SPA: `pages/clinic/patient` (formulário e prontuário), `components/clinic/patient`, `domain/clinic/patient.ts`, `application/clinic/permissions.ts`.
+- **Branch:** `fix/log-viewer-basic-auth` (tarefa 001, PR própria) e `feat/isolamento-clinicas-e-papeis` (o resto, uma PR só)
+- **Plano:** [`plans/correcoes-auditoria-controle-de-acesso.md`](plans/correcoes-auditoria-controle-de-acesso.md)
+- **Decisões:** [`decisoes.md`](decisoes.md)
+- **Fora desta feature:** as regras de papel e a refatoração estrutural do plano de 2026-10-15, em [`papeis-fora-do-escopo.md`](papeis-fora-do-escopo.md). O plano e as tarefas antigas estão em [`tasks/arquivo-2026-10-15/`](tasks/arquivo-2026-10-15/).
+- **Módulos:**
+  - **Backend:** núcleo (`app/Providers`, `config/log-viewer.php`, `infra/provision.sh`), `Clinic`, `Admin`, `Media`, `ClinicalRecord`, `ClinicQuestionnaire`, `GoogleCalendar`, `ClinicScheduling`, `Patient`, `Cloudflare`, `docs/adr`.
+  - **SPA:**
+    - `pages/admin/clinic`: acesso do mestre e `login-as`;
+    - `pages/admin/exercises`: proposta de mídia;
+    - `/clinica/primeiro-acesso`;
+    - edição de usuário v2;
+    - envio de exercício;
+    - prontuário: arquivos;
+    - agenda e usuário: volta do Google.
 
 ## Tarefas
 
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
-| [001 · Checagem de clínica no controller base e usuários de outra clínica com 404](tasks/001-checagem-de-clinica-e-usuarios.md) | a fazer | | |
-| [002 · `Gate::before` nega o admin em recurso de outra clínica](tasks/002-gate-before-por-clinica.md) | a fazer | | |
-| [003 · Busca de paciente acessível no Patient e todos os módulos usando ela](tasks/003-busca-de-paciente-acessivel.md) | a fazer | | |
-| [004 · Padronizar as checagens restantes, unificar o 404 e criar a trava de arquitetura](tasks/004-padronizar-checagens-e-trava.md) | a fazer | | |
-| [005 · Plano de tratamento só aceita paciente acessível](tasks/005-plano-so-com-paciente-acessivel.md) | concluída na branch `feat/clinic-historico-exercicios-programas` (2026-10-22) | | |
-| [006 · Favoritos e plano só com exercício visível para a clínica](tasks/006-exercicios-visiveis-favoritos-e-plano.md) | a fazer | | |
-| [007 · Modelos de evolução só do sistema ou da própria clínica](tasks/007-modelos-de-evolucao-por-clinica.md) | a fazer | | |
-| [008 · Remover o questionário público e validar `question_id` contra o template](tasks/008-remover-questionario-publico.md) | a fazer | | |
-| [009 · Vídeos com clínica dona e rotas da clínica reduzidas ao fluxo de envio](tasks/009-videos-com-clinica-dona.md) | a fazer | | |
-| [010 · Secretária só lê o prontuário](tasks/010-secretaria-so-le-prontuario.md) | a fazer | | |
-| [011 · Fisioterapeuta responsável obrigatório no paciente](tasks/011-fisioterapeuta-responsavel-obrigatorio.md) | a fazer | | |
-| [012 · Vínculo fisio-paciente por eventos, com backfill e ADR](tasks/012-vinculo-fisio-paciente.md) | a fazer | | |
-| [013 · Fisio vê só os pacientes dele](tasks/013-fisio-ve-so-os-pacientes-dele.md) | a fazer | | |
+| [001 · `/log-viewer` atrás de basic auth em produção](tasks/001-log-viewer-basic-auth.md) | a fazer | | |
+| [002 · Trocar a senha derruba as outras sessões (clínica e admin)](tasks/002-troca-de-senha-derruba-sessoes.md) | a fazer | | |
+| [003 · Mestre nasce sem senha e define a senha pelo link de primeiro acesso](tasks/003-mestre-sem-senha-e-primeiro-acesso.md) | a fazer | | |
+| [004 · Bloco "Acesso do mestre" na tela da clínica do admin, com smoke de ponta a ponta](tasks/004-acesso-do-mestre-no-admin.md) | a fazer | | |
+| [005 · Só o mestre troca o próprio e-mail e a própria senha](tasks/005-so-o-mestre-troca-email-e-senha.md) | a fazer | | |
+| [006 · Clínica cancelada não loga, perde as sessões e não se reativa sozinha](tasks/006-clinica-cancelada-sem-acesso.md) | a fazer | | |
+| [007 · Limite de tentativas no login, no forgot e no reset do admin](tasks/007-throttle-no-login-do-admin.md) | a fazer | | |
+| [008 · Registro do "entrar como" do operador](tasks/008-registro-do-login-as.md) | a fazer | | |
+| [009 · E-mail do usuário da clínica único sem diferenciar maiúsculas](tasks/009-email-unico-sem-maiusculas.md) | a fazer | | |
+| [010 · Favoritos só com exercício visível e sem dados de origem](tasks/010-favoritos-so-exercicio-visivel.md) | a fazer | | |
+| [011 · `generate-text` só com modelo do sistema ou da própria clínica](tasks/011-generate-text-so-modelo-da-clinica.md) | a fazer | | |
+| [012 · Resposta de questionário só com pergunta do próprio template](tasks/012-questionario-so-pergunta-do-template.md) | a fazer | | |
+| [013 · Pull do Google só altera as consultas do próprio fisio](tasks/013-pull-do-google-so-do-proprio-fisio.md) | a fazer | | |
+| [014 · Conexão com o Google com nonce de uso único e ticket confirmado por quem está logado](tasks/014-oauth-google-com-nonce-e-ticket.md) | a fazer | | |
+| [015 · Paciente desativado perde o token na hora](tasks/015-paciente-desativado-perde-o-token.md) | a fazer | | |
+| [016 · Arquivos do prontuário com link de 5 minutos e apagados do R2](tasks/016-arquivos-do-prontuario-com-link-assinado.md) | a fazer | | |
+| [017 · Seletor do operador só com vídeo do catálogo, e sincronização das imagens por evento sem regravar exercício aprovado](tasks/017-seletor-do-operador-e-sync-por-evento.md) | a fazer | | |
+| [018 · Proposta de mídia de exercício aprovado no backend, com ADR](tasks/018-proposta-de-midia-no-backend.md) | a fazer | | |
+| [019 · Botão "Trocar imagens" no modal da biblioteca, com o aviso "em revisão" no aprovado](tasks/019-trocar-imagens-no-modal-da-biblioteca.md) | a fazer | | |
+| [020 · Operador revisa a proposta de mídia (antes e depois, aprovar e rejeitar)](tasks/020-revisao-da-proposta-pelo-operador.md) | a fazer | | |
 
 ## Pastas
 
-- `plans/`, `tasks/`: no git.
+- `decisoes.md`, `plans/`, `tasks/`: no git.
 - `evidence/`, `review/`, `DEFERRED.md`: locais, fora do git.

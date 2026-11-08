@@ -777,6 +777,48 @@ describe('edição de usuário (tela de verdade)', () => {
         expect(screen.getByRole('switch')).toBeDisabled();
     });
 
+    it('admin comum editando o mestre: e-mail e senha desabilitados com o motivo, e salvar não manda os dois', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        renderEdit(
+            member({
+                id: '2',
+                role: 'admin',
+                mestre: 1,
+                email: 'mestre@clinica.test',
+            }),
+        );
+
+        expect(await screen.findByLabelText('E-mail')).toBeDisabled();
+        expect(screen.getByLabelText('Nova senha')).toBeDisabled();
+        expect(screen.getByLabelText('Confirmar nova senha')).toBeDisabled();
+        expect(
+            screen.getAllByText('Só o mestre altera o e-mail e a senha dele.'),
+        ).not.toHaveLength(0);
+
+        await user.type(screen.getByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        const payload = update.mock.calls[0][1];
+        expect(payload).toMatchObject({ name: 'Bruno Reis Jr' });
+        expect(payload).not.toHaveProperty('email');
+        expect(payload).not.toHaveProperty('password');
+    });
+
+    it('o mestre no próprio perfil troca o e-mail e a senha', async () => {
+        authUser = { ...authUser, id: 2, mestre: 1 };
+        renderEdit(member({ id: '2', role: 'admin', mestre: 1 }));
+
+        expect(await screen.findByLabelText('E-mail')).toBeEnabled();
+        expect(screen.getByLabelText('Nova senha')).toBeEnabled();
+        expect(
+            screen.queryByText('Só o mestre altera o e-mail e a senha dele.'),
+        ).toBeNull();
+    });
+
     it('mestre que a v1 deixou inativo abre ativo e salvar o reativa', async () => {
         const user = userEvent.setup();
         update.mockResolvedValue(member());

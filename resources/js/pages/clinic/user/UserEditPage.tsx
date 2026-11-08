@@ -12,7 +12,10 @@ import {
     normalizeClinicUserRole,
     type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
-import { can } from '@/application/clinic/permissions';
+import {
+    can,
+    MASTER_CREDENTIALS_REASON,
+} from '@/application/clinic/permissions';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
 import {
     useClinicUser,
@@ -107,21 +110,27 @@ function Editor({
     const uploadPhoto = useUploadClinicUserPhoto();
     const deletePhoto = useDeleteClinicUserPhoto();
 
+    const credentialsLock = can.changeCredentials(user.mestre, isOwnProfile)
+        ? null
+        : MASTER_CREDENTIALS_REASON;
+
     const onSave = async (values: UserFormValues, photo: PhotoChange) => {
         const payload: ClinicUserUpdateDto = {
             name: values.name,
-            email: values.email,
             document: serializeClinicUserDocument(
                 values.documentKind,
                 values.document,
             ),
         };
+        if (!credentialsLock) payload.email = values.email;
         // O backend também ignora função e situação de quem não é admin.
         if (canManageUsers) {
             payload.role = values.role;
             payload.status = Number(values.status ?? '1');
         }
-        if (values.password?.trim()) payload.password = values.password;
+        if (!credentialsLock && values.password?.trim()) {
+            payload.password = values.password;
+        }
 
         await updateUser.mutateAsync(payload);
         // Os dados já estão salvos: se a foto falhar, o hook dela avisa e a
@@ -150,6 +159,7 @@ function Editor({
             canManageUsers={canManageUsers}
             isOwnProfile={isOwnProfile}
             roleLocked={user.mestre === 1}
+            credentialsLock={credentialsLock}
             backTo={backTo}
         />
     );

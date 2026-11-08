@@ -6,7 +6,7 @@ O protótipo da edição de usuário no design system v2 (`/clinica/usuarios/:id
 
 Como está hoje:
 
-- `PUT /api/clinic/users/{user}` aceita `password` (`UpdateClinicUserRequest`), e o `ClinicUserService::update` só barra quem não é administrador editando outra pessoa. Qualquer administrador troca a senha de qualquer usuário da clínica, inclusive a de outro administrador e a do mestre.
+- `PUT /api/clinic/users/{user}` aceita `password` (`UpdateClinicUserRequest`), e o `ClinicUserService::update` só barra quem não é administrador editando outra pessoa. Qualquer administrador troca a senha de qualquer usuário da clínica, inclusive a de outro administrador e a do mestre (a do mestre, até 2026-11-08; ver "Situação (2026-11-08)").
 - O `ClinicUserPolicy::update` deixa só a própria pessoa, mas o `Gate::before` do `ClinicServiceProvider` devolve `true` para todo administrador. Uma regra nova escrita só na Policy seria ignorada para administradores.
 - A troca de senha não pede confirmação nenhuma: quem tem a sessão aberta troca a senha na hora.
 - O sistema não tem verificação em duas etapas. Existe a coluna `two_factor_confirmed_at` em `clinic_users`, sem nenhum fluxo; nenhuma tela deve oferecer isso.
@@ -57,6 +57,16 @@ A regra fica no backend, numa verificação explícita do service (ou numa abili
 ## Situação (2026-10-20)
 
 A edição de usuário v2 virou a tela de verdade (feature `007-clinic-user-form-ds`, tarefa 004) **sem** este ADR: por decisão do usuário, a senha continua como na v1 (quem chega à edição troca direto, sem código e sem a tabela acima). A decisão deste ADR segue valendo como o destino; falta o backend (regra no service, endpoint do código, fila de e-mail) e, depois, a tela.
+
+## Situação (2026-11-08)
+
+A feature `002-isolamento-clinicas-e-papeis` (tarefa 005) entregou a coluna "Mestre" da tabela:
+- o `ClinicUserService::update` recusa com 403 a troca do e-mail ou da senha do mestre feita por qualquer pessoa que não seja ele ("Só o mestre altera o e-mail e a senha dele.");
+- a edição v2 desabilita os dois campos, com o motivo (`can.changeCredentials` em `permissions.ts`).
+
+Continuam faltando:
+- a linha "Administrador → Outro administrador: não" (hoje um administrador comum troca a senha e o e-mail de outro administrador);
+- o código por e-mail e o endpoint `password-code`.
 
 ## Em aberto
 

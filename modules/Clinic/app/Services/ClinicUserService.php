@@ -66,9 +66,13 @@ class ClinicUserService implements ClinicUserServiceInterface
             abort(422, 'O usuário mestre da clínica deve permanecer como administrador.');
         }
 
-        return DB::transaction(function () use ($clinicUser, $data): ClinicUser {
+        return DB::transaction(function () use ($clinicUser, $data, $authUser): ClinicUser {
             $activeAdminIds = $this->lockActiveAdminIds((int) $clinicUser->clinic_id);
             $target         = $this->lockTarget($clinicUser);
+
+            if ($this->changesSomeoneElsesMasterCredentials($target, $data, $authUser)) {
+                abort(403, 'Só o mestre altera o e-mail e a senha dele.');
+            }
 
             if ($target->isMaster() && $this->deactivates($target, $data)) {
                 abort(422, 'O usuário mestre da clínica não pode ser desativado.');
@@ -111,6 +115,22 @@ class ClinicUserService implements ClinicUserServiceInterface
             // Soft delete: a agenda, o financeiro e o histórico continuam.
             $target->delete();
         });
+    }
+
+    /**
+     * Fica no service, e não na Policy, porque o `Gate::before` libera tudo
+     * para administrador (ADR 019). Um cliente pode mandar o e-mail atual sem
+     * mudança: só a troca conta.
+     */
+    private function changesSomeoneElsesMasterCredentials(ClinicUser $target, array $data, mixed $authUser): bool
+    {
+        if (!$target->isMaster() || ($authUser instanceof ClinicUser && $target->is($authUser))) {
+            return false;
+        }
+
+        $changesEmail = array_key_exists('email', $data) && $data['email'] !== $target->email;
+
+        return $changesEmail || array_key_exists('password', $data);
     }
 
     /** Só a passagem de ativo para inativo conta; manter inativo não. */

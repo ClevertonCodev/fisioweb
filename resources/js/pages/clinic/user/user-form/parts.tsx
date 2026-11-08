@@ -55,6 +55,8 @@ export interface UserFormLayoutProps {
     isOwnProfile: boolean;
     /** Mestre: a função fica administrador e a conta não se desativa. */
     roleLocked: boolean;
+    /** Motivo para travar e-mail e senha; `null` (ou ausente) quando pode trocar. */
+    credentialsLock?: string | null;
     backTo: string;
 }
 
@@ -231,7 +233,13 @@ export function NameField({ f }: { f: UserForm }) {
     );
 }
 
-export function EmailField({ f }: { f: UserForm }) {
+export function EmailField({
+    f,
+    lockReason,
+}: {
+    f: UserForm;
+    lockReason?: string | null;
+}) {
     const err = f.form.formState.errors.email?.message;
     return (
         <DsInput
@@ -240,8 +248,9 @@ export function EmailField({ f }: { f: UserForm }) {
             autocomplete="email"
             placeholder="voce@clinica.com"
             state={err ? 'error' : 'default'}
-            helper={err ?? 'É o login da pessoa.'}
+            helper={err ?? lockReason ?? 'É o login da pessoa.'}
             {...f.form.register('email')}
+            disabled={!!lockReason}
         />
     );
 }
@@ -275,7 +284,13 @@ export function PasswordMeter({ value }: { value: string }) {
     );
 }
 
-export function PasswordFields({ f }: { f: UserForm }) {
+export function PasswordFields({
+    f,
+    locked = false,
+}: {
+    f: UserForm;
+    locked?: boolean;
+}) {
     const errors = f.form.formState.errors;
     // No cadastro a senha é obrigatória e não pede código (ADR 019).
     const creating = f.mode === 'create';
@@ -291,6 +306,7 @@ export function PasswordFields({ f }: { f: UserForm }) {
                         state={errors.password ? 'error' : 'default'}
                         helper={errors.password?.message}
                         {...f.form.register('password')}
+                        disabled={locked}
                     />
                 </div>
                 <div className="flex-1">
@@ -303,7 +319,7 @@ export function PasswordFields({ f }: { f: UserForm }) {
                         type="password"
                         autocomplete="new-password"
                         placeholder="Repita a senha"
-                        disabled={!creating && !f.values.password}
+                        disabled={locked || (!creating && !f.values.password)}
                         state={errors.confirmPassword ? 'error' : 'default'}
                         helper={errors.confirmPassword?.message}
                         {...f.form.register('confirmPassword')}

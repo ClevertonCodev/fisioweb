@@ -20,13 +20,13 @@ A abordagem é a parte mínima do ADR 019, no service do Clinic: só o próprio 
 
 ## Critérios de Aceite
 
-- [ ] O admin comum leva 403 no `PUT /api/clinic/users/{mestre}` com `email`, e o e-mail não muda (o teste da auditoria, invertido)
-- [ ] O admin comum leva 403 com `password`, e a senha não muda
-- [ ] O mestre troca o próprio e-mail e a própria senha: 200
-- [ ] O admin troca a senha de um fisio: 200
-- [ ] Os campos ficam desabilitados com o motivo para o admin comum editando o mestre (teste Vitest de `permissions.ts` e da tela)
-- [ ] O admin de outra clínica continua levando 404 no usuário da clínica A
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O admin comum leva 403 no `PUT /api/clinic/users/{mestre}` com `email`, e o e-mail não muda (o teste da auditoria, invertido)
+- [x] O admin comum leva 403 com `password`, e a senha não muda
+- [x] O mestre troca o próprio e-mail e a própria senha: 200
+- [x] O admin troca a senha de um fisio: 200
+- [x] Os campos ficam desabilitados com o motivo para o admin comum editando o mestre (teste Vitest de `permissions.ts` e da tela)
+- [x] O admin de outra clínica continua levando 404 no usuário da clínica A
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

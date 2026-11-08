@@ -182,7 +182,7 @@ export default function PatientExerciseDetailPage() {
     if (isError || !program || !exerciseId) {
         return (
             <div className="flex h-full w-full flex-col bg-ds-surface-body font-ds text-ds-content-primary">
-                <DsPatientNavbar showPrototypeBadge onBack={onBack} />
+                <DsPatientNavbar onBack={onBack} />
                 <div className="flex flex-1 items-center justify-center p-6">
                     <DsEmptyState
                         icon={<AlertCircle className="size-6" />}
@@ -206,7 +206,7 @@ export default function PatientExerciseDetailPage() {
     if (!exercise) {
         return (
             <div className="flex h-full w-full flex-col bg-ds-surface-body font-ds text-ds-content-primary">
-                <DsPatientNavbar showPrototypeBadge onBack={onBack} />
+                <DsPatientNavbar onBack={onBack} />
                 <div className="flex flex-1 items-center justify-center p-6">
                     <DsEmptyState
                         icon={<AlertCircle className="size-6" />}
@@ -239,7 +239,6 @@ export default function PatientExerciseDetailPage() {
                 clinicName={program.clinicName}
                 title={exercise.name}
                 onBack={onBack}
-                showPrototypeBadge
             />
 
             <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:px-6 lg:py-8">

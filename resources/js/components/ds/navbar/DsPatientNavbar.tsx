@@ -21,7 +21,6 @@ export interface DsPatientNavbarProps {
     onBack?: () => void;
     hideAuthAction?: boolean;
     clinicName?: string;
-    showPrototypeBadge?: boolean;
     className?: string;
 }
 
@@ -32,7 +31,6 @@ export function DsPatientNavbar({
     onBack,
     hideAuthAction = false,
     clinicName,
-    showPrototypeBadge = false,
     className,
 }: DsPatientNavbarProps) {
     const navigate = useNavigate();
@@ -112,15 +110,6 @@ export function DsPatientNavbar({
                             </span>
                         </div>
                     </button>
-
-                    {showPrototypeBadge && (
-                        <DsBadge
-                            variant="primary"
-                            className="hidden font-ds-mono text-[10px] font-semibold tracking-wider uppercase sm:inline-flex"
-                        >
-                            Protótipo
-                        </DsBadge>
-                    )}
 
                     {displayClinic && (
                         <div className="hidden items-center gap-1.5 md:flex">

@@ -2,6 +2,7 @@ import { Activity, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { formatPatientProgramDate } from '@/application/patient/patient-program-dates';
 import { patientProgramDetailPath } from '@/application/patient/patient-program-paths';
 import { usePatientPrograms } from '@/application/patient/use-patient-program';
 import {
@@ -20,19 +21,8 @@ function totalExercises(program: PatientProgram): number {
     );
 }
 
-function formatCivilDate(date?: string): string {
-    const match = date ? /^(\d{4})-(\d{2})-(\d{2})/.exec(date) : null;
-    if (!match) return '—';
-
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    const day = Number(match[3]);
-
-    return new Date(year, month - 1, day).toLocaleDateString('pt-BR');
-}
-
 function formatProgramPeriod(program: PatientProgram): string {
-    return `${formatCivilDate(program.startDate)} a ${formatCivilDate(program.endDate)}`;
+    return `${formatPatientProgramDate(program.startDate)} a ${formatPatientProgramDate(program.endDate)}`;
 }
 
 function PatientProgramStatusBadge({
@@ -125,7 +115,7 @@ export default function PatientProgramListPage() {
 
     return (
         <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-            <DsPatientNavbar showPrototypeBadge />
+            <DsPatientNavbar />
 
             <main className="mx-auto w-full max-w-3xl flex-1 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
                 <section className="relative overflow-hidden rounded-ds-2xl border border-ds-border-brand-subtle bg-[image:var(--ds-gradient-brand)] p-6 shadow-ds-sm sm:p-8">

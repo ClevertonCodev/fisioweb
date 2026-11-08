@@ -12,6 +12,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { patientPostLoginPath } from '@/application/patient/patient-auth-paths';
 import {
+    getPatientClinicSlug,
+    setPatientClinicSlug,
+} from '@/application/patient/patient-clinic-slug';
+import {
     patientLoginFormSchema,
     type PatientLoginFormValues,
 } from '@/application/patient/patient-login-form';
@@ -28,10 +32,6 @@ import { DsInput } from '@/components/ds/input/DsInput';
 import { DsPatientNavbar } from '@/components/ds/navbar/DsPatientNavbar';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicOption } from '@/domain/patient/auth';
-import {
-    getPatientClinicSlug,
-    setPatientClinicSlug,
-} from '@/infrastructure/api/client';
 
 type Step = 'identifier' | 'clinic' | 'credentials';
 
@@ -172,7 +172,7 @@ export default function PatientLoginPage() {
 
     return (
         <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-            <DsPatientNavbar hideAuthAction showPrototypeBadge />
+            <DsPatientNavbar hideAuthAction />
 
             <main className="relative flex flex-1 flex-col items-center justify-center px-4 py-8 pb-24 sm:py-12 sm:pb-32">
                 {/* Efeito de luz ambiente de marca contido */}

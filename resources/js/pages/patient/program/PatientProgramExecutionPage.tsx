@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react';
 import {
     Activity,
     AlertCircle,
@@ -22,7 +23,6 @@ import {
     Timer,
     VideoOff,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -128,7 +128,7 @@ export default function PatientProgramExecutionPage() {
     if (isError || !program) {
         return (
             <div className="flex h-full w-full flex-col bg-ds-surface-body font-ds text-ds-content-primary">
-                <DsPatientNavbar showPrototypeBadge />
+                <DsPatientNavbar />
                 <div className="flex flex-1 items-center justify-center p-6">
                     <DsEmptyState
                         icon={<AlertCircle className="size-6" />}
@@ -152,7 +152,6 @@ export default function PatientProgramExecutionPage() {
             <div className="flex h-full w-full flex-col bg-ds-surface-body font-ds text-ds-content-primary">
                 <DsPatientNavbar
                     title={program.name}
-                    showPrototypeBadge
                     onBack={() => navigate(-1)}
                 />
                 <div className="flex flex-1 items-center justify-center p-6">
@@ -278,7 +277,9 @@ export default function PatientProgramExecutionPage() {
                     },
                 ],
             });
-        } catch {}
+        } catch {
+            // Uma série que não salvou não pode travar a sessão do paciente.
+        }
     };
 
     const handleStartRestTimer = (seconds: number) => {
@@ -322,7 +323,9 @@ export default function PatientProgramExecutionPage() {
                         executionId: id ?? undefined,
                     },
                 });
-            } catch {}
+            } catch {
+                // Fica na tela para o paciente tentar finalizar de novo.
+            }
         }
     };
 
@@ -364,8 +367,7 @@ export default function PatientProgramExecutionPage() {
           : 'Finalizar programa';
 
     const restConfigured = exercise.prescription.restTime ?? 30;
-    const isResting =
-        restSecondsRemaining !== null && restSecondsRemaining > 0;
+    const isResting = restSecondsRemaining !== null && restSecondsRemaining > 0;
     const restProgressPct =
         isResting && restTotalSeconds > 0
             ? Math.round(
@@ -386,7 +388,6 @@ export default function PatientProgramExecutionPage() {
                 title={program.name}
                 current={currentIndex + 1}
                 total={exercises.length}
-                showPrototypeBadge
                 onBack={() => navigate(-1)}
             />
 
@@ -610,7 +611,7 @@ export default function PatientProgramExecutionPage() {
                     {/* Split Studio Grid */}
                     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12 lg:gap-8">
                         {/* Left: Square 1:1 Instagram-style Video Stage */}
-                        <div className="w-full lg:col-span-5 lg:sticky lg:top-24">
+                        <div className="w-full lg:sticky lg:top-24 lg:col-span-5">
                             <div className="w-full overflow-hidden rounded-ds-2xl border border-ds-border-default bg-ds-surface-default p-3.5 shadow-ds-md">
                                 <div className="mb-2.5 flex items-center justify-between px-1">
                                     <div className="flex items-center gap-2">
@@ -968,7 +969,7 @@ export default function PatientProgramExecutionPage() {
                             }
                             disabled={isCompleting}
                             onClick={() => void handleNextSeries()}
-                            className="flex-1 sm:flex-none sm:min-w-[220px]"
+                            className="flex-1 sm:min-w-[220px] sm:flex-none"
                         />
                     </div>
                 </div>

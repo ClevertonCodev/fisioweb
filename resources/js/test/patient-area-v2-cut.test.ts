@@ -50,7 +50,25 @@ describe('corte v2 da área do paciente', () => {
                 /PatientProgramListPageV1|PatientExerciseDetailPageV1/,
             );
             expect(src).not.toMatch(/Opção [ABC]/);
-            expect(src).not.toMatch(/Protótipo em Validação/);
+            expect(src).not.toMatch(/Protótipo/);
+            expect(src).not.toMatch(/showPrototypeBadge/);
+        },
+    );
+
+    it('a navbar do paciente não tem mais o selo Protótipo', () => {
+        const src = readFileSync(
+            'resources/js/components/ds/navbar/DsPatientNavbar.tsx',
+            'utf8',
+        );
+        expect(src).not.toMatch(/Protótipo/);
+        expect(src).not.toMatch(/showPrototypeBadge/);
+    });
+
+    it.each(FILES.filter((file) => file.includes('/pages/')))(
+        '%s não importa a camada de infraestrutura',
+        (file) => {
+            const src = readFileSync(file, 'utf8');
+            expect(src).not.toMatch(/from '@\/infrastructure/);
         },
     );
 

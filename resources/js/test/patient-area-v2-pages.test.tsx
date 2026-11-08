@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PatientProgram } from '@/domain/patient/program';
 import PatientExerciseDetailPage from '@/pages/patient/program/PatientExerciseDetailPage';
+import PatientProgramDetailPage from '@/pages/patient/program/PatientProgramDetailPage';
 import PatientProgramListPage from '@/pages/patient/program/PatientProgramListPage';
 
 const programsState = {
@@ -24,6 +25,7 @@ const programState = {
 vi.mock('@/application/patient/use-patient-program', () => ({
     usePatientPrograms: () => programsState,
     usePatientProgram: () => programState,
+    useRegisterProgramView: () => ({ mutate: vi.fn() }),
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -72,6 +74,10 @@ function renderAt(path: string, page: ReactNode) {
             <Routes>
                 <Route path="/:clinicSlug/paciente/programas" element={page} />
                 <Route
+                    path="/:clinicSlug/paciente/programas/:publicToken"
+                    element={page}
+                />
+                <Route
                     path="/:clinicSlug/paciente/programas/:publicToken/exercicios/:exerciseId"
                     element={page}
                 />
@@ -79,6 +85,25 @@ function renderAt(path: string, page: ReactNode) {
         </MemoryRouter>,
     );
 }
+
+describe('detalhe do programa do paciente', () => {
+    afterEach(() => {
+        programState.data = undefined;
+        vi.unstubAllEnvs();
+    });
+
+    it('mostra o período na data civil, sem recuar um dia', () => {
+        vi.stubEnv('TZ', 'America/Sao_Paulo');
+        programState.data = program();
+
+        renderAt(
+            '/clinica-teste/paciente/programas/token-1',
+            <PatientProgramDetailPage />,
+        );
+
+        expect(screen.getByText('06/11/2026 – 06/12/2026')).toBeInTheDocument();
+    });
+});
 
 describe('lista de programas do paciente', () => {
     beforeEach(() => {

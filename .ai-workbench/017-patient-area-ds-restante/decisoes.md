@@ -55,3 +55,11 @@ Corte v2: a variante escolhida vira a rota oficial e o lixo de protótipo sai. S
 - **`bash bin/verificar.sh`** → com `TZ=America/Sao_Paulo`, ESLint, Prettier, TypeScript e o build passam. O Vitest fica 1581 verdes e 1 vermelho: `ExerciseLibraryPage` (“Criar programa” aparece duas vezes). Esse arquivo não está no diff. Em UTC, dois testes de finanças também falham porque esperam 09:00 e a VM devolve 12:00. Não foram alterados.
 - **Data do card** → `Y-m-d` vira data civil (`ano, mês, dia`) antes do `pt-BR`. `new Date('YYYY-MM-DD')` é meia-noite UTC e, em São Paulo, mostra o dia anterior. O detalhe do programa ainda faz o parse antigo; ficou no `DEFERRED.md`.
 - **“Quando fazer” vazio** → a condição da seção é booleana. Comprimento `0` no JSX desenhava o dígito 0.
+
+## Sessão 2026-11-06 — auditoria do corte e smoke
+
+- **Data do detalhe** → o item que a sessão anterior mandou ao `DEFERRED.md` não tinha chegado lá. Foi corrigido agora: o formatador de data civil saiu da lista para `application/patient/patient-program-dates.ts` e o detalhe usa o mesmo.
+- **Login sem infraestrutura** → `getPatientClinicSlug`/`setPatientClinicSlug` passam por `application/patient/patient-clinic-slug.ts`. O teste de corte barra `from '@/infrastructure` nas sete pages.
+- **Link público no caso de outra clínica** → abrir o `public_token` de outra clínica funciona sem login, por desenho (ADR 025). O caso de outra clínica do smoke confere a lista com login e o token inexistente.
+- **Smoke** → evidência em `evidence/corte-v2/` (desktop, celular e outra clínica), sem vídeo.
+- **Selo Protótipo** → o usuário pediu para tirar. A D2 deixa de valer: `showPrototypeBadge` saiu do `DsPatientNavbar` e das seis pages. Os dois `catch {}` da execução ganharam o motivo no bloco (o arquivo entrou no diff e o ESLint barra bloco vazio); o comportamento não mudou.

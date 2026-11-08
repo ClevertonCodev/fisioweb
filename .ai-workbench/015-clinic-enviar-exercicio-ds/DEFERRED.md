@@ -1,5 +1,0 @@
-# Trabalho adiado · 015-clinic-enviar-exercicio-ds
-
-- 2026-11-02 · refinar · Validar no servidor (no `confirm-upload` ou em job com `ffprobe`) o formato quadrado (1:1), a resolução mínima, a duração real e o tamanho efetivo do vídeo no R2, para que a validação do navegador não seja burlável por chamada direta à API.
-- 2026-11-02 · smoke da correção do code review · WebM gravado por `MediaRecorder` (inclusive o que o "Ajustar vídeo" gera) vem com `duration = Infinity`: a tela loga `The specified value "Infinity" cannot be parsed` ao preencher a duração (`shared.tsx`, `onLoadedMetadata`) e o `VideoEditor` monta o corte com `[0, Infinity]`. O envio não é afetado (a duração vai vazia). Conferir o editor com WebM e tratar duração não finita (ler a duração real com seek ao fim ou ignorar).
-- 2026-11-02 · revisão adversária (rodada 2) · `PresignedVideoUploadRequest::messages()` arredonda o limite para baixo (`(int) ($max / 1048576)`): com `CLOUDFLARE_MAX_VIDEO_SIZE` não múltiplo de 1 MiB (ex.: 15000000) a mensagem diz 14MB e o servidor aceita ~14,3 MB.

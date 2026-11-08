@@ -14,6 +14,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { formatPatientProgramDate } from '@/application/patient/patient-program-dates';
 import {
     patientExerciseDetailPath,
     patientProgramExecutePath,
@@ -55,7 +56,8 @@ function extractDoseMetrics(exercise: PatientExercise): DoseMetric[] {
             key: 'series',
             label: 'Séries',
             value: val,
-            unit: Number(p.seriesMin) === 1 && !p.seriesMax ? 'série' : 'séries',
+            unit:
+                Number(p.seriesMin) === 1 && !p.seriesMax ? 'série' : 'séries',
         });
     }
 
@@ -116,9 +118,7 @@ function extractDoseMetrics(exercise: PatientExercise): DoseMetric[] {
 }
 
 function formatDateRange(start?: string, end?: string): string {
-    const fmt = (d?: string) =>
-        d ? new Date(d).toLocaleDateString('pt-BR') : '—';
-    return `${fmt(start)} – ${fmt(end)}`;
+    return `${formatPatientProgramDate(start)} – ${formatPatientProgramDate(end)}`;
 }
 
 function formatCrefito(reg?: string): string | null {
@@ -134,9 +134,7 @@ function cleanNotes(notes?: string): string | null {
 function targetSeriesCount(exercise: PatientExercise): number {
     return Math.max(
         1,
-        exercise.prescription.seriesMax ??
-            exercise.prescription.seriesMin ??
-            3,
+        exercise.prescription.seriesMax ?? exercise.prescription.seriesMin ?? 3,
     );
 }
 
@@ -197,7 +195,7 @@ export default function PatientProgramDetailPage() {
     if (!publicToken) {
         return (
             <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-                <DsPatientNavbar hideAuthAction showPrototypeBadge />
+                <DsPatientNavbar hideAuthAction />
                 <div className="flex flex-1 items-center justify-center p-6">
                     <DsEmptyState
                         variant="error"
@@ -228,7 +226,7 @@ export default function PatientProgramDetailPage() {
     if (isError || !program) {
         return (
             <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-                <DsPatientNavbar hideAuthAction showPrototypeBadge />
+                <DsPatientNavbar hideAuthAction />
                 <div className="flex flex-1 items-center justify-center p-6">
                     <DsEmptyState
                         variant="error"
@@ -284,10 +282,7 @@ export default function PatientProgramDetailPage() {
 
     return (
         <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-            <DsPatientNavbar
-                clinicName={program.clinicName}
-                showPrototypeBadge
-            />
+            <DsPatientNavbar clinicName={program.clinicName} />
 
             <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-6 pb-24 sm:px-6 sm:py-8">
                 {/* Topo com voltar e fisioterapeuta */}

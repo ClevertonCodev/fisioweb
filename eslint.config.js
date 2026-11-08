@@ -71,6 +71,10 @@ export default [
             'modules',
             // Skills e ferramentas do Claude Code (scripts Node .cjs), não código do app.
             '.claude',
+            '.cursor',
+            '.agents',
+            // Roteiros de smoke test (flow.mjs) das evidências, não código do app.
+            '.ai-workbench',
             // Scripts Node dos agentes (tools/screenshot), não código do app.
             'tools',
         ],

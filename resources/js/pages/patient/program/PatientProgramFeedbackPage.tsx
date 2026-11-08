@@ -364,8 +364,7 @@ export default function PatientProgramFeedbackPage() {
         }
     };
 
-    const goNext = () =>
-        setStepIndex((i) => Math.min(i + 1, flow.length - 1));
+    const goNext = () => setStepIndex((i) => Math.min(i + 1, flow.length - 1));
     const goBack = () => {
         if (safeStepIndex === 0) navigate(-1);
         else setStepIndex((i) => i - 1);
@@ -375,7 +374,6 @@ export default function PatientProgramFeedbackPage() {
         <div className="flex h-full w-full flex-col overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
             <DsPatientNavbar
                 title="Como foi sua sessão?"
-                showPrototypeBadge
                 onBack={() => navigate(-1)}
             />
 

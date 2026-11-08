@@ -50,7 +50,10 @@ function inferGuardFromPath(path: string): AuthGuard | null {
     return null;
 }
 
-export function getStoredAuthForPage(): { token: string; guard: AuthGuard } | null {
+export function getStoredAuthForPage(): {
+    token: string;
+    guard: AuthGuard;
+} | null {
     if (isPatientAreaPath(window.location.pathname)) {
         return getStoredAuth('patient') ?? getStoredAuth();
     }
@@ -107,6 +110,19 @@ export function setStoredAuth(token: string, guard: AuthGuard): void {
     localStorage.setItem(AUTH_GUARD_KEY, guard);
 }
 
+/**
+ * Troca o token da sessão em uso do guard: o da aba, no "entrar como", ou o
+ * salvo no navegador.
+ */
+export function replaceStoredToken(token: string, guard: AuthGuard): void {
+    if (sessionStorage.getItem(SESSION_GUARD_KEY) === guard) {
+        sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+        return;
+    }
+
+    setStoredAuth(token, guard);
+}
+
 export function setSessionAuth(token: string, guard: string): void {
     sessionStorage.setItem(SESSION_TOKEN_KEY, token);
     sessionStorage.setItem(SESSION_GUARD_KEY, guard);
@@ -149,7 +165,9 @@ function redirectToLogin(guard: AuthGuard): void {
 
     const path = window.location.pathname;
     const slugMatch = path.match(/^\/([^/]+)\/paciente(?:\/|$)/);
-    const base = slugMatch ? `/${slugMatch[1]}/paciente/login` : '/paciente/login';
+    const base = slugMatch
+        ? `/${slugMatch[1]}/paciente/login`
+        : '/paciente/login';
     const next = encodeURIComponent(`${path}${window.location.search}`);
 
     window.location.href = `${base}?next=${next}`;
@@ -200,7 +218,10 @@ apiClient.interceptors.response.use(
 
         const auth = urlGuard ? getStoredAuth(urlGuard) : getStoredAuth();
         if (!auth) {
-            if (urlGuard === 'patient' && isPublicPatientRequest(originalRequest.url)) {
+            if (
+                urlGuard === 'patient' &&
+                isPublicPatientRequest(originalRequest.url)
+            ) {
                 return Promise.reject(error);
             }
             redirectToLogin(urlGuard ?? 'clinic');

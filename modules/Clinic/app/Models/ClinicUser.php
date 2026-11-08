@@ -2,7 +2,9 @@
 
 namespace Modules\Clinic\Models;
 
+use App\Contracts\RevokesTokensOnPasswordChange;
 use App\Traits\JwtAuthenticatable;
+use App\Traits\TracksPasswordChange;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,9 +14,9 @@ use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Database\Factories\ClinicUserFactory;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class ClinicUser extends Authenticatable implements JWTSubject
+class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnPasswordChange
 {
-    use HasFactory, JwtAuthenticatable, Notifiable, SoftDeletes;
+    use HasFactory, JwtAuthenticatable, Notifiable, SoftDeletes, TracksPasswordChange;
 
     protected static function newFactory(): ClinicUserFactory
     {

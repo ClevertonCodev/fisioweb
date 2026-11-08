@@ -71,11 +71,20 @@ class ClinicUserController extends ClinicAuthenticatedController
         return response()->json(['data' => $user], 201);
     }
 
+    /**
+     * Trocar a senha derruba as sessões da pessoa. Quem trocou a própria
+     * recebe um token novo para continuar logado nesta aba.
+     */
     public function update(UpdateClinicUserRequest $request, ClinicUser $user): JsonResponse
     {
-        $user = $this->clinicUserService->update($user, $request->validated());
+        $data = $request->validated();
+        $user = $this->clinicUserService->update($user, $data);
 
-        return response()->json(['data' => $user]);
+        if (!array_key_exists('password', $data) || !$user->is($this->clinicUser())) {
+            return response()->json(['data' => $user]);
+        }
+
+        return response()->json(['data' => $user] + $this->reissueClinicToken());
     }
 
     public function uploadPhoto(Request $request, ClinicUser $user): JsonResponse

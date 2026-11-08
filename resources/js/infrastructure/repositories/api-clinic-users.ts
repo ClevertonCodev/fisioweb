@@ -5,7 +5,7 @@ import type {
 } from '@/application/clinic/ports';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
-import { apiClient } from '@/infrastructure/api/client';
+import { apiClient, replaceStoredToken } from '@/infrastructure/api/client';
 
 interface ApiClinicUser {
     id: number;
@@ -93,14 +93,19 @@ export const apiClinicUsersRepository: ClinicUsersRepository = {
         return toEntity(data.data);
     },
 
+    /**
+     * Quem troca a própria senha recebe `access_token`: as outras sessões
+     * caem, e esta continua com o token novo.
+     */
     async update(
         id: string,
         dto: ClinicUserUpdateDto,
     ): Promise<ClinicUserSummary> {
-        const { data } = await apiClient.put<{ data: ApiClinicUser }>(
-            `/clinic/users/${id}`,
-            toApiPayload(dto),
-        );
+        const { data } = await apiClient.put<{
+            data: ApiClinicUser;
+            access_token?: string;
+        }>(`/clinic/users/${id}`, toApiPayload(dto));
+        if (data.access_token) replaceStoredToken(data.access_token, 'clinic');
         return toEntity(data.data);
     },
 

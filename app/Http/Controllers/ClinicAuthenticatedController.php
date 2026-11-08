@@ -31,4 +31,24 @@ abstract class ClinicAuthenticatedController extends Controller
     {
         return (int) $this->clinicUser()->getAuthIdentifier();
     }
+
+    /**
+     * Troca o token desta requisição por um novo, emitido agora: serve a quem
+     * acabou de trocar a própria senha e continua logado.
+     *
+     * @return array{access_token: string, token_type: string, expires_in: int}
+     */
+    protected function reissueClinicToken(): array
+    {
+        $guard = Auth::guard('clinic');
+        $user  = $this->clinicUser();
+
+        $guard->invalidate();
+
+        return [
+            'access_token' => $guard->login($user),
+            'token_type'   => 'bearer',
+            'expires_in'   => $guard->factory()->getTTL() * 60,
+        ];
+    }
 }

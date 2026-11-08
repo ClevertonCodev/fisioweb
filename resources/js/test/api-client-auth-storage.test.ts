@@ -4,8 +4,42 @@ import {
     clearStoredAuth,
     getStoredAuth,
     getStoredAuthForPage,
+    replaceStoredToken,
+    setSessionAuth,
     setStoredAuth,
 } from '@/infrastructure/api/client';
+
+describe('replaceStoredToken', () => {
+    beforeEach(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+    });
+
+    it('troca o token salvo do guard', () => {
+        setStoredAuth('token-antigo', 'clinic');
+        setStoredAuth('token-admin', 'admin');
+
+        replaceStoredToken('token-novo', 'clinic');
+
+        expect(getStoredAuth('clinic')).toEqual({
+            token: 'token-novo',
+            guard: 'clinic',
+        });
+        expect(getStoredAuth('admin')?.token).toBe('token-admin');
+    });
+
+    it('na aba do "entrar como", troca só o token da aba', () => {
+        setStoredAuth('token-da-clinica', 'clinic');
+        setSessionAuth('token-da-aba', 'clinic');
+
+        replaceStoredToken('token-novo', 'clinic');
+
+        expect(sessionStorage.getItem('auth_token')).toBe('token-novo');
+        expect(localStorage.getItem('auth_token_clinic')).toBe(
+            'token-da-clinica',
+        );
+    });
+});
 
 describe('getStoredAuth — inferência por rota', () => {
     beforeEach(() => {

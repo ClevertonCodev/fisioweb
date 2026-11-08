@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { apiClient } from '@/infrastructure/api/client';
+import { apiClient, replaceStoredToken } from '@/infrastructure/api/client';
 import { apiClinicUsersRepository } from '@/infrastructure/repositories/api-clinic-users';
 
 vi.mock('@/infrastructure/api/client', () => ({
@@ -9,6 +9,7 @@ vi.mock('@/infrastructure/api/client', () => ({
         put: vi.fn(),
         delete: vi.fn(),
     },
+    replaceStoredToken: vi.fn(),
 }));
 
 const mockGet = vi.mocked(apiClient.get);
@@ -88,6 +89,29 @@ describe('apiClinicUsersRepository.update', () => {
         expect(mockPut).toHaveBeenNthCalledWith(2, '/clinic/users/7', {
             status: 0,
         });
+    });
+
+    it('guarda o token novo quando a pessoa troca a própria senha', async () => {
+        mockPut.mockResolvedValueOnce({
+            data: { data: makeApiUser(), access_token: 'token-novo' },
+        });
+
+        const user = await apiClinicUsersRepository.update('7', {
+            password: 'novaSenha123',
+        });
+
+        expect(user.id).toBe('7');
+        expect(replaceStoredToken).toHaveBeenCalledWith('token-novo', 'clinic');
+    });
+
+    it('não mexe no token quando a resposta não traz um', async () => {
+        mockPut.mockResolvedValueOnce({ data: { data: makeApiUser() } });
+
+        await apiClinicUsersRepository.update('7', {
+            password: 'novaSenha123',
+        });
+
+        expect(replaceStoredToken).not.toHaveBeenCalled();
     });
 });
 

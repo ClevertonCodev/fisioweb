@@ -23,7 +23,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
 | [001 · `/log-viewer` atrás de basic auth em produção](tasks/001-log-viewer-basic-auth.md) | concluída | | |
-| [002 · Trocar a senha derruba as outras sessões (clínica e admin)](tasks/002-troca-de-senha-derruba-sessoes.md) | a fazer | | |
+| [002 · Trocar a senha derruba as outras sessões (clínica e admin)](tasks/002-troca-de-senha-derruba-sessoes.md) | implementada, falta a revisão adversária | | |
 | [003 · Mestre nasce sem senha e define a senha pelo link de primeiro acesso](tasks/003-mestre-sem-senha-e-primeiro-acesso.md) | a fazer | | |
 | [004 · Bloco "Acesso do mestre" na tela da clínica do admin, com smoke de ponta a ponta](tasks/004-acesso-do-mestre-no-admin.md) | a fazer | | |
 | [005 · Só o mestre troca o próprio e-mail e a própria senha](tasks/005-so-o-mestre-troca-email-e-senha.md) | a fazer | | |

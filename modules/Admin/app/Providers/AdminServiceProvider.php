@@ -2,7 +2,10 @@
 
 namespace Modules\Admin\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\Contracts\AdminProgramRepositoryInterface;
 use Modules\Admin\Contracts\AdminProgramServiceInterface;
@@ -44,7 +47,28 @@ class AdminServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerAuthRateLimiters();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    protected function registerAuthRateLimiters(): void
+    {
+        $tooMany = fn (Request $request, array $headers) => response()->json([
+            'message' => 'Muitas tentativas. Aguarde um minuto e tente de novo.',
+        ], 429, $headers);
+
+        RateLimiter::for('admin-login', function (Request $request) use ($tooMany) {
+            $email = $request->input('email');
+
+            return Limit::perMinute(5)
+                ->by((is_string($email) ? mb_strtolower($email) : '') . '|' . $request->ip())
+                ->response($tooMany);
+        });
+
+        // Uma conta por rota: pedir links não gasta as tentativas de redefinir.
+        RateLimiter::for('admin-password', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->path() . '|' . $request->ip())
+            ->response($tooMany));
     }
 
     /**

@@ -17,11 +17,11 @@ Hoje as rotas de login, de "esqueci minha senha" e de redefinir senha do painel 
 
 ## Critérios de Aceite
 
-- [ ] A tentativa seguinte ao limite no login do admin dá 429 com `Retry-After`
-- [ ] O mesmo vale no forgot e no reset do admin
-- [ ] O login certo antes do limite continua 200
-- [ ] Não se aplica caso de outra clínica: a rota não é de clínica
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A tentativa seguinte ao limite no login do admin dá 429 com `Retry-After`
+- [x] O mesmo vale no forgot e no reset do admin
+- [x] O login certo antes do limite continua 200
+- [x] Não se aplica caso de outra clínica: a rota não é de clínica
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

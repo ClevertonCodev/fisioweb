@@ -31,7 +31,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | [007 · Limite de tentativas no login, no forgot e no reset do admin](tasks/007-throttle-no-login-do-admin.md) | concluída | | |
 | [008 · Registro do "entrar como" do operador](tasks/008-registro-do-login-as.md) | concluída | | |
 | [009 · E-mail do usuário da clínica único sem diferenciar maiúsculas](tasks/009-email-unico-sem-maiusculas.md) | concluída | | |
-| [010 · Favoritos só com exercício visível e sem dados de origem](tasks/010-favoritos-so-exercicio-visivel.md) | a fazer | | |
+| [010 · Favoritos só com exercício visível e sem dados de origem](tasks/010-favoritos-so-exercicio-visivel.md) | concluída | | |
 | [011 · `generate-text` só com modelo do sistema ou da própria clínica](tasks/011-generate-text-so-modelo-da-clinica.md) | a fazer | | |
 | [012 · Resposta de questionário só com pergunta do próprio template](tasks/012-questionario-so-pergunta-do-template.md) | a fazer | | |
 | [013 · Pull do Google só altera as consultas do próprio fisio](tasks/013-pull-do-google-so-do-proprio-fisio.md) | a fazer | | |

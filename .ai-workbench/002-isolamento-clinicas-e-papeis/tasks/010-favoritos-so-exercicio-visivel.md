@@ -17,11 +17,11 @@ Hoje favoritar aceita qualquer id de exercício, e a lista de favoritos devolve 
 
 ## Critérios de Aceite
 
-- [ ] Favoritar um exercício rejeitado ou pendente de outra clínica dá 404 (o teste `AuditFavoritesCrossClinicTest` da auditoria, invertido)
-- [ ] O favorito gravado antes de o exercício ficar invisível não aparece na lista
-- [ ] A lista não traz `clinic_id`, `submitted_by_clinic_user_id` nem `review_status`
-- [ ] Favoritar um exercício aprovado ou da própria clínica continua 200
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Favoritar um exercício rejeitado ou pendente de outra clínica dá 404 (o teste `AuditFavoritesCrossClinicTest` da auditoria, invertido)
+- [x] O favorito gravado antes de o exercício ficar invisível não aparece na lista
+- [x] A lista não traz `clinic_id`, `submitted_by_clinic_user_id` nem `review_status`
+- [x] Favoritar um exercício aprovado ou da própria clínica continua 200
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

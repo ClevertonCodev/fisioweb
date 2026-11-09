@@ -6,6 +6,7 @@ use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Contracts\Public\ExerciseCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Http\Requests\SubmitExerciseRequest;
@@ -16,6 +17,7 @@ class ExerciseController extends ClinicAuthenticatedController
     public function __construct(
         protected ExerciseServiceInterface $exerciseService,
         protected ExerciseSubmissionServiceInterface $submissionService,
+        protected ExerciseCatalogReadServiceInterface $catalog,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -68,9 +70,8 @@ class ExerciseController extends ClinicAuthenticatedController
     public function toggleFavorite(int $id): JsonResponse
     {
         $clinicUserId = $this->clinicUserId();
-        $exercise     = Exercise::find($id);
 
-        if (!$exercise) {
+        if (empty($this->catalog->visibleToClinic([$id], $this->clinicId()))) {
             return response()->json(['message' => 'Exercício não encontrado.'], 404);
         }
 
@@ -97,8 +98,16 @@ class ExerciseController extends ClinicAuthenticatedController
         $ids          = ExerciseFavorite::where('clinic_user_id', $clinicUserId)->pluck('exercise_id');
         $exercises    = Exercise::with(['physioArea', 'physioSubarea', 'bodyRegion', 'videos'])
             ->whereIn('id', $ids)
+            ->visibleToClinic($this->clinicId())
             ->orderBy('name')
-            ->paginate($request->integer('per_page', 15));
+            ->paginate($request->integer('per_page', 15))
+            ->through(function (Exercise $exercise) {
+                $exercise->videos->each->makeHidden([
+                    'clinic_id', 'original_filename', 'path', 'uploadable_type', 'uploadable_id', 'metadata', 'pivot',
+                ]);
+
+                return $exercise->makeHidden(['clinic_id', 'submitted_by_clinic_user_id', 'review_status']);
+            });
 
         return response()->json(['data' => $exercises]);
     }

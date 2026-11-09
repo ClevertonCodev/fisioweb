@@ -2,7 +2,7 @@ import type {
     ClinicWriteDto,
     ClinicsRepository,
 } from '@/application/admin/ports';
-import type { Clinic, MasterAccess } from '@/domain/admin';
+import type { Clinic, LoginAsEntry, MasterAccess } from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
 /** DTO interno — shape da API (infra concern) */
@@ -25,6 +25,22 @@ interface ApiClinicDto {
     created_at: string;
     master_password_defined?: boolean;
     first_access_link_created_at?: string | null;
+    recent_login_as?: ApiLoginAsEntry[];
+}
+
+interface ApiLoginAsEntry {
+    operator_name: string;
+    clinic_user_name: string | null;
+    created_at: string;
+}
+
+function toRecentLoginAs(r: Record<string, unknown>): LoginAsEntry[] {
+    if (!Array.isArray(r.recent_login_as)) return [];
+    return (r.recent_login_as as ApiLoginAsEntry[]).map((entry) => ({
+        operatorName: entry.operator_name,
+        clinicUserName: entry.clinic_user_name ?? null,
+        createdAt: entry.created_at,
+    }));
 }
 
 function toMasterAccess(r: Record<string, unknown>): MasterAccess | null {
@@ -58,6 +74,7 @@ function toClinic(raw: ApiClinicDto | Record<string, unknown>): Clinic {
         planName: plan?.name ?? null,
         createdAt: r.created_at as string,
         masterAccess: toMasterAccess(r),
+        recentLoginAs: toRecentLoginAs(r),
     };
 }
 

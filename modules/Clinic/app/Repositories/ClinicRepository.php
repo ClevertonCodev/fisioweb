@@ -111,6 +111,30 @@ class ClinicRepository implements ClinicRepositoryInterface
             ->first();
     }
 
+    public function findActiveAdminForImpersonation(int $clinicId): ?ClinicUser
+    {
+        return ClinicUser::query()
+            ->where('clinic_id', $clinicId)
+            ->where('role', ClinicUser::ROLE_ADMIN)
+            ->where('status', ClinicUser::STATUS_ACTIVE)
+            ->orderByDesc('mestre')
+            ->orderBy('id')
+            ->first();
+    }
+
+    public function clinicUserNames(int $clinicId, array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        return ClinicUser::withTrashed()
+            ->where('clinic_id', $clinicId)
+            ->whereIn('id', $ids)
+            ->pluck('name', 'id')
+            ->all();
+    }
+
     public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser
     {
         return ClinicUser::query()->where('first_access_token_hash', $hash)->lockForUpdate()->first();

@@ -56,6 +56,50 @@ describe('apiClinicsRepository.getById', () => {
 
         expect(clinic?.masterAccess).toBeNull();
     });
+
+    it('traz os últimos acessos do suporte', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiClinic({
+                    recent_login_as: [
+                        {
+                            operator_name: 'Operadora Ana',
+                            clinic_user_name: 'Mestre da Clínica',
+                            created_at: '2026-11-08T13:45:00-03:00',
+                        },
+                        {
+                            operator_name: 'Operador Bruno',
+                            clinic_user_name: null,
+                            created_at: '2026-11-07T09:00:00-03:00',
+                        },
+                    ],
+                }),
+            },
+        });
+
+        const clinic = await apiClinicsRepository.getById(12);
+
+        expect(clinic?.recentLoginAs).toEqual([
+            {
+                operatorName: 'Operadora Ana',
+                clinicUserName: 'Mestre da Clínica',
+                createdAt: '2026-11-08T13:45:00-03:00',
+            },
+            {
+                operatorName: 'Operador Bruno',
+                clinicUserName: null,
+                createdAt: '2026-11-07T09:00:00-03:00',
+            },
+        ]);
+    });
+
+    it('deixa os acessos do suporte vazios quando a API não manda o campo', async () => {
+        mockGet.mockResolvedValueOnce({ data: { data: makeApiClinic() } });
+
+        const clinic = await apiClinicsRepository.getById(12);
+
+        expect(clinic?.recentLoginAs).toEqual([]);
+    });
 });
 
 describe('apiClinicsRepository.generateFirstAccessLink', () => {

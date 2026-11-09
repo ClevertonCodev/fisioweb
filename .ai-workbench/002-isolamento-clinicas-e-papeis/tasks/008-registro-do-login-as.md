@@ -20,14 +20,14 @@ Hoje o "entrar como" do operador não deixa marca no token nem registro (reforç
 
 ## Critérios de Aceite
 
-- [ ] Cada `login-as` bem-sucedido grava uma linha com o operador, a clínica, o usuário, o IP e a data
-- [ ] O `login-as` recusado (clínica cancelada ou sem admin) não grava
-- [ ] O token traz `impersonated_by`
-- [ ] `recent_login_as` traz no máximo 10, os mais recentes primeiro, e só da clínica pedida
-- [ ] A tela mostra a lista (teste Vitest)
-- [ ] Nenhuma rota da clínica devolve esse registro
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Cada `login-as` bem-sucedido grava uma linha com o operador, a clínica, o usuário, o IP e a data
+- [x] O `login-as` recusado (clínica cancelada ou sem admin) não grava
+- [x] O token traz `impersonated_by`
+- [x] `recent_login_as` traz no máximo 10, os mais recentes primeiro, e só da clínica pedida
+- [x] A tela mostra a lista (teste Vitest)
+- [x] Nenhuma rota da clínica devolve esse registro
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

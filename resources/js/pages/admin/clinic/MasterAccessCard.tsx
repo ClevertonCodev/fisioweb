@@ -9,20 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { FirstAccessLink, MasterAccess } from '@/domain/admin';
-
-function formatLinkDate(iso: string): string {
-    const format = new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-    const parts = Object.fromEntries(
-        format.formatToParts(new Date(iso)).map((p) => [p.type, p.value]),
-    );
-    return `${parts.day}/${parts.month}/${parts.year} às ${parts.hour}:${parts.minute}`;
-}
+import { formatDateTimeAt } from '@/lib/format-date-time-at';
 
 function sameSecond(a: string, b: string | null): boolean {
     if (!b) return false;
@@ -91,7 +78,7 @@ export function MasterAccessCard({
                             {lastLinkCreatedAt && (
                                 <p className="text-sm text-muted-foreground">
                                     Último link gerado em{' '}
-                                    {formatLinkDate(lastLinkCreatedAt)}
+                                    {formatDateTimeAt(lastLinkCreatedAt)}
                                 </p>
                             )}
                         </div>

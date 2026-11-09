@@ -28,6 +28,14 @@ interface ClinicRepositoryInterface
 
     public function findMasterUser(int $clinicId): ?ClinicUser;
 
+    public function findActiveAdminForImpersonation(int $clinicId): ?ClinicUser;
+
+    /**
+     * @param  list<int>  $ids
+     * @return array<int, string> nome por id, só dos usuários da clínica pedida
+     */
+    public function clinicUserNames(int $clinicId, array $ids): array;
+
     public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser;
 
     /**

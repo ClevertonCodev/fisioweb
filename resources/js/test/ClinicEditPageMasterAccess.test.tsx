@@ -59,6 +59,7 @@ function makeClinic(masterAccess: MasterAccess | null): Clinic {
         planName: null,
         createdAt: '2026-11-01T10:00:00Z',
         masterAccess,
+        recentLoginAs: [],
     };
 }
 

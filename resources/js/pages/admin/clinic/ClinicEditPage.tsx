@@ -46,6 +46,7 @@ import { SlugInput } from '@/components/ui/slug-input';
 import type { Clinic } from '@/domain/admin';
 
 import { MasterAccessCard } from './MasterAccessCard';
+import { RecentLoginAsCard } from './RecentLoginAsCard';
 
 // ─── Shell (loading / erro) ───────────────────────────────────────────────────
 
@@ -567,6 +568,7 @@ function EditClinicForm({
                             masterAccess={clinic.masterAccess}
                         />
                     )}
+                    <RecentLoginAsCard entries={clinic.recentLoginAs} />
                 </div>
             </div>
         </AdminLayout>

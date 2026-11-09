@@ -91,7 +91,7 @@ class ClinicRepository implements ClinicRepositoryInterface
     public function findActiveUnverifiedUserByEmail(string $email): ?ClinicUser
     {
         return ClinicUser::query()
-            ->where('email', mb_strtolower(trim($email)))
+            ->whereRaw('LOWER(email) = ?', [mb_strtolower(trim($email))])
             ->where('status', ClinicUser::STATUS_ACTIVE)
             ->whereNull('email_verified_at')
             ->first();

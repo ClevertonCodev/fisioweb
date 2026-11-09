@@ -108,13 +108,13 @@ class ClinicUserUpdateTest extends TestCase
         $this->assertSame($this->master->email, $this->master->fresh()->email);
     }
 
-    public function test_admin_cannot_change_only_the_case_of_master_email(): void
+    public function test_admin_sending_the_master_email_in_upper_case_does_not_change_it(): void
     {
         $this->actingAs($this->admin, 'clinic')
             ->putJson("/api/clinic/users/{$this->master->id}", [
                 'email' => strtoupper($this->master->email),
             ])
-            ->assertForbidden();
+            ->assertOk();
 
         $this->assertSame($this->master->email, $this->master->fresh()->email);
     }

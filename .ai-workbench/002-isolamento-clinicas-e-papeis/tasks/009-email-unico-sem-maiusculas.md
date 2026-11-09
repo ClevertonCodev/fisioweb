@@ -17,12 +17,12 @@ Hoje o cadastro e a edição de usuário da clínica conferem a unicidade do e-m
 
 ## Critérios de Aceite
 
-- [ ] Gravar `Vitima@x.test` com `vitima@x.test` já existente em outra clínica dá 422 no store e no update (o teste `VerifierEmailCaseCollisionTest` da auditoria, invertido)
-- [ ] O login da vítima continua 200
-- [ ] O e-mail de usuário excluído também dá 422
-- [ ] O e-mail é gravado em minúsculas
-- [ ] O índice recusa a variante de maiúsculas mesmo por fora do request
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Gravar `Vitima@x.test` com `vitima@x.test` já existente em outra clínica dá 422 no store e no update (o teste `VerifierEmailCaseCollisionTest` da auditoria, invertido)
+- [x] O login da vítima continua 200
+- [x] O e-mail de usuário excluído também dá 422
+- [x] O e-mail é gravado em minúsculas
+- [x] O índice recusa a variante de maiúsculas mesmo por fora do request
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

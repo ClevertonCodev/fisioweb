@@ -120,7 +120,7 @@ class ClinicUserService implements ClinicUserServiceInterface
     /**
      * Fica no service, e não na Policy, porque o `Gate::before` libera tudo
      * para administrador (ADR 019). Um cliente pode mandar o e-mail atual sem
-     * mudança: só a troca conta.
+     * mudança, e o request o normaliza para minúsculas: só a troca conta.
      */
     private function changesSomeoneElsesMasterCredentials(ClinicUser $target, array $data, mixed $authUser): bool
     {
@@ -128,7 +128,8 @@ class ClinicUserService implements ClinicUserServiceInterface
             return false;
         }
 
-        $changesEmail = array_key_exists('email', $data) && $data['email'] !== $target->email;
+        $changesEmail = array_key_exists('email', $data)
+            && mb_strtolower((string) $data['email']) !== mb_strtolower((string) $target->email);
 
         return $changesEmail || array_key_exists('password', $data);
     }

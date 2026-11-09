@@ -15,15 +15,17 @@ class ClinicObserver
             return;
         }
 
+        $email = mb_strtolower(trim((string) $clinic->email));
+
         // withTrashed: o e-mail de um usuário excluído continua ocupado no índice único.
-        if (ClinicUser::withTrashed()->where('email', $clinic->email)->exists()) {
+        if (ClinicUser::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->exists()) {
             return;
         }
 
         ClinicUser::create([
             'clinic_id'         => $clinic->id,
             'name'              => $clinic->name,
-            'email'             => $clinic->email,
+            'email'             => $email,
             'email_verified_at' => now(),
             // Ninguém conhece esta senha: o mestre cria a dele pelo link de primeiro acesso.
             'password'          => Hash::make(Str::random(64)),

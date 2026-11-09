@@ -50,7 +50,6 @@ function toApiPayload(dto: ClinicProfileUpdateDto): Record<string, unknown> {
         document: dto.document,
         email: dto.email,
         phone: dto.phone ?? null,
-        status: dto.status,
         zip_code: dto.zipCode ?? null,
         address: dto.address ?? null,
         number: dto.number ?? null,

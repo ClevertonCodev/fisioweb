@@ -32,12 +32,19 @@ class AuthController extends BaseAuthController
     }
 
     /**
-     * Usuário desativado pelo administrador da clínica ou com e-mail ainda
-     * não confirmado não entra. Só é checado após a senha correta.
+     * Usuário de clínica cancelada pelo operador, desativado pelo administrador
+     * da clínica ou com e-mail ainda não confirmado não entra. Só é checado
+     * após a senha correta.
      */
     protected function canLogIn(Authenticatable $user): bool
     {
         $this->blockedReasonMessage = null;
+
+        if ($user instanceof ClinicUser && $user->belongsToCancelledClinic()) {
+            $this->blockedReasonMessage = 'A clínica está cancelada. Fale com o suporte.';
+
+            return false;
+        }
 
         if (!$user instanceof ClinicUser || (int) $user->status !== ClinicUser::STATUS_ACTIVE) {
             $this->blockedReasonMessage = 'Seu acesso está desativado. Fale com o administrador da clínica.';

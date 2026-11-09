@@ -117,9 +117,9 @@ describe('ClinicDataPage', () => {
             expect.objectContaining({
                 name: 'Clínica Nova',
                 document: '11222333000181',
-                status: 1,
             }),
         );
+        expect(updateProfile.mock.calls[0][0]).not.toHaveProperty('status');
     });
 
     it('quem não é mestre só lê os dados', async () => {

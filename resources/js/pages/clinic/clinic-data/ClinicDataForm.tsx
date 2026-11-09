@@ -73,9 +73,7 @@ export function ClinicDataForm({ profile }: { profile: ClinicProfile }) {
     const status = CLINIC_STATUS_LABEL[String(profile.status)];
 
     const onSubmit = (values: ClinicProfileFormValues) => {
-        updateProfile.mutate(
-            clinicProfileFormToUpdateDto(values, profile.status),
-        );
+        updateProfile.mutate(clinicProfileFormToUpdateDto(values));
     };
 
     const fields = {

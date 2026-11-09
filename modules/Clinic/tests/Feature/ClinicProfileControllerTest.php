@@ -87,7 +87,6 @@ class ClinicProfileControllerTest extends TestCase
             'email'       => 'contato-a@example.com',
             'document'    => '11222333000181',
             'type_person' => Clinic::TYPE_PERSON_JURIDICA,
-            'status'      => Clinic::STATUS_ACTIVE,
         ];
     }
 }

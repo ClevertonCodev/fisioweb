@@ -91,7 +91,12 @@ class ClinicController extends Controller
     public function loginAs(int $id): JsonResponse
     {
         try {
-            $this->clinicService->findById($id);
+            $clinic = $this->clinicService->findById($id);
+
+            if ($clinic->isCancelled()) {
+                return response()->json(['message' => 'A clínica está cancelada. Reative-a para entrar.'], 422);
+            }
+
             // Só admin ativo: o guard da clínica recusa token de inativo (ADR 022).
             // O mestre primeiro, e ordem fixa para não variar com o banco.
             $clinicUser = ClinicUser::where('clinic_id', $id)

@@ -135,6 +135,12 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
         return $this->hasMany(\Modules\ClinicScheduling\Models\Appointment::class, 'clinic_user_id');
     }
 
+    /** Consulta sem carregar a relação, que entraria no JSON do usuário (login, `/me`). */
+    public function belongsToCancelledClinic(): bool
+    {
+        return $this->clinic()->where('status', Clinic::STATUS_CANCELLED)->exists();
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;

@@ -40,7 +40,6 @@ class UpdateClinicProfileRequest extends FormRequest
                 },
             ],
             'type_person' => ['required', 'string', 'in:' . Clinic::TYPE_PERSON_FISICA . ',' . Clinic::TYPE_PERSON_JURIDICA],
-            'status'      => ['required', 'integer', 'in:' . Clinic::STATUS_ACTIVE . ',' . Clinic::STATUS_INACTIVE . ',' . Clinic::STATUS_CANCELLED],
             'zip_code'    => ['nullable', 'string', 'max:10'],
             'address'     => ['nullable', 'string', 'max:255'],
             'number'      => ['nullable', 'string', 'max:20'],

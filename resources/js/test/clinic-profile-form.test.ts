@@ -122,14 +122,14 @@ describe('clinicProfileFormSchema', () => {
 });
 
 describe('clinicProfileFormToUpdateDto', () => {
-    it('envia documento, telefone e CEP só com dígitos e o status atual', () => {
+    it('envia documento, telefone e CEP só com dígitos e sem o status', () => {
         const values = clinicProfileFormSchema.parse(validPj());
-        const dto = clinicProfileFormToUpdateDto(values, 1);
+        const dto = clinicProfileFormToUpdateDto(values);
 
         expect(dto.document).toBe('11222333000181');
         expect(dto.phone).toBe('11988887777');
         expect(dto.zipCode).toBe('01310100');
-        expect(dto.status).toBe(1);
+        expect(dto).not.toHaveProperty('status');
         expect(dto.typePerson).toBe('PJ');
     });
 });

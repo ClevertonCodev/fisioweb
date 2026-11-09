@@ -51,7 +51,10 @@ class MasterFirstAccessService implements MasterFirstAccessServiceInterface
         $master = DB::transaction(function () use ($token, $password): ClinicUser {
             $master = $this->clinicRepository->findClinicUserByFirstAccessTokenHashForUpdate($this->hash($token));
 
-            if (is_null($master) || !$master->isMaster() || (int) $master->status !== ClinicUser::STATUS_ACTIVE) {
+            if (is_null($master)
+                || !$master->isMaster()
+                || (int) $master->status !== ClinicUser::STATUS_ACTIVE
+                || $master->belongsToCancelledClinic()) {
                 abort(422, self::INVALID_LINK_MESSAGE);
             }
 

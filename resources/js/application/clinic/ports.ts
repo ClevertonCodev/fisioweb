@@ -527,7 +527,6 @@ export interface ClinicProfileUpdateDto {
     document: string;
     email: string;
     phone?: string | null;
-    status: number;
     zipCode?: string | null;
     address?: string | null;
     number?: string | null;

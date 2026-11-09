@@ -19,12 +19,12 @@ Hoje o `POST /api/clinic/evolutions/{id}/generate-text` monta o texto com qualqu
 
 ## Critérios de Aceite
 
-- [ ] Item de modelo privado de outra clínica dá 422 e não devolve o texto (o teste `AuditEvolutionGenerateTextTest` da auditoria, invertido)
-- [ ] Item do sistema dá 200
-- [ ] Item da própria clínica dá 200
-- [ ] Item arquivado que já estava marcado no rascunho dá 200
-- [ ] Item arquivado que não estava marcado dá 422
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Item de modelo privado de outra clínica dá 422 e não devolve o texto (o teste `AuditEvolutionGenerateTextTest` da auditoria, invertido; no repositório, `EvolutionGenerateTextTest::test_item_of_private_template_of_another_clinic_returns_422_without_text`)
+- [x] Item do sistema dá 200
+- [x] Item da própria clínica dá 200
+- [x] Item arquivado que já estava marcado no rascunho dá 200
+- [x] Item arquivado que não estava marcado dá 422
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

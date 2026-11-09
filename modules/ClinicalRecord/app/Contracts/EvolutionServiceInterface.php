@@ -15,7 +15,13 @@ interface EvolutionServiceInterface
 
     public function update(PatientEvolution $evolution, array $dto): PatientEvolution;
 
-    public function generateText(array $checkedItemIds, array $freeTextValues): string;
+    /**
+     * @param  array<int, int|string>  $checkedItemIds
+     * @param  array<int, array{item_id: int|string, value: string}>  $freeTextValues
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function generateText(PatientEvolution $evolution, array $checkedItemIds, array $freeTextValues): string;
 
     public function sign(PatientEvolution $evolution, int $clinicUserId): PatientEvolution;
 

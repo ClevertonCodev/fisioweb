@@ -18,6 +18,7 @@ const deletePhoto = vi.fn();
 const connectGoogle = vi.fn();
 const googleStatusEnabled = vi.fn();
 const disconnectGoogle = vi.fn();
+const completeGoogle = vi.fn();
 const toastSuccess = vi.fn();
 const toastInfo = vi.fn();
 const toastWarning = vi.fn();
@@ -46,6 +47,11 @@ vi.mock('@/application/clinic/use-patients', async (importOriginal) => ({
 vi.mock('@/application/clinic/use-appointments', async (importOriginal) => ({
     ...(await importOriginal<object>()),
     useAppointments: () => ({ data: undefined }),
+}));
+vi.mock('@/infrastructure/repositories/api-google-calendar', () => ({
+    apiGoogleCalendarRepository: {
+        completeConnection: (...args: unknown[]) => completeGoogle(...args),
+    },
 }));
 vi.mock('@/application/clinic/use-google-calendar', async (importOriginal) => ({
     ...(await importOriginal<object>()),
@@ -890,7 +896,53 @@ describe('edição de usuário (tela de verdade)', () => {
         ).toBeInTheDocument();
     });
 
-    it('volta do OAuth com ?google=connected avisa e limpa a URL', async () => {
+    it('volta do Google com ?google_ticket= conclui pela API, avisa e limpa a URL', async () => {
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        completeGoogle.mockResolvedValue(undefined);
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/usuarios/7/editar?google_ticket=ticket-do-7',
+        );
+        renderEdit(member());
+
+        await screen.findByRole('heading', { name: 'Meu perfil' });
+        await vi.waitFor(() =>
+            expect(toastSuccess).toHaveBeenCalledWith(
+                'Google Calendar conectado com sucesso!',
+            ),
+        );
+        expect(completeGoogle).toHaveBeenCalledTimes(1);
+        expect(completeGoogle).toHaveBeenCalledWith('ticket-do-7');
+        expect(toastError).not.toHaveBeenCalled();
+        expect(window.location.search).toBe('');
+        window.history.pushState({}, '', '/');
+    });
+
+    it('ticket recusado pelo servidor avisa o erro e não diz que conectou', async () => {
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        completeGoogle.mockRejectedValue(new Error('403'));
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/usuarios/7/editar?google_ticket=ticket-de-outro',
+        );
+        renderEdit(member());
+
+        await screen.findByRole('heading', { name: 'Meu perfil' });
+        await vi.waitFor(() =>
+            expect(toastError).toHaveBeenCalledWith(
+                'Não foi possível conectar o Google Calendar.',
+            ),
+        );
+        expect(toastSuccess).not.toHaveBeenCalledWith(
+            'Google Calendar conectado com sucesso!',
+        );
+        expect(window.location.search).toBe('');
+        window.history.pushState({}, '', '/');
+    });
+
+    it('?google=connected na URL não avisa conexão nem chama a API', async () => {
         authUser = { ...authUser, id: 7, role: 'physiotherapist' };
         window.history.pushState(
             {},
@@ -900,9 +952,8 @@ describe('edição de usuário (tela de verdade)', () => {
         renderEdit(member());
 
         await screen.findByRole('heading', { name: 'Meu perfil' });
-        expect(toastSuccess).toHaveBeenCalledWith(
-            'Google Calendar conectado com sucesso!',
-        );
+        expect(toastSuccess).not.toHaveBeenCalled();
+        expect(completeGoogle).not.toHaveBeenCalled();
         expect(window.location.search).toBe('');
         window.history.pushState({}, '', '/');
     });

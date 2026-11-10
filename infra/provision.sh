@@ -319,7 +319,6 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI="\${APP_URL}/api/clinic/google-calendar/callback"
 GOOGLE_PULL_INTERVAL_MINUTES=5
-GOOGLE_FRONTEND_REDIRECT="/clinica/usuarios"
 
 # Lidas no npm run build: mudou aqui, precisa de um novo deploy.
 VITE_APP_NAME="\${APP_NAME}"

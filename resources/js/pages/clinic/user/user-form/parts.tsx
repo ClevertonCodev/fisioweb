@@ -26,7 +26,7 @@ import {
     type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
 import { CLINIC_USER_PHOTO_INPUT_ACCEPT } from '@/application/clinic/clinic-user-photo-rules';
-import { useGoogleCalendarReturnToast } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
+import { useGoogleCalendarReturn } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
 import {
     DsBadge,
     DsButton,
@@ -565,8 +565,7 @@ export function GoogleRow({ isOwnProfile }: { isOwnProfile: boolean }) {
     const { pathname } = useLocation();
     const connected = !!data?.connected;
 
-    // Aviso do retorno do OAuth (?google=connected|error), como na agenda.
-    useGoogleCalendarReturnToast();
+    useGoogleCalendarReturn();
 
     const onDisconnect = async () => {
         try {

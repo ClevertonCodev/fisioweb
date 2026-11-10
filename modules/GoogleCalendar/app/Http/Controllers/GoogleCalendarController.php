@@ -6,70 +6,50 @@ use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
+use Modules\GoogleCalendar\Contracts\GoogleConnectionFlowServiceInterface;
+use Modules\GoogleCalendar\Http\Requests\CompleteGoogleConnectionRequest;
 use Modules\GoogleCalendar\Jobs\PullGoogleCalendarJob;
 
 class GoogleCalendarController extends ClinicAuthenticatedController
 {
-    /** Paths SPA permitidos no retorno do OAuth (evita open redirect). */
-    private const ALLOWED_RETURN_PATHS = [
-        '/clinica/agenda',
-        '/clinica/usuarios',
-        '/clinic/usuarios',
-    ];
-
-    /** Edição de usuário (o próprio perfil, onde se conecta o Google). */
-    private const ALLOWED_RETURN_PATTERN = '#^/clinica/usuarios/\d+/editar$#';
-
     public function __construct(
         protected GoogleCalendarServiceInterface $service,
+        protected GoogleConnectionFlowServiceInterface $flow,
         protected ClinicUserGoogleConnectionReadServiceInterface $connections,
     ) {}
 
-    /** Inicia o fluxo OAuth — devolve a URL de consentimento. */
     public function connect(Request $request): JsonResponse
     {
-        $returnTo = $this->resolveReturnPath($request->query('return_to'));
-        $state    = Crypt::encryptString(json_encode([
-            'uid'    => $this->clinicUserId(),
-            'return' => $returnTo,
-        ], JSON_THROW_ON_ERROR));
-
         return response()->json([
-            'data' => ['authorization_url' => $this->service->getAuthUrl($state)],
+            'data' => [
+                'authorization_url' => $this->flow->authorizationUrl(
+                    $this->clinicUserId(),
+                    $request->query('return_to'),
+                ),
+            ],
         ]);
     }
 
     /**
-     * Callback do Google (redirect de navegador, sem JWT). O usuário é
-     * correlacionado pelo `state` cifrado.
+     * Redirect de navegador vindo do Google, sem JWT: não grava tokens, só
+     * entrega um ticket que a tela conclui com o usuário logado.
      */
     public function callback(Request $request): RedirectResponse
     {
-        $defaultRedirect = (string) config('googlecalendar.frontend_redirect', '/clinica/usuarios');
-        $redirect        = $defaultRedirect;
+        return redirect()->to($this->flow->redirectAfterConsent(
+            $request->query('state'),
+            $request->query('code'),
+            $request->filled('error'),
+        ));
+    }
 
-        if ($request->filled('error') || !$request->filled('code') || !$request->filled('state')) {
-            return redirect()->to($redirect . '?google=error');
-        }
+    public function complete(CompleteGoogleConnectionRequest $request): JsonResponse
+    {
+        $this->flow->complete($this->clinicUserId(), $request->string('ticket')->toString());
 
-        try {
-            [$userId, $redirect] = $this->parseOAuthState(
-                (string) $request->input('state'),
-                $defaultRedirect,
-            );
-
-            $this->service->connectFromCallback($userId, $request->input('code'));
-        } catch (\Throwable $e) {
-            Log::warning('Google Calendar callback falhou', ['message' => $e->getMessage()]);
-
-            return redirect()->to($redirect . '?google=error');
-        }
-
-        return redirect()->to($redirect . '?google=connected');
+        return response()->json(['data' => ['connected' => true]]);
     }
 
     /** Desconecta a conta Google do usuário autenticado. */
@@ -112,45 +92,5 @@ class GoogleCalendarController extends ClinicAuthenticatedController
         PullGoogleCalendarJob::dispatchSync($this->clinicUserId());
 
         return response()->json(['data' => ['pulled' => true]]);
-    }
-
-    /**
-     * @return array{0: int, 1: string}
-     */
-    private function parseOAuthState(string $encryptedState, string $defaultRedirect): array
-    {
-        $decoded = Crypt::decryptString($encryptedState);
-
-        // Compat: state antigo era só o id do usuário.
-        if (ctype_digit($decoded)) {
-            return [(int) $decoded, $defaultRedirect];
-        }
-
-        $payload = json_decode($decoded, true, 512, JSON_THROW_ON_ERROR);
-        $userId  = (int) ($payload['uid'] ?? 0);
-
-        if ($userId < 1) {
-            throw new \InvalidArgumentException('OAuth state sem uid válido.');
-        }
-
-        $returnTo = $this->resolveReturnPath($payload['return'] ?? null, $defaultRedirect);
-
-        return [$userId, $returnTo];
-    }
-
-    private function resolveReturnPath(mixed $path, ?string $fallback = null): string
-    {
-        $fallback ??= (string) config('googlecalendar.frontend_redirect', '/clinica/usuarios');
-
-        if (!is_string($path) || empty($path) || !is_null(parse_url($path, PHP_URL_HOST))) {
-            return $fallback;
-        }
-
-        $normalized = '/' . ltrim(parse_url($path, PHP_URL_PATH) ?: '', '/');
-
-        return in_array($normalized, self::ALLOWED_RETURN_PATHS, true)
-            || preg_match(self::ALLOWED_RETURN_PATTERN, $normalized) === 1
-            ? $normalized
-            : $fallback;
     }
 }

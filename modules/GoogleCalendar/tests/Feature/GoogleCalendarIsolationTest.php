@@ -3,7 +3,6 @@
 namespace Modules\GoogleCalendar\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Crypt;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
@@ -24,7 +23,6 @@ class GoogleCalendarIsolationTest extends TestCase
         config()->set('googlecalendar.client_id', 'test-client-id');
         config()->set('googlecalendar.client_secret', 'test-secret');
         config()->set('googlecalendar.redirect', 'https://app.test/api/clinic/google-calendar/callback');
-        config()->set('googlecalendar.frontend_redirect', '/clinica/usuarios');
 
         $this->userA = ClinicUser::factory()->create([
             'clinic_id' => Clinic::factory()->create()->id,
@@ -43,17 +41,25 @@ class GoogleCalendarIsolationTest extends TestCase
         ]);
     }
 
-    public function test_connect_state_carries_only_the_authenticated_user(): void
+    public function test_connect_state_is_an_opaque_nonce_that_changes_on_every_request(): void
     {
-        $url = $this->actingAs($this->userB, 'clinic')
-            ->getJson('/api/clinic/google-calendar/connect')
-            ->assertOk()
-            ->json('data.authorization_url');
+        $states = [];
 
-        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
-        $state = json_decode(Crypt::decryptString($query['state']), true);
+        foreach ([$this->userB, $this->userB] as $user) {
+            $url = $this->actingAs($user, 'clinic')
+                ->getJson('/api/clinic/google-calendar/connect')
+                ->assertOk()
+                ->json('data.authorization_url');
 
-        $this->assertSame($this->userB->id, $state['uid']);
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+            $states[] = $query['state'];
+        }
+
+        $this->assertNotSame($states[0], $states[1]);
+
+        foreach ($states as $state) {
+            $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $state);
+        }
     }
 
     public function test_status_of_another_clinic_user_does_not_reflect_this_connection(): void

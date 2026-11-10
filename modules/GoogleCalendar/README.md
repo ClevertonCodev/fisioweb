@@ -42,7 +42,6 @@ GOOGLE_REDIRECT_URI="http://localhost:8000/api/clinic/google-calendar/callback"
 # Opcionais (têm padrão)
 GOOGLE_PULL_INTERVAL_MINUTES=5      # de quanto em quanto tempo o pull roda
 GOOGLE_PULL_WINDOW_MONTHS=3         # quantos meses à frente sincronizar do Google
-GOOGLE_FRONTEND_REDIRECT="/clinica/usuarios"   # tela para onde volta após conectar
 ```
 
 > ⚠️ O `GOOGLE_REDIRECT_URI` precisa bater **exatamente** (protocolo, host, porta e caminho) com o que está cadastrado no Google Cloud Console. Sempre que mexer no `.env`, rode `php artisan config:clear`.
@@ -127,7 +126,8 @@ php artisan config:clear         # recarrega o .env (após editar variáveis)
 1. Login no sistema → **editar o próprio perfil de usuário**
 2. No card **"Google Calendar"**, clicar em **"Conectar"**
 3. Fazer login na conta Google e **autorizar** (em modo de teste aparece um aviso de "app não verificado" → "Avançar")
-4. Pronto. A partir daí, push e pull funcionam automaticamente para ele.
+4. O Google devolve para a mesma tela (agenda ou o próprio perfil), que conclui a conexão com o usuário logado e mostra "conectado". O link de autorização vale uma vez e vence em 10 minutos; a volta, em 5.
+5. Pronto. A partir daí, push e pull funcionam automaticamente para ele.
 
 > O card só aparece no **próprio** perfil — conectar exige a autorização do dono da conta.
 
@@ -140,7 +140,8 @@ Base: `/api/clinic/google-calendar` · Guard: `auth:clinic` (exceto o callback)
 | Método | Rota | Função |
 |--------|------|--------|
 | `GET`  | `/connect`  | Devolve a URL de consentimento do Google |
-| `GET`  | `/callback` | Retorno do Google (público); salva os tokens |
+| `GET`  | `/callback` | Retorno do Google (público); não salva tokens: volta para a tela de origem (agenda ou o próprio perfil) com `?google_ticket=` |
+| `POST` | `/complete` | Recebe `{ticket}` e só conecta se o ticket for de quem está logado (403 se for de outro; 422 se venceu ou já foi usado) |
 | `GET`  | `/status`   | Estado da conexão do usuário logado |
 | `DELETE` | `/`       | Desconecta (limpa os tokens) |
 

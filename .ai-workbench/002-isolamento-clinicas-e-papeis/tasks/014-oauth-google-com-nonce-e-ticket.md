@@ -23,14 +23,14 @@ Hoje o `state` do OAuth é só o uid cifrado: ele não vence, é reutilizável e
 
 ## Critérios de Aceite
 
-- [ ] O `state` do usuário A concluído sem JWT não grava tokens em ninguém (o teste `VerifierGoogleOAuthStateTest` da auditoria, invertido)
-- [ ] O ticket do A com o JWT do B dá 403 e não grava tokens
-- [ ] Nonce reusado, com mais de 10 minutos ou no formato legado: `?google=error`
-- [ ] Ticket reusado ou com mais de 5 minutos: 422 ou 403, e nada é gravado
-- [ ] O fluxo completo conecta, e o `status` mostra conectado
-- [ ] As duas telas concluem com `google_ticket` e mostram o aviso (teste Vitest)
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O `state` do usuário A concluído sem JWT não grava tokens em ninguém (o teste `VerifierGoogleOAuthStateTest` da auditoria, invertido; no repositório, `GoogleOAuthNonceAndTicketTest::test_callback_without_jwt_stores_tokens_for_nobody`)
+- [x] O ticket do A com o JWT do B dá 403 e não grava tokens
+- [x] Nonce reusado, com mais de 10 minutos ou no formato legado: `?google=error`
+- [x] Ticket reusado ou com mais de 5 minutos: 422 ou 403, e nada é gravado
+- [x] O fluxo completo conecta, e o `status` mostra conectado
+- [x] As duas telas concluem com `google_ticket` e mostram o aviso (teste Vitest)
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

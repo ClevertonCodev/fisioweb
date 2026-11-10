@@ -14,9 +14,6 @@ return [
     // Janela (em meses, a partir de hoje) sincronizada do Google → evita
     // expandir eventos recorrentes por anos.
     'pull_window_months' => (int) env('GOOGLE_PULL_WINDOW_MONTHS', 3),
-
-    // Para onde redirecionar o SPA após o callback OAuth.
-    'frontend_redirect' => env('GOOGLE_FRONTEND_REDIRECT', '/clinica/usuarios'),
 ];
 
 // Criar credenciais OAuth no Google Cloud Console (https://console.cloud.google.com):

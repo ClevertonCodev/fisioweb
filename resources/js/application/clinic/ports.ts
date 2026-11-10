@@ -229,6 +229,7 @@ export interface GoogleCalendarRepository {
     getStatus(): Promise<GoogleCalendarStatus>;
     /** URL de consentimento OAuth para redirecionar o navegador. */
     getAuthUrl(returnTo?: string): Promise<string>;
+    completeConnection(ticket: string): Promise<void>;
     /** Puxa eventos do Google para a agenda do usuário autenticado. */
     pullNow(): Promise<void>;
     disconnect(): Promise<void>;

@@ -17,11 +17,11 @@ Hoje a resposta de um questionário aceita qualquer `question_id` que exista no 
 
 ## Critérios de Aceite
 
-- [ ] Resposta com `question_id` de outro template dá 422 pela clínica (o teste `AuditQuestionnaireForeignQuestionTest` da auditoria, invertido)
-- [ ] O mesmo pelo link público por token
-- [ ] Resposta com as perguntas do próprio template continua 200
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Resposta com `question_id` de outro template dá 422 pela clínica (o teste `AuditQuestionnaireForeignQuestionTest` da auditoria, invertido; no repositório, `QuestionnaireAnswerQuestionScopeTest::test_clinic_answer_with_question_of_another_clinic_template_returns_422_and_saves_nothing`)
+- [x] O mesmo pelo link público por token
+- [x] Resposta com as perguntas do próprio template continua 200
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

@@ -15,7 +15,7 @@ class AnswerPatientQuestionnaireRequest extends FormRequest
     {
         return [
             'answers'               => ['required', 'array', 'min:1'],
-            'answers.*.question_id' => ['required', 'integer', 'exists:clinic_questionnaire_questions,id'],
+            'answers.*.question_id' => ['required', 'integer'],
             'answers.*.answer'      => ['required'],
         ];
     }
@@ -25,7 +25,6 @@ class AnswerPatientQuestionnaireRequest extends FormRequest
         return [
             'answers.required'               => 'As respostas são obrigatórias.',
             'answers.*.question_id.required' => 'Cada resposta deve referenciar uma pergunta.',
-            'answers.*.question_id.exists'   => 'Pergunta não encontrada.',
             'answers.*.answer.required'      => 'Cada pergunta deve ter uma resposta.',
         ];
     }

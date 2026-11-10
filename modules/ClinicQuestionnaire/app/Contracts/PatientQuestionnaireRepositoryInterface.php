@@ -19,5 +19,10 @@ interface PatientQuestionnaireRepositoryInterface
 
     public function saveAnswers(PatientQuestionnaire $questionnaire, array $answers): void;
 
+    /**
+     * @return array<int, int>
+     */
+    public function questionIdsForTemplate(int $templateId): array;
+
     public function delete(PatientQuestionnaire $questionnaire): void;
 }

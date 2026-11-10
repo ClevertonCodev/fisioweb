@@ -4,13 +4,18 @@ namespace Modules\Patient\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Modules\Patient\Auth\EligiblePatientProvider;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
+use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\Patient\Contracts\Public\PatientDirectoryReadServiceInterface;
 use Modules\Patient\Repositories\PatientRepository;
+use Modules\Patient\Services\PatientAppAccessService;
+use Modules\Patient\Services\PatientAuthService;
 use Modules\Patient\Services\PatientDirectoryReadService;
 use Modules\Patient\Services\PatientService;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -36,6 +41,7 @@ class PatientServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerRateLimiters();
+        $this->registerAuthProvider();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
     }
 
@@ -46,6 +52,15 @@ class PatientServiceProvider extends ServiceProvider
         });
     }
 
+    protected function registerAuthProvider(): void
+    {
+        Auth::provider('patient_eligible_eloquent', fn ($app, array $config) => new EligiblePatientProvider(
+            $app['hash'],
+            $config['model'],
+            $app->make(PatientAuthService::class),
+        ));
+    }
+
     /**
      * Register the service provider.
      */
@@ -54,6 +69,7 @@ class PatientServiceProvider extends ServiceProvider
         $this->app->bind(PatientRepositoryInterface::class, PatientRepository::class);
         $this->app->bind(PatientServiceInterface::class, PatientService::class);
         $this->app->bind(PatientDirectoryReadServiceInterface::class, PatientDirectoryReadService::class);
+        $this->app->bind(PatientAppAccessInterface::class, PatientAppAccessService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

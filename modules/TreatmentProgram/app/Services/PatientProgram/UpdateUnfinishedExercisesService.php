@@ -4,9 +4,10 @@ namespace Modules\TreatmentProgram\Services\PatientProgram;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
+use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
-use Modules\TreatmentProgram\Contracts\UpdateUnfinishedExercisesServiceInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
+use Modules\TreatmentProgram\Contracts\UpdateUnfinishedExercisesServiceInterface;
 use Modules\TreatmentProgram\DTOs\PatientProgram\UpdateUnfinishedExercisesData;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 use Modules\TreatmentProgram\Models\TreatmentPlanExecution;
@@ -16,6 +17,7 @@ class UpdateUnfinishedExercisesService implements UpdateUnfinishedExercisesServi
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,
+        protected PatientAppAccessInterface $patientAppAccess,
         protected TreatmentPlanExecutionRepositoryInterface $executionRepository,
     ) {}
 
@@ -64,7 +66,7 @@ class UpdateUnfinishedExercisesService implements UpdateUnfinishedExercisesServi
     {
         $plan = $this->patientProgramRepository->findByPublicToken($publicToken);
 
-        if (is_null($plan) || is_null($plan->patient_id)) {
+        if (is_null($plan) || is_null($plan->patient_id) || !$this->patientAppAccess->allowsAppAccess((int) $plan->patient_id)) {
             throw new ModelNotFoundException('Programa não encontrado.');
         }
 

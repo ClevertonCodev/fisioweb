@@ -42,7 +42,7 @@ return [
         ],
 
         'patients' => [
-            'driver' => 'eloquent',
+            'driver' => 'patient_eligible_eloquent',
             'model'  => Modules\Patient\Models\Patient::class,
         ],
     ],

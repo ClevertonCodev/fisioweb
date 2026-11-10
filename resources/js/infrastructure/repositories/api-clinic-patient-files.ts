@@ -2,7 +2,7 @@ import type {
     PatientFilesRepository,
     PatientFileStoreOptions,
 } from '@/application/clinic/ports';
-import type { PatientFile } from '@/domain/clinic';
+import type { PatientFile, PatientFileLink } from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiPatientFileDto {
@@ -12,7 +12,6 @@ interface ApiPatientFileDto {
     clinic_user?: { id: number; name: string };
     original_name: string;
     name?: string;
-    cdn_url: string;
     mime_type: string;
     size: number;
     created_at: string;
@@ -26,7 +25,6 @@ function toPatientFile(raw: ApiPatientFileDto): PatientFile {
         clinicUser: raw.clinic_user,
         originalName: raw.original_name,
         name: raw.name,
-        cdnUrl: raw.cdn_url,
         mimeType: raw.mime_type,
         size: raw.size,
         createdAt: raw.created_at,
@@ -63,5 +61,11 @@ export const apiClinicPatientFilesRepository: PatientFilesRepository = {
     },
     async destroy(patientId, fileId) {
         await apiClient.delete(`/clinic/patients/${patientId}/files/${fileId}`);
+    },
+    async getUrl(patientId, fileId): Promise<PatientFileLink> {
+        const res = await apiClient.get<{
+            data: { url: string; expires_at: string };
+        }>(`/clinic/patients/${patientId}/files/${fileId}/url`);
+        return { url: res.data.data.url, expiresAt: res.data.data.expires_at };
     },
 };

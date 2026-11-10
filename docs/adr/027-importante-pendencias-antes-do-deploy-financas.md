@@ -1,7 +1,8 @@
 # ADR: IMPORTANTE — pendências antes do deploy de Finanças (feature 013)
 
-**Status:** pendente, aberto em 2026-11-01. Fecha quando os quatro itens abaixo
-estiverem feitos e cada um tiver a data e quem fez anotados aqui.
+**Status:** pendente, aberto em 2026-11-01. Fecha quando os itens abaixo
+estiverem feitos e cada um tiver a data e quem fez anotados aqui. O item 5 entrou
+em 2026-11-10, com os arquivos do prontuário (feature 002, tarefa 016).
 
 ## Contexto
 
@@ -168,11 +169,81 @@ ter dado de paciente. Mas o `.gitignore` só ignora `evidence/` e `review/`, e 1
   `bash bin/verificar-skills.sh`) e o README das features, e acrescentar a regra
   "o DEFERRED nunca tem dado de paciente, e-mail, senha ou token".
 
+### 5. Estender a regra de WAF aos arquivos do prontuário (bloqueia o deploy da feature 002)
+
+**Por quê.** Desde a tarefa 016 da feature 002
+(`.ai-workbench/002-isolamento-clinicas-e-papeis/`), o laudo e o exame do
+paciente seguem o caminho do comprovante: a API não grava nem devolve o
+`cdn_url` e o arquivo só abre pelo link assinado de 5 minutos de
+`GET /api/clinic/patients/{paciente}/files/{arquivo}/url`. O arquivo continua no
+mesmo bucket que o CDN serve em público, e o link assinado mostra o caminho
+(`patients/files/{uuid}.pdf`). Sem a regra, quem viu o link uma vez troca o
+domínio pelo do CDN e abre o laudo para sempre, sem login. É dado de saúde
+(LGPD). Os arquivos antigos, gravados antes da 016, também ficam em
+`patients/files/` e passam a ser cobertos pela mesma regra.
+
+**Passo a passo** (o mesmo painel e a mesma zona do item 1):
+
+1. A normalização de URL do item 1, passo 1, vale para esta regra também.
+2. **Regra de bloqueio.** Security → WAF → Custom rules: editar a regra do item 1
+   (ou criar outra com a mesma ação) para bloquear também o caminho que tem
+   `patients` e `files`. Com as duas numa regra só, a expressão fica:
+
+   ```
+   (http.host in {"<host>"}
+     and (
+       (lower(url_decode(http.request.uri.path, "r")) contains "clinics"
+         and lower(url_decode(http.request.uri.path, "r")) contains "finances")
+       or
+       (lower(url_decode(http.request.uri.path, "r")) contains "patients"
+         and lower(url_decode(http.request.uri.path, "r")) contains "files")
+     ))
+   ```
+
+   - ação: **Block**; nome sugerido:
+     `bloqueia comprovantes e arquivos do prontuário no CDN`.
+   - A foto do paciente (`patients/photos/`) não tem `files` no caminho e
+     continua pública, como decidido na feature 002 (fora do escopo). Nenhuma
+     outra pasta do bucket tem `patients` e `files` juntas; mudar a pasta dos
+     arquivos do prontuário exige mudar a regra junto.
+3. **`r2.dev` desligado** (item 1, passo 3). Sem isso, a regra não cobre o
+   arquivo do prontuário, porque o `r2.dev` não passa pelo WAF da zona.
+4. **Conferir com `curl`**, como no item 1, passo 4. **Todas as linhas têm que dar
+   403**:
+
+   ```bash
+   CDN="https://<host>"   # o CLOUDFLARE_CDN_URL de produção
+   for p in \
+     "/patients/files/x.pdf" \
+     "/patients%2Ffiles/x.pdf" \
+     "/patients%252Ffiles/x.pdf" \
+     "//patients/files/x.pdf" \
+     "/patients/%66iles/x.pdf" \
+     "/PATIENTS/FILES/x.pdf"; do
+     printf '%s %s\n' "$(curl --path-as-is -s -o /dev/null -w '%{http_code}' "$CDN$p")" "$p"
+   done
+
+   # A foto do paciente continua pública: uma que existe dá 200.
+   curl -s -o /dev/null -w '%{http_code}\n' "$CDN/patients/photos/<foto conhecida>"
+   ```
+
+5. **Teste de ponta a ponta** (só com autorização, porque grava no bucket de
+   verdade): no prontuário de um paciente de teste, enviar um PDF e abrir pelo
+   botão (tem que abrir), copiar o caminho do link, montar `$CDN/<caminho>` e
+   abrir sem login (tem que dar 403). Apagar o arquivo no fim e conferir que o
+   objeto saiu do bucket.
+6. **Anotar** a data, quem fez e a saída do `curl` aqui, e marcar o item no
+   checklist de deploy da PR da feature 002.
+
 ## Consequências
 
 - Enquanto o item 1 não estiver feito, Finanças pode ir para produção **sem** a
   parte de comprovante; com ela, não. A descrição da PR da 013 precisa citar este
   ADR.
+- Enquanto o item 5 não estiver feito, a feature 002 não vai para produção: o
+  arquivo do prontuário continuaria abrindo pelo CDN para quem viu um link
+  assinado. A descrição da PR da 002 precisa citar este ADR no checklist de
+  deploy.
 - Os itens 2, 3 e 4 não bloqueiam o deploy, mas cada decisão vira uma tarefa
   pequena (com teste) e uma linha no `decisoes.md` da feature 013.
 - Quem fechar um item anota aqui a data, a opção escolhida e o commit.

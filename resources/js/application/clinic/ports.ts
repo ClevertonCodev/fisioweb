@@ -12,6 +12,7 @@ import type {
     PatientAppointmentHistoryItem,
     PatientEvolution,
     PatientFile,
+    PatientFileLink,
     PatientQuestionnaire,
     Program,
     ProgramExercise,
@@ -411,6 +412,7 @@ export interface PatientFilesRepository {
         options?: PatientFileStoreOptions,
     ): Promise<PatientFile>;
     destroy(patientId: string, fileId: string): Promise<void>;
+    getUrl(patientId: string, fileId: string): Promise<PatientFileLink>;
 }
 
 export type PatientQuestionnaireModality = 'presencial' | 'remoto';

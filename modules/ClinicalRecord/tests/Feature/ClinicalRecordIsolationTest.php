@@ -166,9 +166,7 @@ class ClinicalRecordIsolationTest extends TestCase
         $this->assertNotSame($this->patientA->clinic_id, $this->physioA->id);
 
         $this->mock(FileServiceInterface::class, function ($mock) {
-            $mock->shouldReceive('uploadFile')->once()->andReturn([
-                'cdn_url'           => 'https://cdn.example.com/patients/files/laudo.pdf',
-                'url'               => 'https://r2.example.com/patients/files/laudo.pdf',
+            $mock->shouldReceive('uploadFileAs')->once()->andReturn([
                 'filename'          => 'laudo.pdf',
                 'original_filename' => 'laudo.pdf',
                 'path'              => 'patients/files/laudo.pdf',

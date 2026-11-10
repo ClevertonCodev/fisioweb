@@ -22,14 +22,14 @@ Hoje o arquivo do prontuário sobe com visibilidade pública, e a API grava e de
 
 ## Critérios de Aceite
 
-- [ ] A listagem e o upload não devolvem `cdn_url` (o teste `AuditPatientFilePublicUrlTest` da auditoria, invertido)
-- [ ] O upload usa o caminho privado
-- [ ] O link de 5 minutos funciona para a clínica dona
-- [ ] O link do arquivo ou do paciente de outra clínica dá 404
-- [ ] O DELETE chama a remoção do objeto, e uma falha nela não quebra a exclusão
-- [ ] Abrir o arquivo na tela pede o link e abre (teste Vitest)
-- [ ] O ADR 027 tem o item novo de WAF
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A listagem e o upload não devolvem `cdn_url` (o teste `AuditPatientFilePublicUrlTest` da auditoria, invertido)
+- [x] O upload usa o caminho privado
+- [x] O link de 5 minutos funciona para a clínica dona
+- [x] O link do arquivo ou do paciente de outra clínica dá 404
+- [x] O DELETE chama a remoção do objeto, e uma falha nela não quebra a exclusão
+- [x] Abrir o arquivo na tela pede o link e abre (teste Vitest)
+- [x] O ADR 027 tem o item novo de WAF
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

@@ -21,6 +21,12 @@ Fonte: a auditoria de controle de acesso `security-audit-skill/fisioweb/run-1`, 
   - Apagar o arquivo no sistema apaga o objeto no R2. Não existe rota de restaurar.
   - A regra de WAF do ADR 027 passa a cobrir `patients/files`, e o `r2.dev` fica desligado. Esse é um passo manual na Cloudflare, registrado como pendência de deploy no ADR.
   - As fotos de paciente e de usuário continuam públicas. Isso vai para o `DEFERRED.md` da feature.
+  - Na implementação (tarefa 016, 2026-11-10):
+    - a API também deixa de devolver o `file_path`, porque o caminho com o domínio do CDN abre o arquivo. Os arquivos antigos continuam com o `cdn_url` no banco (a coluna ficou nula só para os novos), mas a API não devolve nenhum dos dois;
+    - o arquivo novo é gravado em `patients/files/` com nome aleatório e a extensão do tipo lido do conteúdo (um `x.html` que começa com `%PDF` vira `.pdf`). O link sai com esse tipo e com o nome original na extensão do tipo gravado, como no comprovante;
+    - a prévia da imagem, na grade de Arquivos e no painel, também vem do link assinado: um pedido por imagem, reaproveitado por 4 minutos. "Baixar" e o clique na imagem pedem um link novo e abrem numa aba nova, sem `opener`;
+    - qualquer papel da clínica pede o link (a Policy `view` continua `true`); a regra de papel no prontuário segue em `papeis-fora-do-escopo.md`;
+    - o `PatientAllTab` da v1, que não era usado por nenhuma tela e ainda lia o `cdnUrl`, foi apagado.
 - **Quais reforços da auditoria (que não são achado) entram?** → Os quatro sugeridos.
   - **Proteger a conta do mestre.** É a parte mínima do ADR 019, só no backend: só o próprio mestre muda o e-mail e a senha do mestre, e qualquer outro recebe 403. A troca de senha com código por e-mail do ADR 019 continua fora, porque o sistema não envia e-mail.
   - **Clínica cancelada não loga.** O login e cada requisição recusam o usuário de clínica cancelada, e o `PUT /clinic/profile` deixa de aceitar `status`.

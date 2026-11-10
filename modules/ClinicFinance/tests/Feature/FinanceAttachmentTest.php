@@ -4,6 +4,7 @@ namespace Modules\ClinicFinance\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Mockery\MockInterface;
@@ -392,6 +393,20 @@ class FinanceAttachmentTest extends TestCase
 
         $this->assertDatabaseMissing('clinic_financial_attachments', ['id' => $id]);
         $this->assertDatabaseHas('clinic_financial_attachments', ['id' => $keep]);
+    }
+
+    public function test_a_failure_removing_the_stored_receipt_is_reported_and_keeps_the_deletion(): void
+    {
+        Exceptions::fake();
+        [$id] = $this->createAttachments(1);
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('deletePrivateFile')->once()->andThrow(new \RuntimeException('Failed to delete file in clinics'));
+        });
+
+        $this->actingAs($this->secretary, 'clinic')->deleteJson("{$this->url()}/{$id}")->assertNoContent();
+
+        $this->assertDatabaseMissing('clinic_financial_attachments', ['id' => $id]);
+        Exceptions::assertReported(fn (\RuntimeException $e) => $e->getMessage() === 'Failed to delete file in clinics');
     }
 
     public function test_physiotherapist_gets_403_on_every_receipt_route(): void

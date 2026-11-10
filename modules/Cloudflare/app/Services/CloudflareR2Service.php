@@ -152,10 +152,15 @@ class CloudflareR2Service implements FileServiceInterface
                 return false;
             }
 
-            Storage::disk($this->disk)->delete($path);
+            $deleted = Storage::disk($this->disk)->delete($path);
         } catch (\Throwable $e) {
             // Sem a exceção original: a mensagem do Flysystem traz o caminho completo.
             throw new \RuntimeException('Failed to delete file in ' . dirname($path) . ': ' . $e::class);
+        }
+
+        // Com `throw => false` no disco, o DeleteObject recusado volta só como `false`.
+        if (!$deleted) {
+            throw new \RuntimeException('Failed to delete file in ' . dirname($path));
         }
 
         // Só a pasta: o caminho completo abriria o arquivo pelo CDN.

@@ -3,8 +3,10 @@
 namespace Modules\ClinicalRecord\Tests\Unit\Events;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Modules\Admin\Contracts\Public\AssessmentTemplateReadServiceInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
@@ -27,6 +29,8 @@ class ClinicalRecordServiceEventsTest extends TestCase
     public function test_use_cases_dispatch_clinical_record_events_after_commit(): void
     {
         Event::fake();
+        config(['cloudflare.r2_disk' => 'r2']);
+        Storage::fake('r2');
 
         [$clinic, $physio, $patient] = $this->context();
         $this->actingAs($physio, 'clinic');
@@ -100,13 +104,7 @@ class ClinicalRecordServiceEventsTest extends TestCase
             (int) $clinic->id,
             (int) $patient->id,
             (int) $physio->id,
-            [
-                'original_filename' => 'laudo.pdf',
-                'path'              => 'patients/files/laudo.pdf',
-                'cdn_url'           => 'https://cdn.example.com/patients/files/laudo.pdf',
-                'mime_type'         => 'application/pdf',
-                'size'              => 1024,
-            ],
+            UploadedFile::fake()->create('laudo.pdf', 1, 'application/pdf'),
             'Laudo',
         );
         $patientFileService->destroy($file);

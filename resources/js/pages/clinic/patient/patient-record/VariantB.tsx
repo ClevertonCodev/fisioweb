@@ -61,6 +61,7 @@ import {
     CLINICAL_DENIED,
     GuardedButton,
     KindIcon,
+    PatientFileImage,
     QUICK_ACTIONS,
     ToneBadge,
     type QuickAction,
@@ -697,7 +698,11 @@ export function VariantB({
                     ) : null}
                     {tabItems.length === 0 ? null : current.key ===
                       'arquivos' ? (
-                        <FileGrid items={tabItems} onOpen={onOpen} />
+                        <FileGrid
+                            patientId={id}
+                            items={tabItems}
+                            onOpen={onOpen}
+                        />
                     ) : (
                         <ul className="divide-y divide-ds-border-subtle">
                             {tabItems.map((item) => (
@@ -879,9 +884,11 @@ function AttendanceStrip({
 }
 
 function FileGrid({
+    patientId,
     items,
     onOpen,
 }: {
+    patientId: string;
     items: RecordItem[];
     onOpen: (item: RecordItem) => void;
 }) {
@@ -900,8 +907,9 @@ function FileGrid({
                         >
                             <span className="flex aspect-[4/3] items-center justify-center bg-ds-surface-subtle">
                                 {isImage && f ? (
-                                    <img
-                                        src={f.cdnUrl}
+                                    <PatientFileImage
+                                        patientId={patientId}
+                                        fileId={f.id}
                                         alt=""
                                         className="size-full object-cover transition-transform group-hover:scale-105"
                                     />

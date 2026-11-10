@@ -2,9 +2,13 @@
 
 namespace Modules\Cloudflare\Tests\Unit;
 
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\UnableToDeleteFile;
 use Modules\Cloudflare\Services\CloudflareR2Service;
 use Tests\TestCase;
 
@@ -228,6 +232,45 @@ class CloudflareR2ServiceFileTest extends TestCase
             $this->assertStringNotContainsString('segredo', $e->getMessage());
             $this->assertNull($e->getPrevious());
         }
+    }
+
+    public function test_delete_private_file_throws_when_the_disk_refuses_the_delete_and_does_not_log_success(): void
+    {
+        $this->useDiskThatRefusesDeletes();
+        Storage::disk('r2')->put('clinics/7/patients/3/segredo.pdf', '%PDF-1.4');
+        Log::spy();
+
+        $thrown = null;
+        try {
+            $this->service->deletePrivateFile('clinics/7/patients/3/segredo.pdf');
+        } catch (\RuntimeException $e) {
+            $thrown = $e;
+        }
+
+        $this->assertInstanceOf(\RuntimeException::class, $thrown);
+        $this->assertStringContainsString('clinics/7/patients/3', $thrown->getMessage());
+        $this->assertStringNotContainsString('segredo', $thrown->getMessage());
+        $this->assertNull($thrown->getPrevious());
+        Log::shouldNotHaveReceived('info');
+        Storage::disk('r2')->assertExists('clinics/7/patients/3/segredo.pdf');
+    }
+
+    private function useDiskThatRefusesDeletes(): void
+    {
+        $root    = storage_path('framework/testing/disks/r2-refusing-deletes');
+        $adapter = new class($root) extends LocalFilesystemAdapter
+        {
+            public function delete(string $path): void
+            {
+                throw UnableToDeleteFile::atLocation($path, 'AccessDenied');
+            }
+        };
+
+        Storage::set('r2', new FilesystemAdapter(
+            new Filesystem($adapter),
+            $adapter,
+            ['root' => $root, 'throw' => false, 'report' => false],
+        ));
     }
 
     public function test_should_return_true_for_existing_file_on_file_exists(): void

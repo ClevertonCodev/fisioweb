@@ -24,7 +24,6 @@ class PatientFileFactory extends Factory
             'clinic_user_id' => ClinicUser::factory()->state(['clinic_id' => $clinic->id]),
             'original_name'  => fake()->word() . '.pdf',
             'file_path'      => 'patients/files/' . fake()->uuid() . '.pdf',
-            'cdn_url'        => 'https://cdn.example.com/patients/files/' . fake()->uuid() . '.pdf',
             'mime_type'      => 'application/pdf',
             'size'           => fake()->numberBetween(1024, 1048576),
         ];

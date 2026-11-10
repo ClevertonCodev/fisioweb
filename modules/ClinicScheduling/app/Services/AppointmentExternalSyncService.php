@@ -72,10 +72,11 @@ class AppointmentExternalSyncService implements AppointmentCancelFromExternalSou
         );
     }
 
-    public function findIdByExternalEventId(int $clinicId, string $externalEventId): ?int
+    public function findIdByExternalEventId(int $clinicId, int $clinicUserId, string $externalEventId): ?int
     {
         $id = Appointment::query()
-            ->where('clinic_id', $clinicId)
+            ->forClinic($clinicId)
+            ->forClinicUser($clinicUserId)
             ->where('google_event_id', $externalEventId)
             ->value('id');
 
@@ -92,7 +93,7 @@ class AppointmentExternalSyncService implements AppointmentCancelFromExternalSou
         ])->saveQuietly();
     }
 
-    public function upsertFromExternalSource(AppointmentExternalEventDTO $event): int
+    public function upsertFromExternalSource(AppointmentExternalEventDTO $event): ?int
     {
         $payload = [
             'clinic_id'       => $event->clinicId,
@@ -109,15 +110,20 @@ class AppointmentExternalSyncService implements AppointmentCancelFromExternalSou
             'last_synced_at'  => $event->syncedAt,
         ];
 
-        $existing = Appointment::query()
-            ->where('clinic_id', $event->clinicId)
-            ->where('google_event_id', $event->externalEventId)
-            ->first();
+        $sameEvent = Appointment::query()
+            ->forClinic($event->clinicId)
+            ->where('google_event_id', $event->externalEventId);
+
+        $existing = (clone $sameEvent)->forClinicUser($event->clinicUserId)->first();
 
         if (!is_null($existing)) {
             $existing->forceFill($payload)->saveQuietly();
 
             return (int) $existing->id;
+        }
+
+        if ($sameEvent->exists()) {
+            return null;
         }
 
         $created = null;
@@ -129,9 +135,15 @@ class AppointmentExternalSyncService implements AppointmentCancelFromExternalSou
         return (int) $created->id;
     }
 
-    public function cancelFromExternalSource(int $appointmentId, CarbonImmutable $occurredAt): void
+    public function cancelFromExternalSource(int $appointmentId, int $clinicUserId, CarbonImmutable $occurredAt): void
     {
-        $appointment = Appointment::query()->findOrFail($appointmentId);
+        $appointment = Appointment::query()
+            ->forClinicUser($clinicUserId)
+            ->find($appointmentId);
+
+        if (is_null($appointment)) {
+            return;
+        }
 
         $appointment->forceFill([
             'status'         => AppointmentStatus::Cancelled,

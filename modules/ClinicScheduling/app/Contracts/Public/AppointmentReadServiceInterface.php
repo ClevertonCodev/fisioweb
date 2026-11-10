@@ -8,7 +8,7 @@ interface AppointmentReadServiceInterface
 {
     public function getSnapshotById(int $appointmentId): ?AppointmentSnapshotDTO;
 
-    public function findIdByExternalEventId(int $clinicId, string $externalEventId): ?int;
+    public function findIdByExternalEventId(int $clinicId, int $clinicUserId, string $externalEventId): ?int;
 
     /**
      * Os atendimentos não cancelados do paciente nesta clínica, do mais recente para o

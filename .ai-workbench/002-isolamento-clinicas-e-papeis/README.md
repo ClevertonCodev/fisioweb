@@ -34,7 +34,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | [010 · Favoritos só com exercício visível e sem dados de origem](tasks/010-favoritos-so-exercicio-visivel.md) | concluída | | |
 | [011 · `generate-text` só com modelo do sistema ou da própria clínica](tasks/011-generate-text-so-modelo-da-clinica.md) | concluída | | |
 | [012 · Resposta de questionário só com pergunta do próprio template](tasks/012-questionario-so-pergunta-do-template.md) | concluída | | |
-| [013 · Pull do Google só altera as consultas do próprio fisio](tasks/013-pull-do-google-so-do-proprio-fisio.md) | a fazer | | |
+| [013 · Pull do Google só altera as consultas do próprio fisio](tasks/013-pull-do-google-so-do-proprio-fisio.md) | concluída | | |
 | [014 · Conexão com o Google com nonce de uso único e ticket confirmado por quem está logado](tasks/014-oauth-google-com-nonce-e-ticket.md) | a fazer | | |
 | [015 · Paciente desativado perde o token na hora](tasks/015-paciente-desativado-perde-o-token.md) | a fazer | | |
 | [016 · Arquivos do prontuário com link de 5 minutos e apagados do R2](tasks/016-arquivos-do-prontuario-com-link-assinado.md) | a fazer | | |

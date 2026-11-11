@@ -79,6 +79,34 @@ class ExerciseReviewTest extends TestCase
             ->assertJsonPath('data.review_status', Exercise::REVIEW_REJECTED);
     }
 
+    public function test_admin_cannot_reject_exercise_already_approved(): void
+    {
+        $exercise = $this->pendingExercise();
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/approve")
+            ->assertOk();
+        $reviewedAt = $exercise->fresh()->reviewed_at;
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Exercício já aprovado. Para tirar do catálogo, desative-o.');
+
+        $this->assertSame(Exercise::REVIEW_APPROVED, $exercise->fresh()->review_status);
+        $this->assertEquals($reviewedAt, $exercise->fresh()->reviewed_at);
+    }
+
+    public function test_admin_can_reject_exercise_that_was_rejected_before(): void
+    {
+        $exercise = $this->pendingExercise();
+        $exercise->update(['review_status' => Exercise::REVIEW_REJECTED]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject")
+            ->assertOk()
+            ->assertJsonPath('data.review_status', Exercise::REVIEW_REJECTED);
+    }
+
     public function test_review_requires_admin_guard(): void
     {
         $exercise = $this->pendingExercise();

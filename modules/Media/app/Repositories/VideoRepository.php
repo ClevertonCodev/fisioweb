@@ -26,6 +26,24 @@ class VideoRepository
             ->exists();
     }
 
+    /**
+     * @param  list<int>  $videoIds
+     * @return list<int>
+     */
+    public function idsWithPendingMediaProposal(array $videoIds): array
+    {
+        if (empty($videoIds)) {
+            return [];
+        }
+
+        return $this->model->newQuery()
+            ->whereIn('id', $videoIds)
+            ->whereNotNull('metadata->proposed_at')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
     public function findOrFail(int $id): Video
     {
         return $this->model->findOrFail($id);

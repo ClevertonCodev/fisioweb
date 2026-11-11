@@ -23,4 +23,6 @@ interface ExerciseRepositoryInterface
      * @return list<int>
      */
     public function linkedVideoIds(int $exerciseId): array;
+
+    public function videoHasExerciseBeyondOwnerReview(int $videoId, int $ownerClinicId): bool;
 }

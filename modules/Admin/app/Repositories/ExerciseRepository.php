@@ -107,4 +107,15 @@ class ExerciseRepository implements ExerciseRepositoryInterface
             ->values()
             ->all();
     }
+
+    public function videoHasExerciseBeyondOwnerReview(int $videoId, int $ownerClinicId): bool
+    {
+        return $this->model->newQuery()
+            ->whereIn('id', DB::table('admin_exercise_video')->where('video_id', $videoId)->select('exercise_id'))
+            ->where(fn ($query) => $query
+                ->where('review_status', Exercise::REVIEW_APPROVED)
+                ->orWhereNull('clinic_id')
+                ->orWhere('clinic_id', '!=', $ownerClinicId))
+            ->exists();
+    }
 }

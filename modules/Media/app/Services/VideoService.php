@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Media\Contracts\VideoLockQueryInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Events\VideoReferenceImagesChanged;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
@@ -24,6 +25,7 @@ class VideoService implements VideoServiceInterface
     public function __construct(
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
+        protected VideoLockQueryInterface $videoLock,
     ) {}
 
     public function deleteVideo(int $videoId, bool $forceDelete = false): bool
@@ -266,63 +268,31 @@ class VideoService implements VideoServiceInterface
 
     public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null, ?array $metadataMerge = null): array
     {
-        $video = $this->videoRepository->findOrFail($videoId);
+        $video  = $this->videoRepository->findOrFail($videoId);
+        $update = $this->confirmationUpdate($video, $thumbnailPath, $originalFilename, $duration, $metadataMerge);
 
-        if ($video->status !== Video::STATUS_PENDING) {
-            throw new \InvalidArgumentException("Vídeo não está pendente de confirmação (status atual: {$video->status})");
-        }
-
-        if (empty($video->path)) {
-            throw new \InvalidArgumentException('Vídeo não possui path definido');
-        }
-
-        if (!$this->fileService->fileExists($video->path)) {
-            throw new VideoStorageFileMissingException('Arquivo não encontrado no storage. O upload pode ter falhado.');
-        }
-
-        $metadata = $video->metadata ?? [];
-        unset($metadata['pending_thumbnail_path']);
-        if ($metadataMerge !== null && !empty($metadataMerge)) {
-            $metadata = array_merge($metadata, $metadataMerge);
-        }
-
-        $update = [
-            'url'      => $this->fileService->getFileUrl($video->path),
-            'cdn_url'  => $this->fileService->getFileCdnUrl($video->path),
-            'status'   => Video::STATUS_COMPLETED,
-            'metadata' => $metadata,
-        ];
-
-        if ($originalFilename !== null && $originalFilename !== '') {
-            $update['original_filename'] = $originalFilename;
-        }
-
-        if ($duration !== null) {
-            $update['duration'] = $duration;
-        }
-
-        if ($thumbnailPath !== null && $thumbnailPath !== '') {
-            $pendingPath = ($video->metadata ?? [])['pending_thumbnail_path'] ?? null;
-            if ($pendingPath !== $thumbnailPath) {
-                throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
-            }
-            if (!$this->fileService->fileExists($thumbnailPath)) {
-                throw new VideoStorageFileMissingException('Thumbnail não encontrada no storage.');
-            }
-
+        if (!empty($thumbnailPath)) {
             $update['thumbnail_path'] = $thumbnailPath;
             $update['thumbnail_url']  = $this->fileService->getFileCdnUrl($thumbnailPath);
         }
 
-        $video = $this->videoRepository->update($videoId, $update);
+        return $this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath));
+    }
 
-        Log::info('presigned upload confirmado', [
-            'video_id'  => $videoId,
-            'path'      => $video->path,
-            'thumbnail' => $thumbnailPath,
+    public function confirmUploadByClinic(int $videoId, int $clinicUserId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null): array
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if (empty($thumbnailPath) || !$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+            return $this->withProposalFlag($this->confirmPresignedUpload($videoId, $thumbnailPath, $originalFilename, $duration));
+        }
+
+        $update             = $this->confirmationUpdate($video, $thumbnailPath, $originalFilename, $duration, null);
+        $update['metadata'] = $this->withProposal($update['metadata'], $clinicUserId, [
+            'proposed_thumbnail_path' => $thumbnailPath,
         ]);
 
-        return $this->formatVideo($video);
+        return $this->withProposalFlag($this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath)));
     }
 
     public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
@@ -333,23 +303,8 @@ class VideoService implements VideoServiceInterface
 
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array
     {
-        $video = $this->videoRepository->findOrFail($videoId);
-
-        $paths = array_values(array_filter(
-            array_slice($referenceImagePaths, 0, 2),
-            fn ($path) => is_string($path) && !empty($path)
-        ));
-
-        $images = [];
-        foreach ($paths as $path) {
-            $images[] = [
-                'file_path'         => $path,
-                'cdn_url'           => $this->fileService->getFileCdnUrl($path),
-                'original_filename' => basename($path),
-                'mime_type'         => str_ends_with(strtolower($path), '.png') ? 'image/png' : 'image/jpeg',
-                'size'              => 0,
-            ];
-        }
+        $video  = $this->videoRepository->findOrFail($videoId);
+        $images = $this->referenceImages($referenceImagePaths);
 
         $metadata                     = $video->metadata ?? [];
         $metadata['reference_images'] = $images;
@@ -367,6 +322,28 @@ class VideoService implements VideoServiceInterface
         return $this->formatVideo($video);
     }
 
+    public function changeReferenceImagesByClinic(int $videoId, int $clinicUserId, array $referenceImagePaths): array
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+            return $this->withProposalFlag($this->syncReferenceImages($videoId, $referenceImagePaths, changedByOperator: false));
+        }
+
+        $video = $this->videoRepository->update($videoId, [
+            'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
+                'proposed_reference_images' => $this->referenceImages($referenceImagePaths),
+            ]),
+        ]);
+
+        return $this->withProposalFlag($this->formatVideo($video));
+    }
+
+    public function videoIdsWithPendingMediaProposal(array $videoIds): array
+    {
+        return $this->videoRepository->idsWithPendingMediaProposal($videoIds);
+    }
+
     public function ensureReferenceImagesBelongToVideo(int $videoId, array $referenceImagePaths): void
     {
         $metadata = $this->videoRepository->findOrFail($videoId)->metadata ?? [];
@@ -380,6 +357,124 @@ class VideoService implements VideoServiceInterface
                 throw new \InvalidArgumentException('Imagem de referência não autorizada para este vídeo.');
             }
         }
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $metadataMerge
+     * @return array<string, mixed>
+     *
+     * @throws \InvalidArgumentException
+     * @throws VideoStorageFileMissingException
+     */
+    private function confirmationUpdate(Video $video, ?string $thumbnailPath, ?string $originalFilename, ?int $duration, ?array $metadataMerge): array
+    {
+        if ($video->status !== Video::STATUS_PENDING) {
+            throw new \InvalidArgumentException("Vídeo não está pendente de confirmação (status atual: {$video->status})");
+        }
+
+        if (empty($video->path)) {
+            throw new \InvalidArgumentException('Vídeo não possui path definido');
+        }
+
+        if (!$this->fileService->fileExists($video->path)) {
+            throw new VideoStorageFileMissingException('Arquivo não encontrado no storage. O upload pode ter falhado.');
+        }
+
+        if (!empty($thumbnailPath)) {
+            $pendingPath = ($video->metadata ?? [])['pending_thumbnail_path'] ?? null;
+            if ($pendingPath !== $thumbnailPath) {
+                throw new \InvalidArgumentException('Thumbnail não autorizada para este vídeo.');
+            }
+            if (!$this->fileService->fileExists($thumbnailPath)) {
+                throw new VideoStorageFileMissingException('Thumbnail não encontrada no storage.');
+            }
+        }
+
+        $metadata = $video->metadata ?? [];
+        unset($metadata['pending_thumbnail_path']);
+        if (!empty($metadataMerge)) {
+            $metadata = array_merge($metadata, $metadataMerge);
+        }
+
+        $update = [
+            'url'      => $this->fileService->getFileUrl($video->path),
+            'cdn_url'  => $this->fileService->getFileCdnUrl($video->path),
+            'status'   => Video::STATUS_COMPLETED,
+            'metadata' => $metadata,
+        ];
+
+        if (!empty($originalFilename)) {
+            $update['original_filename'] = $originalFilename;
+        }
+
+        if (!is_null($duration)) {
+            $update['duration'] = $duration;
+        }
+
+        return $update;
+    }
+
+    /**
+     * @param  array<string, mixed>  $update
+     */
+    private function saveConfirmation(int $videoId, array $update, ?string $thumbnailPath): Video
+    {
+        $video = $this->videoRepository->update($videoId, $update);
+
+        Log::info('presigned upload confirmado', [
+            'video_id'  => $videoId,
+            'path'      => $video->path,
+            'thumbnail' => $thumbnailPath,
+        ]);
+
+        return $video;
+    }
+
+    /**
+     * @param  list<string>  $referenceImagePaths
+     * @return list<array{file_path: string, cdn_url: string, original_filename: string, mime_type: string, size: int}>
+     */
+    private function referenceImages(array $referenceImagePaths): array
+    {
+        $paths = array_values(array_filter(
+            array_slice($referenceImagePaths, 0, 2),
+            fn ($path) => is_string($path) && !empty($path)
+        ));
+
+        return array_map(fn (string $path) => [
+            'file_path'         => $path,
+            'cdn_url'           => $this->fileService->getFileCdnUrl($path),
+            'original_filename' => basename($path),
+            'mime_type'         => str_ends_with(strtolower($path), '.png') ? 'image/png' : 'image/jpeg',
+            'size'              => 0,
+        ], $paths);
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @param  array<string, mixed>  $proposed
+     * @return array<string, mixed>
+     */
+    private function withProposal(array $metadata, int $clinicUserId, array $proposed): array
+    {
+        return [
+            ...$metadata,
+            ...$proposed,
+            'proposed_at'                => now()->toIso8601String(),
+            'proposed_by_clinic_user_id' => $clinicUserId,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $formattedVideo
+     * @return array<string, mixed>
+     */
+    private function withProposalFlag(array $formattedVideo): array
+    {
+        return [
+            ...$formattedVideo,
+            'proposal_pending' => !empty($formattedVideo['metadata']['proposed_at'] ?? null),
+        ];
     }
 
     protected function formatVideo(Video $video): array

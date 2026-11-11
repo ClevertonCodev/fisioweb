@@ -11,6 +11,7 @@ use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Http\Requests\SubmitExerciseRequest;
 use Modules\Clinic\Models\ExerciseFavorite;
+use Modules\Media\Contracts\VideoServiceInterface;
 
 class ExerciseController extends ClinicAuthenticatedController
 {
@@ -18,6 +19,7 @@ class ExerciseController extends ClinicAuthenticatedController
         protected ExerciseServiceInterface $exerciseService,
         protected ExerciseSubmissionServiceInterface $submissionService,
         protected ExerciseCatalogReadServiceInterface $catalog,
+        protected VideoServiceInterface $videoService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -33,9 +35,20 @@ class ExerciseController extends ClinicAuthenticatedController
         $perPage     = $request->integer('per_page', 15);
         $result      = $this->exerciseService->list($filters, $perPage);
         $favoriteIds = ExerciseFavorite::where('clinic_user_id', $this->clinicUserId())->pluck('exercise_id')->all();
-        $result->getCollection()->transform(function ($item) use ($favoriteIds, $clinicId) {
+        $proposalIds = $this->videoService->videoIdsWithPendingMediaProposal(
+            $result->getCollection()
+                ->filter(fn ($item) => $item->isOwnedByClinic($clinicId))
+                ->flatMap(fn ($item) => $item->videos->pluck('id'))
+                ->unique()
+                ->values()
+                ->all(),
+        );
+        $result->getCollection()->transform(function ($item) use ($favoriteIds, $clinicId, $proposalIds) {
             $item->is_favorite       = in_array($item->id, $favoriteIds);
             $item->is_own_submission = $item->isOwnedByClinic($clinicId);
+            if ($item->is_own_submission) {
+                $item->media_proposal_pending = $item->videos->contains(fn ($video) => in_array($video->id, $proposalIds, true));
+            }
             // Não expor a clínica de origem crua ao frontend.
             unset($item->clinic_id, $item->submitted_by_clinic_user_id, $item->clinic, $item->submittedByClinicUser);
 

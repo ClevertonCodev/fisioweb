@@ -28,15 +28,15 @@ A decisão foi que a troca vira uma **proposta**: a mídia aprovada continua val
 
 ## Critérios de Aceite
 
-- [ ] Depois da aprovação, o `PUT reference-images` da clínica A grava a proposta, e a clínica B continua vendo as imagens antigas na listagem; as imagens do PDF não mudam (o teste `VerifierApprovedMediaWriteTest` da auditoria, invertido)
-- [ ] A variante do vídeo pendente na aprovação: o thumbnail confirmado depois vira proposta, e a B continua vendo o antigo
-- [ ] A segunda proposta substitui a primeira
-- [ ] O vídeo de exercício não aprovado continua aplicando na hora
-- [ ] A clínica B leva 404 nas rotas de mídia do vídeo da A
-- [ ] `media_proposal_pending` só aparece para a clínica dona
-- [ ] O ADR 029 foi escrito
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Depois da aprovação, o `PUT reference-images` da clínica A grava a proposta, e a clínica B continua vendo as imagens antigas na listagem; as imagens do PDF não mudam (o teste `VerifierApprovedMediaWriteTest` da auditoria, invertido)
+- [x] A variante do vídeo pendente na aprovação: o thumbnail confirmado depois vira proposta, e a B continua vendo o antigo
+- [x] A segunda proposta substitui a primeira
+- [x] O vídeo de exercício não aprovado continua aplicando na hora
+- [x] A clínica B leva 404 nas rotas de mídia do vídeo da A
+- [x] `media_proposal_pending` só aparece para a clínica dona
+- [x] O ADR 029 foi escrito
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

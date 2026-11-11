@@ -106,8 +106,9 @@ class ClinicVideoController extends ClinicAuthenticatedController
         try {
             $this->ensureOwnedVideo($video);
 
-            $result = $this->videoService->confirmPresignedUpload(
+            $result = $this->videoService->confirmUploadByClinic(
                 $video,
+                $this->clinicUserId(),
                 $validated['thumbnail_path'] ?? null,
                 $originalFilename,
                 $duration,
@@ -143,10 +144,10 @@ class ClinicVideoController extends ClinicAuthenticatedController
             $this->ensureOwnedVideo($video);
             $this->videoService->ensureReferenceImagesBelongToVideo($video, $validated['reference_image_paths'] ?? []);
 
-            $result = $this->videoService->syncReferenceImages(
+            $result = $this->videoService->changeReferenceImagesByClinic(
                 $video,
+                $this->clinicUserId(),
                 $validated['reference_image_paths'] ?? [],
-                changedByOperator: false,
             );
 
             return response()->json([

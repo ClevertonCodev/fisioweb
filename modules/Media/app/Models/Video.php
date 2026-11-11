@@ -21,6 +21,8 @@ class Video extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    public const MEDIA_PROPOSAL_KEYS = ['proposed_thumbnail_path', 'proposed_reference_images', 'proposed_at', 'proposed_by_clinic_user_id'];
+
     protected $table = 'media_videos';
 
     protected $fillable = [
@@ -109,6 +111,22 @@ class Video extends Model
         $seconds = $this->duration % 60;
 
         return sprintf('%02d:%02d', $minutes, $seconds);
+    }
+
+    /**
+     * A proposta de mídia ainda não foi revisada: o vídeo chega às outras clínicas pelas relações dos exercícios, então ela não sai na serialização.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $attributes = parent::toArray();
+
+        if (is_array($attributes['metadata'] ?? null)) {
+            $attributes['metadata'] = array_diff_key($attributes['metadata'], array_flip(self::MEDIA_PROPOSAL_KEYS));
+        }
+
+        return $attributes;
     }
 
     protected static function newFactory(): \Modules\Media\Database\Factories\VideoFactory

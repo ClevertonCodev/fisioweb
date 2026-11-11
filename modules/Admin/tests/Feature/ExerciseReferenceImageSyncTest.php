@@ -68,7 +68,20 @@ class ExerciseReferenceImageSyncTest extends TestCase
     }
 
     #[DataProvider('notApprovedStatuses')]
-    public function test_owner_clinic_not_approved_exercise_receives_new_images_while_approved_one_keeps_old(string $reviewStatus): void
+    public function test_owner_clinic_not_approved_exercise_receives_new_images_from_clinic_event_while_approved_one_keeps_old(string $reviewStatus): void
+    {
+        $video    = $this->clinicVideo($this->clinic);
+        $approved = $this->exerciseWithImage($this->clinic->id, Exercise::REVIEW_APPROVED, $video);
+        $editable = $this->exerciseWithImage($this->clinic->id, $reviewStatus, $video);
+
+        $this->dispatchClinicChange($video, $this->clinic->id);
+
+        $this->assertSame(self::NEW_PATHS, $this->imagePaths($editable));
+        $this->assertSame(['aprovada.jpg'], $this->imagePaths($approved));
+    }
+
+    #[DataProvider('notApprovedStatuses')]
+    public function test_owner_clinic_change_on_video_with_approved_exercise_is_a_proposal_and_touches_no_pdf_image(string $reviewStatus): void
     {
         $video    = $this->clinicVideo($this->clinic);
         $approved = $this->exerciseWithImage($this->clinic->id, Exercise::REVIEW_APPROVED, $video);
@@ -78,24 +91,21 @@ class ExerciseReferenceImageSyncTest extends TestCase
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
                 'reference_image_paths' => self::NEW_PATHS,
             ])
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonPath('data.proposal_pending', true);
 
-        $this->assertSame(self::NEW_PATHS, $this->imagePaths($editable));
+        $this->assertSame(['aprovada.jpg'], $this->imagePaths($editable));
         $this->assertSame(['aprovada.jpg'], $this->imagePaths($approved));
     }
 
-    public function test_clinic_changing_reference_images_does_not_touch_global_or_other_clinic_exercise(): void
+    public function test_clinic_event_does_not_touch_global_or_other_clinic_exercise(): void
     {
         $otherClinic = Clinic::factory()->create();
         $video       = $this->clinicVideo($this->clinic);
         $global      = $this->exerciseWithImage(null, Exercise::REVIEW_APPROVED, $video);
         $ofOther     = $this->exerciseWithImage($otherClinic->id, Exercise::REVIEW_PENDING, $video);
 
-        $this->actingAs($this->clinicAdmin, 'clinic')
-            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
-                'reference_image_paths' => self::NEW_PATHS,
-            ])
-            ->assertOk();
+        $this->dispatchClinicChange($video, $this->clinic->id);
 
         $this->assertSame(['aprovada.jpg'], $this->imagePaths($global));
         $this->assertSame(['aprovada.jpg'], $this->imagePaths($ofOther));
@@ -159,6 +169,24 @@ class ExerciseReferenceImageSyncTest extends TestCase
         ));
 
         $this->assertSame(['aprovada.jpg'], $this->imagePaths($global));
+    }
+
+    private function dispatchClinicChange(Video $video, int $ownerClinicId): void
+    {
+        event(new VideoReferenceImagesChanged(
+            version: 1,
+            videoId: $video->id,
+            ownerClinicId: $ownerClinicId,
+            changedByOperator: false,
+            images: array_map(fn (string $path) => [
+                'file_path'         => $path,
+                'cdn_url'           => 'https://cdn.example.com/' . $path,
+                'original_filename' => basename($path),
+                'mime_type'         => 'image/jpeg',
+                'size'              => 0,
+            ], self::NEW_PATHS),
+            occurredAt: CarbonImmutable::now(),
+        ));
     }
 
     private function clinicVideo(Clinic $clinic): Video

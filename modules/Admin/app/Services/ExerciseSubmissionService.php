@@ -5,6 +5,7 @@ namespace Modules\Admin\Services;
 use Illuminate\Support\Facades\DB;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
+use Modules\Admin\Exceptions\ExerciseAlreadyApprovedException;
 use Modules\Admin\Models\Exercise;
 
 class ExerciseSubmissionService implements ExerciseSubmissionServiceInterface
@@ -46,6 +47,10 @@ class ExerciseSubmissionService implements ExerciseSubmissionServiceInterface
 
     public function reject(int $id, int $reviewerId, ?string $reason = null): Exercise
     {
+        if ($this->repository->findOrFail($id)->review_status === Exercise::REVIEW_APPROVED) {
+            throw new ExerciseAlreadyApprovedException;
+        }
+
         return $this->review($id, Exercise::REVIEW_REJECTED, $reviewerId);
     }
 

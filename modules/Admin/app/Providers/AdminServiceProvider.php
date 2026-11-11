@@ -26,9 +26,11 @@ use Modules\Admin\Services\AssessmentTemplateReadService;
 use Modules\Admin\Services\ExerciseCatalogReadService;
 use Modules\Admin\Services\ExerciseService;
 use Modules\Admin\Services\ExerciseSubmissionService;
+use Modules\Admin\Services\ExerciseVideoLockQuery;
 use Modules\Admin\Services\LoginAsAuditService;
 use Modules\Admin\Services\PlanCatalogReadService;
 use Modules\Admin\Services\ProgramCatalogReadService;
+use Modules\Media\Contracts\VideoLockQueryInterface;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -91,6 +93,7 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->bind(ExerciseCatalogReadServiceInterface::class, ExerciseCatalogReadService::class);
         $this->app->bind(ProgramCatalogReadServiceInterface::class, ProgramCatalogReadService::class);
         $this->app->bind(PlanCatalogReadServiceInterface::class, PlanCatalogReadService::class);
+        $this->app->bind(VideoLockQueryInterface::class, ExerciseVideoLockQuery::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

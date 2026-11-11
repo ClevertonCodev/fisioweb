@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
+use Modules\Admin\Exceptions\ExerciseAlreadyApprovedException;
 use Modules\Admin\Http\Requests\ReviewExerciseRequest;
 
 class ExerciseReviewController extends Controller
@@ -43,6 +44,8 @@ class ExerciseReviewController extends Controller
             return response()->json(['data' => $exercise]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Exercício não encontrado.'], 404);
+        } catch (ExerciseAlreadyApprovedException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 }

@@ -36,6 +36,13 @@ interface VideoServiceInterface
 
     public function confirmPresignedUpload(int $videoId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null, ?array $metadata = null): array;
 
+    /**
+     * Confirmação feita pela clínica dona: o thumbnail de vídeo travado vira proposta, e o resto da confirmação vale na hora.
+     *
+     * @return array<string, mixed> o vídeo formatado com `proposal_pending`
+     */
+    public function confirmUploadByClinic(int $videoId, int $clinicUserId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null): array;
+
     public function updateVideo(int $videoId, array $data): array;
 
     public function requestPresignedThumbnailReplace(
@@ -62,6 +69,20 @@ interface VideoServiceInterface
      * @return array<string, mixed>
      */
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array;
+
+    /**
+     * Troca feita pela clínica dona: aplica na hora, ou guarda como proposta quando o vídeo está travado.
+     *
+     * @param  list<string>  $referenceImagePaths  paths R2 (máx. 2)
+     * @return array<string, mixed> o vídeo formatado com `proposal_pending`
+     */
+    public function changeReferenceImagesByClinic(int $videoId, int $clinicUserId, array $referenceImagePaths): array;
+
+    /**
+     * @param  list<int>  $videoIds
+     * @return list<int> os vídeos, entre os informados, com proposta de mídia esperando revisão
+     */
+    public function videoIdsWithPendingMediaProposal(array $videoIds): array;
 
     /**
      * Garante que cada path foi gerado pelo presigned de substituição deste vídeo (`requestPresignedThumbnailReplace`) ou já está salvo nas imagens de referência dele.

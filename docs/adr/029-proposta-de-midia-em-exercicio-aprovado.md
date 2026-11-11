@@ -1,7 +1,8 @@
 # ADR: A troca de mídia de um exercício já aprovado vira proposta, guardada no vídeo, até o operador revisar
 
-**Status:** aceito em 2026-11-11 (feature 002, tarefa 018). A revisão do operador
-(aprovar ou rejeitar a proposta) é a tarefa 020, e a tela da clínica é a 019.
+**Status:** aceito em 2026-11-11 (feature 002, tarefa 018). A tela da clínica é
+a tarefa 019, e a revisão do operador (aprovar ou rejeitar a proposta), a 020
+(itens 9 a 12).
 
 ## Contexto
 
@@ -63,7 +64,18 @@ Três restrições moldaram a solução:
      `data.proposal_pending` (verdadeiro quando o vídeo ficou com proposta);
    - uma proposta nova substitui a anterior campo a campo: uma troca de imagens
      não apaga a thumbnail proposta antes, e vice-versa. O `proposed_at` e o
-     `proposed_by_clinic_user_id` passam a ser os da última troca;
+     `proposed_by_clinic_user_id` passam a ser os da última troca. Desde a
+     tarefa 020, o objeto da proposta substituída sai do storage (item 11);
+   - vídeo que voltou a ficar livre (o exercício aprovado foi apagado ou
+     desligado do vídeo) com proposta antiga: a troca da clínica vale na hora e
+     **apaga a proposta antiga**, com os objetos dela (tarefa 020). Sem isso, a
+     resposta dizia `proposal_pending: true` e aprovar a proposta antiga desfazia
+     a troca nova;
+   - desde a tarefa 020, as três escritas da clínica (`confirmUploadByClinic`,
+     `changeThumbnailByClinic`, `changeReferenceImagesByClinic`) leem o vídeo com
+     `lockForUpdate` numa transação, e a pergunta `isLocked` e a gravação ficam
+     dentro dela. Assim a escrita da clínica e a decisão do operador sobre a
+     proposta (que trava a mesma linha) não se atropelam;
    - os pedidos de URL pré-assinada não mudam: eles só emitem o caminho.
 4. **A proposta não sai do Media para outras clínicas.** O vídeo chega às
    clínicas pelas relações dos exercícios (biblioteca, programas, catálogo de
@@ -94,7 +106,7 @@ Três restrições moldaram a solução:
    serviço de sincronização do Admin: ele publica `VideoReferenceImagesChanged`
    quando a mídia muda de verdade (troca aplicada pela clínica dona ou pelo
    operador). Na tarefa 020, aprovar a proposta aplica a mídia e sincroniza o PDF
-   dos exercícios aprovados ligados ao vídeo de forma explícita.
+   dos exercícios ligados ao vídeo de forma explícita (item 10), sem o evento.
 8. **O operador não rejeita exercício já aprovado.** A trava olha o status
    atual do exercício. Se o operador pudesse passar um aprovado para
    `rejected`, o vídeo destravaria, e a troca da clínica dona voltaria a valer
@@ -108,6 +120,70 @@ Três restrições moldaram a solução:
    não some com o exercício de tudo: a listagem da clínica ainda aceita
    `?is_active=0` e os favoritos não filtram `is_active` (ver `DEFERRED.md` da
    feature 002). Decisão do usuário em 2026-11-11, na revisão adversária da 018.
+   Desde a tarefa 020, a recusa é atômica: a rejeição grava com
+   `review_status != approved` na mesma instrução
+   (`ExerciseRepositoryInterface::updateUnlessApproved`), e um aprovar
+   concorrente não é desfeito.
+9. **A fila do operador é por vídeo; as rotas, por exercício** (tarefa 020). A
+   proposta mora no vídeo, e um vídeo pode estar em vários exercícios.
+   - `GET /api/admin/exercises/media-proposals` (`auth:admin`) devolve uma
+     entrada por vídeo com proposta e ligado a pelo menos um exercício não
+     apagado: `{video_id, proposal_version, proposed_at,
+     proposed_by_clinic_user_id, exercise, linked_exercises, current:
+     {thumbnail_url, reference_images}, proposed: {thumbnail_url,
+     reference_images}}`. O `exercise` é o representante (o aprovado primeiro,
+     depois o menor id), e `linked_exercises` traz todos. No `proposed`, nulo quer
+     dizer "sem mudança" nesse campo; a lista vazia de imagens quer dizer "sem
+     fotos".
+   - `PUT /api/admin/exercises/{id}/media-proposal/approve` e `.../reject`
+     (`auth:admin`) recebem `{video_id, proposal_version}`. O `{id}` é a porta de
+     entrada: qualquer exercício ligado ao vídeo serve. Vídeo não ligado ao
+     exercício ou sem proposta: 422 ("Este exercício não tem proposta de mídia
+     esperando revisão."). Exercício que não existe: 404.
+   - O `pending-count` soma os exercícios pendentes e as entradas da fila.
+   - A fila é paginada (`page`, `per_page` de 1 a 100, padrão 20, com `meta`
+     de `current_page`, `per_page`, `total` e `last_page`), em ordem de id do
+     vídeo. O Media dá os ids dos vídeos com proposta, o Admin fica com os
+     que têm exercício ligado e o Media monta só as propostas da página. O
+     `pending-count` conta esses ids, sem montar a fila (revisão adversária
+     da 020, ACHADO-002).
+   - Proposta em vídeo sem nenhum exercício ligado não entra na fila nem no
+     contador (ver `DEFERRED.md` da feature 002).
+10. **Aprovar e rejeitar decidem sobre a mídia que o operador viu.** O
+    `proposal_version` é um hash das chaves `proposed_*`
+    (`MediaProposal::$version`), e muda a cada troca da clínica, mesmo no mesmo
+    segundo. O Media lê o vídeo com `lockForUpdate`, confere a versão e, se ela
+    mudou, responde 409 ("A proposta mudou desde que a revisão foi aberta.
+    Recarregue a lista e confira a mídia nova.") sem tocar em nada. O Admin usa
+    só o contrato do Media (`VideoServiceInterface::pendingMediaProposals`,
+    `approveMediaProposal`, `rejectMediaProposal`, o DTO `MediaProposal` e as
+    exceções `MediaProposalNotPendingException` e
+    `MediaProposalChangedException`), sem model do Media.
+    - Aprovar copia `proposed_thumbnail_path` para a capa e
+      `proposed_reference_images` para `reference_images`, só nos campos que a
+      proposta troca, limpa as chaves `proposed_*` e não muda o status do
+      exercício. Na mesma transação, o Admin chama
+      `ExerciseReferenceImageSyncService::syncFromVideo` como troca do operador:
+      as imagens do PDF de todos os exercícios ligados ao vídeo passam a ser as
+      aprovadas. O Media não publica `VideoReferenceImagesChanged` ao aprovar,
+      para a sincronização não rodar duas vezes. Aprovar não apaga a capa nem as
+      fotos substituídas (como a troca da clínica em vídeo livre, ver
+      `DEFERRED.md`).
+    - Rejeitar limpa as chaves `proposed_*` e não muda o status do exercício.
+11. **Quais objetos saem do storage.** Rejeitar, trocar a proposta e descartar a
+    proposta antiga num vídeo livre apagam os caminhos da proposta que saiu,
+    **menos** os que o vídeo ainda usa depois da gravação: a capa, as
+    `reference_images` e a proposta que ficou. O caso comum é a clínica manter
+    uma foto atual e trocar só a outra: o caminho da foto mantida está na
+    proposta e na mídia em uso, e não pode sair. A remoção roda depois do commit
+    (`DB::afterCommit`) e confere o uso com o vídeo relido; uma falha ao apagar é
+    reportada e não desfaz a decisão.
+12. **Tela do operador** (`AdminExerciseReviewPage`, v1): a seção "Mídia
+    proposta" mostra cada entrada com a mídia atual e a proposta lado a lado e os
+    botões "Aprovar mídia" e "Rejeitar mídia", que mandam o `video_id` e o
+    `proposal_version` mostrados. Erro (409, 422) vira toast com a mensagem do
+    servidor e recarrega a fila e o contador; o aprovar e o rejeitar de exercício
+    pendente ganharam o mesmo tratamento.
 
 ## Consequências
 
@@ -125,6 +201,10 @@ Três restrições moldaram a solução:
 - Custo: o `metadata` do vídeo passa a ter duas finalidades (mídia em uso e
   proposta), e o `Video::toArray()` precisa ser lembrado ao expor o vídeo por
   outro caminho que não a serialização do model.
+- Fica uma janela fora da proposta: o operador aprova um exercício **pendente**
+  enquanto a clínica troca a mídia dele (vídeo ainda livre). A troca vale na
+  hora, e o operador aprova uma mídia que não viu. O `approve` do exercício não
+  recebe versão da mídia (ver `DEFERRED.md` da feature 002).
 
 ### Regras que agentes devem preservar
 
@@ -144,3 +224,14 @@ Três restrições moldaram a solução:
 - Nenhum caminho tira um exercício de `approved` (o `reject` recusa com 422).
   Quem criar um caminho assim precisa decidir antes o que acontece com a trava
   do vídeo.
+- Toda escrita da clínica na mídia do vídeo lê a linha com `lockForUpdate`
+  (`VideoRepository::findForUpdate`) dentro de uma transação, e pergunta
+  `isLocked` dentro dela. A decisão do operador trava a mesma linha.
+- Aprovar e rejeitar exigem o `proposal_version` que o operador viu, e o 409 não
+  muda nada. Chave nova de proposta entra em `Video::MEDIA_PROPOSAL_KEYS`, para
+  mudar a versão e sair na limpeza.
+- Apagar objeto da proposta sempre passa pelo `deleteObjectsNoLongerUsed`: só
+  sai o caminho que o vídeo não usa mais (capa, `reference_images` e proposta),
+  conferido depois do commit.
+- O Admin decide a proposta só pelo `VideoServiceInterface`; aprovar sincroniza
+  o PDF de todos os exercícios ligados ao vídeo, e não publica o evento.

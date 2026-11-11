@@ -6,13 +6,17 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Media\Contracts\MediaProposal;
 use Modules\Media\Contracts\VideoLockQueryInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Events\VideoReferenceImagesChanged;
+use Modules\Media\Exceptions\MediaProposalChangedException;
+use Modules\Media\Exceptions\MediaProposalNotPendingException;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
@@ -281,52 +285,65 @@ class VideoService implements VideoServiceInterface
 
     public function confirmUploadByClinic(int $videoId, int $clinicUserId, ?string $thumbnailPath = null, ?string $originalFilename = null, ?int $duration = null): array
     {
-        $video = $this->videoRepository->findOrFail($videoId);
+        return DB::transaction(function () use ($videoId, $clinicUserId, $thumbnailPath, $originalFilename, $duration) {
+            $video = $this->videoRepository->findForUpdate($videoId);
 
-        if (empty($thumbnailPath) || !$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
-            return $this->withProposalFlag($this->confirmPresignedUpload($videoId, $thumbnailPath, $originalFilename, $duration));
-        }
+            if (empty($thumbnailPath)) {
+                return $this->withProposalFlag($this->confirmPresignedUpload($videoId, null, $originalFilename, $duration));
+            }
 
-        $update             = $this->confirmationUpdate($video, $thumbnailPath, $originalFilename, $duration, null);
-        $update['metadata'] = $this->withProposal($update['metadata'], $clinicUserId, [
-            'proposed_thumbnail_path' => $thumbnailPath,
-        ]);
+            if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+                $this->discardProposal($video);
 
-        return $this->withProposalFlag($this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath)));
+                return $this->withProposalFlag($this->confirmPresignedUpload($videoId, $thumbnailPath, $originalFilename, $duration));
+            }
+
+            $update             = $this->confirmationUpdate($video, $thumbnailPath, $originalFilename, $duration, null);
+            $update['metadata'] = $this->withProposal($update['metadata'], $clinicUserId, [
+                'proposed_thumbnail_path' => $thumbnailPath,
+            ]);
+            $this->deleteObjectsNoLongerUsed($this->proposalPaths($video->metadata ?? []), $videoId);
+
+            return $this->withProposalFlag($this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath)));
+        });
     }
 
     public function changeThumbnailByClinic(int $videoId, int $clinicUserId, string $thumbnailPath): array
     {
-        $video = $this->videoRepository->findOrFail($videoId);
+        return DB::transaction(function () use ($videoId, $clinicUserId, $thumbnailPath) {
+            $video = $this->videoRepository->findForUpdate($videoId);
 
-        if ($video->status !== Video::STATUS_COMPLETED) {
-            throw new \InvalidArgumentException("Só é possível trocar a capa de vídeo concluído (status atual: {$video->status})");
-        }
+            if ($video->status !== Video::STATUS_COMPLETED) {
+                throw new \InvalidArgumentException("Só é possível trocar a capa de vídeo concluído (status atual: {$video->status})");
+            }
 
-        if (!in_array($thumbnailPath, $video->metadata['issued_image_paths'] ?? [], true)) {
-            throw new \InvalidArgumentException('Capa não autorizada para este vídeo.');
-        }
+            if (!in_array($thumbnailPath, $video->metadata['issued_image_paths'] ?? [], true)) {
+                throw new \InvalidArgumentException('Capa não autorizada para este vídeo.');
+            }
 
-        if (!$this->fileService->fileExists($thumbnailPath)) {
-            throw new VideoStorageFileMissingException('Capa não encontrada no storage.');
-        }
+            if (!$this->fileService->fileExists($thumbnailPath)) {
+                throw new VideoStorageFileMissingException('Capa não encontrada no storage.');
+            }
 
-        if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
-            $video = $this->videoRepository->update($videoId, [
-                'thumbnail_path' => $thumbnailPath,
-                'thumbnail_url'  => $this->fileService->getFileCdnUrl($thumbnailPath),
+            if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+                $this->discardProposal($video);
+                $video = $this->videoRepository->update($videoId, [
+                    'thumbnail_path' => $thumbnailPath,
+                    'thumbnail_url'  => $this->fileService->getFileCdnUrl($thumbnailPath),
+                ]);
+
+                return $this->withProposalFlag($this->formatVideo($video));
+            }
+
+            $updated = $this->videoRepository->update($videoId, [
+                'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
+                    'proposed_thumbnail_path' => $thumbnailPath,
+                ]),
             ]);
+            $this->deleteObjectsNoLongerUsed($this->proposalPaths($video->metadata ?? []), $videoId);
 
-            return $this->withProposalFlag($this->formatVideo($video));
-        }
-
-        $video = $this->videoRepository->update($videoId, [
-            'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
-                'proposed_thumbnail_path' => $thumbnailPath,
-            ]),
-        ]);
-
-        return $this->withProposalFlag($this->formatVideo($video));
+            return $this->withProposalFlag($this->formatVideo($updated));
+        });
     }
 
     public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
@@ -358,24 +375,82 @@ class VideoService implements VideoServiceInterface
 
     public function changeReferenceImagesByClinic(int $videoId, int $clinicUserId, array $referenceImagePaths): array
     {
-        $video = $this->videoRepository->findOrFail($videoId);
+        return DB::transaction(function () use ($videoId, $clinicUserId, $referenceImagePaths) {
+            $video = $this->videoRepository->findForUpdate($videoId);
 
-        if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
-            return $this->withProposalFlag($this->syncReferenceImages($videoId, $referenceImagePaths, changedByOperator: false));
-        }
+            if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+                $this->discardProposal($video);
 
-        $video = $this->videoRepository->update($videoId, [
-            'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
-                'proposed_reference_images' => $this->referenceImages($referenceImagePaths),
-            ]),
-        ]);
+                return $this->withProposalFlag($this->syncReferenceImages($videoId, $referenceImagePaths, changedByOperator: false));
+            }
 
-        return $this->withProposalFlag($this->formatVideo($video));
+            $updated = $this->videoRepository->update($videoId, [
+                'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
+                    'proposed_reference_images' => $this->referenceImages($referenceImagePaths),
+                ]),
+            ]);
+            $this->deleteObjectsNoLongerUsed($this->proposalPaths($video->metadata ?? []), $videoId);
+
+            return $this->withProposalFlag($this->formatVideo($updated));
+        });
     }
 
     public function videoIdsWithPendingMediaProposal(array $videoIds): array
     {
         return $this->videoRepository->idsWithPendingMediaProposal($videoIds);
+    }
+
+    public function videoIdsWithAnyPendingMediaProposal(): array
+    {
+        return $this->videoRepository->allIdsWithPendingMediaProposal();
+    }
+
+    public function pendingMediaProposals(array $videoIds): array
+    {
+        return $this->videoRepository->withPendingMediaProposal($videoIds)
+            ->map(fn (Video $video) => $this->mediaProposal($video))
+            ->values()
+            ->all();
+    }
+
+    public function approveMediaProposal(int $videoId, string $version): MediaProposal
+    {
+        return DB::transaction(function () use ($videoId, $version) {
+            $video    = $this->videoRepository->findForUpdate($videoId);
+            $proposal = $this->pendingProposalOf($video, $version);
+            $metadata = $video->metadata ?? [];
+            $update   = [];
+
+            if (!empty($metadata['proposed_thumbnail_path'])) {
+                $update['thumbnail_path'] = $metadata['proposed_thumbnail_path'];
+                $update['thumbnail_url']  = $this->fileService->getFileCdnUrl($metadata['proposed_thumbnail_path']);
+            }
+
+            if (array_key_exists('proposed_reference_images', $metadata)) {
+                $metadata['reference_images'] = $metadata['proposed_reference_images'] ?? [];
+            }
+
+            $update['metadata'] = $this->withoutProposal($metadata);
+            $this->videoRepository->update($videoId, $update);
+
+            Log::info('proposta de mídia aprovada', ['video_id' => $videoId]);
+
+            return $proposal;
+        });
+    }
+
+    public function rejectMediaProposal(int $videoId, string $version): void
+    {
+        DB::transaction(function () use ($videoId, $version) {
+            $video    = $this->videoRepository->findForUpdate($videoId);
+            $this->pendingProposalOf($video, $version);
+            $metadata = $video->metadata ?? [];
+
+            $this->videoRepository->update($videoId, ['metadata' => $this->withoutProposal($metadata)]);
+            $this->deleteObjectsNoLongerUsed($this->proposalPaths($metadata), $videoId);
+
+            Log::info('proposta de mídia rejeitada', ['video_id' => $videoId]);
+        });
     }
 
     public function ensureReferenceImagesBelongToVideo(int $videoId, array $referenceImagePaths): void
@@ -497,6 +572,137 @@ class VideoService implements VideoServiceInterface
             'proposed_at'                => now()->toIso8601String(),
             'proposed_by_clinic_user_id' => $clinicUserId,
         ];
+    }
+
+    /**
+     * @throws MediaProposalNotPendingException
+     * @throws MediaProposalChangedException
+     */
+    private function pendingProposalOf(Video $video, string $version): MediaProposal
+    {
+        if (empty($video->metadata['proposed_at'] ?? null)) {
+            throw new MediaProposalNotPendingException;
+        }
+
+        $proposal = $this->mediaProposal($video);
+        if (!hash_equals($proposal->version, $version)) {
+            throw new MediaProposalChangedException;
+        }
+
+        return $proposal;
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return list<string>
+     */
+    private function proposalPaths(array $metadata): array
+    {
+        return array_values(array_filter([
+            $metadata['proposed_thumbnail_path'] ?? null,
+            ...array_column($metadata['proposed_reference_images'] ?? [], 'file_path'),
+        ], fn ($path) => is_string($path) && !empty($path)));
+    }
+
+    /**
+     * Proposta que deixou de valer num vídeo livre: a troca da clínica vale na hora, e aprovar a proposta antiga desfaria essa troca.
+     */
+    private function discardProposal(Video $video): void
+    {
+        $metadata = $video->metadata ?? [];
+        if (empty(array_intersect_key($metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS)))) {
+            return;
+        }
+
+        $this->videoRepository->update($video->id, ['metadata' => $this->withoutProposal($metadata)]);
+        $this->deleteObjectsNoLongerUsed($this->proposalPaths($metadata), $video->id);
+    }
+
+    /**
+     * Confere o uso depois do commit, com o vídeo como ficou: um caminho proposto pode ser a mídia em uso (a foto que a clínica manteve ou a troca que acabou de valer) ou continuar na proposta.
+     *
+     * @param  list<string>  $paths
+     */
+    private function deleteObjectsNoLongerUsed(array $paths, int $videoId): void
+    {
+        if (empty($paths)) {
+            return;
+        }
+
+        DB::afterCommit(function () use ($paths, $videoId) {
+            $video    = $this->videoRepository->find($videoId);
+            $metadata = $video?->metadata ?? [];
+            $inUse    = array_filter([
+                $video?->thumbnail_path,
+                ...array_column($metadata['reference_images'] ?? [], 'file_path'),
+                ...$this->proposalPaths($metadata),
+            ]);
+
+            foreach (array_unique(array_diff($paths, $inUse)) as $path) {
+                try {
+                    $this->fileService->deleteFile($path);
+                } catch (\Throwable $e) {
+                    report($e);
+                    Log::warning('objeto da proposta de mídia não foi apagado', ['video_id' => $videoId]);
+                }
+            }
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array<string, mixed>
+     */
+    private function withoutProposal(array $metadata): array
+    {
+        return array_diff_key($metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS));
+    }
+
+    private function mediaProposal(Video $video): MediaProposal
+    {
+        $metadata = $video->metadata ?? [];
+
+        return new MediaProposal(
+            videoId: $video->id,
+            ownerClinicId: $video->clinic_id,
+            version: $this->mediaProposalVersion($metadata),
+            proposedAt: (string) $metadata['proposed_at'],
+            proposedByClinicUserId: isset($metadata['proposed_by_clinic_user_id']) ? (int) $metadata['proposed_by_clinic_user_id'] : null,
+            currentThumbnailUrl: $video->thumbnail_url,
+            currentReferenceImages: $this->imageLinks($metadata['reference_images'] ?? []),
+            proposedThumbnailUrl: empty($metadata['proposed_thumbnail_path'] ?? null)
+                ? null
+                : $this->fileService->getFileCdnUrl($metadata['proposed_thumbnail_path']),
+            proposedReferenceImages: array_key_exists('proposed_reference_images', $metadata)
+                ? $this->imageLinks($metadata['proposed_reference_images'] ?? [])
+                : null,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     */
+    private function mediaProposalVersion(array $metadata): string
+    {
+        $proposal = array_intersect_key($metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS));
+        ksort($proposal);
+
+        return hash('sha256', (string) json_encode($proposal));
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $images
+     * @return list<array{file_path: string, cdn_url: string, original_filename: string, mime_type: string, size: int}>
+     */
+    private function imageLinks(array $images): array
+    {
+        return array_values(array_map(fn (array $image) => [
+            'file_path'         => (string) ($image['file_path'] ?? ''),
+            'cdn_url'           => (string) ($image['cdn_url'] ?? ''),
+            'original_filename' => (string) ($image['original_filename'] ?? basename((string) ($image['file_path'] ?? ''))),
+            'mime_type'         => (string) ($image['mime_type'] ?? 'image/jpeg'),
+            'size'              => (int) ($image['size'] ?? 0),
+        ], $images));
     }
 
     /**

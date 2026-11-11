@@ -142,10 +142,10 @@ export default function AdminDashboardPage() {
                             <Dumbbell className="h-4 w-4" />
                         </div>
                         <span className="font-medium text-foreground">
-                            {pendingExercises} exercício
-                            {pendingExercises !== 1 ? 's' : ''} enviado
-                            {pendingExercises !== 1 ? 's' : ''} por clínicas
-                            aguardando revisão
+                            {pendingExercises}{' '}
+                            {pendingExercises !== 1 ? 'itens' : 'item'} de
+                            clínicas aguardando revisão (exercícios e trocas de
+                            mídia)
                         </span>
                         <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" />
                     </Link>

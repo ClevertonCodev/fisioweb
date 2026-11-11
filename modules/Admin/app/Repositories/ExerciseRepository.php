@@ -3,6 +3,7 @@
 namespace Modules\Admin\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Models\Exercise;
@@ -98,6 +99,14 @@ class ExerciseRepository implements ExerciseRepositoryInterface
         return (bool) $this->findOrFail($id)->delete();
     }
 
+    public function updateUnlessApproved(int $id, array $data): bool
+    {
+        return $this->model->newQuery()
+            ->whereKey($id)
+            ->where('review_status', '!=', Exercise::REVIEW_APPROVED)
+            ->update($data) > 0;
+    }
+
     public function linkedVideoIds(int $exerciseId): array
     {
         return DB::table('admin_exercise_video')
@@ -106,6 +115,21 @@ class ExerciseRepository implements ExerciseRepositoryInterface
             ->map(fn ($videoId) => (int) $videoId)
             ->values()
             ->all();
+    }
+
+    public function exercisesLinkedToVideos(array $videoIds): Collection
+    {
+        if (empty($videoIds)) {
+            return new Collection;
+        }
+
+        return $this->model->newQuery()
+            ->with('clinic:id,name')
+            ->join('admin_exercise_video', 'admin_exercise_video.exercise_id', '=', 'admin_exercises.id')
+            ->whereIn('admin_exercise_video.video_id', $videoIds)
+            ->select('admin_exercises.*', 'admin_exercise_video.video_id as linked_video_id')
+            ->orderBy('admin_exercises.id')
+            ->get();
     }
 
     public function videoHasExerciseBeyondOwnerReview(int $videoId, int $ownerClinicId): bool
@@ -117,5 +141,23 @@ class ExerciseRepository implements ExerciseRepositoryInterface
                 ->orWhereNull('clinic_id')
                 ->orWhere('clinic_id', '!=', $ownerClinicId))
             ->exists();
+    }
+
+    public function videoIdsLinkedToExercises(array $videoIds): array
+    {
+        if (empty($videoIds)) {
+            return [];
+        }
+
+        return DB::table('admin_exercise_video')
+            ->join('admin_exercises', 'admin_exercises.id', '=', 'admin_exercise_video.exercise_id')
+            ->whereNull('admin_exercises.deleted_at')
+            ->whereIn('admin_exercise_video.video_id', $videoIds)
+            ->distinct()
+            ->orderBy('admin_exercise_video.video_id')
+            ->pluck('admin_exercise_video.video_id')
+            ->map(fn ($videoId) => (int) $videoId)
+            ->values()
+            ->all();
     }
 }

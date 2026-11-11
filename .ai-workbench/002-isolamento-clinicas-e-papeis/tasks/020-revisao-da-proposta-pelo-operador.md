@@ -26,15 +26,15 @@ Com a proposta gravada (018), o operador precisa vê-la e decidir. Esta tarefa l
 
 ## Critérios de Aceite
 
-- [ ] A lista mostra a proposta com a mídia atual e a proposta
-- [ ] Aprovar aplica: a clínica B passa a ver as imagens novas, o PDF também, e o `media_proposal_pending` some
-- [ ] Rejeitar descarta: a mídia antiga fica e os objetos propostos são apagados
-- [ ] Aprovar ou rejeitar sem proposta dá 422
-- [ ] O guard `clinic` nas rotas dá 401
-- [ ] O `pending-count` conta as propostas
-- [ ] A seção "Mídia proposta" aprova e rejeita (teste Vitest)
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A lista mostra a proposta com a mídia atual e a proposta
+- [x] Aprovar aplica: a clínica B passa a ver as imagens novas, o PDF também, e o `media_proposal_pending` some
+- [x] Rejeitar descarta: a mídia antiga fica e os objetos propostos são apagados
+- [x] Aprovar ou rejeitar sem proposta dá 422
+- [x] O guard `clinic` nas rotas dá 401
+- [x] O `pending-count` conta as propostas
+- [x] A seção "Mídia proposta" aprova e rejeita (teste Vitest)
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

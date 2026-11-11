@@ -1,3 +1,8 @@
+import type {
+    MediaProposal,
+    MediaProposalDecision,
+    MediaProposalExercise,
+} from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
 export interface PendingExercise {
@@ -34,6 +39,74 @@ function mapPending(raw: Record<string, unknown>): PendingExercise {
     };
 }
 
+interface ApiMediaProposalExercise {
+    id: number;
+    name: string;
+    review_status: MediaProposalExercise['reviewStatus'];
+    clinic: { id: number; name: string } | null;
+}
+
+interface ApiMediaProposalImage {
+    cdn_url: string;
+}
+
+interface ApiMediaProposal {
+    video_id: number;
+    proposal_version: string;
+    proposed_at: string;
+    exercise: ApiMediaProposalExercise;
+    linked_exercises: ApiMediaProposalExercise[];
+    current: {
+        thumbnail_url: string | null;
+        reference_images: ApiMediaProposalImage[];
+    };
+    proposed: {
+        thumbnail_url: string | null;
+        reference_images: ApiMediaProposalImage[] | null;
+    };
+}
+
+function mapProposalExercise(
+    raw: ApiMediaProposalExercise,
+): MediaProposalExercise {
+    return {
+        id: raw.id,
+        name: raw.name,
+        reviewStatus: raw.review_status,
+        clinicName: raw.clinic?.name ?? null,
+    };
+}
+
+function imageUrls(images: ApiMediaProposalImage[]): string[] {
+    return images.map((image) => image.cdn_url).filter((url) => url !== '');
+}
+
+export function mapMediaProposal(raw: ApiMediaProposal): MediaProposal {
+    return {
+        videoId: raw.video_id,
+        version: raw.proposal_version,
+        proposedAt: raw.proposed_at,
+        exercise: mapProposalExercise(raw.exercise),
+        linkedExercises: raw.linked_exercises.map(mapProposalExercise),
+        current: {
+            thumbnailUrl: raw.current.thumbnail_url,
+            referenceImageUrls: imageUrls(raw.current.reference_images),
+        },
+        proposedThumbnailUrl: raw.proposed.thumbnail_url,
+        proposedReferenceImageUrls:
+            raw.proposed.reference_images === null
+                ? null
+                : imageUrls(raw.proposed.reference_images),
+    };
+}
+
+function decisionBody(decision: MediaProposalDecision) {
+    return {
+        video_id: decision.videoId,
+        proposal_version: decision.version,
+    };
+}
+
 /** Revisão de exercícios enviados por clínicas (admin do sistema). */
 export const apiAdminExerciseReviewRepository = {
     async pendingCount(): Promise<number> {
@@ -58,5 +131,27 @@ export const apiAdminExerciseReviewRepository = {
 
     async reject(id: number, reason?: string): Promise<void> {
         await apiClient.put(`/admin/exercises/${id}/reject`, { reason });
+    },
+
+    async listMediaProposals(): Promise<MediaProposal[]> {
+        const { data } = await apiClient.get<{ data: ApiMediaProposal[] }>(
+            '/admin/exercises/media-proposals',
+            { params: { per_page: 100 } },
+        );
+        return (data?.data ?? []).map(mapMediaProposal);
+    },
+
+    async approveMediaProposal(decision: MediaProposalDecision): Promise<void> {
+        await apiClient.put(
+            `/admin/exercises/${decision.exerciseId}/media-proposal/approve`,
+            decisionBody(decision),
+        );
+    },
+
+    async rejectMediaProposal(decision: MediaProposalDecision): Promise<void> {
+        await apiClient.put(
+            `/admin/exercises/${decision.exerciseId}/media-proposal/reject`,
+            decisionBody(decision),
+        );
     },
 };

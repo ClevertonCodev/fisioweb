@@ -95,6 +95,37 @@ interface VideoServiceInterface
     public function videoIdsWithPendingMediaProposal(array $videoIds): array;
 
     /**
+     * @return list<int> todos os vídeos com proposta de mídia esperando revisão, em ordem de id
+     */
+    public function videoIdsWithAnyPendingMediaProposal(): array;
+
+    /**
+     * @param  list<int>  $videoIds
+     * @return list<MediaProposal> as propostas pendentes dos vídeos informados, em ordem de id
+     */
+    public function pendingMediaProposals(array $videoIds): array;
+
+    /**
+     * Aplica a proposta ao vídeo e a limpa. Não publica `VideoReferenceImagesChanged`: quem aprova sincroniza o que depende das imagens.
+     *
+     * @return MediaProposal a proposta aplicada
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Modules\Media\Exceptions\MediaProposalNotPendingException
+     * @throws \Modules\Media\Exceptions\MediaProposalChangedException quando a versão não é a que o operador viu
+     */
+    public function approveMediaProposal(int $videoId, string $version): MediaProposal;
+
+    /**
+     * Descarta a proposta e apaga do storage, depois do commit, os objetos propostos que a mídia em uso não usa.
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Modules\Media\Exceptions\MediaProposalNotPendingException
+     * @throws \Modules\Media\Exceptions\MediaProposalChangedException quando a versão não é a que o operador viu
+     */
+    public function rejectMediaProposal(int $videoId, string $version): void;
+
+    /**
      * Garante que cada path foi gerado pelo presigned de substituição deste vídeo (`requestPresignedThumbnailReplace`) ou já está salvo nas imagens de referência dele.
      *
      * @param  list<string>  $referenceImagePaths

@@ -96,6 +96,25 @@ class ExerciseReviewTest extends TestCase
         $this->assertEquals($reviewedAt, $exercise->fresh()->reviewed_at);
     }
 
+    public function test_reject_does_not_overwrite_an_approval_that_lands_after_the_status_was_read(): void
+    {
+        $exercise       = $this->pendingExercise();
+        $approvalLanded = false;
+        Exercise::retrieved(function (Exercise $retrieved) use ($exercise, &$approvalLanded) {
+            if ($approvalLanded || $retrieved->id !== $exercise->id) {
+                return;
+            }
+            $approvalLanded = true;
+            Exercise::query()->whereKey($exercise->id)->toBase()->update(['review_status' => Exercise::REVIEW_APPROVED]);
+        });
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject");
+
+        $this->assertTrue($approvalLanded);
+        $this->assertSame(Exercise::REVIEW_APPROVED, $exercise->fresh()->review_status);
+    }
+
     public function test_admin_can_reject_exercise_that_was_rejected_before(): void
     {
         $exercise = $this->pendingExercise();

@@ -44,9 +44,45 @@ class VideoRepository
             ->all();
     }
 
+    /**
+     * @return list<int>
+     */
+    public function allIdsWithPendingMediaProposal(): array
+    {
+        return $this->model->newQuery()
+            ->whereNotNull('metadata->proposed_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $videoIds
+     * @return Collection<int, Video>
+     */
+    public function withPendingMediaProposal(array $videoIds): Collection
+    {
+        if (empty($videoIds)) {
+            return new Collection;
+        }
+
+        return $this->model->newQuery()
+            ->whereIn('id', $videoIds)
+            ->whereNotNull('metadata->proposed_at')
+            ->orderBy('id')
+            ->get();
+    }
+
     public function findOrFail(int $id): Video
     {
         return $this->model->findOrFail($id);
+    }
+
+    public function findForUpdate(int $id): Video
+    {
+        return $this->model->newQuery()->lockForUpdate()->findOrFail($id);
     }
 
     public function findWith(int $id, array $relations = []): ?Video

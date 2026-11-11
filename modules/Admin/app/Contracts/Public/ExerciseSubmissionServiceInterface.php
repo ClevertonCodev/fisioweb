@@ -19,5 +19,8 @@ interface ExerciseSubmissionServiceInterface
      */
     public function reject(int $id, int $reviewerId, ?string $reason = null): Exercise;
 
+    /**
+     * Exercícios pendentes mais as propostas de mídia esperando o operador.
+     */
     public function pendingCount(): int;
 }

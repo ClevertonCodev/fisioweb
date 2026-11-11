@@ -4,6 +4,7 @@ import {
     Check,
     Clock,
     Dumbbell,
+    ImageUp,
     Link2,
     ListOrdered,
     PersonStanding,
@@ -13,12 +14,15 @@ import {
     Stethoscope,
     Target,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
+import { can } from '@/application/clinic/permissions';
 import { DsBadge, DsButton, DsDrawer, DsModal, dsCn } from '@/components/ds';
+import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
 
+import { ChangeImagesModal } from './ChangeImagesModal';
 import {
     CardVideo,
     DifficultyBadge,
@@ -32,6 +36,7 @@ interface ModalProps {
     onClose: () => void;
     onToggleFavorite: (e: Exercise) => void;
     selection?: LibrarySelection;
+    role?: ClinicRole;
 }
 
 function formatDuration(seconds: number): string {
@@ -164,6 +169,53 @@ function Badges({ exercise: e }: { exercise: Exercise }) {
                 </DsBadge>
             )}
             <ReviewBadge exercise={e} />
+            {e.isOwnSubmission && e.mediaProposalPending && (
+                <DsBadge variant="warning">Imagens em revisão</DsBadge>
+            )}
+        </div>
+    );
+}
+
+function OwnMedia({
+    exercise: e,
+    canChange,
+    onChange,
+}: {
+    exercise: Exercise;
+    canChange: boolean;
+    onChange: () => void;
+}) {
+    const photos = e.referenceImages ?? [];
+    if (photos.length === 0 && !canChange) return null;
+    return (
+        <div className="flex flex-col gap-2">
+            {photos.length > 0 && (
+                <>
+                    <p className="text-ds-caption text-ds-content-muted">
+                        Fotos no PDF
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                        {photos.map((photo, i) => (
+                            <img
+                                key={photo.path}
+                                src={photo.url}
+                                alt={`Foto ${i + 1} do PDF`}
+                                className="aspect-square w-full rounded-ds-md bg-ds-surface-subtle object-cover"
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
+            {canChange && (
+                <DsButton
+                    variant="secondary"
+                    size="full"
+                    iconPosition="left"
+                    icon={<ImageUp />}
+                    label="Trocar imagens"
+                    onClick={onChange}
+                />
+            )}
         </div>
     );
 }
@@ -228,8 +280,10 @@ function ModalA({
     onClose,
     onToggleFavorite,
     selection,
+    role,
 }: ModalProps) {
     const isMobile = useIsMobile();
+    const [changingId, setChangingId] = useState<string | null>(null);
     const shell = {
         open: e !== null,
         onOpenChange: (o: boolean) => !o && onClose(),
@@ -265,6 +319,20 @@ function ModalA({
                             : 'Adicionar aos favoritos'
                     }
                     onClick={() => onToggleFavorite(e)}
+                />
+                {e.isOwnSubmission && (
+                    <OwnMedia
+                        exercise={e}
+                        canChange={
+                            Boolean(e.videoId) &&
+                            can.changeExerciseImages(role, e.isOwnSubmission)
+                        }
+                        onChange={() => setChangingId(e.id)}
+                    />
+                )}
+                <ChangeImagesModal
+                    exercise={changingId === e.id ? e : null}
+                    onClose={() => setChangingId(null)}
                 />
             </div>
             <div className="flex min-w-0 flex-col gap-5">

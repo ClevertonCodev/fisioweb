@@ -45,6 +45,16 @@ interface VideoServiceInterface
 
     public function updateVideo(int $videoId, array $data): array;
 
+    /**
+     * Troca da capa de vídeo concluído feita pela clínica dona: aplica na hora, ou guarda como proposta quando o vídeo está travado.
+     *
+     * @return array<string, mixed> o vídeo formatado com `proposal_pending`
+     *
+     * @throws \InvalidArgumentException
+     * @throws \Modules\Media\Exceptions\VideoStorageFileMissingException
+     */
+    public function changeThumbnailByClinic(int $videoId, int $clinicUserId, string $thumbnailPath): array;
+
     public function requestPresignedThumbnailReplace(
         int $videoId,
         string $filename,

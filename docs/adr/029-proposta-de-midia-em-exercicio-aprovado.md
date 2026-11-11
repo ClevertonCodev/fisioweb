@@ -67,9 +67,18 @@ Três restrições moldaram a solução:
    - os pedidos de URL pré-assinada não mudam: eles só emitem o caminho.
 4. **A proposta não sai do Media para outras clínicas.** O vídeo chega às
    clínicas pelas relações dos exercícios (biblioteca, programas, catálogo de
-   programas), então o `Video::toArray()` tira as chaves da proposta do
-   `metadata`. Quem precisa da proposta lê pelo `VideoService` (a resposta da
-   própria troca para a clínica dona e, na tarefa 020, a revisão do operador).
+   programas), então o `Video::toArray()` deixa sair do `metadata` só as chaves
+   públicas (`Video::PUBLIC_METADATA_KEYS`, hoje só `reference_images`). As
+   outras guardam caminhos que ninguém revisou: a proposta (`proposed_*`) e os
+   caminhos emitidos para upload (`issued_image_paths`,
+   `pending_thumbnail_path`), que são os mesmos da proposta. Na tarefa 019, a
+   revisão adversária achou o caminho da capa proposta saindo para a clínica B
+   por `issued_image_paths`, e a regra passou de "tirar a proposta" para "deixar
+   sair só o público". O admin, que precisa do `metadata` inteiro, recebe o
+   vídeo por `Video::toAdminArray()` (detalhe, lista e PATCH de metadados).
+   Quem precisa da proposta lê pelo `VideoService` (a
+   resposta da própria troca para a clínica dona e, na tarefa 020, a revisão do
+   operador).
 5. **A listagem de exercícios da clínica** (`GET /api/clinic/exercises`) devolve
    `media_proposal_pending` só nos exercícios da própria clínica
    (`is_own_submission`). O Clinic pergunta ao Media pelo
@@ -125,8 +134,12 @@ Três restrições moldaram a solução:
   pergunta `isLocked` (`confirmUploadByClinic`, `changeReferenceImagesByClinic`).
   Rota nova de mídia da clínica não chama `confirmPresignedUpload`,
   `syncReferenceImages` nem `updateVideo` direto.
-- Quem expõe o vídeo para clínica sem passar pela serialização do model tira as
-  chaves de `Video::MEDIA_PROPOSAL_KEYS`.
+- Quem expõe o vídeo para uma clínica que não é a dona sem passar pela
+  serialização do model manda do `metadata` só as chaves de
+  `Video::PUBLIC_METADATA_KEYS`. Chave nova no `metadata` fica fora das outras
+  clínicas até alguém pôr na lista. A resposta das rotas de mídia da própria
+  dona (`formatVideo`, depois do `ensureOwnedVideo`) traz o `metadata` inteiro,
+  com a proposta dela.
 - Gravar a proposta não publica `VideoReferenceImagesChanged`.
 - Nenhum caminho tira um exercício de `approved` (o `reject` recusa com 422).
   Quem criar um caminho assim precisa decidir antes o que acontece com a trava

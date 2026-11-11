@@ -40,7 +40,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | [016 · Arquivos do prontuário com link de 5 minutos e apagados do R2](tasks/016-arquivos-do-prontuario-com-link-assinado.md) | concluída | | |
 | [017 · Seletor do operador só com vídeo do catálogo, e sincronização das imagens por evento sem regravar exercício aprovado](tasks/017-seletor-do-operador-e-sync-por-evento.md) | concluída | | |
 | [018 · Proposta de mídia de exercício aprovado no backend, com ADR](tasks/018-proposta-de-midia-no-backend.md) | concluída | | |
-| [019 · Botão "Trocar imagens" no modal da biblioteca, com o aviso "em revisão" no aprovado](tasks/019-trocar-imagens-no-modal-da-biblioteca.md) | a fazer | | |
+| [019 · Botão "Trocar imagens" no modal da biblioteca, com o aviso "em revisão" no aprovado](tasks/019-trocar-imagens-no-modal-da-biblioteca.md) | concluída | | |
 | [020 · Operador revisa a proposta de mídia (antes e depois, aprovar e rejeitar)](tasks/020-revisao-da-proposta-pelo-operador.md) | a fazer | | |
 
 ## Pastas

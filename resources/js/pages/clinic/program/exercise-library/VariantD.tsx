@@ -232,6 +232,7 @@ export function VariantD(props: VariantProps) {
                 onClose={() => setOpenId(null)}
                 onToggleFavorite={onToggleFavorite}
                 selection={selection}
+                role={props.role}
             />
         </>
     );

@@ -21,6 +21,8 @@ class Video extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    public const PUBLIC_METADATA_KEYS = ['reference_images'];
+
     public const MEDIA_PROPOSAL_KEYS = ['proposed_thumbnail_path', 'proposed_reference_images', 'proposed_at', 'proposed_by_clinic_user_id'];
 
     protected $table = 'media_videos';
@@ -114,7 +116,7 @@ class Video extends Model
     }
 
     /**
-     * A proposta de mídia ainda não foi revisada: o vídeo chega às outras clínicas pelas relações dos exercícios, então ela não sai na serialização.
+     * O vídeo chega às outras clínicas pelas relações dos exercícios, e o resto do `metadata` guarda dado interno, inclusive caminhos ainda não revisados (proposta, caminhos emitidos para upload). Quem precisa do `metadata` inteiro usa `toAdminArray()`.
      *
      * @return array<string, mixed>
      */
@@ -123,10 +125,18 @@ class Video extends Model
         $attributes = parent::toArray();
 
         if (is_array($attributes['metadata'] ?? null)) {
-            $attributes['metadata'] = array_diff_key($attributes['metadata'], array_flip(self::MEDIA_PROPOSAL_KEYS));
+            $attributes['metadata'] = array_intersect_key($attributes['metadata'], array_flip(self::PUBLIC_METADATA_KEYS));
         }
 
         return $attributes;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAdminArray(): array
+    {
+        return parent::toArray();
     }
 
     protected static function newFactory(): \Modules\Media\Database\Factories\VideoFactory

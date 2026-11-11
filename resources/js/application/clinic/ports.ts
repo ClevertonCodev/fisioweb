@@ -137,6 +137,11 @@ export interface ExerciseSubmitDto {
     videoId: number;
 }
 
+/** `proposalPending`: a troca de mídia ficou esperando a revisão do suporte (vídeo de exercício aprovado). */
+export interface MediaChangeResult {
+    proposalPending: boolean;
+}
+
 export interface ExercisesRepository {
     list(): Promise<Exercise[]>;
     listPaginated(params?: ExerciseListParams): Promise<ExerciseListResult>;

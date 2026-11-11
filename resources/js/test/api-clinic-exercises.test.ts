@@ -287,6 +287,45 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
         expect(ex.videoUrl).toBe('');
         expect(ex.thumbnailUrl).toBe('');
         expect(ex.duration).toBe(0);
+        expect(ex.videoId).toBeNull();
+        expect(ex.referenceImages).toEqual([]);
+    });
+
+    it('traz o vídeo, as fotos do PDF e a proposta de mídia pendente', async () => {
+        mockGet.mockResolvedValueOnce(
+            makePaginatorResponse([
+                makeApiExercise({
+                    is_own_submission: true,
+                    media_proposal_pending: true,
+                    videos: [
+                        makeVideo({
+                            id: 3,
+                            metadata: {
+                                reference_images: [
+                                    {
+                                        file_path: 'thumbnails/videos/f1.jpg',
+                                        cdn_url: 'https://cdn.test/f1.jpg',
+                                    },
+                                ],
+                            },
+                        }),
+                    ],
+                }),
+                makeApiExercise({ id: 2 }),
+            ]),
+        );
+        const [own, other] = await apiClinicExercisesRepository.list();
+        expect(own).toMatchObject({
+            videoId: 3,
+            referenceImages: [
+                {
+                    path: 'thumbnails/videos/f1.jpg',
+                    url: 'https://cdn.test/f1.jpg',
+                },
+            ],
+            mediaProposalPending: true,
+        });
+        expect(other.mediaProposalPending).toBe(false);
     });
 });
 

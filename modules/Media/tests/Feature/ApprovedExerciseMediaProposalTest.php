@@ -107,7 +107,7 @@ class ApprovedExerciseMediaProposalTest extends TestCase
         foreach (['proposed_thumbnail_path', 'proposed_reference_images', 'proposed_at', 'proposed_by_clinic_user_id'] as $key) {
             $this->assertArrayNotHasKey($key, $metadataSeenByB);
         }
-        $this->assertStringNotContainsString($path, json_encode($metadataSeenByB['reference_images'] ?? []));
+        $this->assertStringNotContainsString($path, json_encode($this->seenByClinicB(), JSON_UNESCAPED_SLASHES));
     }
 
     public function test_thumbnail_confirmed_after_approval_of_pending_video_becomes_a_proposal_and_other_clinic_keeps_old_one(): void

@@ -28,4 +28,7 @@ export const can = {
         role === 'admin' || role === 'secretary',
     /** Configurações de Finanças: categorias e saldo inicial. */
     manageFinanceSettings: (role?: ClinicRole) => role === 'admin',
+    /** Capa e fotos do PDF do exercício que a própria clínica enviou. */
+    changeExerciseImages: (role?: ClinicRole, isOwnSubmission?: boolean) =>
+        role === 'admin' && isOwnSubmission === true,
 };

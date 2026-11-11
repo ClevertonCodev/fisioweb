@@ -295,6 +295,40 @@ class VideoService implements VideoServiceInterface
         return $this->withProposalFlag($this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath)));
     }
 
+    public function changeThumbnailByClinic(int $videoId, int $clinicUserId, string $thumbnailPath): array
+    {
+        $video = $this->videoRepository->findOrFail($videoId);
+
+        if ($video->status !== Video::STATUS_COMPLETED) {
+            throw new \InvalidArgumentException("Só é possível trocar a capa de vídeo concluído (status atual: {$video->status})");
+        }
+
+        if (!in_array($thumbnailPath, $video->metadata['issued_image_paths'] ?? [], true)) {
+            throw new \InvalidArgumentException('Capa não autorizada para este vídeo.');
+        }
+
+        if (!$this->fileService->fileExists($thumbnailPath)) {
+            throw new VideoStorageFileMissingException('Capa não encontrada no storage.');
+        }
+
+        if (!$this->videoLock->isLocked($videoId, (int) $video->clinic_id)) {
+            $video = $this->videoRepository->update($videoId, [
+                'thumbnail_path' => $thumbnailPath,
+                'thumbnail_url'  => $this->fileService->getFileCdnUrl($thumbnailPath),
+            ]);
+
+            return $this->withProposalFlag($this->formatVideo($video));
+        }
+
+        $video = $this->videoRepository->update($videoId, [
+            'metadata' => $this->withProposal($video->metadata ?? [], $clinicUserId, [
+                'proposed_thumbnail_path' => $thumbnailPath,
+            ]),
+        ]);
+
+        return $this->withProposalFlag($this->formatVideo($video));
+    }
+
     public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
     {
         return $this->videoRepository->getAvailableForExercise($alsoIncludeVideoIds)

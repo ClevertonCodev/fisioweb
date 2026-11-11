@@ -402,6 +402,7 @@ export function ImageSlot({
     onFile,
     aspect = 'aspect-square',
     cropAspect,
+    currentUrl,
 }: {
     label: string;
     hint: string;
@@ -409,9 +410,12 @@ export function ImageSlot({
     onFile: (file: File | null) => void;
     aspect?: string;
     cropAspect?: number;
+    /** Imagem já salva, mostrada enquanto não há arquivo novo; remover o arquivo novo volta para ela. */
+    currentUrl?: string;
 }) {
     const input = useRef<HTMLInputElement>(null);
-    const url = useObjectUrl(file);
+    const fileUrl = useObjectUrl(file);
+    const url = fileUrl ?? (currentUrl || null);
     const [pendingCropFile, setPendingCropFile] = useState<File | null>(null);
     const [imageError, setImageError] = useState<string | null>(null);
 
@@ -432,6 +436,7 @@ export function ImageSlot({
                 ref={input}
                 type="file"
                 accept={ACCEPT_IMAGE}
+                aria-label={`Escolher ${label}`}
                 className="hidden"
                 onChange={(e) => {
                     handleFilePicked(e.target.files?.[0] ?? null);
@@ -462,19 +467,21 @@ export function ImageSlot({
                                     <RefreshCw />
                                 </button>
                             </DsTooltip>
-                            <DsTooltip content="Remover imagem" asChild>
-                                <button
-                                    type="button"
-                                    aria-label={`Remover ${label}`}
-                                    onClick={() => {
-                                        setImageError(null);
-                                        onFile(null);
-                                    }}
-                                    className="flex size-8 cursor-pointer items-center justify-center rounded-ds-md bg-white/90 text-ds-danger-120 outline-0 hover:bg-white focus-visible:shadow-ds-focus [&_svg]:size-4"
-                                >
-                                    <Trash2 />
-                                </button>
-                            </DsTooltip>
+                            {file && (
+                                <DsTooltip content="Remover imagem" asChild>
+                                    <button
+                                        type="button"
+                                        aria-label={`Remover ${label}`}
+                                        onClick={() => {
+                                            setImageError(null);
+                                            onFile(null);
+                                        }}
+                                        className="flex size-8 cursor-pointer items-center justify-center rounded-ds-md bg-white/90 text-ds-danger-120 outline-0 hover:bg-white focus-visible:shadow-ds-focus [&_svg]:size-4"
+                                    >
+                                        <Trash2 />
+                                    </button>
+                                </DsTooltip>
+                            )}
                         </div>
                     </>
                 ) : (

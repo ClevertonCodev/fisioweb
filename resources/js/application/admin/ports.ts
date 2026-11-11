@@ -172,7 +172,7 @@ export interface AdminExercisesRepository {
         meta: { currentPage: number; lastPage: number; total: number };
     }>;
     getById(id: number): Promise<AdminExercise | null>;
-    getOptions(): Promise<AdminExerciseOptions>;
+    getOptions(exerciseId?: number): Promise<AdminExerciseOptions>;
     create(data: Record<string, unknown>): Promise<AdminExercise>;
     update(id: number, data: Record<string, unknown>): Promise<AdminExercise>;
     destroy(id: number): Promise<void>;

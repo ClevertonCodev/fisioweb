@@ -3,6 +3,8 @@
 namespace Modules\Admin\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Modules\Admin\Listeners\SyncExerciseReferenceImages;
+use Modules\Media\Events\VideoReferenceImagesChanged;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,9 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        VideoReferenceImagesChanged::class => [SyncExerciseReferenceImages::class],
+    ];
 
     /**
      * Indicates if events should be discovered.

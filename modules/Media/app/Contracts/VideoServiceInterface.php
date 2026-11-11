@@ -52,13 +52,16 @@ interface VideoServiceInterface
         int $size,
     ): array;
 
-    public function getAvailableForExercise(): Collection;
+    /**
+     * @param  list<int>  $alsoIncludeVideoIds
+     */
+    public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection;
 
     /**
      * @param  list<string>  $referenceImagePaths  paths R2 (máx. 2)
      * @return array<string, mixed>
      */
-    public function syncReferenceImages(int $videoId, array $referenceImagePaths): array;
+    public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array;
 
     /**
      * Garante que cada path foi gerado pelo presigned de substituição deste vídeo (`requestPresignedThumbnailReplace`) ou já está salvo nas imagens de referência dele.

@@ -95,9 +95,10 @@ export const apiAdminExercisesRepository: AdminExercisesRepository = {
         return mapApiExercise((data as { data: Record<string, unknown> }).data);
     },
 
-    async getOptions() {
+    async getOptions(exerciseId) {
         const { data } = await apiClient.get<{ data: Record<string, unknown> }>(
             '/admin/exercises/options',
+            { params: exerciseId ? { exercise_id: exerciseId } : {} },
         );
         const d = (data as { data?: Record<string, unknown> })?.data ?? {};
         return {

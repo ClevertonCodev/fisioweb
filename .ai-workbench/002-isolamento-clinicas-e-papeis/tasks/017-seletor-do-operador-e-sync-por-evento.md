@@ -14,18 +14,18 @@ Esta tarefa prepara o terreno para a proposta (018): a sincronização passa a s
 ## O que construir
 
 - O Media publica o evento `VideoReferenceImagesChanged` (o vídeo, a clínica dona e as imagens) e deixa de chamar o serviço do Admin pelo container.
-- O Admin escuta o evento e sincroniza as imagens do PDF só dos exercícios ligados ao vídeo que são da mesma clínica dona e que **não** estão aprovados. O exercício aprovado ou global não muda.
+- O Admin escuta o evento. Quando a troca é da clínica dona, ele sincroniza as imagens do PDF só dos exercícios ligados ao vídeo que são dessa clínica e que **não** estão aprovados; o exercício aprovado ou global não muda. Quando a troca é do operador (rota do admin), todos os exercícios ligados recebem as imagens, como hoje (decisão do usuário em 2026-11-11).
 - O seletor de vídeo do operador lista só vídeos sem `clinic_id`, os do catálogo.
 - Sem migration. Sem tela.
 
 ## Critérios de Aceite
 
-- [ ] Trocar as imagens de referência de um vídeo ligado a exercício aprovado não muda as imagens do PDF desse exercício
-- [ ] O exercício pendente da clínica dona continua recebendo as imagens novas
-- [ ] O seletor do operador não lista vídeo de clínica
-- [ ] O Media não importa nada do Admin (teste de fronteira, novo ou estendido em `tests/Architecture`)
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A clínica dona trocar as imagens de referência de um vídeo ligado a exercício aprovado não muda as imagens do PDF desse exercício (a troca feita pelo operador continua atualizando todos os exercícios ligados)
+- [x] O exercício pendente da clínica dona continua recebendo as imagens novas
+- [x] O seletor do operador não lista vídeo de clínica
+- [x] O Media não importa nada do Admin (teste de fronteira, novo ou estendido em `tests/Architecture`)
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

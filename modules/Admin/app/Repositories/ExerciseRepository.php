@@ -3,6 +3,7 @@
 namespace Modules\Admin\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Models\Exercise;
 
@@ -95,5 +96,15 @@ class ExerciseRepository implements ExerciseRepositoryInterface
     public function delete(int $id): bool
     {
         return (bool) $this->findOrFail($id)->delete();
+    }
+
+    public function linkedVideoIds(int $exerciseId): array
+    {
+        return DB::table('admin_exercise_video')
+            ->where('exercise_id', $exerciseId)
+            ->pluck('video_id')
+            ->map(fn ($videoId) => (int) $videoId)
+            ->values()
+            ->all();
     }
 }

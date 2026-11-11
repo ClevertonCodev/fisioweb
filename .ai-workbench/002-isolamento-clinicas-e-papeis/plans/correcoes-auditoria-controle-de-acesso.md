@@ -203,7 +203,7 @@ A auditoria também apontou reforços:
   - **Uma proposta nova substitui a anterior** ainda pendente.
 - **A sincronização das imagens do PDF:**
   - O Media deixa de chamar o serviço do Admin pelo container.
-  - Ele publica o evento `VideoReferenceImagesChanged`, e o Admin escuta e sincroniza só os exercícios não aprovados da mesma clínica dona do vídeo.
+  - Ele publica o evento `VideoReferenceImagesChanged`. Na troca feita pela clínica dona, o Admin sincroniza só os exercícios não aprovados dessa clínica. Na troca feita pelo operador, todos os exercícios ligados ao vídeo recebem as imagens (decisão de 2026-11-11, tarefa 017).
   - Aprovar a proposta faz a sincronização dos exercícios aprovados ligados ao vídeo de forma explícita.
 - **A fila de revisão do operador** mostra, além dos exercícios pendentes, os exercícios aprovados cujo vídeo tem proposta.
 

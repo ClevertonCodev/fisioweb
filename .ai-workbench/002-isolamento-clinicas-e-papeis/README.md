@@ -38,7 +38,7 @@ Fecha os 12 achados e o ponto a validar da auditoria `security-audit-skill/fisio
 | [014 · Conexão com o Google com nonce de uso único e ticket confirmado por quem está logado](tasks/014-oauth-google-com-nonce-e-ticket.md) | concluída | | |
 | [015 · Paciente desativado perde o token na hora](tasks/015-paciente-desativado-perde-o-token.md) | concluída | | |
 | [016 · Arquivos do prontuário com link de 5 minutos e apagados do R2](tasks/016-arquivos-do-prontuario-com-link-assinado.md) | concluída | | |
-| [017 · Seletor do operador só com vídeo do catálogo, e sincronização das imagens por evento sem regravar exercício aprovado](tasks/017-seletor-do-operador-e-sync-por-evento.md) | a fazer | | |
+| [017 · Seletor do operador só com vídeo do catálogo, e sincronização das imagens por evento sem regravar exercício aprovado](tasks/017-seletor-do-operador-e-sync-por-evento.md) | concluída | | |
 | [018 · Proposta de mídia de exercício aprovado no backend, com ADR](tasks/018-proposta-de-midia-no-backend.md) | a fazer | | |
 | [019 · Botão "Trocar imagens" no modal da biblioteca, com o aviso "em revisão" no aprovado](tasks/019-trocar-imagens-no-modal-da-biblioteca.md) | a fazer | | |
 | [020 · Operador revisa a proposta de mídia (antes e depois, aprovar e rejeitar)](tasks/020-revisao-da-proposta-pelo-operador.md) | a fazer | | |

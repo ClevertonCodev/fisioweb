@@ -26,7 +26,7 @@ export default function AdminEditExercisePage() {
     const navigate = useNavigate();
     const exerciseId = id ? parseInt(id, 10) : undefined;
     const { data: exercise, isLoading, error } = useAdminExercise(exerciseId);
-    const { data: options } = useAdminExerciseOptions();
+    const { data: options } = useAdminExerciseOptions(exerciseId);
     const updateMutation = useUpdateAdminExercise(exerciseId!);
 
     const [form, setForm] = useState<ExerciseFormState>({

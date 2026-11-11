@@ -226,7 +226,8 @@ class VideoController extends Controller
         try {
             $result = $this->videoService->syncReferenceImages(
                 $video,
-                $validated['reference_image_paths'] ?? []
+                $validated['reference_image_paths'] ?? [],
+                changedByOperator: true,
             );
 
             return response()->json([

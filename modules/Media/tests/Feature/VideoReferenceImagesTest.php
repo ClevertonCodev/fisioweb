@@ -3,12 +3,14 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
 use Modules\Admin\Models\PhysioArea;
 use Modules\Admin\Models\User as AdminUser;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\Media\Events\VideoReferenceImagesChanged;
 use Modules\Media\Models\Video;
 use Tests\TestCase;
 
@@ -127,5 +129,52 @@ class VideoReferenceImagesTest extends TestCase
             ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
+    }
+
+    public function test_clinic_reference_images_publish_event_with_owner_clinic_and_images(): void
+    {
+        Event::fake([VideoReferenceImagesChanged::class]);
+
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create([
+            'clinic_id' => $clinic->id,
+            'role'      => ClinicUser::ROLE_ADMIN,
+        ]);
+        $paths = ['thumbnails/videos/evento-1.jpeg', 'thumbnails/videos/evento-2.png'];
+        $video = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => ['issued_image_paths' => $paths],
+        ]);
+
+        $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => $paths,
+            ])
+            ->assertOk();
+
+        Event::assertDispatchedTimes(VideoReferenceImagesChanged::class, 1);
+        Event::assertDispatched(VideoReferenceImagesChanged::class, fn (VideoReferenceImagesChanged $event) => $event->videoId === $video->id
+            && $event->ownerClinicId === $clinic->id
+            && $event->changedByOperator === false
+            && array_column($event->images, 'file_path') === $paths);
+    }
+
+    public function test_operator_reference_images_publish_event_marked_as_operator(): void
+    {
+        Event::fake([VideoReferenceImagesChanged::class]);
+
+        $admin = AdminUser::factory()->create();
+        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+
+        $this->actingAs($admin, 'admin')
+            ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => ['thumbnails/videos/catalogo-1.jpeg'],
+            ])
+            ->assertOk();
+
+        Event::assertDispatched(VideoReferenceImagesChanged::class, fn (VideoReferenceImagesChanged $event) => $event->videoId === $video->id
+            && is_null($event->ownerClinicId)
+            && $event->changedByOperator === true);
     }
 }

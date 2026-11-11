@@ -18,4 +18,9 @@ interface ExerciseRepositoryInterface
     public function update(int $id, array $data): Exercise;
 
     public function delete(int $id): bool;
+
+    /**
+     * @return list<int>
+     */
+    public function linkedVideoIds(int $exerciseId): array;
 }

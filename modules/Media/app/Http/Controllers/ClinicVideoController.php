@@ -146,6 +146,7 @@ class ClinicVideoController extends ClinicAuthenticatedController
             $result = $this->videoService->syncReferenceImages(
                 $video,
                 $validated['reference_image_paths'] ?? [],
+                changedByOperator: false,
             );
 
             return response()->json([

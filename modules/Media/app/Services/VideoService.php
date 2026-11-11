@@ -2,13 +2,16 @@
 
 namespace Modules\Media\Services;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
+use Modules\Media\Events\VideoReferenceImagesChanged;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
@@ -322,13 +325,13 @@ class VideoService implements VideoServiceInterface
         return $this->formatVideo($video);
     }
 
-    public function getAvailableForExercise(): Collection
+    public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
     {
-        return $this->videoRepository->getAvailableForExercise()
+        return $this->videoRepository->getAvailableForExercise($alsoIncludeVideoIds)
             ->map(fn (Video $video) => $this->formatVideo($video));
     }
 
-    public function syncReferenceImages(int $videoId, array $referenceImagePaths): array
+    public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array
     {
         $video = $this->videoRepository->findOrFail($videoId);
 
@@ -348,14 +351,18 @@ class VideoService implements VideoServiceInterface
             ];
         }
 
-        $metadata                       = $video->metadata ?? [];
-        $metadata['reference_images']   = $images;
-        $video                          = $this->videoRepository->update($videoId, ['metadata' => $metadata]);
+        $metadata                     = $video->metadata ?? [];
+        $metadata['reference_images'] = $images;
+        $video                        = $this->videoRepository->update($videoId, ['metadata' => $metadata]);
 
-        if (class_exists(\Modules\Admin\Services\ExerciseReferenceImageSyncService::class)) {
-            app(\Modules\Admin\Services\ExerciseReferenceImageSyncService::class)
-                ->syncFromVideo($videoId, $images);
-        }
+        Event::dispatch(new VideoReferenceImagesChanged(
+            version: 1,
+            videoId: $videoId,
+            ownerClinicId: $video->clinic_id,
+            changedByOperator: $changedByOperator,
+            images: $images,
+            occurredAt: CarbonImmutable::now(),
+        ));
 
         return $this->formatVideo($video);
     }

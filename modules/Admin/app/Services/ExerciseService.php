@@ -63,6 +63,11 @@ class ExerciseService implements ExerciseServiceInterface
         }
     }
 
+    public function linkedVideoIds(int $exerciseId): array
+    {
+        return $this->repository->linkedVideoIds($exerciseId);
+    }
+
     public function delete(int $id): bool
     {
         $exercise = $this->repository->findOrFail($id);

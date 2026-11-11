@@ -6,22 +6,25 @@ use Illuminate\Support\Facades\DB;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
 
-/**
- * Sincroniza imagens de referência do PDF em admin_exercise_media
- * a partir de um vídeo (exercícios ligados via admin_exercise_video).
- */
 class ExerciseReferenceImageSyncService
 {
     /**
      * @param  list<array{file_path: string, cdn_url: string, original_filename?: string, mime_type?: string, size?: int}>  $images
      */
-    public function syncFromVideo(int $videoId, array $images): void
+    public function syncFromVideo(int $videoId, array $images, bool $changedByOperator, ?int $ownerClinicId): void
     {
+        if (!$changedByOperator && is_null($ownerClinicId)) {
+            return;
+        }
+
         $images = array_values(array_slice($images, 0, 2));
 
-        $exerciseIds = DB::table('admin_exercise_video')
-            ->where('video_id', $videoId)
-            ->pluck('exercise_id');
+        $exerciseIds = Exercise::query()
+            ->whereIn('id', DB::table('admin_exercise_video')->where('video_id', $videoId)->select('exercise_id'))
+            ->when(!$changedByOperator, fn ($query) => $query
+                ->where('clinic_id', $ownerClinicId)
+                ->where('review_status', '!=', Exercise::REVIEW_APPROVED))
+            ->pluck('id');
 
         foreach ($exerciseIds as $exerciseId) {
             $this->replaceImagesForExercise((int) $exerciseId, $images);

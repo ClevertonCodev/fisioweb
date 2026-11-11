@@ -18,4 +18,9 @@ interface ExerciseServiceInterface
     public function delete(int $id): bool;
 
     public function associateVideo(Exercise $exercise, ?int $videoId): void;
+
+    /**
+     * @return list<int>
+     */
+    public function linkedVideoIds(int $exerciseId): array;
 }

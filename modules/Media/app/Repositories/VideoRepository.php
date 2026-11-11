@@ -150,10 +150,16 @@ class VideoRepository
         return $this->model->latest()->limit($limit)->get();
     }
 
-    public function getAvailableForExercise(): Collection
+    /**
+     * @param  list<int>  $alsoIncludeVideoIds
+     */
+    public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
     {
         return $this->model
             ->completed()
+            ->where(fn ($query) => $query
+                ->whereNull('clinic_id')
+                ->when($alsoIncludeVideoIds !== [], fn ($query) => $query->orWhereIn('id', $alsoIncludeVideoIds)))
             ->orderBy('original_filename')
             ->get();
     }

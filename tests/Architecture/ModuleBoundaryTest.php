@@ -217,6 +217,27 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $violations, implode(PHP_EOL, $violations));
     }
 
+    public function test_media_production_code_does_not_reference_admin_module(): void
+    {
+        $violations = [];
+
+        foreach ($this->productionPhpFiles(dirname(__DIR__, 2) . '/modules/Media') as $file) {
+            if (str_contains($file->getPathname(), '/modules/Media/tests/')) {
+                continue;
+            }
+
+            $contents = (string) file_get_contents($file->getPathname());
+
+            if (preg_match_all('/\\\\{0,2}Modules(?:\\\\){1,2}Admin(?:\\\\){1,2}[A-Za-z0-9_\\\\]+/', $contents, $matches) > 0) {
+                foreach (array_unique($matches[0]) as $reference) {
+                    $violations[] = $file->getPathname() . ' references ' . $reference;
+                }
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
     public function test_boundary_scanner_detects_synthetic_prohibited_import(): void
     {
         $violations = $this->violationsForContent(

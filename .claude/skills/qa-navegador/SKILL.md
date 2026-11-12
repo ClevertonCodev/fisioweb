@@ -16,7 +16,8 @@ DevTools MCP ficam bloqueados no `.claude/settings.json`.
 
 **Vídeo só quando há bug.** Uma rodada de QA comum não grava vídeo: gera o
 `report.md` e os prints. Achou um bug que alguém precisa ver? Aí você grava o
-vídeo **com legenda** (seção 5).
+vídeo **com legenda** (seção 5). A exceção é o QA de aceite (skill
+`qa-aceite`): lá o vídeo é a prova de que cada critério passou, e grava sempre.
 
 Três ferramentas, todas rodadas na raiz do fisioweb:
 

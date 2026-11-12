@@ -45,7 +45,8 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
     ├── plans/<slug>.md         # plano (skill escrever-plano)
     ├── tasks/NNN-<slug>.md     # tarefas (skill criar-tarefas)
     ├── evidence/<tarefa>/      # smoke test
-    └── review/<tarefa>/        # revisão adversária
+    ├── review/<tarefa>/        # revisão adversária
+    └── qa/<alvo>/              # QA de aceite, fora da DoD (DEFINICAO_DE_QA.md)
 ```
 
 - `<feature>` é o nome da pasta (`001-agenda-recorrente`). O número é o próximo
@@ -57,7 +58,7 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
   com o `README.md`.
 - Pastas de apoio (por exemplo `engenharia-reversa/`, com notas sobre o código
   que já existe) podem ser criadas na feature; cite cada uma no `README.md`.
-- `README.md`, `decisoes.md`, `plans/` e `tasks/` entram no git. `evidence/`, `review/` e os
+- `README.md`, `decisoes.md`, `plans/` e `tasks/` entram no git. `evidence/`, `review/`, `qa/` e os
   dois `DEFERRED.md` ficam no `.gitignore` e nunca entram num commit, numa PR,
   numa issue ou numa mensagem: podem ter dado de paciente.
 
@@ -244,7 +245,7 @@ que a sua mudança nunca produziria):
    fluxos afetados e atualize a evidência antes da rodada seguinte.
 
 A pasta `evidence/` fica no `.gitignore` e nunca entra num commit, numa PR ou
-numa mensagem. Apague `evidence/<tarefa>/` e `review/<tarefa>/` depois do
+numa mensagem. Apague `evidence/<tarefa>/`, `review/<tarefa>/` e `qa/<alvo>/` depois do
 merge.
 
 ## Revisão adversária

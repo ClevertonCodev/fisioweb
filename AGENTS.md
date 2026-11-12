@@ -144,7 +144,7 @@ Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/
 | Revisão de segurança e autorização (Policies, `clinic_id`, permissions.ts, RequireClinicAdmin) | [`security-audit`](.claude/skills/security-audit/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.claude/skills/prototype/SKILL.md) |
 | Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.claude/skills/qa-navegador/SKILL.md) |
-| QA de aceite: conferir os critérios de aceite da entrega com vídeo e decidir se dispensa o QA humano (`docs/ai-harness/DEFINICAO_DE_QA.md`; só o usuário chama) | [`qa-aceite`](.claude/skills/qa-aceite/SKILL.md) |
+| QA de aceite: conferir os critérios de aceite da entrega com vídeo e decidir se dispensa o QA humano; pergunta quantos testadores rodar, de 2 a 5 (`docs/ai-harness/DEFINICAO_DE_QA.md`; só o usuário chama) | [`qa-aceite`](.claude/skills/qa-aceite/SKILL.md) |
 
 ### Diagnóstico e arquitetura
 | Vou fazer | Skill |

@@ -8,6 +8,8 @@ testando na mão antes do merge (o "QA humano").
 
 Quem conduz é a skill `qa-aceite`. Quem testa é o subagente
 `testador-de-aceite`, com a conversa limpa e sem ver o diff.
+A skill recomenda quantos testadores rodam em paralelo, e o operador escolhe
+de 2 a 5.
 
 O QA de aceite fica **fora do ciclo e da Definição de Pronto**: só roda quando o
 desenvolvedor chama. Nenhuma outra skill sugere nem roda o QA por conta própria.

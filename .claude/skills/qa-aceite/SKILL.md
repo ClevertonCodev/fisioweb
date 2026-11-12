@@ -147,15 +147,10 @@ Como fatiar:
   testador só montar o cenário.
 - **Um usuário QA por fatia de tela** (seção "Usuários de teste").
 
-**Pergunte quantos testadores antes de chamar.** Cada testador é um subagente
-que consome muitos tokens, e quem paga decide. Depois de juntar os critérios e
-antes de criar usuários, pergunte com a ferramenta de pergunta
-(`AskUserQuestion`): "Quantos testadores em paralelo?", com as opções **2, 3,
-4 e 5**. Na pergunta, diga quantos critérios e telas há e marque como
-recomendada a menor quantidade que cabe (uma fatia por grupo de telas, mais a
-de testes). Siga a escolha: com menos testadores, junte fatias (a de testes
-pode ir junto com uma de tela, que então roda teste). Entrega pequena (uma
-tela, até uns 5 critérios) não pergunta: um testador só. Nunca passe de 5.
+**Pergunte quantos testadores.** Com os critérios classificados e as fatias
+montadas, recomende quantos testadores rodar e pergunte ao operador
+(`AskUserQuestion`), com as opções 2, 3, 4 e 5 e a recomendação marcada. Siga a
+escolha: com menos testadores, junte fatias.
 
 Escreva a divisão no `criterios.md` (seção `## Fatias`: fatia, critérios,
 usuário) e chame **todos os testadores na mesma mensagem**, para rodarem ao mesmo
@@ -177,7 +172,7 @@ Cada fatia grava o seu `QA-<fatia>.md` na pasta de QA (ex.: `QA-usuarios.md`,
 - a rodada e, da segunda em diante, quais critérios refazer.
 
 Entrega pequena (uma tela, até uns 5 critérios): um testador só, com saída
-`QA.md`.
+`QA.md`, sem perguntar.
 
 **Não mande**: o diff, o resumo do que você fez, a evidência do smoke test, a
 sua opinião sobre o que vai passar. Quanto menos ele souber da implementação,

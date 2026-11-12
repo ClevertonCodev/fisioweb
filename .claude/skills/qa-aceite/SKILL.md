@@ -146,7 +146,16 @@ Como fatiar:
   ficam juntos** numa fatia (isolamento, "outra clínica não vê"), para um
   testador só montar o cenário.
 - **Um usuário QA por fatia de tela** (seção "Usuários de teste").
-- De 3 a 5 fatias. Mais que isso, o ambiente vira o gargalo.
+
+**Pergunte quantos testadores antes de chamar.** Cada testador é um subagente
+que consome muitos tokens, e quem paga decide. Depois de juntar os critérios e
+antes de criar usuários, pergunte com a ferramenta de pergunta
+(`AskUserQuestion`): "Quantos testadores em paralelo?", com as opções **2, 3,
+4 e 5**. Na pergunta, diga quantos critérios e telas há e marque como
+recomendada a menor quantidade que cabe (uma fatia por grupo de telas, mais a
+de testes). Siga a escolha: com menos testadores, junte fatias (a de testes
+pode ir junto com uma de tela, que então roda teste). Entrega pequena (uma
+tela, até uns 5 critérios) não pergunta: um testador só. Nunca passe de 5.
 
 Escreva a divisão no `criterios.md` (seção `## Fatias`: fatia, critérios,
 usuário) e chame **todos os testadores na mesma mensagem**, para rodarem ao mesmo

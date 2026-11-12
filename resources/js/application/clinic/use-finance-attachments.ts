@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+import { useOpenSignedLink } from '@/application/clinic/use-open-signed-link';
 import { getValidationErrors } from '@/application/clinic/validation-errors';
 import type { ApiErrorResponse } from '@/domain/api';
 import { apiClinicFinanceAttachmentsRepository } from '@/infrastructure/repositories/api-clinic-finance-attachments';
@@ -73,31 +74,13 @@ export function useDeleteFinanceAttachment(transactionId: string) {
     });
 }
 
-/**
- * Abre o comprovante numa aba nova pelo link assinado. A aba abre antes do
- * pedido (no clique), senão o navegador do celular bloqueia como pop-up.
- */
 export function useOpenFinanceAttachment(transactionId: string) {
-    return useMutation({
-        mutationFn: async (attachmentId: string) => {
-            const tab = window.open('', '_blank');
-            try {
-                const link =
-                    await apiClinicFinanceAttachmentsRepository.signedUrl(
-                        transactionId,
-                        attachmentId,
-                    );
-                if (tab) {
-                    tab.opener = null;
-                    tab.location.href = link.url;
-                } else window.location.assign(link.url);
-                return link;
-            } catch (error) {
-                tab?.close();
-                throw error;
-            }
-        },
-        onError: () =>
-            toast.error('Não foi possível abrir o comprovante. Tente de novo.'),
-    });
+    return useOpenSignedLink(
+        (attachmentId) =>
+            apiClinicFinanceAttachmentsRepository.signedUrl(
+                transactionId,
+                attachmentId,
+            ),
+        'Não foi possível abrir o comprovante. Tente de novo.',
+    );
 }

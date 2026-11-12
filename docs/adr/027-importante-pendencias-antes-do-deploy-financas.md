@@ -175,7 +175,9 @@ ter dado de paciente. Mas o `.gitignore` só ignora `evidence/` e `review/`, e 1
 (`.ai-workbench/002-isolamento-clinicas-e-papeis/`), o laudo e o exame do
 paciente seguem o caminho do comprovante: a API não grava nem devolve o
 `cdn_url` e o arquivo só abre pelo link assinado de 5 minutos de
-`GET /api/clinic/patients/{paciente}/files/{arquivo}/url`. O arquivo continua no
+`GET /api/clinic/patients/{paciente}/files/{arquivo}/url` (as prévias das imagens
+vêm em lote, com o mesmo link, de `GET /api/clinic/patients/{paciente}/files/previews`).
+O arquivo continua no
 mesmo bucket que o CDN serve em público, e o link assinado mostra o caminho
 (`patients/files/{uuid}.pdf`). Sem a regra, quem viu o link uma vez troca o
 domínio pelo do CDN e abre o laudo para sempre, sem login. É dado de saúde

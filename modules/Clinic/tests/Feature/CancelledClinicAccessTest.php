@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Modules\Admin\Models\User as AdminUser;
 use Modules\Clinic\Models\Clinic;
@@ -171,6 +172,24 @@ class CancelledClinicAccessTest extends TestCase
 
         $this->assertSame(Clinic::STATUS_CANCELLED, $this->clinic->fresh()->status);
         $this->assertSame(Clinic::STATUS_ACTIVE, $clinicB->fresh()->status);
+    }
+
+    public function test_the_provider_finds_the_active_user_of_a_live_clinic_in_a_single_query(): void
+    {
+        $inactive = $this->userOf($this->clinic);
+        $inactive->forceFill(['status' => ClinicUser::STATUS_INACTIVE])->save();
+        $provider = auth('clinic')->getProvider();
+
+        DB::enableQueryLog();
+        $found   = $provider->retrieveById($this->admin->id);
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $this->assertTrue($this->admin->is($found));
+        $this->assertCount(1, $queries);
+        $this->assertNull($provider->retrieveById($inactive->id));
+        $this->cancel($this->clinic);
+        $this->assertNull($provider->retrieveById($this->admin->id));
     }
 
     private function cancel(Clinic $clinic): void

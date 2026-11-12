@@ -150,9 +150,14 @@ Três restrições moldaram a solução:
    - Proposta em vídeo sem nenhum exercício ligado não entra na fila nem no
      contador (ver `DEFERRED.md` da feature 002).
 10. **Aprovar e rejeitar decidem sobre a mídia que o operador viu.** O
-    `proposal_version` é um hash das chaves `proposed_*`
-    (`MediaProposal::$version`), e muda a cada troca da clínica, mesmo no mesmo
-    segundo. O Media lê o vídeo com `lockForUpdate`, confere a versão e, se ela
+    `proposal_version` é um hash das chaves `proposed_*` e da mídia atual do
+    vídeo (`thumbnail_path` e os caminhos de `reference_images`)
+    (`MediaProposal::$version`). Muda a cada troca da clínica, mesmo no mesmo
+    segundo, e também quando o operador troca a mídia do vídeo direto depois da
+    proposta: aprovar a proposta antiga desfaria essa troca (code review de
+    2026-11-11). A troca direta do operador (`syncReferenceImages`) também lê o
+    vídeo com `lockForUpdate` dentro de uma transação, para não regravar uma
+    proposta já decidida. O Media lê o vídeo com `lockForUpdate`, confere a versão e, se ela
     mudou, responde 409 ("A proposta mudou desde que a revisão foi aberta.
     Recarregue a lista e confira a mídia nova.") sem tocar em nada. O Admin usa
     só o contrato do Media (`VideoServiceInterface::pendingMediaProposals`,

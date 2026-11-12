@@ -313,6 +313,26 @@ class ExerciseMediaProposalReviewTest extends TestCase
         $this->assertSame([self::CURRENT_IMAGE], ExerciseMedia::where('exercise_id', $exercise->id)->pluck('file_path')->all());
     }
 
+    public function test_approving_after_the_operator_changed_the_images_directly_is_a_conflict(): void
+    {
+        $video    = $this->approvedVideoOfA();
+        $exercise = $this->approvedExerciseOfA($video);
+        $this->proposeByClinicA($video);
+        $seenByOperator = $this->decision($video);
+
+        $direct = 'thumbnails/videos/troca-direta-do-operador.jpg';
+        $this->actingAs($this->operator, 'admin')
+            ->putJson("/api/admin/media/videos/{$video->id}/reference-images", ['reference_image_paths' => [$direct]])
+            ->assertOk();
+
+        $this->actingAs($this->operator, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/media-proposal/approve", $seenByOperator)
+            ->assertStatus(409);
+
+        $this->assertSame([$direct], array_column($video->fresh()->metadata['reference_images'], 'file_path'));
+        $this->assertSame([$direct], ExerciseMedia::where('exercise_id', $exercise->id)->pluck('file_path')->all());
+    }
+
     public function test_clinic_users_get_401_on_every_review_route_and_nothing_changes(): void
     {
         $video    = $this->approvedVideoOfA();

@@ -82,6 +82,7 @@ class ClinicalRecordRouteCompatibilityTest extends TestCase
             'api/clinic/patients/{patient}/assessments'      => ['GET', 'HEAD', 'POST'],
             'api/clinic/patients/{patient}/evolutions'       => ['GET', 'HEAD', 'POST'],
             'api/clinic/patients/{patient}/files'            => ['GET', 'HEAD', 'POST'],
+            'api/clinic/patients/{patient}/files/previews'   => ['GET', 'HEAD'],
             'api/clinic/patients/{patient}/files/{file}'     => ['DELETE'],
             'api/clinic/patients/{patient}/files/{file}/url' => ['GET', 'HEAD'],
         ];

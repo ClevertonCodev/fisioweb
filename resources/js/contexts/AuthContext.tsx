@@ -26,7 +26,10 @@ import {
     clearStoredAuth,
     getStoredAuth,
     getStoredAuthForPage,
+    isTabSession,
     setPatientClinicSlug,
+    STORED_TOKEN_REPLACED,
+    type StoredTokenReplaced,
 } from '@/infrastructure/api/client';
 
 const WARN_BEFORE_MS = 5 * 60 * 1000; // 5 minutos antes de expirar
@@ -44,6 +47,7 @@ interface AuthContextValue extends AuthState {
     logout: (guard: AuthGuard) => Promise<void>;
     setUser: (user: User | null, guard: AuthGuard | null) => void;
     refreshSession: () => Promise<void>;
+    isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -200,6 +204,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
+        const onReplaced = (event: Event) => {
+            const { token } = (event as CustomEvent<StoredTokenReplaced>)
+                .detail;
+            toast.dismiss('session-expiry-warning');
+            scheduleExpiryWarning(token);
+        };
+        window.addEventListener(STORED_TOKEN_REPLACED, onReplaced);
+        return () =>
+            window.removeEventListener(STORED_TOKEN_REPLACED, onReplaced);
+    }, [scheduleExpiryWarning]);
+
+    useEffect(() => {
         const auth = getStoredAuthForPage();
         if (!auth) return;
         apiClient
@@ -241,6 +257,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             logout,
             setUser,
             refreshSession,
+            isImpersonating: !!state.guard && isTabSession(state.guard),
         }),
         [state, login, completeFirstAccess, logout, setUser, refreshSession],
     );

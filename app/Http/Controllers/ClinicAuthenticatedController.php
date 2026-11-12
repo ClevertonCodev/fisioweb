@@ -32,21 +32,36 @@ abstract class ClinicAuthenticatedController extends Controller
         return (int) $this->clinicUser()->getAuthIdentifier();
     }
 
+    protected function impersonatorId(): ?int
+    {
+        $guard = Auth::guard('clinic');
+
+        if (is_null($guard->getToken())) {
+            return null;
+        }
+
+        $operatorId = $guard->getPayload()->get('impersonated_by');
+
+        return is_null($operatorId) ? null : (int) $operatorId;
+    }
+
     /**
      * Troca o token desta requisição por um novo, emitido agora: serve a quem
-     * acabou de trocar a própria senha e continua logado.
+     * acabou de trocar a própria senha e continua logado. A marca do "entrar
+     * como" passa adiante para a auditoria continuar valendo.
      *
      * @return array{access_token: string, token_type: string, expires_in: int}
      */
     protected function reissueClinicToken(): array
     {
-        $guard = Auth::guard('clinic');
-        $user  = $this->clinicUser();
+        $guard      = Auth::guard('clinic');
+        $user       = $this->clinicUser();
+        $operatorId = $this->impersonatorId();
 
         $guard->invalidate();
 
         return [
-            'access_token' => $guard->login($user),
+            'access_token' => $guard->claims(is_null($operatorId) ? [] : ['impersonated_by' => $operatorId])->login($user),
             'token_type'   => 'bearer',
             'expires_in'   => $guard->factory()->getTTL() * 60,
         ];

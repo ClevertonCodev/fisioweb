@@ -13,7 +13,6 @@ return [
         ],
 
         'admin' => [
-            // JWT que recusa o token emitido antes da troca de senha (App\Auth\PasswordAwareJwtGuard).
             'driver'   => 'jwt_password_aware',
             'provider' => 'users',
         ],

@@ -52,6 +52,15 @@ class PatientFileService implements PatientFileServiceInterface
         return ['url' => $link['url'], 'expires_at' => $link['expires_at']];
     }
 
+    public function imagePreviews(int $clinicId, int $patientId): array
+    {
+        return $this->repository->listByPatient($clinicId, $patientId)
+            ->filter(fn (PatientFile $file) => str_starts_with((string) $file->mime_type, 'image/'))
+            ->map(fn (PatientFile $file) => ['file_id' => (int) $file->id] + $this->signedUrl($file))
+            ->values()
+            ->all();
+    }
+
     public function store(int $clinicId, int $patientId, int $clinicUserId, UploadedFile $upload, ?string $name = null): PatientFile
     {
         $type     = $this->contentTypeOf($upload);
@@ -62,16 +71,22 @@ class PatientFileService implements PatientFileServiceInterface
             $type,
         );
 
-        $file = $this->repository->create([
-            'clinic_id'      => $clinicId,
-            'patient_id'     => $patientId,
-            'clinic_user_id' => $clinicUserId,
-            'original_name'  => $uploaded['original_filename'],
-            'name'           => $name,
-            'file_path'      => $uploaded['path'],
-            'mime_type'      => $uploaded['mime_type'],
-            'size'           => $uploaded['size'],
-        ]);
+        try {
+            $file = $this->repository->create([
+                'clinic_id'      => $clinicId,
+                'patient_id'     => $patientId,
+                'clinic_user_id' => $clinicUserId,
+                'original_name'  => $uploaded['original_filename'],
+                'name'           => $name,
+                'file_path'      => $uploaded['path'],
+                'mime_type'      => $uploaded['mime_type'],
+                'size'           => $uploaded['size'],
+            ]);
+        } catch (\Throwable $e) {
+            $this->deleteStoredObject($uploaded['path']);
+
+            throw $e;
+        }
 
         $this->dispatchEvent(new PatientFileAttached(
             self::EVENT_VERSION,

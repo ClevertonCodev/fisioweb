@@ -17,6 +17,11 @@ interface PatientFileServiceInterface
      */
     public function signedUrl(PatientFile $file): array;
 
+    /**
+     * @return list<array{file_id: int, url: string, expires_at: string}>
+     */
+    public function imagePreviews(int $clinicId, int $patientId): array;
+
     public function store(int $clinicId, int $patientId, int $clinicUserId, UploadedFile $upload, ?string $name = null): PatientFile;
 
     public function destroy(PatientFile $file): void;

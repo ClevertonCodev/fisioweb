@@ -158,4 +158,9 @@ describe('can.changeCredentials', () => {
         expect(can.changeCredentials(0, false)).toBe(true);
         expect(can.changeCredentials(undefined, false)).toBe(true);
     });
+
+    it('no "entrar como", o operador não troca as do mestre, mesmo logado como ele', () => {
+        expect(can.changeCredentials(1, true, true)).toBe(false);
+        expect(can.changeCredentials(0, true, true)).toBe(true);
+    });
 });

@@ -3,6 +3,7 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
@@ -12,6 +13,7 @@ use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Media\Events\VideoReferenceImagesChanged;
 use Modules\Media\Models\Video;
+use Modules\Media\Repositories\VideoRepository;
 use Tests\TestCase;
 
 class VideoReferenceImagesTest extends TestCase
@@ -45,6 +47,36 @@ class VideoReferenceImagesTest extends TestCase
             ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
+    }
+
+    public function test_the_operator_change_reads_the_video_locked_inside_a_transaction(): void
+    {
+        $admin = AdminUser::factory()->create();
+        $video = Video::factory()->create(['status' => Video::STATUS_COMPLETED]);
+        $spy   = new class(new Video) extends VideoRepository
+        {
+            /** @var list<array{id: int, transaction_level: int}> */
+            public array $lockedReads = [];
+
+            public function findForUpdate(int $id): Video
+            {
+                $this->lockedReads[] = ['id' => $id, 'transaction_level' => DB::transactionLevel()];
+
+                return parent::findForUpdate($id);
+            }
+        };
+        $this->app->instance(VideoRepository::class, $spy);
+        $levelBefore = DB::transactionLevel();
+
+        $this->actingAs($admin, 'admin')
+            ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
+                'reference_image_paths' => ['thumbnails/videos/ref-1.jpeg'],
+            ])
+            ->assertOk();
+
+        $this->assertNotEmpty($spy->lockedReads);
+        $this->assertSame($video->id, $spy->lockedReads[0]['id']);
+        $this->assertGreaterThan($levelBefore, $spy->lockedReads[0]['transaction_level']);
     }
 
     public function test_admin_rejects_more_than_two_reference_images(): void

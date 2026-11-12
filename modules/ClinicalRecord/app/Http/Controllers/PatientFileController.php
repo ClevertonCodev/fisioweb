@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Modules\ClinicalRecord\Contracts\PatientFileServiceInterface;
 use Modules\ClinicalRecord\Http\Requests\StorePatientFileRequest;
+use Modules\ClinicalRecord\Models\PatientFile;
 use Modules\Patient\Contracts\PatientServiceInterface;
 
 class PatientFileController extends ClinicAuthenticatedController
@@ -23,6 +24,8 @@ class PatientFileController extends ClinicAuthenticatedController
         if (!$this->isClinicPatient($clinicId, $patient)) {
             return $this->patientNotFound();
         }
+
+        $this->authorize('viewAny', PatientFile::class);
 
         $files = $this->patientFileService->listByPatient($clinicId, $patient);
 
@@ -46,6 +49,19 @@ class PatientFileController extends ClinicAuthenticatedController
         );
 
         return response()->json(['data' => $file], 201);
+    }
+
+    public function previews(int $patient): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+
+        if (!$this->isClinicPatient($clinicId, $patient)) {
+            return $this->patientNotFound();
+        }
+
+        $this->authorize('viewAny', PatientFile::class);
+
+        return response()->json(['data' => $this->patientFileService->imagePreviews($clinicId, $patient)]);
     }
 
     public function signedUrl(int $patient, int $file): JsonResponse

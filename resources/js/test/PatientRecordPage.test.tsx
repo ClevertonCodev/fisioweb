@@ -77,6 +77,7 @@ const listFiles = vi.fn();
 const storeFile = vi.fn();
 const destroyFile = vi.fn();
 const getFileUrl = vi.fn();
+const listFilePreviews = vi.fn();
 const listAppointments = vi.fn();
 const listPrograms = vi.fn();
 
@@ -130,6 +131,7 @@ vi.mock('@/infrastructure/repositories/api-clinic-patient-files', () => ({
         store: (...args: unknown[]) => storeFile(...args),
         destroy: (...args: unknown[]) => destroyFile(...args),
         getUrl: (...args: unknown[]) => getFileUrl(...args),
+        listPreviews: (...args: unknown[]) => listFilePreviews(...args),
     },
 }));
 
@@ -473,6 +475,7 @@ beforeEach(() => {
         },
     ]);
     listFiles.mockResolvedValue([]);
+    listFilePreviews.mockResolvedValue([]);
     storeFile.mockResolvedValue(makeFile());
     destroyFile.mockResolvedValue(undefined);
     getFileUrl.mockResolvedValue({
@@ -738,7 +741,7 @@ describe('prontuário do paciente (painel B)', () => {
         expect(tab.opener).toBeNull();
     });
 
-    it('imagem do prontuário aparece pelo link assinado, pedido com o login', async () => {
+    it('imagem do prontuário aparece pelo link assinado, com as prévias do paciente numa requisição só', async () => {
         listFiles.mockResolvedValue([
             makeFile({
                 id: 52,
@@ -747,10 +750,13 @@ describe('prontuário do paciente (painel B)', () => {
                 mimeType: 'image/png',
             }),
         ]);
-        getFileUrl.mockResolvedValue({
-            url: 'https://r2.example/postura.png?X-Amz-Signature=def',
-            expiresAt: '2026-10-12T09:05:00Z',
-        });
+        listFilePreviews.mockResolvedValue([
+            {
+                fileId: 52,
+                url: 'https://r2.example/postura.png?X-Amz-Signature=def',
+                expiresAt: '2026-10-12T09:05:00Z',
+            },
+        ]);
 
         const { container } = renderPage('/clinica/pacientes/108?tab=arquivos');
 
@@ -761,7 +767,8 @@ describe('prontuário do paciente (painel B)', () => {
                 ),
             ).not.toBeNull();
         });
-        expect(getFileUrl).toHaveBeenCalledWith('108', '52');
+        expect(listFilePreviews).toHaveBeenCalledWith('108');
+        expect(getFileUrl).not.toHaveBeenCalled();
     });
 
     it('link do arquivo que falha fecha a aba e avisa', async () => {

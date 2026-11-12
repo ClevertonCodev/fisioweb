@@ -14,6 +14,7 @@ import {
 } from '@/application/clinic/clinic-user-form';
 import {
     can,
+    IMPERSONATION_CREDENTIALS_REASON,
     MASTER_CREDENTIALS_REASON,
 } from '@/application/clinic/permissions';
 import type { ClinicUserUpdateDto } from '@/application/clinic/ports';
@@ -41,7 +42,7 @@ import { UserFormLayout } from './user-form/UserFormLayout';
 export function UserEditPage() {
     const { id = '' } = useParams();
     const navigate = useNavigate();
-    const { user: authUser } = useAuth();
+    const { user: authUser, isImpersonating } = useAuth();
     const { data: user, isLoading, isError } = useClinicUser(id);
     const canManageUsers = can.manageUsers(authUser?.role as ClinicRole);
     const role = user ? normalizeClinicUserRole(user.role) : null;
@@ -84,6 +85,7 @@ export function UserEditPage() {
                 role={role}
                 canManageUsers={canManageUsers}
                 isOwnProfile={String(authUser?.id) === String(user.id)}
+                isImpersonating={isImpersonating}
                 backTo={backTo}
             />
         );
@@ -97,12 +99,14 @@ function Editor({
     role,
     canManageUsers,
     isOwnProfile,
+    isImpersonating,
     backTo,
 }: {
     user: ClinicUserSummary;
     role: ClinicUserFormRole;
     canManageUsers: boolean;
     isOwnProfile: boolean;
+    isImpersonating: boolean;
     backTo: string;
 }) {
     const navigate = useNavigate();
@@ -110,9 +114,15 @@ function Editor({
     const uploadPhoto = useUploadClinicUserPhoto();
     const deletePhoto = useDeleteClinicUserPhoto();
 
-    const credentialsLock = can.changeCredentials(user.mestre, isOwnProfile)
+    const credentialsLock = can.changeCredentials(
+        user.mestre,
+        isOwnProfile,
+        isImpersonating,
+    )
         ? null
-        : MASTER_CREDENTIALS_REASON;
+        : isImpersonating && isOwnProfile
+          ? IMPERSONATION_CREDENTIALS_REASON
+          : MASTER_CREDENTIALS_REASON;
 
     const onSave = async (values: UserFormValues, photo: PhotoChange) => {
         const payload: ClinicUserUpdateDto = {

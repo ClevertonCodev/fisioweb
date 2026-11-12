@@ -99,8 +99,9 @@ let authUser: {
     role: 'admin',
     mestre: 0,
 };
+let isImpersonating = false;
 vi.mock('@/contexts/AuthContext', () => ({
-    useAuth: () => ({ user: authUser }),
+    useAuth: () => ({ user: authUser, isImpersonating }),
 }));
 
 function renderNew() {
@@ -152,6 +153,7 @@ function roleCard(name: RegExp) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    isImpersonating = false;
     googleStatus = { connected: false };
     authUser = {
         id: 1,
@@ -823,6 +825,19 @@ describe('edição de usuário (tela de verdade)', () => {
         expect(
             screen.queryByText('Só o mestre altera o e-mail e a senha dele.'),
         ).toBeNull();
+    });
+
+    it('no "entrar como" do mestre, e-mail e senha ficam travados com o motivo do "entrar como"', async () => {
+        authUser = { ...authUser, id: 2, mestre: 1 };
+        isImpersonating = true;
+        renderEdit(member({ id: '2', role: 'admin', mestre: 1 }));
+
+        expect(await screen.findByLabelText('E-mail')).toBeDisabled();
+        expect(
+            screen.getAllByText(
+                'No "entrar como", o e-mail e a senha do mestre não mudam. Para devolver o acesso, use o link de nova senha.',
+            ).length,
+        ).toBeGreaterThan(0);
     });
 
     it('mestre que a v1 deixou inativo abre ativo e salvar o reativa', async () => {

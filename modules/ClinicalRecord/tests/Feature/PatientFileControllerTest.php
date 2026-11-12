@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicalRecord\Contracts\PatientFileRepositoryInterface;
 use Modules\ClinicalRecord\Models\PatientFile;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
@@ -128,6 +129,28 @@ class PatientFileControllerTest extends TestCase
             'file_path'  => 'patients/files/arquivo.pdf',
             'cdn_url'    => null,
         ]);
+    }
+
+    public function test_upload_removes_the_object_when_the_record_cannot_be_saved(): void
+    {
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('uploadFileAs')->once()->andReturn([
+                'filename'          => 'arquivo.pdf',
+                'original_filename' => 'meu-arquivo.pdf',
+                'path'              => 'patients/files/arquivo.pdf',
+                'mime_type'         => 'application/pdf',
+                'size'              => 204800,
+            ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->with('patients/files/arquivo.pdf');
+        });
+        $this->mock(PatientFileRepositoryInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('create')->once()->andThrow(new \RuntimeException('banco fora do ar'));
+        });
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patient->id}/files", [
+                'file' => UploadedFile::fake()->create('meu-arquivo.pdf', 200, 'application/pdf'),
+            ])->assertServerError();
     }
 
     public function test_upload_accepts_jpeg_png_and_docx(): void

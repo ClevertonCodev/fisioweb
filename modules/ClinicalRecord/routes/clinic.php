@@ -15,6 +15,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::post('{patient}/evolutions', [EvolutionController::class, 'storeForPatient'])->name('evolutions.store');
         Route::get('{patient}/files', [PatientFileController::class, 'index'])->name('files.index');
         Route::post('{patient}/files', [PatientFileController::class, 'store'])->name('files.store');
+        Route::get('{patient}/files/previews', [PatientFileController::class, 'previews'])->whereNumber('patient')->name('files.previews');
         Route::get('{patient}/files/{file}/url', [PatientFileController::class, 'signedUrl'])->whereNumber(['patient', 'file'])->name('files.url');
         Route::delete('{patient}/files/{file}', [PatientFileController::class, 'destroy'])->name('files.destroy');
     });

@@ -11,7 +11,7 @@ interface ClinicUserServiceInterface
 
     public function create(array $data, int $clinicId): ClinicUser;
 
-    public function update(ClinicUser $clinicUser, array $data): ClinicUser;
+    public function update(ClinicUser $clinicUser, array $data, bool $impersonating): ClinicUser;
 
     public function delete(ClinicUser $clinicUser): void;
 }

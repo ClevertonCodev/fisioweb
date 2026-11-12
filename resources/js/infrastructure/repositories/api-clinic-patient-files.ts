@@ -2,7 +2,11 @@ import type {
     PatientFilesRepository,
     PatientFileStoreOptions,
 } from '@/application/clinic/ports';
-import type { PatientFile, PatientFileLink } from '@/domain/clinic';
+import type {
+    PatientFile,
+    PatientFileLink,
+    PatientFilePreview,
+} from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
 interface ApiPatientFileDto {
@@ -67,5 +71,16 @@ export const apiClinicPatientFilesRepository: PatientFilesRepository = {
             data: { url: string; expires_at: string };
         }>(`/clinic/patients/${patientId}/files/${fileId}/url`);
         return { url: res.data.data.url, expiresAt: res.data.data.expires_at };
+    },
+
+    async listPreviews(patientId): Promise<PatientFilePreview[]> {
+        const res = await apiClient.get<{
+            data: { file_id: number; url: string; expires_at: string }[];
+        }>(`/clinic/patients/${patientId}/files/previews`);
+        return res.data.data.map((p) => ({
+            fileId: p.file_id,
+            url: p.url,
+            expiresAt: p.expires_at,
+        }));
     },
 };

@@ -249,7 +249,7 @@ function AttachmentRow({
                 type="button"
                 aria-label={`Abrir ${name}`}
                 disabled={open.isPending}
-                onClick={() => open.mutate(attachment.id)}
+                onClick={() => open.open(attachment.id)}
                 className="min-w-0 flex-1 cursor-pointer text-left disabled:cursor-wait"
             >
                 <span className="block truncate text-ds-body-sm text-ds-content-brand underline-offset-2 hover:underline ds-dark:text-ds-primary-60">

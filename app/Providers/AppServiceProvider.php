@@ -22,7 +22,6 @@ class AppServiceProvider extends ServiceProvider
         $this->registerPasswordAwareJwtGuard();
     }
 
-    /** Driver dos guards `admin` e `clinic` (config/auth.php): o mesmo `jwt` da lib, com a recusa por troca de senha. */
     protected function registerPasswordAwareJwtGuard(): void
     {
         Auth::extend('jwt_password_aware', function ($app, string $name, array $config) {

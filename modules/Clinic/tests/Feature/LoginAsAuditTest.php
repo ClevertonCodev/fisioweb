@@ -73,6 +73,49 @@ class LoginAsAuditTest extends TestCase
         $this->withToken($token)->getJson('/api/clinic/auth/me')->assertOk()->assertJsonPath('id', $this->master->id);
     }
 
+    public function test_changing_own_password_while_impersonating_keeps_the_impersonation_mark(): void
+    {
+        $this->master->forceFill(['status' => ClinicUser::STATUS_INACTIVE])->save();
+        $admin = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+        $token = $this->loginAs($this->clinic)->assertOk()->json('access_token');
+        $this->travel(1)->seconds();
+
+        $this->forgetSession();
+        $newToken = $this->withToken($token)
+            ->putJson("/api/clinic/users/{$admin->id}", ['password' => 'novaSenha123'])
+            ->assertOk()
+            ->json('access_token');
+
+        $payload = json_decode(base64_decode(strtr(explode('.', $newToken)[1], '-_', '+/')), true);
+        $this->assertSame($admin->id, (int) $payload['sub']);
+        $this->assertSame($this->operator->id, $payload['impersonated_by'] ?? null);
+    }
+
+    public function test_the_operator_impersonating_the_master_cannot_change_the_master_credentials(): void
+    {
+        $token = $this->loginAs($this->clinic)->assertOk()->json('access_token');
+        $email = $this->master->email;
+
+        $this->forgetSession();
+        $this->withToken($token)
+            ->putJson("/api/clinic/users/{$this->master->id}", ['email' => 'outro-email@exemplo.com'])
+            ->assertForbidden();
+
+        $this->forgetSession();
+        $this->withToken($token)
+            ->putJson("/api/clinic/users/{$this->master->id}", ['password' => 'novaSenha123'])
+            ->assertForbidden();
+
+        $this->forgetSession();
+        $this->withToken($token)
+            ->putJson("/api/clinic/users/{$this->master->id}", ['name' => 'Mestre Renomeado', 'email' => strtoupper($email)])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Mestre Renomeado');
+
+        $this->assertSame($email, $this->master->fresh()->email);
+        $this->assertNull($this->master->fresh()->password_changed_at);
+    }
+
     public function test_the_clinic_detail_brings_the_last_ten_login_as_of_that_clinic_most_recent_first(): void
     {
         $otherOperator = AdminUser::factory()->create(['name' => 'Operador Bruno']);
@@ -208,6 +251,7 @@ class LoginAsAuditTest extends TestCase
     private function forgetSession(): void
     {
         $this->app['auth']->forgetGuards();
-        $this->app['tymon.jwt']->unsetToken();
+        $this->app['tymon.jwt']->unsetToken()->customClaims([]);
+        $this->app['tymon.jwt.payload.factory']->emptyClaims();
     }
 }

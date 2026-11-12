@@ -22,6 +22,19 @@ export interface PendingExercise {
     created_at: string;
 }
 
+const PAGE_SIZE = 100;
+
+async function allPages<T>(
+    fetchPage: (page: number) => Promise<{ items: T[]; lastPage: number }>,
+): Promise<T[]> {
+    const first = await fetchPage(1);
+    const items = [...first.items];
+    for (let page = 2; page <= first.lastPage; page++) {
+        items.push(...(await fetchPage(page)).items);
+    }
+    return items;
+}
+
 function mapPending(raw: Record<string, unknown>): PendingExercise {
     return {
         id: raw.id as number,
@@ -117,11 +130,17 @@ export const apiAdminExerciseReviewRepository = {
     },
 
     async listPending(): Promise<PendingExercise[]> {
-        const { data } = await apiClient.get<{ data: { data?: unknown[] } }>(
-            '/admin/exercises',
-            { params: { review_status: 'pending', per_page: 100 } },
-        );
-        const items = data?.data?.data ?? [];
+        const items = await allPages(async (page) => {
+            const { data } = await apiClient.get<{
+                data: { data?: unknown[]; last_page?: number };
+            }>('/admin/exercises', {
+                params: { review_status: 'pending', per_page: PAGE_SIZE, page },
+            });
+            return {
+                items: data?.data?.data ?? [],
+                lastPage: data?.data?.last_page ?? 1,
+            };
+        });
         return items.map((e) => mapPending(e as Record<string, unknown>));
     },
 
@@ -134,11 +153,19 @@ export const apiAdminExerciseReviewRepository = {
     },
 
     async listMediaProposals(): Promise<MediaProposal[]> {
-        const { data } = await apiClient.get<{ data: ApiMediaProposal[] }>(
-            '/admin/exercises/media-proposals',
-            { params: { per_page: 100 } },
-        );
-        return (data?.data ?? []).map(mapMediaProposal);
+        const items = await allPages(async (page) => {
+            const { data } = await apiClient.get<{
+                data: ApiMediaProposal[];
+                meta?: { last_page?: number };
+            }>('/admin/exercises/media-proposals', {
+                params: { per_page: PAGE_SIZE, page },
+            });
+            return {
+                items: data?.data ?? [],
+                lastPage: data?.meta?.last_page ?? 1,
+            };
+        });
+        return items.map(mapMediaProposal);
     },
 
     async approveMediaProposal(decision: MediaProposalDecision): Promise<void> {

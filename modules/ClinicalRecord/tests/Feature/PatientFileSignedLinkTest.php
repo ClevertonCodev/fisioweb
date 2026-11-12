@@ -6,6 +6,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
@@ -235,6 +236,62 @@ class PatientFileSignedLinkTest extends TestCase
         $as->getJson("{$this->filesUrl()}/{$deleted->id}/url")->assertNotFound();
     }
 
+    public function test_any_role_lists_the_files_and_the_previews_sign_only_the_images_of_the_patient(): void
+    {
+        $png          = PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['original_name' => 'raio-x.png', 'file_path' => 'patients/files/a.png', 'mime_type' => 'image/png']);
+        $jpeg         = PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['original_name' => 'foto.jpg', 'file_path' => 'patients/files/b.jpg', 'mime_type' => 'image/jpeg']);
+        PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['file_path' => 'patients/files/c.pdf', 'mime_type' => 'application/pdf']);
+        $deleted      = PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['file_path' => 'patients/files/d.png', 'mime_type' => 'image/png']);
+        $deleted->delete();
+        $otherPatient = Patient::factory()->forClinic($this->clinic)->create();
+        PatientFile::factory()->forPatient($otherPatient, $this->clinic)->create(['file_path' => 'patients/files/e.png', 'mime_type' => 'image/png']);
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('createPresignedDownloadUrl')->twice()->andReturnUsing(
+                fn (string $path) => ['url' => "https://assinado/{$path}", 'expires_at' => '2026-11-11T12:05:00.000000Z'],
+            );
+        });
+
+        $physio = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
+        foreach ([$this->secretary, $physio] as $user) {
+            $this->actingAs($user, 'clinic')->getJson($this->filesUrl())->assertOk()->assertJsonCount(3, 'data');
+        }
+
+        $rows = $this->actingAs($this->secretary, 'clinic')
+            ->getJson("{$this->filesUrl()}/previews")
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->json('data');
+
+        $this->assertEqualsCanonicalizing([
+            ['file_id' => $png->id, 'url' => 'https://assinado/patients/files/a.png', 'expires_at' => '2026-11-11T12:05:00.000000Z'],
+            ['file_id' => $jpeg->id, 'url' => 'https://assinado/patients/files/b.jpg', 'expires_at' => '2026-11-11T12:05:00.000000Z'],
+        ], $rows);
+    }
+
+    public function test_another_clinic_gets_404_for_the_previews_and_guests_get_401(): void
+    {
+        PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['mime_type' => 'image/png']);
+        $otherAdmin = ClinicUser::factory()->create(['clinic_id' => Clinic::factory()->create()->id]);
+        $this->mock(FileServiceInterface::class, fn (MockInterface $mock) => $mock->shouldNotReceive('createPresignedDownloadUrl'));
+
+        $this->getJson("{$this->filesUrl()}/previews")->assertUnauthorized();
+        $this->actingAs($otherAdmin, 'clinic')->getJson("{$this->filesUrl()}/previews")->assertNotFound();
+    }
+
+    public function test_the_listing_and_the_previews_go_through_the_file_policy(): void
+    {
+        PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['mime_type' => 'image/png']);
+        Gate::policy(PatientFile::class, DenyingPatientFilePolicy::class);
+        $this->mock(FileServiceInterface::class, fn (MockInterface $mock) => $mock->shouldNotReceive('createPresignedDownloadUrl'));
+
+        $this->actingAs($this->secretary, 'clinic')
+            ->getJson("{$this->filesUrl()}/previews")
+            ->assertForbidden();
+        $this->actingAs($this->secretary, 'clinic')
+            ->getJson($this->filesUrl())
+            ->assertForbidden();
+    }
+
     public function test_unauthenticated_cannot_ask_for_the_link(): void
     {
         $file = PatientFile::factory()->forPatient($this->patient, $this->clinic)->create();
@@ -274,5 +331,13 @@ class PatientFileSignedLinkTest extends TestCase
     private function filesUrl(): string
     {
         return "/api/clinic/patients/{$this->patient->id}/files";
+    }
+}
+
+class DenyingPatientFilePolicy
+{
+    public function viewAny($user): bool
+    {
+        return false;
     }
 }

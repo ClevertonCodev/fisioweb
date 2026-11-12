@@ -18,6 +18,34 @@ afterEach(() => {
 });
 
 describe('apiClinicPatientFilesRepository', () => {
+    it('pede as prévias de todas as imagens do paciente numa requisição só', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: [
+                    {
+                        file_id: 7,
+                        url: 'https://r2.example/a.png?X-Amz-Signature=abc',
+                        expires_at: '2026-10-12T09:05:00Z',
+                    },
+                ],
+            },
+        });
+
+        const previews =
+            await apiClinicPatientFilesRepository.listPreviews('108');
+
+        expect(mockGet).toHaveBeenCalledWith(
+            '/clinic/patients/108/files/previews',
+        );
+        expect(previews).toEqual([
+            {
+                fileId: 7,
+                url: 'https://r2.example/a.png?X-Amz-Signature=abc',
+                expiresAt: '2026-10-12T09:05:00Z',
+            },
+        ]);
+    });
+
     it('pede o link assinado do arquivo na rota do paciente e mapeia o vencimento', async () => {
         mockGet.mockResolvedValueOnce({
             data: {

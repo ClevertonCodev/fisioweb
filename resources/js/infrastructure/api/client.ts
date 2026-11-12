@@ -115,12 +115,26 @@ export function setStoredAuth(token: string, guard: AuthGuard): void {
  * salvo no navegador.
  */
 export function replaceStoredToken(token: string, guard: AuthGuard): void {
-    if (sessionStorage.getItem(SESSION_GUARD_KEY) === guard) {
-        sessionStorage.setItem(SESSION_TOKEN_KEY, token);
-        return;
-    }
+    if (isTabSession(guard)) sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    else setStoredAuth(token, guard);
 
-    setStoredAuth(token, guard);
+    window.dispatchEvent(
+        new CustomEvent<StoredTokenReplaced>(STORED_TOKEN_REPLACED, {
+            detail: { token, guard },
+        }),
+    );
+}
+
+export const STORED_TOKEN_REPLACED = 'auth:stored-token-replaced';
+
+export interface StoredTokenReplaced {
+    token: string;
+    guard: AuthGuard;
+}
+
+/** A sessão do guard é a da aba, aberta pelo "entrar como" do painel admin. */
+export function isTabSession(guard: AuthGuard): boolean {
+    return sessionStorage.getItem(SESSION_GUARD_KEY) === guard;
 }
 
 export function setSessionAuth(token: string, guard: string): void {

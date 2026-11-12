@@ -31,7 +31,7 @@ import { useDeleteEvolution } from '@/application/clinic/use-evolutions';
 import {
     useDeletePatientFile,
     useOpenPatientFile,
-    usePatientFileUrl,
+    usePatientFilePreviews,
 } from '@/application/clinic/use-patient-files';
 import {
     useDeleteQuestionnaire,
@@ -126,9 +126,10 @@ export function PatientFileImage({
     className?: string;
     iconSize?: number;
 }) {
-    const link = usePatientFileUrl(patientId, String(fileId));
-    if (!link.data) return <KindIcon kind="arquivo" size={iconSize} />;
-    return <img src={link.data.url} alt={alt} className={className} />;
+    const previews = usePatientFilePreviews(patientId);
+    const link = previews.data?.find((p) => p.fileId === fileId);
+    if (!link) return <KindIcon kind="arquivo" size={iconSize} />;
+    return <img src={link.url} alt={alt} className={className} />;
 }
 
 const TONE_BADGE: Record<Tone, BadgeVariant> = {
@@ -441,7 +442,7 @@ export function RecordBody({
                     <button
                         type="button"
                         aria-label={`Abrir ${f.name ?? f.originalName}`}
-                        onClick={() => openFile.mutate(String(f.id))}
+                        onClick={() => openFile.open(String(f.id))}
                         className="flex min-h-40 w-full cursor-pointer items-center justify-center overflow-hidden rounded-ds-lg border border-ds-border-subtle bg-ds-surface-subtle"
                     >
                         <PatientFileImage
@@ -468,7 +469,7 @@ export function RecordBody({
                         icon={<Download />}
                         label="Baixar"
                         loading={openFile.isPending}
-                        onClick={() => openFile.mutate(String(f.id))}
+                        onClick={() => openFile.open(String(f.id))}
                     />
                 </div>
             </div>

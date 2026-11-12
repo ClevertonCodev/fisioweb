@@ -44,7 +44,7 @@ class ClinicUserService implements ClinicUserServiceInterface
         ]));
     }
 
-    public function update(ClinicUser $clinicUser, array $data): ClinicUser
+    public function update(ClinicUser $clinicUser, array $data, bool $impersonating): ClinicUser
     {
         unset($data['mestre']);
 
@@ -66,11 +66,11 @@ class ClinicUserService implements ClinicUserServiceInterface
             abort(422, 'O usuário mestre da clínica deve permanecer como administrador.');
         }
 
-        return DB::transaction(function () use ($clinicUser, $data, $authUser): ClinicUser {
+        return DB::transaction(function () use ($clinicUser, $data, $authUser, $impersonating): ClinicUser {
             $activeAdminIds = $this->lockActiveAdminIds((int) $clinicUser->clinic_id);
             $target         = $this->lockTarget($clinicUser);
 
-            if ($this->changesSomeoneElsesMasterCredentials($target, $data, $authUser)) {
+            if ($this->changesSomeoneElsesMasterCredentials($target, $data, $authUser, $impersonating)) {
                 abort(403, 'Só o mestre altera o e-mail e a senha dele.');
             }
 
@@ -120,11 +120,15 @@ class ClinicUserService implements ClinicUserServiceInterface
     /**
      * Fica no service, e não na Policy, porque o `Gate::before` libera tudo
      * para administrador (ADR 019). Um cliente pode mandar o e-mail atual sem
-     * mudança, e o request o normaliza para minúsculas: só a troca conta.
+     * mudança, e o request o normaliza para minúsculas: só a troca conta. No
+     * "entrar como" quem está logado é o operador, e não o mestre: para
+     * recuperar o acesso ele usa o link de nova senha.
      */
-    private function changesSomeoneElsesMasterCredentials(ClinicUser $target, array $data, mixed $authUser): bool
+    private function changesSomeoneElsesMasterCredentials(ClinicUser $target, array $data, mixed $authUser, bool $impersonating): bool
     {
-        if (!$target->isMaster() || ($authUser instanceof ClinicUser && $target->is($authUser))) {
+        $editsOwnCredentials = !$impersonating && $authUser instanceof ClinicUser && $target->is($authUser);
+
+        if (!$target->isMaster() || $editsOwnCredentials) {
             return false;
         }
 

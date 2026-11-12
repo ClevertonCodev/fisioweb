@@ -354,23 +354,25 @@ class VideoService implements VideoServiceInterface
 
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array
     {
-        $video  = $this->videoRepository->findOrFail($videoId);
-        $images = $this->referenceImages($referenceImagePaths);
+        return DB::transaction(function () use ($videoId, $referenceImagePaths, $changedByOperator) {
+            $video  = $this->videoRepository->findForUpdate($videoId);
+            $images = $this->referenceImages($referenceImagePaths);
 
-        $metadata                     = $video->metadata ?? [];
-        $metadata['reference_images'] = $images;
-        $video                        = $this->videoRepository->update($videoId, ['metadata' => $metadata]);
+            $metadata                     = $video->metadata ?? [];
+            $metadata['reference_images'] = $images;
+            $video                        = $this->videoRepository->update($videoId, ['metadata' => $metadata]);
 
-        Event::dispatch(new VideoReferenceImagesChanged(
-            version: 1,
-            videoId: $videoId,
-            ownerClinicId: $video->clinic_id,
-            changedByOperator: $changedByOperator,
-            images: $images,
-            occurredAt: CarbonImmutable::now(),
-        ));
+            Event::dispatch(new VideoReferenceImagesChanged(
+                version: 1,
+                videoId: $videoId,
+                ownerClinicId: $video->clinic_id,
+                changedByOperator: $changedByOperator,
+                images: $images,
+                occurredAt: CarbonImmutable::now(),
+            ));
 
-        return $this->formatVideo($video);
+            return $this->formatVideo($video);
+        });
     }
 
     public function changeReferenceImagesByClinic(int $videoId, int $clinicUserId, array $referenceImagePaths): array
@@ -665,7 +667,7 @@ class VideoService implements VideoServiceInterface
         return new MediaProposal(
             videoId: $video->id,
             ownerClinicId: $video->clinic_id,
-            version: $this->mediaProposalVersion($metadata),
+            version: $this->mediaProposalVersion($video),
             proposedAt: (string) $metadata['proposed_at'],
             proposedByClinicUserId: isset($metadata['proposed_by_clinic_user_id']) ? (int) $metadata['proposed_by_clinic_user_id'] : null,
             currentThumbnailUrl: $video->thumbnail_url,
@@ -680,14 +682,20 @@ class VideoService implements VideoServiceInterface
     }
 
     /**
-     * @param  array<string, mixed>  $metadata
+     * Leva também a mídia atual: uma troca direta do operador depois da
+     * proposta muda o "antes" que a revisão mostrou, e aprovar a desfaria.
      */
-    private function mediaProposalVersion(array $metadata): string
+    private function mediaProposalVersion(Video $video): string
     {
+        $metadata = $video->metadata ?? [];
         $proposal = array_intersect_key($metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS));
         ksort($proposal);
 
-        return hash('sha256', (string) json_encode($proposal));
+        return hash('sha256', (string) json_encode([
+            'proposal'         => $proposal,
+            'thumbnail_path'   => $video->thumbnail_path,
+            'reference_images' => array_column($metadata['reference_images'] ?? [], 'file_path'),
+        ]));
     }
 
     /**

@@ -16,3 +16,7 @@ export interface PatientFileLink {
     url: string;
     expiresAt: string;
 }
+
+export interface PatientFilePreview extends PatientFileLink {
+    fileId: number;
+}

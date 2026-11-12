@@ -13,6 +13,7 @@ import type {
     PatientEvolution,
     PatientFile,
     PatientFileLink,
+    PatientFilePreview,
     PatientQuestionnaire,
     Program,
     ProgramExercise,
@@ -418,6 +419,7 @@ export interface PatientFilesRepository {
     ): Promise<PatientFile>;
     destroy(patientId: string, fileId: string): Promise<void>;
     getUrl(patientId: string, fileId: string): Promise<PatientFileLink>;
+    listPreviews(patientId: string): Promise<PatientFilePreview[]>;
 }
 
 export type PatientQuestionnaireModality = 'presencial' | 'remoto';

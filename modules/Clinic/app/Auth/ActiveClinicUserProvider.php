@@ -4,6 +4,7 @@ namespace Modules\Clinic\Auth;
 
 use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
 
 /**
@@ -35,13 +36,12 @@ class ActiveClinicUserProvider extends EloquentUserProvider
 
     public function retrieveById($identifier): ?Authenticatable
     {
-        $user = parent::retrieveById($identifier);
+        $model = $this->createModel();
 
-        if ($user instanceof ClinicUser
-            && ((int) $user->status !== ClinicUser::STATUS_ACTIVE || $user->belongsToCancelledClinic())) {
-            return null;
-        }
-
-        return $user;
+        return $this->newModelQuery($model)
+            ->where($model->getAuthIdentifierName(), $identifier)
+            ->where('status', ClinicUser::STATUS_ACTIVE)
+            ->whereDoesntHave('clinic', fn ($query) => $query->where('status', Clinic::STATUS_CANCELLED))
+            ->first();
     }
 }

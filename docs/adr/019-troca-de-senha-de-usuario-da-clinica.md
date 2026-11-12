@@ -64,6 +64,8 @@ A feature `002-isolamento-clinicas-e-papeis` (tarefa 005) entregou a coluna "Mes
 - o `ClinicUserService::update` recusa com 403 a troca do e-mail ou da senha do mestre feita por qualquer pessoa que não seja ele ("Só o mestre altera o e-mail e a senha dele.");
 - a edição v2 desabilita os dois campos, com o motivo (`can.changeCredentials` em `permissions.ts`).
 
+Em 2026-11-11 (code review da feature) o usuário decidiu que o "entrar como" não conta como o mestre: o operador, com o token marcado com `impersonated_by`, recebe o mesmo 403 ao trocar o e-mail ou a senha do mestre. Para devolver o acesso ao mestre, ele usa o link de nova senha. O controller lê a marca pelo `ClinicAuthenticatedController::impersonatorId()` e passa ao service (parâmetro obrigatório do `ClinicUserServiceInterface::update`). A edição v2 trava os dois campos no "entrar como" com o motivo (`AuthContext.isImpersonating`, que vem da sessão da aba).
+
 Continuam faltando:
 - a linha "Administrador → Outro administrador: não" (hoje um administrador comum troca a senha e o e-mail de outro administrador);
 - o código por e-mail e o endpoint `password-code`.

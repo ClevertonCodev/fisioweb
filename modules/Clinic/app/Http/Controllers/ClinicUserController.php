@@ -78,7 +78,7 @@ class ClinicUserController extends ClinicAuthenticatedController
     public function update(UpdateClinicUserRequest $request, ClinicUser $user): JsonResponse
     {
         $data = $request->validated();
-        $user = $this->clinicUserService->update($user, $data);
+        $user = $this->clinicUserService->update($user, $data, impersonating: !is_null($this->impersonatorId()));
 
         if (!array_key_exists('password', $data) || !$user->is($this->clinicUser())) {
             return response()->json(['data' => $user]);
@@ -96,7 +96,7 @@ class ClinicUserController extends ClinicAuthenticatedController
         ]);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'clinic-users/photos');
-        $user     = $this->clinicUserService->update($user, ['photo_url' => $uploaded['cdn_url']]);
+        $user     = $this->clinicUserService->update($user, ['photo_url' => $uploaded['cdn_url']], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }
@@ -105,7 +105,7 @@ class ClinicUserController extends ClinicAuthenticatedController
     {
         $this->authorize('update', $user);
 
-        $user = $this->clinicUserService->update($user, ['photo_url' => null]);
+        $user = $this->clinicUserService->update($user, ['photo_url' => null], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }

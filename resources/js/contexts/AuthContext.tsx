@@ -16,7 +16,9 @@ import {
     login as apiLogin,
     logout as apiLogout,
     refresh as apiRefresh,
+    completeClinicFirstAccess,
     decodeJwtExp,
+    type FirstAccessInput,
     type LoginCredentials,
 } from '@/infrastructure/api/auth.service';
 import {
@@ -24,7 +26,10 @@ import {
     clearStoredAuth,
     getStoredAuth,
     getStoredAuthForPage,
+    isTabSession,
     setPatientClinicSlug,
+    STORED_TOKEN_REPLACED,
+    type StoredTokenReplaced,
 } from '@/infrastructure/api/client';
 
 const WARN_BEFORE_MS = 5 * 60 * 1000; // 5 minutos antes de expirar
@@ -38,9 +43,11 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
     login: (guard: AuthGuard, credentials: LoginCredentials) => Promise<void>;
+    completeFirstAccess: (input: FirstAccessInput) => Promise<void>;
     logout: (guard: AuthGuard) => Promise<void>;
     setUser: (user: User | null, guard: AuthGuard | null) => void;
     refreshSession: () => Promise<void>;
+    isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -138,6 +145,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [scheduleExpiryWarning],
     );
 
+    const completeFirstAccess = useCallback(
+        async (input: FirstAccessInput) => {
+            const res = await completeClinicFirstAccess(input);
+            setState({
+                user: normalizeUser(res.user),
+                guard: 'clinic',
+                isAuthenticated: true,
+                isLoading: false,
+            });
+            scheduleExpiryWarning(res.access_token);
+        },
+        [scheduleExpiryWarning],
+    );
+
     const logout = useCallback(async (guard: AuthGuard) => {
         if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
         toast.dismiss('session-expiry-warning');
@@ -183,6 +204,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     useEffect(() => {
+        const onReplaced = (event: Event) => {
+            const { token } = (event as CustomEvent<StoredTokenReplaced>)
+                .detail;
+            toast.dismiss('session-expiry-warning');
+            scheduleExpiryWarning(token);
+        };
+        window.addEventListener(STORED_TOKEN_REPLACED, onReplaced);
+        return () =>
+            window.removeEventListener(STORED_TOKEN_REPLACED, onReplaced);
+    }, [scheduleExpiryWarning]);
+
+    useEffect(() => {
         const auth = getStoredAuthForPage();
         if (!auth) return;
         apiClient
@@ -220,11 +253,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         () => ({
             ...state,
             login,
+            completeFirstAccess,
             logout,
             setUser,
             refreshSession,
+            isImpersonating: !!state.guard && isTabSession(state.guard),
         }),
-        [state, login, logout, setUser, refreshSession],
+        [state, login, completeFirstAccess, logout, setUser, refreshSession],
     );
 
     return (

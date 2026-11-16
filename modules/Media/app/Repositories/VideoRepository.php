@@ -26,9 +26,63 @@ class VideoRepository
             ->exists();
     }
 
+    /**
+     * @param  list<int>  $videoIds
+     * @return list<int>
+     */
+    public function idsWithPendingMediaProposal(array $videoIds): array
+    {
+        if (empty($videoIds)) {
+            return [];
+        }
+
+        return $this->model->newQuery()
+            ->whereIn('id', $videoIds)
+            ->whereNotNull('metadata->proposed_at')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function allIdsWithPendingMediaProposal(): array
+    {
+        return $this->model->newQuery()
+            ->whereNotNull('metadata->proposed_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $videoIds
+     * @return Collection<int, Video>
+     */
+    public function withPendingMediaProposal(array $videoIds): Collection
+    {
+        if (empty($videoIds)) {
+            return new Collection;
+        }
+
+        return $this->model->newQuery()
+            ->whereIn('id', $videoIds)
+            ->whereNotNull('metadata->proposed_at')
+            ->orderBy('id')
+            ->get();
+    }
+
     public function findOrFail(int $id): Video
     {
         return $this->model->findOrFail($id);
+    }
+
+    public function findForUpdate(int $id): Video
+    {
+        return $this->model->newQuery()->lockForUpdate()->findOrFail($id);
     }
 
     public function findWith(int $id, array $relations = []): ?Video
@@ -150,10 +204,16 @@ class VideoRepository
         return $this->model->latest()->limit($limit)->get();
     }
 
-    public function getAvailableForExercise(): Collection
+    /**
+     * @param  list<int>  $alsoIncludeVideoIds
+     */
+    public function getAvailableForExercise(array $alsoIncludeVideoIds = []): Collection
     {
         return $this->model
             ->completed()
+            ->where(fn ($query) => $query
+                ->whereNull('clinic_id')
+                ->when($alsoIncludeVideoIds !== [], fn ($query) => $query->orWhereIn('id', $alsoIncludeVideoIds)))
             ->orderBy('original_filename')
             ->get();
     }

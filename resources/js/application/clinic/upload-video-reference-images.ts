@@ -4,6 +4,8 @@ import {
 } from '@/application/clinic/exercise-media-limits';
 import { apiClinicVideosRepository } from '@/infrastructure/repositories';
 
+import type { MediaChangeResult } from './ports';
+
 const MAX_SIZE = MAX_IMAGE_MB * 1024 * 1024;
 
 type ReferenceImageInput =
@@ -26,14 +28,26 @@ function uploadToPresignedUrl(url: string, file: File): Promise<void> {
     });
 }
 
-async function uploadFile(videoId: number, file: File): Promise<string> {
+const REFERENCE_IMAGE_ERRORS = {
+    type: 'Imagem de referência deve ser JPEG, PNG ou WebP.',
+    size: `Cada imagem de referência não pode exceder ${MAX_IMAGE_MB}MB.`,
+};
+
+const THUMBNAIL_ERRORS = {
+    type: 'A capa deve ser JPEG, PNG ou WebP.',
+    size: `A capa não pode exceder ${MAX_IMAGE_MB}MB.`,
+};
+
+async function uploadFile(
+    videoId: number,
+    file: File,
+    errors: typeof REFERENCE_IMAGE_ERRORS = REFERENCE_IMAGE_ERRORS,
+): Promise<string> {
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        throw new Error('Imagem de referência deve ser JPEG, PNG ou WebP.');
+        throw new Error(errors.type);
     }
     if (file.size > MAX_SIZE) {
-        throw new Error(
-            `Cada imagem de referência não pode exceder ${MAX_IMAGE_MB}MB.`,
-        );
+        throw new Error(errors.size);
     }
 
     // Após confirm-upload o vídeo está completed → usa replace
@@ -57,7 +71,7 @@ async function uploadFile(videoId: number, file: File): Promise<string> {
 export async function uploadAndSyncClinicVideoReferenceImages(
     videoId: number,
     items: ReferenceImageInput[],
-): Promise<void> {
+): Promise<MediaChangeResult | null> {
     if (items.length > 2) {
         throw new Error('Máximo de 2 imagens de referência.');
     }
@@ -83,8 +97,17 @@ export async function uploadAndSyncClinicVideoReferenceImages(
     }
 
     if (paths.length === 0) {
-        return;
+        return null;
     }
 
-    await apiClinicVideosRepository.syncReferenceImages(videoId, paths);
+    return apiClinicVideosRepository.syncReferenceImages(videoId, paths);
+}
+
+/** Troca a capa de um vídeo já concluído da clínica (vídeo travado vira proposta). */
+export async function uploadAndChangeClinicVideoThumbnail(
+    videoId: number,
+    file: File,
+): Promise<MediaChangeResult> {
+    const path = await uploadFile(videoId, file, THUMBNAIL_ERRORS);
+    return apiClinicVideosRepository.changeThumbnail(videoId, path);
 }

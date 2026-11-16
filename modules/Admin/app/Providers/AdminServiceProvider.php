@@ -2,26 +2,37 @@
 
 namespace Modules\Admin\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Modules\Admin\Contracts\AdminProgramRepositoryInterface;
 use Modules\Admin\Contracts\AdminProgramServiceInterface;
+use Modules\Admin\Contracts\ExerciseMediaProposalServiceInterface;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Contracts\LoginAsAuditRepositoryInterface;
 use Modules\Admin\Contracts\Public\AssessmentTemplateReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
+use Modules\Admin\Contracts\Public\LoginAsAuditServiceInterface;
 use Modules\Admin\Contracts\Public\PlanCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ProgramCatalogReadServiceInterface;
 use Modules\Admin\Repositories\AdminProgramRepository;
 use Modules\Admin\Repositories\ExerciseRepository;
+use Modules\Admin\Repositories\LoginAsAuditRepository;
 use Modules\Admin\Services\AdminProgramService;
 use Modules\Admin\Services\AssessmentTemplateReadService;
 use Modules\Admin\Services\ExerciseCatalogReadService;
+use Modules\Admin\Services\ExerciseMediaProposalService;
 use Modules\Admin\Services\ExerciseService;
 use Modules\Admin\Services\ExerciseSubmissionService;
+use Modules\Admin\Services\ExerciseVideoLockQuery;
+use Modules\Admin\Services\LoginAsAuditService;
 use Modules\Admin\Services\PlanCatalogReadService;
 use Modules\Admin\Services\ProgramCatalogReadService;
+use Modules\Media\Contracts\VideoLockQueryInterface;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -44,7 +55,28 @@ class AdminServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerAuthRateLimiters();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+    }
+
+    protected function registerAuthRateLimiters(): void
+    {
+        $tooMany = fn (Request $request, array $headers) => response()->json([
+            'message' => 'Muitas tentativas. Aguarde um minuto e tente de novo.',
+        ], 429, $headers);
+
+        RateLimiter::for('admin-login', function (Request $request) use ($tooMany) {
+            $email = $request->input('email');
+
+            return Limit::perMinute(5)
+                ->by((is_string($email) ? mb_strtolower($email) : '') . '|' . $request->ip())
+                ->response($tooMany);
+        });
+
+        // Uma conta por rota: pedir links não gasta as tentativas de redefinir.
+        RateLimiter::for('admin-password', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->path() . '|' . $request->ip())
+            ->response($tooMany));
     }
 
     /**
@@ -53,14 +85,18 @@ class AdminServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ExerciseRepositoryInterface::class, ExerciseRepository::class);
+        $this->app->bind(LoginAsAuditRepositoryInterface::class, LoginAsAuditRepository::class);
+        $this->app->bind(LoginAsAuditServiceInterface::class, LoginAsAuditService::class);
         $this->app->bind(ExerciseServiceInterface::class, ExerciseService::class);
         $this->app->bind(ExerciseSubmissionServiceInterface::class, ExerciseSubmissionService::class);
+        $this->app->bind(ExerciseMediaProposalServiceInterface::class, ExerciseMediaProposalService::class);
         $this->app->bind(AdminProgramRepositoryInterface::class, AdminProgramRepository::class);
         $this->app->bind(AdminProgramServiceInterface::class, AdminProgramService::class);
         $this->app->bind(AssessmentTemplateReadServiceInterface::class, AssessmentTemplateReadService::class);
         $this->app->bind(ExerciseCatalogReadServiceInterface::class, ExerciseCatalogReadService::class);
         $this->app->bind(ProgramCatalogReadServiceInterface::class, ProgramCatalogReadService::class);
         $this->app->bind(PlanCatalogReadServiceInterface::class, PlanCatalogReadService::class);
+        $this->app->bind(VideoLockQueryInterface::class, ExerciseVideoLockQuery::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

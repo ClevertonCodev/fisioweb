@@ -52,7 +52,8 @@ export default function ExerciseLibraryPage({
     const navigate = useNavigate();
     const isMobile = useIsMobile();
     const { user } = useAuth();
-    const canSubmit = can.manageUsers(user?.role as ClinicRole | undefined);
+    const role = user?.role as ClinicRole | undefined;
+    const canSubmit = can.manageUsers(role);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const {
         filters,
@@ -204,6 +205,7 @@ export default function ExerciseLibraryPage({
                     isLoading={isLoading}
                     emptyState={emptyState}
                     sentinel={sentinel}
+                    role={role}
                 />
             </ProgramsPageShell>
             <DsDrawer

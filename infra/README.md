@@ -117,7 +117,10 @@ Leva de 5 a 10 minutos. Ele faz:
 - **Programas:** swap de 2 GB, nginx, PHP 8.5-FPM, Composer, Node 22 (só para
   o build), PostgreSQL e Valkey.
 - **Aplicação:** gera o `.env` com `APP_KEY`, `JWT_SECRET` e a senha do banco,
-  e cria o banco `fisioweb`.
+  e cria o banco `fisioweb`. O `.env` novo sai com `LOG_LEVEL=info`.
+- **Log-viewer:** gera usuário e senha aleatórios, grava o `htpasswd` só no
+  servidor e mostra os dois uma vez no fim. O `/log-viewer` fica atrás de
+  `auth_basic`. Se perder a senha, apague o `htpasswd` e rode o script de novo.
 - **Rotinas:** worker da fila (systemd), scheduler (cron) e backup diário do
   banco.
 
@@ -238,6 +241,72 @@ novo responder no domínio.
 
 ---
 
+## Log-viewer no servidor que já existe
+
+O `provision.sh` só cria a senha na primeira vez. No servidor que já está no
+ar, faça o seguinte como root. Sem isso, o `/log-viewer` em produção responde
+403 para todo mundo, inclusive para você.
+
+1. Gere usuário e senha e grave o `htpasswd`. Anote os dois agora; o arquivo
+   guarda só o hash.
+
+   ```bash
+   LV_USER="lv$(openssl rand -hex 4)"
+   LV_PASS="$(openssl rand -base64 18)"
+   HASH="$(printf '%s' "$LV_PASS" | openssl passwd -apr1 -stdin)"
+   (
+       umask 077
+       printf '%s:%s\n' "$LV_USER" "$HASH" > /etc/nginx/fisioweb-log-viewer.htpasswd
+   )
+   chown root:www-data /etc/nginx/fisioweb-log-viewer.htpasswd
+   chmod 640 /etc/nginx/fisioweb-log-viewer.htpasswd
+   printf 'usuário: %s\nsenha: %s\n' "$LV_USER" "$LV_PASS"
+   ```
+
+2. No `server` de HTTPS de `/etc/nginx/sites-available/fisioweb`, antes do
+   `location /`, cole este bloco. O `auth_basic` e o PHP ficam juntos: um
+   `try_files` para o `index.php` cairia no outro location e o `REMOTE_USER`
+   chegaria vazio. Use `$remote_user`, que é o usuário que passou no basic
+   auth. `$http_remote_user` é o cabeçalho que o cliente manda e não serve.
+
+   ```nginx
+   location ~ ^/log-viewer(/|$) {
+       auth_basic "Logs";
+       auth_basic_user_file /etc/nginx/fisioweb-log-viewer.htpasswd;
+
+       include fastcgi_params;
+       fastcgi_pass unix:/run/php/fisioweb.sock;
+       fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+       fastcgi_param SCRIPT_NAME /index.php;
+       fastcgi_param DOCUMENT_ROOT $realpath_root;
+       fastcgi_param REMOTE_USER $remote_user;
+       fastcgi_read_timeout 120;
+       fastcgi_hide_header X-Powered-By;
+   }
+   ```
+
+3. No `/var/www/fisioweb/shared/.env`, troque `LOG_LEVEL=debug` por
+   `LOG_LEVEL=info`. Faça um deploy em seguida, para refazer o `config:cache`.
+
+4. Confira e recarregue:
+
+   ```bash
+   nginx -t && systemctl reload nginx
+   ```
+
+5. Sem senha a resposta é 401. Com a senha, 200. Se der 403 com a senha
+   certa, o `REMOTE_USER` não chegou no PHP.
+
+   ```bash
+   curl -s -o /dev/null -w '%{http_code}\n' https://fisio.clevertonsantos.com/log-viewer/api/files
+   curl -s -o /dev/null -w '%{http_code}\n' -u 'USUARIO:SENHA' https://fisio.clevertonsantos.com/log-viewer/api/files
+   ```
+
+Os arquivos em `/vendor/log-viewer/` (CSS e JS da tela) continuam públicos.
+O log em si só sai por `/log-viewer`.
+
+---
+
 ## Cloudflare
 
 O que está configurado e por quê:
@@ -284,6 +353,7 @@ build do front. Mudou outra variável? Também faça um deploy, para refazer o
 | `/var/www/fisioweb/shared/.env` | Configuração (só o usuário `fisioweb` lê) |
 | `/var/www/fisioweb/shared/storage/logs/` | Logs do Laravel |
 | `/etc/ssl/fisioweb/` | Certificado de origem da Cloudflare |
+| `/etc/nginx/fisioweb-log-viewer.htpasswd` | Senha do `/log-viewer` (só no servidor) |
 | `/var/backups/fisioweb/` | Dumps diários do banco |
 
 ### Logs e comandos

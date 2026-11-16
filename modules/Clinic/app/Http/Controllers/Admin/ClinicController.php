@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Clinic\Contracts\ClinicImpersonationServiceInterface;
 use Modules\Clinic\Contracts\ClinicServiceInterface;
+use Modules\Clinic\Contracts\MasterFirstAccessServiceInterface;
 use Modules\Clinic\Http\Requests\Admin\CreateClinicRequest;
 use Modules\Clinic\Http\Requests\Admin\UpdateClinicRequest;
 use Modules\Clinic\Models\ClinicUser;
@@ -27,12 +29,17 @@ class ClinicController extends Controller
         ]);
     }
 
-    public function show(int $id): JsonResponse
-    {
+    public function show(
+        int $id,
+        MasterFirstAccessServiceInterface $firstAccess,
+        ClinicImpersonationServiceInterface $impersonation,
+    ): JsonResponse {
         try {
             $clinic = $this->clinicService->findById($id);
 
-            return response()->json(['data' => $clinic]);
+            return response()->json(['data' => $clinic->toArray()
+                + $firstAccess->status($clinic)
+                + ['recent_login_as' => $impersonation->recentLoginAs($clinic->id)]]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Fisioterapeuta não encontrado.'], 404);
         }
@@ -78,30 +85,31 @@ class ClinicController extends Controller
         }
     }
 
-    public function loginAs(int $id): JsonResponse
+    public function firstAccessLink(int $id, MasterFirstAccessServiceInterface $firstAccess): JsonResponse
     {
         try {
-            $this->clinicService->findById($id);
-            // Só admin ativo: o guard da clínica recusa token de inativo (ADR 022).
-            // O mestre primeiro, e ordem fixa para não variar com o banco.
-            $clinicUser = ClinicUser::where('clinic_id', $id)
-                ->where('role', ClinicUser::ROLE_ADMIN)
-                ->where('status', ClinicUser::STATUS_ACTIVE)
-                ->orderByDesc('mestre')
-                ->orderBy('id')
-                ->first();
+            return response()->json(['data' => $firstAccess->generateLink($id)->toArray()]);
+        } catch (ModelNotFoundException) {
+            return response()->json(['message' => 'Clínica não encontrada.'], 404);
+        }
+    }
 
-            if (is_null($clinicUser)) {
-                return response()->json(['message' => 'A clínica não tem administrador ativo para entrar como ele.'], 422);
-            }
-
-            $token = auth('clinic')->login($clinicUser);
+    public function loginAs(Request $request, int $id, ClinicImpersonationServiceInterface $impersonation): JsonResponse
+    {
+        try {
+            $session = $impersonation->impersonate(
+                $id,
+                (int) auth('admin')->id(),
+                $request->ip(),
+                $request->userAgent(),
+                fn (ClinicUser $user, array $claims): string => auth('clinic')->claims($claims)->login($user),
+            );
 
             return response()->json([
-                'access_token' => $token,
+                'access_token' => $session->token,
                 'token_type'   => 'bearer',
                 'expires_in'   => auth('clinic')->factory()->getTTL() * 60,
-                'user'         => $clinicUser,
+                'user'         => $session->clinicUser,
             ]);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Clínica não encontrada.'], 404);

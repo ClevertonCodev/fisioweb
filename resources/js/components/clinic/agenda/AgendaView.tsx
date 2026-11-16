@@ -14,7 +14,7 @@ import type { AgendaView as AgendaViewId, Appointment } from '@/domain/clinic';
 
 import type { AgendaClinicUser } from './agenda-shared';
 import { AgendaCalendar, toAgendaEvent } from './AgendaCalendar';
-import { useGoogleCalendarReturnToast } from './AgendaGoogleCalendarActions';
+import { useGoogleCalendarReturn } from './AgendaGoogleCalendarActions';
 import { AgendaRail, useAgendaRail } from './AgendaRail';
 
 import './agenda.css';
@@ -60,7 +60,7 @@ export function AgendaView({
     onEventResize,
     onNewConsulta,
 }: AgendaViewProps) {
-    useGoogleCalendarReturnToast();
+    useGoogleCalendarReturn();
     const calendarRef = useRef<FullCalendar>(null);
     const rail = useAgendaRail(appointments, calendarInitialDate);
     const events = useMemo(

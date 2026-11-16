@@ -18,6 +18,7 @@ const deletePhoto = vi.fn();
 const connectGoogle = vi.fn();
 const googleStatusEnabled = vi.fn();
 const disconnectGoogle = vi.fn();
+const completeGoogle = vi.fn();
 const toastSuccess = vi.fn();
 const toastInfo = vi.fn();
 const toastWarning = vi.fn();
@@ -46,6 +47,11 @@ vi.mock('@/application/clinic/use-patients', async (importOriginal) => ({
 vi.mock('@/application/clinic/use-appointments', async (importOriginal) => ({
     ...(await importOriginal<object>()),
     useAppointments: () => ({ data: undefined }),
+}));
+vi.mock('@/infrastructure/repositories/api-google-calendar', () => ({
+    apiGoogleCalendarRepository: {
+        completeConnection: (...args: unknown[]) => completeGoogle(...args),
+    },
 }));
 vi.mock('@/application/clinic/use-google-calendar', async (importOriginal) => ({
     ...(await importOriginal<object>()),
@@ -93,8 +99,9 @@ let authUser: {
     role: 'admin',
     mestre: 0,
 };
+let isImpersonating = false;
 vi.mock('@/contexts/AuthContext', () => ({
-    useAuth: () => ({ user: authUser }),
+    useAuth: () => ({ user: authUser, isImpersonating }),
 }));
 
 function renderNew() {
@@ -146,6 +153,7 @@ function roleCard(name: RegExp) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    isImpersonating = false;
     googleStatus = { connected: false };
     authUser = {
         id: 1,
@@ -777,6 +785,61 @@ describe('edição de usuário (tela de verdade)', () => {
         expect(screen.getByRole('switch')).toBeDisabled();
     });
 
+    it('admin comum editando o mestre: e-mail e senha desabilitados com o motivo, e salvar não manda os dois', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(member());
+        renderEdit(
+            member({
+                id: '2',
+                role: 'admin',
+                mestre: 1,
+                email: 'mestre@clinica.test',
+            }),
+        );
+
+        expect(await screen.findByLabelText('E-mail')).toBeDisabled();
+        expect(screen.getByLabelText('Nova senha')).toBeDisabled();
+        expect(screen.getByLabelText('Confirmar nova senha')).toBeDisabled();
+        expect(
+            screen.getAllByText('Só o mestre altera o e-mail e a senha dele.'),
+        ).not.toHaveLength(0);
+
+        await user.type(screen.getByLabelText('Nome'), ' Jr');
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        expect(
+            await screen.findByText('Lista de usuários'),
+        ).toBeInTheDocument();
+        const payload = update.mock.calls[0][1];
+        expect(payload).toMatchObject({ name: 'Bruno Reis Jr' });
+        expect(payload).not.toHaveProperty('email');
+        expect(payload).not.toHaveProperty('password');
+    });
+
+    it('o mestre no próprio perfil troca o e-mail e a senha', async () => {
+        authUser = { ...authUser, id: 2, mestre: 1 };
+        renderEdit(member({ id: '2', role: 'admin', mestre: 1 }));
+
+        expect(await screen.findByLabelText('E-mail')).toBeEnabled();
+        expect(screen.getByLabelText('Nova senha')).toBeEnabled();
+        expect(
+            screen.queryByText('Só o mestre altera o e-mail e a senha dele.'),
+        ).toBeNull();
+    });
+
+    it('no "entrar como" do mestre, e-mail e senha ficam travados com o motivo do "entrar como"', async () => {
+        authUser = { ...authUser, id: 2, mestre: 1 };
+        isImpersonating = true;
+        renderEdit(member({ id: '2', role: 'admin', mestre: 1 }));
+
+        expect(await screen.findByLabelText('E-mail')).toBeDisabled();
+        expect(
+            screen.getAllByText(
+                'No "entrar como", o e-mail e a senha do mestre não mudam. Para devolver o acesso, use o link de nova senha.',
+            ).length,
+        ).toBeGreaterThan(0);
+    });
+
     it('mestre que a v1 deixou inativo abre ativo e salvar o reativa', async () => {
         const user = userEvent.setup();
         update.mockResolvedValue(member());
@@ -848,7 +911,53 @@ describe('edição de usuário (tela de verdade)', () => {
         ).toBeInTheDocument();
     });
 
-    it('volta do OAuth com ?google=connected avisa e limpa a URL', async () => {
+    it('volta do Google com ?google_ticket= conclui pela API, avisa e limpa a URL', async () => {
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        completeGoogle.mockResolvedValue(undefined);
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/usuarios/7/editar?google_ticket=ticket-do-7',
+        );
+        renderEdit(member());
+
+        await screen.findByRole('heading', { name: 'Meu perfil' });
+        await vi.waitFor(() =>
+            expect(toastSuccess).toHaveBeenCalledWith(
+                'Google Calendar conectado com sucesso!',
+            ),
+        );
+        expect(completeGoogle).toHaveBeenCalledTimes(1);
+        expect(completeGoogle).toHaveBeenCalledWith('ticket-do-7');
+        expect(toastError).not.toHaveBeenCalled();
+        expect(window.location.search).toBe('');
+        window.history.pushState({}, '', '/');
+    });
+
+    it('ticket recusado pelo servidor avisa o erro e não diz que conectou', async () => {
+        authUser = { ...authUser, id: 7, role: 'physiotherapist' };
+        completeGoogle.mockRejectedValue(new Error('403'));
+        window.history.pushState(
+            {},
+            '',
+            '/clinica/usuarios/7/editar?google_ticket=ticket-de-outro',
+        );
+        renderEdit(member());
+
+        await screen.findByRole('heading', { name: 'Meu perfil' });
+        await vi.waitFor(() =>
+            expect(toastError).toHaveBeenCalledWith(
+                'Não foi possível conectar o Google Calendar.',
+            ),
+        );
+        expect(toastSuccess).not.toHaveBeenCalledWith(
+            'Google Calendar conectado com sucesso!',
+        );
+        expect(window.location.search).toBe('');
+        window.history.pushState({}, '', '/');
+    });
+
+    it('?google=connected na URL não avisa conexão nem chama a API', async () => {
         authUser = { ...authUser, id: 7, role: 'physiotherapist' };
         window.history.pushState(
             {},
@@ -858,9 +967,8 @@ describe('edição de usuário (tela de verdade)', () => {
         renderEdit(member());
 
         await screen.findByRole('heading', { name: 'Meu perfil' });
-        expect(toastSuccess).toHaveBeenCalledWith(
-            'Google Calendar conectado com sucesso!',
-        );
+        expect(toastSuccess).not.toHaveBeenCalled();
+        expect(completeGoogle).not.toHaveBeenCalled();
         expect(window.location.search).toBe('');
         window.history.pushState({}, '', '/');
     });

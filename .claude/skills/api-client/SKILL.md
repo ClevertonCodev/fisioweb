@@ -106,3 +106,4 @@ Ao criar Repository novo:
 | Forçar guard específico (raro) | Não tem API — o guard é inferido. Refatore URL para `/admin/*` ou `/clinic/*` |
 | Impersonation: admin → clinic | `setSessionAuth(token, 'clinic')` antes do navigate |
 | Sair da impersonation | `clearStoredAuth('clinic')` limpa session, localStorage admin permanece |
+| Resposta que reemite o token (troca da própria senha) | `replaceStoredToken(token, 'clinic')` no Repository: troca o da aba (impersonation) ou o salvo |

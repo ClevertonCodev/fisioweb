@@ -5,18 +5,25 @@ namespace Modules\Clinic\Http\Requests;
 use App\Helpers\ValidationHelper;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\Clinic\Rules\UniqueClinicUserEmail;
 
 class UpdateClinicUserRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->input('email'))) {
+            $this->merge(['email' => mb_strtolower(trim($this->input('email')))]);
+        }
+    }
+
     public function rules(): array
     {
         $userId = $this->route('user')?->id ?? $this->route('user');
 
         return [
             'name'     => ['sometimes', 'string', 'max:255'],
-            'email'    => ['sometimes', 'email', Rule::unique('clinic_users', 'email')->ignore($userId)],
+            'email'    => ['sometimes', 'email', new UniqueClinicUserEmail(is_numeric($userId) ? (int) $userId : null)],
             'password' => ['sometimes', 'string', 'min:8'],
             'role'     => ['sometimes', 'string', 'in:' . implode(',', array_keys(ClinicUser::ROLES))],
             'document' => [

@@ -12,6 +12,8 @@ import type {
     PatientAppointmentHistoryItem,
     PatientEvolution,
     PatientFile,
+    PatientFileLink,
+    PatientFilePreview,
     PatientQuestionnaire,
     Program,
     ProgramExercise,
@@ -136,6 +138,11 @@ export interface ExerciseSubmitDto {
     videoId: number;
 }
 
+/** `proposalPending`: a troca de mídia ficou esperando a revisão do suporte (vídeo de exercício aprovado). */
+export interface MediaChangeResult {
+    proposalPending: boolean;
+}
+
 export interface ExercisesRepository {
     list(): Promise<Exercise[]>;
     listPaginated(params?: ExerciseListParams): Promise<ExerciseListResult>;
@@ -229,6 +236,7 @@ export interface GoogleCalendarRepository {
     getStatus(): Promise<GoogleCalendarStatus>;
     /** URL de consentimento OAuth para redirecionar o navegador. */
     getAuthUrl(returnTo?: string): Promise<string>;
+    completeConnection(ticket: string): Promise<void>;
     /** Puxa eventos do Google para a agenda do usuário autenticado. */
     pullNow(): Promise<void>;
     disconnect(): Promise<void>;
@@ -410,6 +418,8 @@ export interface PatientFilesRepository {
         options?: PatientFileStoreOptions,
     ): Promise<PatientFile>;
     destroy(patientId: string, fileId: string): Promise<void>;
+    getUrl(patientId: string, fileId: string): Promise<PatientFileLink>;
+    listPreviews(patientId: string): Promise<PatientFilePreview[]>;
 }
 
 export type PatientQuestionnaireModality = 'presencial' | 'remoto';
@@ -527,7 +537,6 @@ export interface ClinicProfileUpdateDto {
     document: string;
     email: string;
     phone?: string | null;
-    status: number;
     zipCode?: string | null;
     address?: string | null;
     number?: string | null;

@@ -10,8 +10,10 @@ use Modules\ClinicScheduling\Events\AppointmentRescheduled;
 use Modules\ClinicScheduling\Events\AppointmentScheduled;
 use Modules\GoogleCalendar\Console\Commands\PullGoogleCalendarCommand;
 use Modules\GoogleCalendar\Contracts\GoogleCalendarServiceInterface;
+use Modules\GoogleCalendar\Contracts\GoogleConnectionFlowServiceInterface;
 use Modules\GoogleCalendar\Listeners\SyncSchedulingToGoogle;
 use Modules\GoogleCalendar\Services\GoogleCalendarService;
+use Modules\GoogleCalendar\Services\GoogleConnectionFlowService;
 
 class GoogleCalendarServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,7 @@ class GoogleCalendarServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(GoogleCalendarServiceInterface::class, GoogleCalendarService::class);
+        $this->app->bind(GoogleConnectionFlowServiceInterface::class, GoogleConnectionFlowService::class);
         $this->app->register(RouteServiceProvider::class);
     }
 
@@ -70,6 +73,6 @@ class GoogleCalendarServiceProvider extends ServiceProvider
 
     public function provides(): array
     {
-        return [GoogleCalendarServiceInterface::class];
+        return [GoogleCalendarServiceInterface::class, GoogleConnectionFlowServiceInterface::class];
     }
 }

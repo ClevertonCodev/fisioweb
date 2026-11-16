@@ -21,6 +21,10 @@ class Video extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    public const PUBLIC_METADATA_KEYS = ['reference_images'];
+
+    public const MEDIA_PROPOSAL_KEYS = ['proposed_thumbnail_path', 'proposed_reference_images', 'proposed_at', 'proposed_by_clinic_user_id'];
+
     protected $table = 'media_videos';
 
     protected $fillable = [
@@ -109,6 +113,30 @@ class Video extends Model
         $seconds = $this->duration % 60;
 
         return sprintf('%02d:%02d', $minutes, $seconds);
+    }
+
+    /**
+     * O vídeo chega às outras clínicas pelas relações dos exercícios, e o resto do `metadata` guarda dado interno, inclusive caminhos ainda não revisados (proposta, caminhos emitidos para upload). Quem precisa do `metadata` inteiro usa `toAdminArray()`.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $attributes = parent::toArray();
+
+        if (is_array($attributes['metadata'] ?? null)) {
+            $attributes['metadata'] = array_intersect_key($attributes['metadata'], array_flip(self::PUBLIC_METADATA_KEYS));
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAdminArray(): array
+    {
+        return parent::toArray();
     }
 
     protected static function newFactory(): \Modules\Media\Database\Factories\VideoFactory

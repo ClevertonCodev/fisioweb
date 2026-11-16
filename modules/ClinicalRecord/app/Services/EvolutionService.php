@@ -43,7 +43,7 @@ class EvolutionService implements EvolutionServiceInterface
             $generatedText  = $dto['generated_text'] ?? null;
 
             if (empty($generatedText) && count($checkedItemIds) > 0) {
-                $generatedText = $this->generateText($checkedItemIds, $freeTextValues);
+                $generatedText = $this->composeText($checkedItemIds, $freeTextValues);
             }
 
             $evolution = $this->repository->create([
@@ -79,8 +79,8 @@ class EvolutionService implements EvolutionServiceInterface
             ? (!is_null($dto['evolution_template_id']) ? (int) $dto['evolution_template_id'] : null)
             : $currentTemplateId;
         $templateChanged = $templateId !== $currentTemplateId;
-        $checkedItemIds = $dto['checked_item_ids'] ?? ($templateChanged ? [] : null);
-        $alreadyChecked = $templateChanged ? [] : $evolution->checkedItems()
+        $checkedItemIds  = $dto['checked_item_ids'] ?? ($templateChanged ? [] : null);
+        $alreadyChecked  = $templateChanged ? [] : $evolution->checkedItems()
             ->pluck('evolution_template_item_id')
             ->map(fn ($id) => (int) $id)
             ->all();
@@ -99,7 +99,7 @@ class EvolutionService implements EvolutionServiceInterface
 
             if (!is_null($checkedItemIds)) {
                 if (empty($generatedText) && count($checkedItemIds) > 0) {
-                    $generatedText = $this->generateText($checkedItemIds, $freeTextValues);
+                    $generatedText = $this->composeText($checkedItemIds, $freeTextValues);
                 }
 
                 $this->repository->replaceCheckedItems($evolution, $checkedItemIds, $freeTextValues);
@@ -121,7 +121,23 @@ class EvolutionService implements EvolutionServiceInterface
         });
     }
 
-    public function generateText(array $checkedItemIds, array $freeTextValues): string
+    public function generateText(PatientEvolution $evolution, array $checkedItemIds, array $freeTextValues): string
+    {
+        $alreadyChecked = $evolution->checkedItems()
+            ->pluck('evolution_template_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->ensureValidTemplateAndItems((int) $evolution->clinic_id, null, null, $checkedItemIds, $alreadyChecked);
+
+        return $this->composeText($checkedItemIds, $freeTextValues);
+    }
+
+    /**
+     * @param  array<int, int|string>  $checkedItemIds
+     * @param  array<int, array{item_id: int|string, value: string}>  $freeTextValues
+     */
+    private function composeText(array $checkedItemIds, array $freeTextValues): string
     {
         if (empty($checkedItemIds)) {
             return '';

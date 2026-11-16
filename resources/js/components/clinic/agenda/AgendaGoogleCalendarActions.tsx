@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 import {
+    useCompleteGoogleCalendarConnection,
     useConnectGoogleCalendar,
     useDisconnectGoogleCalendar,
     useGoogleCalendarStatus,
@@ -10,26 +11,43 @@ import {
 } from '@/application/clinic';
 import { DsButton, dsCn } from '@/components/ds';
 
-/** Mostra o resultado do retorno do OAuth (`?google=`) e limpa a URL. */
-export function useGoogleCalendarReturnToast() {
+/**
+ * Conclui a volta do Google (`?google_ticket=`) com o usuário logado ou avisa
+ * o erro (`?google=error`). A URL é limpa antes da chamada para o ticket, que
+ * vale uma vez, não ser reenviado num segundo render.
+ */
+export function useGoogleCalendarReturn() {
+    const { mutate: completeConnection } =
+        useCompleteGoogleCalendarConnection();
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
+        const ticket = params.get('google_ticket');
         const result = params.get('google');
-        if (result === 'connected') {
-            toast.success('Google Calendar conectado com sucesso!');
-        } else if (result === 'error') {
+        if (!ticket && !result) return;
+
+        params.delete('google_ticket');
+        params.delete('google');
+        const query = params.toString();
+        window.history.replaceState(
+            {},
+            '',
+            window.location.pathname + (query ? `?${query}` : ''),
+        );
+
+        const notifyError = () =>
             toast.error('Não foi possível conectar o Google Calendar.');
+
+        if (ticket) {
+            completeConnection(ticket, {
+                onSuccess: () =>
+                    toast.success('Google Calendar conectado com sucesso!'),
+                onError: notifyError,
+            });
+        } else if (result === 'error') {
+            notifyError();
         }
-        if (result) {
-            params.delete('google');
-            const query = params.toString();
-            window.history.replaceState(
-                {},
-                '',
-                window.location.pathname + (query ? `?${query}` : ''),
-            );
-        }
-    }, []);
+    }, [completeConnection]);
 }
 
 /**

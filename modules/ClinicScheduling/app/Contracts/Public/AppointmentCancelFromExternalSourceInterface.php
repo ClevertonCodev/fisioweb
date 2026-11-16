@@ -6,5 +6,5 @@ use Carbon\CarbonImmutable;
 
 interface AppointmentCancelFromExternalSourceInterface
 {
-    public function cancelFromExternalSource(int $appointmentId, CarbonImmutable $occurredAt): void;
+    public function cancelFromExternalSource(int $appointmentId, int $clinicUserId, CarbonImmutable $occurredAt): void;
 }

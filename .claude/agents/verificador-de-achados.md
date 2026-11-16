@@ -1,11 +1,6 @@
 ---
 name: verificador-de-achados
-description: >
-  Juiz independente do relatório do revisor-adversario no fisioweb. Roda depois
-  de cada rodada de revisão, confere cada achado contra o código e devolve uma
-  decisão por achado (CONFIRMADO, REBAIXADO, REAL-FORA-DO-ESCOPO, OPCIONAL,
-  FALSO) com prova. Na dúvida, CONFIRMADO. Nunca cria achado, nunca aumenta
-  gravidade e nunca edita arquivo. Chamado pela skill revisao-adversaria.
+description: 'Juiz independente do relatório do revisor-adversario no fisioweb. Roda depois de cada rodada de revisão, confere cada achado contra o código e devolve uma decisão por achado (CONFIRMADO, REBAIXADO, REAL-FORA-DO-ESCOPO, OPCIONAL, FALSO) com prova. Na dúvida, CONFIRMADO. Nunca cria achado, nunca aumenta gravidade e nunca edita arquivo. Chamado pela skill revisao-adversaria.'
 tools: Bash, Read, Grep, Glob
 model: inherit
 ---

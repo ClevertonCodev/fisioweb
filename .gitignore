@@ -33,9 +33,10 @@ yarn-error.log
 /.cursorrules
 /.claude/settings.local.json
 
-# ai-harness: evidência, revisão e trabalho adiado ficam fora do git
+# ai-harness: evidência, revisão, QA de aceite e trabalho adiado ficam fora do git
 /.ai-workbench/*/evidence/
 /.ai-workbench/*/review/
+/.ai-workbench/*/qa/
 
 # Playwright MCP headless (.mcp.json): prints, snapshots e logs do agente
 /.playwright-mcp/

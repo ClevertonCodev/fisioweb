@@ -28,7 +28,11 @@ import { evolutionDetailBlocks } from '@/application/clinic/evolution-sheet-text
 import { can } from '@/application/clinic/permissions';
 import type { ProgramOrigin } from '@/application/clinic/program-detail';
 import { useDeleteEvolution } from '@/application/clinic/use-evolutions';
-import { useDeletePatientFile } from '@/application/clinic/use-patient-files';
+import {
+    useDeletePatientFile,
+    useOpenPatientFile,
+    usePatientFilePreviews,
+} from '@/application/clinic/use-patient-files';
 import {
     useDeleteQuestionnaire,
     usePatientQuestionnaire,
@@ -106,6 +110,26 @@ export function KindIcon({
             <Icon style={{ width: size * 0.5, height: size * 0.5 }} />
         </span>
     );
+}
+
+/** Prévia da imagem pelo link assinado; enquanto ele não chega, o ícone do tipo. */
+export function PatientFileImage({
+    patientId,
+    fileId,
+    alt,
+    className,
+    iconSize = 40,
+}: {
+    patientId: string;
+    fileId: number;
+    alt: string;
+    className?: string;
+    iconSize?: number;
+}) {
+    const previews = usePatientFilePreviews(patientId);
+    const link = previews.data?.find((p) => p.fileId === fileId);
+    if (!link) return <KindIcon kind="arquivo" size={iconSize} />;
+    return <img src={link.url} alt={alt} className={className} />;
 }
 
 const TONE_BADGE: Record<Tone, BadgeVariant> = {
@@ -272,6 +296,7 @@ export function RecordBody({
         patientId,
         questionnaireId,
     );
+    const openFile = useOpenPatientFile(patientId);
 
     const meta = (
         <DsList
@@ -414,18 +439,19 @@ export function RecordBody({
         return (
             <div className="flex flex-col gap-5">
                 {isImage && (
-                    <a
-                        href={f.cdnUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block overflow-hidden rounded-ds-lg border border-ds-border-subtle bg-ds-surface-subtle"
+                    <button
+                        type="button"
+                        aria-label={`Abrir ${f.name ?? f.originalName}`}
+                        onClick={() => openFile.open(String(f.id))}
+                        className="flex min-h-40 w-full cursor-pointer items-center justify-center overflow-hidden rounded-ds-lg border border-ds-border-subtle bg-ds-surface-subtle"
                     >
-                        <img
-                            src={f.cdnUrl}
+                        <PatientFileImage
+                            patientId={patientId}
+                            fileId={f.id}
                             alt={f.name ?? f.originalName}
                             className="max-h-80 w-full object-contain"
                         />
-                    </a>
+                    </button>
                 )}
                 <DsList
                     mode="kv"
@@ -442,7 +468,8 @@ export function RecordBody({
                         iconPosition="left"
                         icon={<Download />}
                         label="Baixar"
-                        onClick={() => window.open(f.cdnUrl, '_blank')}
+                        loading={openFile.isPending}
+                        onClick={() => openFile.open(String(f.id))}
                     />
                 </div>
             </div>

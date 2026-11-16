@@ -32,6 +32,7 @@ Padrão de testes para o Laravel modular deste projeto. Stack: **PHPUnit 11.5+ +
 - Usar `RefreshDatabase` em qualquer teste que toque o DB.
 - Métodos de teste em **snake_case**: `test_index_returns_paginated_exercises()`.
 - Autenticar com guard correto: `$this->actingAs($user, 'admin')` ou `$this->actingAs($user, 'clinic')`.
+- Teste com token de verdade (`withToken`), que passa pelo guard JWT: antes de cada requisição, chame `$this->app['auth']->forgetGuards()` e `$this->app['tymon.jwt']->unsetToken()`. O JWT da lib guarda o token da requisição anterior, e sem isso um segundo token é ignorado. O token é recusado se o `iat` for anterior a `password_changed_at`: use `$this->travel(1)->seconds()` entre emitir o token e trocar a senha.
 - Asserções JSON respeitando wrapper `data` (e `data.data` quando o controller retorna paginator).
 - Mockar Repository/Service via Interface, nunca a classe concreta.
 - Em teste de Service, mockar RepositoryInterface apenas do próprio módulo. Para outro módulo, mockar contrato público definido pela arquitetura, evento ou endpoint/read model.

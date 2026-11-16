@@ -1,3 +1,4 @@
+import type { MediaChangeResult } from '@/application/clinic/ports';
 import { apiClient } from '@/infrastructure/api/client';
 
 const BASE = '/clinic/media/videos';
@@ -74,9 +75,25 @@ export const apiClinicVideosRepository = {
         return { id: d.id as number, status: d.status as string };
     },
 
-    async syncReferenceImages(videoId: number, paths: string[]): Promise<void> {
-        await apiClient.put(`${BASE}/${videoId}/reference-images`, {
+    async syncReferenceImages(
+        videoId: number,
+        paths: string[],
+    ): Promise<MediaChangeResult> {
+        const { data } = await apiClient.put<{
+            data?: { proposal_pending?: boolean };
+        }>(`${BASE}/${videoId}/reference-images`, {
             reference_image_paths: paths,
         });
+        return { proposalPending: data?.data?.proposal_pending === true };
+    },
+
+    async changeThumbnail(
+        videoId: number,
+        path: string,
+    ): Promise<MediaChangeResult> {
+        const { data } = await apiClient.put<{
+            data?: { proposal_pending?: boolean };
+        }>(`${BASE}/${videoId}/thumbnail`, { thumbnail_path: path });
+        return { proposalPending: data?.data?.proposal_pending === true };
     },
 };

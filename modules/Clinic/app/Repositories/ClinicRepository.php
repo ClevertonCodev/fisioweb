@@ -77,7 +77,10 @@ class ClinicRepository implements ClinicRepositoryInterface
 
     public function createMasterUser(array $data): ClinicUser
     {
-        return ClinicUser::create($data);
+        $master = (new ClinicUser)->forceFill($data);
+        $master->save();
+
+        return $master;
     }
 
     public function findClinicUserWithClinic(int $clinicUserId): ?ClinicUser
@@ -88,7 +91,7 @@ class ClinicRepository implements ClinicRepositoryInterface
     public function findActiveUnverifiedUserByEmail(string $email): ?ClinicUser
     {
         return ClinicUser::query()
-            ->where('email', mb_strtolower(trim($email)))
+            ->whereRaw('LOWER(email) = ?', [mb_strtolower(trim($email))])
             ->where('status', ClinicUser::STATUS_ACTIVE)
             ->whereNull('email_verified_at')
             ->first();
@@ -97,6 +100,49 @@ class ClinicRepository implements ClinicRepositoryInterface
     public function markClinicUserEmailVerified(ClinicUser $user): void
     {
         $user->forceFill(['email_verified_at' => now()])->save();
+    }
+
+    public function findMasterUser(int $clinicId): ?ClinicUser
+    {
+        return ClinicUser::query()
+            ->where('clinic_id', $clinicId)
+            ->where('mestre', ClinicUser::MESTRE_YES)
+            ->orderBy('id')
+            ->first();
+    }
+
+    public function findActiveAdminForImpersonation(int $clinicId): ?ClinicUser
+    {
+        return ClinicUser::query()
+            ->where('clinic_id', $clinicId)
+            ->where('role', ClinicUser::ROLE_ADMIN)
+            ->where('status', ClinicUser::STATUS_ACTIVE)
+            ->orderByDesc('mestre')
+            ->orderBy('id')
+            ->first();
+    }
+
+    public function clinicUserNames(int $clinicId, array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        return ClinicUser::withTrashed()
+            ->where('clinic_id', $clinicId)
+            ->whereIn('id', $ids)
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser
+    {
+        return ClinicUser::query()->where('first_access_token_hash', $hash)->lockForUpdate()->first();
+    }
+
+    public function saveClinicUser(ClinicUser $user, array $attributes): void
+    {
+        $user->forceFill($attributes)->save();
     }
 
     public function update(int $id, array $data): Clinic

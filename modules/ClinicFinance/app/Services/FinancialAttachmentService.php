@@ -111,7 +111,16 @@ class FinancialAttachmentService implements FinancialAttachmentServiceInterface
         $path       = $attachment->path;
 
         $this->repository->delete($attachment);
-        DB::afterCommit(fn () => $this->files->deletePrivateFile($path));
+        DB::afterCommit(fn () => $this->deleteStoredObject($path));
+    }
+
+    private function deleteStoredObject(string $path): void
+    {
+        try {
+            $this->files->deletePrivateFile($path);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function findOrFail(int $clinicId, int $transactionId, int $attachmentId): FinancialAttachment

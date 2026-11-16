@@ -6,16 +6,20 @@ use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Contracts\Public\ExerciseCatalogReadServiceInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Clinic\Http\Requests\SubmitExerciseRequest;
 use Modules\Clinic\Models\ExerciseFavorite;
+use Modules\Media\Contracts\VideoServiceInterface;
 
 class ExerciseController extends ClinicAuthenticatedController
 {
     public function __construct(
         protected ExerciseServiceInterface $exerciseService,
         protected ExerciseSubmissionServiceInterface $submissionService,
+        protected ExerciseCatalogReadServiceInterface $catalog,
+        protected VideoServiceInterface $videoService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -31,9 +35,20 @@ class ExerciseController extends ClinicAuthenticatedController
         $perPage     = $request->integer('per_page', 15);
         $result      = $this->exerciseService->list($filters, $perPage);
         $favoriteIds = ExerciseFavorite::where('clinic_user_id', $this->clinicUserId())->pluck('exercise_id')->all();
-        $result->getCollection()->transform(function ($item) use ($favoriteIds, $clinicId) {
+        $proposalIds = $this->videoService->videoIdsWithPendingMediaProposal(
+            $result->getCollection()
+                ->filter(fn ($item) => $item->isOwnedByClinic($clinicId))
+                ->flatMap(fn ($item) => $item->videos->pluck('id'))
+                ->unique()
+                ->values()
+                ->all(),
+        );
+        $result->getCollection()->transform(function ($item) use ($favoriteIds, $clinicId, $proposalIds) {
             $item->is_favorite       = in_array($item->id, $favoriteIds);
             $item->is_own_submission = $item->isOwnedByClinic($clinicId);
+            if ($item->is_own_submission) {
+                $item->media_proposal_pending = $item->videos->contains(fn ($video) => in_array($video->id, $proposalIds, true));
+            }
             // Não expor a clínica de origem crua ao frontend.
             unset($item->clinic_id, $item->submitted_by_clinic_user_id, $item->clinic, $item->submittedByClinicUser);
 
@@ -68,9 +83,8 @@ class ExerciseController extends ClinicAuthenticatedController
     public function toggleFavorite(int $id): JsonResponse
     {
         $clinicUserId = $this->clinicUserId();
-        $exercise     = Exercise::find($id);
 
-        if (!$exercise) {
+        if (empty($this->catalog->visibleToClinic([$id], $this->clinicId()))) {
             return response()->json(['message' => 'Exercício não encontrado.'], 404);
         }
 
@@ -97,8 +111,16 @@ class ExerciseController extends ClinicAuthenticatedController
         $ids          = ExerciseFavorite::where('clinic_user_id', $clinicUserId)->pluck('exercise_id');
         $exercises    = Exercise::with(['physioArea', 'physioSubarea', 'bodyRegion', 'videos'])
             ->whereIn('id', $ids)
+            ->visibleToClinic($this->clinicId())
             ->orderBy('name')
-            ->paginate($request->integer('per_page', 15));
+            ->paginate($request->integer('per_page', 15))
+            ->through(function (Exercise $exercise) {
+                $exercise->videos->each->makeHidden([
+                    'clinic_id', 'original_filename', 'path', 'uploadable_type', 'uploadable_id', 'metadata', 'pivot',
+                ]);
+
+                return $exercise->makeHidden(['clinic_id', 'submitted_by_clinic_user_id', 'review_status']);
+            });
 
         return response()->json(['data' => $exercises]);
     }

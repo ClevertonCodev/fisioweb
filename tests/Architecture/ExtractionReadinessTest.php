@@ -108,7 +108,7 @@ class ExtractionReadinessTest extends TestCase
         }
 
         $this->assertSame([], $clinicMigrations, 'Clinical record migrations must not live in modules/Clinic.');
-        $this->assertCount(10, array_unique($ownerMigrations), 'ClinicalRecord must own the ten clinical record migrations.');
+        $this->assertCount(11, array_unique($ownerMigrations), 'ClinicalRecord must own the eleven clinical record migrations.');
     }
 
     public function test_clinic_questionnaire_has_all_required_extraction_readiness_criteria(): void

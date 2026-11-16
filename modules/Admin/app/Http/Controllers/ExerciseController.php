@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
+use Modules\Admin\Http\Requests\ExerciseOptionsRequest;
 use Modules\Admin\Http\Requests\StoreExerciseRequest;
 use Modules\Admin\Http\Requests\UpdateExerciseRequest;
 use Modules\Admin\Models\BodyRegion;
@@ -80,14 +81,18 @@ class ExerciseController extends Controller
         }
     }
 
-    public function options(): JsonResponse
+    public function options(ExerciseOptionsRequest $request): JsonResponse
     {
+        $exerciseId = $request->exerciseId();
+
         $data = [
             'physio_areas'   => PhysioArea::with('subareas:id,physio_area_id,name')->orderBy('name')->get(['id', 'name']),
             'body_regions'   => BodyRegion::with('children:id,name,parent_id')->roots()->orderBy('name')->get(['id', 'name']),
             'difficulties'   => Exercise::DIFFICULTIES,
             'movement_forms' => Exercise::MOVEMENT_FORMS,
-            'videos'         => $this->videoService->getAvailableForExercise(),
+            'videos'         => $this->videoService->getAvailableForExercise(
+                is_null($exerciseId) ? [] : $this->exerciseService->linkedVideoIds($exerciseId),
+            ),
         ];
 
         return response()->json(['data' => $data]);

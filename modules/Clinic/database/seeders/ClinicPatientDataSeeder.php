@@ -34,15 +34,11 @@ class ClinicPatientDataSeeder extends Seeder
         ['name' => 'd19a7111-8d40-4fc8-b097-016450b6dc37_1775786161.png', 'original' => 'laudo-ressonancia.png', 'mime' => 'image/png'],
     ];
 
-    private string $cdn;
-
     public function run(): void
     {
         if (app()->isProduction()) {
             return;
         }
-
-        $this->cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
 
         // Dados clínicos de demonstração só para Performance e Premium; Start fica mínima
         $clinics = Clinic::whereIn('email', ['clevertonsantoscodev@gmail.com', 'performance@fisioweb.local'])->get();
@@ -105,7 +101,6 @@ class ClinicPatientDataSeeder extends Seeder
                     'clinic_user_id' => $physio->id,
                     'original_name'  => $file['original'],
                     'name'           => pathinfo($file['original'], PATHINFO_FILENAME),
-                    'cdn_url'        => $this->cdn . '/' . $path,
                     'mime_type'      => $file['mime'],
                     'size'           => 524288,
                 ],

@@ -5,9 +5,9 @@ namespace Modules\ClinicalRecord\Http\Controllers;
 use App\Http\Controllers\ClinicAuthenticatedController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Modules\ClinicalRecord\Contracts\EvolutionServiceInterface;
+use Modules\ClinicalRecord\Http\Requests\GenerateEvolutionTextRequest;
 use Modules\ClinicalRecord\Http\Requests\StoreEvolutionRequest;
 use Modules\ClinicalRecord\Http\Requests\UpdateEvolutionRequest;
 use Modules\ClinicalRecord\Models\PatientEvolution;
@@ -87,7 +87,7 @@ class EvolutionController extends ClinicAuthenticatedController
         return response()->json(['data' => $evolution]);
     }
 
-    public function generateText(Request $request, int $id): JsonResponse
+    public function generateText(GenerateEvolutionTextRequest $request, int $id): JsonResponse
     {
         $clinicId = $this->clinicId();
 
@@ -99,10 +99,10 @@ class EvolutionController extends ClinicAuthenticatedController
 
         $this->authorize('generateText', $evolution);
 
-        $checkedItemIds = $request->input('checked_item_ids', []);
-        $freeTextValues = $request->input('free_text_values', []);
+        $checkedItemIds = $request->validated('checked_item_ids') ?? [];
+        $freeTextValues = $request->validated('free_text_values') ?? [];
 
-        $text = $this->evolutionService->generateText($checkedItemIds, $freeTextValues);
+        $text = $this->evolutionService->generateText($evolution, $checkedItemIds, $freeTextValues);
 
         return response()->json(['data' => ['generated_text' => $text]]);
     }

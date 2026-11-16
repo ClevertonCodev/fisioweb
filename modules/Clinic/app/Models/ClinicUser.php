@@ -2,7 +2,9 @@
 
 namespace Modules\Clinic\Models;
 
+use App\Contracts\RevokesTokensOnPasswordChange;
 use App\Traits\JwtAuthenticatable;
+use App\Traits\TracksPasswordChange;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,13 +14,24 @@ use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Database\Factories\ClinicUserFactory;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class ClinicUser extends Authenticatable implements JWTSubject
+class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnPasswordChange
 {
-    use HasFactory, JwtAuthenticatable, Notifiable, SoftDeletes;
+    use HasFactory, JwtAuthenticatable, Notifiable, SoftDeletes, TracksPasswordChange;
 
     protected static function newFactory(): ClinicUserFactory
     {
         return ClinicUserFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        // Um link de primeiro acesso esquecido não pode trocar depois a senha que a pessoa definiu por outro caminho.
+        static::updating(function (self $user): void {
+            if ($user->isDirty('password') && !$user->isDirty('first_access_token_hash')) {
+                $user->first_access_token_hash       = null;
+                $user->first_access_token_created_at = null;
+            }
+        });
     }
 
     public const GUARD_NAME = 'clinic';
@@ -74,22 +87,25 @@ class ClinicUser extends Authenticatable implements JWTSubject
         'google_access_token',
         'google_refresh_token',
         'google_sync_token',
+        'first_access_token_hash',
+        'first_access_token_created_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at'       => 'datetime',
-            'terms_accepted_at'       => 'datetime',
-            'two_factor_confirmed_at' => 'datetime',
-            'password'                => 'hashed',
-            'status'                  => 'integer',
-            'mestre'                  => 'integer',
-            'google_access_token'     => 'encrypted',
-            'google_refresh_token'    => 'encrypted',
-            'google_sync_token'       => 'encrypted',
-            'google_token_expires_at' => 'datetime',
-            'google_connected_at'     => 'datetime',
+            'email_verified_at'             => 'datetime',
+            'terms_accepted_at'             => 'datetime',
+            'two_factor_confirmed_at'       => 'datetime',
+            'password'                      => 'hashed',
+            'status'                        => 'integer',
+            'mestre'                        => 'integer',
+            'google_access_token'           => 'encrypted',
+            'google_refresh_token'          => 'encrypted',
+            'google_sync_token'             => 'encrypted',
+            'google_token_expires_at'       => 'datetime',
+            'google_connected_at'           => 'datetime',
+            'first_access_token_created_at' => 'datetime',
         ];
     }
 
@@ -117,6 +133,12 @@ class ClinicUser extends Authenticatable implements JWTSubject
     {
         // Agendamento pertence ao módulo ClinicScheduling (FQN inline — fronteira modular).
         return $this->hasMany(\Modules\ClinicScheduling\Models\Appointment::class, 'clinic_user_id');
+    }
+
+    /** Consulta sem carregar a relação, que entraria no JSON do usuário (login, `/me`). */
+    public function belongsToCancelledClinic(): bool
+    {
+        return $this->clinic()->where('status', Clinic::STATUS_CANCELLED)->exists();
     }
 
     public function isAdmin(): bool

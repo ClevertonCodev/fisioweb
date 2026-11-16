@@ -4,6 +4,7 @@ namespace Modules\Clinic\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\Clinic\Models\Clinic;
+use Modules\Clinic\Rules\UniqueClinicUserEmail;
 use Modules\Clinic\Support\ReservedClinicSlugs;
 
 class CreateClinicRequest extends FormRequest
@@ -17,7 +18,7 @@ class CreateClinicRequest extends FormRequest
     {
         return [
             'name'          => ['required', 'string', 'max:255'],
-            'email'         => ['required', 'email', 'unique:clinics,email'],
+            'email'         => ['required', 'email', 'unique:clinics,email', new UniqueClinicUserEmail],
             'document'      => [
                 'required',
                 'string',

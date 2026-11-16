@@ -76,6 +76,8 @@ const listQuestionnaireTemplates = vi.fn();
 const listFiles = vi.fn();
 const storeFile = vi.fn();
 const destroyFile = vi.fn();
+const getFileUrl = vi.fn();
+const listFilePreviews = vi.fn();
 const listAppointments = vi.fn();
 const listPrograms = vi.fn();
 
@@ -128,6 +130,8 @@ vi.mock('@/infrastructure/repositories/api-clinic-patient-files', () => ({
         listByPatient: (...args: unknown[]) => listFiles(...args),
         store: (...args: unknown[]) => storeFile(...args),
         destroy: (...args: unknown[]) => destroyFile(...args),
+        getUrl: (...args: unknown[]) => getFileUrl(...args),
+        listPreviews: (...args: unknown[]) => listFilePreviews(...args),
     },
 }));
 
@@ -326,7 +330,6 @@ function makeFile(overrides: Partial<PatientFile> = {}): PatientFile {
         clinicUser: { id: 5, name: 'Cleverton' },
         originalName: 'raio-x.pdf',
         name: 'Raio-X lombar',
-        cdnUrl: 'https://cdn.example/raio-x.pdf',
         mimeType: 'application/pdf',
         size: 2048,
         createdAt: '2026-10-12T09:00:00',
@@ -472,8 +475,13 @@ beforeEach(() => {
         },
     ]);
     listFiles.mockResolvedValue([]);
+    listFilePreviews.mockResolvedValue([]);
     storeFile.mockResolvedValue(makeFile());
     destroyFile.mockResolvedValue(undefined);
+    getFileUrl.mockResolvedValue({
+        url: 'https://r2.example/raio-x.pdf?X-Amz-Signature=abc',
+        expiresAt: '2026-10-12T09:05:00Z',
+    });
     listAppointments.mockResolvedValue([]);
     listPrograms.mockResolvedValue(emptyProgramPage());
     vi.spyOn(window, 'open').mockImplementation(() => null);
@@ -711,18 +719,81 @@ describe('prontuário do paciente (painel B)', () => {
         ).toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: 'Fechar' }));
 
+        const tab = { opener: {}, location: { href: '' }, close: vi.fn() };
+        vi.mocked(window.open).mockReturnValue(tab as unknown as Window);
+
         await user.click(screen.getByRole('tab', { name: /Arquivos/ }));
         await user.click(screen.getByRole('button', { name: /Raio-X lombar/ }));
+        const fileDrawer = await screen.findByRole('dialog', {
+            name: 'Raio-X lombar',
+        });
+        expect(getFileUrl).not.toHaveBeenCalled();
+        await user.click(
+            within(fileDrawer).getByRole('button', { name: 'Baixar' }),
+        );
+        expect(window.open).toHaveBeenCalledWith('', '_blank');
+        await waitFor(() => {
+            expect(tab.location.href).toBe(
+                'https://r2.example/raio-x.pdf?X-Amz-Signature=abc',
+            );
+        });
+        expect(getFileUrl).toHaveBeenCalledWith('108', '51');
+        expect(tab.opener).toBeNull();
+    });
+
+    it('imagem do prontuário aparece pelo link assinado, com as prévias do paciente numa requisição só', async () => {
+        listFiles.mockResolvedValue([
+            makeFile({
+                id: 52,
+                name: 'Foto postura',
+                originalName: 'postura.png',
+                mimeType: 'image/png',
+            }),
+        ]);
+        listFilePreviews.mockResolvedValue([
+            {
+                fileId: 52,
+                url: 'https://r2.example/postura.png?X-Amz-Signature=def',
+                expiresAt: '2026-10-12T09:05:00Z',
+            },
+        ]);
+
+        const { container } = renderPage('/clinica/pacientes/108?tab=arquivos');
+
+        await waitFor(() => {
+            expect(
+                container.querySelector(
+                    'img[src="https://r2.example/postura.png?X-Amz-Signature=def"]',
+                ),
+            ).not.toBeNull();
+        });
+        expect(listFilePreviews).toHaveBeenCalledWith('108');
+        expect(getFileUrl).not.toHaveBeenCalled();
+    });
+
+    it('link do arquivo que falha fecha a aba e avisa', async () => {
+        const user = userEvent.setup();
+        listFiles.mockResolvedValue([makeFile()]);
+        getFileUrl.mockRejectedValue(new Error('404'));
+        const tab = { opener: {}, location: { href: '' }, close: vi.fn() };
+        vi.mocked(window.open).mockReturnValue(tab as unknown as Window);
+
+        renderPage('/clinica/pacientes/108?tab=arquivos');
+
+        await user.click(
+            await screen.findByRole('button', { name: /Raio-X lombar/ }),
+        );
         const fileDrawer = await screen.findByRole('dialog', {
             name: 'Raio-X lombar',
         });
         await user.click(
             within(fileDrawer).getByRole('button', { name: 'Baixar' }),
         );
-        expect(window.open).toHaveBeenCalledWith(
-            'https://cdn.example/raio-x.pdf',
-            '_blank',
-        );
+
+        await waitFor(() => {
+            expect(tab.close).toHaveBeenCalled();
+        });
+        expect(tab.location.href).toBe('');
     });
 
     it('paciente inexistente ou de outra clínica mostra 404 sem vazar o id', async () => {

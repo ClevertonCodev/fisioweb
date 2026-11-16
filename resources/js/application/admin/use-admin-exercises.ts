@@ -31,10 +31,10 @@ export function useAdminExercise(id: number | undefined) {
     });
 }
 
-export function useAdminExerciseOptions() {
+export function useAdminExerciseOptions(exerciseId?: number) {
     return useQuery({
-        queryKey: ['admin', 'exerciseOptions'],
-        queryFn: () => apiAdminExercisesRepository.getOptions(),
+        queryKey: ['admin', 'exerciseOptions', exerciseId ?? null],
+        queryFn: () => apiAdminExercisesRepository.getOptions(exerciseId),
     });
 }
 

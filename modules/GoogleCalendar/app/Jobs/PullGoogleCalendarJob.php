@@ -83,10 +83,10 @@ class PullGoogleCalendarJob implements ShouldQueue
 
         // Evento removido/cancelado no Google → cancela no sistema (sem delete).
         if ($event->getStatus() === 'cancelled') {
-            $appointmentId = $appointmentReader->findIdByExternalEventId($clinicId, $eventId);
+            $appointmentId = $appointmentReader->findIdByExternalEventId($clinicId, $clinicUserId, $eventId);
 
             if (!is_null($appointmentId)) {
-                $appointmentCancel->cancelFromExternalSource($appointmentId, CarbonImmutable::now());
+                $appointmentCancel->cancelFromExternalSource($appointmentId, $clinicUserId, CarbonImmutable::now());
             }
 
             return;

@@ -10,6 +10,7 @@ use Modules\Admin\Models\PhysioArea;
 use Modules\Admin\Models\User as AdminUser;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Clinic\Models\ExerciseFavorite;
+use Modules\Media\Models\Video;
 use Tests\TestCase;
 
 class ExerciseControllerTest extends TestCase
@@ -196,6 +197,94 @@ class ExerciseControllerTest extends TestCase
             ->assertJson(['message' => 'Exercício não encontrado.']);
     }
 
+    public function test_toggle_favorite_returns_404_for_pending_exercise_of_another_clinic(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise([
+            'clinic_id'                   => $otherClinicUser->clinic_id,
+            'submitted_by_clinic_user_id' => $otherClinicUser->id,
+            'review_status'               => Exercise::REVIEW_PENDING,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/exercises/{$exercise->id}/favorite")
+            ->assertNotFound()
+            ->assertJson(['message' => 'Exercício não encontrado.']);
+
+        $this->assertDatabaseMissing('clinic_exercise_favorites', ['exercise_id' => $exercise->id]);
+    }
+
+    public function test_toggle_favorite_returns_404_for_rejected_exercise_of_another_clinic(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise([
+            'clinic_id'     => $otherClinicUser->clinic_id,
+            'review_status' => Exercise::REVIEW_REJECTED,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/exercises/{$exercise->id}/favorite")
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('clinic_exercise_favorites', ['exercise_id' => $exercise->id]);
+    }
+
+    public function test_toggle_favorite_accepts_pending_exercise_of_own_clinic(): void
+    {
+        $exercise = $this->makeExercise([
+            'clinic_id'                   => $this->clinicUser->clinic_id,
+            'submitted_by_clinic_user_id' => $this->clinicUser->id,
+            'review_status'               => Exercise::REVIEW_PENDING,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/exercises/{$exercise->id}/favorite")
+            ->assertOk()
+            ->assertJson(['data' => ['exercise_id' => $exercise->id, 'is_favorite' => true]]);
+
+        $this->assertDatabaseHas('clinic_exercise_favorites', [
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+    }
+
+    public function test_toggle_favorite_accepts_approved_exercise_of_another_clinic(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise([
+            'clinic_id'                   => $otherClinicUser->clinic_id,
+            'submitted_by_clinic_user_id' => $otherClinicUser->id,
+            'review_status'               => Exercise::REVIEW_APPROVED,
+        ]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/exercises/{$exercise->id}/favorite")
+            ->assertOk()
+            ->assertJson(['data' => ['exercise_id' => $exercise->id, 'is_favorite' => true]]);
+    }
+
+    public function test_toggle_favorite_returns_404_when_unfavoriting_exercise_no_longer_visible(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise(['clinic_id' => $otherClinicUser->clinic_id]);
+
+        ExerciseFavorite::create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+
+        $exercise->update(['review_status' => Exercise::REVIEW_REJECTED]);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/exercises/{$exercise->id}/favorite")
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('clinic_exercise_favorites', [
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+    }
+
     public function test_toggle_favorite_does_not_affect_other_clinic_users_favorites(): void
     {
         $otherUser = ClinicUser::factory()->create();
@@ -243,6 +332,79 @@ class ExerciseControllerTest extends TestCase
         $ids = collect($response->json('data.data'))->pluck('id');
         $this->assertTrue($ids->contains($favorited->id));
         $this->assertFalse($ids->contains($notFavorited->id));
+    }
+
+    public function test_favorites_hides_old_favorite_of_exercise_no_longer_visible(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise(['clinic_id' => $otherClinicUser->clinic_id]);
+
+        ExerciseFavorite::create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+
+        $exercise->update(['review_status' => Exercise::REVIEW_REJECTED]);
+
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/favorites');
+
+        $response->assertOk();
+        $this->assertEmpty($response->json('data.data'));
+    }
+
+    public function test_favorites_does_not_expose_origin_fields(): void
+    {
+        $exercise = $this->makeExercise([
+            'clinic_id'                   => $this->clinicUser->clinic_id,
+            'submitted_by_clinic_user_id' => $this->clinicUser->id,
+            'review_status'               => Exercise::REVIEW_PENDING,
+        ]);
+
+        ExerciseFavorite::create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/favorites');
+
+        $response->assertOk();
+        $item = $response->json('data.data.0');
+        $this->assertSame($exercise->id, $item['id']);
+        foreach (['clinic_id', 'submitted_by_clinic_user_id', 'review_status', 'clinic', 'submitted_by_clinic_user'] as $field) {
+            $this->assertArrayNotHasKey($field, $item);
+        }
+    }
+
+    public function test_favorites_does_not_expose_origin_of_video_from_another_clinic(): void
+    {
+        $otherClinicUser = ClinicUser::factory()->create();
+        $exercise        = $this->makeExercise([
+            'clinic_id'                   => $otherClinicUser->clinic_id,
+            'submitted_by_clinic_user_id' => $otherClinicUser->id,
+            'review_status'               => Exercise::REVIEW_APPROVED,
+        ]);
+        $video = Video::factory()->create(['clinic_id' => $otherClinicUser->clinic_id]);
+        $exercise->videos()->sync([$video->id]);
+
+        ExerciseFavorite::create([
+            'clinic_user_id' => $this->clinicUser->id,
+            'exercise_id'    => $exercise->id,
+        ]);
+
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson('/api/clinic/favorites');
+
+        $response->assertOk();
+        $item = $response->json('data.data.0');
+        $this->assertSame($exercise->id, $item['id']);
+        $this->assertArrayNotHasKey('clinic_id', $item);
+        $videoJson = $item['videos'][0];
+        $this->assertSame($video->id, $videoJson['id']);
+        foreach (['clinic_id', 'original_filename', 'path', 'uploadable_type', 'uploadable_id', 'metadata', 'pivot'] as $field) {
+            $this->assertArrayNotHasKey($field, $videoJson);
+        }
     }
 
     public function test_favorites_returns_empty_when_no_favorites(): void

@@ -21,6 +21,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { programDraftFromExercise } from '@/application/clinic/program-from-exercise';
 import { DsBadge, DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
+import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
 
 import { DIFFICULTY, type LibraryFilters } from './shared';
@@ -509,6 +510,7 @@ export interface VariantProps {
     emptyState: ReactNode;
     canSubmit?: boolean;
     onSubmit?: () => void;
+    role?: ClinicRole;
     tabs?: ReactNode;
     selection?: LibrarySelection;
     embedded?: boolean;

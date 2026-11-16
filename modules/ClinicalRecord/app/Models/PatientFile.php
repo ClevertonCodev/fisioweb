@@ -13,7 +13,21 @@ class PatientFile extends Model
     use HasFactory;
     use SoftDeletes;
 
+    /**
+     * Extensão gravada no R2 para cada tipo aceito, pelo conteúdo do arquivo e nunca pelo nome.
+     *
+     * @var array<string, string>
+     */
+    public const EXTENSION_BY_MIME = [
+        'image/jpeg'                                                              => 'jpg',
+        'image/png'                                                               => 'png',
+        'application/pdf'                                                         => 'pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+    ];
+
     protected $table = 'clinic_patient_files';
+
+    protected $hidden = ['file_path', 'cdn_url'];
 
     protected static function newFactory(): PatientFileFactory
     {

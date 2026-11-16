@@ -4,10 +4,10 @@ namespace Modules\ClinicalRecord\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\ClinicalRecord\Contracts\PatientFileRepositoryInterface;
 use Modules\ClinicalRecord\Models\PatientFile;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
@@ -104,16 +104,10 @@ class PatientFileControllerTest extends TestCase
 
     public function test_upload_stores_file_and_returns_201(): void
     {
-        Storage::fake('r2');
-
-        $cdnUrl = 'https://cdn.example.com/patients/files/arquivo.pdf';
-
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($cdnUrl) {
-            $mock->shouldReceive('uploadFile')
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('uploadFileAs')
                 ->once()
                 ->andReturn([
-                    'cdn_url'           => $cdnUrl,
-                    'url'               => 'https://r2.example.com/patients/files/arquivo.pdf',
                     'filename'          => 'arquivo.pdf',
                     'original_filename' => 'meu-arquivo.pdf',
                     'path'              => 'patients/files/arquivo.pdf',
@@ -126,24 +120,43 @@ class PatientFileControllerTest extends TestCase
             ->postJson("/api/clinic/patients/{$this->patient->id}/files", [
                 'file' => UploadedFile::fake()->create('meu-arquivo.pdf', 200, 'application/pdf'),
             ])->assertCreated()
-            ->assertJsonPath('data.cdn_url', $cdnUrl)
+            ->assertJsonMissingPath('data.cdn_url')
             ->assertJsonPath('data.original_name', 'meu-arquivo.pdf');
 
         $this->assertDatabaseHas('clinic_patient_files', [
             'patient_id' => $this->patient->id,
             'clinic_id'  => $this->clinicUser->clinic_id,
-            'cdn_url'    => $cdnUrl,
+            'file_path'  => 'patients/files/arquivo.pdf',
+            'cdn_url'    => null,
         ]);
+    }
+
+    public function test_upload_removes_the_object_when_the_record_cannot_be_saved(): void
+    {
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('uploadFileAs')->once()->andReturn([
+                'filename'          => 'arquivo.pdf',
+                'original_filename' => 'meu-arquivo.pdf',
+                'path'              => 'patients/files/arquivo.pdf',
+                'mime_type'         => 'application/pdf',
+                'size'              => 204800,
+            ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->with('patients/files/arquivo.pdf');
+        });
+        $this->mock(PatientFileRepositoryInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('create')->once()->andThrow(new \RuntimeException('banco fora do ar'));
+        });
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$this->patient->id}/files", [
+                'file' => UploadedFile::fake()->create('meu-arquivo.pdf', 200, 'application/pdf'),
+            ])->assertServerError();
     }
 
     public function test_upload_accepts_jpeg_png_and_docx(): void
     {
-        Storage::fake('r2');
-
         $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
-            $mock->shouldReceive('uploadFile')->andReturn([
-                'cdn_url'           => 'https://cdn.example.com/file.png',
-                'url'               => 'https://r2.example.com/file.png',
+            $mock->shouldReceive('uploadFileAs')->andReturn([
                 'filename'          => 'file.png',
                 'original_filename' => 'foto.png',
                 'path'              => 'patients/files/file.png',
@@ -155,6 +168,7 @@ class PatientFileControllerTest extends TestCase
         $types = [
             ['foto.jpg', 'image/jpeg'],
             ['foto.png', 'image/png'],
+            ['laudo.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ];
 
         foreach ($types as [$name, $mime]) {
@@ -178,6 +192,7 @@ class PatientFileControllerTest extends TestCase
     public function test_destroy_soft_deletes_file(): void
     {
         $file = $this->createFileForPatient();
+        $this->mock(FileServiceInterface::class, fn (MockInterface $mock) => $mock->shouldReceive('deletePrivateFile')->once()->with($file->file_path)->andReturnTrue());
 
         $this->actingAs($this->clinicUser, 'clinic')
             ->deleteJson("/api/clinic/patients/{$this->patient->id}/files/{$file->id}")

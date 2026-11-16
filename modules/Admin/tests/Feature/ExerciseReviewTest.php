@@ -79,6 +79,53 @@ class ExerciseReviewTest extends TestCase
             ->assertJsonPath('data.review_status', Exercise::REVIEW_REJECTED);
     }
 
+    public function test_admin_cannot_reject_exercise_already_approved(): void
+    {
+        $exercise = $this->pendingExercise();
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/approve")
+            ->assertOk();
+        $reviewedAt = $exercise->fresh()->reviewed_at;
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Exercício já aprovado. Para tirar do catálogo, desative-o.');
+
+        $this->assertSame(Exercise::REVIEW_APPROVED, $exercise->fresh()->review_status);
+        $this->assertEquals($reviewedAt, $exercise->fresh()->reviewed_at);
+    }
+
+    public function test_reject_does_not_overwrite_an_approval_that_lands_after_the_status_was_read(): void
+    {
+        $exercise       = $this->pendingExercise();
+        $approvalLanded = false;
+        Exercise::retrieved(function (Exercise $retrieved) use ($exercise, &$approvalLanded) {
+            if ($approvalLanded || $retrieved->id !== $exercise->id) {
+                return;
+            }
+            $approvalLanded = true;
+            Exercise::query()->whereKey($exercise->id)->toBase()->update(['review_status' => Exercise::REVIEW_APPROVED]);
+        });
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject");
+
+        $this->assertTrue($approvalLanded);
+        $this->assertSame(Exercise::REVIEW_APPROVED, $exercise->fresh()->review_status);
+    }
+
+    public function test_admin_can_reject_exercise_that_was_rejected_before(): void
+    {
+        $exercise = $this->pendingExercise();
+        $exercise->update(['review_status' => Exercise::REVIEW_REJECTED]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->putJson("/api/admin/exercises/{$exercise->id}/reject")
+            ->assertOk()
+            ->assertJsonPath('data.review_status', Exercise::REVIEW_REJECTED);
+    }
+
     public function test_review_requires_admin_guard(): void
     {
         $exercise = $this->pendingExercise();

@@ -4,6 +4,7 @@ import type {
     Clinic,
     Feature,
     FeaturePlan,
+    FirstAccessLink,
     Plan,
 } from '@/domain/admin';
 
@@ -46,6 +47,7 @@ export interface ClinicsRepository {
     destroy(id: number): Promise<void>;
     reactivate(id: number): Promise<Clinic>;
     loginAs(id: number): Promise<LoginAsClinicResponse>;
+    generateFirstAccessLink(id: number): Promise<FirstAccessLink>;
 }
 
 /** DTO de escrita para criar/atualizar Plano (application concern, camelCase) */
@@ -170,7 +172,7 @@ export interface AdminExercisesRepository {
         meta: { currentPage: number; lastPage: number; total: number };
     }>;
     getById(id: number): Promise<AdminExercise | null>;
-    getOptions(): Promise<AdminExerciseOptions>;
+    getOptions(exerciseId?: number): Promise<AdminExerciseOptions>;
     create(data: Record<string, unknown>): Promise<AdminExercise>;
     update(id: number, data: Record<string, unknown>): Promise<AdminExercise>;
     destroy(id: number): Promise<void>;

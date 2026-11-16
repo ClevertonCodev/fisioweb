@@ -3,6 +3,7 @@
 namespace Modules\TreatmentProgram\Services\PatientProgram;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\TreatmentProgram\Contracts\GetPatientProgramDetailServiceInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
@@ -12,6 +13,7 @@ class GetPatientProgramDetailService implements GetPatientProgramDetailServiceIn
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,
+        protected PatientAppAccessInterface $patientAppAccess,
         protected TreatmentPlanExecutionRepositoryInterface $executionRepository,
         protected PatientProgramResponseMapper $responseMapper,
     ) {}
@@ -23,7 +25,7 @@ class GetPatientProgramDetailService implements GetPatientProgramDetailServiceIn
     {
         $plan = $this->patientProgramRepository->findByPublicToken($publicToken);
 
-        if (is_null($plan)) {
+        if (is_null($plan) || (!is_null($plan->patient_id) && !$this->patientAppAccess->allowsAppAccess((int) $plan->patient_id))) {
             throw new ModelNotFoundException('Programa não encontrado.');
         }
 

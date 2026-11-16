@@ -28,6 +28,10 @@ export const apiGoogleCalendarRepository: GoogleCalendarRepository = {
         return data.data.authorization_url;
     },
 
+    async completeConnection(ticket: string) {
+        await apiClient.post('/clinic/google-calendar/complete', { ticket });
+    },
+
     async pullNow() {
         await apiClient.post('/clinic/google-calendar/pull');
     },

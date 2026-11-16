@@ -3,6 +3,11 @@ export type ExerciseDifficulty = 'facil' | 'medio' | 'dificil';
 
 export type ExerciseReviewStatus = 'pending' | 'approved' | 'rejected';
 
+export interface ExerciseReferenceImage {
+    path: string;
+    url: string;
+}
+
 export interface Exercise {
     id: string;
     title: string;
@@ -26,6 +31,11 @@ export interface Exercise {
     reviewStatus: ExerciseReviewStatus;
     /** True quando o exercício foi enviado pela própria clínica logada. */
     isOwnSubmission: boolean;
+    videoId?: number | null;
+    /** Até 2 fotos do PDF, na ordem: posição inicial e final. */
+    referenceImages?: ExerciseReferenceImage[];
+    /** Só nos exercícios da própria clínica: a troca de imagens espera a revisão do suporte. */
+    mediaProposalPending?: boolean;
     /** Dose padrão do catálogo: o que o programa usa quando a clínica não define. */
     sets?: number | null;
     repetitions?: number | null;

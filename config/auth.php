@@ -13,12 +13,12 @@ return [
         ],
 
         'admin' => [
-            'driver'   => 'jwt',
+            'driver'   => 'jwt_password_aware',
             'provider' => 'users',
         ],
 
         'clinic' => [
-            'driver'   => 'jwt',
+            'driver'   => 'jwt_password_aware',
             'provider' => 'clinic_users',
         ],
 
@@ -41,7 +41,7 @@ return [
         ],
 
         'patients' => [
-            'driver' => 'eloquent',
+            'driver' => 'patient_eligible_eloquent',
             'model'  => Modules\Patient\Models\Patient::class,
         ],
     ],

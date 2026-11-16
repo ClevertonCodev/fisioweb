@@ -4,6 +4,7 @@ namespace Modules\TreatmentProgram\Services\PatientProgram;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
+use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\SubmitPatientProgramFeedbackServiceInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
@@ -15,6 +16,7 @@ class SubmitPatientProgramFeedbackService implements SubmitPatientProgramFeedbac
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,
+        protected PatientAppAccessInterface $patientAppAccess,
         protected TreatmentPlanExecutionRepositoryInterface $executionRepository,
         protected TreatmentPlanFeedbackRepositoryInterface $feedbackRepository,
     ) {}
@@ -109,7 +111,7 @@ class SubmitPatientProgramFeedbackService implements SubmitPatientProgramFeedbac
     {
         $plan = $this->patientProgramRepository->findByPublicToken($publicToken);
 
-        if (is_null($plan) || is_null($plan->patient_id)) {
+        if (is_null($plan) || is_null($plan->patient_id) || !$this->patientAppAccess->allowsAppAccess((int) $plan->patient_id)) {
             throw new ModelNotFoundException('Programa não encontrado.');
         }
 

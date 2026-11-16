@@ -44,7 +44,7 @@ class ClinicUserService implements ClinicUserServiceInterface
         ]));
     }
 
-    public function update(ClinicUser $clinicUser, array $data): ClinicUser
+    public function update(ClinicUser $clinicUser, array $data, bool $impersonating): ClinicUser
     {
         unset($data['mestre']);
 
@@ -66,9 +66,13 @@ class ClinicUserService implements ClinicUserServiceInterface
             abort(422, 'O usuário mestre da clínica deve permanecer como administrador.');
         }
 
-        return DB::transaction(function () use ($clinicUser, $data): ClinicUser {
+        return DB::transaction(function () use ($clinicUser, $data, $authUser, $impersonating): ClinicUser {
             $activeAdminIds = $this->lockActiveAdminIds((int) $clinicUser->clinic_id);
             $target         = $this->lockTarget($clinicUser);
+
+            if ($this->changesSomeoneElsesMasterCredentials($target, $data, $authUser, $impersonating)) {
+                abort(403, 'Só o mestre altera o e-mail e a senha dele.');
+            }
 
             if ($target->isMaster() && $this->deactivates($target, $data)) {
                 abort(422, 'O usuário mestre da clínica não pode ser desativado.');
@@ -111,6 +115,27 @@ class ClinicUserService implements ClinicUserServiceInterface
             // Soft delete: a agenda, o financeiro e o histórico continuam.
             $target->delete();
         });
+    }
+
+    /**
+     * Fica no service, e não na Policy, porque o `Gate::before` libera tudo
+     * para administrador (ADR 019). Um cliente pode mandar o e-mail atual sem
+     * mudança, e o request o normaliza para minúsculas: só a troca conta. No
+     * "entrar como" quem está logado é o operador, e não o mestre: para
+     * recuperar o acesso ele usa o link de nova senha.
+     */
+    private function changesSomeoneElsesMasterCredentials(ClinicUser $target, array $data, mixed $authUser, bool $impersonating): bool
+    {
+        $editsOwnCredentials = !$impersonating && $authUser instanceof ClinicUser && $target->is($authUser);
+
+        if (!$target->isMaster() || $editsOwnCredentials) {
+            return false;
+        }
+
+        $changesEmail = array_key_exists('email', $data)
+            && mb_strtolower((string) $data['email']) !== mb_strtolower((string) $target->email);
+
+        return $changesEmail || array_key_exists('password', $data);
     }
 
     /** Só a passagem de ativo para inativo conta; manter inativo não. */

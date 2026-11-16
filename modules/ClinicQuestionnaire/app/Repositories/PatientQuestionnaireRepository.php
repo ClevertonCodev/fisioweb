@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireRepositoryInterface;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaireAnswer;
+use Modules\ClinicQuestionnaire\Models\QuestionnaireQuestion;
 use Modules\ClinicQuestionnaire\Models\QuestionnaireTemplate;
 
 class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryInterface
@@ -123,6 +124,15 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
                 ],
             );
         }
+    }
+
+    public function questionIdsForTemplate(int $templateId): array
+    {
+        return QuestionnaireQuestion::query()
+            ->whereHas('section', fn ($query) => $query->where('questionnaire_template_id', $templateId))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     public function delete(PatientQuestionnaire $questionnaire): void

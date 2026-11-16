@@ -71,11 +71,20 @@ class ClinicUserController extends ClinicAuthenticatedController
         return response()->json(['data' => $user], 201);
     }
 
+    /**
+     * Trocar a senha derruba as sessões da pessoa. Quem trocou a própria
+     * recebe um token novo para continuar logado nesta aba.
+     */
     public function update(UpdateClinicUserRequest $request, ClinicUser $user): JsonResponse
     {
-        $user = $this->clinicUserService->update($user, $request->validated());
+        $data = $request->validated();
+        $user = $this->clinicUserService->update($user, $data, impersonating: !is_null($this->impersonatorId()));
 
-        return response()->json(['data' => $user]);
+        if (!array_key_exists('password', $data) || !$user->is($this->clinicUser())) {
+            return response()->json(['data' => $user]);
+        }
+
+        return response()->json(['data' => $user] + $this->reissueClinicToken());
     }
 
     public function uploadPhoto(Request $request, ClinicUser $user): JsonResponse
@@ -87,7 +96,7 @@ class ClinicUserController extends ClinicAuthenticatedController
         ]);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'clinic-users/photos');
-        $user     = $this->clinicUserService->update($user, ['photo_url' => $uploaded['cdn_url']]);
+        $user     = $this->clinicUserService->update($user, ['photo_url' => $uploaded['cdn_url']], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }
@@ -96,7 +105,7 @@ class ClinicUserController extends ClinicAuthenticatedController
     {
         $this->authorize('update', $user);
 
-        $user = $this->clinicUserService->update($user, ['photo_url' => null]);
+        $user = $this->clinicUserService->update($user, ['photo_url' => null], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }

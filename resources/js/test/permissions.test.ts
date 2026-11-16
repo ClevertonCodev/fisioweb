@@ -147,3 +147,20 @@ describe('matriz de permissões — todos os roles cobertos', () => {
         },
     );
 });
+
+describe('can.changeCredentials', () => {
+    it('no mestre, só ele mesmo troca e-mail e senha', () => {
+        expect(can.changeCredentials(1, true)).toBe(true);
+        expect(can.changeCredentials(1, false)).toBe(false);
+    });
+
+    it('em quem não é mestre, segue liberado', () => {
+        expect(can.changeCredentials(0, false)).toBe(true);
+        expect(can.changeCredentials(undefined, false)).toBe(true);
+    });
+
+    it('no "entrar como", o operador não troca as do mestre, mesmo logado como ele', () => {
+        expect(can.changeCredentials(1, true, true)).toBe(false);
+        expect(can.changeCredentials(0, true, true)).toBe(true);
+    });
+});

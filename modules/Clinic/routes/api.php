@@ -13,6 +13,7 @@ Route::prefix('clinic/auth')->group(function () {
     Route::post('verify-email/resend', [ClinicRegistrationController::class, 'resendVerification'])->middleware('throttle:clinic-password');
     Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('throttle:clinic-password');
     Route::post('reset-password', [PasswordResetController::class, 'resetPassword'])->middleware('throttle:clinic-password');
+    Route::post('first-access', [AuthController::class, 'firstAccess'])->middleware('throttle:clinic-password');
 
     Route::middleware('auth:clinic')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);

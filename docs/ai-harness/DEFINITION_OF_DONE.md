@@ -9,8 +9,8 @@ a esta mudança (uma refatoração não precisa de smoke test). Isso é diferent
 adiar, que é dizer que o item se aplica mas vai ficar para depois: nada desta
 lista pode ser adiado (veja "Trabalho adiado").
 
-O `CLAUDE.md` aponta para este arquivo. Os comandos estão na seção "Commands" do
-`CLAUDE.md`, e `bash bin/verificar.sh` roda os testes e as verificações na ordem
+O `AGENTS.md` (que o `CLAUDE.md` importa) aponta para este arquivo. Os comandos
+estão na seção "Commands" do `AGENTS.md`, e `bash bin/verificar.sh` roda os testes e as verificações na ordem
 certa.
 
 ## Escopo
@@ -45,7 +45,8 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
     ├── plans/<slug>.md         # plano (skill escrever-plano)
     ├── tasks/NNN-<slug>.md     # tarefas (skill criar-tarefas)
     ├── evidence/<tarefa>/      # smoke test
-    └── review/<tarefa>/        # revisão adversária
+    ├── review/<tarefa>/        # revisão adversária
+    └── qa/<alvo>/              # QA de aceite, fora da DoD (DEFINICAO_DE_QA.md)
 ```
 
 - `<feature>` é o nome da pasta (`001-agenda-recorrente`). O número é o próximo
@@ -57,17 +58,21 @@ Todo trabalho do ciclo vive em `.ai-workbench/`, uma pasta por feature:
   com o `README.md`.
 - Pastas de apoio (por exemplo `engenharia-reversa/`, com notas sobre o código
   que já existe) podem ser criadas na feature; cite cada uma no `README.md`.
-- `README.md`, `decisoes.md`, `plans/` e `tasks/` entram no git. `evidence/`, `review/` e os
+- `README.md`, `decisoes.md`, `plans/` e `tasks/` entram no git. `evidence/`, `review/`, `qa/` e os
   dois `DEFERRED.md` ficam no `.gitignore` e nunca entram num commit, numa PR,
   numa issue ou numa mensagem: podem ter dado de paciente.
 
 ## Regras do fisioweb
 
-Estas regras repetem os "Princípios não-negociáveis" do `CLAUDE.md` e as skills
+Estas regras repetem os "Princípios não-negociáveis" do `AGENTS.md` e as skills
 de `.claude/skills/`, escritas como itens para conferir no diff. Quem mudar uma
 regra lá muda aqui também, na mesma PR.
 
-### Isolamento e autorização (skill `security`)
+### Isolamento e autorização
+
+O isolamento é conferido duas vezes: no diff, com os itens abaixo, e no smoke
+test por HTTP (passo 3 de "Smoke test com evidência"), em que um usuário da
+clínica A tenta ver e mexer em dado da clínica B e não consegue.
 
 - Todo recurso da clínica é isolado por `clinic_id`: a query filtra pela clínica
   do usuário autenticado, e model carregado por id passa por Policy que compara
@@ -203,7 +208,7 @@ que a sua mudança nunca produziria):
 
 **Passo a passo:**
 
-1. Suba o ambiente local (`composer run dev`, ou o Sail descrito em `SAIL.md`)
+1. Suba o ambiente local (`composer run dev`, ou o `bin/fisio-app` numa worktree)
    e confirme que o sistema abre em `APP_URL`. Use dados do seeder
    (`php artisan db:seed`) e garanta **duas clínicas** com usuários próprios,
    para poder testar o isolamento.
@@ -240,7 +245,7 @@ que a sua mudança nunca produziria):
    fluxos afetados e atualize a evidência antes da rodada seguinte.
 
 A pasta `evidence/` fica no `.gitignore` e nunca entra num commit, numa PR ou
-numa mensagem. Apague `evidence/<tarefa>/` e `review/<tarefa>/` depois do
+numa mensagem. Apague `evidence/<tarefa>/`, `review/<tarefa>/` e `qa/<alvo>/` depois do
 merge.
 
 ## Revisão adversária
@@ -317,7 +322,7 @@ depois o `verificador-de-achados`, e repete até passar.
 ## Documentação
 
 - Se mudou arquitetura, interface pública, convenção ou comando, atualize na
-  mesma PR o `CLAUDE.md` (e o `AGENTS.md`, que espelha ele), a skill em
+  mesma PR o `AGENTS.md` (o `CLAUDE.md` só importa ele), a skill em
   `.claude/skills/`, o ADR em `docs/adr/` ou o doc em `docs/`.
 - Critério de aceite da tarefa em `.ai-workbench/<feature>/tasks/` é marcado
   `[x]` só depois que a Definição de Pronto passou, e o status da tarefa é

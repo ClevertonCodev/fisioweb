@@ -18,4 +18,24 @@ export interface Clinic {
     planId: number | null;
     planName: string | null;
     createdAt: string;
+    masterAccess: MasterAccess | null;
+    recentLoginAs: LoginAsEntry[];
+}
+
+export interface MasterAccess {
+    passwordDefined: boolean;
+    lastLinkCreatedAt: string | null;
+}
+
+/** Entrada do "entrar como" do operador; só o painel admin vê. */
+export interface LoginAsEntry {
+    operatorName: string;
+    clinicUserName: string | null;
+    createdAt: string;
+}
+
+/** Link de primeiro acesso: o token só vem nesta resposta, uma vez. */
+export interface FirstAccessLink {
+    url: string;
+    createdAt: string;
 }

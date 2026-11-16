@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import type { ClinicWriteDto } from '@/application/admin/ports';
-import type { PersonType } from '@/domain/admin';
+import type { Clinic, PersonType } from '@/domain/admin';
 import type { ApiErrorResponse } from '@/domain/api';
 import { apiClinicsRepository } from '@/infrastructure/repositories';
 
@@ -142,6 +142,35 @@ export function useCancelClinic(options?: { onSuccess?: () => void }) {
         onError: (err: ApiErrorResponse) => {
             toast.error(
                 err?.response?.data?.message ?? 'Erro ao cancelar clínica.',
+            );
+        },
+    });
+}
+
+export function useGenerateFirstAccessLink(clinicId: number) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () =>
+            apiClinicsRepository.generateFirstAccessLink(clinicId),
+        onSuccess: async (link) => {
+            const clinicKey = ['admin', 'clinic', clinicId];
+            await queryClient.cancelQueries({ queryKey: clinicKey });
+            queryClient.setQueryData<Clinic | null>(clinicKey, (clinic) =>
+                clinic?.masterAccess
+                    ? {
+                          ...clinic,
+                          masterAccess: {
+                              ...clinic.masterAccess,
+                              lastLinkCreatedAt: link.createdAt,
+                          },
+                      }
+                    : clinic,
+            );
+        },
+        onError: (err: ApiErrorResponse) => {
+            toast.error(
+                err?.response?.data?.message ??
+                    'Erro ao gerar o link de primeiro acesso.',
             );
         },
     });

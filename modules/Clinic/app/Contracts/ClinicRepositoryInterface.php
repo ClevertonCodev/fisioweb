@@ -26,6 +26,23 @@ interface ClinicRepositoryInterface
 
     public function markClinicUserEmailVerified(ClinicUser $user): void;
 
+    public function findMasterUser(int $clinicId): ?ClinicUser;
+
+    public function findActiveAdminForImpersonation(int $clinicId): ?ClinicUser;
+
+    /**
+     * @param  list<int>  $ids
+     * @return array<int, string> nome por id, só dos usuários da clínica pedida
+     */
+    public function clinicUserNames(int $clinicId, array $ids): array;
+
+    public function findClinicUserByFirstAccessTokenHashForUpdate(string $hash): ?ClinicUser;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function saveClinicUser(ClinicUser $user, array $attributes): void;
+
     public function update(int $id, array $data): Clinic;
 
     public function delete(int $id): bool;

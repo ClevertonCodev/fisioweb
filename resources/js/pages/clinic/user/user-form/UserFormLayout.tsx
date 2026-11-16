@@ -34,7 +34,14 @@ const card =
     'rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-5 shadow-ds-xs sm:p-6';
 
 export function UserFormLayout(props: UserFormLayoutProps) {
-    const { f, canManageUsers, isOwnProfile, roleLocked, backTo } = props;
+    const {
+        f,
+        canManageUsers,
+        isOwnProfile,
+        roleLocked,
+        credentialsLock,
+        backTo,
+    } = props;
     const navigate = useNavigate();
     const creating = f.mode === 'create';
 
@@ -84,7 +91,10 @@ export function UserFormLayout(props: UserFormLayoutProps) {
                             <div className="flex flex-col gap-5">
                                 <PhotoActions f={f} />
                                 <NameField f={f} />
-                                <EmailField f={f} />
+                                <EmailField
+                                    f={f}
+                                    lockReason={credentialsLock}
+                                />
                             </div>
                         </section>
 
@@ -115,10 +125,11 @@ export function UserFormLayout(props: UserFormLayoutProps) {
                                 hint={
                                     creating
                                         ? 'É com ela que a pessoa entra no sistema.'
-                                        : 'Deixe em branco para manter a atual.'
+                                        : (credentialsLock ??
+                                          'Deixe em branco para manter a atual.')
                                 }
                             />
-                            <PasswordFields f={f} />
+                            <PasswordFields f={f} locked={!!credentialsLock} />
                         </section>
 
                         {/* No cadastro ainda não há perfil para conectar. */}

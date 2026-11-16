@@ -85,6 +85,8 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
 
     public function answer(PatientQuestionnaire $questionnaire, array $answers): PatientQuestionnaire
     {
+        $this->ensureQuestionsBelongToTemplate($questionnaire, $answers);
+
         return DB::transaction(function () use ($questionnaire, $answers) {
             $this->repository->saveAnswers($questionnaire, $answers);
 
@@ -211,6 +213,27 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
         }
 
         return $questionnaire;
+    }
+
+    /**
+     * @param  array<int, array{question_id: int|string, answer: mixed}>  $answers
+     *
+     * @throws ValidationException
+     */
+    private function ensureQuestionsBelongToTemplate(PatientQuestionnaire $questionnaire, array $answers): void
+    {
+        $validQuestionIds = array_flip($this->repository->questionIdsForTemplate((int) $questionnaire->questionnaire_template_id));
+        $errors           = [];
+
+        foreach ($answers as $index => $answer) {
+            if (!isset($validQuestionIds[(int) $answer['question_id']])) {
+                $errors["answers.{$index}.question_id"] = 'A pergunta informada não pertence a este questionário.';
+            }
+        }
+
+        if (!empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 
     private function markExpired(PatientQuestionnaire $questionnaire): void

@@ -93,6 +93,11 @@ class Clinic extends Model
         return $value ? substr($value, 0, 5) : $default;
     }
 
+    public function isCancelled(): bool
+    {
+        return (int) $this->status === self::STATUS_CANCELLED;
+    }
+
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);

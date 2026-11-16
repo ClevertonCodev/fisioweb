@@ -3,14 +3,17 @@
 namespace Modules\Admin\Services;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Admin\Contracts\ExerciseMediaProposalServiceInterface;
 use Modules\Admin\Contracts\ExerciseRepositoryInterface;
 use Modules\Admin\Contracts\Public\ExerciseSubmissionServiceInterface;
+use Modules\Admin\Exceptions\ExerciseAlreadyApprovedException;
 use Modules\Admin\Models\Exercise;
 
 class ExerciseSubmissionService implements ExerciseSubmissionServiceInterface
 {
     public function __construct(
         protected ExerciseRepositoryInterface $repository,
+        protected ExerciseMediaProposalServiceInterface $mediaProposals,
     ) {}
 
     public function submit(array $data, int $clinicId, int $clinicUserId): Exercise
@@ -46,12 +49,23 @@ class ExerciseSubmissionService implements ExerciseSubmissionServiceInterface
 
     public function reject(int $id, int $reviewerId, ?string $reason = null): Exercise
     {
-        return $this->review($id, Exercise::REVIEW_REJECTED, $reviewerId);
+        $rejected = $this->repository->updateUnlessApproved($id, [
+            'review_status' => Exercise::REVIEW_REJECTED,
+            'reviewed_by'   => $reviewerId,
+            'reviewed_at'   => now(),
+        ]);
+
+        $exercise = $this->repository->findOrFail($id);
+        if (!$rejected) {
+            throw new ExerciseAlreadyApprovedException;
+        }
+
+        return $exercise->load(['physioArea', 'videos', 'clinic', 'submittedByClinicUser']);
     }
 
     public function pendingCount(): int
     {
-        return Exercise::pending()->count();
+        return Exercise::pending()->count() + $this->mediaProposals->count();
     }
 
     private function review(int $id, string $status, int $reviewerId): Exercise

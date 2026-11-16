@@ -10,8 +10,6 @@ export default defineConfig({
         exclude: [
             ...configDefaults.exclude,
             '.claude/**',
-            '.cursor/skills/**',
-            '.agents/**',
         ],
     },
     resolve: {

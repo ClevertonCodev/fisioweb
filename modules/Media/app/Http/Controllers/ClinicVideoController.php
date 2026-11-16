@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
+use Modules\Media\Http\Requests\ChangeVideoThumbnailRequest;
 use Modules\Media\Http\Requests\PresignedThumbnailUploadRequest;
 use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
 
@@ -106,8 +107,9 @@ class ClinicVideoController extends ClinicAuthenticatedController
         try {
             $this->ensureOwnedVideo($video);
 
-            $result = $this->videoService->confirmPresignedUpload(
+            $result = $this->videoService->confirmUploadByClinic(
                 $video,
+                $this->clinicUserId(),
                 $validated['thumbnail_path'] ?? null,
                 $originalFilename,
                 $duration,
@@ -132,6 +134,28 @@ class ClinicVideoController extends ClinicAuthenticatedController
         }
     }
 
+    public function changeThumbnail(ChangeVideoThumbnailRequest $request, int $video): JsonResponse
+    {
+        try {
+            $this->ensureOwnedVideo($video);
+
+            $result = $this->videoService->changeThumbnailByClinic($video, $this->clinicUserId(), $request->validated('thumbnail_path'));
+
+            return response()->json([
+                'message' => 'Capa atualizada com sucesso',
+                'data'    => $result,
+            ]);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'message' => 'Vídeo não encontrado',
+            ], 404);
+        } catch (\InvalidArgumentException|VideoStorageFileMissingException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
     public function syncReferenceImages(Request $request, int $video): JsonResponse
     {
         $validated = $request->validate([
@@ -143,8 +167,9 @@ class ClinicVideoController extends ClinicAuthenticatedController
             $this->ensureOwnedVideo($video);
             $this->videoService->ensureReferenceImagesBelongToVideo($video, $validated['reference_image_paths'] ?? []);
 
-            $result = $this->videoService->syncReferenceImages(
+            $result = $this->videoService->changeReferenceImagesByClinic(
                 $video,
+                $this->clinicUserId(),
                 $validated['reference_image_paths'] ?? [],
             );
 

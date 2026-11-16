@@ -10,6 +10,7 @@ use Modules\Media\Contracts\VideoServiceInterface;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Http\Requests\PresignedThumbnailUploadRequest;
 use Modules\Media\Http\Requests\PresignedVideoUploadRequest;
+use Modules\Media\Models\Video;
 
 class VideoController extends Controller
 {
@@ -22,7 +23,7 @@ class VideoController extends Controller
         $perPage = $request->integer('per_page', 15);
 
         return response()->json([
-            'data' => $this->videoService->getAllVideos($perPage),
+            'data' => $this->videoService->getAllVideos($perPage)->through(fn (Video $video) => $video->toAdminArray()),
         ]);
     }
 
@@ -37,7 +38,7 @@ class VideoController extends Controller
         }
 
         return response()->json([
-            'data' => $video,
+            'data' => $video->toAdminArray(),
         ]);
     }
 
@@ -207,7 +208,7 @@ class VideoController extends Controller
 
             return response()->json([
                 'message' => 'Metadados do vídeo atualizados com sucesso',
-                'data'    => $video,
+                'data'    => $video->toAdminArray(),
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -226,7 +227,8 @@ class VideoController extends Controller
         try {
             $result = $this->videoService->syncReferenceImages(
                 $video,
-                $validated['reference_image_paths'] ?? []
+                $validated['reference_image_paths'] ?? [],
+                changedByOperator: true,
             );
 
             return response()->json([

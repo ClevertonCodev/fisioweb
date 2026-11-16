@@ -5,6 +5,7 @@ namespace Modules\TreatmentProgram\Services\PatientProgram;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\StartOrResumePatientProgramExecutionServiceInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanExecutionRepositoryInterface;
@@ -16,6 +17,7 @@ class StartOrResumePatientProgramExecutionService implements StartOrResumePatien
 {
     public function __construct(
         protected PatientProgramRepositoryInterface $patientProgramRepository,
+        protected PatientAppAccessInterface $patientAppAccess,
         protected TreatmentPlanExecutionRepositoryInterface $executionRepository,
         protected PatientProgramStatusMapper $statusMapper,
     ) {}
@@ -83,7 +85,7 @@ class StartOrResumePatientProgramExecutionService implements StartOrResumePatien
     {
         $plan = $this->patientProgramRepository->findByPublicToken($publicToken);
 
-        if (is_null($plan) || is_null($plan->patient_id)) {
+        if (is_null($plan) || is_null($plan->patient_id) || !$this->patientAppAccess->allowsAppAccess((int) $plan->patient_id)) {
             throw new ModelNotFoundException('Programa não encontrado.');
         }
 

@@ -87,17 +87,13 @@ export function clinicProfileToFormValues(
     };
 }
 
-export function clinicProfileFormToUpdateDto(
-    values: ClinicProfileFormValues,
-    status: ClinicProfile['status'],
-) {
+export function clinicProfileFormToUpdateDto(values: ClinicProfileFormValues) {
     return {
         name: values.name.trim(),
         typePerson: values.typePerson,
         document: digitsOf(values.document),
         email: values.email.trim(),
         phone: digitsOf(values.phone ?? '') || null,
-        status,
         zipCode: digitsOf(values.zipCode ?? '') || null,
         address: values.address.trim() || null,
         number: values.number.trim() || null,

@@ -11,6 +11,11 @@ import type {
 } from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
 
+interface ApiReferenceImage {
+    file_path: string;
+    cdn_url: string | null;
+}
+
 interface ApiVideo {
     id: number;
     url: string | null;
@@ -18,6 +23,7 @@ interface ApiVideo {
     thumbnail_url: string | null;
     duration: number | null;
     status: string;
+    metadata?: { reference_images?: ApiReferenceImage[] } | null;
 }
 
 interface ApiRelation {
@@ -40,6 +46,7 @@ interface ApiExercise {
     is_favorite: boolean;
     review_status: ExerciseReviewStatus | null;
     is_own_submission: boolean;
+    media_proposal_pending?: boolean;
     sets?: number | null;
     repetitions?: number | null;
     rest_time?: number | null;
@@ -87,6 +94,11 @@ function toEntity(raw: ApiExercise): Exercise {
         isFavorite: raw.is_favorite ?? false,
         reviewStatus: raw.review_status ?? 'approved',
         isOwnSubmission: raw.is_own_submission ?? false,
+        videoId: video?.id ?? null,
+        referenceImages: (video?.metadata?.reference_images ?? []).map(
+            (image) => ({ path: image.file_path, url: image.cdn_url ?? '' }),
+        ),
+        mediaProposalPending: raw.media_proposal_pending ?? false,
         sets: raw.sets ?? null,
         repetitions: raw.repetitions ?? null,
         restTime: raw.rest_time ?? null,

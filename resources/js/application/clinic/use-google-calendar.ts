@@ -24,6 +24,17 @@ export function useConnectGoogleCalendar() {
     });
 }
 
+export function useCompleteGoogleCalendarConnection() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (ticket: string) => repository.completeConnection(ticket),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+        },
+    });
+}
+
 export function useDisconnectGoogleCalendar() {
     const queryClient = useQueryClient();
 

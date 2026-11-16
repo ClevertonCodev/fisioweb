@@ -23,7 +23,7 @@ GoogleCalendar passa a ser um módulo de integração pura:
 - O módulo GoogleCalendar fica preparado para futura extração como worker/serviço de integração.
 - A persistência quieta anti-loop fica dentro do módulo dono dos dados.
 - Fitness tests passam a proteger a fronteira e falham em regressões óbvias.
-- A dependência em `Crypt` para OAuth state segue aceita como acoplamento de infraestrutura Laravel, não de domínio.
+- O `state` do OAuth é um nonce aleatório de uso único guardado no cache, e o callback só entrega um ticket que o usuário logado conclui. A dependência em `Crypt` (para o `code` guardado com o ticket) segue aceita como acoplamento de infraestrutura Laravel, não de domínio.
 
 ## Validation
 

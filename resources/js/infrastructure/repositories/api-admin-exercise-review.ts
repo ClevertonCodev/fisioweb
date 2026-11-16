@@ -1,3 +1,8 @@
+import type {
+    MediaProposal,
+    MediaProposalDecision,
+    MediaProposalExercise,
+} from '@/domain/admin';
 import { apiClient } from '@/infrastructure/api/client';
 
 export interface PendingExercise {
@@ -17,6 +22,19 @@ export interface PendingExercise {
     created_at: string;
 }
 
+const PAGE_SIZE = 100;
+
+async function allPages<T>(
+    fetchPage: (page: number) => Promise<{ items: T[]; lastPage: number }>,
+): Promise<T[]> {
+    const first = await fetchPage(1);
+    const items = [...first.items];
+    for (let page = 2; page <= first.lastPage; page++) {
+        items.push(...(await fetchPage(page)).items);
+    }
+    return items;
+}
+
 function mapPending(raw: Record<string, unknown>): PendingExercise {
     return {
         id: raw.id as number,
@@ -34,6 +52,74 @@ function mapPending(raw: Record<string, unknown>): PendingExercise {
     };
 }
 
+interface ApiMediaProposalExercise {
+    id: number;
+    name: string;
+    review_status: MediaProposalExercise['reviewStatus'];
+    clinic: { id: number; name: string } | null;
+}
+
+interface ApiMediaProposalImage {
+    cdn_url: string;
+}
+
+interface ApiMediaProposal {
+    video_id: number;
+    proposal_version: string;
+    proposed_at: string;
+    exercise: ApiMediaProposalExercise;
+    linked_exercises: ApiMediaProposalExercise[];
+    current: {
+        thumbnail_url: string | null;
+        reference_images: ApiMediaProposalImage[];
+    };
+    proposed: {
+        thumbnail_url: string | null;
+        reference_images: ApiMediaProposalImage[] | null;
+    };
+}
+
+function mapProposalExercise(
+    raw: ApiMediaProposalExercise,
+): MediaProposalExercise {
+    return {
+        id: raw.id,
+        name: raw.name,
+        reviewStatus: raw.review_status,
+        clinicName: raw.clinic?.name ?? null,
+    };
+}
+
+function imageUrls(images: ApiMediaProposalImage[]): string[] {
+    return images.map((image) => image.cdn_url).filter((url) => url !== '');
+}
+
+export function mapMediaProposal(raw: ApiMediaProposal): MediaProposal {
+    return {
+        videoId: raw.video_id,
+        version: raw.proposal_version,
+        proposedAt: raw.proposed_at,
+        exercise: mapProposalExercise(raw.exercise),
+        linkedExercises: raw.linked_exercises.map(mapProposalExercise),
+        current: {
+            thumbnailUrl: raw.current.thumbnail_url,
+            referenceImageUrls: imageUrls(raw.current.reference_images),
+        },
+        proposedThumbnailUrl: raw.proposed.thumbnail_url,
+        proposedReferenceImageUrls:
+            raw.proposed.reference_images === null
+                ? null
+                : imageUrls(raw.proposed.reference_images),
+    };
+}
+
+function decisionBody(decision: MediaProposalDecision) {
+    return {
+        video_id: decision.videoId,
+        proposal_version: decision.version,
+    };
+}
+
 /** Revisão de exercícios enviados por clínicas (admin do sistema). */
 export const apiAdminExerciseReviewRepository = {
     async pendingCount(): Promise<number> {
@@ -44,11 +130,17 @@ export const apiAdminExerciseReviewRepository = {
     },
 
     async listPending(): Promise<PendingExercise[]> {
-        const { data } = await apiClient.get<{ data: { data?: unknown[] } }>(
-            '/admin/exercises',
-            { params: { review_status: 'pending', per_page: 100 } },
-        );
-        const items = data?.data?.data ?? [];
+        const items = await allPages(async (page) => {
+            const { data } = await apiClient.get<{
+                data: { data?: unknown[]; last_page?: number };
+            }>('/admin/exercises', {
+                params: { review_status: 'pending', per_page: PAGE_SIZE, page },
+            });
+            return {
+                items: data?.data?.data ?? [],
+                lastPage: data?.data?.last_page ?? 1,
+            };
+        });
         return items.map((e) => mapPending(e as Record<string, unknown>));
     },
 
@@ -58,5 +150,35 @@ export const apiAdminExerciseReviewRepository = {
 
     async reject(id: number, reason?: string): Promise<void> {
         await apiClient.put(`/admin/exercises/${id}/reject`, { reason });
+    },
+
+    async listMediaProposals(): Promise<MediaProposal[]> {
+        const items = await allPages(async (page) => {
+            const { data } = await apiClient.get<{
+                data: ApiMediaProposal[];
+                meta?: { last_page?: number };
+            }>('/admin/exercises/media-proposals', {
+                params: { per_page: PAGE_SIZE, page },
+            });
+            return {
+                items: data?.data ?? [],
+                lastPage: data?.meta?.last_page ?? 1,
+            };
+        });
+        return items.map(mapMediaProposal);
+    },
+
+    async approveMediaProposal(decision: MediaProposalDecision): Promise<void> {
+        await apiClient.put(
+            `/admin/exercises/${decision.exerciseId}/media-proposal/approve`,
+            decisionBody(decision),
+        );
+    },
+
+    async rejectMediaProposal(decision: MediaProposalDecision): Promise<void> {
+        await apiClient.put(
+            `/admin/exercises/${decision.exerciseId}/media-proposal/reject`,
+            decisionBody(decision),
+        );
     },
 };

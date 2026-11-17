@@ -2,7 +2,9 @@
 
 **Status:** pendente, aberto em 2026-11-01. Fecha quando os itens abaixo
 estiverem feitos e cada um tiver a data e quem fez anotados aqui. O item 5 entrou
-em 2026-11-10, com os arquivos do prontuário (feature 002, tarefa 016).
+em 2026-11-10, com os arquivos do prontuário (feature 002, tarefa 016). Os itens
+1 e 5 foram feitos em 2026-11-16 (registro no fim do item 5). Os itens 2, 3 e 4
+continuam abertos.
 
 ## Contexto
 
@@ -236,6 +238,47 @@ domínio pelo do CDN e abre o laudo para sempre, sem login. É dado de saúde
    objeto saiu do bucket.
 6. **Anotar** a data, quem fez e a saída do `curl` aqui, e marcar o item no
    checklist de deploy da PR da feature 002.
+
+### Registro: itens 1 e 5 feitos em 2026-11-16
+
+Feito pelo Claude Code a pedido do Cleverton, junto com a troca do domínio para
+`app.ivsmed.com` e do R2 para o bucket `ivsdev` (conta do `ivsmed.com`).
+
+- **Zona e host:** `ivsmed.com`, CDN `https://cdn-dev.ivsmed.com`, domínio
+  próprio do bucket `ivsdev`.
+- **Normalização de URL:** já estava como pede o passo 1, com o tipo Cloudflare
+  e Normalize incoming URLs ligado. Nada mudou.
+- **Regra:** `bloqueia comprovantes e arquivos do prontuário no CDN`, ação
+  Block, ativa e na ordem 1, a única regra própria da zona. A expressão é a do
+  item 5, com `<host>` = `cdn-dev.ivsmed.com`.
+- **`r2.dev`:** desligado no bucket `ivsdev`, que nunca teve URL pública de
+  desenvolvimento.
+- **`curl` (passo 4 dos itens 1 e 5):** nas primeiras rodadas, enquanto a regra
+  se espalhava pelo Cloudflare, algumas linhas deram 404 em posições diferentes
+  a cada rodada. Depois disso, cinco rodadas seguidas deram 403 nas 13 linhas
+  (as 7 do item 1 e as 6 do item 5), 65 de 65:
+
+  ```
+  403 403 403 403 403 403 403 403 403 403 403 403 403
+  ```
+
+- **Arquivo de verdade no bucket:** gravado pela API do S3 com a chave do app,
+  testado e apagado; o bucket ficou com 0 objetos no fim.
+
+  | Caminho | CDN sem login | Link assinado |
+  |---|---|---|
+  | `videos/teste-waf.txt` | 200 | 200 |
+  | `patients/photos/teste-waf.txt` | 200 | 200 |
+  | `patients/files/teste-waf.txt` | 403 | 200 |
+  | `clinics/1/finances/transactions/1/teste-waf.txt` | 403 | 200 |
+
+- **Não feito:** o passo 5 pela tela (anexar um PDF num lançamento e no
+  prontuário de um paciente de teste). A tabela acima cobre a regra com
+  arquivos de verdade, mas não o fluxo da tela. O critério da tarefa
+  `014-comprovantes.md` não foi marcado porque a pasta `tasks/` da feature 013
+  não existe mais.
+- **O bucket antigo** `fisioweb`, na outra conta do Cloudflare, não passa por
+  esta regra. Ele não é mais usado pelo app, mas tem o `r2.dev` ligado.
 
 ## Consequências
 

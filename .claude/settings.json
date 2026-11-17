@@ -3,8 +3,5 @@
         "playwright@claude-plugins-official": false,
         "chrome-devtools-mcp@claude-plugins-official": false
     },
-    "enabledMcpjsonServers": ["playwright"],
-    "permissions": {
-        "deny": ["mcp__claude-in-chrome"]
-    }
+    "enabledMcpjsonServers": ["playwright"]
 }

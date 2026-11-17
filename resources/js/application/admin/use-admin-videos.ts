@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type QueryClient,
+} from '@tanstack/react-query';
 import { useCallback, useRef, useState } from 'react';
 
 import type { AdminVideo } from '@/application/admin/ports';
@@ -22,17 +27,21 @@ export function useAdminVideo(id: number | undefined) {
     });
 }
 
+export function refreshAdminVideo(queryClient: QueryClient, id: number) {
+    return queryClient.fetchQuery({
+        queryKey: ['admin', 'video', id],
+        queryFn: () => apiAdminVideosRepository.getById(id),
+        staleTime: 0,
+    });
+}
+
 export function useRefreshAdminVideo(id: number | undefined) {
     const queryClient = useQueryClient();
 
     return useCallback(async () => {
         if (!id) return null;
 
-        return queryClient.fetchQuery({
-            queryKey: ['admin', 'video', id],
-            queryFn: () => apiAdminVideosRepository.getById(id),
-            staleTime: 0,
-        });
+        return refreshAdminVideo(queryClient, id);
     }, [id, queryClient]);
 }
 

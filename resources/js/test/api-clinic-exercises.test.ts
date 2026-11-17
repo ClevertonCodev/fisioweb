@@ -322,10 +322,8 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
                             id: 3,
                             metadata: {
                                 reference_images: [
-                                    {
-                                        file_path: 'covers/videos/f1.jpg',
-                                        cdn_url: 'https://cdn.test/f1.jpg',
-                                    },
+                                    { url: 'https://signed.example/f1' },
+                                    { url: 'https://signed.example/f2' },
                                 ],
                             },
                         }),
@@ -338,10 +336,8 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
         expect(own).toMatchObject({
             videoId: 3,
             referenceImages: [
-                {
-                    path: 'covers/videos/f1.jpg',
-                    url: 'https://cdn.test/f1.jpg',
-                },
+                { path: '', url: 'https://signed.example/f1' },
+                { path: '', url: 'https://signed.example/f2' },
             ],
             mediaProposalPending: true,
         });

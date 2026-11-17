@@ -281,6 +281,7 @@ export function useUserForm(options: UserFormMode) {
         defaultValues: base,
         photo,
         photoError,
+        userId: user?.id,
         setPhoto,
         changes,
         submit,

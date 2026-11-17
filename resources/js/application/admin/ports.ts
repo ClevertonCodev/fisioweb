@@ -258,6 +258,10 @@ export interface AdminVideosRepository {
      * Requer backend T024.
      */
     syncReferenceImages(videoId: number, paths: string[]): Promise<AdminVideo>;
+    syncReferenceImageSlots(
+        videoId: number,
+        slots: ({ path: string } | { keep: number })[],
+    ): Promise<AdminVideo>;
     destroy(id: number): Promise<void>;
 }
 

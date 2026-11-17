@@ -19,7 +19,12 @@ import {
     scheduleOf,
 } from '@/application/clinic/program-detail';
 import { programWhatsAppUrl } from '@/application/clinic/program-share';
+import { useRefreshPatientPhoto } from '@/application/clinic/use-patients';
+import { useFetchClinicProgram } from '@/application/clinic/use-programs';
 import { DsAlert, DsButton, DsKpi, DsModal, DsTooltip } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 import {
     ProgramActionsMenu,
@@ -112,14 +117,20 @@ function DetailActions({ program }: { program: Program }) {
     );
 }
 
-function Thumb({ e }: { e: ProgramExercise }) {
+function Thumb({
+    e,
+    onRefresh,
+}: {
+    e: ProgramExercise;
+    onRefresh?: ProtectedRefresh;
+}) {
     return (
         <span className="block size-20 shrink-0 overflow-hidden rounded-ds-md bg-ds-surface-subtle">
             {e.thumbnailUrl && (
-                <img
+                <ProtectedImage
                     src={e.thumbnailUrl}
                     alt=""
-                    loading="lazy"
+                    onRefresh={onRefresh}
                     className="size-full object-cover"
                 />
             )}
@@ -131,10 +142,12 @@ function ExerciseCard({
     e,
     index,
     onPlay,
+    onRefreshThumb,
 }: {
     e: ProgramExercise;
     index: number;
     onPlay: () => void;
+    onRefreshThumb?: ProtectedRefresh;
 }) {
     return (
         <li className="flex min-w-0 gap-3 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-3 shadow-ds-xs">
@@ -144,7 +157,7 @@ function ExerciseCard({
                 onClick={onPlay}
                 className="group relative cursor-pointer"
             >
-                <Thumb e={e} />
+                <Thumb e={e} onRefresh={onRefreshThumb} />
                 <span className="absolute inset-0 flex items-center justify-center rounded-ds-md bg-ds-black/25 opacity-80 group-hover:opacity-100">
                     <Play className="size-6 fill-ds-white text-ds-white" />
                 </span>
@@ -186,6 +199,17 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
     const navigate = useNavigate();
     const [video, setVideo] = useState<ProgramExercise | null>(null);
     const panel = programPanel(p);
+    const refreshPhoto = useRefreshPatientPhoto(p.patientId ?? undefined);
+    const fetchProgram = useFetchClinicProgram();
+    const refreshExercise = async (exerciseId: string) => {
+        const program = await fetchProgram(p.id, { staleTime: 0 });
+
+        return (
+            program?.groups
+                .flatMap((group) => group.exercises)
+                .find((exercise) => exercise.id === exerciseId) ?? null
+        );
+    };
 
     return (
         <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
@@ -197,6 +221,7 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
                                 name={p.patientName}
                                 photoUrl={p.patientPhotoUrl}
                                 size={52}
+                                onRefresh={refreshPhoto}
                             />
                             <div className="min-w-0">
                                 <p className="truncate text-ds-body-xs text-ds-content-secondary">
@@ -275,6 +300,10 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
                                     e={e}
                                     index={i}
                                     onPlay={() => setVideo(e)}
+                                    onRefreshThumb={async () =>
+                                        (await refreshExercise(e.id))
+                                            ?.thumbnailUrl ?? null
+                                    }
                                 />
                             ))}
                         </ol>
@@ -289,11 +318,18 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
                 size="md"
             >
                 {video?.videoUrl ? (
-                    <video
-                        src={video.videoUrl}
+                    <ProtectedVideo
+                        videoUrl={video.videoUrl}
+                        posterUrl={video.thumbnailUrl}
                         controls
                         autoPlay
-                        playsInline
+                        onRefresh={async () =>
+                            (await refreshExercise(video.id))?.videoUrl ?? null
+                        }
+                        onRefreshPoster={async () =>
+                            (await refreshExercise(video.id))?.thumbnailUrl ??
+                            null
+                        }
                         className="max-h-[70vh] w-full rounded-ds-md bg-ds-black"
                     />
                 ) : (

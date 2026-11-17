@@ -17,7 +17,9 @@ import {
 import { useState, type ReactNode } from 'react';
 
 import { can } from '@/application/clinic/permissions';
+import { useRefreshExerciseMedia } from '@/application/clinic/use-exercises';
 import { DsBadge, DsButton, DsDrawer, DsModal, dsCn } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
 import { useIsMobile } from '@/pages/clinic/use-media-query';
@@ -186,6 +188,7 @@ function OwnMedia({
     onChange: () => void;
 }) {
     const photos = e.referenceImages ?? [];
+    const refreshMedia = useRefreshExerciseMedia(e.id);
     if (photos.length === 0 && !canChange) return null;
     return (
         <div className="flex flex-col gap-2">
@@ -196,10 +199,14 @@ function OwnMedia({
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                         {photos.map((photo, i) => (
-                            <img
+                            <ProtectedImage
                                 key={photo.path}
                                 src={photo.url}
                                 alt={`Foto ${i + 1} do PDF`}
+                                onRefresh={async () =>
+                                    (await refreshMedia())?.referenceImages?.[i]
+                                        ?.url ?? null
+                                }
                                 className="aspect-square w-full rounded-ds-md bg-ds-surface-subtle object-cover"
                             />
                         ))}

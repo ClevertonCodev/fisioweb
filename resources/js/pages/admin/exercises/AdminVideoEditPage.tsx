@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { uploadAndSyncVideoReferenceImages } from '@/application/admin/upload-video-reference-images';
 import {
     useAdminVideo,
+    useRefreshAdminVideo,
     useUpdateAdminVideo,
 } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -15,6 +16,7 @@ import {
     type ReferenceImageState,
 } from '@/components/admin/AdminVideoReferenceImageFields';
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,14 +46,25 @@ function hydrateReferenceSlots(
 ): [ReferenceImageState, ReferenceImageState] {
     const refs = Array.isArray(metadata?.reference_images)
         ? (metadata.reference_images as {
-              cdn_url: string;
-              file_path: string;
+              url?: string;
+              cdn_url?: string;
+              file_path?: string;
           }[])
         : [];
 
     return [
-        refs[0] ? { url: refs[0].cdn_url, path: refs[0].file_path } : null,
-        refs[1] ? { url: refs[1].cdn_url, path: refs[1].file_path } : null,
+        refs[0]
+            ? {
+                  url: refs[0].url ?? refs[0].cdn_url ?? '',
+                  path: refs[0].file_path,
+              }
+            : null,
+        refs[1]
+            ? {
+                  url: refs[1].url ?? refs[1].cdn_url ?? '',
+                  path: refs[1].file_path,
+              }
+            : null,
     ];
 }
 
@@ -66,7 +79,16 @@ export default function AdminVideoEditPage() {
         isLoading: loadingVideo,
         isError: errorVideo,
     } = useAdminVideo(videoId);
+    const refreshVideo = useRefreshAdminVideo(videoId);
     const updateVideo = useUpdateAdminVideo(videoId ?? 0);
+    const refreshReference = async (index: number) => {
+        const fresh = await refreshVideo();
+        const images = Array.isArray(fresh?.metadata?.reference_images)
+            ? (fresh.metadata.reference_images as { url?: string }[])
+            : [];
+
+        return images[index]?.url ?? null;
+    };
 
     const [originalFilename, setOriginalFilename] = useState('');
     const [duration, setDuration] = useState('');
@@ -317,8 +339,12 @@ export default function AdminVideoEditPage() {
                                     }
                                 >
                                     {video.thumbnail_url && !thumbnailFile && (
-                                        <img
+                                        <ProtectedImage
                                             src={video.thumbnail_url}
+                                            onRefresh={async () =>
+                                                (await refreshVideo())
+                                                    ?.thumbnail_url ?? null
+                                            }
                                             alt="Thumbnail atual"
                                             className="mb-2 max-h-20 rounded object-cover"
                                         />
@@ -366,6 +392,8 @@ export default function AdminVideoEditPage() {
                                 onReferenceImage2Change={
                                     handleReferenceImage2Change
                                 }
+                                onRefresh1={() => refreshReference(0)}
+                                onRefresh2={() => refreshReference(1)}
                             />
 
                             {error && (

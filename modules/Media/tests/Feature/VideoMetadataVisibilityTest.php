@@ -16,9 +16,9 @@ class VideoMetadataVisibilityTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const APPROVED_IMAGE = 'thumbnails/videos/aprovada.jpg';
+    private const APPROVED_IMAGE = 'covers/videos/aprovada.jpg';
 
-    private const ISSUED_PATH = 'thumbnails/videos/emitida-nao-revisada.jpg';
+    private const ISSUED_PATH = 'covers/videos/emitida-nao-revisada.jpg';
 
     private Clinic $clinicA;
 
@@ -58,20 +58,24 @@ class VideoMetadataVisibilityTest extends TestCase
 
     public function test_operator_sees_the_whole_metadata_in_video_detail(): void
     {
-        $this->actingAs(AdminUser::factory()->create(), 'admin')
+        $detail = $this->actingAs(AdminUser::factory()->create(), 'admin')
             ->getJson("/api/admin/media/videos/{$this->video->id}")
             ->assertOk()
             ->assertJsonPath('data.metadata.original_name', 'original.mp4')
-            ->assertJsonPath('data.metadata.issued_image_paths.0', self::ISSUED_PATH);
+            ->assertJsonMissingPath('data.metadata.issued_image_paths')
+            ->assertJsonMissingPath('data.path');
+        $this->assertStringNotContainsString(self::ISSUED_PATH, $detail->getContent());
+        $this->assertSignedImageUrl($detail->json('data.metadata.reference_images.0.url'), self::APPROVED_IMAGE);
     }
 
     public function test_operator_sees_the_whole_metadata_in_video_list(): void
     {
-        $this->actingAs(AdminUser::factory()->create(), 'admin')
+        $list = $this->actingAs(AdminUser::factory()->create(), 'admin')
             ->getJson('/api/admin/media/videos')
             ->assertOk()
             ->assertJsonPath('data.data.0.metadata.original_name', 'original.mp4')
-            ->assertJsonPath('data.data.0.metadata.issued_image_paths.0', self::ISSUED_PATH);
+            ->assertJsonMissingPath('data.data.0.metadata.issued_image_paths');
+        $this->assertStringNotContainsString(self::ISSUED_PATH, $list->getContent());
     }
 
     public function test_operator_gets_back_the_metadata_just_saved(): void
@@ -102,8 +106,11 @@ class VideoMetadataVisibilityTest extends TestCase
 
         $response = $this->actingAs($user, 'clinic')
             ->getJson('/api/clinic/exercises?search=METADATA')
-            ->assertOk()
-            ->assertJsonPath('data.data.0.videos.0.metadata.reference_images.0.file_path', self::APPROVED_IMAGE);
+            ->assertOk();
+        $image = $response->json('data.data.0.videos.0.metadata.reference_images.0');
+        $this->assertSignedImageUrl($image['url'], self::APPROVED_IMAGE);
+        $this->assertArrayNotHasKey('file_path', $image);
+        $this->assertArrayNotHasKey('cdn_url', $image);
 
         $this->assertSame(['reference_images'], array_keys($response->json('data.data.0.videos.0.metadata')));
         $this->assertStringNotContainsString(self::ISSUED_PATH, json_encode($response->json(), JSON_UNESCAPED_SLASHES));

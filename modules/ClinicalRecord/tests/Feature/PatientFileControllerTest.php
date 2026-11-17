@@ -127,7 +127,6 @@ class PatientFileControllerTest extends TestCase
             'patient_id' => $this->patient->id,
             'clinic_id'  => $this->clinicUser->clinic_id,
             'file_path'  => 'patients/files/arquivo.pdf',
-            'cdn_url'    => null,
         ]);
     }
 

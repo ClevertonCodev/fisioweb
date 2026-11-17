@@ -14,7 +14,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     Popover,
     PopoverContent,
@@ -72,7 +73,7 @@ export function ClinicUserDropdown({
 }: ClinicUserDropdownProps) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, logout, reloadUser } = useAuth();
     const [open, setOpen] = useState(false);
     const role = user?.role as ClinicRole | undefined;
     const isAdmin = can.manageClinicData(role);
@@ -204,7 +205,12 @@ export function ClinicUserDropdown({
                 className="h-8 w-8 shrink-0"
             >
                 {user.photoUrl ? (
-                    <AvatarImage src={user.photoUrl} alt={user.name} />
+                    <ProtectedImage
+                        src={user.photoUrl}
+                        alt={user.name}
+                        onRefresh={reloadUser}
+                        className="aspect-square size-full object-cover"
+                    />
                 ) : null}
                 <AvatarFallback className="bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
                     {firstLetter(user.name)}

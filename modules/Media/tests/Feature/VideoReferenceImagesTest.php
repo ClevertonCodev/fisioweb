@@ -35,16 +35,17 @@ class VideoReferenceImagesTest extends TestCase
         $exercise->videos()->attach($video->id);
 
         $paths = [
-            'thumbnails/videos/ref-1.jpeg',
-            'thumbnails/videos/ref-2.png',
+            'covers/videos/ref-1.jpeg',
+            'covers/videos/ref-2.png',
         ];
 
-        $this->actingAs($admin, 'admin')
+        $synced = $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
                 'reference_image_paths' => $paths,
             ])
-            ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
+            ->assertOk();
+        $this->assertSignedImageUrl($synced->json('data.metadata.reference_images.0.url'), $paths[0]);
+        $this->assertArrayNotHasKey('file_path', $synced->json('data.metadata.reference_images.0'));
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
     }
@@ -70,7 +71,7 @@ class VideoReferenceImagesTest extends TestCase
 
         $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
-                'reference_image_paths' => ['thumbnails/videos/ref-1.jpeg'],
+                'reference_image_paths' => ['covers/videos/ref-1.jpeg'],
             ])
             ->assertOk();
 
@@ -134,8 +135,8 @@ class VideoReferenceImagesTest extends TestCase
         ]);
         $area  = PhysioArea::create(['name' => 'Área Clínica Ref']);
         $paths = [
-            'thumbnails/videos/clinic-ref-1.jpeg',
-            'thumbnails/videos/clinic-ref-2.png',
+            'covers/videos/clinic-ref-1.jpeg',
+            'covers/videos/clinic-ref-2.png',
         ];
         $video = Video::factory()->create([
             'clinic_id' => $clinic->id,
@@ -153,12 +154,12 @@ class VideoReferenceImagesTest extends TestCase
         ]);
         $exercise->videos()->attach($video->id);
 
-        $this->actingAs($user, 'clinic')
+        $syncedClinic = $this->actingAs($user, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
                 'reference_image_paths' => $paths,
             ])
-            ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
+            ->assertOk();
+        $this->assertSignedImageUrl($syncedClinic->json('data.metadata.reference_images.0.url'), $paths[0]);
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
     }
@@ -172,7 +173,7 @@ class VideoReferenceImagesTest extends TestCase
             'clinic_id' => $clinic->id,
             'role'      => ClinicUser::ROLE_ADMIN,
         ]);
-        $paths = ['thumbnails/videos/evento-1.jpeg', 'thumbnails/videos/evento-2.png'];
+        $paths = ['covers/videos/evento-1.jpeg', 'covers/videos/evento-2.png'];
         $video = Video::factory()->create([
             'clinic_id' => $clinic->id,
             'status'    => Video::STATUS_COMPLETED,
@@ -201,7 +202,7 @@ class VideoReferenceImagesTest extends TestCase
 
         $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
-                'reference_image_paths' => ['thumbnails/videos/catalogo-1.jpeg'],
+                'reference_image_paths' => ['covers/videos/catalogo-1.jpeg'],
             ])
             ->assertOk();
 

@@ -17,7 +17,7 @@ class ClinicVideoThumbnailChangeTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const OLD_THUMBNAIL = 'thumbnails/videos/antiga.jpg';
+    private const OLD_THUMBNAIL = 'covers/videos/antiga.jpg';
 
     private MockInterface $fileService;
 
@@ -54,16 +54,16 @@ class ClinicVideoThumbnailChangeTest extends TestCase
         $video = $this->videoOfA(Exercise::REVIEW_PENDING);
         $path  = $this->issuedPath($video);
 
-        $this->actingAs($this->adminA, 'clinic')
+        $response = $this->actingAs($this->adminA, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/thumbnail", ['thumbnail_path' => $path])
             ->assertOk()
             ->assertJsonPath('data.id', $video->id)
-            ->assertJsonPath('data.thumbnail_url', 'https://cdn.invalid/' . $path)
             ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedVideoUrl($response->json('data.thumbnail_url'), $path);
 
         $video = $video->fresh();
         $this->assertSame($path, $video->thumbnail_path);
-        $this->assertSame('https://cdn.invalid/' . $path, $video->thumbnail_url);
+        $this->assertSignedVideoUrl($video->thumbnail_url, $path);
         $this->assertSame([], array_intersect_key($video->metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS)));
     }
 
@@ -73,11 +73,11 @@ class ClinicVideoThumbnailChangeTest extends TestCase
         $video = $this->videoOfA(Exercise::REVIEW_APPROVED);
         $path  = $this->issuedPath($video);
 
-        $this->actingAs($this->adminA, 'clinic')
+        $response = $this->actingAs($this->adminA, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/thumbnail", ['thumbnail_path' => $path])
             ->assertOk()
-            ->assertJsonPath('data.thumbnail_url', 'https://cdn.invalid/' . self::OLD_THUMBNAIL)
             ->assertJsonPath('data.proposal_pending', true);
+        $this->assertSignedVideoUrl($response->json('data.thumbnail_url'), self::OLD_THUMBNAIL);
 
         $video = $video->fresh();
         $this->assertSame(self::OLD_THUMBNAIL, $video->thumbnail_path);
@@ -88,7 +88,7 @@ class ClinicVideoThumbnailChangeTest extends TestCase
         $responseToB = $this->actingAs($this->adminB, 'clinic')
             ->getJson('/api/clinic/exercises?search=CAPA')
             ->assertOk();
-        $this->assertSame('https://cdn.invalid/' . self::OLD_THUMBNAIL, $responseToB->json('data.data.0.videos.0.thumbnail_url'));
+        $this->assertSignedVideoUrl($responseToB->json('data.data.0.videos.0.thumbnail_url'), self::OLD_THUMBNAIL);
         $this->assertStringNotContainsString($path, json_encode($responseToB->json(), JSON_UNESCAPED_SLASHES));
     }
 
@@ -153,7 +153,7 @@ class ClinicVideoThumbnailChangeTest extends TestCase
         $foreign    = $this->issuedPath($otherVideo);
         $before     = $video->fresh()->getAttributes();
 
-        foreach ([$foreign, 'thumbnails/videos/inventada.jpg', self::OLD_THUMBNAIL] as $path) {
+        foreach ([$foreign, 'covers/videos/inventada.jpg', self::OLD_THUMBNAIL] as $path) {
             $this->actingAs($this->adminA, 'clinic')
                 ->putJson("/api/clinic/media/videos/{$video->id}/thumbnail", ['thumbnail_path' => $path])
                 ->assertUnprocessable()
@@ -209,7 +209,6 @@ class ClinicVideoThumbnailChangeTest extends TestCase
             'clinic_id'      => $this->clinicA->id,
             'status'         => Video::STATUS_COMPLETED,
             'thumbnail_path' => self::OLD_THUMBNAIL,
-            'thumbnail_url'  => 'https://cdn.invalid/' . self::OLD_THUMBNAIL,
             'metadata'       => [],
         ]);
 

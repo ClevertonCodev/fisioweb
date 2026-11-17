@@ -81,6 +81,12 @@ interface VideoServiceInterface
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array;
 
     /**
+     * @param  list<array{path?: string|null, keep?: int}>  $slots
+     * @return list<string>
+     */
+    public function referencePathsFromSlots(int $videoId, array $slots): array;
+
+    /**
      * Troca feita pela clínica dona: aplica na hora, ou guarda como proposta quando o vídeo está travado.
      *
      * @param  list<string>  $referenceImagePaths  paths R2 (máx. 2)

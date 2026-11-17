@@ -102,6 +102,7 @@ Ao criar Repository novo:
 | POST com payload | `apiClient.post('/admin/exercises', payload)` |
 | Upload de arquivo | FormData + `apiClient.post(url, formData)` (axios detecta multipart) |
 | Endpoint que devolve binário (PDF) | `apiClient.get(url, { responseType: 'blob' })` |
+| Ler um arquivo no R2 por link assinado | `storageClient` em `infrastructure/api/storage-client.ts`: axios sem interceptor e sem `Authorization`. O R2 recusa o link se o JWT for junto. Não usar para a API do fisioweb |
 | Endpoint que pode aceitar 404 (busca opcional) | `try { return await ... } catch (e) { if (e.response?.status === 404) return null; throw e; }` |
 | Forçar guard específico (raro) | Não tem API — o guard é inferido. Refatore URL para `/admin/*` ou `/clinic/*` |
 | Impersonation: admin → clinic | `setSessionAuth(token, 'clinic')` antes do navigate |

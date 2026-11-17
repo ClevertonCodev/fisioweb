@@ -67,7 +67,6 @@ return [
             'secret'                  => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
             'region'                  => env('CLOUDFLARE_R2_REGION', 'auto'),
             'bucket'                  => env('CLOUDFLARE_R2_BUCKET'),
-            'url'                     => env('CLOUDFLARE_CDN_URL'),
             'endpoint'                => env('CLOUDFLARE_R2_ENDPOINT'),
             'use_path_style_endpoint' => false,
             'throw'                   => false,

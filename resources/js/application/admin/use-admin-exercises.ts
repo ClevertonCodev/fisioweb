@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { apiAdminExercisesRepository } from '@/infrastructure/repositories';
 interface ListParams {
@@ -29,6 +30,20 @@ export function useAdminExercise(id: number | undefined) {
                 : Promise.resolve(null),
         enabled: !!id,
     });
+}
+
+export function useRefreshAdminExercise(id: number | undefined) {
+    const queryClient = useQueryClient();
+
+    return useCallback(async () => {
+        if (!id) return null;
+
+        return queryClient.fetchQuery({
+            queryKey: ['admin', 'exercise', id],
+            queryFn: () => apiAdminExercisesRepository.getById(id),
+            staleTime: 0,
+        });
+    }, [id, queryClient]);
 }
 
 export function useAdminExerciseOptions(exerciseId?: number) {

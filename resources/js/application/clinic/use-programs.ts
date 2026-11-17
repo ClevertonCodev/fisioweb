@@ -144,10 +144,11 @@ export function useClinicProgram(id: string | undefined, enabled = true) {
 
 export function useFetchClinicProgram() {
     const queryClient = useQueryClient();
-    return (id: string) =>
+    return (id: string, options?: { staleTime?: number }) =>
         queryClient.fetchQuery({
             queryKey: ['clinic-programs', id],
             queryFn: () => apiClinicProgramsRepository.getById(id),
+            staleTime: options?.staleTime,
         });
 }
 

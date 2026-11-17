@@ -15,6 +15,7 @@ import {
 import {
     useDeletePatientPhoto,
     usePatientDetail,
+    useRefreshPatientPhoto,
     useUpdatePatient,
     useUploadPatientPhoto,
 } from '@/application/clinic/use-patients';
@@ -71,6 +72,7 @@ function Editor({ id, detail }: { id: string; detail: PatientDetail }) {
     const updatePatient = useUpdatePatient();
     const uploadPhoto = useUploadPatientPhoto();
     const deletePhoto = useDeletePatientPhoto();
+    const refreshPhoto = useRefreshPatientPhoto(id);
     const backTo = `/clinica/pacientes/${id}`;
 
     const onSave = async (values: PatientFormValues, photo: PhotoChange) => {
@@ -112,7 +114,7 @@ function Editor({ id, detail }: { id: string; detail: PatientDetail }) {
 
     return (
         <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-            <PatientFormLayout f={f} />
+            <PatientFormLayout f={f} onRefreshPhoto={refreshPhoto} />
         </div>
     );
 }

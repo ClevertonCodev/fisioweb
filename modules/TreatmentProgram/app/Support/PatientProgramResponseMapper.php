@@ -106,7 +106,7 @@ class PatientProgramResponseMapper
             'id'             => $planExercise->id,
             'name'           => $catalog?->name ?? '',
             'description'    => $catalog?->description,
-            'video_url'      => $video?->cdn_url ?? $video?->url,
+            'video_url'      => $video?->video_url,
             'thumbnail_url'  => $video?->thumbnail_url,
             'notes'          => $planExercise->notes,
             'days'           => $planExercise->days_of_week ?? [],

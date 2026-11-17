@@ -190,6 +190,16 @@ Três restrições moldaram a solução:
     servidor e recarrega a fila e o contador; o aprovar e o rejeitar de exercício
     pendente ganharam o mesmo tratamento.
 
+### Nota (2026-11-16): `reference_images` sem `cdn_url`
+
+Desde a feature 019, cada item de `reference_images` (e de
+`proposed_reference_images` na fila do operador) sai só com `url` assinada de 5
+minutos, `original_filename`, `mime_type` e `size`. Saíram `cdn_url` e
+`file_path`. O caminho continua no `metadata` gravado; a serialização
+(`VideoMetadataPresenter`) é que não o manda. Quem edita as fotos sem ter o
+caminho manda `reference_image_slots` com `{ keep: índice }` no lugar do item
+que não mudou, ou `{ path }` no item novo.
+
 ## Consequências
 
 - A clínica B não vê imagem nem thumbnail que o operador não revisou, nem na

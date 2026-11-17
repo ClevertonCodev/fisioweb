@@ -12,7 +12,10 @@ import {
     validityOf,
     type UiStatus,
 } from '@/application/clinic/program-history-filters';
+import { useRefreshPatientPhoto } from '@/application/clinic/use-patients';
 import { DsBadge, DsCard, dsCn, type BadgeVariant } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import type { Program } from '@/domain/clinic';
 
 const STATUS_BADGE: Record<UiStatus, { label: string; variant: BadgeVariant }> =
@@ -50,10 +53,12 @@ export function PersonAvatar({
     name,
     photoUrl,
     size = 44,
+    onRefresh,
 }: {
     name: string | null;
     photoUrl: string | null;
     size?: number;
+    onRefresh?: ProtectedRefresh;
 }) {
     return (
         <span
@@ -66,7 +71,12 @@ export function PersonAvatar({
             }}
         >
             {photoUrl ? (
-                <img src={photoUrl} alt="" className="size-full object-cover" />
+                <ProtectedImage
+                    src={photoUrl}
+                    alt=""
+                    onRefresh={onRefresh}
+                    className="size-full object-cover"
+                />
             ) : (
                 initialOf(name)
             )}
@@ -140,6 +150,7 @@ export function ProgramHistoryCard({
     program: Program;
     footer?: ReactNode;
 }) {
+    const refreshPhoto = useRefreshPatientPhoto(program.patientId ?? undefined);
     const draft = uiStatusOf(program) === 'draft';
     const location = useLocation();
     const origin: ProgramOrigin = {
@@ -152,6 +163,7 @@ export function ProgramHistoryCard({
                     <PersonAvatar
                         name={program.patientName}
                         photoUrl={program.patientPhotoUrl}
+                        onRefresh={refreshPhoto}
                     />
                     <div className="min-w-0 flex-1">
                         <Link

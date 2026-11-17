@@ -2,13 +2,18 @@ import { AlertCircle, Loader2, Play, Sparkles, VideoOff } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { patientProgramExecutePath } from '@/application/patient/patient-program-paths';
-import { usePatientProgram } from '@/application/patient/use-patient-program';
+import {
+    usePatientProgram,
+    useRefreshPatientExercise,
+} from '@/application/patient/use-patient-program';
 import {
     DsBadge,
     DsButton,
     DsEmptyState,
     DsPatientNavbar,
 } from '@/components/ds';
+import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import type { PatientExercise } from '@/domain/patient/program';
 
 interface DoseMetric {
@@ -108,16 +113,26 @@ function extractDoseMetrics(exercise: PatientExercise): DoseMetric[] {
     return metrics;
 }
 
-function SquareExerciseVideo({ exercise }: { exercise: PatientExercise }) {
+function SquareExerciseVideo({
+    exercise,
+    onRefresh,
+    onRefreshPoster,
+}: {
+    exercise: PatientExercise;
+    onRefresh?: ProtectedRefresh;
+    onRefreshPoster?: ProtectedRefresh;
+}) {
     return (
         <div className="relative aspect-square w-full overflow-hidden rounded-ds-2xl border border-ds-border-subtle bg-ds-surface-inverse">
             {exercise.videoUrl ? (
-                <iframe
-                    src={exercise.videoUrl}
+                <ProtectedVideo
+                    videoUrl={exercise.videoUrl}
+                    posterUrl={exercise.thumbnailUrl}
                     title={`Vídeo: ${exercise.name}`}
-                    className="size-full border-0"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
+                    controls
+                    onRefresh={onRefresh}
+                    onRefreshPoster={onRefreshPoster}
+                    className="size-full"
                 />
             ) : (
                 <div className="flex size-full flex-col items-center justify-center gap-2 bg-ds-surface-subtle text-ds-content-muted">
@@ -167,6 +182,7 @@ export default function PatientExerciseDetailPage() {
         isLoading,
         isError,
     } = usePatientProgram(publicToken);
+    const refreshExercise = useRefreshPatientExercise(publicToken);
 
     const onBack = () => navigate(-1);
 
@@ -244,7 +260,17 @@ export default function PatientExerciseDetailPage() {
             <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-5 sm:px-6 lg:py-8">
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr] lg:items-start">
                     <div className="mx-auto w-full max-w-[360px] lg:sticky lg:top-4 lg:mx-0 lg:max-w-none">
-                        <SquareExerciseVideo exercise={exercise} />
+                        <SquareExerciseVideo
+                            exercise={exercise}
+                            onRefresh={async () =>
+                                (await refreshExercise(exercise.id))
+                                    ?.videoUrl ?? null
+                            }
+                            onRefreshPoster={async () =>
+                                (await refreshExercise(exercise.id))
+                                    ?.thumbnailUrl ?? null
+                            }
+                        />
                     </div>
 
                     <div className="min-w-0 space-y-5">

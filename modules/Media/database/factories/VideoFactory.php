@@ -21,8 +21,6 @@ class VideoFactory extends Factory
             'filename'          => $filename,
             'original_filename' => fake()->words(3, true) . '.mp4',
             'path'              => 'videos/' . $filename,
-            'url'               => 'https://r2.example.com/videos/' . $filename,
-            'cdn_url'           => 'https://cdn.example.com/videos/' . $filename,
             'mime_type'         => 'video/mp4',
             'size'              => fake()->numberBetween(1048576, 20971520),
             'duration'          => fake()->numberBetween(10, 3600),

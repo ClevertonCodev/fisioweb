@@ -4,7 +4,6 @@ namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\ClinicUser;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
@@ -340,18 +339,14 @@ class PatientControllerTest extends TestCase
             ->assertJsonValidationErrors('photo');
     }
 
-    public function test_upload_photo_stores_cdn_url_on_patient(): void
+    public function test_upload_photo_stores_the_path_and_returns_a_signed_url(): void
     {
-        Storage::fake('r2');
         $patient = $this->createPatientForClinic();
-        $cdnUrl  = 'https://cdn.example.com/patients/photos/photo.jpg';
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($cdnUrl) {
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')
                 ->once()
                 ->andReturn([
-                    'cdn_url'           => $cdnUrl,
-                    'url'               => 'https://r2.example.com/patients/photos/photo.jpg',
                     'filename'          => 'photo.jpg',
                     'original_filename' => 'my-photo.jpg',
                     'path'              => 'patients/photos/photo.jpg',
@@ -360,33 +355,32 @@ class PatientControllerTest extends TestCase
                 ]);
         });
 
-        $this->actingAs($this->clinicUser, 'clinic')
+        $uploaded = $this->actingAs($this->clinicUser, 'clinic')
             ->postJson("/api/clinic/patients/{$patient->id}/photo", [
                 'photo' => UploadedFile::fake()->create('my-photo.jpg', 100, 'image/jpeg'),
-            ])->assertOk()
-            ->assertJsonPath('data.photo_url', $cdnUrl);
+            ])->assertOk();
+        $this->assertSignedImageUrl($uploaded->json('data.photo_url'), 'patients/photos/photo.jpg');
+        $this->assertArrayNotHasKey('photo_path', $uploaded->json('data'));
 
         $this->assertDatabaseHas('patients', [
-            'id'        => $patient->id,
-            'photo_url' => $cdnUrl,
+            'id'         => $patient->id,
+            'photo_path' => 'patients/photos/photo.jpg',
         ]);
     }
 
     public function test_upload_photo_accepts_jpeg_png_and_webp(): void
     {
-        Storage::fake('r2');
         $patient = $this->createPatientForClinic();
 
         $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')->andReturn([
-                'cdn_url'           => 'https://cdn.example.com/photo.png',
-                'url'               => 'https://r2.example.com/photo.png',
                 'filename'          => 'photo.png',
                 'original_filename' => 'photo.png',
                 'path'              => 'patients/photos/photo.png',
                 'mime_type'         => 'image/png',
                 'size'              => 512,
             ]);
+            $mock->shouldReceive('deletePrivateFile')->andReturnTrue();
         });
 
         $mimes = ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp'];

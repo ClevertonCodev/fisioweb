@@ -22,6 +22,20 @@ export function useAdminVideo(id: number | undefined) {
     });
 }
 
+export function useRefreshAdminVideo(id: number | undefined) {
+    const queryClient = useQueryClient();
+
+    return useCallback(async () => {
+        if (!id) return null;
+
+        return queryClient.fetchQuery({
+            queryKey: ['admin', 'video', id],
+            queryFn: () => apiAdminVideosRepository.getById(id),
+            staleTime: 0,
+        });
+    }, [id, queryClient]);
+}
+
 export function useUpdateAdminVideo(id: number) {
     const queryClient = useQueryClient();
     return useMutation({

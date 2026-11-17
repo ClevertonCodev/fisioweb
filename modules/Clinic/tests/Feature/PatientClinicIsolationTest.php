@@ -4,7 +4,6 @@ namespace Modules\Clinic\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
@@ -35,14 +34,14 @@ class PatientClinicIsolationTest extends TestCase
             'clinic_id'      => $clinicA->id,
             'clinic_user_id' => $this->adminA->id,
             'name'           => 'Paciente A',
-            'photo_url'      => 'https://cdn.example.com/a.jpg',
+            'photo_path'     => 'patients/photos/a.jpg',
             'is_active'      => true,
         ]);
         $this->patientB = Patient::factory()->create([
             'clinic_id'      => $clinicB->id,
             'clinic_user_id' => $adminB->id,
             'name'           => 'Paciente B',
-            'photo_url'      => 'https://cdn.example.com/b.jpg',
+            'photo_path'     => 'patients/photos/b.jpg',
             'is_active'      => true,
         ]);
     }
@@ -75,29 +74,25 @@ class PatientClinicIsolationTest extends TestCase
 
     public function test_upload_photo_reaches_own_patient_and_not_another_clinic_photo(): void
     {
-        Storage::fake('r2');
-        $cdnUrl = 'https://cdn.example.com/patients/photos/a-new.jpg';
-
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($cdnUrl) {
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')
                 ->once()
                 ->andReturn([
-                    'cdn_url'           => $cdnUrl,
-                    'url'               => 'https://r2.example.com/patients/photos/a-new.jpg',
                     'filename'          => 'a-new.jpg',
                     'original_filename' => 'a-new.jpg',
                     'path'              => 'patients/photos/a-new.jpg',
                     'mime_type'         => 'image/jpeg',
                     'size'              => 1024,
                 ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->with('patients/photos/a.jpg')->andReturnTrue();
         });
 
-        $this->actingAs($this->adminA, 'clinic')
+        $uploaded = $this->actingAs($this->adminA, 'clinic')
             ->postJson("/api/clinic/patients/{$this->patientA->id}/photo", [
                 'photo' => UploadedFile::fake()->create('a-new.jpg', 100, 'image/jpeg'),
             ])
-            ->assertOk()
-            ->assertJsonPath('data.photo_url', $cdnUrl);
+            ->assertOk();
+        $this->assertSignedImageUrl($uploaded->json('data.photo_url'), 'patients/photos/a-new.jpg');
 
         $this->actingAs($this->adminA, 'clinic')
             ->postJson("/api/clinic/patients/{$this->patientB->id}/photo", [
@@ -105,12 +100,16 @@ class PatientClinicIsolationTest extends TestCase
             ])
             ->assertNotFound();
 
-        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'photo_url' => $cdnUrl]);
-        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_url' => 'https://cdn.example.com/b.jpg']);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'photo_path' => 'patients/photos/a-new.jpg']);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_path' => 'patients/photos/b.jpg']);
     }
 
     public function test_delete_photo_clears_own_patient_photo_and_not_another_clinic_photo(): void
     {
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('deletePrivateFile')->once()->with('patients/photos/a.jpg')->andReturnTrue();
+        });
+
         $this->actingAs($this->adminA, 'clinic')
             ->deleteJson("/api/clinic/patients/{$this->patientA->id}/photo")
             ->assertOk();
@@ -119,8 +118,8 @@ class PatientClinicIsolationTest extends TestCase
             ->deleteJson("/api/clinic/patients/{$this->patientB->id}/photo")
             ->assertNotFound();
 
-        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'photo_url' => null]);
-        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_url' => 'https://cdn.example.com/b.jpg']);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientA->id, 'photo_path' => null]);
+        $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'photo_path' => 'patients/photos/b.jpg']);
     }
 
     public function test_reactivate_reaches_own_patient_and_not_another_clinic_patient(): void

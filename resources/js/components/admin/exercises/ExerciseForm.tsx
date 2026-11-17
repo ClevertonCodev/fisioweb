@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useRefreshAdminVideo } from '@/application/admin/use-admin-videos';
 import { AdminExerciseVideoPreview } from '@/components/admin/exercises/AdminExerciseVideoPreview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,7 +26,9 @@ interface VideoOption {
     id: number;
     original_filename: string;
     thumbnail_url?: string | null;
+    video_url?: string | null;
     cdn_url?: string | null;
+    url?: string | null;
 }
 
 export interface ExerciseFormState {
@@ -113,6 +116,7 @@ export function ExerciseForm({
                 : null,
         [videos, form.video_id],
     );
+    const refreshVideo = useRefreshAdminVideo(selectedVideoData?.id);
     const subareas = form.physio_area_id
         ? (options?.physio_areas?.find(
               (a) => String(a.id) === form.physio_area_id,
@@ -246,11 +250,27 @@ export function ExerciseForm({
                                 este exercício.
                             </p>
                         </div>
-                        {selectedVideoData?.cdn_url && (
+                        {(selectedVideoData?.video_url ??
+                            selectedVideoData?.cdn_url ??
+                            selectedVideoData?.url) && (
                             <AdminExerciseVideoPreview
-                                src={selectedVideoData.cdn_url}
-                                poster={selectedVideoData.thumbnail_url}
-                                title={selectedVideoData.original_filename}
+                                src={
+                                    selectedVideoData?.video_url ??
+                                    selectedVideoData?.cdn_url ??
+                                    selectedVideoData?.url ??
+                                    null
+                                }
+                                poster={selectedVideoData?.thumbnail_url}
+                                title={selectedVideoData?.original_filename}
+                                onRefresh={async () =>
+                                    (await refreshVideo())?.cdn_url ??
+                                    (await refreshVideo())?.url ??
+                                    null
+                                }
+                                onRefreshPoster={async () =>
+                                    (await refreshVideo())?.thumbnail_url ??
+                                    null
+                                }
                             />
                         )}
                     </div>

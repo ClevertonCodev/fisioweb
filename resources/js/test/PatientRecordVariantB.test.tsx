@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -77,15 +78,17 @@ function renderRecord(patient: PatientDetail) {
         },
     };
     return render(
-        <MemoryRouter future={routerFutureFlags}>
-            <VariantB
-                id={patient.id}
-                data={data}
-                onOpen={() => {}}
-                onAction={() => {}}
-                canManageClinical
-            />
-        </MemoryRouter>,
+        <QueryClientProvider client={new QueryClient()}>
+            <MemoryRouter future={routerFutureFlags}>
+                <VariantB
+                    id={patient.id}
+                    data={data}
+                    onOpen={() => {}}
+                    onAction={() => {}}
+                    canManageClinical
+                />
+            </MemoryRouter>
+        </QueryClientProvider>,
     );
 }
 

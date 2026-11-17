@@ -2,8 +2,10 @@
 
 namespace Modules\Admin\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Cloudflare\Support\SignedMedia;
 
 class ExerciseMedia extends Model
 {
@@ -22,11 +24,18 @@ class ExerciseMedia extends Model
         'exercise_id',
         'type',
         'file_path',
-        'cdn_url',
         'original_filename',
         'mime_type',
         'size',
         'sort_order',
+    ];
+
+    protected $hidden = [
+        'file_path',
+    ];
+
+    protected $appends = [
+        'url',
     ];
 
     protected function casts(): array
@@ -35,6 +44,11 @@ class ExerciseMedia extends Model
             'size'       => 'integer',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected function url(): Attribute
+    {
+        return Attribute::get(fn () => SignedMedia::image($this->file_path));
     }
 
     public function exercise(): BelongsTo

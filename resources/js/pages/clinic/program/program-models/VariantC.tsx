@@ -1,7 +1,9 @@
 import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 
+import { useFetchClinicProgram } from '@/application/clinic/use-programs';
 import { DsBadge, DsButton, dsCn, DsTooltip } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { useInView } from '@/pages/clinic/use-in-view';
 
 import {
@@ -209,6 +211,40 @@ function SessionBar({
     );
 }
 
+function ModelThumb({
+    programId,
+    exerciseId,
+    src,
+    title,
+}: {
+    programId: string;
+    exerciseId: string;
+    src: string;
+    title: string;
+}) {
+    const fetchProgram = useFetchClinicProgram();
+
+    if (!src) return null;
+
+    return (
+        <ProtectedImage
+            src={src}
+            alt={title}
+            onRefresh={async () => {
+                const program = await fetchProgram(programId, { staleTime: 0 });
+
+                return (
+                    program?.groups
+                        .flatMap((group) => group.exercises)
+                        .find((exercise) => exercise.id === exerciseId)
+                        ?.thumbnailUrl ?? null
+                );
+            }}
+            className="size-11 rounded-ds-md object-cover"
+        />
+    );
+}
+
 function SessionCard({ model }: { model: ModelSummary }) {
     const { run, deleteModal } = useModelActions();
     const ref = useRef<HTMLElement>(null);
@@ -269,11 +305,11 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 <ul className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
                     {thumbs.slice(0, 8).map((e) => (
                         <li key={e.id} className="shrink-0">
-                            <img
+                            <ModelThumb
+                                programId={model.id}
+                                exerciseId={e.id}
                                 src={e.thumbnailUrl}
-                                alt={e.title}
                                 title={e.title}
-                                className="size-11 rounded-ds-md object-cover"
                             />
                         </li>
                     ))}

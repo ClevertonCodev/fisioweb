@@ -68,7 +68,7 @@ class DashboardRepository implements DashboardRepositoryInterface
         $items = $this->scopedPatients($scope)
             ->whereNotNull('birth_date')
             ->whereMonth('birth_date', $month)
-            ->get(['id', 'name', 'photo_url', 'phone', 'birth_date'])
+            ->get(['id', 'name', 'photo_path', 'phone', 'birth_date'])
             ->map(fn (Patient $p) => [
                 'patient_id'  => $p->id,
                 'name'        => $p->name,

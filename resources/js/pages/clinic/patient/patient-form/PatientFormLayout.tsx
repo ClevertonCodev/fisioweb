@@ -8,6 +8,7 @@ import {
     PATIENT_PHOTO_INPUT_ACCEPT,
 } from '@/application/clinic/patient-photo-rules';
 import { DsAvatarPhotoField, DsButton, dsCn, DsTabs } from '@/components/ds';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 
 import {
     IdentityFields,
@@ -28,7 +29,13 @@ import {
     type SectionKey,
 } from './form';
 
-export function PatientFormLayout({ f }: { f: PatientFormState }) {
+export function PatientFormLayout({
+    f,
+    onRefreshPhoto,
+}: {
+    f: PatientFormState;
+    onRefreshPhoto?: ProtectedRefresh;
+}) {
     const { form } = f;
     const creating = f.mode === 'create';
     const [tab, setTab] = useState<SectionKey>('identificacao');
@@ -96,6 +103,7 @@ export function PatientFormLayout({ f }: { f: PatientFormState }) {
                                 accept={PATIENT_PHOTO_INPUT_ACCEPT}
                                 validateSource={getPatientPhotoSourceError}
                                 validateResult={getPatientPhotoValidationError}
+                                onRefreshCurrent={onRefreshPhoto}
                             />
                             <div className="text-center">
                                 <p className="truncate text-ds-h4">

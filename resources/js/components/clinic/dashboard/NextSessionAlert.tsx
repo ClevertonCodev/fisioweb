@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 
 import { DsBadge, DsButton } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import type { DashboardUpcomingAppointment } from '@/domain/clinic/dashboard';
 
 import {
@@ -12,9 +14,11 @@ import {
 export function NextSessionAlert({
     appointment,
     now,
+    onRefresh,
 }: {
     appointment: DashboardUpcomingAppointment;
     now: Date;
+    onRefresh?: ProtectedRefresh;
 }) {
     const navigate = useNavigate();
 
@@ -26,9 +30,10 @@ export function NextSessionAlert({
             <div className="mt-4 flex items-center gap-4">
                 <span className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-ds-full bg-ds-white/20 text-ds-body-sm font-semibold">
                     {appointment.patientPhotoUrl ? (
-                        <img
+                        <ProtectedImage
                             src={appointment.patientPhotoUrl}
                             alt=""
+                            onRefresh={onRefresh}
                             className="size-full object-cover"
                         />
                     ) : (

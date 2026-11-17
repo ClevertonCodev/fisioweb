@@ -47,6 +47,7 @@ interface AuthContextValue extends AuthState {
     logout: (guard: AuthGuard) => Promise<void>;
     setUser: (user: User | null, guard: AuthGuard | null) => void;
     refreshSession: () => Promise<void>;
+    reloadUser: () => Promise<string | null>;
     isImpersonating: boolean;
 }
 
@@ -249,6 +250,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
     }, [scheduleExpiryWarning]);
 
+    const reloadUser = useCallback(async () => {
+        const auth = getStoredAuthForPage();
+        if (!auth) return null;
+        const { data } = await apiClient.get<{
+            id: number;
+            name: string;
+            email: string;
+            role?: string;
+            photo_url?: string | null;
+            clinic_id?: number;
+            clinic_slug?: string | null;
+            mestre?: number;
+        }>(`/${auth.guard}/auth/me`);
+        const user = normalizeUser(data);
+        setState((current) => ({
+            ...current,
+            user,
+            guard: auth.guard as AuthGuard,
+            isAuthenticated: true,
+        }));
+
+        return user.photoUrl ?? null;
+    }, []);
+
     const value = useMemo<AuthContextValue>(
         () => ({
             ...state,
@@ -257,9 +282,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             logout,
             setUser,
             refreshSession,
+            reloadUser,
             isImpersonating: !!state.guard && isTabSession(state.guard),
         }),
-        [state, login, completeFirstAccess, logout, setUser, refreshSession],
+        [
+            state,
+            login,
+            completeFirstAccess,
+            logout,
+            setUser,
+            refreshSession,
+            reloadUser,
+        ],
     );
 
     return (

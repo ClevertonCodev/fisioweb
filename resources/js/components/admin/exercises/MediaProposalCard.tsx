@@ -1,5 +1,8 @@
 import { Check, ImageOff, X } from 'lucide-react';
 
+import { useRefreshMediaProposal } from '@/application/admin/use-exercise-review';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { MediaProposal, MediaProposalExercise } from '@/domain/admin';
@@ -28,6 +31,7 @@ export function MediaProposalCard({
     onReject,
 }: MediaProposalCardProps) {
     const titleId = `media-proposal-${proposal.videoId}`;
+    const refreshProposal = useRefreshMediaProposal(proposal.videoId);
     const otherExercises = proposal.linkedExercises.filter(
         (exercise) => exercise.id !== proposal.exercise.id,
     );
@@ -72,6 +76,14 @@ export function MediaProposalCard({
                     suffix="atual"
                     thumbnailUrl={proposal.current.thumbnailUrl}
                     referenceImageUrls={proposal.current.referenceImageUrls}
+                    onRefreshThumbnail={async () =>
+                        (await refreshProposal())?.current.thumbnailUrl ?? null
+                    }
+                    onRefreshImage={async (index) =>
+                        (await refreshProposal())?.current.referenceImageUrls?.[
+                            index
+                        ] ?? null
+                    }
                 />
                 <MediaColumn
                     title="Proposta"
@@ -79,6 +91,14 @@ export function MediaProposalCard({
                     thumbnailUrl={proposal.proposedThumbnailUrl}
                     referenceImageUrls={proposal.proposedReferenceImageUrls}
                     unchangedThumbnail={proposal.proposedThumbnailUrl === null}
+                    onRefreshThumbnail={async () =>
+                        (await refreshProposal())?.proposedThumbnailUrl ?? null
+                    }
+                    onRefreshImage={async (index) =>
+                        (await refreshProposal())?.proposedReferenceImageUrls?.[
+                            index
+                        ] ?? null
+                    }
                 />
             </div>
 
@@ -113,6 +133,8 @@ interface MediaColumnProps {
     thumbnailUrl: string | null;
     referenceImageUrls: string[] | null;
     unchangedThumbnail?: boolean;
+    onRefreshThumbnail?: ProtectedRefresh;
+    onRefreshImage?: (index: number) => Promise<string | null>;
 }
 
 function MediaColumn({
@@ -121,15 +143,18 @@ function MediaColumn({
     thumbnailUrl,
     referenceImageUrls,
     unchangedThumbnail = false,
+    onRefreshThumbnail,
+    onRefreshImage,
 }: MediaColumnProps) {
     return (
         <section className="flex flex-col gap-2 rounded-lg border border-border p-3">
             <h4 className="text-sm font-medium text-foreground">{title}</h4>
             <p className="text-xs text-muted-foreground">Capa</p>
             {thumbnailUrl ? (
-                <img
+                <ProtectedImage
                     src={thumbnailUrl}
                     alt={`Capa ${suffix}`}
+                    onRefresh={onRefreshThumbnail}
                     className="aspect-video w-full max-w-xs rounded-md bg-muted object-cover"
                 />
             ) : (
@@ -145,10 +170,15 @@ function MediaColumn({
             ) : (
                 <div className="grid max-w-xs grid-cols-2 gap-2">
                     {referenceImageUrls.map((url, index) => (
-                        <img
+                        <ProtectedImage
                             key={url}
                             src={url}
                             alt={`Foto ${index + 1} ${suffix}`}
+                            onRefresh={
+                                onRefreshImage
+                                    ? () => onRefreshImage(index)
+                                    : undefined
+                            }
                             className="aspect-square w-full rounded-md bg-muted object-cover"
                         />
                     ))}

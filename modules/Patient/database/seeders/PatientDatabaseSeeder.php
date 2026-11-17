@@ -18,19 +18,16 @@ class PatientDatabaseSeeder extends Seeder
             return;
         }
 
-        $cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
-
         // Massa de pacientes só para Performance e Premium; a clínica Start fica mínima
         $clinics = Clinic::whereIn('email', ['clevertonsantoscodev@gmail.com', 'performance@fisioweb.local'])->get();
         foreach ($clinics as $clinic) {
-            $this->seedForClinic($clinic, $cdn);
+            $this->seedForClinic($clinic);
         }
 
-        // Todos os pacientes seedados (inclusive fora da factory, ex.: DatabaseSeeder) usam a foto do R2
-        Patient::query()->update(['photo_url' => $cdn . '/' . self::PHOTO]);
+        Patient::query()->update(['photo_path' => self::PHOTO]);
     }
 
-    private function seedForClinic(Clinic $clinic, string $cdn): void
+    private function seedForClinic(Clinic $clinic): void
     {
         // Fisioterapeutas da clínica para preencher "criado por"
         $physios = ClinicUser::where('clinic_id', $clinic->id)
@@ -53,7 +50,7 @@ class PatientDatabaseSeeder extends Seeder
 
         foreach ($patients as $index => $patient) {
             $patient->update([
-                'photo_url'      => $cdn . '/' . self::PHOTO,
+                'photo_path'     => self::PHOTO,
                 'clinic_user_id' => $physios->isNotEmpty() ? $physios[$index % $physios->count()]->id : null,
             ]);
         }

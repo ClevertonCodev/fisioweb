@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { useRefreshAdminExercise } from '@/application/admin/use-admin-exercises';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -260,6 +261,7 @@ function SortableExerciseRow({
     onRemove: (groupId: number, exerciseId: number) => void;
     onDuplicate: (groupId: number, exerciseId: number) => void;
 }) {
+    const refreshExercise = useRefreshAdminExercise(exercise.exerciseId);
     const {
         attributes,
         listeners,
@@ -298,6 +300,35 @@ function SortableExerciseRow({
                 <VideoThumb
                     videoUrl={exercise.videoUrl}
                     thumbnailUrl={exercise.thumbnailUrl}
+                    onRefresh={async () => {
+                        const next = await refreshExercise();
+                        const video = (
+                            next?.videos as
+                                | {
+                                      video_url?: string | null;
+                                      url?: string | null;
+                                      cdn_url?: string | null;
+                                  }[]
+                                | undefined
+                        )?.[0];
+
+                        return (
+                            video?.video_url ??
+                            video?.cdn_url ??
+                            video?.url ??
+                            null
+                        );
+                    }}
+                    onRefreshPoster={async () => {
+                        const next = await refreshExercise();
+                        const video = (
+                            next?.videos as
+                                | { thumbnail_url?: string | null }[]
+                                | undefined
+                        )?.[0];
+
+                        return video?.thumbnail_url ?? null;
+                    }}
                 />
             </div>
 

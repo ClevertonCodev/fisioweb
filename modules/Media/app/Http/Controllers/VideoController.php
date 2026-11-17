@@ -219,15 +219,28 @@ class VideoController extends Controller
 
     public function syncReferenceImages(Request $request, int $video): JsonResponse
     {
+        if (!$request->exists('reference_image_paths') && !$request->exists('reference_image_slots')) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'reference_image_paths' => 'Informe as imagens de referência.',
+            ]);
+        }
+
         $validated = $request->validate([
-            'reference_image_paths'   => ['present', 'array', 'max:2'],
-            'reference_image_paths.*' => ['string', 'max:512'],
+            'reference_image_paths'        => ['prohibits:reference_image_slots', 'array', 'max:2'],
+            'reference_image_paths.*'      => ['string', 'max:512'],
+            'reference_image_slots'        => ['sometimes', 'array', 'max:2'],
+            'reference_image_slots.*.path' => ['sometimes', 'nullable', 'string', 'max:512'],
+            'reference_image_slots.*.keep' => ['sometimes', 'integer', 'min:0', 'max:1'],
         ]);
 
         try {
+            $paths = array_key_exists('reference_image_slots', $validated)
+                ? $this->videoService->referencePathsFromSlots($video, $validated['reference_image_slots'])
+                : ($validated['reference_image_paths'] ?? []);
+
             $result = $this->videoService->syncReferenceImages(
                 $video,
-                $validated['reference_image_paths'] ?? [],
+                $paths,
                 changedByOperator: true,
             );
 

@@ -299,10 +299,10 @@ describe('ProgramDetailPage (painel v2)', () => {
         const modal = await screen.findByRole('dialog', {
             name: 'Ponte Glútea',
         });
-        expect(modal.querySelector('video')).toHaveAttribute(
-            'src',
-            'https://cdn.test/ponte.mp4',
-        );
+        const video = modal.querySelector('video');
+        expect(video).toBeInTheDocument();
+        expect(video).not.toHaveAttribute('src');
+        expect(video).toHaveAttribute('controlslist', 'nodownload');
     });
 
     it('exercício sem vídeo mostra o aviso no modal', async () => {

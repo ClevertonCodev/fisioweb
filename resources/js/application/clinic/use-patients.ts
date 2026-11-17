@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 import type {
@@ -35,6 +36,21 @@ export function usePatientDetail(id: string | undefined) {
                 : Promise.resolve(null),
         enabled: !!id,
     });
+}
+
+export function useRefreshPatientPhoto(patientId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useCallback(async () => {
+        if (!patientId) return null;
+        const patient = await queryClient.fetchQuery({
+            queryKey: ['patients', patientId],
+            queryFn: () => apiClinicPatientsRepository.getById(patientId),
+            staleTime: 0,
+        });
+
+        return patient?.photoUrl ?? null;
+    }, [patientId, queryClient]);
 }
 
 export function useUpdatePatient() {

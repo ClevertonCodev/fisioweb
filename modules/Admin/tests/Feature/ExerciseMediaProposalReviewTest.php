@@ -19,9 +19,9 @@ class ExerciseMediaProposalReviewTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const CURRENT_THUMBNAIL = 'thumbnails/videos/capa-aprovada.jpg';
+    private const CURRENT_THUMBNAIL = 'covers/videos/capa-aprovada.jpg';
 
-    private const CURRENT_IMAGE = 'thumbnails/videos/foto-aprovada.jpg';
+    private const CURRENT_IMAGE = 'covers/videos/foto-aprovada.jpg';
 
     private Clinic $clinicA;
 
@@ -78,11 +78,13 @@ class ExerciseMediaProposalReviewTest extends TestCase
             ->assertJsonPath('data.0.exercise.name', $exercise->name)
             ->assertJsonPath('data.0.exercise.review_status', Exercise::REVIEW_APPROVED)
             ->assertJsonPath('data.0.exercise.clinic.id', $this->clinicA->id)
-            ->assertJsonPath('data.0.current.thumbnail_url', 'https://cdn.invalid/' . self::CURRENT_THUMBNAIL)
-            ->assertJsonPath('data.0.current.reference_images.0.cdn_url', 'https://cdn.invalid/' . self::CURRENT_IMAGE)
-            ->assertJsonPath('data.0.proposed.thumbnail_url', 'https://cdn.invalid/' . $thumbnail)
-            ->assertJsonPath('data.0.proposed.reference_images.0.cdn_url', 'https://cdn.invalid/' . $image)
             ->assertJsonPath('data.0.proposed_at', $video->fresh()->metadata['proposed_at']);
+        $this->assertSignedVideoUrl($response->json('data.0.current.thumbnail_url'), self::CURRENT_THUMBNAIL);
+        $this->assertSignedImageUrl($response->json('data.0.current.reference_images.0.url'), self::CURRENT_IMAGE);
+        $this->assertSignedVideoUrl($response->json('data.0.proposed.thumbnail_url'), $thumbnail);
+        $this->assertSignedImageUrl($response->json('data.0.proposed.reference_images.0.url'), $image);
+        $this->assertArrayNotHasKey('cdn_url', $response->json('data.0.current.reference_images.0'));
+        $this->assertArrayNotHasKey('file_path', $response->json('data.0.current.reference_images.0'));
 
         $this->assertNotEmpty($response->json('data.0.proposal_version'));
     }
@@ -131,7 +133,7 @@ class ExerciseMediaProposalReviewTest extends TestCase
         $deleted      = $this->approvedExerciseOfA($deletedVideo, 'PROPOSTA020 apagado');
         $this->proposeByClinicA($deletedVideo);
         $deleted->delete();
-        $this->approvedVideoOfA()->update(['metadata' => ['proposed_at' => now()->toIso8601String(), 'proposed_thumbnail_path' => 'thumbnails/videos/sem-exercicio.jpg']]);
+        $this->approvedVideoOfA()->update(['metadata' => ['proposed_at' => now()->toIso8601String(), 'proposed_thumbnail_path' => 'covers/videos/sem-exercicio.jpg']]);
 
         $this->actingAs($this->operator, 'admin')
             ->getJson('/api/admin/exercises/media-proposals?per_page=2')
@@ -174,7 +176,7 @@ class ExerciseMediaProposalReviewTest extends TestCase
             'is_active'      => true,
         ]);
 
-        $this->approvedVideoOfA()->update(['metadata' => ['proposed_at' => now()->toIso8601String(), 'proposed_thumbnail_path' => 'thumbnails/videos/sem-exercicio.jpg']]);
+        $this->approvedVideoOfA()->update(['metadata' => ['proposed_at' => now()->toIso8601String(), 'proposed_thumbnail_path' => 'covers/videos/sem-exercicio.jpg']]);
 
         $this->actingAs($this->operator, 'admin')
             ->getJson('/api/admin/exercises/pending-count')
@@ -203,15 +205,16 @@ class ExerciseMediaProposalReviewTest extends TestCase
         $video               = $this->approvedVideoOfA();
         $exercise            = $this->approvedExerciseOfA($video);
         [$thumbnail, $image] = $this->proposeByClinicA($video);
-        $this->assertSame('https://cdn.invalid/' . self::CURRENT_THUMBNAIL, $this->listedBy($this->adminB, $exercise)['videos'][0]['thumbnail_url']);
+        $this->assertSignedVideoUrl($this->listedBy($this->adminB, $exercise)['videos'][0]['thumbnail_url'], self::CURRENT_THUMBNAIL);
 
         $this->actingAs($this->operator, 'admin')
             ->putJson("/api/admin/exercises/{$exercise->id}/media-proposal/approve", $this->decision($video))
             ->assertOk();
 
         $seenByB = $this->listedBy($this->adminB, $exercise);
-        $this->assertSame('https://cdn.invalid/' . $thumbnail, $seenByB['videos'][0]['thumbnail_url']);
-        $this->assertSame([$image], array_column($seenByB['videos'][0]['metadata']['reference_images'], 'file_path'));
+        $this->assertSignedVideoUrl($seenByB['videos'][0]['thumbnail_url'], $thumbnail);
+        $this->assertSignedImageUrl($seenByB['videos'][0]['metadata']['reference_images'][0]['url'], $image);
+        $this->assertArrayNotHasKey('file_path', $seenByB['videos'][0]['metadata']['reference_images'][0]);
         $this->assertSame([$image], ExerciseMedia::where('exercise_id', $exercise->id)->pluck('file_path')->all());
         $this->assertFalse($this->listedBy($this->adminA, $exercise)['media_proposal_pending']);
 
@@ -243,7 +246,7 @@ class ExerciseMediaProposalReviewTest extends TestCase
         $this->assertSame(Exercise::REVIEW_APPROVED, $exercise->fresh()->review_status);
 
         $seenByB = $this->listedBy($this->adminB, $exercise);
-        $this->assertSame('https://cdn.invalid/' . self::CURRENT_THUMBNAIL, $seenByB['videos'][0]['thumbnail_url']);
+        $this->assertSignedVideoUrl($seenByB['videos'][0]['thumbnail_url'], self::CURRENT_THUMBNAIL);
         $this->assertFalse($this->listedBy($this->adminA, $exercise)['media_proposal_pending']);
     }
 
@@ -320,7 +323,7 @@ class ExerciseMediaProposalReviewTest extends TestCase
         $this->proposeByClinicA($video);
         $seenByOperator = $this->decision($video);
 
-        $direct = 'thumbnails/videos/troca-direta-do-operador.jpg';
+        $direct = 'covers/videos/troca-direta-do-operador.jpg';
         $this->actingAs($this->operator, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", ['reference_image_paths' => [$direct]])
             ->assertOk();
@@ -358,7 +361,7 @@ class ExerciseMediaProposalReviewTest extends TestCase
 
         $this->assertEquals($before, $video->fresh()->getAttributes());
         $this->assertSame([], $this->deletedPaths);
-        $this->assertSame('https://cdn.invalid/' . self::CURRENT_THUMBNAIL, $this->listedBy($this->adminB, $exercise)['videos'][0]['thumbnail_url']);
+        $this->assertSignedVideoUrl($this->listedBy($this->adminB, $exercise)['videos'][0]['thumbnail_url'], self::CURRENT_THUMBNAIL);
     }
 
     #[DataProvider('decisions')]
@@ -381,7 +384,6 @@ class ExerciseMediaProposalReviewTest extends TestCase
             'clinic_id'      => $this->clinicA->id,
             'status'         => Video::STATUS_COMPLETED,
             'thumbnail_path' => self::CURRENT_THUMBNAIL,
-            'thumbnail_url'  => 'https://cdn.invalid/' . self::CURRENT_THUMBNAIL,
             'metadata'       => [
                 'reference_images' => [[
                     'file_path'         => self::CURRENT_IMAGE,
@@ -408,7 +410,6 @@ class ExerciseMediaProposalReviewTest extends TestCase
             'exercise_id'       => $exercise->id,
             'type'              => ExerciseMedia::TYPE_IMAGE,
             'file_path'         => self::CURRENT_IMAGE,
-            'cdn_url'           => 'https://cdn.invalid/' . self::CURRENT_IMAGE,
             'original_filename' => basename(self::CURRENT_IMAGE),
             'mime_type'         => 'image/jpeg',
             'size'              => 0,

@@ -1,8 +1,12 @@
 import { Maximize, Play } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import {
+    useProtectedPlayback,
+    type ProtectedRefresh,
+} from '@/components/protected-media/use-protected-playback';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMediaReady } from '@/hooks/use-media-ready';
 import { cn } from '@/lib/utils';
 
 interface VideoThumbProps {
@@ -13,6 +17,8 @@ interface VideoThumbProps {
     /** Exibe o botão de tela cheia no canto inferior direito. */
     showFullscreen?: boolean;
     className?: string;
+    onRefresh?: ProtectedRefresh;
+    onRefreshPoster?: ProtectedRefresh;
 }
 
 /**
@@ -26,27 +32,28 @@ export function VideoThumb({
     size = 'sm',
     showFullscreen = true,
     className,
+    onRefresh,
+    onRefreshPoster,
 }: VideoThumbProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const { ready, markReady } = useMediaReady(thumbnailUrl, videoUrl);
+    const [posterReady, setPosterReady] = useState(!thumbnailUrl);
+    const playback = useProtectedPlayback({ url: videoUrl, onRefresh });
 
     const togglePlay = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const video = videoRef.current;
+        const video = playback.ref.current;
         if (!video) return;
         if (isPlaying) {
             video.pause();
             setIsPlaying(false);
         } else {
-            video.play();
-            setIsPlaying(true);
+            void playback.play().then(() => setIsPlaying(true));
         }
     };
 
     const handleFullscreen = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const video = videoRef.current;
+        const video = playback.ref.current;
         if (!video) return;
         if (document.fullscreenElement) {
             document.exitFullscreen();
@@ -61,26 +68,29 @@ export function VideoThumb({
 
     return (
         <>
-            {!ready && (
+            {!posterReady && (
                 <Skeleton className="absolute inset-0 z-[1] h-full w-full rounded-none" />
             )}
+            {thumbnailUrl && !playback.active && (
+                <ProtectedImage
+                    src={thumbnailUrl}
+                    alt=""
+                    onRefresh={onRefreshPoster}
+                    onLoad={() => setPosterReady(true)}
+                    className="absolute inset-0 size-full object-cover"
+                />
+            )}
             <video
-                ref={videoRef}
-                src={videoUrl ?? undefined}
-                poster={thumbnailUrl ?? undefined}
+                {...playback.videoProps}
                 className={cn(
                     'h-full w-full object-cover transition-opacity duration-200',
-                    !ready && 'opacity-0',
                     className,
                 )}
                 onEnded={() => setIsPlaying(false)}
-                onLoadedData={markReady}
-                onError={markReady}
-                controlsList="nodownload"
-                playsInline
+                onLoadedData={() => setPosterReady(true)}
             />
 
-            {ready && (
+            {posterReady && (
                 <button
                     onClick={togglePlay}
                     aria-label={isPlaying ? 'Parar' : 'Reproduzir'}
@@ -114,7 +124,7 @@ export function VideoThumb({
                 </button>
             )}
 
-            {ready && showFullscreen && (
+            {posterReady && showFullscreen && (
                 <button
                     onClick={handleFullscreen}
                     title="Ver em tela cheia"

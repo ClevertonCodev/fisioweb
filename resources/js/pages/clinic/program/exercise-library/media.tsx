@@ -10,29 +10,20 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
-import {
-    useEffect,
-    useRef,
-    useState,
-    type MouseEvent,
-    type ReactNode,
-} from 'react';
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { programDraftFromExercise } from '@/application/clinic/program-from-exercise';
+import { useRefreshExerciseMedia } from '@/application/clinic/use-exercises';
 import { DsBadge, DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import { useProtectedPlayback } from '@/components/protected-media/use-protected-playback';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
 
 import { DIFFICULTY, type LibraryFilters } from './shared';
 
 let current: HTMLVideoElement | null = null;
-
-function playOnly(video: HTMLVideoElement) {
-    if (current && current !== video) current.pause();
-    current = video;
-    void video.play();
-}
 
 export function CardVideo({
     exercise,
@@ -42,18 +33,22 @@ export function CardVideo({
     topRight,
     bottomLeft,
 }: {
-    exercise: Pick<Exercise, 'title' | 'videoUrl' | 'thumbnailUrl'>;
+    exercise: Pick<Exercise, 'id' | 'title' | 'videoUrl' | 'thumbnailUrl'>;
     onOpen?: () => void;
     className?: string;
     topLeft?: ReactNode;
     topRight?: ReactNode;
     bottomLeft?: ReactNode;
 }) {
-    const ref = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
+    const refreshMedia = useRefreshExerciseMedia(exercise.id);
+    const playback = useProtectedPlayback({
+        url: exercise.videoUrl,
+        onRefresh: async () => (await refreshMedia())?.videoUrl ?? null,
+    });
 
     useEffect(() => {
-        const video = ref.current;
+        const video = playback.ref.current;
         const onFullscreen = () => {
             if (video) video.controls = document.fullscreenElement === video;
         };
@@ -62,22 +57,25 @@ export function CardVideo({
             document.removeEventListener('fullscreenchange', onFullscreen);
             if (current === video) current = null;
         };
-    }, []);
+    }, [playback.ref]);
 
     const toggle = (ev: MouseEvent) => {
         ev.stopPropagation();
-        const video = ref.current;
+        const video = playback.ref.current;
         if (!video) return;
-        if (video.paused) playOnly(video);
-        else video.pause();
+        if (video.paused || !playback.active) {
+            if (current && current !== video) current.pause();
+            current = video;
+            void playback.play();
+        } else video.pause();
     };
 
     const fullscreen = (ev: MouseEvent) => {
         ev.stopPropagation();
-        const video = ref.current;
+        const video = playback.ref.current;
         if (!video) return;
         void video.requestFullscreen?.();
-        if (video.paused) playOnly(video);
+        if (video.paused) void playback.play();
     };
 
     return (
@@ -89,12 +87,19 @@ export function CardVideo({
                 className,
             )}
         >
+            {exercise.thumbnailUrl && !playback.active && (
+                <ProtectedImage
+                    src={exercise.thumbnailUrl}
+                    alt=""
+                    onRefresh={async () =>
+                        (await refreshMedia())?.thumbnailUrl ?? null
+                    }
+                    className="absolute inset-0 size-full object-cover"
+                />
+            )}
             <video
-                ref={ref}
-                src={exercise.videoUrl || undefined}
-                poster={exercise.thumbnailUrl || undefined}
+                {...playback.videoProps}
                 preload="none"
-                playsInline
                 onPlay={() => setPlaying(true)}
                 onPause={() => setPlaying(false)}
                 onEnded={() => setPlaying(false)}
@@ -232,23 +237,27 @@ export function ModalPlayer({
     exercise: Exercise;
     className?: string;
 }) {
-    const ref = useRef<HTMLVideoElement>(null);
     const [playing, setPlaying] = useState(false);
     const [time, setTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [muted, setMuted] = useState(false);
+    const refreshMedia = useRefreshExerciseMedia(exercise.id);
+    const playback = useProtectedPlayback({
+        url: exercise.videoUrl,
+        onRefresh: async () => (await refreshMedia())?.videoUrl ?? null,
+    });
 
     const toggle = () => {
-        const v = ref.current;
+        const v = playback.ref.current;
         if (!v) return;
-        if (v.paused) playOnly(v);
-        else v.pause();
+        if (v.paused || !playback.active) {
+            if (current && current !== v) current.pause();
+            current = v;
+            void playback.play();
+        } else v.pause();
     };
     const skip = (s: number) => {
-        const v = ref.current;
-        if (v) {
-            v.currentTime = Math.max(0, Math.min(duration, v.currentTime + s));
-        }
+        playback.seek(Math.max(0, Math.min(duration, time + s)));
     };
 
     return (
@@ -258,12 +267,19 @@ export function ModalPlayer({
                 className,
             )}
         >
+            {exercise.thumbnailUrl && !playback.active && (
+                <ProtectedImage
+                    src={exercise.thumbnailUrl}
+                    alt=""
+                    onRefresh={async () =>
+                        (await refreshMedia())?.thumbnailUrl ?? null
+                    }
+                    className="absolute inset-0 size-full object-cover"
+                />
+            )}
             <video
-                ref={ref}
+                {...playback.videoProps}
                 key={exercise.id}
-                src={exercise.videoUrl || undefined}
-                poster={exercise.thumbnailUrl || undefined}
-                playsInline
                 onClick={toggle}
                 onPlay={() => setPlaying(true)}
                 onPause={() => setPlaying(false)}
@@ -296,11 +312,7 @@ export function ModalPlayer({
                     max={duration || 0}
                     step={0.1}
                     value={time}
-                    onChange={(e) => {
-                        if (ref.current) {
-                            ref.current.currentTime = Number(e.target.value);
-                        }
-                    }}
+                    onChange={(e) => playback.seek(Number(e.target.value))}
                     className="mb-2 h-1 w-full cursor-pointer accent-white"
                 />
                 <div className="flex items-center justify-between">
@@ -336,12 +348,7 @@ export function ModalPlayer({
                             type="button"
                             aria-label={muted ? 'Ligar som' : 'Tirar som'}
                             className={controlBtn}
-                            onClick={() => {
-                                const v = ref.current;
-                                if (!v) return;
-                                v.muted = !v.muted;
-                                setMuted(v.muted);
-                            }}
+                            onClick={() => setMuted(playback.toggleMuted())}
                         >
                             {muted ? <VolumeX /> : <Volume2 />}
                         </button>
@@ -353,7 +360,9 @@ export function ModalPlayer({
                         type="button"
                         aria-label="Tela cheia"
                         className={controlBtn}
-                        onClick={() => void ref.current?.requestFullscreen?.()}
+                        onClick={() =>
+                            void playback.ref.current?.requestFullscreen?.()
+                        }
                     >
                         <Maximize />
                     </button>

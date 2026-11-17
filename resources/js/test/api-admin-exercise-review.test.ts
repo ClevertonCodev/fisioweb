@@ -96,4 +96,37 @@ describe('apiAdminExerciseReviewRepository', () => {
             params: { review_status: 'pending', per_page: 100, page: 2 },
         });
     });
+
+    it('guarda video_url quando a API não manda cdn_url', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: {
+                    data: [
+                        {
+                            id: 7,
+                            name: 'Ponte',
+                            videos: [
+                                {
+                                    video_url: 'https://signed.example/video',
+                                    thumbnail_url:
+                                        'https://signed.example/thumb',
+                                    status: 'completed',
+                                },
+                            ],
+                        },
+                    ],
+                    current_page: 1,
+                    last_page: 1,
+                },
+            },
+        });
+
+        const pending = await apiAdminExerciseReviewRepository.listPending();
+        const video = pending[0].videos[0];
+
+        expect(video.video_url).toBe('https://signed.example/video');
+        expect(video.thumbnail_url).toBe('https://signed.example/thumb');
+        expect(video.cdn_url).toBeUndefined();
+        expect(video.url).toBeUndefined();
+    });
 });

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import {
     completePatientProgram,
@@ -24,6 +25,27 @@ export function usePatientProgram(publicToken: string) {
         queryFn: () => getPatientProgramByPublicToken(publicToken),
         enabled: !!publicToken,
     });
+}
+
+export function useRefreshPatientExercise(publicToken: string) {
+    const queryClient = useQueryClient();
+
+    return useCallback(
+        async (exerciseId: string) => {
+            const program = await queryClient.fetchQuery({
+                queryKey: ['patient', 'program', publicToken],
+                queryFn: () => getPatientProgramByPublicToken(publicToken),
+                staleTime: 0,
+            });
+
+            return (
+                program?.groups
+                    .flatMap((group) => group.exercises)
+                    .find((exercise) => exercise.id === exerciseId) ?? null
+            );
+        },
+        [publicToken, queryClient],
+    );
 }
 
 export function useRegisterProgramView() {

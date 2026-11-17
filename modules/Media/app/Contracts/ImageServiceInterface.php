@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 interface ImageServiceInterface
 {
     /**
-     * @return array{filename: string, original_filename: string, path: string, url: string, cdn_url: string, mime_type: string, size: int}
+     * @return array{filename: string, original_filename: string, path: string, mime_type: string, size: int}
      */
     public function uploadImage(
         UploadedFile $file,

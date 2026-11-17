@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FinancialTransaction } from '@/domain/clinic/finance';
@@ -123,6 +124,10 @@ function validation(errors: Record<string, string[]>) {
     });
 }
 
+function appointmentWhen(startsAt: string): string {
+    return format(new Date(startsAt), 'dd/MM/yyyy HH:mm');
+}
+
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 15, 12, 0));
@@ -221,7 +226,9 @@ describe('Paciente e atendimento no lançamento de entrada', () => {
         );
         await user.click(
             await screen.findByRole('option', {
-                name: /15\/10\/2026 09:00 · Sessão de RPG/,
+                name: new RegExp(
+                    `${appointmentWhen('2026-10-15T09:00:00-03:00')} · Sessão de RPG`,
+                ),
             }),
         );
 
@@ -280,7 +287,7 @@ describe('Paciente e atendimento no lançamento de entrada', () => {
             await screen.findByRole('button', {
                 name: /^Atendimento na agenda/,
             }),
-        ).toHaveTextContent(/15\/10\/2026 09:00/);
+        ).toHaveTextContent(appointmentWhen('2026-10-15T09:00:00-03:00'));
 
         await user.click(
             screen.getByRole('button', { name: 'Tirar paciente' }),

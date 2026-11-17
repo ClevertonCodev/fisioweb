@@ -116,7 +116,6 @@ class ApprovedExerciseMediaProposalTest extends TestCase
             'clinic_id'      => $this->clinicA->id,
             'status'         => Video::STATUS_PENDING,
             'thumbnail_path' => null,
-            'thumbnail_url'  => null,
             'metadata'       => [],
         ]);
         $this->submitAndApprove($video);
@@ -214,18 +213,19 @@ class ApprovedExerciseMediaProposalTest extends TestCase
                 'filename' => 'capa.jpg', 'mime_type' => 'image/jpeg', 'size' => 1024,
             ])
             ->json('data.path');
-        $this->actingAs($this->adminA, 'clinic')
+        $confirmed = $this->actingAs($this->adminA, 'clinic')
             ->postJson("/api/clinic/media/videos/{$video->id}/confirm-upload", ['thumbnail_path' => $thumbnail])
             ->assertOk()
-            ->assertJsonPath('data.thumbnail_url', 'https://cdn.invalid/' . $thumbnail)
             ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedVideoUrl($confirmed->json('data.thumbnail_url'), $thumbnail);
 
-        $path = $this->requestReplacePath($video);
-        $this->actingAs($this->adminA, 'clinic')
+        $path   = $this->requestReplacePath($video);
+        $synced = $this->actingAs($this->adminA, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", ['reference_image_paths' => [$path]])
             ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $path)
             ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedImageUrl($synced->json('data.metadata.reference_images.0.url'), $path);
+        $this->assertArrayNotHasKey('file_path', $synced->json('data.metadata.reference_images.0'));
 
         $video = $video->fresh();
         $this->assertSame($thumbnail, $video->thumbnail_path);

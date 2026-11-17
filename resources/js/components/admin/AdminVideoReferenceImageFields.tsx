@@ -2,6 +2,8 @@ import { ImagePlus, Upload, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ImageCropModal } from '@/components/ImageCropModal';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
@@ -18,6 +20,7 @@ type SlotProps = {
     state: ReferenceImageState;
     onChange: (state: ReferenceImageState) => void;
     onRequestCrop: (file: File) => void;
+    onRefresh?: ProtectedRefresh;
 };
 
 /**
@@ -28,6 +31,7 @@ function ReferenceImageSlot({
     state,
     onChange,
     onRequestCrop,
+    onRefresh,
 }: SlotProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
@@ -71,9 +75,10 @@ function ReferenceImageSlot({
                 onClick={() => inputRef.current?.click()}
             >
                 {currentUrl && !state?.file && (
-                    <img
+                    <ProtectedImage
                         src={currentUrl}
                         alt="Referência atual"
+                        onRefresh={onRefresh}
                         className="mb-2 max-h-20 rounded object-cover"
                     />
                 )}
@@ -128,6 +133,8 @@ type AdminVideoReferenceImageFieldsProps = {
     referenceImage2: ReferenceImageState;
     onReferenceImage1Change: (state: ReferenceImageState) => void;
     onReferenceImage2Change: (state: ReferenceImageState) => void;
+    onRefresh1?: ProtectedRefresh;
+    onRefresh2?: ProtectedRefresh;
 };
 
 export function AdminVideoReferenceImageFields({
@@ -135,6 +142,8 @@ export function AdminVideoReferenceImageFields({
     referenceImage2,
     onReferenceImage1Change,
     onReferenceImage2Change,
+    onRefresh1,
+    onRefresh2,
 }: AdminVideoReferenceImageFieldsProps) {
     const [cropOpen, setCropOpen] = useState(false);
     const [cropFile, setCropFile] = useState<File | null>(null);
@@ -194,12 +203,14 @@ export function AdminVideoReferenceImageFields({
                 state={referenceImage1}
                 onChange={onReferenceImage1Change}
                 onRequestCrop={(file) => openCrop(1, file)}
+                onRefresh={onRefresh1}
             />
             <ReferenceImageSlot
                 label="Imagem de referência 2"
                 state={referenceImage2}
                 onChange={onReferenceImage2Change}
                 onRequestCrop={(file) => openCrop(2, file)}
+                onRefresh={onRefresh2}
             />
 
             <ImageCropModal

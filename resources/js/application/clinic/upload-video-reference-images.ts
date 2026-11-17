@@ -76,31 +76,34 @@ export async function uploadAndSyncClinicVideoReferenceImages(
         throw new Error('Máximo de 2 imagens de referência.');
     }
 
-    const paths: string[] = [];
+    const slots: ({ path: string } | { keep: number })[] = [];
 
-    for (const item of items) {
+    for (const [index, item] of items.entries()) {
         if (!item) continue;
 
         if (item instanceof File) {
-            paths.push(await uploadFile(videoId, item));
+            slots.push({ path: await uploadFile(videoId, item) });
             continue;
         }
 
         if (item.file instanceof File) {
-            paths.push(await uploadFile(videoId, item.file));
+            slots.push({ path: await uploadFile(videoId, item.file) });
             continue;
         }
 
         if (item.path) {
-            paths.push(item.path);
+            slots.push({ path: item.path });
+            continue;
         }
+
+        slots.push({ keep: index });
     }
 
-    if (paths.length === 0) {
+    if (slots.length === 0) {
         return null;
     }
 
-    return apiClinicVideosRepository.syncReferenceImages(videoId, paths);
+    return apiClinicVideosRepository.syncReferenceImageSlots(videoId, slots);
 }
 
 /** Troca a capa de um vídeo já concluído da clínica (vídeo travado vira proposta). */

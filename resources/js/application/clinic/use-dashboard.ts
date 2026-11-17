@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import type {
     DashboardScope,
@@ -25,6 +26,48 @@ export function useDashboardSummary(scope?: DashboardScope, day?: string) {
  * Taxa de ocupação de um fisioterapeuta por granularidade. `queryKey` próprio
  * para recomputar de forma isolada ao trocar filtro (FR-021/SC-006/SC-007).
  */
+export function useRefreshBirthdayPhoto(scope: DashboardScope, day: string) {
+    const queryClient = useQueryClient();
+
+    return useCallback(
+        async (patientId: string) => {
+            const summary = await queryClient.fetchQuery({
+                queryKey: ['dashboard', 'summary', scope, day],
+                queryFn: () => repository.getSummary(scope),
+                staleTime: 0,
+            });
+
+            return (
+                summary.birthdays.items.find(
+                    (item) => item.patientId === patientId,
+                )?.photoUrl ?? null
+            );
+        },
+        [day, queryClient, scope],
+    );
+}
+
+export function useRefreshAppointmentPhoto(scope: DashboardScope, day: string) {
+    const queryClient = useQueryClient();
+
+    return useCallback(
+        async (appointmentId: string) => {
+            const summary = await queryClient.fetchQuery({
+                queryKey: ['dashboard', 'summary', scope, day],
+                queryFn: () => repository.getSummary(scope),
+                staleTime: 0,
+            });
+
+            return (
+                summary.upcomingAppointments.find(
+                    (item) => item.id === appointmentId,
+                )?.patientPhotoUrl ?? null
+            );
+        },
+        [day, queryClient, scope],
+    );
+}
+
 export function useOccupancyRate(
     granularity: OccupancyGranularity,
     clinicUserId?: string,

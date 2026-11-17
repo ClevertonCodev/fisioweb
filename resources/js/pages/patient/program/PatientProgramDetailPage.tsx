@@ -23,6 +23,7 @@ import {
 } from '@/application/patient/patient-program-paths';
 import {
     usePatientProgram,
+    useRefreshPatientExercise,
     useRegisterProgramView,
 } from '@/application/patient/use-patient-program';
 import {
@@ -150,6 +151,7 @@ export default function PatientProgramDetailPage() {
         isLoading,
         isError,
     } = usePatientProgram(publicToken);
+    const refreshExercise = useRefreshPatientExercise(publicToken);
     const { mutate: registerView } = useRegisterProgramView();
 
     const clinicSlug = paramSlug || program?.clinicSlug || '';
@@ -499,6 +501,20 @@ export default function PatientProgramDetailPage() {
                                                     thumbnailUrl={
                                                         exercise.thumbnailUrl
                                                     }
+                                                    onRefresh={async () =>
+                                                        (
+                                                            await refreshExercise(
+                                                                exercise.id,
+                                                            )
+                                                        )?.videoUrl ?? null
+                                                    }
+                                                    onRefreshPoster={async () =>
+                                                        (
+                                                            await refreshExercise(
+                                                                exercise.id,
+                                                            )
+                                                        )?.thumbnailUrl ?? null
+                                                    }
                                                 />
                                             </div>
 
@@ -656,6 +672,14 @@ export default function PatientProgramDetailPage() {
                                 size="lg"
                                 videoUrl={previewExercise.videoUrl}
                                 thumbnailUrl={previewExercise.thumbnailUrl}
+                                onRefresh={async () =>
+                                    (await refreshExercise(previewExercise.id))
+                                        ?.videoUrl ?? null
+                                }
+                                onRefreshPoster={async () =>
+                                    (await refreshExercise(previewExercise.id))
+                                        ?.thumbnailUrl ?? null
+                                }
                             />
                         </div>
 

@@ -178,8 +178,8 @@ describe('ExerciseLibraryPage', () => {
         expect(await screen.findByText('Bird Dog')).toBeInTheDocument();
         expect(screen.getByText('Enviar exercício')).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: 'Criar programa' }),
-        ).toBeInTheDocument();
+            screen.getAllByRole('button', { name: 'Criar programa' }),
+        ).toHaveLength(2);
     });
 
     it('na URL do menu não mostra as abas de Programas', async () => {

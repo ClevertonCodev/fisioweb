@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
 import { DsBadge, dsCn } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ClinicRole } from '@/domain/auth/session';
 
@@ -48,7 +49,7 @@ interface AccountMenuItem {
 export function ClinicAccountMenu() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, logout, reloadUser } = useAuth();
     const [open, setOpen] = useState(false);
 
     if (!user) {
@@ -160,9 +161,10 @@ export function ClinicAccountMenu() {
                 >
                     <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-ds-full bg-ds-primary-80 text-ds-body-compact font-semibold text-ds-white">
                         {user.photoUrl ? (
-                            <img
+                            <ProtectedImage
                                 src={user.photoUrl}
                                 alt={user.name}
+                                onRefresh={reloadUser}
                                 className="size-full object-cover"
                             />
                         ) : (

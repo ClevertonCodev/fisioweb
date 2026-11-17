@@ -20,8 +20,8 @@ class ExerciseReferenceImageSyncTest extends TestCase
     use RefreshDatabase;
 
     private const NEW_PATHS = [
-        'thumbnails/videos/nova-1.jpeg',
-        'thumbnails/videos/nova-2.png',
+        'covers/videos/nova-1.jpeg',
+        'covers/videos/nova-2.png',
     ];
 
     private PhysioArea $area;
@@ -160,7 +160,6 @@ class ExerciseReferenceImageSyncTest extends TestCase
             changedByOperator: false,
             images: [[
                 'file_path'         => self::NEW_PATHS[0],
-                'cdn_url'           => 'https://cdn.example.com/' . self::NEW_PATHS[0],
                 'original_filename' => 'nova-1.jpeg',
                 'mime_type'         => 'image/jpeg',
                 'size'              => 0,
@@ -180,7 +179,6 @@ class ExerciseReferenceImageSyncTest extends TestCase
             changedByOperator: false,
             images: array_map(fn (string $path) => [
                 'file_path'         => $path,
-                'cdn_url'           => 'https://cdn.example.com/' . $path,
                 'original_filename' => basename($path),
                 'mime_type'         => 'image/jpeg',
                 'size'              => 0,
@@ -213,7 +211,6 @@ class ExerciseReferenceImageSyncTest extends TestCase
             'exercise_id'       => $exercise->id,
             'type'              => ExerciseMedia::TYPE_IMAGE,
             'file_path'         => 'aprovada.jpg',
-            'cdn_url'           => 'https://cdn.example.com/aprovada.jpg',
             'original_filename' => 'aprovada.jpg',
             'mime_type'         => 'image/jpeg',
             'size'              => 1,

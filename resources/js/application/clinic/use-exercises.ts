@@ -5,6 +5,7 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import { apiClinicExercisesRepository } from '@/infrastructure/repositories';
 
@@ -46,6 +47,20 @@ export function useExercise(id: string | undefined) {
                 : Promise.resolve(null),
         enabled: !!id,
     });
+}
+
+export function useRefreshExerciseMedia(exerciseId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useCallback(async () => {
+        if (!exerciseId) return null;
+
+        return queryClient.fetchQuery({
+            queryKey: ['exercises', exerciseId],
+            queryFn: () => apiClinicExercisesRepository.getById(exerciseId),
+            staleTime: 0,
+        });
+    }, [exerciseId, queryClient]);
 }
 
 export function useExerciseFilterCategories() {

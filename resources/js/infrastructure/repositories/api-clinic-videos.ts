@@ -79,10 +79,20 @@ export const apiClinicVideosRepository = {
         videoId: number,
         paths: string[],
     ): Promise<MediaChangeResult> {
+        return this.syncReferenceImageSlots(
+            videoId,
+            paths.map((path) => ({ path })),
+        );
+    },
+
+    async syncReferenceImageSlots(
+        videoId: number,
+        slots: ({ path: string } | { keep: number })[],
+    ): Promise<MediaChangeResult> {
         const { data } = await apiClient.put<{
             data?: { proposal_pending?: boolean };
         }>(`${BASE}/${videoId}/reference-images`, {
-            reference_image_paths: paths,
+            reference_image_slots: slots,
         });
         return { proposalPending: data?.data?.proposal_pending === true };
     },

@@ -30,7 +30,6 @@ class ClinicUserSeeder extends Seeder
         }
 
         $devPassword = '12345678';
-        $cdn         = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
 
         $extras = [
             [
@@ -62,14 +61,14 @@ class ClinicUserSeeder extends Seeder
             $user = ClinicUser::withTrashed()->updateOrCreate(
                 ['email' => $data['email']],
                 [
-                    'clinic_id' => $clinic->id,
-                    'name'      => $data['name'],
-                    'password'  => $devPassword,
-                    'document'  => $data['document'],
-                    'role'      => $data['role'],
-                    'mestre'    => $data['mestre'],
-                    'status'    => ClinicUser::STATUS_ACTIVE,
-                    'photo_url' => $cdn . '/' . self::PHOTO,
+                    'clinic_id'  => $clinic->id,
+                    'name'       => $data['name'],
+                    'password'   => $devPassword,
+                    'document'   => $data['document'],
+                    'role'       => $data['role'],
+                    'mestre'     => $data['mestre'],
+                    'status'     => ClinicUser::STATUS_ACTIVE,
+                    'photo_path' => self::PHOTO,
                     // O backfill de email_verified_at roda antes do seed.
                     'email_verified_at' => now(),
                 ],
@@ -82,6 +81,6 @@ class ClinicUserSeeder extends Seeder
         }
 
         // Garante a foto do R2 também nos usuários criados fora deste seeder (ex.: admins do DatabaseSeeder)
-        ClinicUser::query()->update(['photo_url' => $cdn . '/' . self::PHOTO]);
+        ClinicUser::query()->update(['photo_path' => self::PHOTO]);
     }
 }

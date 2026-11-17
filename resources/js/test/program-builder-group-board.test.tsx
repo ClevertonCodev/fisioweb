@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
@@ -68,7 +69,11 @@ describe('GroupBoard do assistente (protótipo)', () => {
     });
 
     it('exercício sem dose mostra só "Sem dose", sem agenda', () => {
-        render(<Board />);
+        render(
+            <QueryClientProvider client={new QueryClient()}>
+                <Board />
+            </QueryClientProvider>,
+        );
 
         const row = rowOf('Ponte Glútea');
         expect(within(row).getByText(/Sem dose/)).toBeInTheDocument();
@@ -76,7 +81,11 @@ describe('GroupBoard do assistente (protótipo)', () => {
     });
 
     it('exercício com dose e sem dias marcados mostra "Todos os dias · Manhã"', () => {
-        render(<Board />);
+        render(
+            <QueryClientProvider client={new QueryClient()}>
+                <Board />
+            </QueryClientProvider>,
+        );
 
         expect(
             within(rowOf('Bird Dog')).getByText('Todos os dias · Manhã'),

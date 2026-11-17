@@ -31,8 +31,29 @@ class PatientProgramDetailTest extends TestCase
             ->assertJsonPath('data.name', 'Programa de Reabilitação')
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.current_execution', null)
-            ->assertJsonPath('data.groups.0.exercises.0.id', $planExercise->id)
-            ->assertJsonPath('data.groups.0.exercises.0.video_url', 'http://cdn.example.com/video.mp4');
+            ->assertJsonPath('data.groups.0.exercises.0.id', $planExercise->id);
+        $this->assertSignedVideoUrl($response->json('data.groups.0.exercises.0.video_url'), 'videos/programa.mp4');
+        $this->assertSignedVideoUrl($response->json('data.groups.0.exercises.0.thumbnail_url'), 'covers/videos/programa.jpg');
+    }
+
+    public function test_public_detail_does_not_include_another_programs_video(): void
+    {
+        $patient                                           = $this->createPatient();
+        ['plan' => $first]                                 = $this->createActiveProgram($patient);
+        ['plan' => $second, 'exercise' => $secondExercise] = $this->createActiveProgram($patient);
+        $secondExercise->videos()->first()->update([
+            'path' => 'videos/outro-programa.mp4',
+        ]);
+
+        $response = $this->getJson("/api/patient/programs/{$first->public_token}");
+
+        $response->assertOk();
+        $this->assertSignedVideoUrl(
+            $response->json('data.groups.0.exercises.0.video_url'),
+            'videos/programa.mp4',
+        );
+        $this->assertStringNotContainsString('videos/outro-programa.mp4', $response->getContent());
+        $this->assertStringNotContainsString($second->public_token, $response->getContent());
     }
 
     public function test_draft_program_returns_404(): void

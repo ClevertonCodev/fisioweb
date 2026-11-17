@@ -279,6 +279,26 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
         expect(ex.videoUrl).toBe('storage-url');
     });
 
+    it('usa video_url quando a API não manda cdn_url nem url', async () => {
+        mockGet.mockResolvedValueOnce(
+            makePaginatorResponse([
+                makeApiExercise({
+                    videos: [
+                        {
+                            id: 1,
+                            video_url: 'https://signed.example/video',
+                            thumbnail_url: 'https://signed.example/thumb',
+                            status: 'completed',
+                        },
+                    ],
+                }),
+            ]),
+        );
+        const [ex] = await apiClinicExercisesRepository.list();
+        expect(ex.videoUrl).toBe('https://signed.example/video');
+        expect(ex.thumbnailUrl).toBe('https://signed.example/thumb');
+    });
+
     it('retorna strings vazias e duration 0 quando não há vídeos', async () => {
         mockGet.mockResolvedValueOnce(
             makePaginatorResponse([makeApiExercise({ videos: [] })]),
@@ -303,7 +323,7 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
                             metadata: {
                                 reference_images: [
                                     {
-                                        file_path: 'thumbnails/videos/f1.jpg',
+                                        file_path: 'covers/videos/f1.jpg',
                                         cdn_url: 'https://cdn.test/f1.jpg',
                                     },
                                 ],
@@ -319,7 +339,7 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
             videoId: 3,
             referenceImages: [
                 {
-                    path: 'thumbnails/videos/f1.jpg',
+                    path: 'covers/videos/f1.jpg',
                     url: 'https://cdn.test/f1.jpg',
                 },
             ],

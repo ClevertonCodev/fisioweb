@@ -26,6 +26,7 @@ vi.mock('@/application/patient/use-patient-program', () => ({
     usePatientPrograms: () => programsState,
     usePatientProgram: () => programState,
     useRegisterProgramView: () => ({ mutate: vi.fn() }),
+    useRefreshPatientExercise: () => vi.fn(async () => null),
 }));
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -279,7 +280,9 @@ describe('detalhe do exercício do paciente', () => {
         expect(screen.getByText('Manter coluna reta')).toBeInTheDocument();
         expect(screen.queryByText(/Descrição:/)).not.toBeInTheDocument();
         const frame = screen.getByTitle('Vídeo: Agachamento');
-        expect(frame).toHaveAttribute('allowfullscreen');
+        expect(frame.tagName).toBe('VIDEO');
+        expect(frame).toHaveAttribute('controlslist', 'nodownload');
+        expect(frame).not.toHaveAttribute('src');
     });
 
     it('carregando, diz que o exercício está vindo', () => {

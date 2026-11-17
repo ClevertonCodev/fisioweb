@@ -47,13 +47,23 @@ class ClinicUserIsolationTest extends TestCase
 
     public function test_index_lists_users_of_own_clinic(): void
     {
-        $ids = $this->collectIds($this->actingAs($this->adminA, 'clinic')
+        $this->physioA->forceFill([
+            'photo_path' => 'clinic-users/photos/a.jpg',
+        ])->save();
+
+        $data = $this->actingAs($this->adminA, 'clinic')
             ->getJson('/api/clinic/users')
             ->assertOk()
-            ->json('data'));
+            ->json('data');
+        $items = is_array($data) && array_key_exists('data', $data) ? $data['data'] : $data;
+        $ids   = $this->collectIds($data);
 
         $this->assertContains($this->adminA->id, $ids);
         $this->assertContains($this->physioA->id, $ids);
+        $this->assertArrayNotHasKey(
+            'photo_path',
+            collect($items)->firstWhere('id', $this->physioA->id),
+        );
     }
 
     public function test_store_creates_user_in_own_clinic(): void
@@ -100,23 +110,31 @@ class ClinicUserIsolationTest extends TestCase
     public function test_photo_of_own_clinic_user_can_be_uploaded_and_removed(): void
     {
         $this->mock(FileServiceInterface::class, function ($mock) {
-            $mock->shouldReceive('uploadFile')->once()->andReturn(['cdn_url' => 'https://cdn.example.com/nova.jpg']);
+            $mock->shouldReceive('uploadFile')->once()->andReturn([
+                'path'              => 'clinic-users/photos/nova.jpg',
+                'filename'          => 'nova.jpg',
+                'original_filename' => 'foto.jpg',
+                'mime_type'         => 'image/jpeg',
+                'size'              => 100,
+            ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->with('clinic-users/photos/nova.jpg')->andReturnTrue();
         });
 
-        $this->actingAs($this->adminA, 'clinic')
+        $uploaded = $this->actingAs($this->adminA, 'clinic')
             ->post("/api/clinic/users/{$this->physioA->id}/photo", ['photo' => UploadedFile::fake()->image('foto.jpg')], ['Accept' => 'application/json'])
             ->assertOk();
-        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_url' => 'https://cdn.example.com/nova.jpg']);
+        $this->assertSignedImageUrl($uploaded->json('data.photo_url'), 'clinic-users/photos/nova.jpg');
+        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_path' => 'clinic-users/photos/nova.jpg']);
 
         $this->actingAs($this->adminA, 'clinic')
             ->deleteJson("/api/clinic/users/{$this->physioA->id}/photo")
             ->assertOk();
-        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_url' => null]);
+        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_path' => null]);
     }
 
     public function test_photo_of_another_clinic_user_cannot_be_uploaded_or_removed(): void
     {
-        $this->physioA->forceFill(['photo_url' => 'https://cdn.example.com/a.jpg'])->save();
+        $this->physioA->forceFill(['photo_path' => 'clinic-users/photos/a.jpg'])->save();
         $this->mock(FileServiceInterface::class, function ($mock) {
             $mock->shouldReceive('uploadFile')->never();
         });
@@ -128,7 +146,7 @@ class ClinicUserIsolationTest extends TestCase
             ->deleteJson("/api/clinic/users/{$this->physioA->id}/photo")
             ->assertNotFound();
 
-        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_url' => 'https://cdn.example.com/a.jpg']);
+        $this->assertDatabaseHas('clinic_users', ['id' => $this->physioA->id, 'photo_path' => 'clinic-users/photos/a.jpg']);
     }
 
     public function test_professionals_does_not_list_users_of_another_clinic(): void

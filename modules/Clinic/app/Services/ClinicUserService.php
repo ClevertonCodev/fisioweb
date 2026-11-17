@@ -27,7 +27,7 @@ class ClinicUserService implements ClinicUserServiceInterface
         return ClinicUser::where('clinic_id', $clinicId)
             ->orderBy('name')
             ->get([
-                'id', 'name', 'email', 'role', 'mestre', 'status', 'document', 'photo_url',
+                'id', 'name', 'email', 'role', 'mestre', 'status', 'document', 'photo_path',
                 'two_factor_confirmed_at', 'google_connected_at',
             ]);
     }

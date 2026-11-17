@@ -266,10 +266,8 @@ class ExerciseSeeder extends Seeder
 
     private function seedReferenceImages(Exercise $exercise): void
     {
-        $cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
-
         foreach (self::REFERENCE_IMAGES as $index => $image) {
-            $path = 'thumbnails/videos/' . $image['file'];
+            $path = 'covers/videos/' . $image['file'];
 
             ExerciseMedia::updateOrCreate(
                 [
@@ -279,7 +277,6 @@ class ExerciseSeeder extends Seeder
                 ],
                 [
                     'file_path'         => $path,
-                    'cdn_url'           => $cdn . '/' . $path,
                     'original_filename' => $image['filename'],
                     'mime_type'         => $image['mime'],
                     'size'              => 102400,

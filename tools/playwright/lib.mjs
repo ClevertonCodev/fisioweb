@@ -13,11 +13,27 @@ export const root = path.resolve(
 );
 export const outDir = path.join(root, 'temporary-screenshots');
 
-const credentialsFile = path.join(root, 'tools/screenshot/credentials.json');
+const credentialsFile = path.join(root, 'tools/playwright/credentials.json');
 const localPlaywright = path.join(
     root,
-    'tools/screenshot/node_modules/playwright',
+    'tools/playwright/node_modules/playwright',
 );
+// A pasta se chamava tools/screenshot; credentials.json e node_modules ficam fora do git e podem ter ficado lá.
+const oldCredentialsFile = path.join(
+    root,
+    'tools/screenshot/credentials.json',
+);
+const oldPlaywright = path.join(root, 'tools/screenshot/node_modules/playwright');
+
+function credentialsPath() {
+    if (fs.existsSync(credentialsFile) || !fs.existsSync(oldCredentialsFile)) {
+        return credentialsFile;
+    }
+    console.error(
+        'Aviso: usando tools/screenshot/credentials.json. Mova para tools/playwright/credentials.json.',
+    );
+    return oldCredentialsFile;
+}
 
 // Áreas do SPA: o guard sai do caminho da URL. O token fica em localStorage
 // auth_token_<guard> (resources/js/infrastructure/api/client.ts).
@@ -28,7 +44,7 @@ const AREAS = [
 
 export function loadPlaywright() {
     const require = createRequire(import.meta.url);
-    for (const candidate of [localPlaywright, 'playwright']) {
+    for (const candidate of [localPlaywright, oldPlaywright, 'playwright']) {
         try {
             return require(candidate);
         } catch {
@@ -36,7 +52,7 @@ export function loadPlaywright() {
         }
     }
     console.error('Playwright não encontrado. Na raiz do repo:');
-    console.error('  cd tools/screenshot && npm install');
+    console.error('  cd tools/playwright && npm install');
     process.exit(1);
 }
 
@@ -45,8 +61,9 @@ export function loadPlaywright() {
  * FISIO_LOGIN/FISIO_SENHA no ambiente têm prioridade (testar outra clínica ou outro papel).
  */
 export function loadCredentials(guard) {
-    const file = fs.existsSync(credentialsFile)
-        ? JSON.parse(fs.readFileSync(credentialsFile, 'utf8'))
+    const filePath = credentialsPath();
+    const file = fs.existsSync(filePath)
+        ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
         : {};
     const email = process.env.FISIO_LOGIN || file[guard]?.email;
     const password = process.env.FISIO_SENHA || file[guard]?.password;
@@ -89,7 +106,7 @@ export function assertHttpUrl(url, usage) {
 
 /**
  * Abre a URL e, se ela for da área da clínica ou do admin sem token daquele guard (ou o SPA
- * mandar para o login), entra com o usuário do guard em tools/screenshot/credentials.json e
+ * mandar para o login), entra com o usuário do guard em tools/playwright/credentials.json e
  * volta para a URL. Devolve true se precisou logar. Pedir a própria tela de login não loga.
  */
 export async function gotoWithLogin(page, url) {
@@ -126,7 +143,7 @@ export async function gotoWithLogin(page, url) {
     const credentials = loadCredentials(guard);
     if (!credentials) {
         console.error(
-            `Caiu no login (${guard}) sem credencial: preencha "${guard}" em tools/screenshot/credentials.json ou FISIO_LOGIN/FISIO_SENHA.`,
+            `Caiu no login (${guard}) sem credencial: preencha "${guard}" em tools/playwright/credentials.json ou FISIO_LOGIN/FISIO_SENHA.`,
         );
         process.exit(1);
     }

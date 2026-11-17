@@ -6,10 +6,17 @@ conferido no sistema rodando, por alguém que não escreveu o código, com prova
 E diz quando essa conferência basta e a entrega **não precisa** de uma pessoa
 testando na mão antes do merge (o "QA humano").
 
-Quem conduz é a skill `qa-aceite`. Quem testa é o subagente
+Quem conduz é a skill `qa-mestre`. Quem testa é o subagente
 `testador-de-aceite`, com a conversa limpa e sem ver o diff.
-A skill recomenda quantos testadores rodam em paralelo, e o operador escolhe
-de 2 a 5.
+O QA roda **por modo**, e o operador escolhe quais: `testes` (lê e roda os
+testes dos critérios), `tela` (critérios de Tela e API, com vídeo), `prototipo`
+(só a comparação com o protótipo), `quebrar` (só a passada de tentar quebrar) e
+`acesso` (papel, outra clínica e outro paciente). A skill divide os modos
+escolhidos em fatias (até 5, uma por testador, rodando em paralelo), mostra o
+plano com o tempo e o custo em tokens, e o operador escolhe quais rodar. Cada
+testador tem um teto de fluxos e de usos de ferramenta. A cada rodada, a skill
+mostra o resultado e pergunta se corrige e roda a próxima, sempre focada no que
+mudou.
 
 O QA de aceite fica **fora do ciclo e da Definição de Pronto**: só roda quando o
 desenvolvedor chama. Nenhuma outra skill sugere nem roda o QA por conta própria.
@@ -54,7 +61,7 @@ que conferir.
 
 | Tipo | Como se confere | Prova |
 |---|---|---|
-| **Tela** | fluxo no navegador com `tools/screenshot/flow.mjs --video`, com legenda por critério | trecho do vídeo (segundo) e print |
+| **Tela** | fluxo no navegador com `tools/playwright/flow.mjs --video`, com legenda por critério | trecho do vídeo (segundo) e print |
 | **API** | requisição HTTP de verdade, com token de verdade (login pelo guard certo) | requisição e resposta salvas, credencial trocada por `[removido]` |
 | **Teste automatizado** (o critério cita PHPUnit/Vitest, ou só um teste alcança o caso) | achar o teste, **ler** para confirmar que ele confere o que o critério diz, rodar e contar quantos rodaram | nome do teste e saída do comando |
 | **Processo** ("Definição de Pronto cumprida", "ADR escrito", "SUMMARY.md com a tabela") | conferir que o arquivo ou item existe | caminho do arquivo. "Definição de Pronto cumprida" fica `FORA DO QA`: quem confere é a DoD |
@@ -73,7 +80,8 @@ Critério de papel (`admin`, `physiotherapist`, `secretary`) se confere com um
 usuário de verdade daquele papel, nunca com o administrador. No ambiente local,
 a skill e o testador criam quantos usuários `QA ...` precisarem, nos três
 guards: operador do admin, clínica (e usuários dela em qualquer papel) e
-paciente. Faltar login não justifica NÃO VERIFICÁVEL.
+paciente, com o script `tools/playwright/qa-mestre/usuarios.php`. Faltar login
+não justifica NÃO VERIFICÁVEL.
 
 ## 3. Veredito por critério
 
@@ -84,16 +92,60 @@ Cada critério sai com um veredito só:
   o trecho do vídeo ou a saída.
 - **NÃO VERIFICÁVEL**: não deu para conferir aqui. Vai junto o motivo: precisa de
   WhatsApp, e-mail ou Google Agenda de verdade, de dado que não dá para montar,
-  ou o critério é ambíguo. Falta de login não é motivo: cria-se o usuário.
+  o critério é ambíguo, ou o operador pulou a fatia ("pulado pelo operador").
+  Falta de login não é motivo: cria-se o usuário.
 - **FORA DO QA**: critério de processo que outra etapa confere.
 
 "O fluxo rodou sem erro" não é PASSOU. PASSOU é ver, na tela ou na resposta, a
 coisa que o critério promete.
 
-Além dos critérios, o testador faz uma passada curta tentando quebrar cada tela
-tocada (vazio, inválido, duplo clique, celular, tema escuro nas telas v2). O que
-ele achar entra como **achado fora dos critérios**, com gravidade (Crítico,
-Major, Minor).
+No modo `quebrar`, além dos critérios, o testador passa os campos de cada tela
+tocada pelo `tools/playwright/qa-mestre/campos.mjs` (valores inválidos por tipo)
+e faz até 5 tentativas de quebrar (vazio, duplo clique, celular, recarregar,
+tema escuro nas telas v2). O que ele achar entra como **achado fora dos
+critérios**, com gravidade (Crítico, Major, Minor).
+
+### Tela nova: comparação com o protótipo
+
+Quando a entrega cria uma tela nova ou redesenha uma tela, o modo `prototipo`
+compara a tela entregue com o protótipo. O critério diz o que a tela faz; o
+protótipo diz como ela tem que ficar.
+
+O protótipo vem de um destes lugares, nesta ordem:
+
+| Origem | Como vira imagem |
+|---|---|
+| Imagem salva na pasta da feature, ou anexada à tarefa ou à issue | a própria imagem |
+| Rota com `?variant=` que ainda está no código (skill `prototype`), num build de desenvolvimento | print com `tools/playwright/screenshot.mjs`, no mesmo tamanho do print da tela |
+| Commit do protótipo citado no `decisoes.md`, no plano ou no `README.md` da feature | uma pessoa decide se sobe uma worktree nele para o print ou se manda uma imagem |
+
+Sem protótipo em nenhum desses lugares, a skill pergunta ao usuário. Se não
+existir, a comparação fica de fora e o `QA.md` diz isso.
+
+Os dois prints saem no mesmo tamanho (`screenshot.mjs --viewport-only`): por
+padrão, só o estado principal em 1280×720, no tema claro, e 375×812 se o
+protótipo tiver versão de celular. Tema escuro e outros estados entram quando o
+operador pede. O testador lê os dois e confere:
+
+- **estrutura**: seções, ordem, o que existe num e falta no outro;
+- **textos**: título, rótulos, botões, mensagens;
+- **componentes**: o mesmo `Ds*` (botão, tabela, filtro, modal) na mesma variante;
+- **estados** que o protótipo mostra: vazio, carregando, erro;
+- **visual**: cor, espaçamento, tipografia, ícone, alinhamento.
+
+Os dados não contam: o protótipo pode usar dado de mentira, e a tela, o da
+clínica de teste. Acima do protótipo vale o checklist de tela v2 da skill
+`design-system` (componentes `Ds*`, Poppins, tema escuro, largura máxima de
+1920): item quebrado é achado de DS, Major, mesmo que o protótipo mostre igual.
+
+Cada diferença vira um **achado de protótipo**, com os dois prints como prova:
+
+- **Major**: falta ou sobra seção, ação ou informação; fluxo diferente;
+  componente trocado.
+- **Minor**: cor, espaçamento, tipografia, ícone, alinhamento.
+
+Diferença feita de propósito (o protótipo ficou velho) não é bug: uma pessoa
+confirma, e o `QA.md` registra quem decidiu.
 
 ## 4. Quando dispensa o QA humano
 
@@ -102,7 +154,7 @@ A entrega **dispensa o QA humano** quando **todas** as condições valem:
 1. Todo critério está PASSOU ou FORA DO QA. Nenhum FALHOU nem NÃO VERIFICÁVEL.
 2. Os critérios vieram de uma das origens da seção 1. Os propostos pelo agente
    precisam ter sido aprovados por uma pessoa.
-3. Nenhum achado fora dos critérios é Crítico ou Major.
+3. Nenhum achado fora dos critérios nem achado de protótipo é Crítico ou Major.
 4. A Definição de Pronto passou, incluindo a revisão adversária APROVADO.
 5. A mudança **não** toca nenhuma área de risco:
    - isolamento entre clínicas: filtro por `clinic_id`, Policy, escopo de
@@ -119,8 +171,14 @@ A entrega **dispensa o QA humano** quando **todas** as condições valem:
    - plano, funcionalidade liberada por plano, finanças e comprovante;
    - integração externa: WhatsApp (Twilio), Google Agenda, R2, e-mail;
    - mensagem enviada ao paciente (WhatsApp, e-mail) ou PDF entregue a ele;
-   - tela nova ou redesenho de tela (v2): a aparência pede um olhar humano.
+   - tela nova ou redesenho de tela (v2): a aparência pede um olhar humano, que
+     recebe a comparação com o protótipo já feita.
 6. Tem até uns 8 critérios de Tela e API. Mais que isso já não é tarefa pequena.
+
+A recomendação só sai quando já rodaram os modos `testes` e `tela` (e `acesso`,
+se houver critério de papel, de outra clínica ou de outro paciente). Antes
+disso o QA é **parcial**: o `QA.md` diz quais modos rodaram e não recomenda
+nada. Um modo sozinho nunca dispensa o QA humano.
 
 Faltou uma condição: **vai para o QA humano**, com o `QA.md` dizendo qual
 condição falhou. Com risco, quem decide é sempre uma pessoa, por menor que seja
@@ -138,6 +196,8 @@ qa/<alvo>/
 ├── roteiros/           um roteiro por tela ou fluxo, fora da pasta de saída
 ├── <fluxo>/            saída do flow.mjs: video.webm, storyboard.png, report.md, prints
 ├── api/C<n>.txt        requisição e resposta, credencial trocada por [removido]
+├── prototipo/          tela nova: o protótipo e o print da tela, por tela e tamanho
+├── campos-<tela>.json  modo quebrar: o resultado do campos.mjs
 ├── QA-<fatia>.md       o relatório de cada testador, quando o QA é dividido em fatias
 ├── RELATO.md           relato da rodada (tempo, fatias, o que atrapalhou), quando pedido
 └── QA.md               a tabela de vereditos e a recomendação: o arquivo que as pessoas leem

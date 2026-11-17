@@ -214,7 +214,7 @@ que a sua mudança nunca produziria):
    para poder testar o isolamento.
 2. **Tela:** abra o fluxo alterado num navegador de verdade, sempre no Chromium
    headless do Playwright (sem janela na tela do usuário), seguindo a skill
-   `qa-navegador`: o `tools/screenshot/flow.mjs` com
+   `qa-navegador`: o `tools/playwright/flow.mjs` com
    `--out .ai-workbench/<feature>/evidence/<tarefa>/frontend/<fluxo>` grava o
    `report.md` e os prints do fluxo, e o MCP `playwright` do `.mcp.json` serve
    para explorar a tela antes. Nunca use o Chrome do usuário (Claude in Chrome,

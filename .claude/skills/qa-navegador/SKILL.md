@@ -1,6 +1,6 @@
 ---
 name: qa-navegador
-description: Faz QA de telas do fisioweb num Chromium headless (sem abrir janela na tela do usuário) com as ferramentas de tools/screenshot/ (screenshot.mjs para print, flow.mjs para rodar um fluxo caçando erro de console, rede, Laravel e texto quebrado, frames.mjs para assistir um vídeo como storyboard) e grava vídeo com legenda quando há bug para mostrar a alguém. Use quando pedirem para testar uma tela, caçar bug, reproduzir um bug relatado, gravar o vídeo de um bug, assistir um vídeo de bug, no smoke test de tela da Definição de Pronto, ou quando o harness (.ai-workbench) achar um bug que outra pessoa precisa ver.
+description: Faz QA de telas do fisioweb num Chromium headless (sem abrir janela na tela do usuário) com as ferramentas de tools/playwright/ (screenshot.mjs para print, flow.mjs para rodar um fluxo caçando erro de console, rede, Laravel e texto quebrado, frames.mjs para assistir um vídeo como storyboard) e grava vídeo com legenda quando há bug para mostrar a alguém. Use quando pedirem para testar uma tela, caçar bug, reproduzir um bug relatado, gravar o vídeo de um bug, assistir um vídeo de bug, no smoke test de tela da Definição de Pronto, ou quando o harness (.ai-workbench) achar um bug que outra pessoa precisa ver.
 ---
 
 # QA no navegador
@@ -17,15 +17,15 @@ DevTools MCP ficam bloqueados no `.claude/settings.json`.
 **Vídeo só quando há bug.** Uma rodada de QA comum não grava vídeo: gera o
 `report.md` e os prints. Achou um bug que alguém precisa ver? Aí você grava o
 vídeo **com legenda** (seção 5). A exceção é o QA de aceite (skill
-`qa-aceite`): lá o vídeo é a prova de que cada critério passou, e grava sempre.
+`qa-mestre`): lá o vídeo é a prova de que cada critério passou, e grava sempre.
 
 Três ferramentas, todas rodadas na raiz do fisioweb:
 
 | Ferramenta | Para quê | Saída |
 |---|---|---|
-| `tools/screenshot/screenshot.mjs` | Print de uma URL (comparação visual, DS) | `temporary-screenshots/screenshot-N-<rótulo>.png` |
-| `tools/screenshot/flow.mjs` | Rodar um fluxo caçando erro; com `--video`, gravar o bug | `report.md`, prints; com vídeo: `video.webm`, `storyboard.png` |
-| `tools/screenshot/frames.mjs` | "Assistir" um vídeo (`.webm`, `.mov`, `.mp4`) | `storyboard.png` + `frames/` |
+| `tools/playwright/screenshot.mjs` | Print de uma URL (comparação visual, DS) | `temporary-screenshots/screenshot-N-<rótulo>.png` |
+| `tools/playwright/flow.mjs` | Rodar um fluxo caçando erro; com `--video`, gravar o bug | `report.md`, prints; com vídeo: `video.webm`, `storyboard.png` |
+| `tools/playwright/frames.mjs` | "Assistir" um vídeo (`.webm`, `.mov`, `.mp4`) | `storyboard.png` + `frames/` |
 
 Você não assiste vídeo: você lê PNG. Por isso o `flow.mjs` e o `frames.mjs`
 transformam o vídeo num **storyboard**, uma imagem com os quadros em grade e o
@@ -42,7 +42,7 @@ segundo de cada um.
 2. **Front atualizado.** Numa worktree o front é servido compilado: depois de
    mexer no front, rode `fisio-app build` antes de testar, senão você testa o
    código velho.
-3. **Primeira vez na máquina:** `cd tools/screenshot && npm install` (instala o
+3. **Primeira vez na máquina:** `cd tools/playwright && npm install` (instala o
    Playwright e o Chromium dele) e
    `cp credentials.exemple.json credentials.json`, com um usuário por guard
    (`clinic` e `admin`). Os usuários e a senha estão no
@@ -155,7 +155,7 @@ legenda. `page` é o `Page` do Playwright.
 ## 3. Rode
 
 ```bash
-node tools/screenshot/flow.mjs <roteiro.json>
+node tools/playwright/flow.mjs <roteiro.json>
 ```
 
 Opções que mais importam:
@@ -183,7 +183,7 @@ Saída `0` quer dizer que o fluxo chegou ao fim, **não** que está sem bug. Sa�
 2. **Prints dos passos** onde precisar de detalhe.
 3. Com vídeo, **`storyboard.png`**: procure o que o detector não pega (layout
    quebrado, skeleton que não some, toast de erro que pisca e some, dado errado).
-   Para um momento exato: `node tools/screenshot/frames.mjs video.webm --at 8,17`.
+   Para um momento exato: `node tools/playwright/frames.mjs video.webm --at 8,17`.
 
 O que o `flow.mjs` detecta sozinho:
 
@@ -231,7 +231,7 @@ falhava e passou a passar.
 raiz e o vídeo em `video/` (a pasta `bugs/` está no `.gitignore`):
 
 ```bash
-node tools/screenshot/flow.mjs .ai-workbench/<NNN-slug>/bugs/<slug>/roteiro.json \
+node tools/playwright/flow.mjs .ai-workbench/<NNN-slug>/bugs/<slug>/roteiro.json \
   --video --out .ai-workbench/<NNN-slug>/bugs/<slug>/video --overwrite
 ```
 
@@ -291,7 +291,7 @@ demonstração do seeder.
 ## 7. Cuidados
 
 - **Nada de senha no roteiro.** O login é automático por
-  `tools/screenshot/credentials.json` (fora do git) ou `FISIO_LOGIN`/`FISIO_SENHA`.
+  `tools/playwright/credentials.json` (fora do git) ou `FISIO_LOGIN`/`FISIO_SENHA`.
   Se o fluxo precisar de outra senha, use `"secret": true` e não guarde o
   roteiro com ela.
 - **O roteiro grava de verdade** (sem `--read-only`). Prefira dados com prefixo
@@ -315,4 +315,4 @@ demonstração do seeder.
 | Timeout em `click` | seletor não casa ou elemento coberto; veja o print `falhou-` |
 | Tela sem a sua mudança | worktree com front compilado velho: `fisio-app build` |
 | Quadro encolhido no vídeo | print de página inteira com vídeo ligado (o `flow.mjs` já evita) |
-| `Playwright não encontrado` | `cd tools/screenshot && npm install` |
+| `Playwright não encontrado` | `cd tools/playwright && npm install` |

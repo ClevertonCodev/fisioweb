@@ -1,6 +1,6 @@
 ---
 name: correcao-rapida
-description: Caminho curto, fora do ciclo do harness, para bug simples ou ajuste pequeno. Escreve três linhas (hoje, esperado, continua), faz um teste vermelho, a correção mínima, roda o bin/verificar.sh e sugere o commit com as três linhas. Pula refinar, plano e tarefas; smoke test e revisão adversária viram pergunta no fim, e o code review é sempre perguntado e roda numa sessão nova. Sai para o ciclo se a correção tocar isolamento entre clínicas, permissão, migration, contrato de endpoint ou outro módulo. Use quando o usuário escolher "Vibe code" na pergunta da triagem do CLAUDE.md / AGENTS.md, ou começar o pedido com "vibe:".
+description: Caminho curto, fora do ciclo do harness, para bug simples ou ajuste pequeno. Escreve três linhas (hoje, esperado, continua), pergunta se o teste vem antes ou depois da correção (teste automatizado sempre), faz a correção mínima, roda o bin/verificar.sh e sugere o commit com as três linhas. Pula refinar, plano e tarefas; smoke test e revisão adversária viram pergunta no fim, e o code review é sempre perguntado e roda numa sessão nova. Sai para o ciclo se a correção tocar isolamento entre clínicas, permissão, migration, contrato de endpoint ou outro módulo. Use quando o usuário escolher "Vibe code" na pergunta da triagem do CLAUDE.md / AGENTS.md, ou começar o pedido com "vibe:".
 ---
 
 # Correção rápida
@@ -9,7 +9,7 @@ Bug simples ou ajuste pequeno não precisa do ciclo inteiro (`refinar` →
 `escrever-plano` → `criar-tarefas` → `implementar-tarefa` →
 `revisao-adversaria`). Esta skill é a saída do ciclo. O processo fica curto, mas
 a proteção continua: os princípios não negociáveis do `CLAUDE.md` / `AGENTS.md`
-valem aqui inteiros, e a mudança continua com teste.
+valem aqui inteiros, e toda mudança termina com teste automatizado.
 
 ## Quando vale
 
@@ -38,7 +38,7 @@ revisão) não abre esta skill sozinho: ele segue a regra daquele processo.
 | Fica | Pergunta no fim | Sai |
 |---|---|---|
 | Princípios não negociáveis | Smoke test | `refinar`, `escrever-plano`, `criar-tarefas` |
-| Teste primeiro (vermelho → verde) | Revisão adversária | Pasta em `.ai-workbench/` (a não ser que a revisão adversária peça) |
+| Teste automatizado, antes ou depois da correção (o usuário escolhe) | Revisão adversária | Pasta em `.ai-workbench/` (a não ser que a revisão adversária peça) |
 | `bash bin/verificar.sh` | Code review, sempre (`bin/code-review`, sessão nova) | Definição de Pronto completa |
 | Print da tela, quando ela muda | | |
 
@@ -67,36 +67,51 @@ Continua:  QUANDO {condição vizinha}, o sistema DEVE CONTINUAR {fazendo o que 
 - Causa ainda não está clara? Use a skill `systematic-debugging` para achar a
   causa e depois volte para cá.
 
-### 2. Testes antes da correção
+### 2. Teste antes ou depois?
 
-- **Esperado:** um teste que fica **vermelho** hoje, pelo motivo certo. Ele
-  reproduz o bug.
+Toda mudança termina com teste automatizado, seja bug, ajuste ou outro pedido:
+ele prova que o "Esperado" acontece. O que muda é a ordem. Pergunte
+**"Escrever o teste antes ou depois da correção?"**, com a recomendação e o
+motivo:
+
+- **Antes (vermelho → verde):** recomende quando o bug tem reprodução clara. O
+  teste mostra o bug antes de qualquer mudança no código.
+- **Depois:** recomende quando a causa ainda não está clara, ou num ajuste em
+  que o teste só confere o resultado novo.
+
+Não pergunte se o usuário já disse no pedido (ex.: "teste depois").
+
+Os testes, em qualquer das duas ordens:
+
+- **Esperado:** um teste que reproduz o bug ou confere o comportamento novo.
+  Sem a correção, ele fica **vermelho**, pelo motivo certo.
 - **Continua:** um teste que passa hoje e tem que continuar passando. Se um
   teste que já existe cobre isso, cite o teste em vez de escrever outro.
 - A correção toca uma consulta? Rode o teste de outra clínica daquela rota. Se
   ele não existir, a mudança saiu do caminho rápido (veja "Quando sair").
-- Ajuste só visual (texto, cor, espaçamento), sem lógica, dispensa teste novo.
-  O print do passo 5 serve de prova.
+- Ajuste só visual (texto, cor, espaçamento): um teste de componente (Vitest)
+  que confira o que mudou, como o texto ou a classe, além do print do passo 5.
 
 Comandos: `php artisan test --filter=NomeDoTest` ou `npx vitest run <arquivo>`.
 Confira quantos testes rodaram: zero é filtro errado.
 
 ### 3. Corrija o mínimo
 
-Só o necessário para o teste do "Esperado" ficar verde. Não refatore em volta,
-não renomeie e não arrume "já que estou aqui". Se achar outro problema, anote no
+Só o necessário para o "Esperado" acontecer. Não refatore em volta, não
+renomeie e não arrume "já que estou aqui". Se achar outro problema, anote no
 `.ai-workbench/DEFERRED.md` da raiz.
 
 ### 4. Prove que o teste testa
 
-Desfaça a correção, veja o teste do "Esperado" ficar vermelho e refaça a
-correção.
+Escolheu teste depois? Escreva agora os testes do passo 2 e rode: verdes. Nos
+dois casos, desfaça a correção, veja o teste do "Esperado" ficar vermelho e
+refaça a correção. Sem esse vermelho, o teste não prova nada.
 
 ### 5. Confira
 
 - `bash bin/verificar.sh` sem FALHOU.
 - A tela mudou? Tire um print com
-  `node tools/screenshot/screenshot.mjs '<url>' <nome>` (skill `qa-navegador`),
+  `node tools/playwright/screenshot.mjs '<url>' <nome>` (skill `qa-navegador`),
   mostre ao usuário e apague o arquivo depois.
 
 ### 6. Smoke test e revisão adversária?
@@ -171,3 +186,4 @@ vermelho.
 - `vibe:` no começo do pedido escolhe este caminho sem a pergunta da triagem.
   Se o pedido bate num gatilho de "Quando sair", diga qual e pergunte.
 - `spec:` vai direto para o ciclo, sem a pergunta.
+- "teste antes" ou "teste depois" no pedido responde a pergunta do passo 2.

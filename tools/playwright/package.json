@@ -1,5 +1,5 @@
 {
-    "name": "fisioweb-screenshot",
+    "name": "fisioweb-playwright",
     "private": true,
     "type": "module",
     "description": "Print, fluxo de QA e storyboard de vídeo num Chromium headless, compartilhado por Claude Code e Cursor",

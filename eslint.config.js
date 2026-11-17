@@ -75,7 +75,7 @@ export default [
             '.agents',
             // Roteiros de smoke test (flow.mjs) das evidências, não código do app.
             '.ai-workbench',
-            // Scripts Node dos agentes (tools/screenshot), não código do app.
+            // Scripts Node dos agentes (tools/playwright), não código do app.
             'tools',
         ],
     },

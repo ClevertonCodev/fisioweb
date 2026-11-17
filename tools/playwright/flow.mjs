@@ -3,9 +3,9 @@
  * Roda um fluxo no navegador caçando erro e, com --video, grava o vídeo do bug (skill qa-navegador).
  *
  * Uso (na raiz do fisioweb):
- *   node tools/screenshot/flow.mjs roteiro.json
- *   node tools/screenshot/flow.mjs roteiro.mjs --base http://localhost:8000
- *   node tools/screenshot/flow.mjs roteiro.json --out .ai-workbench/007-x/evidence/002-lista/frontend/criar-paciente --overwrite
+ *   node tools/playwright/flow.mjs roteiro.json
+ *   node tools/playwright/flow.mjs roteiro.mjs --base http://localhost:8000
+ *   node tools/playwright/flow.mjs roteiro.json --out .ai-workbench/007-x/evidence/002-lista/frontend/criar-paciente --overwrite
  *
  * Opções:
  *   --base URL         base para caminhos relativos (sobrepõe "baseUrl" do roteiro)
@@ -27,7 +27,7 @@
  * Código de saída: 0 = fluxo terminou (veja os achados no report.md); 1 = um passo falhou.
  *
  * Login: se o primeiro goto cair em /clinica/login ou /admin/login, entra com o usuário daquele guard
- * em tools/screenshot/credentials.json (ou FISIO_LOGIN/FISIO_SENHA) num contexto sem gravação e
+ * em tools/playwright/credentials.json (ou FISIO_LOGIN/FISIO_SENHA) num contexto sem gravação e
  * reaproveita a sessão (o token fica no localStorage; a senha nunca aparece no vídeo).
  */
 
@@ -197,7 +197,7 @@ function describeJsonStep(step) {
 const args = parseArgs(process.argv.slice(2));
 if (!args.file) {
     console.error(
-        'Uso: node tools/screenshot/flow.mjs <roteiro.json|roteiro.mjs> [--base URL] [--out DIR]',
+        'Uso: node tools/playwright/flow.mjs <roteiro.json|roteiro.mjs> [--base URL] [--out DIR]',
     );
     process.exit(1);
 }

@@ -41,10 +41,12 @@ yarn-error.log
 # Playwright MCP headless (.mcp.json): prints, snapshots e logs do agente
 /.playwright-mcp/
 
-# tools/screenshot (skill qa-navegador): saída, dependências e credencial local
+# tools/playwright (skill qa-navegador): saída, dependências e credencial local.
+# tools/screenshot é o nome antigo da pasta; fica para não versionar o que sobrou nela.
 /temporary-screenshots/
-/tools/screenshot/node_modules/
-/tools/screenshot/credentials.json
+/tools/playwright/node_modules/
+/tools/playwright/credentials.json
+/tools/screenshot/
 
 # bin/fisio-app: configuração pessoal (o modelo é o docker/fisio-app.example.json) e arquivos gerados
 /docker/fisio-app.json

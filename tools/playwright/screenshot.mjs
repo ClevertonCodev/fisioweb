@@ -3,17 +3,24 @@
  * Print de localhost num Chromium headless, para qualquer agente (Claude Code, Cursor).
  *
  * Uso (na raiz do fisioweb):
- *   node tools/screenshot/screenshot.mjs 'http://localhost:8000/design-system' reference
- *   node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
+ *   node tools/playwright/screenshot.mjs 'http://localhost:8000/design-system' reference
+ *   node tools/playwright/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
  *
  * Viewport (opcional):
- *   node tools/screenshot/screenshot.mjs URL label --width 1280 --height 720
+ *   node tools/playwright/screenshot.mjs URL label --width 1280 --height 720
+ *
+ * Clicar antes do print (opcional, repetível), ex.: estado de um protótipo:
+ *   node tools/playwright/screenshot.mjs URL label --click 'text=Sem pacientes'
+ *
+ * Só a área visível, no tamanho do viewport (opcional; o padrão é a página inteira).
+ * Use na comparação com o protótipo, para os dois prints saírem do mesmo tamanho:
+ *   node tools/playwright/screenshot.mjs URL label --width 375 --height 812 --viewport-only
  *
  * Saída: temporary-screenshots/screenshot-N[-label].png (nunca sobrescreve)
  * Depois: o agente lê o PNG com a ferramenta de Read.
- * Login: se cair em /clinica/login ou /admin/login, entra com tools/screenshot/credentials.json.
+ * Login: se cair em /clinica/login ou /admin/login, entra com tools/playwright/credentials.json.
  *
- * Fluxo com vídeo, console e rede: tools/screenshot/flow.mjs (skill qa-navegador).
+ * Fluxo com vídeo, console e rede: tools/playwright/flow.mjs (skill qa-navegador).
  */
 
 import fs from 'node:fs';
@@ -27,7 +34,14 @@ import {
 } from './lib.mjs';
 
 function parseArgs(argv) {
-    const args = { url: '', label: '', width: 1280, height: 720 };
+    const args = {
+        url: '',
+        label: '',
+        width: 1280,
+        height: 720,
+        clicks: [],
+        fullPage: true,
+    };
     const rest = [];
     for (let i = 0; i < argv.length; i += 1) {
         const token = argv[i];
@@ -35,6 +49,10 @@ function parseArgs(argv) {
             args.width = Number(argv[++i]);
         } else if (token === '--height') {
             args.height = Number(argv[++i]);
+        } else if (token === '--click') {
+            args.clicks.push(argv[++i]);
+        } else if (token === '--viewport-only') {
+            args.fullPage = false;
         } else {
             rest.push(token);
         }
@@ -61,7 +79,7 @@ const args = parseArgs(process.argv.slice(2));
 
 assertHttpUrl(
     args.url,
-    'Uso: node tools/screenshot/screenshot.mjs http://localhost:PORT/path [label]',
+    'Uso: node tools/playwright/screenshot.mjs http://localhost:PORT/path [label] [--click SELETOR] [--viewport-only]',
 );
 
 const playwright = loadPlaywright();
@@ -74,8 +92,12 @@ const page = await context.newPage();
 
 try {
     await gotoWithLogin(page, args.url);
+    for (const selector of args.clicks) {
+        await page.locator(selector).first().click({ timeout: 10000 });
+        await page.waitForTimeout(400);
+    }
     await page.waitForTimeout(600);
-    await page.screenshot({ path: dest, fullPage: true });
+    await page.screenshot({ path: dest, fullPage: args.fullPage });
 } catch (error) {
     console.error(error.message.split('\n')[0]);
     process.exitCode = 1;

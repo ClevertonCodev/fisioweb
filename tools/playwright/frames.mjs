@@ -4,9 +4,9 @@
  * Não precisa de ffmpeg: decodifica no Chromium do Playwright.
  *
  * Uso (na raiz do fisioweb):
- *   node tools/screenshot/frames.mjs gravacao.webm
- *   node tools/screenshot/frames.mjs ~/Desktop/bug.mov --every 0.5 --max 32 --out temporary-screenshots/bug
- *   node tools/screenshot/frames.mjs video.webm --at 8,17     # só os segundos 8 e 17 (conferir um momento)
+ *   node tools/playwright/frames.mjs gravacao.webm
+ *   node tools/playwright/frames.mjs ~/Desktop/bug.mov --every 0.5 --max 32 --out temporary-screenshots/bug
+ *   node tools/playwright/frames.mjs video.webm --at 8,17     # só os segundos 8 e 17 (conferir um momento)
  *
  * .webm funciona com o Chromium do Playwright. .mov/.mp4 (gravação de tela do macOS)
  * precisa do Google Chrome instalado (usa channel "chrome").
@@ -32,7 +32,7 @@ for (let i = 0; i < argv.length; i += 1) {
 
 if (!opts.file || !fs.existsSync(opts.file)) {
     console.error(
-        'Uso: node tools/screenshot/frames.mjs <video.webm|.mov|.mp4> [--every S | --at 8,17] [--max N] [--out DIR]',
+        'Uso: node tools/playwright/frames.mjs <video.webm|.mov|.mp4> [--every S | --at 8,17] [--max N] [--out DIR]',
     );
     process.exit(1);
 }

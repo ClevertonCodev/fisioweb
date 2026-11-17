@@ -25,10 +25,12 @@ npm run test          # Vitest (frontend)
 npm run test:watch
 bin/code-review [nível] [alvo]   # /code-review numa sessão nova (padrão: high, diff atual)
 
-# Navegador headless (skill qa-navegador; 1ª vez: cd tools/screenshot && npm install)
-node tools/screenshot/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
-node tools/screenshot/flow.mjs roteiro.json            # fluxo caçando erro (--video só para bug)
-node tools/screenshot/frames.mjs video.webm --at 8,17  # vídeo → storyboard.png
+# Navegador headless (skill qa-navegador; 1ª vez: cd tools/playwright && npm install)
+node tools/playwright/screenshot.mjs 'http://localhost:8000/clinica/pacientes' impl
+node tools/playwright/flow.mjs roteiro.json            # fluxo caçando erro (--video só para bug)
+node tools/playwright/frames.mjs video.webm --at 8,17  # vídeo → storyboard.png
+php tools/playwright/qa-mestre/usuarios.php clinica --clinica <id> --alvo <tarefa>  # usuários QA por papel (skill qa-mestre)
+node tools/playwright/qa-mestre/campos.mjs '<url>' --click '<abrir>'               # campos inválidos por tipo (guia: tools/playwright/qa-mestre/README.md)
 ```
 
 ## Várias tarefas ao mesmo tempo (Docker por worktree)
@@ -143,8 +145,8 @@ Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/
 |-----------|-------|
 | Revisão de segurança e autorização (Policies, `clinic_id`, permissions.ts, RequireClinicAdmin) | [`security-audit`](.claude/skills/security-audit/SKILL.md) |
 | Protótipo descartável para responder uma dúvida de desenho (lógica/estado em HTML único, ou variantes de UI via `?variant=`) | [`prototype`](.claude/skills/prototype/SKILL.md) |
-| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/screenshot/`, Chromium headless) | [`qa-navegador`](.claude/skills/qa-navegador/SKILL.md) |
-| QA de aceite: conferir os critérios de aceite da entrega com vídeo e decidir se dispensa o QA humano; pergunta quantos testadores rodar, de 2 a 5 (`docs/ai-harness/DEFINICAO_DE_QA.md`; só o usuário chama) | [`qa-aceite`](.claude/skills/qa-aceite/SKILL.md) |
+| Testar tela no navegador, smoke test de tela, caçar bug, gravar ou assistir vídeo de bug (`tools/playwright/`, Chromium headless) | [`qa-navegador`](.claude/skills/qa-navegador/SKILL.md) |
+| QA de aceite por modo (`testes`, `tela`, `prototipo`, `quebrar`, `acesso`; ex.: `/qa-mestre prototipo` só compara com o protótipo): conferir os critérios de aceite da entrega com vídeo e decidir se dispensa o QA humano; mostra o plano de fatias com tempo e tokens, o operador escolhe quais rodar, e pergunta antes de cada rodada nova (`docs/ai-harness/DEFINICAO_DE_QA.md`; só o usuário chama) | [`qa-mestre`](.claude/skills/qa-mestre/SKILL.md) |
 
 ### Diagnóstico e arquitetura
 | Vou fazer | Skill |
@@ -228,7 +230,7 @@ Cada etapa tem uma skill em `.claude/skills/`, e cada uma diz qual é a próxima
 plano virou tarefa) → `implementar-tarefa` (teste primeiro, termina na
 Definição de Pronto) → `revisao-adversaria`.
 
-O QA de aceite (skill `qa-aceite`) fica fora do ciclo e da Definição de Pronto:
+O QA de aceite (skill `qa-mestre`) fica fora do ciclo e da Definição de Pronto:
 só roda quando o desenvolvedor chama. Não sugira nem rode por conta própria.
 
 Cada feature tem a própria pasta em `.ai-workbench/` com `README.md`,

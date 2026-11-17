@@ -45,7 +45,7 @@ O `new`, em uns 2 minutos:
    (a partir da `origin/main`, sem seguir a main);
 2. copia `vendor/`, `node_modules/`, `public/build/`, `.vscode`, `.idea`, o
    `.claude/settings.local.json` e o `node_modules` e o `credentials.json` do
-   `tools/screenshot/` do checkout principal (clone do APFS: instantâneo e sem
+   `tools/playwright/` do checkout principal (clone do APFS: instantâneo e sem
    ocupar espaço). O `.env` não é copiado: é gerado a cada `up` a partir do `.env`
    do principal (abaixo);
 3. escreve as instruções da pasta para o agente: `CLAUDE.local.md` (Claude Code)

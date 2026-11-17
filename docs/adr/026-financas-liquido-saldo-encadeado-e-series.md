@@ -141,12 +141,11 @@ comprovante. Como estava antes da 013:
      O link assinado mostra o caminho; sem a regra, quem viu o link abriria o
      arquivo pelo CDN para sempre.
 
-     > **PRÉ-REQUISITO DE DEPLOY, PENDENTE.** Em 2026-11-01 a regra ainda **não
-     > foi criada** no Cloudflare, e nenhuma das conferências com `curl` abaixo
-     > foi feita. Até ela existir e as conferências darem 403, o comprovante
-     > **não pode ir para produção**: quem viu um link assinado abriria o arquivo
-     > pelo CDN, sem login. Criar a regra e rodar a lista faz parte do deploy (e da
-     > descrição da PR), e quem fizer atualiza esta nota com a data.
+     > **PRÉ-REQUISITO DE DEPLOY, FEITO em 2026-11-16.** A regra foi criada na
+     > zona `ivsmed.com` para o CDN `cdn-dev.ivsmed.com`, e as conferências com
+     > `curl` deram 403. O registro, com a saída, está no item 1 do
+     > [ADR 027](027-importante-pendencias-antes-do-deploy-financas.md). Se o
+     > domínio do CDN mudar, a regra e as conferências têm que ser refeitas.
 
      A regra (Security → WAF → Custom rules, ação **Block**) olha o path
      **decodificado** e não depende da barra. A normalização de URL do Cloudflare

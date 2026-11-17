@@ -112,6 +112,10 @@ export default function AdminVideoDetailPage() {
                                             video.original_filename ??
                                             video.filename
                                         }
+                                        onRefresh={async () =>
+                                            (await refreshVideo())
+                                                ?.thumbnail_url ?? null
+                                        }
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (

@@ -200,7 +200,7 @@ function OwnMedia({
                     <div className="grid grid-cols-2 gap-2">
                         {photos.map((photo, i) => (
                             <ProtectedImage
-                                key={photo.path}
+                                key={`reference-${i}`}
                                 src={photo.url}
                                 alt={`Foto ${i + 1} do PDF`}
                                 onRefresh={async () =>

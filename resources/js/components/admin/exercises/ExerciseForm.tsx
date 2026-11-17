@@ -1,7 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useRefreshAdminVideo } from '@/application/admin/use-admin-videos';
+import {
+    refreshAdminVideo,
+    useRefreshAdminVideo,
+} from '@/application/admin/use-admin-videos';
 import { AdminExerciseVideoPreview } from '@/components/admin/exercises/AdminExerciseVideoPreview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -92,6 +96,7 @@ export function ExerciseForm({
     onSubmit,
 }: ExerciseFormProps) {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const videos = useMemo(
         () => (options?.videos ?? []) as VideoOption[],
         [options?.videos],
@@ -102,8 +107,13 @@ export function ExerciseForm({
                 value: String(v.id),
                 label: v.original_filename,
                 img: v.thumbnail_url ?? undefined,
+                onRefreshImg: v.thumbnail_url
+                    ? async () =>
+                          (await refreshAdminVideo(queryClient, v.id))
+                              ?.thumbnail_url ?? null
+                    : undefined,
             })),
-        [videos],
+        [videos, queryClient],
     );
     const selectedVideo = useMemo(
         () => videoOptions.find((o) => o.value === form.video_id) ?? null,

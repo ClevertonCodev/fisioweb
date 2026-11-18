@@ -23,7 +23,7 @@ class VerifyClinicEmailNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Confirme o e-mail da sua clínica — Fisioweb')
+            ->subject('Confirme o e-mail da sua clínica — ' . config('app.name'))
             ->greeting('Olá!')
             ->line("Sua conta para a clínica {$this->clinicName} foi criada.")
             ->line('Confirme seu e-mail pelo botão abaixo para liberar o acesso ao painel.')

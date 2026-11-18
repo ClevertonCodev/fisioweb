@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Database\Factories\ClinicUserFactory;
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnPasswordChange
@@ -118,7 +118,7 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
 
     protected function photoUrl(): Attribute
     {
-        return Attribute::get(fn () => SignedMedia::image($this->photo_path));
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forImage($this->photo_path));
     }
 
     /**

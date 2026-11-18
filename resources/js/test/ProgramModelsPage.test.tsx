@@ -1,12 +1,18 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+    within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AdminProgram } from '@/domain/admin';
-import type { Program } from '@/domain/clinic';
+import type { Program, ProgramGroup } from '@/domain/clinic';
 import ProgramModelsPage from '@/pages/clinic/program/program-models/ProgramModelsPage';
 import { routerFutureFlags } from '@/test/browser-router';
 
@@ -32,6 +38,7 @@ const listMine = vi.fn();
 const getMine = vi.fn();
 const duplicateProgram = vi.fn();
 const destroyProgram = vi.fn();
+const getExercise = vi.fn();
 
 vi.mock('@/infrastructure/repositories', async (importOriginal) => {
     const actual =
@@ -47,6 +54,10 @@ vi.mock('@/infrastructure/repositories', async (importOriginal) => {
             getById: (...args: unknown[]) => getMine(...args),
             duplicate: (...args: unknown[]) => duplicateProgram(...args),
             destroy: (...args: unknown[]) => destroyProgram(...args),
+        },
+        apiClinicExercisesRepository: {
+            ...actual.apiClinicExercisesRepository,
+            getById: (...args: unknown[]) => getExercise(...args),
         },
     };
 });
@@ -385,6 +396,75 @@ describe('ProgramModelsPage', () => {
         expect(
             screen.getByText('Não foi possível carregar os blocos'),
         ).toBeInTheDocument();
+    });
+
+    it('a capa vencida de um exercício de Nossos modelos pede o link novo pelo exercício', async () => {
+        const user = userEvent.setup();
+        const program = catalogProgram();
+        program.groups![0].exercises![0].exercise!.thumbnailUrl =
+            'https://conta.example/thumbnails/bird.jpg?s=1';
+        getLibraryDetail.mockResolvedValue(program);
+        getExercise.mockResolvedValue({
+            id: '5',
+            thumbnailUrl: 'https://conta.example/thumbnails/bird.jpg?s=2',
+        });
+        renderPage();
+        await screen.findByText('Reabilitação lombar — fase 1');
+        await user.click(
+            screen.getByRole('button', { name: 'Ver exercícios' }),
+        );
+
+        fireEvent.error(await screen.findByRole('img', { name: 'Bird Dog' }));
+
+        await waitFor(() => expect(getExercise).toHaveBeenCalledWith('5'));
+        expect(getMine).not.toHaveBeenCalled();
+    });
+
+    it('em Meus modelos, a capa de um exercício desativado é renovada pelo próprio modelo', async () => {
+        const user = userEvent.setup();
+        const withThumb = (thumbnailUrl: string) =>
+            myProgram({
+                groups: [
+                    {
+                        id: 'g1',
+                        name: 'Principal',
+                        exercises: [
+                            {
+                                id: '71',
+                                exerciseId: '13',
+                                title: 'Ponte',
+                                thumbnailUrl,
+                                videoUrl: '',
+                                days: [],
+                                period: null,
+                            },
+                        ],
+                    } as unknown as ProgramGroup,
+                ],
+            });
+        getMine
+            .mockResolvedValueOnce(
+                withThumb('https://conta.example/thumbnails/ponte.jpg?s=1'),
+            )
+            .mockResolvedValue(
+                withThumb('https://conta.example/thumbnails/ponte.jpg?s=2'),
+            );
+        getExercise.mockRejectedValue(new Error('404'));
+        renderPage('/clinica/programas/meus-modelos');
+        await screen.findByText('Meu modelo de joelho');
+        await user.click(
+            screen.getByRole('button', { name: 'Ver exercícios' }),
+        );
+
+        fireEvent.error(await screen.findByRole('img', { name: 'Ponte' }));
+
+        await waitFor(() =>
+            expect(screen.getByRole('img', { name: 'Ponte' })).toHaveAttribute(
+                'src',
+                'https://conta.example/thumbnails/ponte.jpg?s=2',
+            ),
+        );
+        expect(getExercise).toHaveBeenCalledWith('13');
     });
 
     it('Nossos modelos busca todas as páginas do catálogo', async () => {

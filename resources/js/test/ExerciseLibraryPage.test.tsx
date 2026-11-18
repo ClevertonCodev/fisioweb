@@ -6,6 +6,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Exercise } from '@/domain/clinic';
+import { storageClient } from '@/infrastructure/api/storage-client';
 import ExerciseLibraryPage from '@/pages/clinic/program/exercise-library/ExerciseLibraryPage';
 import { routerFutureFlags } from '@/test/browser-router';
 
@@ -337,6 +338,24 @@ describe('ExerciseLibraryPage', () => {
             screen.getByRole('button', { name: 'Adicionar aos favoritos' }),
         );
         expect(toggleFavorite).toHaveBeenCalledWith('1');
+    });
+
+    it('o vídeo do cartão que não carrega mostra o erro', async () => {
+        vi.spyOn(storageClient, 'get').mockResolvedValue({
+            status: 500,
+            data: new Blob(),
+        } as Awaited<ReturnType<typeof storageClient.get>>);
+        const user = userEvent.setup();
+        renderPage();
+        await screen.findByText('Bird Dog');
+
+        await user.click(
+            screen.getByRole('button', { name: 'Reproduzir Bird Dog' }),
+        );
+
+        expect(
+            await screen.findByText('Não foi possível carregar o vídeo.'),
+        ).toBeInTheDocument();
     });
 
     it('clicar no cartão abre a ficha clínica', async () => {

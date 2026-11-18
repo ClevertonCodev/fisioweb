@@ -127,6 +127,11 @@ class PatientRepository implements PatientRepositoryInterface
         return $patient->fresh();
     }
 
+    public function isPhotoInUse(string $path): bool
+    {
+        return Patient::withTrashed()->where('photo_path', $path)->exists();
+    }
+
     public function namesForClinic(int $clinicId, array $ids): Collection
     {
         if (empty($ids)) {

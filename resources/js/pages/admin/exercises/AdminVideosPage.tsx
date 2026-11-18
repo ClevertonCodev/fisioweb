@@ -38,8 +38,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 25, 50];
 
-function videoAddress(video: Pick<AdminVideo, 'cdn_url' | 'url'> | null) {
-    return video?.cdn_url ?? video?.url ?? null;
+function videoAddress(video: Pick<AdminVideo, 'video_url'> | null) {
+    return video?.video_url ?? null;
 }
 
 function AdminVideoGridCard({

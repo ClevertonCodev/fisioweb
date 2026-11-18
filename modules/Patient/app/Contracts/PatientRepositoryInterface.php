@@ -18,6 +18,8 @@ interface PatientRepositoryInterface
 
     public function update(int $id, array $data): Patient;
 
+    public function isPhotoInUse(string $path): bool;
+
     public function bulkInactivate(int $clinicId, array $ids): int;
 
     /** Reativa o paciente da clínica; null se ele não é dessa clínica. */

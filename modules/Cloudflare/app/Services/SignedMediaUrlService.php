@@ -2,7 +2,9 @@
 
 namespace Modules\Cloudflare\Services;
 
+use Illuminate\Support\Facades\Log;
 use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
+use Throwable;
 
 class SignedMediaUrlService implements SignedMediaUrlInterface
 {
@@ -28,6 +30,12 @@ class SignedMediaUrlService implements SignedMediaUrlInterface
             return null;
         }
 
-        return $this->files->createPresignedDownloadUrl($path, $ttl)['url'];
+        try {
+            return $this->files->createPresignedDownloadUrl($path, $ttl)['url'];
+        } catch (Throwable $e) {
+            Log::error('Falha ao assinar link de mídia.', ['exception' => $e::class, 'ttl' => $ttl]);
+
+            return null;
+        }
     }
 }

@@ -92,13 +92,6 @@ return [
     ],
 
     /*
-     * CDN Settings
-     */
-    'cdn_cache_ttl' => env('CLOUDFLARE_CDN_CACHE_TTL', 86400), // 24 hours
-
-    'cdn_enabled' => env('CLOUDFLARE_CDN_ENABLED', true),
-
-    /*
      * Performance Settings
      */
     'chunk_size' => env('CLOUDFLARE_CHUNK_SIZE', 5242880), // 5MB chunks for multipart upload

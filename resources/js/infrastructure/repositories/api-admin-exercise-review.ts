@@ -15,8 +15,6 @@ export interface PendingExercise {
     submitted_by_clinic_user: { id: number; name: string } | null;
     videos: {
         video_url: string | null;
-        cdn_url: string | null;
-        url: string | null;
         thumbnail_url: string | null;
         status: string;
     }[];
@@ -61,8 +59,7 @@ interface ApiMediaProposalExercise {
 }
 
 interface ApiMediaProposalImage {
-    url?: string;
-    cdn_url?: string;
+    url?: string | null;
 }
 
 interface ApiMediaProposal {
@@ -93,9 +90,7 @@ function mapProposalExercise(
 }
 
 function imageUrls(images: ApiMediaProposalImage[]): string[] {
-    return images
-        .map((image) => image.url ?? image.cdn_url ?? '')
-        .filter((url) => url !== '');
+    return images.map((image) => image.url ?? '').filter((url) => url !== '');
 }
 
 export function mapMediaProposal(raw: ApiMediaProposal): MediaProposal {

@@ -4,8 +4,6 @@ import { apiClient } from '@/infrastructure/api/client';
 interface ApiVideo {
     thumbnail_url?: string | null;
     video_url?: string | null;
-    cdn_url?: string | null;
-    url?: string | null;
 }
 
 interface ApiExercise {
@@ -76,8 +74,7 @@ function mapExercise(raw: ApiProgramExercise) {
                   id: raw.exercise.id,
                   name: raw.exercise.name,
                   thumbnailUrl: video?.thumbnail_url ?? null,
-                  videoUrl:
-                      video?.video_url ?? video?.cdn_url ?? video?.url ?? null,
+                  videoUrl: video?.video_url ?? null,
               }
             : undefined,
     };

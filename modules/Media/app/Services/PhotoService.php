@@ -47,12 +47,6 @@ class PhotoService implements ImageServiceInterface
         throw new \RuntimeException('PhotoService::getImage() não implementado. Crie o model Photo primeiro.');
     }
 
-    public function getImageCdnUrl(int $imageId): ?string
-    {
-        // TODO: Implementar quando o model Photo for criado
-        throw new \RuntimeException('PhotoService::getImageCdnUrl() não implementado. Crie o model Photo primeiro.');
-    }
-
     public function getImagesByUploadable(Model $uploadable): Collection
     {
         // TODO: Implementar quando o model Photo for criado

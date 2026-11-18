@@ -337,7 +337,8 @@ describe('US4 — integração com Design System v2 (Option A final)', () => {
         expect(screen.getByText('Área do paciente')).toBeInTheDocument();
         expect(screen.getByLabelText(/CPF ou e-mail/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/^Senha$/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /entrar/i }),
+        ).toBeInTheDocument();
     });
 });
-

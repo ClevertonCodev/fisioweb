@@ -10,14 +10,26 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+    type ComponentProps,
+    type MouseEvent,
+    type ReactNode,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { programDraftFromExercise } from '@/application/clinic/program-from-exercise';
 import { useRefreshExerciseMedia } from '@/application/clinic/use-exercises';
 import { DsBadge, DsButton, DsModal, DsTooltip, dsCn } from '@/components/ds';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
-import { useProtectedPlayback } from '@/components/protected-media/use-protected-playback';
+import {
+    mediaKey,
+    useProtectedPlayback,
+} from '@/components/protected-media/use-protected-playback';
 import type { ClinicRole } from '@/domain/auth/session';
 import type { Exercise } from '@/domain/clinic';
 
@@ -25,7 +37,37 @@ import { DIFFICULTY, type LibraryFilters } from './shared';
 
 let current: HTMLVideoElement | null = null;
 
-export function CardVideo({
+export interface ItemMedia {
+    videoUrl?: string | null;
+    thumbnailUrl?: string | null;
+}
+
+/** Busca a mídia de um item (pelo id do item) no modelo ou no programa de onde ele veio. */
+type ItemMediaLookup = (itemId: string) => Promise<ItemMedia | null>;
+
+const ItemMediaContext = createContext<ItemMediaLookup | null>(null);
+
+export const ItemMediaSource = ItemMediaContext.Provider;
+
+/** O exercício desativado some de `GET /clinic/exercises/{id}`, mas continua no programa e no modelo. */
+export function useRefreshItemMedia(item: { id: string; exerciseId?: string }) {
+    const refreshExercise = useRefreshExerciseMedia(item.exerciseId ?? item.id);
+    const fromSource = useContext(ItemMediaContext);
+
+    return useCallback(async (): Promise<ItemMedia | null> => {
+        const fresh = await refreshExercise().catch(() => null);
+        if (fresh || !fromSource) return fresh;
+        return fromSource(item.id);
+    }, [fromSource, item.id, refreshExercise]);
+}
+
+export function CardVideo(props: ComponentProps<typeof CardVideoPlayer>) {
+    return (
+        <CardVideoPlayer key={mediaKey(props.exercise.videoUrl)} {...props} />
+    );
+}
+
+function CardVideoPlayer({
     exercise,
     onOpen,
     className,
@@ -33,7 +75,10 @@ export function CardVideo({
     topRight,
     bottomLeft,
 }: {
-    exercise: Pick<Exercise, 'id' | 'title' | 'videoUrl' | 'thumbnailUrl'>;
+    /** Item de programa ou de modelo traz `exerciseId`; o `id` dele é o do item. */
+    exercise: Pick<Exercise, 'id' | 'title' | 'videoUrl' | 'thumbnailUrl'> & {
+        exerciseId?: string;
+    };
     onOpen?: () => void;
     className?: string;
     topLeft?: ReactNode;
@@ -41,7 +86,7 @@ export function CardVideo({
     bottomLeft?: ReactNode;
 }) {
     const [playing, setPlaying] = useState(false);
-    const refreshMedia = useRefreshExerciseMedia(exercise.id);
+    const refreshMedia = useRefreshItemMedia(exercise);
     const playback = useProtectedPlayback({
         url: exercise.videoUrl,
         onRefresh: async () => (await refreshMedia())?.videoUrl ?? null,
@@ -105,6 +150,11 @@ export function CardVideo({
                 onEnded={() => setPlaying(false)}
                 className="size-full object-cover"
             />
+            {playback.error && (
+                <p className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center text-ds-caption text-white drop-shadow-md">
+                    {playback.error}
+                </p>
+            )}
             <div className="pointer-events-none absolute inset-0 transition-colors duration-200 group-hover/video:bg-ds-primary-80/25" />
 
             <button
@@ -230,7 +280,16 @@ function formatTime(time: number): string {
 const controlBtn =
     'flex size-7 cursor-pointer items-center justify-center rounded-ds-md text-white outline-0 hover:bg-white/20 focus-visible:shadow-ds-focus [&_svg]:size-3.5';
 
-export function ModalPlayer({
+export function ModalPlayer(props: ComponentProps<typeof ModalPlayerView>) {
+    return (
+        <ModalPlayerView
+            key={`${props.exercise.id}:${mediaKey(props.exercise.videoUrl)}`}
+            {...props}
+        />
+    );
+}
+
+function ModalPlayerView({
     exercise,
     className,
 }: {
@@ -279,7 +338,6 @@ export function ModalPlayer({
             )}
             <video
                 {...playback.videoProps}
-                key={exercise.id}
                 onClick={toggle}
                 onPlay={() => setPlaying(true)}
                 onPause={() => setPlaying(false)}
@@ -288,6 +346,11 @@ export function ModalPlayer({
                 onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
                 className="absolute inset-0 size-full object-contain"
             />
+            {playback.error && (
+                <p className="pointer-events-none absolute inset-x-0 top-3 z-10 text-center text-ds-caption text-white drop-shadow-md">
+                    {playback.error}
+                </p>
+            )}
             {!playing && (
                 <button
                     type="button"

@@ -126,7 +126,7 @@ describe('apiAdminExerciseReviewRepository', () => {
 
         expect(video.video_url).toBe('https://signed.example/video');
         expect(video.thumbnail_url).toBe('https://signed.example/thumb');
-        expect(video.cdn_url).toBeUndefined();
-        expect(video.url).toBeUndefined();
+        expect(Object.keys(video)).not.toContain('cdn_url');
+        expect(Object.keys(video)).not.toContain('url');
     });
 });

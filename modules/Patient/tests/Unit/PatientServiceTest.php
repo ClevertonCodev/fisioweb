@@ -22,7 +22,7 @@ class PatientServiceTest extends TestCase
 
         $this->repository = \Mockery::mock(PatientRepositoryInterface::class);
         $activityLogger   = \Mockery::mock(ActivityLoggerInterface::class)->shouldIgnoreMissing();
-        $this->service    = new PatientService($this->repository, $activityLogger);
+        $this->service    = new PatientService($this->repository, $activityLogger, \Mockery::mock(\Modules\Cloudflare\Contracts\FileServiceInterface::class));
     }
 
     protected function tearDown(): void

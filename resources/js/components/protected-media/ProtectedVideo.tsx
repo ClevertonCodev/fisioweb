@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { Loader2, Play } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
 import { ProtectedImage } from './ProtectedImage';
 import {
+    mediaKey,
     useProtectedPlayback,
     type ProtectedRefresh,
 } from './use-protected-playback';
@@ -19,7 +21,11 @@ interface ProtectedVideoProps {
     title?: string;
 }
 
-export function ProtectedVideo({
+export function ProtectedVideo(props: ProtectedVideoProps) {
+    return <ProtectedVideoPlayer key={mediaKey(props.videoUrl)} {...props} />;
+}
+
+function ProtectedVideoPlayer({
     videoUrl,
     posterUrl,
     className,
@@ -29,14 +35,19 @@ export function ProtectedVideo({
     onRefreshPoster,
     title,
 }: ProtectedVideoProps) {
-    const { play, active, error, videoProps } = useProtectedPlayback({
+    const { play, active, loading, error, videoProps } = useProtectedPlayback({
         url: videoUrl,
         onRefresh,
     });
 
+    const autoPlayed = useRef(false);
     useEffect(() => {
-        if (autoPlay && videoUrl) void play();
+        if (!autoPlay || !videoUrl || autoPlayed.current) return;
+        autoPlayed.current = true;
+        void play();
     }, [autoPlay, play, videoUrl]);
+
+    const waiting = !!videoUrl && !active;
 
     return (
         <div className={cn('relative size-full', className)}>
@@ -48,18 +59,33 @@ export function ProtectedVideo({
                     className="pointer-events-none absolute inset-0 size-full object-cover"
                 />
             )}
+            {waiting && (
+                <button
+                    type="button"
+                    aria-label={`Reproduzir ${title ?? 'vídeo'}`}
+                    aria-busy={loading}
+                    disabled={loading}
+                    onClick={() => void play()}
+                    className="absolute inset-0 z-[1] flex cursor-pointer items-center justify-center bg-black/10 text-white disabled:cursor-wait"
+                >
+                    {loading ? (
+                        <Loader2 className="size-10 animate-spin drop-shadow-md" />
+                    ) : (
+                        <Play className="size-12 fill-current drop-shadow-md" />
+                    )}
+                </button>
+            )}
             <video
                 {...videoProps}
                 title={title}
                 controls={controls}
-                className="relative size-full object-cover"
-                onPlay={(event) => {
-                    const video = event.currentTarget;
-                    if (!video.src.startsWith('blob:')) void play();
-                }}
+                className={cn(
+                    'relative size-full object-cover',
+                    waiting && 'invisible',
+                )}
             />
             {error && (
-                <p className="absolute inset-x-0 bottom-2 text-center text-xs text-white">
+                <p className="absolute inset-x-0 bottom-2 z-[2] text-center text-xs text-white drop-shadow-md">
                     {error}
                 </p>
             )}

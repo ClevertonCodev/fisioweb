@@ -6,14 +6,17 @@ import {
     doseOf,
     fromMine,
     INITIAL_MODEL_FILTERS,
+    libraryExercise,
     modelChips,
+    myExercise,
     regionsOf,
     removeModelChip,
     scheduleOf,
     type ModelExercise,
     type ModelSummary,
 } from '@/application/clinic/program-models';
-import type { Program } from '@/domain/clinic';
+import type { AdminProgramExercise } from '@/domain/admin';
+import type { Program, ProgramExercise } from '@/domain/clinic';
 
 function model(overrides: Partial<ModelSummary> = {}): ModelSummary {
     return {
@@ -98,6 +101,7 @@ describe('fromMine', () => {
 describe('doseOf e scheduleOf (exercício do modelo)', () => {
     const base: ModelExercise = {
         id: 'e1',
+        exerciseId: '1',
         title: 'Ponte',
         thumbnailUrl: '',
         videoUrl: '',
@@ -132,5 +136,20 @@ describe('doseOf e scheduleOf (exercício do modelo)', () => {
             }),
         ).toBe('Todos os dias · Tarde');
         expect(scheduleOf({ ...base, days: [5, 1] })).toBe('Seg, Sex');
+    });
+
+    it('o exercício do modelo guarda o id do exercício, além do id do item', () => {
+        const nosso = libraryExercise({
+            id: 70,
+            exerciseId: 12,
+        } as AdminProgramExercise);
+        const meu = myExercise({
+            id: '71',
+            exerciseId: '13',
+            title: 'Ponte',
+        } as ProgramExercise);
+
+        expect(nosso).toMatchObject({ id: '70', exerciseId: '12' });
+        expect(meu).toMatchObject({ id: '71', exerciseId: '13' });
     });
 });

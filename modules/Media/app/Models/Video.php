@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Media\Support\VideoMetadataPresenter;
 
 class Video extends Model
@@ -69,12 +69,12 @@ class Video extends Model
 
     protected function videoUrl(): Attribute
     {
-        return Attribute::get(fn () => SignedMedia::video($this->path));
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forVideo($this->path));
     }
 
     protected function thumbnailUrl(): Attribute
     {
-        return Attribute::get(fn () => SignedMedia::video($this->thumbnail_path));
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forVideo($this->thumbnail_path));
     }
 
     public function uploadable(): MorphTo

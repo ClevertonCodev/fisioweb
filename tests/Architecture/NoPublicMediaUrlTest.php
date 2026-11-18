@@ -9,20 +9,64 @@ use SplFileInfo;
 
 class NoPublicMediaUrlTest extends TestCase
 {
-    public function test_production_code_does_not_publish_a_cdn_url(): void
+    /** @var array<string, string> */
+    private const FORBIDDEN = [
+        'getFileCdnUrl'                  => '/\bgetFileCdnUrl\b/',
+        'getFileUrl'                     => '/\bgetFileUrl\b/',
+        'generateCdnUrl'                 => '/\bgenerateCdnUrl\b/',
+        'campo cdn_url'                  => '/\bcdn_url\b/',
+        'CLOUDFLARE_CDN_URL'             => '/\bCLOUDFLARE_CDN_URL\b/',
+        'url pública do disco'           => '/Storage::disk\([^)]*\)\s*->\s*url\(/',
+        'host r2.dev'                    => '/[a-z0-9-]+\.r2\.dev\b/i',
+        'serviço externo de QR'          => '/api\.qrserver\.com/i',
+        'host de CDN do ivsmed'          => '/\bcdn[a-z0-9-]*\.ivsmed\.com\b/i',
+    ];
+
+    public function test_production_code_does_not_publish_a_public_media_address(): void
     {
         $hits = [];
 
         foreach ($this->productionFiles() as $file) {
-            $contents = (string) file_get_contents($file);
-            foreach (['getFileCdnUrl', 'getFileUrl', 'cdn-dev.ivsmed.com'] as $token) {
-                if (str_contains($contents, $token)) {
-                    $hits[] = $file . ' contém ' . $token;
-                }
+            foreach ($this->violations((string) file_get_contents($file)) as $label) {
+                $hits[] = "{$file} contém {$label}";
             }
         }
 
-        $this->assertSame([], $hits, implode("\n", $hits));
+        $this->assertSame([], $hits, implode(PHP_EOL, $hits));
+    }
+
+    public function test_scanner_flags_each_public_address_pattern(): void
+    {
+        $synthetic = <<<'TXT'
+            $this->fileService->getFileCdnUrl($path);
+            $service->getFileUrl($path);
+            $this->generateCdnUrl($key);
+            $video->cdn_url;
+            CLOUDFLARE_CDN_URL=https://x
+            Storage::disk('r2')->url($path);
+            https://pub-123abc.r2.dev/videos/a.mp4
+            https://api.qrserver.com/v1/create-qr-code/
+            https://cdn.ivsmed.com/videos/a.mp4
+            TXT;
+
+        $this->assertSame(array_keys(self::FORBIDDEN), $this->violations($synthetic));
+        $this->assertSame([], $this->violations('$video->video_url; $patient->photo_path;'));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function violations(string $contents): array
+    {
+        $found = [];
+
+        foreach (self::FORBIDDEN as $label => $pattern) {
+            if (preg_match($pattern, $contents) === 1) {
+                $found[] = $label;
+            }
+        }
+
+        return $found;
     }
 
     /**
@@ -31,45 +75,41 @@ class NoPublicMediaUrlTest extends TestCase
     private function productionFiles(): array
     {
         $root  = dirname(__DIR__, 2);
+        $files = [$root . '/.env.example'];
         $roots = [
             $root . '/app',
             $root . '/config',
+            $root . '/routes',
             $root . '/database/seeders',
             $root . '/resources/js',
             $root . '/resources/views',
+            $root . '/infra',
         ];
 
-        foreach (glob($root . '/modules/*/app') ?: [] as $moduleApp) {
-            $roots[] = $moduleApp;
-        }
-        foreach (glob($root . '/modules/*/database/seeders') ?: [] as $seeders) {
-            $roots[] = $seeders;
+        foreach (['app', 'config', 'routes', 'resources', 'database/seeders'] as $folder) {
+            foreach (glob($root . '/modules/*/' . $folder) ?: [] as $moduleFolder) {
+                $roots[] = $moduleFolder;
+            }
         }
 
-        $files = [];
-        foreach ($roots as $root) {
-            if (!is_dir($root)) {
+        foreach ($roots as $folder) {
+            if (!is_dir($folder)) {
                 continue;
             }
-            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
-            foreach ($iterator as $file) {
+
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder)) as $file) {
                 if (!$file instanceof SplFileInfo || !$file->isFile()) {
                     continue;
                 }
+
                 $path = $file->getPathname();
-                if (str_contains($path, '/tests/') || str_contains($path, '/test/')) {
+                if (str_contains($path, '/test/') || str_contains($path, '/tests/')) {
                     continue;
                 }
-                $extension = $file->getExtension();
-                if (!in_array($extension, ['php', 'ts', 'tsx', 'js', 'vue', 'blade.php'], true) && !str_ends_with($path, '.blade.php')) {
-                    if ($extension !== 'php' && !str_ends_with($path, '.ts') && !str_ends_with($path, '.tsx')) {
-                        continue;
-                    }
+
+                if (preg_match('/\.(php|ts|tsx|js|vue|sh|conf|env|ya?ml)$/', $path) === 1) {
+                    $files[] = $path;
                 }
-                if (!preg_match('/\.(php|ts|tsx|js|vue)$/', $path)) {
-                    continue;
-                }
-                $files[] = $path;
             }
         }
 

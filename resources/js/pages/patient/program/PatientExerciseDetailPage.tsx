@@ -128,7 +128,7 @@ function SquareExerciseVideo({
                 <ProtectedVideo
                     videoUrl={exercise.videoUrl}
                     posterUrl={exercise.thumbnailUrl}
-                    title={`Vídeo: ${exercise.name}`}
+                    title={exercise.name}
                     controls
                     onRefresh={onRefresh}
                     onRefreshPoster={onRefreshPoster}

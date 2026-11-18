@@ -238,6 +238,49 @@ class ModuleBoundaryTest extends TestCase
         $this->assertSame([], $violations, implode(PHP_EOL, $violations));
     }
 
+    public function test_other_modules_reach_cloudflare_only_through_contracts(): void
+    {
+        $violations = [];
+        $roots      = [dirname(__DIR__, 2) . '/modules', dirname(__DIR__, 2) . '/app'];
+
+        foreach ($roots as $root) {
+            foreach ($this->productionPhpFiles($root) as $file) {
+                $path = $file->getPathname();
+
+                if (str_contains($path, '/modules/Cloudflare/') || str_contains($path, '/tests/')) {
+                    continue;
+                }
+
+                $violations = [...$violations, ...$this->cloudflareViolationsForContent($path, (string) file_get_contents($path))];
+            }
+        }
+
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
+    public function test_cloudflare_scanner_detects_concrete_class_reference(): void
+    {
+        $violations = $this->cloudflareViolationsForContent(
+            'modules/Media/app/Models/Synthetic.php',
+            "use Modules\\Cloudflare\\Contracts\\FileServiceInterface;\nuse Modules\\Cloudflare\\Support\\SignedMedia;\n\$x = \\Modules\\Cloudflare\\Services\\CloudflareR2Service::class;\n",
+        );
+
+        $this->assertCount(2, $violations);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function cloudflareViolationsForContent(string $path, string $contents): array
+    {
+        preg_match_all('/Modules\\\\Cloudflare\\\\(?!Contracts\\\\)[A-Za-z0-9_\\\\]+/', $contents, $matches);
+
+        return array_map(
+            fn (string $reference) => "{$path} references {$reference}",
+            array_values(array_unique($matches[0])),
+        );
+    }
+
     public function test_boundary_scanner_detects_synthetic_prohibited_import(): void
     {
         $violations = $this->violationsForContent(

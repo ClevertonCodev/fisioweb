@@ -35,7 +35,7 @@ class PatientFileSignedLinkTest extends TestCase
     {
         parent::setUp();
 
-        config(['cloudflare.r2_disk' => 'r2', 'cloudflare.cdn_url' => 'https://cdn.example.test']);
+        config(['cloudflare.r2_disk' => 'r2']);
         Storage::fake('r2');
 
         $this->clinic    = Clinic::factory()->create();

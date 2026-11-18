@@ -21,7 +21,6 @@ class CloudflareR2ServiceFileTest extends TestCase
         parent::setUp();
 
         config(['cloudflare.r2_disk' => 'r2']);
-        config(['cloudflare.cdn_url' => 'https://cdn.example.com']);
         config(['cloudflare.image_directory' => 'images']);
         config(['cloudflare.thumbnail_directory' => 'thumbnails']);
 

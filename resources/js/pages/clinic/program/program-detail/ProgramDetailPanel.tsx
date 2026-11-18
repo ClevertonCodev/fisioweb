@@ -319,6 +319,7 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
             >
                 {video?.videoUrl ? (
                     <ProtectedVideo
+                        title={video.title}
                         videoUrl={video.videoUrl}
                         posterUrl={video.thumbnailUrl}
                         controls

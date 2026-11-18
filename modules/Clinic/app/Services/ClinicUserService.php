@@ -4,11 +4,18 @@ namespace Modules\Clinic\Services;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Throwable;
 
 class ClinicUserService implements ClinicUserServiceInterface
 {
+    public function __construct(
+        protected FileServiceInterface $files,
+    ) {}
+
     /**
      * Credenciais do Google zeradas: sem elas, o pull e o push da agenda param
      * para a pessoa. Quem é desativado ou excluído perde também esse canal.
@@ -42,6 +49,37 @@ class ClinicUserService implements ClinicUserServiceInterface
             'status'            => $data['status'] ?? ClinicUser::STATUS_ACTIVE,
             'email_verified_at' => $data['email_verified_at'] ?? now(),
         ]));
+    }
+
+    public function replacePhoto(ClinicUser $clinicUser, string $path, bool $impersonating): ClinicUser
+    {
+        $previous = $clinicUser->photo_path;
+        $updated  = $this->update($clinicUser, ['photo_path' => $path], $impersonating);
+        $this->deletePhotoIfUnused($previous);
+
+        return $updated;
+    }
+
+    public function removePhoto(ClinicUser $clinicUser, bool $impersonating): ClinicUser
+    {
+        $previous = $clinicUser->photo_path;
+        $updated  = $this->update($clinicUser, ['photo_path' => null], $impersonating);
+        $this->deletePhotoIfUnused($previous);
+
+        return $updated;
+    }
+
+    private function deletePhotoIfUnused(?string $path): void
+    {
+        if (empty($path) || ClinicUser::withTrashed()->where('photo_path', $path)->exists()) {
+            return;
+        }
+
+        try {
+            $this->files->deletePrivateFile($path);
+        } catch (Throwable $e) {
+            Log::warning('Foto antiga do profissional ficou no armazenamento.', ['exception' => $e::class]);
+        }
     }
 
     public function update(ClinicUser $clinicUser, array $data, bool $impersonating): ClinicUser

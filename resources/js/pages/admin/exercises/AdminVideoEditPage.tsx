@@ -47,7 +47,6 @@ function hydrateReferenceSlots(
     const refs = Array.isArray(metadata?.reference_images)
         ? (metadata.reference_images as {
               url?: string;
-              cdn_url?: string;
               file_path?: string;
           }[])
         : [];
@@ -55,13 +54,13 @@ function hydrateReferenceSlots(
     return [
         refs[0]
             ? {
-                  url: refs[0].url ?? refs[0].cdn_url ?? '',
+                  url: refs[0].url ?? '',
                   path: refs[0].file_path,
               }
             : null,
         refs[1]
             ? {
-                  url: refs[1].url ?? refs[1].cdn_url ?? '',
+                  url: refs[1].url ?? '',
                   path: refs[1].file_path,
               }
             : null,
@@ -115,10 +114,10 @@ export default function AdminVideoEditPage() {
         refsDirtyNow = false;
     }
 
-    // ...e os campos partem do vídeo carregado, sem sobrescrever edição em curso.
-    const [loadedVideo, setLoadedVideo] = useState<unknown>(null);
-    if (video && loadedVideo !== video) {
-        setLoadedVideo(video);
+    // ...e os campos partem do vídeo carregado uma vez por id: cada busca traz links assinados novos.
+    const [loadedVideoId, setLoadedVideoId] = useState<number | null>(null);
+    if (video && loadedVideoId !== video.id) {
+        setLoadedVideoId(video.id);
         setOriginalFilename(video.original_filename ?? '');
         setDuration(video.duration != null ? String(video.duration) : '');
 

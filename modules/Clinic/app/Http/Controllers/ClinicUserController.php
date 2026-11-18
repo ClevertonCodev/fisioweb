@@ -95,12 +95,8 @@ class ClinicUserController extends ClinicAuthenticatedController
             'photo' => ['required', 'file', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ]);
 
-        $previous = $user->photo_path;
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'clinic-users/photos');
-        $user     = $this->clinicUserService->update($user, ['photo_path' => $uploaded['path']], impersonating: !is_null($this->impersonatorId()));
-        if (!empty($previous) && $previous !== $uploaded['path']) {
-            $this->fileService->deletePrivateFile($previous);
-        }
+        $user     = $this->clinicUserService->replacePhoto($user, $uploaded['path'], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }
@@ -109,11 +105,7 @@ class ClinicUserController extends ClinicAuthenticatedController
     {
         $this->authorize('update', $user);
 
-        $previous = $user->photo_path;
-        $user     = $this->clinicUserService->update($user, ['photo_path' => null], impersonating: !is_null($this->impersonatorId()));
-        if (!empty($previous)) {
-            $this->fileService->deletePrivateFile($previous);
-        }
+        $user = $this->clinicUserService->removePhoto($user, impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }

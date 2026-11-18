@@ -59,3 +59,18 @@ arquivo.
 O link assinado da API continua abrindo: entre na clínica, abra um vídeo e
 confira que o player toca. Esse endereço é o endpoint S3, com `X-Amz-Signature`,
 e vence em 30 minutos.
+
+## Registro
+
+- **2026-11-18**, feito pelo agente no painel, com a conta do usuário e a pedido
+  dele: `cdn-dev.ivsmed.com` **desabilitado** (não removido) em R2 → `ivsdev` →
+  Custom Domains; o acesso aparece como "Desabilitado". Para religar: menu "..."
+  do domínio → "Habilitar". A Public Development URL (`r2.dev`) já estava
+  desativada. CORS não foi alterado.
+- Prova com um vídeo enviado (`videos/<id>.mp4`): antes `cdn 200`; depois
+  `cdn 401`, com e sem parâmetro de cache (`cf-cache-status: DYNAMIC`). O link
+  assinado continua abrindo: smoke `paciente-programa`, `paciente-troca-de-exercicio`,
+  `admin-videos` e `clinica-envio-e-biblioteca` OK.
+- Efeito colateral aceito pelo usuário: o `app.ivsmed.com` ainda roda a release 7
+  (sem a 019) e montava a mídia pelo `cdn-dev`; até a 019 ser publicada lá, as
+  imagens e vídeos desse servidor de testes não abrem.

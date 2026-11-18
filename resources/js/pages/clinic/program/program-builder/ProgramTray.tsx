@@ -9,13 +9,13 @@ import {
     exerciseCount,
     type ProgramBuilder,
 } from '@/application/clinic/program-builder';
-import { useRefreshExerciseMedia } from '@/application/clinic/use-exercises';
 import { DsButton, dsCn } from '@/components/ds';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { ProgramExercise } from '@/domain/clinic';
+import { useRefreshItemMedia } from '@/pages/clinic/program/exercise-library/media';
 
 function TrayThumb({ exercise }: { exercise: ProgramExercise }) {
-    const refresh = useRefreshExerciseMedia(exercise.exerciseId);
+    const refresh = useRefreshItemMedia(exercise);
 
     if (!exercise.thumbnailUrl) return null;
 

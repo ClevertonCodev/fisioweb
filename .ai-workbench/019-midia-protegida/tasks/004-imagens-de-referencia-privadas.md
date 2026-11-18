@@ -21,13 +21,13 @@ As imagens de referência de um exercício guardam um endereço fixo do CDN em d
 
 ## Critérios de Aceite
 
-- [ ] A coluna `admin_exercise_media.cdn_url` não existe mais, e `migrate:fresh --seed` roda sem erro.
-- [ ] Nenhuma resposta de vídeo ou de exercício traz `cdn_url`, `file_path`, `proposed_thumbnail_path` ou o host do CDN, nem dentro do `metadata`.
-- [ ] As imagens de referência saem com link assinado de 5 min, na clínica e no admin.
-- [ ] Trocar as imagens de um vídeo não travado e propor imagens para um vídeo travado (ADR 029) continuam funcionando.
-- [ ] A clínica B não recebe imagem de referência de exercício pendente ou de proposta da clínica A.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A coluna `admin_exercise_media.cdn_url` não existe mais, e `migrate:fresh --seed` roda sem erro.
+- [x] Nenhuma resposta de vídeo ou de exercício traz `cdn_url`, `file_path`, `proposed_thumbnail_path` ou o host do CDN, nem dentro do `metadata`.
+- [x] As imagens de referência saem com link assinado de 5 min, na clínica e no admin.
+- [x] Trocar as imagens de um vídeo não travado e propor imagens para um vídeo travado (ADR 029) continuam funcionando.
+- [x] A clínica B não recebe imagem de referência de exercício pendente ou de proposta da clínica A.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

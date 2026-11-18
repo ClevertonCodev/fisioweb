@@ -24,15 +24,15 @@ Ela é a base das outras. O contrato de link assinado nasce aqui, e todos os lei
 
 ## Critérios de Aceite
 
-- [ ] As colunas `url`, `cdn_url` e `thumbnail_url` não existem mais em `media_videos`, e `migrate:fresh --seed` roda sem erro.
-- [ ] As respostas de vídeo da clínica, do admin e do programa do paciente trazem `video_url` e `thumbnail_url` com assinatura e prazo de 30 min, e não trazem `url`, `cdn_url`, `path`, `thumbnail_path` nem o host do CDN.
-- [ ] O contrato de leitura assinada devolve 30 min para vídeo e 5 min para imagem (teste no Cloudflare).
-- [ ] O upload e a confirmação de vídeo, pela clínica e pelo admin, continuam funcionando e gravam só o caminho.
-- [ ] As telas de vídeo da clínica, do admin e do paciente continuam tocando o vídeo (com o player atual).
-- [ ] A clínica B não recebe link de vídeo pendente ou privado da clínica A.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] As colunas `url`, `cdn_url` e `thumbnail_url` não existem mais em `media_videos`, e `migrate:fresh --seed` roda sem erro.
+- [x] As respostas de vídeo da clínica, do admin e do programa do paciente trazem `video_url` e `thumbnail_url` com assinatura e prazo de 30 min, e não trazem `url`, `cdn_url`, `path`, `thumbnail_path` nem o host do CDN.
+- [x] O contrato de leitura assinada devolve 30 min para vídeo e 5 min para imagem (teste no Cloudflare).
+- [x] O upload e a confirmação de vídeo, pela clínica e pelo admin, continuam funcionando e gravam só o caminho.
+- [x] As telas de vídeo da clínica, do admin e do paciente continuam tocando o vídeo (com o player atual).
+- [x] A clínica B não recebe link de vídeo pendente ou privado da clínica A.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

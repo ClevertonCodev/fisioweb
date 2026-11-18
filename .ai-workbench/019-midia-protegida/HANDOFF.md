@@ -1,3 +1,5 @@
+> **Superado em 2026-11-17:** o usuário escolheu a opção 1 (player por arquivo) e as rodadas 4 a 6. O estado atual está no `README.md` e em `review/000-feature-019/decisoes.md`.
+
 # Handoff · 2026-11-17 · Mídia protegida (feature 019)
 
 Passagem para a próxima sessão. O handoff anterior (2026-11-16, direção da

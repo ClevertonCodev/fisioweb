@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import type { ProtectedRefresh } from './use-protected-playback';
+import { mediaKey, type ProtectedRefresh } from './use-protected-playback';
 
 interface ProtectedImageProps {
     src?: string | null;
@@ -25,7 +25,7 @@ export function ProtectedImage({
     if (src !== seenSrc) {
         setSeenSrc(src);
         setCurrent(src);
-        setTried(false);
+        if (mediaKey(src) !== mediaKey(seenSrc)) setTried(false);
     }
 
     return (
@@ -34,7 +34,10 @@ export function ProtectedImage({
             src={current || undefined}
             alt={alt}
             className={className}
-            onLoad={onLoad}
+            onLoad={() => {
+                setTried(false);
+                onLoad?.();
+            }}
             onError={() => {
                 onLoad?.();
                 if (tried || !onRefresh || !current) return;

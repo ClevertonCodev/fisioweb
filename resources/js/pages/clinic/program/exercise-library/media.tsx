@@ -42,7 +42,6 @@ export interface ItemMedia {
     thumbnailUrl?: string | null;
 }
 
-/** Busca a mídia de um item (pelo id do item) no modelo ou no programa de onde ele veio. */
 type ItemMediaLookup = (itemId: string) => Promise<ItemMedia | null>;
 
 const ItemMediaContext = createContext<ItemMediaLookup | null>(null);

@@ -10,7 +10,7 @@ import type {
     ProgramListParams,
     ProgramWriteDto,
 } from '@/application/clinic/ports';
-import type { Program } from '@/domain/clinic';
+import type { Program, ProgramExercise } from '@/domain/clinic';
 import { apiClinicProgramsRepository } from '@/infrastructure/repositories';
 
 export function listClinicPrograms(params?: ProgramListParams) {
@@ -150,6 +150,19 @@ export function useFetchClinicProgram() {
             queryFn: () => apiClinicProgramsRepository.getById(id),
             staleTime: options?.staleTime,
         });
+}
+
+export function useProgramItemMedia(programId: string | undefined) {
+    const fetchProgram = useFetchClinicProgram();
+    return async (itemId: string): Promise<ProgramExercise | null> => {
+        if (!programId) return null;
+        const program = await fetchProgram(programId, { staleTime: 0 });
+        return (
+            program?.groups
+                .flatMap((group) => group.exercises)
+                .find((exercise) => exercise.id === itemId) ?? null
+        );
+    };
 }
 
 export function useCreateClinicProgram() {

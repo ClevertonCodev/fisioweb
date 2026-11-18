@@ -17,13 +17,13 @@ O PDF do programa embute as imagens dos exercícios e a foto do profissional. O 
 
 ## Critérios de Aceite
 
-- [ ] O PDF sai com as imagens dos exercícios e a foto do profissional.
-- [ ] O HTML do PDF não tem o host do CDN; as imagens vêm de link assinado.
-- [ ] Com a geração local do QR falhando, o PDF sai sem QR, sem nenhuma chamada ao `api.qrserver.com`, e o log não tem o token.
-- [ ] O QR, quando gerado, continua apontando para `APP_URL/{slug}/paciente/programas/{public_token}`.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O PDF sai com as imagens dos exercícios e a foto do profissional.
+- [x] O HTML do PDF não tem o host do CDN; as imagens vêm de link assinado.
+- [x] Com a geração local do QR falhando, o PDF sai sem QR, sem nenhuma chamada ao `api.qrserver.com`, e o log não tem o token.
+- [x] O QR, quando gerado, continua apontando para `APP_URL/{slug}/paciente/programas/{public_token}`.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

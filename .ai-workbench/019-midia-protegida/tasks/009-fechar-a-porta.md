@@ -22,15 +22,15 @@ Depois das tarefas 001 a 008, nenhuma tela usa mais endereço público, mas o c�
 
 ## Critérios de Aceite
 
-- [ ] `getFileUrl` e `getFileCdnUrl` não existem mais, e os retornos de upload não têm `url` nem `cdn_url`.
-- [ ] `cloudflare.cdn_url` e o `url` do disco `r2` não existem mais.
-- [ ] As colunas `clinic_patient_files.cdn_url` e `clinic_financial_attachments.cdn_url` não existem mais, e `migrate:fresh --seed` roda sem erro.
-- [ ] O teste de arquitetura passa e falha se alguém reintroduzir `getFileCdnUrl` ou o host do CDN.
-- [ ] Prontuário e Finanças continuam abrindo arquivo por link assinado (regressão).
-- [ ] ADR 030 escrito, com notas nos ADRs 027 e 029, e a skill `api-client` atualizada.
-- [ ] Roteiro do Cloudflare entregue ao usuário, com o comando de prova.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] `getFileUrl` e `getFileCdnUrl` não existem mais, e os retornos de upload não têm `url` nem `cdn_url`.
+- [x] `cloudflare.cdn_url` e o `url` do disco `r2` não existem mais.
+- [x] As colunas `clinic_patient_files.cdn_url` e `clinic_financial_attachments.cdn_url` não existem mais, e `migrate:fresh --seed` roda sem erro.
+- [x] O teste de arquitetura passa e falha se alguém reintroduzir `getFileCdnUrl` ou o host do CDN.
+- [x] Prontuário e Finanças continuam abrindo arquivo por link assinado (regressão).
+- [x] ADR 030 escrito, com notas nos ADRs 027 e 029, e a skill `api-client` atualizada.
+- [x] Roteiro do Cloudflare entregue ao usuário, com o comando de prova.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

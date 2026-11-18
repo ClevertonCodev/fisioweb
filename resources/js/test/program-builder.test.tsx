@@ -1,5 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+    within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import {
@@ -22,6 +29,8 @@ import { programDraftFromExercise } from '@/application/clinic/program-from-exer
 import * as usePatientsHook from '@/application/clinic/use-patients';
 import * as useProgramsHook from '@/application/clinic/use-programs';
 import type { Exercise, Program } from '@/domain/clinic';
+import { storageClient } from '@/infrastructure/api/storage-client';
+import * as repositories from '@/infrastructure/repositories';
 import ProgramEditPage from '@/pages/clinic/program/ProgramEditPage';
 import ProgramNewPage from '@/pages/clinic/program/ProgramNewPage';
 
@@ -1054,5 +1063,95 @@ describe('assistente: modelo', () => {
         };
         expect(id).toBe('9');
         expect(dto).toMatchObject({ patientId: null, groups: [{ id: 31 }] });
+    });
+});
+
+describe('assistente: mídia de exercício desativado na edição', () => {
+    function withMedia(s: number): Program {
+        const base = savedProgram();
+        const group = base.groups[0]!;
+        return savedProgram({
+            groups: [
+                {
+                    ...group,
+                    exercises: [
+                        {
+                            ...group.exercises[0]!,
+                            thumbnailUrl: `https://conta.example/thumbnails/ponte.jpg?s=${s}`,
+                            videoUrl: `https://conta.example/videos/ponte.mp4?s=${s}`,
+                        },
+                    ],
+                },
+            ],
+        });
+    }
+
+    let storage: ReturnType<typeof vi.spyOn>;
+    let programById: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+        vi.stubGlobal('URL', {
+            createObjectURL: vi.fn(() => 'blob:video'),
+            revokeObjectURL: vi.fn(),
+        });
+        HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
+        HTMLMediaElement.prototype.pause = vi.fn();
+        HTMLMediaElement.prototype.load = vi.fn();
+        storage = vi
+            .spyOn(storageClient, 'get')
+            .mockResolvedValueOnce({ status: 403, data: new Blob(['x']) })
+            .mockResolvedValue({ status: 200, data: new Blob(['x']) });
+        vi.spyOn(
+            repositories.apiClinicExercisesRepository,
+            'getById',
+        ).mockRejectedValue(new Error('404'));
+        programById = vi
+            .spyOn(repositories.apiClinicProgramsRepository, 'getById')
+            .mockResolvedValue(withMedia(2));
+    });
+
+    it('o vídeo do quadro vem do programa salvo', async () => {
+        renderAt('/clinica/programas/7/editar', { program: withMedia(1) });
+
+        await user().click(
+            screen.getAllByRole('button', {
+                name: 'Reproduzir Ponte Glútea',
+            })[0]!,
+        );
+
+        await waitFor(() => expect(storage).toHaveBeenCalledTimes(2));
+        expect(programById).toHaveBeenCalledWith('7');
+        expect(storage.mock.calls[1]![0]).toBe(
+            'https://conta.example/videos/ponte.mp4?s=2',
+        );
+    });
+
+    it('o vídeo do painel de dose vem do programa salvo', async () => {
+        renderAt('/clinica/programas/7/editar', { program: withMedia(1) });
+        await user().click(screen.getAllByText('Editar dose')[0]!);
+        const dialog = await screen.findByRole('dialog');
+
+        await user().click(
+            within(dialog).getByRole('button', {
+                name: 'Reproduzir Ponte Glútea',
+            }),
+        );
+
+        await waitFor(() => expect(storage).toHaveBeenCalledTimes(2));
+        expect(programById).toHaveBeenCalledWith('7');
+    });
+
+    it('a capa da bandeja "Seu programa" vem do programa salvo', async () => {
+        renderAt('/clinica/programas/7/editar', { program: withMedia(1) });
+        await user().click(
+            screen.getByRole('button', { name: '1. Exercícios' }),
+        );
+        const thumb = document.querySelector(
+            'img[src*="thumbnails/ponte.jpg"]',
+        )!;
+
+        fireEvent.error(thumb);
+
+        await waitFor(() => expect(programById).toHaveBeenCalledWith('7'));
     });
 });

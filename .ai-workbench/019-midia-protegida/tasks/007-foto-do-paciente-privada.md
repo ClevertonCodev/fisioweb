@@ -21,14 +21,14 @@ A foto do paciente, dado pessoal (LGPD), fica em `patients.photo_url` com o ende
 
 ## Critérios de Aceite
 
-- [ ] A coluna `patients.photo_url` não existe mais, `photo_path` existe, e `migrate:fresh --seed` roda sem erro.
-- [ ] Nenhuma resposta de paciente, dashboard, agenda ou `me` do paciente traz `photo_path` ou o host do CDN; `photo_url` tem assinatura e prazo de 5 min.
-- [ ] Enviar e remover foto do paciente funcionam, e a foto nova aparece na lista.
-- [ ] Papel sem permissão continua recebendo 403 nas rotas de foto do paciente (regressão).
-- [ ] A clínica B não recebe foto de paciente da clínica A na lista, na agenda nem no dashboard.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A coluna `patients.photo_url` não existe mais, `photo_path` existe, e `migrate:fresh --seed` roda sem erro.
+- [x] Nenhuma resposta de paciente, dashboard, agenda ou `me` do paciente traz `photo_path` ou o host do CDN; `photo_url` tem assinatura e prazo de 5 min.
+- [x] Enviar e remover foto do paciente funcionam, e a foto nova aparece na lista.
+- [x] Papel sem permissão continua recebendo 403 nas rotas de foto do paciente (regressão).
+- [x] A clínica B não recebe foto de paciente da clínica A na lista, na agenda nem no dashboard.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

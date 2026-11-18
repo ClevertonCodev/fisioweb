@@ -845,6 +845,82 @@ describe('mídia protegida', () => {
         expect(rejections).toEqual([]);
     });
 
+    it('a imagem que não carrega nem com link novo pede um link só, mesmo com a tela trocando a assinatura', async () => {
+        let n = 1;
+        const onRefresh = vi.fn();
+        function Tela() {
+            const [src, setSrc] = useState(
+                'https://conta.example/capa.jpg?s=1',
+            );
+            onRefresh.mockImplementation(async () => {
+                const next = `https://conta.example/capa.jpg?s=${++n}`;
+                setSrc(next);
+                return next;
+            });
+            return (
+                <ProtectedImage src={src} alt="capa" onRefresh={onRefresh} />
+            );
+        }
+        render(<Tela />);
+
+        for (let i = 0; i < 5; i++) {
+            fireEvent.error(screen.getByRole('img', { name: 'capa' }));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        expect(onRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('depois de carregar, a imagem volta a pedir link novo quando o link vence de novo', async () => {
+        const onRefresh = vi
+            .fn()
+            .mockResolvedValueOnce('https://conta.example/capa.jpg?s=2')
+            .mockResolvedValueOnce('https://conta.example/capa.jpg?s=3');
+        render(
+            <ProtectedImage
+                src="https://conta.example/capa.jpg?s=1"
+                alt="capa"
+                onRefresh={onRefresh}
+            />,
+        );
+
+        fireEvent.error(screen.getByRole('img', { name: 'capa' }));
+        await waitFor(() =>
+            expect(screen.getByRole('img', { name: 'capa' })).toHaveAttribute(
+                'src',
+                'https://conta.example/capa.jpg?s=2',
+            ),
+        );
+        fireEvent.load(screen.getByRole('img', { name: 'capa' }));
+        fireEvent.error(screen.getByRole('img', { name: 'capa' }));
+
+        await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(2));
+    });
+
+    it('trocar para outro arquivo libera um novo pedido de link', async () => {
+        const onRefresh = vi.fn().mockResolvedValue(null);
+        const view = render(
+            <ProtectedImage
+                src="https://conta.example/a.jpg?s=1"
+                alt="capa"
+                onRefresh={onRefresh}
+            />,
+        );
+        fireEvent.error(screen.getByRole('img', { name: 'capa' }));
+        await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
+
+        view.rerender(
+            <ProtectedImage
+                src="https://conta.example/b.jpg?s=1"
+                alt="capa"
+                onRefresh={onRefresh}
+            />,
+        );
+        fireEvent.error(screen.getByRole('img', { name: 'capa' }));
+
+        await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(2));
+    });
+
     it('a imagem pede um link novo uma vez quando não carrega', async () => {
         const onRefresh = vi
             .fn()

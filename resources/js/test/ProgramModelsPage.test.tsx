@@ -467,6 +467,43 @@ describe('ProgramModelsPage', () => {
         expect(getExercise).toHaveBeenCalledWith('13');
     });
 
+    it('em Nossos modelos, a capa de um exercício desativado é renovada pelo próprio modelo', async () => {
+        const user = userEvent.setup();
+        const withThumb = (thumbnailUrl: string) => {
+            const program = catalogProgram();
+            program.groups![0]!.exercises![0]!.exercise!.thumbnailUrl =
+                thumbnailUrl;
+            return program;
+        };
+        getLibraryDetail
+            .mockResolvedValueOnce(
+                withThumb('https://conta.example/thumbnails/bird.jpg?s=1'),
+            )
+            .mockResolvedValue(
+                withThumb('https://conta.example/thumbnails/bird.jpg?s=2'),
+            );
+        getExercise.mockRejectedValue(new Error('404'));
+        renderPage();
+        await screen.findByText('Reabilitação lombar — fase 1');
+        await user.click(
+            screen.getByRole('button', { name: 'Ver exercícios' }),
+        );
+
+        fireEvent.error(await screen.findByRole('img', { name: 'Bird Dog' }));
+
+        await waitFor(() =>
+            expect(
+                screen.getByRole('img', { name: 'Bird Dog' }),
+            ).toHaveAttribute(
+                'src',
+                'https://conta.example/thumbnails/bird.jpg?s=2',
+            ),
+        );
+        expect(getExercise).toHaveBeenCalledWith('5');
+        expect(getLibraryDetail).toHaveBeenCalledTimes(2);
+        expect(getMine).not.toHaveBeenCalled();
+    });
+
     it('Nossos modelos busca todas as páginas do catálogo', async () => {
         listLibrary.mockImplementation(({ page }: { page: number }) =>
             Promise.resolve({

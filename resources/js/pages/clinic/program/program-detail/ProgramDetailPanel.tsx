@@ -20,7 +20,7 @@ import {
 } from '@/application/clinic/program-detail';
 import { programWhatsAppUrl } from '@/application/clinic/program-share';
 import { useRefreshPatientPhoto } from '@/application/clinic/use-patients';
-import { useFetchClinicProgram } from '@/application/clinic/use-programs';
+import { useProgramItemMedia } from '@/application/clinic/use-programs';
 import { DsAlert, DsButton, DsKpi, DsModal, DsTooltip } from '@/components/ds';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
@@ -200,16 +200,7 @@ export function ProgramDetailPanel({ program: p }: { program: Program }) {
     const [video, setVideo] = useState<ProgramExercise | null>(null);
     const panel = programPanel(p);
     const refreshPhoto = useRefreshPatientPhoto(p.patientId ?? undefined);
-    const fetchProgram = useFetchClinicProgram();
-    const refreshExercise = async (exerciseId: string) => {
-        const program = await fetchProgram(p.id, { staleTime: 0 });
-
-        return (
-            program?.groups
-                .flatMap((group) => group.exercises)
-                .find((exercise) => exercise.id === exerciseId) ?? null
-        );
-    };
+    const refreshExercise = useProgramItemMedia(p.id);
 
     return (
         <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">

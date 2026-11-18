@@ -2,7 +2,7 @@
 
 Nenhum vídeo, capa, imagem ou foto tem mais endereço público: cada tela recebe um link assinado que vence, para que ninguém copie a biblioteca nem abra arquivo fora do sistema.
 
-- **Status:** implementada, sem commit; revisão adversária parada no limite com 3 Major no player (ver `HANDOFF.md`)
+- **Status:** concluída em 2026-11-17. Revisão adversária fechada na rodada 6 por decisão do usuário, sem APROVADO formal: as correções da rodada 6 foram conferidas por teste com mutação e smoke, não por um revisor (ver `review/000-feature-019/decisoes.md`, local).
 - **Branch:** `feat/midia-protegida`
 - **Plano:** [`plans/midia-protegida.md`](plans/midia-protegida.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)
@@ -12,15 +12,15 @@ Nenhum vídeo, capa, imagem ou foto tem mais endereço público: cada tela receb
 
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
-| [`001-video-e-capa-com-link-assinado`](tasks/001-video-e-capa-com-link-assinado.md) | a fazer | | |
-| [`002-video-e-imagem-protegidos-na-clinica`](tasks/002-video-e-imagem-protegidos-na-clinica.md) | a fazer | | |
-| [`003-midia-protegida-no-admin`](tasks/003-midia-protegida-no-admin.md) | a fazer | | |
-| [`004-imagens-de-referencia-privadas`](tasks/004-imagens-de-referencia-privadas.md) | a fazer | | |
-| [`005-area-do-paciente-com-video-protegido`](tasks/005-area-do-paciente-com-video-protegido.md) | a fazer | | |
-| [`006-foto-do-profissional-privada`](tasks/006-foto-do-profissional-privada.md) | a fazer | | |
-| [`007-foto-do-paciente-privada`](tasks/007-foto-do-paciente-privada.md) | a fazer | | |
-| [`008-pdf-do-programa-com-midia-assinada`](tasks/008-pdf-do-programa-com-midia-assinada.md) | a fazer | | |
-| [`009-fechar-a-porta`](tasks/009-fechar-a-porta.md) | a fazer | | |
+| [`001-video-e-capa-com-link-assinado`](tasks/001-video-e-capa-com-link-assinado.md) | concluída | | |
+| [`002-video-e-imagem-protegidos-na-clinica`](tasks/002-video-e-imagem-protegidos-na-clinica.md) | concluída | | |
+| [`003-midia-protegida-no-admin`](tasks/003-midia-protegida-no-admin.md) | concluída | | |
+| [`004-imagens-de-referencia-privadas`](tasks/004-imagens-de-referencia-privadas.md) | concluída | | |
+| [`005-area-do-paciente-com-video-protegido`](tasks/005-area-do-paciente-com-video-protegido.md) | concluída | | |
+| [`006-foto-do-profissional-privada`](tasks/006-foto-do-profissional-privada.md) | concluída | | |
+| [`007-foto-do-paciente-privada`](tasks/007-foto-do-paciente-privada.md) | concluída | | |
+| [`008-pdf-do-programa-com-midia-assinada`](tasks/008-pdf-do-programa-com-midia-assinada.md) | concluída | | |
+| [`009-fechar-a-porta`](tasks/009-fechar-a-porta.md) | concluída | | |
 
 ## Pastas
 

@@ -21,15 +21,15 @@ O vídeo protegido mostra a capa, baixa o vídeo inteiro só no play, toca como 
 
 ## Critérios de Aceite
 
-- [ ] O vídeo protegido não baixa nada antes do play (teste Vitest).
-- [ ] No play, ele toca como `blob:` e libera o `blob:` ao desmontar (teste Vitest).
-- [ ] Com o download respondendo 403, ele pede link novo e toca (teste Vitest).
-- [ ] O player tem `nodownload` e bloqueia o menu de contexto (teste Vitest).
-- [ ] O download do vídeo não leva o cabeçalho `Authorization` (teste Vitest).
-- [ ] A imagem protegida pede link novo uma vez quando não carrega (teste Vitest).
-- [ ] Nenhuma tela da clínica usa mais `<video src>` com o link da API.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O vídeo protegido não baixa nada antes do play (teste Vitest).
+- [x] No play, ele toca como `blob:` e libera o `blob:` ao desmontar (teste Vitest).
+- [x] Com o download respondendo 403, ele pede link novo e toca (teste Vitest).
+- [x] O player tem `nodownload` e bloqueia o menu de contexto (teste Vitest).
+- [x] O download do vídeo não leva o cabeçalho `Authorization` (teste Vitest).
+- [x] A imagem protegida pede link novo uma vez quando não carrega (teste Vitest).
+- [x] Nenhuma tela da clínica usa mais `<video src>` com o link da API.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

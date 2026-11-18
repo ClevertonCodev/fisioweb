@@ -50,3 +50,10 @@ Itens achados na conferência de 2026-11-17 que não entraram nas correções.
   tempo leem a mesma foto anterior e o arquivo do primeiro nunca é apagado.
   Conserto: `replacePhoto` recebe o `UploadedFile`, sobe e apaga o novo se a
   gravação falhar.
+- **2026-11-17 (revisão adversária, rodada 6, ACHADO-004) · Programa novo a partir de modelo com exercício desativado não recupera a mídia.**
+  No montador de um programa ainda não salvo, a origem (`useProgramItemMedia`)
+  devolve `null`, e `GET /api/clinic/exercises/{id}` dá 404 para exercício
+  desativado pelo admin. Depois do prazo do link (capa 5 min, vídeo 30 min), a
+  capa e o vídeo desse exercício somem até recarregar a página. Salvar esse
+  programa já é recusado (`ensureExercisesVisibleToClinic`). Conserto: no
+  programa novo vindo de modelo, usar o modelo de origem como `ItemMediaSource`.

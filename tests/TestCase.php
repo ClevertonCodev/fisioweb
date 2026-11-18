@@ -2,7 +2,11 @@
 
 namespace Tests;
 
+use Closure;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Mockery;
+use Mockery\MockInterface;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -24,6 +28,25 @@ abstract class TestCase extends BaseTestCase
                 'throw'                   => false,
             ],
         ]);
+    }
+
+    /**
+     * Troca o serviço de arquivos por um mock que, por padrão, assina links de leitura
+     * de verdade, porque a mídia assinada passa pelo mesmo serviço.
+     */
+    protected function mockFiles(?Closure $setup = null): MockInterface
+    {
+        $real = $this->app->make(FileServiceInterface::class);
+        $mock = Mockery::mock(FileServiceInterface::class);
+        $mock->shouldReceive('createPresignedDownloadUrl')
+            ->byDefault()
+            ->andReturnUsing(fn (...$args) => $real->createPresignedDownloadUrl(...$args));
+        if ($setup) {
+            $setup($mock);
+        }
+        $this->app->instance(FileServiceInterface::class, $mock);
+
+        return $mock;
     }
 
     protected function assertSignedVideoUrl(mixed $url, string $path): void

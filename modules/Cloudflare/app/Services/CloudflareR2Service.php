@@ -263,6 +263,7 @@ class CloudflareR2Service implements FileServiceInterface
         int $expiresInSeconds = 300,
         ?string $downloadFilename = null,
         ?string $contentType = null,
+        ?\DateTimeInterface $startsAt = null,
     ): array {
         try {
             /** @var \Illuminate\Filesystem\AwsS3V3Adapter $adapter */
@@ -283,14 +284,16 @@ class CloudflareR2Service implements FileServiceInterface
                 );
             }
 
+            $start            = $startsAt ? \Illuminate\Support\Carbon::instance($startsAt) : now();
             $presignedRequest = $client->createPresignedRequest(
                 $client->getCommand('GetObject', $params),
-                "+{$expiresInSeconds} seconds"
+                "+{$expiresInSeconds} seconds",
+                ['start_time' => $start->getTimestamp()],
             );
 
             return [
                 'url'        => (string) $presignedRequest->getUri(),
-                'expires_at' => now()->addSeconds($expiresInSeconds)->toISOString(),
+                'expires_at' => $start->copy()->addSeconds($expiresInSeconds)->toISOString(),
             ];
         } catch (\Throwable $e) {
             // Só a pasta: o caminho completo abriria o arquivo pelo CDN.

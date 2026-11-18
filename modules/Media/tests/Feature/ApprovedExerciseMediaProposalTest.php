@@ -3,7 +3,6 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\ExerciseMedia;
 use Modules\Admin\Models\PhysioArea;
@@ -31,7 +30,7 @@ class ApprovedExerciseMediaProposalTest extends TestCase
     {
         parent::setUp();
 
-        $fileService = Mockery::mock(FileServiceInterface::class);
+        $fileService = $this->mockFiles();
         $fileService->shouldReceive('createPresignedUploadUrl')->andReturnUsing(fn (string $path) => [
             'upload_url' => 'https://r2.invalid/put/' . $path,
             'path'       => $path,

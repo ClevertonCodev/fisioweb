@@ -374,10 +374,25 @@ class VideoService implements VideoServiceInterface
                 throw new \InvalidArgumentException('Imagem de referência não encontrada.');
             }
 
+            if (!$this->linkPointsTo($slot['url'] ?? null, $path)) {
+                throw new \InvalidArgumentException('As imagens de referência mudaram. Recarregue a tela e tente de novo.');
+            }
+
             $paths[] = $path;
         }
 
         return $paths;
+    }
+
+    private function linkPointsTo(?string $url, string $path): bool
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        $urlPath = rawurldecode((string) parse_url($url, PHP_URL_PATH));
+
+        return str_ends_with($urlPath, '/' . ltrim($path, '/'));
     }
 
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array

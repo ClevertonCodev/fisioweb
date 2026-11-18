@@ -8,6 +8,7 @@ interface ProtectedImageProps {
     className?: string;
     onRefresh?: ProtectedRefresh;
     onLoad?: () => void;
+    loading?: 'lazy' | 'eager';
 }
 
 export function ProtectedImage({
@@ -16,6 +17,7 @@ export function ProtectedImage({
     className,
     onRefresh,
     onLoad,
+    loading,
 }: ProtectedImageProps) {
     const [current, setCurrent] = useState(src);
     const [tried, setTried] = useState(false);
@@ -34,6 +36,7 @@ export function ProtectedImage({
             src={current || undefined}
             alt={alt}
             className={className}
+            loading={loading}
             onLoad={() => {
                 setTried(false);
                 onLoad?.();

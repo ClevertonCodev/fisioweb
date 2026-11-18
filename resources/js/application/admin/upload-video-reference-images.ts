@@ -72,7 +72,7 @@ export async function uploadAndSyncVideoReferenceImages(
         throw new Error('Máximo de 2 imagens de referência.');
     }
 
-    const slots: ({ path: string } | { keep: number })[] = [];
+    const slots: ({ path: string } | { keep: number; url: string })[] = [];
     const isNewVideo = options?.isNewVideo ?? false;
 
     for (const [index, item] of items.entries()) {
@@ -97,7 +97,7 @@ export async function uploadAndSyncVideoReferenceImages(
             continue;
         }
 
-        slots.push({ keep: index });
+        slots.push({ keep: index, url: item.url ?? '' });
     }
 
     return apiAdminVideosRepository.syncReferenceImageSlots(videoId, slots);

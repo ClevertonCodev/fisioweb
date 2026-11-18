@@ -131,6 +131,7 @@ function Thumb({
                     src={e.thumbnailUrl}
                     alt=""
                     onRefresh={onRefresh}
+                    loading="lazy"
                     className="size-full object-cover"
                 />
             )}

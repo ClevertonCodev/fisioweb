@@ -57,3 +57,18 @@ Itens achados na conferência de 2026-11-17 que não entraram nas correções.
   capa e o vídeo desse exercício somem até recarregar a página. Salvar esse
   programa já é recusado (`ensureExercisesVisibleToClinic`). Conserto: no
   programa novo vindo de modelo, usar o modelo de origem como `ItemMediaSource`.
+- **2026-11-17 (code review, Crítico, não corrigido por decisão do usuário) · As migrations das fotos apagam o link antigo sem converter.**
+  `modules/Patient/database/migrations/2026_11_16_000001_replace_patient_photo_url_with_photo_path.php`
+  e a de `clinic_users` derrubam `photo_url` e criam `photo_path` vazio. Depois
+  do `migrate`, toda foto enviada antes some da tela (o arquivo continua no
+  bucket, sem registro apontando). O usuário disse que o servidor só tem dados
+  de teste. Se entrar foto real antes do deploy, converter na migration:
+  tirar o prefixo do CDN de `photo_url` e gravar em `photo_path`.
+- **2026-11-18 (code review, Menor) · A origem da renovação é recriada a cada renderização.**
+  `useProgramItemMedia` (`application/clinic/use-programs.ts`) e `useModelItemMedia`
+  (`program-models/data.ts`) devolvem uma função nova a cada renderização; como
+  ela é o valor do `ItemMediaSource`, os `CardVideo` e `TrayThumb` renderizam de
+  novo a cada tecla ou arraste no montador. Conserto: `useCallback`.
+- **2026-11-18 (code review, Menor) · `withProposalFlag` faz um SELECT a mais.**
+  `VideoService::withProposalFlag` busca o vídeo de novo só para ler
+  `proposed_at`, que o chamador já tem. Conserto: receber o `Video`.

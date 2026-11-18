@@ -3,7 +3,6 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Modules\Admin\Models\User as AdminUser;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
@@ -18,7 +17,7 @@ class ClinicVideoIsolationTest extends TestCase
     {
         parent::setUp();
 
-        $fileService = Mockery::mock(FileServiceInterface::class);
+        $fileService = $this->mockFiles();
         $fileService->shouldReceive('createPresignedUploadUrl')->andReturnUsing(fn (string $path) => [
             'upload_url' => 'https://r2.example.com/presigned/' . $path,
             'path'       => $path,

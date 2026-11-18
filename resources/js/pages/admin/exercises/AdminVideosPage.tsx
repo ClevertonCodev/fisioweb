@@ -11,6 +11,7 @@ import type { AdminVideo } from '@/application/admin/ports';
 import {
     useAdminVideos,
     useDeleteAdminVideo,
+    useRefreshAdminVideo,
 } from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ExerciseCard } from '@/components/ExerciseCard';
@@ -36,6 +37,44 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 
 const PAGE_SIZE_OPTIONS = [10, 15, 25, 50];
+
+function videoAddress(video: Pick<AdminVideo, 'video_url'> | null) {
+    return video?.video_url ?? null;
+}
+
+function AdminVideoGridCard({
+    video,
+    onEdit,
+    onDelete,
+}: {
+    video: AdminVideo;
+    onEdit: (video: AdminVideo) => void;
+    onDelete: (video: AdminVideo) => void;
+}) {
+    const refresh = useRefreshAdminVideo(video.id);
+
+    return (
+        <ExerciseCard
+            videoUrl={videoAddress(video)}
+            thumbnailUrl={video.thumbnail_url}
+            title={video.original_filename ?? video.filename}
+            canPlay={video.status === 'completed' && !!videoAddress(video)}
+            badge={
+                <StatusBadge
+                    variant={VIDEO_STATUS_VARIANTS[video.status] ?? 'neutral'}
+                >
+                    {VIDEO_STATUS_LABELS[video.status] ?? video.status}
+                </StatusBadge>
+            }
+            onRefresh={async () => videoAddress(await refresh())}
+            onRefreshPoster={async () =>
+                (await refresh())?.thumbnail_url ?? null
+            }
+            onEdit={() => onEdit(video)}
+            onDelete={() => onDelete(video)}
+        />
+    );
+}
 
 export default function AdminVideosPage() {
     const [page, setPage] = useState(1);
@@ -152,40 +191,11 @@ export default function AdminVideosPage() {
                                 <>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                                         {filteredVideos.map((video) => (
-                                            <ExerciseCard
+                                            <AdminVideoGridCard
                                                 key={video.id}
-                                                videoUrl={
-                                                    video.cdn_url ?? video.url
-                                                }
-                                                thumbnailUrl={
-                                                    video.thumbnail_url
-                                                }
-                                                title={
-                                                    video.original_filename ??
-                                                    video.filename
-                                                }
-                                                canPlay={
-                                                    video.status ===
-                                                        'completed' &&
-                                                    !!video.cdn_url
-                                                }
-                                                badge={
-                                                    <StatusBadge
-                                                        variant={
-                                                            VIDEO_STATUS_VARIANTS[
-                                                                video.status
-                                                            ] ?? 'neutral'
-                                                        }
-                                                    >
-                                                        {VIDEO_STATUS_LABELS[
-                                                            video.status
-                                                        ] ?? video.status}
-                                                    </StatusBadge>
-                                                }
-                                                onEdit={() => handleEdit(video)}
-                                                onDelete={() =>
-                                                    handleDelete(video)
-                                                }
+                                                video={video}
+                                                onEdit={handleEdit}
+                                                onDelete={handleDelete}
                                             />
                                         ))}
                                     </div>

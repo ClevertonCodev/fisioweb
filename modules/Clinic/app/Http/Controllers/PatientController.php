@@ -138,7 +138,7 @@ class PatientController extends ClinicAuthenticatedController
         $this->authorize('update', $patient);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'patients/photos');
-        $patient  = $this->patientService->update($id, ['photo_url' => $uploaded['cdn_url']]);
+        $patient  = $this->patientService->replacePhoto($id, $uploaded['path']);
 
         return response()->json(['data' => $patient]);
     }
@@ -154,7 +154,7 @@ class PatientController extends ClinicAuthenticatedController
 
         $this->authorize('update', $patient);
 
-        $patient = $this->patientService->update($id, ['photo_url' => null]);
+        $patient = $this->patientService->removePhoto($id);
 
         return response()->json(['data' => $patient]);
     }

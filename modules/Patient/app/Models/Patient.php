@@ -3,12 +3,14 @@
 namespace Modules\Patient\Models;
 
 use App\Traits\JwtAuthenticatable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Patient\Database\Factories\PatientFactory;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
@@ -74,11 +76,16 @@ class Patient extends Authenticatable implements JWTSubject
         'is_active',
         'status',
         'diagnosis',
-        'photo_url',
+        'photo_path',
     ];
 
     protected $hidden = [
         'password',
+        'photo_path',
+    ];
+
+    protected $appends = [
+        'photo_url',
     ];
 
     protected function casts(): array
@@ -90,6 +97,25 @@ class Patient extends Authenticatable implements JWTSubject
             'use_apelido' => 'boolean',
             'is_foreign'  => 'boolean',
         ];
+    }
+
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forImage($this->photo_path));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        if (!array_key_exists('photo_path', $this->getAttributes())) {
+            unset($array['photo_url']);
+        }
+
+        return $array;
     }
 
     public function clinic(): BelongsTo

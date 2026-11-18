@@ -18,7 +18,7 @@ class SchedulingReadService implements SchedulingReadServiceInterface
     public function upcomingAppointmentsToday(int $clinicId, ?int $clinicUserId, string $timezone, int $limit = 5): array
     {
         return $this->todaysAppointments($clinicId, $clinicUserId, $timezone)
-            ->with('patient:id,name,photo_url')
+            ->with('patient:id,name,photo_path')
             ->orderBy('starts_at')
             ->limit($limit)
             ->get()

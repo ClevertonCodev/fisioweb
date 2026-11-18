@@ -2,14 +2,8 @@
 
 namespace Modules\TreatmentProgram\Services;
 
-/**
- * Gera URL/imagem de QR para embutir no DomPDF.
- *
- * Preferência: pacote chillerlan/php-qrcode (data-URI PNG) quando instalado.
- * Fallback: API pública de QR (DomPDF com isRemoteEnabled carrega a imagem).
- *
- * Para instalar o pacote localmente: composer require chillerlan/php-qrcode:^5.0
- */
+use Illuminate\Support\Facades\Log;
+
 class ProgramPdfQrCodeGenerator
 {
     public function imageSrc(?string $url): ?string
@@ -18,20 +12,34 @@ class ProgramPdfQrCodeGenerator
             return null;
         }
 
-        if (class_exists(\chillerlan\QRCode\QRCode::class)) {
-            try {
-                $options = new \chillerlan\QRCode\QROptions([
-                    'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
-                    'scale'      => 5,
-                ]);
-                $png = (new \chillerlan\QRCode\QRCode($options))->render($url);
+        try {
+            $png = $this->renderLocal($url);
+        } catch (\Throwable $e) {
+            Log::warning('QR do programa não gerado', ['error' => $e::class]);
 
-                return $png;
-            } catch (\Throwable) {
-                // fallback abaixo
-            }
+            return null;
         }
 
-        return 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . rawurlencode($url);
+        if (empty($png)) {
+            Log::warning('QR do programa não gerado');
+
+            return null;
+        }
+
+        return $png;
+    }
+
+    protected function renderLocal(string $url): ?string
+    {
+        if (!class_exists(\chillerlan\QRCode\QRCode::class)) {
+            return null;
+        }
+
+        $options = new \chillerlan\QRCode\QROptions([
+            'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+            'scale'      => 5,
+        ]);
+
+        return (new \chillerlan\QRCode\QRCode($options))->render($url);
     }
 }

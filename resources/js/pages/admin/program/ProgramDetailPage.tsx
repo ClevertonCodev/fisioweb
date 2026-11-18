@@ -1,7 +1,9 @@
 import { Pencil } from 'lucide-react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 
+import { useRefreshAdminExercise } from '@/application/admin/use-admin-exercises';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +22,36 @@ function formatDays(days: number[] | null): string {
     if (!days || days.length === 0) return '—';
     if (days.length === 7) return 'Todos os dias';
     return days.map((d) => DAY_LABELS[d]).join(', ');
+}
+
+function ProgramExerciseThumb({
+    exerciseId,
+    src,
+}: {
+    exerciseId: number;
+    src: string | null | undefined;
+}) {
+    const refresh = useRefreshAdminExercise(exerciseId);
+
+    if (!src) return null;
+
+    return (
+        <ProtectedImage
+            src={src}
+            alt=""
+            onRefresh={async () => {
+                const next = await refresh();
+                const video = (
+                    next?.videos as
+                        | { thumbnail_url?: string | null }[]
+                        | undefined
+                )?.[0];
+
+                return video?.thumbnail_url ?? null;
+            }}
+            className="h-full w-full object-cover"
+        />
+    );
 }
 
 export default function ProgramDetailPage() {
@@ -136,30 +168,13 @@ export default function ProgramDetailPage() {
                                         >
                                             {/* Thumbnail */}
                                             <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                                                {ex.exercise?.videoUrl ? (
-                                                    <video
-                                                        src={
-                                                            ex.exercise.videoUrl
-                                                        }
-                                                        poster={
-                                                            ex.exercise
-                                                                .thumbnailUrl ??
-                                                            undefined
-                                                        }
-                                                        className="h-full w-full object-cover"
-                                                        playsInline
-                                                    />
-                                                ) : ex.exercise
-                                                      ?.thumbnailUrl ? (
-                                                    <img
-                                                        src={
-                                                            ex.exercise
-                                                                .thumbnailUrl
-                                                        }
-                                                        alt=""
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : null}
+                                                <ProgramExerciseThumb
+                                                    exerciseId={ex.exerciseId}
+                                                    src={
+                                                        ex.exercise
+                                                            ?.thumbnailUrl
+                                                    }
+                                                />
                                             </div>
 
                                             {/* Info */}

@@ -1,6 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import {
+    refreshAdminVideo,
+    useRefreshAdminVideo,
+} from '@/application/admin/use-admin-videos';
 import { AdminExerciseVideoPreview } from '@/components/admin/exercises/AdminExerciseVideoPreview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,7 +30,7 @@ interface VideoOption {
     id: number;
     original_filename: string;
     thumbnail_url?: string | null;
-    cdn_url?: string | null;
+    video_url?: string | null;
 }
 
 export interface ExerciseFormState {
@@ -89,6 +94,7 @@ export function ExerciseForm({
     onSubmit,
 }: ExerciseFormProps) {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const videos = useMemo(
         () => (options?.videos ?? []) as VideoOption[],
         [options?.videos],
@@ -99,8 +105,13 @@ export function ExerciseForm({
                 value: String(v.id),
                 label: v.original_filename,
                 img: v.thumbnail_url ?? undefined,
+                onRefreshImg: v.thumbnail_url
+                    ? async () =>
+                          (await refreshAdminVideo(queryClient, v.id))
+                              ?.thumbnail_url ?? null
+                    : undefined,
             })),
-        [videos],
+        [videos, queryClient],
     );
     const selectedVideo = useMemo(
         () => videoOptions.find((o) => o.value === form.video_id) ?? null,
@@ -113,6 +124,7 @@ export function ExerciseForm({
                 : null,
         [videos, form.video_id],
     );
+    const refreshVideo = useRefreshAdminVideo(selectedVideoData?.id);
     const subareas = form.physio_area_id
         ? (options?.physio_areas?.find(
               (a) => String(a.id) === form.physio_area_id,
@@ -246,11 +258,18 @@ export function ExerciseForm({
                                 este exercício.
                             </p>
                         </div>
-                        {selectedVideoData?.cdn_url && (
+                        {selectedVideoData?.video_url && (
                             <AdminExerciseVideoPreview
-                                src={selectedVideoData.cdn_url}
-                                poster={selectedVideoData.thumbnail_url}
-                                title={selectedVideoData.original_filename}
+                                src={selectedVideoData?.video_url ?? null}
+                                poster={selectedVideoData?.thumbnail_url}
+                                title={selectedVideoData?.original_filename}
+                                onRefresh={async () =>
+                                    (await refreshVideo())?.video_url ?? null
+                                }
+                                onRefreshPoster={async () =>
+                                    (await refreshVideo())?.thumbnail_url ??
+                                    null
+                                }
                             />
                         )}
                     </div>

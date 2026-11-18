@@ -9,7 +9,7 @@ use Modules\Admin\Models\ExerciseMedia;
 class ExerciseReferenceImageSyncService
 {
     /**
-     * @param  list<array{file_path: string, cdn_url: string, original_filename?: string, mime_type?: string, size?: int}>  $images
+     * @param  list<array{file_path: string, original_filename?: string, mime_type?: string, size?: int}>  $images
      */
     public function syncFromVideo(int $videoId, array $images, bool $changedByOperator, ?int $ownerClinicId): void
     {
@@ -32,7 +32,7 @@ class ExerciseReferenceImageSyncService
     }
 
     /**
-     * @param  list<array{file_path: string, cdn_url: string, original_filename?: string, mime_type?: string, size?: int}>  $images
+     * @param  list<array{file_path: string, original_filename?: string, mime_type?: string, size?: int}>  $images
      */
     public function replaceImagesForExercise(int $exerciseId, array $images): void
     {
@@ -50,7 +50,7 @@ class ExerciseReferenceImageSyncService
             if ($index > 1) {
                 break;
             }
-            if (empty($image['file_path']) || empty($image['cdn_url'])) {
+            if (empty($image['file_path'])) {
                 continue;
             }
 
@@ -58,7 +58,6 @@ class ExerciseReferenceImageSyncService
                 'exercise_id'       => $exerciseId,
                 'type'              => ExerciseMedia::TYPE_IMAGE,
                 'file_path'         => $image['file_path'],
-                'cdn_url'           => $image['cdn_url'],
                 'original_filename' => $image['original_filename'] ?? basename($image['file_path']),
                 'mime_type'         => $image['mime_type'] ?? 'image/jpeg',
                 'size'              => $image['size'] ?? 0,

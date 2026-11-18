@@ -1,6 +1,10 @@
 import { useState } from 'react';
 
-import { useDashboardSummary } from '@/application/clinic/use-dashboard';
+import {
+    useDashboardSummary,
+    useRefreshAppointmentPhoto,
+    useRefreshBirthdayPhoto,
+} from '@/application/clinic/use-dashboard';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import { ClinicDashboard } from '@/components/clinic/dashboard/ClinicDashboard';
 import { dayKey } from '@/components/clinic/dashboard/dashboard-format';
@@ -12,10 +16,10 @@ export default function DashboardPage() {
     // Um relógio só para a tela; o dia entra na chave do summary. O backend vira
     // o dia no fuso da clínica: se o navegador virar antes, "Atualizar dados" corrige.
     const now = useNow();
-    const { data, isLoading, isError } = useDashboardSummary(
-        scope,
-        dayKey(now),
-    );
+    const day = dayKey(now);
+    const { data, isLoading, isError } = useDashboardSummary(scope, day);
+    const refreshPhoto = useRefreshBirthdayPhoto(scope, day);
+    const refreshAppointmentPhoto = useRefreshAppointmentPhoto(scope, day);
 
     return (
         <ClinicLayout>
@@ -26,6 +30,8 @@ export default function DashboardPage() {
                 scope={scope}
                 onScopeChange={setScope}
                 now={now}
+                onRefreshPhoto={refreshPhoto}
+                onRefreshAppointmentPhoto={refreshAppointmentPhoto}
             />
         </ClinicLayout>
     );

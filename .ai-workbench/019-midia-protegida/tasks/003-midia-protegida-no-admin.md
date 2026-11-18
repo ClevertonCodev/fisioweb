@@ -17,11 +17,11 @@ O painel master mostra os vídeos e as capas do catálogo, das revisões de exer
 
 ## Critérios de Aceite
 
-- [ ] Nenhuma tela do admin usa mais `<video src>` ou `<img src>` cru para vídeo e capa. Todas usam os componentes protegidos.
-- [ ] A proposta de mídia mostra a capa atual e a capa proposta, as duas por link assinado.
-- [ ] O vídeo toca como `blob:` e não oferece download.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Nenhuma tela do admin usa mais `<video src>` ou `<img src>` cru para vídeo e capa. Todas usam os componentes protegidos.
+- [x] A proposta de mídia mostra a capa atual e a capa proposta, as duas por link assinado.
+- [x] O vídeo toca como `blob:` e não oferece download.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

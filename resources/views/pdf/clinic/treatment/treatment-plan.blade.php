@@ -448,7 +448,7 @@
             ? $exercise->media
                 ->where('type', \Modules\Admin\Models\ExerciseMedia::TYPE_IMAGE)
                 ->sortBy('sort_order')
-                ->pluck('cdn_url')
+                ->map(fn ($media) => $media->url)
                 ->filter()
                 ->take(2)
                 ->values()

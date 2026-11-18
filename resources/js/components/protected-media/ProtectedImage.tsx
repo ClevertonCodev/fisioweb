@@ -1,0 +1,58 @@
+import { useState } from 'react';
+
+import { mediaKey, type ProtectedRefresh } from './use-protected-playback';
+
+interface ProtectedImageProps {
+    src?: string | null;
+    alt: string;
+    className?: string;
+    onRefresh?: ProtectedRefresh;
+    onLoad?: () => void;
+    loading?: 'lazy' | 'eager';
+}
+
+export function ProtectedImage({
+    src,
+    alt,
+    className,
+    onRefresh,
+    onLoad,
+    loading,
+}: ProtectedImageProps) {
+    const [current, setCurrent] = useState(src);
+    const [tried, setTried] = useState(false);
+    const [attempt, setAttempt] = useState(0);
+    const [seenSrc, setSeenSrc] = useState(src);
+
+    if (src !== seenSrc) {
+        setSeenSrc(src);
+        setCurrent(src);
+        if (mediaKey(src) !== mediaKey(seenSrc)) setTried(false);
+    }
+
+    return (
+        <img
+            key={attempt}
+            src={current || undefined}
+            alt={alt}
+            className={className}
+            loading={loading}
+            onLoad={() => {
+                setTried(false);
+                onLoad?.();
+            }}
+            onError={() => {
+                onLoad?.();
+                if (tried || !onRefresh || !current) return;
+                setTried(true);
+                void onRefresh()
+                    .then((fresh) => {
+                        if (!fresh) return;
+                        setCurrent(fresh);
+                        setAttempt((n) => n + 1);
+                    })
+                    .catch(() => {});
+            }}
+        />
+    );
+}

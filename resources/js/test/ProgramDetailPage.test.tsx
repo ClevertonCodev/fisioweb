@@ -286,6 +286,17 @@ describe('ProgramDetailPage (painel v2)', () => {
         ).toBeInTheDocument();
     });
 
+    it('as miniaturas dos exercícios carregam sob demanda', async () => {
+        renderPage();
+
+        await screen.findAllByText('Ponte Glútea');
+        const thumb = document.querySelector(
+            'img[src="https://cdn.test/ponte.jpg"]',
+        );
+
+        expect(thumb).toHaveAttribute('loading', 'lazy');
+    });
+
     it('tocar na miniatura abre o vídeo no modal', async () => {
         const user = userEvent.setup();
         renderPage();
@@ -299,10 +310,10 @@ describe('ProgramDetailPage (painel v2)', () => {
         const modal = await screen.findByRole('dialog', {
             name: 'Ponte Glútea',
         });
-        expect(modal.querySelector('video')).toHaveAttribute(
-            'src',
-            'https://cdn.test/ponte.mp4',
-        );
+        const video = modal.querySelector('video');
+        expect(video).toBeInTheDocument();
+        expect(video).not.toHaveAttribute('src');
+        expect(video).toHaveAttribute('controlslist', 'nodownload');
     });
 
     it('exercício sem vídeo mostra o aviso no modal', async () => {

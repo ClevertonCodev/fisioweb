@@ -56,6 +56,8 @@ vi.mock('@/application/clinic/use-dashboard', () => ({
         usePatientAcquisition(...args),
     useRecentActivities: (...args: unknown[]) => useRecentActivities(...args),
     useRefreshDashboard: () => refreshDashboard,
+    useRefreshBirthdayPhoto: () => vi.fn(async () => null),
+    useRefreshAppointmentPhoto: () => vi.fn(async () => null),
 }));
 
 vi.mock('@/application/clinic/use-appointments', () => ({

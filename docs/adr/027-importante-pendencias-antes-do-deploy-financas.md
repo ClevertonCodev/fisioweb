@@ -244,8 +244,7 @@ domínio pelo do CDN e abre o laudo para sempre, sem login. É dado de saúde
 Feito pelo Claude Code a pedido do Cleverton, junto com a troca do domínio para
 `app.ivsmed.com` e do R2 para o bucket `ivsdev` (conta do `ivsmed.com`).
 
-- **Zona e host:** `ivsmed.com`, CDN `https://cdn-dev.ivsmed.com`, domínio
-  próprio do bucket `ivsdev`.
+- **Zona e host:** `ivsmed.com`, CDN no domínio público do bucket `ivsdev`.
 - **Normalização de URL:** já estava como pede o passo 1, com o tipo Cloudflare
   e Normalize incoming URLs ligado. Nada mudou.
 - **Regra:** `bloqueia comprovantes e arquivos do prontuário no CDN`, ação
@@ -279,6 +278,17 @@ Feito pelo Claude Code a pedido do Cleverton, junto com a troca do domínio para
   não existe mais.
 - **O bucket antigo** `fisioweb`, na outra conta do Cloudflare, não passa por
   esta regra. Ele não é mais usado pelo app, mas tem o `r2.dev` ligado.
+
+### Nota (2026-11-16): a regra de WAF perde o objeto
+
+A feature 019 tira o endereço público do código (ADR 030). O link assinado sai
+do endpoint S3 do R2, não do domínio `cdn-dev.ivsmed.com`. Quando o domínio
+próprio sair do bucket `ivsdev`, não sobra host público para a regra
+`bloqueia comprovantes e arquivos do prontuário no CDN` bloquear: a regra perde
+o objeto e pode ser apagada depois que o `curl` do roteiro em
+`docs/operacao/cloudflare-fechar-leitura-publica.md` deixar de devolver 200.
+Até essa troca no painel, um caminho que a regra não cobre (vídeo, capa, foto)
+continua abrindo pelo domínio. O `r2.dev` segue desligado.
 
 ## Consequências
 

@@ -4,7 +4,9 @@ namespace Modules\Cloudflare\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Cloudflare\Services\CloudflareR2Service;
+use Modules\Cloudflare\Services\SignedMediaUrlService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -37,6 +39,7 @@ class CloudflareServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(base_path('config/cloudflare.php'), 'cloudflare');
 
         $this->app->bind(FileServiceInterface::class, CloudflareR2Service::class);
+        $this->app->bind(SignedMediaUrlInterface::class, SignedMediaUrlService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

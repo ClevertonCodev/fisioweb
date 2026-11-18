@@ -37,6 +37,7 @@ const listPaginated = vi.fn();
 const requestPresignedThumbnailReplace = vi.fn();
 const changeThumbnail = vi.fn();
 const syncReferenceImages = vi.fn();
+const syncReferenceImageSlots = vi.fn();
 
 vi.mock('@/infrastructure/repositories', async (importOriginal) => {
     const actual =
@@ -53,6 +54,8 @@ vi.mock('@/infrastructure/repositories', async (importOriginal) => {
             changeThumbnail: (...args: unknown[]) => changeThumbnail(...args),
             syncReferenceImages: (...args: unknown[]) =>
                 syncReferenceImages(...args),
+            syncReferenceImageSlots: (...args: unknown[]) =>
+                syncReferenceImageSlots(...args),
         },
     };
 });
@@ -113,11 +116,11 @@ function exercise(overrides: Partial<Exercise> = {}): Exercise {
         videoId: 3,
         referenceImages: [
             {
-                path: 'thumbnails/videos/f1.jpg',
+                path: 'covers/videos/f1.jpg',
                 url: 'https://cdn.test/f1.jpg',
             },
             {
-                path: 'thumbnails/videos/f2.jpg',
+                path: '',
                 url: 'https://cdn.test/f2.jpg',
             },
         ],
@@ -242,14 +245,15 @@ describe('Trocar imagens no modal da biblioteca', () => {
         requestPresignedThumbnailReplace
             .mockResolvedValueOnce({
                 upload_url: 'https://r2.test/put/capa',
-                path: 'thumbnails/videos/capa-nova.jpg',
+                path: 'covers/videos/capa-nova.jpg',
             })
             .mockResolvedValueOnce({
                 upload_url: 'https://r2.test/put/f1',
-                path: 'thumbnails/videos/f1-nova.jpg',
+                path: 'covers/videos/f1-nova.jpg',
             });
         changeThumbnail.mockResolvedValue({ proposalPending: false });
         syncReferenceImages.mockResolvedValue({ proposalPending: false });
+        syncReferenceImageSlots.mockResolvedValue({ proposalPending: false });
         renderPage();
 
         const { user, dialog } = await openExercise('Ponte da clínica');
@@ -272,11 +276,11 @@ describe('Trocar imagens no modal da biblioteca', () => {
                     thumbnailUrl: 'https://cdn.test/capa-nova.jpg',
                     referenceImages: [
                         {
-                            path: 'thumbnails/videos/f1-nova.jpg',
+                            path: 'covers/videos/f1-nova.jpg',
                             url: 'https://cdn.test/f1-nova.jpg',
                         },
                         {
-                            path: 'thumbnails/videos/f2.jpg',
+                            path: '',
                             url: 'https://cdn.test/f2.jpg',
                         },
                     ],
@@ -306,11 +310,11 @@ describe('Trocar imagens no modal da biblioteca', () => {
         );
         expect(changeThumbnail).toHaveBeenCalledWith(
             3,
-            'thumbnails/videos/capa-nova.jpg',
+            'covers/videos/capa-nova.jpg',
         );
-        expect(syncReferenceImages).toHaveBeenCalledWith(3, [
-            'thumbnails/videos/f1-nova.jpg',
-            'thumbnails/videos/f2.jpg',
+        expect(syncReferenceImageSlots).toHaveBeenCalledWith(3, [
+            { path: 'covers/videos/f1-nova.jpg' },
+            { keep: 1, url: 'https://cdn.test/f2.jpg' },
         ]);
         const modal = screen.getByRole('dialog');
         await waitFor(() =>
@@ -318,10 +322,10 @@ describe('Trocar imagens no modal da biblioteca', () => {
                 within(modal).getByRole('img', { name: 'Foto 1 do PDF' }),
             ).toHaveAttribute('src', 'https://cdn.test/f1-nova.jpg'),
         );
-        expect(modal.querySelector('video')).toHaveAttribute(
-            'poster',
-            'https://cdn.test/capa-nova.jpg',
-        );
+        expect(
+            modal.querySelector('img[src="https://cdn.test/capa-nova.jpg"]'),
+        ).toBeTruthy();
+        expect(modal.querySelector('video')).not.toHaveAttribute('src');
         expect(
             within(modal).queryByText('Imagens em revisão'),
         ).not.toBeInTheDocument();
@@ -333,7 +337,7 @@ describe('Trocar imagens no modal da biblioteca', () => {
         );
         requestPresignedThumbnailReplace.mockResolvedValue({
             upload_url: 'https://r2.test/put/capa',
-            path: 'thumbnails/videos/capa-nova.jpg',
+            path: 'covers/videos/capa-nova.jpg',
         });
         changeThumbnail.mockResolvedValue({ proposalPending: true });
         renderPage();
@@ -380,23 +384,23 @@ describe('Trocar imagens no modal da biblioteca', () => {
         );
         expect(changeThumbnail).toHaveBeenCalledWith(
             3,
-            'thumbnails/videos/capa-nova.jpg',
+            'covers/videos/capa-nova.jpg',
         );
         expect(syncReferenceImages).not.toHaveBeenCalled();
         const modal = screen.getByRole('dialog');
         expect(
             await within(modal).findByText('Imagens em revisão'),
         ).toBeInTheDocument();
-        expect(modal.querySelector('video')).toHaveAttribute(
-            'poster',
-            'https://cdn.test/capa-antiga.jpg',
-        );
+        expect(
+            modal.querySelector('img[src="https://cdn.test/capa-antiga.jpg"]'),
+        ).toBeTruthy();
+        expect(modal.querySelector('video')).not.toHaveAttribute('src');
     });
 
     it('mostra o motivo quando o servidor recusa a troca', async () => {
         requestPresignedThumbnailReplace.mockResolvedValue({
             upload_url: 'https://r2.test/put/capa',
-            path: 'thumbnails/videos/capa-nova.jpg',
+            path: 'covers/videos/capa-nova.jpg',
         });
         changeThumbnail.mockRejectedValue({
             isAxiosError: true,

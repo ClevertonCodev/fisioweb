@@ -38,9 +38,9 @@ describe('isValidCrefitoRegistration', () => {
     });
 
     it('rejeita valor longo demais (> 30 caracteres)', () => {
-        expect(isValidCrefitoRegistration('1234567890123456789012345678-F')).toBe(
-            false,
-        );
+        expect(
+            isValidCrefitoRegistration('1234567890123456789012345678-F'),
+        ).toBe(false);
     });
 
     it('rejeita texto que não segue o padrão', () => {

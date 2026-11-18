@@ -3,7 +3,6 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Modules\Admin\Models\User as AdminUser;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
@@ -18,7 +17,7 @@ class ClinicVideoIsolationTest extends TestCase
     {
         parent::setUp();
 
-        $fileService = Mockery::mock(FileServiceInterface::class);
+        $fileService = $this->mockFiles();
         $fileService->shouldReceive('createPresignedUploadUrl')->andReturnUsing(fn (string $path) => [
             'upload_url' => 'https://r2.example.com/presigned/' . $path,
             'path'       => $path,
@@ -155,7 +154,7 @@ class ClinicVideoIsolationTest extends TestCase
 
             $this->actingAs($adminB, 'clinic')
                 ->putJson("/api/clinic/media/videos/{$target->id}/reference-images", [
-                    'reference_image_paths' => ['thumbnails/videos/ref-1.jpg'],
+                    'reference_image_paths' => ['covers/videos/ref-1.jpg'],
                 ])
                 ->assertNotFound();
         }
@@ -216,7 +215,7 @@ class ClinicVideoIsolationTest extends TestCase
 
         $this->actingAs($secretary, 'clinic')
             ->putJson("/api/clinic/media/videos/{$videoId}/reference-images", [
-                'reference_image_paths' => ['thumbnails/videos/ref-1.jpg'],
+                'reference_image_paths' => ['covers/videos/ref-1.jpg'],
             ])
             ->assertForbidden();
 
@@ -269,7 +268,7 @@ class ClinicVideoIsolationTest extends TestCase
             ->assertOk()
             ->json('data.path');
 
-        foreach ([$pathOfA, $videoOfA->path, 'thumbnails/videos/inventado.jpg'] as $foreign) {
+        foreach ([$pathOfA, $videoOfA->path, 'covers/videos/inventado.jpg'] as $foreign) {
             $this->actingAs($adminB, 'clinic')
                 ->putJson("/api/clinic/media/videos/{$videoOfB->id}/reference-images", [
                     'reference_image_paths' => [$foreign],
@@ -284,13 +283,14 @@ class ClinicVideoIsolationTest extends TestCase
             ->postJson("/api/clinic/media/videos/{$videoOfB->id}/presigned-thumbnail-replace-request", $thumbPayload)
             ->json('data.path');
 
-        $this->actingAs($adminB, 'clinic')
+        $synced = $this->actingAs($adminB, 'clinic')
             ->putJson("/api/clinic/media/videos/{$videoOfB->id}/reference-images", [
                 'reference_image_paths' => [$first, $second],
             ])
-            ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $first)
-            ->assertJsonPath('data.metadata.reference_images.1.file_path', $second);
+            ->assertOk();
+        $this->assertSignedImageUrl($synced->json('data.metadata.reference_images.0.url'), $first);
+        $this->assertSignedImageUrl($synced->json('data.metadata.reference_images.1.url'), $second);
+        $this->assertArrayNotHasKey('file_path', $synced->json('data.metadata.reference_images.0'));
 
         // Mandar de novo o que já está salvo continua valendo.
         $this->actingAs($adminB, 'clinic')
@@ -326,7 +326,7 @@ class ClinicVideoIsolationTest extends TestCase
     {
         $clinic  = Clinic::factory()->create();
         $admin   = $this->clinicAdmin($clinic);
-        $foreign = 'thumbnails/videos/de-outra-clinica.jpg';
+        $foreign = 'covers/videos/de-outra-clinica.jpg';
 
         $videoId = (int) $this->actingAs($admin, 'clinic')
             ->postJson('/api/clinic/media/videos/presigned-upload-request', [
@@ -390,7 +390,7 @@ class ClinicVideoIsolationTest extends TestCase
     public function test_clinic_can_resend_reference_images_already_saved_on_the_video(): void
     {
         $clinic = Clinic::factory()->create();
-        $saved  = 'thumbnails/videos/ja-salva.jpg';
+        $saved  = 'covers/videos/ja-salva.jpg';
         $video  = \Modules\Media\Models\Video::factory()->create([
             'clinic_id' => $clinic->id,
             'status'    => \Modules\Media\Models\Video::STATUS_COMPLETED,

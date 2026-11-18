@@ -4,6 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 import type { MediaProposalDecision } from '@/domain/admin';
@@ -46,6 +47,40 @@ export function useMediaProposals() {
         queryKey: mediaProposalsKey,
         queryFn: () => apiAdminExerciseReviewRepository.listMediaProposals(),
     });
+}
+
+export function useRefreshPendingExercise() {
+    const queryClient = useQueryClient();
+
+    return useCallback(
+        async (exerciseId: number) => {
+            const pending = await queryClient.fetchQuery({
+                queryKey: pendingKey,
+                queryFn: () => apiAdminExerciseReviewRepository.listPending(),
+                staleTime: 0,
+            });
+
+            return (
+                pending.find((exercise) => exercise.id === exerciseId) ?? null
+            );
+        },
+        [queryClient],
+    );
+}
+
+export function useRefreshMediaProposal(videoId: number) {
+    const queryClient = useQueryClient();
+
+    return useCallback(async () => {
+        const proposals = await queryClient.fetchQuery({
+            queryKey: mediaProposalsKey,
+            queryFn: () =>
+                apiAdminExerciseReviewRepository.listMediaProposals(),
+            staleTime: 0,
+        });
+
+        return proposals.find((item) => item.videoId === videoId) ?? null;
+    }, [queryClient, videoId]);
 }
 
 export function useReviewExercise() {

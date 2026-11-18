@@ -3,13 +3,26 @@ import { Check, Loader2, X } from 'lucide-react';
 import {
     useMediaProposals,
     usePendingExercises,
+    useRefreshPendingExercise,
     useReviewExercise,
     useReviewMediaProposal,
 } from '@/application/admin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { MediaProposalCard } from '@/components/admin/exercises/MediaProposalCard';
+import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
 import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
+
+function playableUrl(
+    video:
+        | {
+              video_url?: string | null;
+          }
+        | null
+        | undefined,
+) {
+    return video?.video_url ?? null;
+}
 
 const difficultyLabels: Record<string, string> = {
     easy: 'Fácil',
@@ -23,6 +36,7 @@ export default function AdminExerciseReviewPage() {
         isLoading: isLoadingPending,
         isError: isPendingError,
     } = usePendingExercises();
+    const refreshPending = useRefreshPendingExercise();
     const {
         data: proposals = [],
         isLoading: isLoadingProposals,
@@ -125,18 +139,53 @@ export default function AdminExerciseReviewPage() {
                                                     key={exercise.id}
                                                     className="flex flex-col overflow-hidden rounded-xl border border-border bg-card"
                                                 >
-                                                    <video
-                                                        src={
-                                                            video?.cdn_url ??
-                                                            video?.url ??
-                                                            undefined
-                                                        }
-                                                        poster={
-                                                            video?.thumbnail_url ??
-                                                            undefined
+                                                    <ProtectedVideo
+                                                        title={exercise.name}
+                                                        videoUrl={playableUrl(
+                                                            video,
+                                                        )}
+                                                        posterUrl={
+                                                            video?.thumbnail_url
                                                         }
                                                         controls
-                                                        className="aspect-video w-full bg-muted object-cover"
+                                                        onRefresh={async () => {
+                                                            const fresh =
+                                                                await refreshPending(
+                                                                    exercise.id,
+                                                                );
+                                                            const next =
+                                                                fresh?.videos.find(
+                                                                    (item) =>
+                                                                        item.status ===
+                                                                        'completed',
+                                                                ) ??
+                                                                fresh
+                                                                    ?.videos[0];
+
+                                                            return playableUrl(
+                                                                next,
+                                                            );
+                                                        }}
+                                                        onRefreshPoster={async () => {
+                                                            const fresh =
+                                                                await refreshPending(
+                                                                    exercise.id,
+                                                                );
+                                                            const next =
+                                                                fresh?.videos.find(
+                                                                    (item) =>
+                                                                        item.status ===
+                                                                        'completed',
+                                                                ) ??
+                                                                fresh
+                                                                    ?.videos[0];
+
+                                                            return (
+                                                                next?.thumbnail_url ??
+                                                                null
+                                                            );
+                                                        }}
+                                                        className="aspect-video w-full bg-muted"
                                                     />
                                                     <div className="flex flex-1 flex-col gap-2 p-4">
                                                         <h3 className="font-semibold text-foreground">

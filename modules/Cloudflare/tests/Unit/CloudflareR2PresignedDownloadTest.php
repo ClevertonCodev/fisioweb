@@ -14,7 +14,6 @@ class CloudflareR2PresignedDownloadTest extends TestCase
 
         config([
             'cloudflare.r2_disk'                => 'r2-presign-test',
-            'cloudflare.cdn_url'                => 'https://cdn.example.com',
             'cloudflare.r2.bucket'              => 'bucket-teste',
             'filesystems.disks.r2-presign-test' => [
                 'driver'                  => 's3',

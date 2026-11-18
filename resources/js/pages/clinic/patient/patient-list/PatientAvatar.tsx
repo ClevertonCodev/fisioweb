@@ -1,12 +1,15 @@
+import { useRefreshList } from '@/application/clinic/use-refresh-list';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { Patient } from '@/domain/clinic/patient';
 
 export function PatientAvatar({
     patient,
     size = 44,
 }: {
-    patient: Pick<Patient, 'name' | 'initial' | 'photoUrl'>;
+    patient: Pick<Patient, 'id' | 'name' | 'initial' | 'photoUrl'>;
     size?: number;
 }) {
+    const refreshPhoto = useRefreshList('patients');
     return (
         <span
             aria-hidden="true"
@@ -18,9 +21,10 @@ export function PatientAvatar({
             }}
         >
             {patient.photoUrl ? (
-                <img
+                <ProtectedImage
                     src={patient.photoUrl}
                     alt=""
+                    onRefresh={refreshPhoto}
                     className="size-full object-cover"
                 />
             ) : (

@@ -32,6 +32,7 @@ import { programBackPath } from '@/application/clinic/program-detail';
 import { startOfToday } from '@/application/clinic/program-details-form';
 import type { SavedIds } from '@/application/clinic/program-write';
 import { useProgramDraft } from '@/application/clinic/use-program-draft';
+import { useProgramItemMedia } from '@/application/clinic/use-programs';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
 import {
     DsAlert,
@@ -43,6 +44,7 @@ import {
     DsSteps,
 } from '@/components/ds';
 import type { Program, ProgramStep } from '@/domain/clinic';
+import { ItemMediaSource } from '@/pages/clinic/program/exercise-library/media';
 import {
     activeFilterCount,
     usePagedExerciseLibrary,
@@ -282,6 +284,7 @@ export default function ProgramBuilder({
     const topRef = useRef<HTMLDivElement>(null);
     const isModel = kind === 'model';
     const isEdit = Boolean(program);
+    const programItemMedia = useProgramItemMedia(program?.id);
 
     // Novo: o que chega pela navegação (exercício ou modelo). Edição: o
     // próprio programa, com o nome como está.
@@ -485,152 +488,156 @@ export default function ProgramBuilder({
 
     return (
         <ClinicLayout>
-            <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
-                <div ref={topRef} />
-                {/* Cabeçalho preso (no celular rola junto, para sobrar tela). */}
-                <header className="z-20 border-b border-ds-border-subtle bg-ds-surface-body/95 backdrop-blur sm:sticky sm:top-0">
-                    <div className="mx-auto flex max-w-(--breakpoint-ds-xl) items-center gap-4 px-4 py-3 sm:px-6 sm:py-4">
-                        <div className="min-w-0 flex-1">
-                            <h1 className="truncate text-ds-body-lg font-semibold sm:text-ds-page-title sm:font-normal">
-                                {title}
-                            </h1>
-                            <p className="truncate text-ds-caption text-ds-content-muted sm:text-ds-body-sm">
-                                {isMobile
-                                    ? `Etapa ${step + 1} de ${steps.length} · ${steps[step]?.label}`
-                                    : subtitle}
-                            </p>
-                        </div>
-                        <nav
-                            aria-label="Etapas"
-                            className="hidden w-[min(420px,36vw)] md:block"
-                        >
-                            <DsSteps
-                                steps={steps}
-                                current={step}
-                                onStepClick={builder.total > 0 ? go : undefined}
-                            />
-                        </nav>
-                        {/* Voltar e Avançar juntos, do mesmo tamanho. No celular o
+            <ItemMediaSource value={programItemMedia}>
+                <div className="h-full overflow-y-auto bg-ds-surface-body font-ds text-ds-content-primary">
+                    <div ref={topRef} />
+                    {/* Cabeçalho preso (no celular rola junto, para sobrar tela). */}
+                    <header className="z-20 border-b border-ds-border-subtle bg-ds-surface-body/95 backdrop-blur sm:sticky sm:top-0">
+                        <div className="mx-auto flex max-w-(--breakpoint-ds-xl) items-center gap-4 px-4 py-3 sm:px-6 sm:py-4">
+                            <div className="min-w-0 flex-1">
+                                <h1 className="truncate text-ds-body-lg font-semibold sm:text-ds-page-title sm:font-normal">
+                                    {title}
+                                </h1>
+                                <p className="truncate text-ds-caption text-ds-content-muted sm:text-ds-body-sm">
+                                    {isMobile
+                                        ? `Etapa ${step + 1} de ${steps.length} · ${steps[step]?.label}`
+                                        : subtitle}
+                                </p>
+                            </div>
+                            <nav
+                                aria-label="Etapas"
+                                className="hidden w-[min(420px,36vw)] md:block"
+                            >
+                                <DsSteps
+                                    steps={steps}
+                                    current={step}
+                                    onStepClick={
+                                        builder.total > 0 ? go : undefined
+                                    }
+                                />
+                            </nav>
+                            {/* Voltar e Avançar juntos, do mesmo tamanho. No celular o
                             Avançar vai para a barra de baixo. */}
-                        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                            <DsButton
-                                variant="secondary"
-                                size={isMobile ? 'sm' : 'md'}
-                                iconPosition="left"
-                                icon={<ArrowLeft />}
-                                label="Voltar"
-                                onClick={() =>
-                                    step === 0
-                                        ? navigate(backPath)
-                                        : go(step - 1)
-                                }
-                            />
-                            {step < LAST && (
-                                <div className="hidden sm:block">
-                                    <DsButton
-                                        iconPosition="right"
-                                        icon={<ArrowRight />}
-                                        label="Avançar"
-                                        disabled={!canNext}
-                                        onClick={() => go(step + 1)}
-                                    />
-                                </div>
-                            )}
+                            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                                <DsButton
+                                    variant="secondary"
+                                    size={isMobile ? 'sm' : 'md'}
+                                    iconPosition="left"
+                                    icon={<ArrowLeft />}
+                                    label="Voltar"
+                                    onClick={() =>
+                                        step === 0
+                                            ? navigate(backPath)
+                                            : go(step - 1)
+                                    }
+                                />
+                                {step < LAST && (
+                                    <div className="hidden sm:block">
+                                        <DsButton
+                                            iconPosition="right"
+                                            icon={<ArrowRight />}
+                                            label="Avançar"
+                                            disabled={!canNext}
+                                            onClick={() => go(step + 1)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </header>
+                    </header>
 
-                <div className="mx-auto max-w-(--breakpoint-ds-xl) px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pb-12">
-                    {hasDraft && draft && (
-                        <DsAlert
-                            className="mb-6"
-                            variant="info"
-                            mode="rich"
-                            title={`Rascunho salvo às ${new Date(
-                                draft.savedAt,
-                            ).toLocaleTimeString('pt-BR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                            })}`}
-                            actions={
-                                <div className="flex gap-2">
-                                    <DsButton
-                                        size="sm"
-                                        label="Restaurar"
-                                        onClick={() => {
-                                            const d = restoreDraft();
-                                            if (!d) return;
-                                            builder.setGroups(d.groups);
-                                            go(fromDraftStep(d.step));
-                                        }}
-                                    />
-                                    <DsButton
-                                        variant="secondary"
-                                        size="sm"
-                                        label="Descartar"
-                                        onClick={clearDraft}
-                                    />
-                                </div>
-                            }
-                        >
-                            Você começou um programa e não salvou.
-                        </DsAlert>
-                    )}
-                    {body}
-                    {/* A etapa 3 fica montada para não perder o que foi digitado
+                    <div className="mx-auto max-w-(--breakpoint-ds-xl) px-4 pt-6 pb-28 sm:px-6 sm:pt-8 lg:pb-12">
+                        {hasDraft && draft && (
+                            <DsAlert
+                                className="mb-6"
+                                variant="info"
+                                mode="rich"
+                                title={`Rascunho salvo às ${new Date(
+                                    draft.savedAt,
+                                ).toLocaleTimeString('pt-BR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                })}`}
+                                actions={
+                                    <div className="flex gap-2">
+                                        <DsButton
+                                            size="sm"
+                                            label="Restaurar"
+                                            onClick={() => {
+                                                const d = restoreDraft();
+                                                if (!d) return;
+                                                builder.setGroups(d.groups);
+                                                go(fromDraftStep(d.step));
+                                            }}
+                                        />
+                                        <DsButton
+                                            variant="secondary"
+                                            size="sm"
+                                            label="Descartar"
+                                            onClick={clearDraft}
+                                        />
+                                    </div>
+                                }
+                            >
+                                Você começou um programa e não salvou.
+                            </DsAlert>
+                        )}
+                        {body}
+                        {/* A etapa 3 fica montada para não perder o que foi digitado
                         ao voltar para dosar. */}
-                    <div hidden={step !== LAST}>
-                        <DetailsStep
-                            builder={builder}
-                            initial={detailsInitial}
-                            target={target}
-                            onReview={() => go(1)}
-                            onSaved={onSaved}
-                            onDirtyChange={setDetailsDirty}
-                        />
+                        <div hidden={step !== LAST}>
+                            <DetailsStep
+                                builder={builder}
+                                initial={detailsInitial}
+                                target={target}
+                                onReview={() => go(1)}
+                                onSaved={onSaved}
+                                onDirtyChange={setDetailsDirty}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <DoseDrawer
-                exercise={doseExercise}
-                groupName={doseGroup?.name ?? ''}
-                groupSize={doseGroup?.exercises.length ?? 0}
-                onClose={() => setDose(null)}
-                onApply={(d) => {
-                    if (dose) builder.setDose(dose.groupId, dose.id, d);
-                    setDose(null);
-                }}
-                onApplyToGroup={(d) => {
-                    if (dose) builder.setGroupDose(dose.groupId, d);
-                    setDose(null);
-                }}
-            />
-            <DsModal
-                open={blocker.state === 'blocked'}
-                onOpenChange={(o) => !o && blocker.reset?.()}
-                size="sm"
-                title="Descartar alterações?"
-                footer={
-                    <div className="flex w-full justify-end gap-3">
-                        <DsButton
-                            variant="secondary"
-                            label="Continuar editando"
-                            onClick={() => blocker.reset?.()}
-                        />
-                        <DsButton
-                            variant="destructive"
-                            label="Descartar"
-                            onClick={() => blocker.proceed?.()}
-                        />
-                    </div>
-                }
-            >
-                <p className="text-ds-body-sm text-ds-content-secondary">
-                    O que você mudou neste {isModel ? 'modelo' : 'programa'} não
-                    foi salvo.
-                </p>
-            </DsModal>
+                <DoseDrawer
+                    exercise={doseExercise}
+                    groupName={doseGroup?.name ?? ''}
+                    groupSize={doseGroup?.exercises.length ?? 0}
+                    onClose={() => setDose(null)}
+                    onApply={(d) => {
+                        if (dose) builder.setDose(dose.groupId, dose.id, d);
+                        setDose(null);
+                    }}
+                    onApplyToGroup={(d) => {
+                        if (dose) builder.setGroupDose(dose.groupId, d);
+                        setDose(null);
+                    }}
+                />
+                <DsModal
+                    open={blocker.state === 'blocked'}
+                    onOpenChange={(o) => !o && blocker.reset?.()}
+                    size="sm"
+                    title="Descartar alterações?"
+                    footer={
+                        <div className="flex w-full justify-end gap-3">
+                            <DsButton
+                                variant="secondary"
+                                label="Continuar editando"
+                                onClick={() => blocker.reset?.()}
+                            />
+                            <DsButton
+                                variant="destructive"
+                                label="Descartar"
+                                onClick={() => blocker.proceed?.()}
+                            />
+                        </div>
+                    }
+                >
+                    <p className="text-ds-body-sm text-ds-content-secondary">
+                        O que você mudou neste {isModel ? 'modelo' : 'programa'}{' '}
+                        não foi salvo.
+                    </p>
+                </DsModal>
+            </ItemMediaSource>
         </ClinicLayout>
     );
 }

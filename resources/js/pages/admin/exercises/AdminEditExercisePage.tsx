@@ -55,10 +55,12 @@ export default function AdminEditExercisePage() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Ajuste durante o render: o form parte do exercício carregado.
-    const [loadedExercise, setLoadedExercise] = useState<unknown>(null);
-    if (exercise && loadedExercise !== exercise) {
-        setLoadedExercise(exercise);
+    // Uma vez por exercício: cada busca traz links assinados novos e não pode apagar a edição.
+    const [loadedExerciseId, setLoadedExerciseId] = useState<number | null>(
+        null,
+    );
+    if (exercise && loadedExerciseId !== exercise.id) {
+        setLoadedExerciseId(exercise.id);
         {
             const firstVideo = (
                 exercise.videos as { id: number }[] | undefined

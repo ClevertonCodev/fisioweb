@@ -1,156 +1,157 @@
-# Handoff · 2026-11-16 · Mídia protegida (feature 019)
+> **Superado em 2026-11-17:** o usuário escolheu a opção 1 (player por arquivo) e as rodadas 4 a 6. O estado atual está no `README.md` e em `review/000-feature-019/decisoes.md`.
 
-Passagem para a sessão que vai fazer a spec. A conversa de 2026-11-16 decidiu a
-direção. A próxima sessão começa pela skill `refinar`, que grava o
-`decisoes.md` desta pasta (o desta sessão foi apagado, então as decisões estão
-aqui) e fecha as perguntas em aberto. Depois vêm `escrever-plano`,
-`criar-tarefas` e `implementar-tarefa`.
+# Handoff · 2026-11-17 · Mídia protegida (feature 019)
 
-## O pedido, nas palavras do usuário
+Passagem para a próxima sessão. O handoff anterior (2026-11-16, direção da
+spec) está no histórico do git deste arquivo; as decisões dele estão no
+`decisoes.md`.
 
-Nenhum link de vídeo, imagem ou PDF pode funcionar fora do sistema: para abrir
-um arquivo, a pessoa tem que estar autenticada. Ninguém pode mandar um link
-para alguém de fora nem baixar os vídeos e copiar a biblioteca. Gravar a tela
-com o celular ou o computador é aceito e fica fora.
+## Onde estamos, em uma frase
 
-## Decisões já tomadas (2026-11-16)
+As 9 tarefas estão implementadas (Cursor + correções desta sessão), testes e
+smoke passam, mas a **revisão adversária parou no limite de 3 rodadas com 3
+Major confirmados no player de vídeo**, e o usuário ainda **não escolheu** como
+seguir (ver "Decisão pendente").
 
-- **Qual é o medo?** → Os dois: compartilhar o link com gente de fora e baixar
-  ou copiar a biblioteca.
-- **Esconder o link no código basta?** → Não. Tocar como `blob:` é só reforço.
-  A proteção de verdade é o link não funcionar fora da sessão de quem pediu.
-- **Onde ficam os arquivos?** → Tudo privado no R2: vídeos, capas, imagens de
-  referência, fotos do profissional e do paciente, e PDFs. Nada tem endereço
-  público permanente. Para abrir, o arquivo passa por um link assinado, gerado
-  na hora só para quem tem permissão.
-- **E o PDF do programa?** → O PDF não tem vídeo nem endereço de arquivo, e
-  **não ganha link nem QR por exercício**. Fica só o QR do programa, que já
-  existe e leva à página do programa. A proteção está nessa página, que passa a
-  exigir autenticação para mostrar os vídeos (o como é a pergunta 1). Um QR
-  fotografado ou encaminhado não abre nada sem login.
-- **Em que ordem?** → Fase 1: fechar a porta (tudo privado, link assinado,
-  login). A fase 2 (vídeo em pedaços com Cloudflare Stream e marca d'água com o
-  nome da clínica) só entra se ainda houver cópia depois da fase 1.
+## Estado do código
 
-### Fora do escopo
+- Branch `feat/midia-protegida`. Commits do Cursor: `d9f4357` (tudo) e
+  `f44ad6e` (ajuste). **Nada desta sessão foi commitado**: 82 arquivos
+  alterados, `modules/Cloudflare/app/Support/SignedMedia.php` apagado, novos
+  `resources/js/application/protected-media.ts`,
+  `resources/js/test/AdminVideoEditPage.test.tsx`,
+  `resources/js/test/patient-execution-video.test.tsx`,
+  `.ai-workbench/019-midia-protegida/DEFERRED.md` e `roteiros/`.
+- `bash bin/verificar.sh` passou inteiro na última execução (19 verificações
+  OK, Vitest 158 arquivos). PHPUnit ~1290 testes.
+- README da feature ainda diz "planejada" e nenhum critério das tarefas está
+  `[x]`: de propósito, só marcar quando a revisão aprovar.
 
-- Impedir gravação de tela.
-- Fase 2: Cloudflare Stream (pago, cerca de US$ 5 por mês para cada 1.000
-  minutos guardados, mais o uso) e marca d'água.
+## O que esta sessão fez por cima do Cursor
 
-## Perguntas para o `refinar`
+Detalhe por achado em `review/000-feature-019/decisoes.md`. Resumo:
 
-Estão na ordem em que uma depende da outra. Para cada uma vai a recomendação
-que foi dada ao usuário.
+- **Fronteira de módulo:** a classe estática `Cloudflare\Support\SignedMedia`
+  saiu; os módulos usam `SignedMediaUrlInterface` (models pelo container,
+  `VideoService` pelo construtor). `ModuleBoundaryTest` barra qualquer
+  `Modules\Cloudflare\` fora de `Contracts\`.
+- **Endpoint novo** `GET /api/clinic/exercises/{id}`
+  (`Clinic\ExerciseController::show`, filtro `id` no `Admin\ExerciseRepository`
+  junto com `visible_to_clinic_id`). A renovação de link da biblioteca chamava
+  essa rota, que não existia (404).
+- **Fotos:** `replacePhoto`/`removePhoto` em `PatientService` e
+  `ClinicUserService`; a foto antiga só é apagada do R2 se nenhum registro da
+  mesma tabela usa o caminho, e falha ao apagar vira `Log::warning` (200).
+- **`SignedMediaUrlService`:** falha ao assinar devolve `null` e loga sem o
+  caminho.
+- **Imagens de referência:** `ksort($slots)` em `referencePathsFromSlots` (a
+  validação do Laravel invertia a ordem foto 1/foto 2).
+- **Front:** sem leituras de `cdn_url`/`url` (tipo `AdminVideo` tem
+  `video_url`); `AdminEditExercisePage`/`AdminVideoEditPage` preenchem o
+  formulário uma vez por id (refetch com link novo apagava a edição);
+  `ImageSlot`/`ChangeImagesModal` renovam a imagem salva; `ProtectedImage`
+  tenta de novo com link igual.
+- **Player** (`resources/js/components/protected-media/`): download via
+  `application/protected-media.ts`, chave do arquivo = caminho sem assinatura,
+  `pending` preso à chave, reset com `load()` na troca, `lastRequested`,
+  recusa do `play()` não vira erro, e `ProtectedVideo` com `<video>` invisível
+  + botão "Reproduzir <título>" sobre a capa até o download.
+- **Teste de arquitetura** `NoPublicMediaUrlTest` reforçado (mais padrões e
+  pastas, teste negativo). ADR 030 atualizado. Roteiro do Cloudflare corrigido.
 
-1. **Login do paciente.** Hoje `GET /api/patient/programs/{publicToken}` e as
-   rotas de execução e feedback abrem sem login: quem recebe o WhatsApp
-   encaminhado vê os vídeos. Opções: pedir login sempre; **pedir login uma vez
-   e lembrar o aparelho (sessão longa, como app de banco), a recomendada**; ou
-   continuar sem login com um link que vence. O usuário disse "para funcionar
-   tem que estar no sistema", mas não escolheu entre as três. É o público dele
-   (pacientes mais velhos podem travar no login).
-2. **Prazo do link assinado por tipo.** Vídeo precisa cobrir o tempo de
-   assistir, porque cada pedido de pedaço (range) do player é conferido na hora
-   e um link de 5 min trava o vídeo no meio. A recomendação é uns 30 min para
-   vídeo e 5 min para imagem e PDF.
-3. **Como a tela toca o vídeo.** O SPA guarda o JWT no `localStorage` e manda o
-   `Authorization` pelo `apiClient`, mas um `<video src>` não manda cabeçalho.
-   Opções: (a) a API devolve um link assinado do R2 e a tela usa
-   `<video src=link>`; (b) **a tela baixa pelo `apiClient` e toca como
-   `blob:`, o que esconde o link e vale para vídeos curtos de exercício (o seed
-   usa uns 5 MB), a recomendada**; (c) endpoint nosso que faz streaming, que
-   pesa no PHP e não é recomendado. Sem botão de download
-   (`controlsList="nodownload"`) e sem menu de botão direito no player.
-4. **Fotos do profissional e do paciente** também ficam privadas? O pedido diz
-   "tudo". Elas aparecem em menu, agenda, dashboard, cabeçalho do programa do
-   paciente e avatar do PDF: são muitos lugares e muitas chamadas. Confirmar e
-   decidir se uma lista (agenda, pacientes) recebe os links em lote, como as
-   prévias do prontuário (`GET /api/clinic/patients/{p}/files/previews`).
-5. **QR do programa protegido.** O QR continua apontando para
-   `APP_URL/{slug}/paciente/programas/{public_token}`. Confirmar o que acontece
-   quando o paciente não está logado: vai para o login e volta para o programa
-   depois de entrar? E o `public_token` continua no QR ou passa a ser só um
-   identificador, já que o acesso depende do login?
-6. **CDN `cdn-dev.ivsmed.com`.** Ampliar a regra de WAF do ADR 027 para
-   bloquear tudo, tirar o domínio próprio do bucket (os links assinados usam o
-   endpoint S3, não o CDN) ou usar um Worker? A recomendação é tirar o acesso
-   público, porque sem endereço público não há nada a bloquear.
-7. **Dados antigos.** As colunas `cdn_url`, `url`, `thumbnail_url` e
-   `photo_url` guardam a URL pública. Parar de gravar e de devolver, apagar as
-   colunas por migration, ou manter só o caminho (`path`)?
-8. **Admin.** O painel master (revisão de vídeo, catálogo) também passa por link
-   assinado? Pela regra "tudo privado", sim.
+## Decisão pendente (o usuário pediu explicação e depois o handoff)
 
-## Mapa do código (levantado em 2026-11-16)
+Major confirmados na rodada 3 (relatório em
+`review/000-feature-019/rodada-3-revisor.md`, provas do verificador no
+`decisoes.md`):
 
-Caminhos do backend relativos a `modules/`, do front a `resources/js/`.
+1. **Botão do exercício seguinte travado** enquanto o download do anterior não
+   termina: `loading` é um só por player e não zera na troca
+   (`use-protected-playback.ts`, `ProtectedVideo.tsx` `disabled={loading}`).
+2. **Vídeo sem capa não toca no Chromium:** sem `posterUrl` não há botão, e
+   `<video controls>` sem `src` não dispara `play`. Regressão da `main`
+   (`thumbnail_path` é nullable). O teste `patient-execution-video.test.tsx` usa
+   `fireEvent.play`, que esconde isso.
+3. **Nenhum teste segura a guarda** `accepted.includes(currentKey.current)` no
+   `attach` (tirar a linha deixa a suíte verde; `createObjectURL` do teste
+   devolve sempre o mesmo valor).
 
-| Arquivo | Quem vê | Como o link chega hoje | Onde |
-|---|---|---|---|
-| Vídeo e capa (`media_videos.cdn_url`, `url`, `thumbnail_url`) | Clínica | URL pública do CDN gravada no banco no upload | `Cloudflare/app/Services/CloudflareR2Service.php:59,182,344` (`generateCdnUrl`); `Media/app/Services/VideoService.php:220,280,332,428,512`; `Clinic/app/Http/Controllers/ExerciseController.php:112`; front `infrastructure/repositories/api-clinic-exercises.ts:81-82`, `api-clinic-programs.ts:93-94`, `pages/clinic/program/exercise-library/media.tsx`, `program-detail/ProgramDetailPanel.tsx:118,291` |
-| Mesmo vídeo e capa | Admin | Idem | `Media/routes/admin.php:7-8`; front `api-admin-videos.ts`, `pages/admin/exercises/AdminVideoDetailPage.tsx:88`, `components/admin/exercises/AdminExerciseVideoPreview.tsx:25` |
-| Mesmo vídeo e capa | Paciente e **público sem login** (por `publicToken`) | Idem (`video_url = cdn_url ?? url`) | `TreatmentProgram/routes/patient.php`; `TreatmentProgram/app/Support/PatientProgramResponseMapper.php:109-110`; front `pages/patient/program/PatientExerciseDetailPage.tsx:114-116` e `PatientProgramExecutionPage.tsx:631-634` (`<iframe src>`), `PatientProgramDetailPage.tsx:498` (`components/VideoThumb.tsx:67`, `<video>`) |
-| Imagens de referência (`admin_exercise_media.cdn_url`) | Clínica, admin | URL do CDN no banco | `Admin/app/Services/ExerciseReferenceImageSyncService.php:61`; `VideoService.php:557,709` |
-| Imagens no PDF do programa | Paciente | O dompdf baixa pela URL do CDN na geração (`isRemoteEnabled`) | `resources/views/pdf/clinic/treatment/treatment-plan.blade.php:443-487`; `Pdf/app/Services/PdfService.php:22-33`; `TreatmentPlanController.php:128-161` |
-| QR do programa no PDF | Paciente | Aponta para a página `APP_URL/{slug}/paciente/programas/{public_token}`, não para o arquivo | `TreatmentProgram/app/Services/ProgramPdfViewModelBuilder.php:72-91`, `ProgramPdfQrCodeGenerator.php:15-35` |
-| Foto do profissional (`clinic-users/photos`) | Clínica, paciente, PDF | URL do CDN no banco | `Clinic/app/Http/Controllers/ClinicUserController.php:98-99`; `PatientProgramResponseMapper.php:29`; `ProgramPdfViewModelBuilder.php:39` |
-| Foto do paciente (`patients/photos`) | Clínica | URL do CDN no banco | `Clinic/app/Http/Controllers/PatientController.php:140-141`; `Clinic/app/Repositories/DashboardRepository.php:71-75`; `ClinicScheduling/app/Services/SchedulingReadService.php:21-28` |
-| Prontuário (`patients/files`) | Clínica | **Já é link assinado de 300 s** (modelo a seguir) | `ClinicalRecord/app/Services/PatientFileService.php:26,43-62` |
-| Comprovantes de Finanças | Clínica | **Já é link assinado de 300 s** | `ClinicFinance/app/Services/FinancialAttachmentService.php:18,81-91` |
-| WhatsApp e e-mail | Paciente | Só mandam o link da página do programa ou do questionário, nunca de arquivo | `application/clinic/program-share.ts:3-27` |
+Minor: download antigo ainda mexe no estado do novo (erro falso, auto-play ao
+voltar); nome acessível "Reproduzir vídeo" repetido (AdminExerciseReviewPage,
+AdminVideoDetailPage, ProgramDetailPanel) e "Reproduzir Vídeo: <nome>" no
+PatientExerciseDetailPage.
 
-Observações:
+**Causa comum (rodadas 1, 2 e 3):** um único `<video>`/hook reaproveitado para
+outro arquivo, com estado que vaza entre arquivos.
 
-- Os únicos links que duram dias (o QR do PDF e o WhatsApp) apontam para a
-  página do programa, que pede a mídia a cada abertura. Link curto para a
-  mídia não quebra esses dois.
-- O PDF embute as imagens na geração. Com mídia privada, o servidor gera o
-  link assinado (ou lê o arquivo do disco R2) na hora de montar o PDF.
-- Se a geração local do QR falhar, o `ProgramPdfQrCodeGenerator.php:35` usa o
-  `api.qrserver.com`: a URL da página do programa vai para um serviço externo.
-  Vale tratar junto.
-- Não existe API Resource para esses models: eles são serializados direto, e
-  `cdn_url`, `url` e `thumbnail_url` saem na resposta. O prontuário esconde os
-  campos no model (`$hidden`), e esse é o modelo a seguir.
+Opções apresentadas ao usuário (em texto, explicadas sem jargão):
 
-## Ambiente de hoje
+1. **Recomendada: player montado do zero a cada arquivo.** `ProtectedVideo`
+   renderiza um componente interno com `key={caminho do arquivo sem
+   assinatura}`; o download antigo morre com o componente (o `attach` já
+   descarta quando `ref.current` é nulo). Botão "Reproduzir" sempre que
+   `!active`, com ou sem capa. Testes com `createObjectURL` devolvendo valor
+   por chamada, clique no botão em vez de `fireEvent.play`, e caso sem capa.
+   Avaliar se `VideoThumb`, `ExerciseCard` e `media.tsx` (`CardVideo`,
+   `ModalPlayer`) precisam do mesmo `key` (cartões de lista já são por item).
+2. Remendar o hook atual (geração do download para `loading`/erro/`attach`).
+3. Parar e abrir a PR com os 3 Major no DEFERRED (não recomendado).
 
-- Servidor `app.ivsmed.com` (Hetzner), com `APP_ENV=development` desde
-  2026-11-16. O usuário diz que é ambiente de desenvolvimento e o banco pode
-  ser recriado. Fora de produção, o `/log-viewer` abre sem login
-  (`app/Providers/AppServiceProvider.php:45`); por isso o nginx bloqueia
-  `/log-viewer` (404). Esse bloqueio ainda não está no `infra/`.
-- R2: bucket `ivsdev` na conta Cloudflare do `ivsmed.com`, domínio próprio
-  `cdn-dev.ivsmed.com`, `r2.dev` desligado, CORS para `app.ivsmed.com` e
-  `localhost:8000`.
-- A regra de WAF do ADR 027 (itens 1 e 5) está ativa no `cdn-dev.ivsmed.com` e
-  bloqueia `clinics`+`finances` e `patients`+`files`; o registro está no ADR.
-- O bucket antigo (`fisioweb`, em outra conta Cloudflare) ainda tem o `r2.dev`
-  ligado, com uns 133 arquivos de teste, entre eles laudos e um comprovante. O
-  app não usa mais esse bucket. Desligar o `r2.dev` dele ou apagá-lo é tarefa do
-  usuário, nessa outra conta.
-- Os vídeos e capas do seed apontam para o `cdn-dev`, mas os arquivos não estão
-  no `ivsdev` (dão 404). Copiar `videos/` e `thumbnails/` do bucket antigo foi
-  oferecido e não foi feito.
+Qualquer correção pede uma **4ª rodada de revisão**, acima do limite do
+harness: só com o sim do usuário. Comece a próxima sessão perguntando qual
+opção ele escolhe.
 
-## Regras do projeto que pesam aqui
+## Como verificar e repetir o smoke
 
-- É Spec, não vibe code: mexe em acesso, dado de paciente (LGPD), vários
-  módulos (`Media`, `Cloudflare`, `Clinic`, `TreatmentProgram`, `Admin`, `Pdf`,
-  `Patient`) e no login do paciente.
-- Isolamento: link assinado só sai para quem é da clínica dona do arquivo, e um
-  paciente só vê a mídia dos próprios programas. Precisa de teste do caso de
-  outra clínica e de outro paciente.
-- Fronteira de módulo: o contrato de gerar link fica no `Cloudflare`
-  (`FileServiceInterface::createPresignedDownloadUrl`), e os outros módulos o
-  usam por interface.
+- `bash bin/verificar.sh`.
+- Ambiente: checkout principal com `composer run dev` e Postgres local (o
+  usuário sobe; não subir sozinho). Banco recriado com `migrate:fresh --seed` em
+  2026-11-17 e com dados de QA (4 exercícios "QA Midia Protegida <ts>"
+  pendentes na clínica do Cleverton; vídeos de um programa do seed apontando
+  para vídeos enviados: exercícios 1 e 5 num arquivo, 2 a 4 em outro).
+- Roteiros em `roteiros/` (sem senha; login por `tools/playwright/credentials.json`
+  ou `FISIO_LOGIN`/`FISIO_SENHA`). Variáveis: `QA_NOME` (nome do exercício
+  QA), `QA_CAMINHO` (path do vídeo), `QA_VIDEO_ID` (admin), `QA_PROGRAMA`
+  (`/clinica-cleverton/paciente/programas/<token>` — pegar o token no banco:
+  primeiro `TreatmentPlan` ativo com `public_token`), `QA_SAIDA`. Exemplos de
+  uso e resultados no `evidence/correcoes-conferencia/SUMMARY.md`.
+- Evidência de backend: `evidence/correcoes-conferencia/backend/*.txt` (login
+  real via `POST /api/clinic/auth/login`; tokens gerados pelo tinker dão 401;
+  em bash, montar os argumentos do curl num array, senão o cabeçalho
+  `Authorization` não sai).
+- Depois de cada rodada de smoke, limpar a evidência: os `report.md` do
+  `flow.mjs` gravam links assinados completos (com `X-Amz-Credential`) e o
+  token do programa. O comando usado está no histórico desta sessão: `perl -pi`
+  trocando `?X-Amz-...`, o host `*.r2.cloudflarestorage.com` e o token.
+
+## Pendências fora do código (do usuário)
+
+- **Tirar o domínio `cdn-dev.ivsmed.com` do bucket `ivsdev`** (passo 1 de
+  `docs/operacao/cloudflare-fechar-leitura-publica.md`). O smoke mostrou um
+  vídeo enviado abrindo com 200 sem login nesse domínio. Até isso, todo link
+  assinado entregue vira endereço permanente (o caminho vai em claro).
+- Valores que apareceram na conversa desta sessão: o `CLOUDFLARE_R2_ACCESS_KEY_ID`
+  e o `CLOUDFLARE_ACCOUNT_ID` (dentro de links assinados; a chave secreta não
+  apareceu) e a senha dos usuários de QA do `credentials.json`. Avaliar rotação
+  se forem usados fora do dev.
+
+## Depois da decisão
+
+1. Corrigir com teste primeiro (skill `implementar-tarefa`), `bin/verificar.sh`.
+2. Smoke dos fluxos do player (`paciente-troca-*`, `paciente-*`,
+   `clinica-envio-e-biblioteca`, `admin-videos`), incluindo um vídeo **sem
+   capa** e o botão conferido com `isEnabled()` sem esperar.
+3. 4ª rodada (com o sim do usuário): `revisor-adversario` + `verificador-de-achados`,
+   registrando em `review/000-feature-019/`.
+4. Aprovado: marcar `[x]` nos critérios das 9 tarefas e "concluída" no README;
+   lista de Minor da PR (rodada 1: 010; rodada 2: 004; rodada 3: 005 e o que
+   sobrar); perguntar sobre code review (é a feature inteira).
+5. Sugerir o commit (não commitar sem pedido). Mensagem no estilo do repo, por
+   exemplo: "Corrige a mídia protegida: player por arquivo, renovação de link e
+   fotos no serviço."
 
 ## Texto para colar na sessão nova
 
-> Leia `.ai-workbench/019-midia-protegida/HANDOFF.md`. Vamos continuar a spec
-> da mídia protegida: rode a skill `refinar` a partir da seção "Perguntas para
-> o refinar", gravando as decisões em
-> `.ai-workbench/019-midia-protegida/decisoes.md` (comece copiando para lá as
-> "Decisões já tomadas" do handoff). Uma pergunta por vez, começando pelo login
-> do paciente.
+> Leia `.ai-workbench/019-midia-protegida/HANDOFF.md`. A revisão adversária da
+> 019 parou no limite com 3 Major no player de vídeo. Me pergunte qual das
+> opções da seção "Decisão pendente" eu escolho e siga a partir daí.

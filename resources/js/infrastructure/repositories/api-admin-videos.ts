@@ -12,8 +12,7 @@ function mapVideo(raw: Record<string, unknown>): AdminVideo {
         id: raw.id as number,
         filename: (raw.filename as string) ?? '',
         original_filename: (raw.original_filename as string) ?? null,
-        url: (raw.url as string) ?? null,
-        cdn_url: (raw.cdn_url as string) ?? null,
+        video_url: (raw.video_url as string) ?? null,
         thumbnail_url: (raw.thumbnail_url as string) ?? null,
         size: (raw.size as number) ?? null,
         human_size: (raw.human_size as string) ?? '0 B',
@@ -141,9 +140,19 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
     },
 
     async syncReferenceImages(videoId, paths) {
+        return this.syncReferenceImageSlots(
+            videoId,
+            paths.map((path) => ({ path })),
+        );
+    },
+
+    async syncReferenceImageSlots(
+        videoId: number,
+        slots: ({ path: string } | { keep: number; url: string })[],
+    ) {
         const { data } = await apiClient.put<{ data: unknown }>(
             `${BASE}/${videoId}/reference-images`,
-            { reference_image_paths: paths },
+            { reference_image_slots: slots },
         );
         return mapVideo((data as { data: Record<string, unknown> }).data);
     },

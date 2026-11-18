@@ -1,6 +1,8 @@
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +11,7 @@ export interface SelectOption {
     value: string;
     icon?: string;
     img?: string;
+    onRefreshImg?: ProtectedRefresh;
 }
 
 export interface SelectOptionsProps {
@@ -23,6 +26,28 @@ export interface SelectOptionsProps {
     noLimitOptions?: boolean;
     searchable?: boolean;
     className?: string;
+}
+
+function OptionImage({ option }: { option: SelectOption }) {
+    if (!option.img) return null;
+    if (!option.onRefreshImg) {
+        return (
+            <img
+                src={option.img}
+                alt=""
+                className="h-5 w-5 shrink-0 object-contain"
+            />
+        );
+    }
+
+    return (
+        <ProtectedImage
+            src={option.img}
+            alt=""
+            onRefresh={option.onRefreshImg}
+            className="h-5 w-5 shrink-0 object-contain"
+        />
+    );
 }
 
 const sortedOptions = (opts: SelectOption[]) =>
@@ -170,13 +195,7 @@ export function SelectOptions({
                         {value ? (
                             <div className="flex items-center gap-2">
                                 {value.icon && <i className={cn(value.icon, 'h-5 w-5 shrink-0')} />}
-                                {value.img && (
-                                    <img
-                                        src={value.img}
-                                        alt=""
-                                        className="h-5 w-5 shrink-0 object-contain"
-                                    />
-                                )}
+                                <OptionImage option={value} />
                                 <span className="truncate">{value.label}</span>
                             </div>
                         ) : (
@@ -235,13 +254,7 @@ export function SelectOptions({
                                         {option.icon && (
                                             <i className={cn(option.icon, 'h-5 w-5 shrink-0')} />
                                         )}
-                                        {option.img && (
-                                            <img
-                                                src={option.img}
-                                                alt=""
-                                                className="h-5 w-5 shrink-0 object-contain"
-                                            />
-                                        )}
+                                        <OptionImage option={option} />
                                         <span className="truncate">{option.label}</span>
                                     </div>
                                 ))

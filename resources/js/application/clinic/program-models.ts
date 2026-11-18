@@ -24,6 +24,7 @@ export interface ModelSummary {
 
 export interface ModelExercise {
     id: string;
+    exerciseId: string;
     title: string;
     thumbnailUrl: string;
     videoUrl: string;
@@ -96,6 +97,7 @@ const ADMIN_PERIOD = {
 export function libraryExercise(e: AdminProgramExercise): ModelExercise {
     return {
         id: String(e.id),
+        exerciseId: String(e.exerciseId),
         title: e.exercise?.name ?? 'Exercício',
         thumbnailUrl: e.exercise?.thumbnailUrl ?? '',
         videoUrl: e.exercise?.videoUrl ?? '',
@@ -115,6 +117,7 @@ export function libraryExercise(e: AdminProgramExercise): ModelExercise {
 export function myExercise(e: ProgramExercise): ModelExercise {
     return {
         id: e.id,
+        exerciseId: e.exerciseId,
         title: e.title,
         thumbnailUrl: e.thumbnailUrl,
         videoUrl: e.videoUrl,

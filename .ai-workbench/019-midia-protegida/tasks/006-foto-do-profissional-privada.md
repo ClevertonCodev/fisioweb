@@ -21,14 +21,14 @@ A foto do usuário da clínica fica em `clinic_users.photo_url`, com o endereço
 
 ## Critérios de Aceite
 
-- [ ] A coluna `clinic_users.photo_url` não existe mais, `photo_path` existe, e `migrate:fresh --seed` roda sem erro.
-- [ ] Nenhuma resposta de usuário, `me` ou programa do paciente traz `photo_path` ou o host do CDN; `photo_url` tem assinatura e prazo de 5 min.
-- [ ] Enviar e remover foto funcionam, e a foto nova aparece no menu e na lista.
-- [ ] Papel sem permissão continua recebendo 403 nas rotas de foto (regressão).
-- [ ] A clínica B não recebe foto de usuário da clínica A.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] A coluna `clinic_users.photo_url` não existe mais, `photo_path` existe, e `migrate:fresh --seed` roda sem erro.
+- [x] Nenhuma resposta de usuário, `me` ou programa do paciente traz `photo_path` ou o host do CDN; `photo_url` tem assinatura e prazo de 5 min.
+- [x] Enviar e remover foto funcionam, e a foto nova aparece no menu e na lista.
+- [x] Papel sem permissão continua recebendo 403 nas rotas de foto (regressão).
+- [x] A clínica B não recebe foto de usuário da clínica A.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

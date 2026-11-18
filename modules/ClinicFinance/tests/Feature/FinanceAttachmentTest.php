@@ -62,7 +62,7 @@ class FinanceAttachmentTest extends TestCase
     public function test_secretary_uploads_receipts_into_the_clinic_folder_without_any_public_url(): void
     {
         $directories = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$directories) {
+        $this->mockFiles(function (MockInterface $mock) use (&$directories) {
             $mock->shouldReceive('uploadFileAs')->twice()->andReturnUsing(function (UploadedFile $file, string $directory, string $filename, string $type) use (&$directories) {
                 $directories[] = $directory;
 
@@ -104,7 +104,7 @@ class FinanceAttachmentTest extends TestCase
 
     public function test_accepts_heic_and_webp_photos(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFileAs')->twice()->andReturnUsing(
                 fn (UploadedFile $file, string $directory, string $filename, string $type) => $this->uploadResult($directory, $file->getClientOriginalName(), $type, $filename),
             );
@@ -123,7 +123,7 @@ class FinanceAttachmentTest extends TestCase
         file_put_contents($tmp, "%PDF-1.4\n<html><script>alert(document.cookie)</script></html>");
         $file  = new UploadedFile($tmp, 'x.html', 'text/html', null, true);
         $calls = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$calls) {
+        $this->mockFiles(function (MockInterface $mock) use (&$calls) {
             $mock->shouldNotReceive('uploadFile');
             $mock->shouldReceive('uploadFileAs')->once()->andReturnUsing(
                 function (UploadedFile $file, string $directory, string $filename, string $type) use (&$calls) {
@@ -150,7 +150,7 @@ class FinanceAttachmentTest extends TestCase
     {
         $outside = \DB::transactionLevel();
         $levels  = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$levels) {
+        $this->mockFiles(function (MockInterface $mock) use (&$levels) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturnUsing(
                 function (UploadedFile $file, string $directory, string $filename, string $type) use (&$levels) {
                     $levels[] = \DB::transactionLevel();
@@ -168,7 +168,7 @@ class FinanceAttachmentTest extends TestCase
     public function test_when_the_limit_fills_up_during_the_upload_the_files_sent_are_removed(): void
     {
         $uploaded = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$uploaded) {
+        $this->mockFiles(function (MockInterface $mock) use (&$uploaded) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturnUsing(
                 function (UploadedFile $file, string $directory, string $filename, string $type) use (&$uploaded) {
                     // Outra aba enche o lançamento enquanto este arquivo sobe.
@@ -194,7 +194,7 @@ class FinanceAttachmentTest extends TestCase
     public function test_when_the_transaction_goes_to_the_trash_during_the_upload_it_answers_404_and_removes_the_file(): void
     {
         $uploaded = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$uploaded) {
+        $this->mockFiles(function (MockInterface $mock) use (&$uploaded) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturnUsing(
                 function (UploadedFile $file, string $directory, string $filename, string $type) use (&$uploaded) {
                     // Outra aba manda o lançamento para a lixeira enquanto este arquivo sobe.
@@ -226,7 +226,7 @@ class FinanceAttachmentTest extends TestCase
 
     public function test_accepts_a_file_of_exactly_10_mb(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturnUsing(
                 fn (UploadedFile $file, string $directory, string $filename, string $type) => $this->uploadResult($directory, 'limite.pdf', $type, $filename),
             );
@@ -275,7 +275,7 @@ class FinanceAttachmentTest extends TestCase
         $path = "clinics/{$this->clinic->id}/finances/transactions/{$this->transaction->id}/r1.pdf";
         // Como o R2 devolve de verdade: o link assinado traz o caminho do arquivo (ADR 026, decisão 6).
         $signed = "https://conta.r2.cloudflarestorage.com/bucket/{$path}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=300&X-Amz-Signature=abc";
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($path, $signed) {
+        $this->mockFiles(function (MockInterface $mock) use ($path, $signed) {
             $mock->shouldReceive('createPresignedDownloadUrl')
                 ->once()
                 ->withArgs(fn (string $p, int $ttl, ?string $name, ?string $type = null) => $p === $path
@@ -304,7 +304,7 @@ class FinanceAttachmentTest extends TestCase
         \DB::table('clinic_financial_attachments')->where('id', $bare)->update(['original_name' => 'recibo']);
         \DB::table('clinic_financial_attachments')->where('id', $upper)->update(['original_name' => 'Foto Março.JPG', 'mime_type' => 'image/jpeg']);
         $names = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$names) {
+        $this->mockFiles(function (MockInterface $mock) use (&$names) {
             $mock->shouldReceive('createPresignedDownloadUrl')->times(3)->andReturnUsing(
                 function (string $path, int $ttl, ?string $name, ?string $type) use (&$names) {
                     $names[] = [$name, $type];
@@ -328,7 +328,7 @@ class FinanceAttachmentTest extends TestCase
     public function test_another_clinic_does_not_list_upload_open_or_remove_receipts(): void
     {
         [$id] = $this->createAttachments(1);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('uploadFileAs');
             $mock->shouldNotReceive('createPresignedDownloadUrl');
             $mock->shouldNotReceive('deleteFile');
@@ -361,7 +361,7 @@ class FinanceAttachmentTest extends TestCase
     public function test_receipts_of_a_trashed_transaction_are_404_and_come_back_on_restore(): void
     {
         [$id] = $this->createAttachments(1);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('deleteFile');
             $mock->shouldNotReceive('deletePrivateFile');
             $mock->shouldReceive('createPresignedDownloadUrl')->once()->andReturn(['url' => 'https://assinado', 'expires_at' => now()->toISOString()]);
@@ -384,7 +384,7 @@ class FinanceAttachmentTest extends TestCase
         [$id, $keep] = $this->createAttachments(2);
         $path        = "clinics/{$this->clinic->id}/finances/transactions/{$this->transaction->id}/r1.pdf";
         // A remoção usa o método que não registra o caminho no log (o deleteFile registra).
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($path) {
+        $this->mockFiles(function (MockInterface $mock) use ($path) {
             $mock->shouldNotReceive('deleteFile');
             $mock->shouldReceive('deletePrivateFile')->once()->with($path)->andReturnTrue();
         });
@@ -399,7 +399,7 @@ class FinanceAttachmentTest extends TestCase
     {
         Exceptions::fake();
         [$id] = $this->createAttachments(1);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('deletePrivateFile')->once()->andThrow(new \RuntimeException('Failed to delete file in clinics'));
         });
 
@@ -413,7 +413,7 @@ class FinanceAttachmentTest extends TestCase
     {
         [$id]   = $this->createAttachments(1);
         $physio = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('uploadFileAs');
             $mock->shouldNotReceive('createPresignedDownloadUrl');
             $mock->shouldNotReceive('deleteFile');

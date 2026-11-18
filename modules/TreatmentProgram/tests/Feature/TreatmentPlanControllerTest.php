@@ -51,9 +51,8 @@ class TreatmentPlanControllerTest extends TestCase
         ]);
 
         $video = Video::factory()->create([
-            'url'           => 'http://example.com/video.mp4',
-            'cdn_url'       => 'http://cdn.example.com/video.mp4',
-            'thumbnail_url' => 'http://example.com/thumb.jpg',
+            'path'           => 'videos/plano.mp4',
+            'thumbnail_path' => 'covers/videos/plano.jpg',
         ]);
         $exercise->videos()->attach($video->id);
 
@@ -83,14 +82,16 @@ class TreatmentPlanControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.id', $plan->id)
             ->assertJsonPath('data.groups.0.exercises.0.exercise.id', $exercise->id)
-            ->assertJsonPath('data.groups.0.exercises.0.exercise.videos.0.thumbnail_url', 'http://example.com/thumb.jpg')
-            ->assertJsonPath('data.groups.0.exercises.0.exercise.videos.0.cdn_url', 'http://cdn.example.com/video.mp4');
+            ->assertJsonMissingPath('data.groups.0.exercises.0.exercise.videos.0.cdn_url')
+            ->assertJsonMissingPath('data.groups.0.exercises.0.exercise.videos.0.path');
+        $this->assertSignedVideoUrl($response->json('data.groups.0.exercises.0.exercise.videos.0.video_url'), 'videos/plano.mp4');
+        $this->assertSignedVideoUrl($response->json('data.groups.0.exercises.0.exercise.videos.0.thumbnail_url'), 'covers/videos/plano.jpg');
     }
 
     public function test_index_includes_exercises_count_clinic_user_patient_photo_and_engagement(): void
     {
         $this->clinicUser->update([
-            'photo_url' => 'https://cdn.example.com/physio.jpg',
+            'photo_path' => 'clinic-users/photos/physio.jpg',
         ]);
 
         $exercise = Exercise::create([
@@ -102,9 +103,9 @@ class TreatmentPlanControllerTest extends TestCase
         ]);
 
         $patient = Patient::factory()->create([
-            'clinic_id' => $this->clinicUser->clinic_id,
-            'name'      => 'Paciente Teste',
-            'photo_url' => 'https://cdn.example.com/patient.jpg',
+            'clinic_id'  => $this->clinicUser->clinic_id,
+            'name'       => 'Paciente Teste',
+            'photo_path' => 'patients/photos/patient.jpg',
         ]);
 
         $plan = TreatmentPlan::create([
@@ -140,11 +141,11 @@ class TreatmentPlanControllerTest extends TestCase
             ->assertJsonPath('data.data.0.exercises_count', 1)
             ->assertJsonPath('data.data.0.patient.id', $patient->id)
             ->assertJsonPath('data.data.0.patient.name', 'Paciente Teste')
-            ->assertJsonPath('data.data.0.patient.photo_url', 'https://cdn.example.com/patient.jpg')
             ->assertJsonPath('data.data.0.clinic_user.id', $this->clinicUser->id)
-            ->assertJsonPath('data.data.0.clinic_user.name', $this->clinicUser->name)
-            ->assertJsonPath('data.data.0.clinic_user.photo_url', 'https://cdn.example.com/physio.jpg')
-            ->assertJsonPath('data.data.0.patient_completed_count', 4);
+            ->assertJsonPath('data.data.0.clinic_user.name', $this->clinicUser->name);
+        $this->assertSignedImageUrl($response->json('data.data.0.patient.photo_url'), 'patients/photos/patient.jpg');
+        $this->assertSignedImageUrl($response->json('data.data.0.clinic_user.photo_url'), 'clinic-users/photos/physio.jpg');
+        $response->assertJsonPath('data.data.0.patient_completed_count', 4);
 
         $this->assertNotNull($response->json('data.data.0.patient_viewed_at'));
     }

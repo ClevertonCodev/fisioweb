@@ -5,6 +5,7 @@ namespace Modules\Clinic\Models;
 use App\Contracts\RevokesTokensOnPasswordChange;
 use App\Traits\JwtAuthenticatable;
 use App\Traits\TracksPasswordChange;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Clinic\Database\Factories\ClinicUserFactory;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnPasswordChange
@@ -75,12 +77,13 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
         'role',
         'mestre',
         'document',
-        'photo_url',
+        'photo_path',
         'status',
     ];
 
     protected $hidden = [
         'password',
+        'photo_path',
         'remember_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
@@ -89,6 +92,10 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
         'google_sync_token',
         'first_access_token_hash',
         'first_access_token_created_at',
+    ];
+
+    protected $appends = [
+        'photo_url',
     ];
 
     protected function casts(): array
@@ -107,6 +114,25 @@ class ClinicUser extends Authenticatable implements JWTSubject, RevokesTokensOnP
             'google_connected_at'           => 'datetime',
             'first_access_token_created_at' => 'datetime',
         ];
+    }
+
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forImage($this->photo_path));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        if (!array_key_exists('photo_path', $this->getAttributes())) {
+            unset($array['photo_url']);
+        }
+
+        return $array;
     }
 
     public function isGoogleConnected(): bool

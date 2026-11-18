@@ -33,6 +33,7 @@ import {
 import {
     useCompleteProgram,
     usePatientProgram,
+    useRefreshPatientExercise,
     useSaveProgramSeries,
     useStartOrResumeExecution,
 } from '@/application/patient/use-patient-program';
@@ -41,6 +42,7 @@ import { DsButton } from '@/components/ds/button/DsButton';
 import { DsEmptyState } from '@/components/ds/empty-state/DsEmptyState';
 import { DsPatientNavbar } from '@/components/ds/navbar/DsPatientNavbar';
 import { dsCn } from '@/components/ds/utils/ds-cn';
+import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
 
 interface ExecutionMetricItem {
     icon: LucideIcon;
@@ -69,6 +71,7 @@ export default function PatientProgramExecutionPage() {
         isLoading,
         isError,
     } = usePatientProgram(publicToken || '');
+    const refreshExercise = useRefreshPatientExercise(publicToken || '');
     const { mutateAsync: startExecution } = useStartOrResumeExecution();
     const { mutateAsync: saveSeries } = useSaveProgramSeries();
     const { mutateAsync: completeProgram, isPending: isCompleting } =
@@ -629,12 +632,26 @@ export default function PatientProgramExecutionPage() {
                                 {/* 1:1 Square Player */}
                                 <div className="relative aspect-square w-full overflow-hidden rounded-ds-xl border border-ds-border-subtle bg-ds-gray-100">
                                     {exercise.videoUrl ? (
-                                        <iframe
+                                        <ProtectedVideo
                                             title={exercise.name}
-                                            src={exercise.videoUrl}
-                                            className="absolute inset-0 size-full border-0"
-                                            allow="fullscreen; picture-in-picture"
-                                            allowFullScreen
+                                            videoUrl={exercise.videoUrl}
+                                            posterUrl={exercise.thumbnailUrl}
+                                            controls
+                                            onRefresh={async () =>
+                                                (
+                                                    await refreshExercise(
+                                                        exercise.id,
+                                                    )
+                                                )?.videoUrl ?? null
+                                            }
+                                            onRefreshPoster={async () =>
+                                                (
+                                                    await refreshExercise(
+                                                        exercise.id,
+                                                    )
+                                                )?.thumbnailUrl ?? null
+                                            }
+                                            className="absolute inset-0 size-full"
                                         />
                                     ) : (
                                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ds-surface-subtle text-ds-content-muted">

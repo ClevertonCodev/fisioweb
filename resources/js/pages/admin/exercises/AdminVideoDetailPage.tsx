@@ -1,9 +1,14 @@
-import { Clock, FileText, Film, HardDrive, Pencil, Video } from 'lucide-react';
+import { Clock, FileText, HardDrive, Pencil, Video } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 
 import { VIDEO_STATUS_LABELS } from '@/application/admin/exercise-constants';
-import { useAdminVideo } from '@/application/admin/use-admin-videos';
+import {
+    useAdminVideo,
+    useRefreshAdminVideo,
+} from '@/application/admin/use-admin-videos';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import { ProtectedVideo } from '@/components/protected-media/ProtectedVideo';
 import { BackButton } from '@/components/ui/back-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +19,7 @@ export default function AdminVideoDetailPage() {
     const { id } = useParams<{ id: string }>();
     const videoId = id ? parseInt(id, 10) : undefined;
     const { data: video, isLoading, isError } = useAdminVideo(videoId);
+    const refreshVideo = useRefreshAdminVideo(videoId);
 
     if (isLoading || !videoId) {
         return (
@@ -52,8 +58,7 @@ export default function AdminVideoDetailPage() {
     }
 
     const statusLabel = VIDEO_STATUS_LABELS[video.status] ?? video.status;
-    const canPlay =
-        video.status === 'completed' && (video.cdn_url || video.url);
+    const canPlay = video.status === 'completed' && !!video.video_url;
 
     return (
         <AdminLayout>
@@ -83,34 +88,41 @@ export default function AdminVideoDetailPage() {
                         {/* Preview / Thumbnail + Player */}
                         <div className="overflow-hidden rounded-xl border border-border bg-card">
                             <div className="relative aspect-video bg-muted">
-                                {video.thumbnail_url ? (
-                                    <img
+                                {canPlay ? (
+                                    <ProtectedVideo
+                                        title={
+                                            video.original_filename ??
+                                            video.filename
+                                        }
+                                        videoUrl={video.video_url}
+                                        posterUrl={video.thumbnail_url}
+                                        controls
+                                        onRefresh={async () =>
+                                            (await refreshVideo())?.video_url ??
+                                            null
+                                        }
+                                        onRefreshPoster={async () =>
+                                            (await refreshVideo())
+                                                ?.thumbnail_url ?? null
+                                        }
+                                        className="size-full"
+                                    />
+                                ) : video.thumbnail_url ? (
+                                    <ProtectedImage
                                         src={video.thumbnail_url}
                                         alt={
                                             video.original_filename ??
                                             video.filename
+                                        }
+                                        onRefresh={async () =>
+                                            (await refreshVideo())
+                                                ?.thumbnail_url ?? null
                                         }
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
                                     <div className="flex h-full w-full items-center justify-center bg-muted">
                                         <Video className="h-16 w-16 text-muted-foreground" />
-                                    </div>
-                                )}
-                                {canPlay && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                        <a
-                                            href={
-                                                video.cdn_url ??
-                                                video.url ??
-                                                '#'
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:opacity-90"
-                                        >
-                                            <Film className="ml-1 h-8 w-8" />
-                                        </a>
                                     </div>
                                 )}
                                 <Badge

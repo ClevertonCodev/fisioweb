@@ -67,6 +67,25 @@ class DashboardClinicIsolationTest extends TestCase
             ->assertJsonPath('data.cards.appointments_today', 0);
     }
 
+    public function test_birthday_photo_is_signed_for_its_clinic_and_absent_for_another(): void
+    {
+        Patient::factory()->create([
+            'clinic_id'      => $this->adminA->clinic_id,
+            'clinic_user_id' => $this->adminA->id,
+            'name'           => 'Aniversariante A',
+            'birth_date'     => Carbon::now()->startOfMonth()->subYears(30)->toDateString(),
+            'photo_path'     => 'patients/photos/aniversariante-a.jpg',
+        ]);
+
+        $own = $this->actingAs($this->adminA, 'clinic')->getJson('/api/clinic/dashboard')->assertOk();
+        $row = collect($own->json('data.birthdays.items'))->firstWhere('name', 'Aniversariante A');
+        $this->assertSignedImageUrl($row['photo_url'], 'patients/photos/aniversariante-a.jpg');
+        $this->assertStringNotContainsString('photo_path', $own->getContent());
+
+        $other = $this->actingAs($this->adminB, 'clinic')->getJson('/api/clinic/dashboard')->assertOk();
+        $this->assertStringNotContainsString('aniversariante-a', $other->getContent());
+    }
+
     public function test_patient_acquisition_of_another_clinic_does_not_count_this_clinic_patients(): void
     {
         $sourcesA = collect($this->actingAs($this->adminA, 'clinic')

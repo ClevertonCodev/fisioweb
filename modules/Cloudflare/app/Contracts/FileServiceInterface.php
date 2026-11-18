@@ -7,7 +7,7 @@ use Illuminate\Http\UploadedFile;
 interface FileServiceInterface
 {
     /**
-     * @return array{filename: string, original_filename: string, path: string, url: string, cdn_url: string, mime_type: string, size: int}
+     * @return array{filename: string, original_filename: string, path: string, mime_type: string, size: int}
      */
     public function uploadFile(
         UploadedFile $file,
@@ -46,12 +46,8 @@ interface FileServiceInterface
 
     public function fileExists(string $path): bool;
 
-    public function getFileUrl(string $path): string;
-
-    public function getFileCdnUrl(string $path): string;
-
     /**
-     * @return array{filename: string, original_filename: string, path: string, url: string, cdn_url: string, mime_type: string, size: int}
+     * @return array{filename: string, original_filename: string, path: string, mime_type: string, size: int}
      */
     public function uploadFromPath(
         string $localPath,
@@ -74,6 +70,8 @@ interface FileServiceInterface
      * sai com esse tipo; abre na tela (`inline`) só imagem comum ou PDF, o resto baixa
      * (`attachment`).
      *
+     * `$startsAt` fixa o início da validade (padrão: agora); o link vence `$expiresInSeconds` depois dele.
+     *
      * @return array{url: string, expires_at: string}
      */
     public function createPresignedDownloadUrl(
@@ -81,5 +79,6 @@ interface FileServiceInterface
         int $expiresInSeconds = 300,
         ?string $downloadFilename = null,
         ?string $contentType = null,
+        ?\DateTimeInterface $startsAt = null,
     ): array;
 }

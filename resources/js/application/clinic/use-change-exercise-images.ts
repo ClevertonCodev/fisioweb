@@ -39,7 +39,11 @@ export async function changeExerciseImages(
         const result = await uploadAndSyncClinicVideoReferenceImages(
             input.videoId,
             input.referenceImages.map((item) =>
-                item instanceof File ? item : item ? { path: item.path } : null,
+                item instanceof File
+                    ? item
+                    : item
+                      ? { path: item.path, url: item.url }
+                      : null,
             ),
         );
         proposalPending = proposalPending || result?.proposalPending === true;

@@ -108,10 +108,14 @@ function CardVideoPlayer({
         const video = playback.ref.current;
         if (!video) return;
         if (video.paused || !playback.active) {
-            if (current && current !== video) current.pause();
-            current = video;
-            void playback.play();
+            playOnly(video);
         } else video.pause();
+    };
+
+    const playOnly = (video: HTMLVideoElement) => {
+        if (current && current !== video) current.pause();
+        current = video;
+        void playback.play();
     };
 
     const fullscreen = (ev: MouseEvent) => {
@@ -119,7 +123,7 @@ function CardVideoPlayer({
         const video = playback.ref.current;
         if (!video) return;
         void video.requestFullscreen?.();
-        if (video.paused) void playback.play();
+        if (video.paused) playOnly(video);
     };
 
     return (

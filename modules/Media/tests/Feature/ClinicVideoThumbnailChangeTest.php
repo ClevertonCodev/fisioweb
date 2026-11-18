@@ -3,7 +3,6 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Mockery\MockInterface;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
@@ -33,7 +32,7 @@ class ClinicVideoThumbnailChangeTest extends TestCase
     {
         parent::setUp();
 
-        $this->fileService = Mockery::mock(FileServiceInterface::class);
+        $this->fileService = $this->mockFiles();
         $this->fileService->shouldReceive('createPresignedUploadUrl')->andReturnUsing(fn (string $path) => [
             'upload_url' => 'https://r2.invalid/put/' . $path,
             'path'       => $path,

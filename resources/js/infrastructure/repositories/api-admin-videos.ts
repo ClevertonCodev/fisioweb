@@ -148,7 +148,7 @@ export const apiAdminVideosRepository: AdminVideosRepository = {
 
     async syncReferenceImageSlots(
         videoId: number,
-        slots: ({ path: string } | { keep: number })[],
+        slots: ({ path: string } | { keep: number; url: string })[],
     ) {
         const { data } = await apiClient.put<{ data: unknown }>(
             `${BASE}/${videoId}/reference-images`,

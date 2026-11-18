@@ -76,7 +76,7 @@ export async function uploadAndSyncClinicVideoReferenceImages(
         throw new Error('Máximo de 2 imagens de referência.');
     }
 
-    const slots: ({ path: string } | { keep: number })[] = [];
+    const slots: ({ path: string } | { keep: number; url: string })[] = [];
 
     for (const [index, item] of items.entries()) {
         if (!item) continue;
@@ -96,7 +96,7 @@ export async function uploadAndSyncClinicVideoReferenceImages(
             continue;
         }
 
-        slots.push({ keep: index });
+        slots.push({ keep: index, url: item.url ?? '' });
     }
 
     if (slots.length === 0) {

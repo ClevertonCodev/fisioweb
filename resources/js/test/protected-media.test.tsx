@@ -451,6 +451,42 @@ describe('mídia protegida', () => {
         api.mockRestore();
     });
 
+    it('tela cheia num card pausa o vídeo que já estava tocando em outro card', async () => {
+        get.mockResolvedValue(blobResponse(200));
+        const card = (id: string, title: string) =>
+            ({
+                id,
+                title,
+                videoUrl: `https://conta.example/videos/${id}.mp4`,
+                thumbnailUrl: null,
+            }) as unknown as Exercise;
+        render(
+            <QueryClientProvider client={new QueryClient()}>
+                <CardVideo exercise={card('a', 'A')} />
+                <CardVideo exercise={card('b', 'B')} />
+            </QueryClientProvider>,
+        );
+        const [videoA] = Array.from(document.querySelectorAll('video'));
+
+        fireEvent.click(screen.getByRole('button', { name: 'Reproduzir A' }));
+        await waitFor(() =>
+            expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1),
+        );
+        Object.defineProperty(videoA!, 'paused', {
+            configurable: true,
+            value: false,
+        });
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Ver B em tela cheia' }),
+        );
+
+        await waitFor(() =>
+            expect(
+                vi.mocked(HTMLMediaElement.prototype.pause).mock.contexts,
+            ).toContain(videoA),
+        );
+    });
+
     it('trocar para outro vídeo no mesmo player baixa o vídeo novo', async () => {
         get.mockResolvedValue(blobResponse(200));
         function Troca() {

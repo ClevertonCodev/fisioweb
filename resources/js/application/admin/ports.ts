@@ -259,7 +259,7 @@ export interface AdminVideosRepository {
     syncReferenceImages(videoId: number, paths: string[]): Promise<AdminVideo>;
     syncReferenceImageSlots(
         videoId: number,
-        slots: ({ path: string } | { keep: number })[],
+        slots: ({ path: string } | { keep: number; url: string })[],
     ): Promise<AdminVideo>;
     destroy(id: number): Promise<void>;
 }

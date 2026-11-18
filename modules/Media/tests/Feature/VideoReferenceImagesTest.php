@@ -229,7 +229,10 @@ class VideoReferenceImagesTest extends TestCase
 
         $response = $this->actingAs($user, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
-                'reference_image_slots' => [['keep' => 1], ['path' => 'covers/videos/nova.jpg']],
+                'reference_image_slots' => [
+                    ['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a'],
+                    ['path' => 'covers/videos/nova.jpg'],
+                ],
             ])
             ->assertOk();
 
@@ -237,6 +240,38 @@ class VideoReferenceImagesTest extends TestCase
         $this->assertSignedImageUrl($response->json('data.metadata.reference_images.1.url'), 'covers/videos/nova.jpg');
         $this->assertSame(
             ['covers/videos/segunda.jpg', 'covers/videos/nova.jpg'],
+            array_column($video->fresh()->metadata['reference_images'], 'file_path'),
+        );
+    }
+
+    public function test_keeping_a_position_whose_image_changed_since_the_screen_opened_is_refused(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create(['clinic_id' => $clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+        $video  = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => [
+                'issued_image_paths' => ['covers/videos/nova.jpg'],
+                'reference_images'   => [
+                    ['file_path' => 'covers/videos/primeira.jpg', 'original_filename' => 'primeira.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                    ['file_path' => 'covers/videos/trocada.jpg', 'original_filename' => 'trocada.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_slots' => [
+                    ['path' => 'covers/videos/nova.jpg'],
+                    ['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a'],
+                ],
+            ])
+            ->assertStatus(422)
+            ->assertJsonFragment(['message' => 'As imagens de referência mudaram. Recarregue a tela e tente de novo.']);
+
+        $this->assertSame(
+            ['covers/videos/primeira.jpg', 'covers/videos/trocada.jpg'],
             array_column($video->fresh()->metadata['reference_images'], 'file_path'),
         );
     }
@@ -255,7 +290,7 @@ class VideoReferenceImagesTest extends TestCase
 
         $this->actingAs($user, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
-                'reference_image_slots' => [['keep' => 1]],
+                'reference_image_slots' => [['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a']],
             ])
             ->assertStatus(422);
 
@@ -276,7 +311,7 @@ class VideoReferenceImagesTest extends TestCase
 
         $response = $this->actingAs($other, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
-                'reference_image_slots' => [['keep' => 0]],
+                'reference_image_slots' => [['keep' => 0, 'url' => 'https://conta.example/ivsdev/covers/videos/da-dona.jpg?X-Amz-Signature=a']],
             ]);
 
         $this->assertContains($response->status(), [403, 404]);

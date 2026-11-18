@@ -27,7 +27,7 @@ class VideoErrorMessageTest extends TestCase
         $admin = AdminUser::factory()->create();
         $video = Video::factory()->create(['status' => Video::STATUS_PENDING, 'path' => 'videos/x.mp4']);
 
-        $fileService = Mockery::mock(FileServiceInterface::class);
+        $fileService = $this->mockFiles();
         $fileService->shouldReceive('fileExists')->andReturnFalse();
         $this->app->instance(FileServiceInterface::class, $fileService);
 

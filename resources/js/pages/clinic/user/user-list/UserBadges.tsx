@@ -1,6 +1,6 @@
 import { CalendarCheck, CalendarX, Check, Crown, X } from 'lucide-react';
 
-import { useRefreshClinicUserPhoto } from '@/application/clinic/use-clinic-users';
+import { useRefreshList } from '@/application/clinic/use-refresh-list';
 import { DsBadge, dsCn } from '@/components/ds';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { ClinicRole } from '@/domain/auth/session';
@@ -19,7 +19,7 @@ export function UserAvatar({
     user: Pick<ClinicUserSummary, 'id' | 'name' | 'photoUrl'>;
     size?: number;
 }) {
-    const refreshPhoto = useRefreshClinicUserPhoto(user.id);
+    const refreshPhoto = useRefreshList('clinic-users');
     return (
         <span
             aria-hidden="true"

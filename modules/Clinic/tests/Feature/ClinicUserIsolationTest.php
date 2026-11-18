@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Tests\TestCase;
 
 class ClinicUserIsolationTest extends TestCase
@@ -109,7 +108,7 @@ class ClinicUserIsolationTest extends TestCase
 
     public function test_photo_of_own_clinic_user_can_be_uploaded_and_removed(): void
     {
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldReceive('uploadFile')->once()->andReturn([
                 'path'              => 'clinic-users/photos/nova.jpg',
                 'filename'          => 'nova.jpg',
@@ -135,7 +134,7 @@ class ClinicUserIsolationTest extends TestCase
     public function test_removing_a_photo_shared_with_another_user_keeps_the_file(): void
     {
         ClinicUser::whereKey([$this->physioA->id, $this->adminA->id])->update(['photo_path' => 'clinic-users/photos/compartilhada.jpg']);
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldNotReceive('deletePrivateFile');
         });
 
@@ -150,7 +149,7 @@ class ClinicUserIsolationTest extends TestCase
     public function test_replacing_a_photo_only_used_by_this_user_deletes_the_old_file(): void
     {
         $this->physioA->forceFill(['photo_path' => 'clinic-users/photos/antiga.jpg'])->save();
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldReceive('uploadFile')->once()->andReturn([
                 'path'              => 'clinic-users/photos/nova.jpg',
                 'filename'          => 'nova.jpg',
@@ -169,7 +168,7 @@ class ClinicUserIsolationTest extends TestCase
     public function test_a_failure_deleting_the_old_user_photo_still_saves_the_change(): void
     {
         $this->physioA->forceFill(['photo_path' => 'clinic-users/photos/antiga.jpg'])->save();
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldReceive('uploadFile')->once()->andReturn([
                 'path'              => 'clinic-users/photos/nova.jpg',
                 'filename'          => 'nova.jpg',
@@ -207,7 +206,7 @@ class ClinicUserIsolationTest extends TestCase
     {
         $this->adminA->forceFill(['photo_path' => 'clinic-users/photos/do-admin.jpg'])->save();
         $sameClinic = ClinicUser::factory()->create(['clinic_id' => $this->adminA->clinic_id, 'role' => $role]);
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldNotReceive('uploadFile');
             $mock->shouldNotReceive('deletePrivateFile');
         });
@@ -225,7 +224,7 @@ class ClinicUserIsolationTest extends TestCase
     public function test_photo_of_another_clinic_user_cannot_be_uploaded_or_removed(): void
     {
         $this->physioA->forceFill(['photo_path' => 'clinic-users/photos/a.jpg'])->save();
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldReceive('uploadFile')->never();
         });
 

@@ -1,4 +1,4 @@
-import { useRefreshPatientPhoto } from '@/application/clinic/use-patients';
+import { useRefreshList } from '@/application/clinic/use-refresh-list';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { Patient } from '@/domain/clinic/patient';
 
@@ -9,7 +9,7 @@ export function PatientAvatar({
     patient: Pick<Patient, 'id' | 'name' | 'initial' | 'photoUrl'>;
     size?: number;
 }) {
-    const refreshPhoto = useRefreshPatientPhoto(patient.id);
+    const refreshPhoto = useRefreshList('patients');
     return (
         <span
             aria-hidden="true"

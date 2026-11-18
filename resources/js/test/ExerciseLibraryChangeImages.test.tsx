@@ -120,7 +120,7 @@ function exercise(overrides: Partial<Exercise> = {}): Exercise {
                 url: 'https://cdn.test/f1.jpg',
             },
             {
-                path: 'covers/videos/f2.jpg',
+                path: '',
                 url: 'https://cdn.test/f2.jpg',
             },
         ],
@@ -280,7 +280,7 @@ describe('Trocar imagens no modal da biblioteca', () => {
                             url: 'https://cdn.test/f1-nova.jpg',
                         },
                         {
-                            path: 'covers/videos/f2.jpg',
+                            path: '',
                             url: 'https://cdn.test/f2.jpg',
                         },
                     ],
@@ -314,7 +314,7 @@ describe('Trocar imagens no modal da biblioteca', () => {
         );
         expect(syncReferenceImageSlots).toHaveBeenCalledWith(3, [
             { path: 'covers/videos/f1-nova.jpg' },
-            { path: 'covers/videos/f2.jpg' },
+            { keep: 1, url: 'https://cdn.test/f2.jpg' },
         ]);
         const modal = screen.getByRole('dialog');
         await waitFor(() =>

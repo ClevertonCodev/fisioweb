@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 
@@ -343,7 +342,7 @@ class PatientControllerTest extends TestCase
     {
         $patient = $this->createPatientForClinic();
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')
                 ->once()
                 ->andReturn([
@@ -372,7 +371,7 @@ class PatientControllerTest extends TestCase
     {
         $patient = $this->createPatientForClinic();
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')->andReturn([
                 'filename'          => 'photo.png',
                 'original_filename' => 'photo.png',
@@ -443,7 +442,7 @@ class PatientControllerTest extends TestCase
         $other   = $this->createPatientForClinic();
         Patient::whereKey([$patient->id, $other->id])->update(['photo_path' => 'patients/photos/compartilhada.png']);
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('deletePrivateFile');
         });
 
@@ -460,7 +459,7 @@ class PatientControllerTest extends TestCase
         $patient = $this->createPatientForClinic();
         $patient->forceFill(['photo_path' => 'patients/photos/antiga.png'])->save();
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')->once()->andReturn([
                 'filename'          => 'nova.png',
                 'original_filename' => 'nova.png',
@@ -482,7 +481,7 @@ class PatientControllerTest extends TestCase
         $patient = $this->createPatientForClinic();
         $patient->forceFill(['photo_path' => 'patients/photos/antiga.png'])->save();
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')->once()->andReturn([
                 'filename'          => 'nova.png',
                 'original_filename' => 'nova.png',
@@ -499,7 +498,7 @@ class PatientControllerTest extends TestCase
             ])->assertOk();
         $this->assertDatabaseHas('patients', ['id' => $patient->id, 'photo_path' => 'patients/photos/nova.png']);
 
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('deletePrivateFile')->once()->andThrow(new \RuntimeException('R2 fora do ar'));
         });
         $this->actingAs($this->clinicUser, 'clinic')

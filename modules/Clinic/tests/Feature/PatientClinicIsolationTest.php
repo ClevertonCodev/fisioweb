@@ -7,7 +7,6 @@ use Illuminate\Http\UploadedFile;
 use Mockery\MockInterface;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 
@@ -86,7 +85,7 @@ class PatientClinicIsolationTest extends TestCase
 
     public function test_upload_photo_reaches_own_patient_and_not_another_clinic_photo(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFile')
                 ->once()
                 ->andReturn([
@@ -118,7 +117,7 @@ class PatientClinicIsolationTest extends TestCase
 
     public function test_delete_photo_clears_own_patient_photo_and_not_another_clinic_photo(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('deletePrivateFile')->once()->with('patients/photos/a.jpg')->andReturnTrue();
         });
 

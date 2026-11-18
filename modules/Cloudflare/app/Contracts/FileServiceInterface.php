@@ -70,6 +70,8 @@ interface FileServiceInterface
      * sai com esse tipo; abre na tela (`inline`) só imagem comum ou PDF, o resto baixa
      * (`attachment`).
      *
+     * `$startsAt` fixa o início da validade (padrão: agora); o link vence `$expiresInSeconds` depois dele.
+     *
      * @return array{url: string, expires_at: string}
      */
     public function createPresignedDownloadUrl(
@@ -77,5 +79,6 @@ interface FileServiceInterface
         int $expiresInSeconds = 300,
         ?string $downloadFilename = null,
         ?string $contentType = null,
+        ?\DateTimeInterface $startsAt = null,
     ): array;
 }

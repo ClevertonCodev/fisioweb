@@ -76,7 +76,7 @@ class PatientFileSignedLinkTest extends TestCase
         $tmp  = tempnam(sys_get_temp_dir(), 'laudo');
         file_put_contents($tmp, "%PDF-1.4\n<html><script>alert(1)</script></html>");
         $file = new UploadedFile($tmp, 'x.html', 'text/html', null, true);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('uploadFile');
             $mock->shouldReceive('uploadFileAs')
                 ->once()
@@ -106,7 +106,7 @@ class PatientFileSignedLinkTest extends TestCase
 
     public function test_a_type_outside_the_stored_list_is_refused_before_uploading(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('uploadFile');
             $mock->shouldNotReceive('uploadFileAs');
         });
@@ -141,7 +141,7 @@ class PatientFileSignedLinkTest extends TestCase
     {
         Exceptions::fake();
         $file = PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['clinic_user_id' => $this->admin->id]);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($file) {
+        $this->mockFiles(function (MockInterface $mock) use ($file) {
             $mock->shouldReceive('deletePrivateFile')->once()->with($file->file_path)->andThrow(new \RuntimeException('R2 fora do ar'));
         });
 
@@ -187,7 +187,7 @@ class PatientFileSignedLinkTest extends TestCase
             'mime_type'     => 'application/pdf',
         ]);
         $signed = 'https://conta.r2.cloudflarestorage.com/bucket/patients/files/abc.pdf?X-Amz-Expires=300&X-Amz-Signature=abc';
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use ($signed) {
+        $this->mockFiles(function (MockInterface $mock) use ($signed) {
             $mock->shouldReceive('createPresignedDownloadUrl')
                 ->once()
                 ->with('patients/files/abc.pdf', 300, 'laudo.pdf', 'application/pdf')
@@ -209,7 +209,7 @@ class PatientFileSignedLinkTest extends TestCase
         $otherClinic  = Clinic::factory()->create();
         $otherAdmin   = ClinicUser::factory()->create(['clinic_id' => $otherClinic->id]);
         $otherPatient = Patient::factory()->forClinic($otherClinic)->create();
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldNotReceive('createPresignedDownloadUrl');
             $mock->shouldNotReceive('deletePrivateFile');
         });
@@ -245,7 +245,7 @@ class PatientFileSignedLinkTest extends TestCase
         $deleted->delete();
         $otherPatient = Patient::factory()->forClinic($this->clinic)->create();
         PatientFile::factory()->forPatient($otherPatient, $this->clinic)->create(['file_path' => 'patients/files/e.png', 'mime_type' => 'image/png']);
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('createPresignedDownloadUrl')->twice()->andReturnUsing(
                 fn (string $path) => ['url' => "https://assinado/{$path}", 'expires_at' => '2026-11-11T12:05:00.000000Z'],
             );
@@ -307,7 +307,7 @@ class PatientFileSignedLinkTest extends TestCase
             PatientFile::factory()->forPatient($this->patient, $this->clinic)->create(['original_name' => 'Foto Março.JPEG', 'mime_type' => 'image/jpeg']),
         ];
         $names = [];
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) use (&$names) {
+        $this->mockFiles(function (MockInterface $mock) use (&$names) {
             $mock->shouldReceive('createPresignedDownloadUrl')->times(3)->andReturnUsing(
                 function (string $path, int $ttl, ?string $name, ?string $type) use (&$names) {
                     $names[] = [$name, $type];

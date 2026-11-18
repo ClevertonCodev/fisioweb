@@ -12,7 +12,7 @@ import {
     validityOf,
     type UiStatus,
 } from '@/application/clinic/program-history-filters';
-import { useRefreshPatientPhoto } from '@/application/clinic/use-patients';
+import { useRefreshList } from '@/application/clinic/use-refresh-list';
 import { DsBadge, DsCard, dsCn, type BadgeVariant } from '@/components/ds';
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
@@ -150,7 +150,7 @@ export function ProgramHistoryCard({
     program: Program;
     footer?: ReactNode;
 }) {
-    const refreshPhoto = useRefreshPatientPhoto(program.patientId ?? undefined);
+    const refreshPhoto = useRefreshList('clinic-programs');
     const draft = uiStatusOf(program) === 'draft';
     const location = useLocation();
     const origin: ProgramOrigin = {

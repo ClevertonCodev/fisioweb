@@ -170,6 +170,7 @@ class ClinicVideoController extends ClinicAuthenticatedController
             'reference_image_slots'        => ['sometimes', 'array', 'max:2'],
             'reference_image_slots.*.path' => ['sometimes', 'nullable', 'string', 'max:512'],
             'reference_image_slots.*.keep' => ['sometimes', 'integer', 'min:0', 'max:1'],
+            'reference_image_slots.*.url'  => ['required_with:reference_image_slots.*.keep', 'string', 'max:2048'],
         ]);
 
         try {

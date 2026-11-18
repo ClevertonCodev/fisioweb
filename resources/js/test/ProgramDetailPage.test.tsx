@@ -286,6 +286,17 @@ describe('ProgramDetailPage (painel v2)', () => {
         ).toBeInTheDocument();
     });
 
+    it('as miniaturas dos exercícios carregam sob demanda', async () => {
+        renderPage();
+
+        await screen.findAllByText('Ponte Glútea');
+        const thumb = document.querySelector(
+            'img[src="https://cdn.test/ponte.jpg"]',
+        );
+
+        expect(thumb).toHaveAttribute('loading', 'lazy');
+    });
+
     it('tocar na miniatura abre o vídeo no modal', async () => {
         const user = userEvent.setup();
         renderPage();

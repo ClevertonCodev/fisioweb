@@ -68,9 +68,9 @@ export default async function ({ page, step, shot, url }) {
     await page.waitForTimeout(1200);
     await shot('03-exercicio-2-tocando');
 
-    await step('ir para o exercício 3, que usa o mesmo arquivo do 2, mantém o vídeo', async () => {
+    await step('ir para o exercício 4, que usa o mesmo arquivo do 2, mantém o vídeo', async () => {
         const antes = (await estado()).blob;
-        await irPara(3);
+        await irPara(4);
         await page.waitForTimeout(500);
         if ((await estado()).blob !== antes) throw new Error('baixou de novo o mesmo arquivo');
     });

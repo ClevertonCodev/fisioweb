@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import {
+    mediaKey,
     useProtectedPlayback,
     type ProtectedRefresh,
 } from '@/components/protected-media/use-protected-playback';
@@ -37,7 +38,11 @@ interface ExerciseCardProps {
     onRefreshPoster?: ProtectedRefresh;
 }
 
-export function ExerciseCard({
+export function ExerciseCard(props: ExerciseCardProps) {
+    return <ExerciseCardView key={mediaKey(props.videoUrl)} {...props} />;
+}
+
+function ExerciseCardView({
     videoUrl,
     thumbnailUrl,
     title,
@@ -65,7 +70,7 @@ export function ExerciseCard({
             video.pause();
             setIsPlaying(false);
         } else {
-            void playback.play().then(() => setIsPlaying(true));
+            void playback.play().then(setIsPlaying);
         }
     };
 
@@ -105,6 +110,11 @@ export function ExerciseCard({
                     className="h-full w-full object-cover"
                     onEnded={handleVideoEnded}
                 />
+                {playback.error && (
+                    <p className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center text-xs text-white drop-shadow-md">
+                        {playback.error}
+                    </p>
+                )}
 
                 {/* Overlay de player — estilo Vedius (cores do sistema) */}
                 {canPlay && posterReady && (

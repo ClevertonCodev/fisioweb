@@ -17,13 +17,11 @@ function playableUrl(
     video:
         | {
               video_url?: string | null;
-              cdn_url?: string | null;
-              url?: string | null;
           }
         | null
         | undefined,
 ) {
-    return video?.video_url ?? video?.cdn_url ?? video?.url ?? null;
+    return video?.video_url ?? null;
 }
 
 const difficultyLabels: Record<string, string> = {
@@ -142,6 +140,7 @@ export default function AdminExerciseReviewPage() {
                                                     className="flex flex-col overflow-hidden rounded-xl border border-border bg-card"
                                                 >
                                                     <ProtectedVideo
+                                                        title={exercise.name}
                                                         videoUrl={playableUrl(
                                                             video,
                                                         )}

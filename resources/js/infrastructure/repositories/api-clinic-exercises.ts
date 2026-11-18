@@ -14,13 +14,10 @@ import { apiClient } from '@/infrastructure/api/client';
 interface ApiReferenceImage {
     file_path?: string;
     url?: string | null;
-    cdn_url?: string | null;
 }
 
 interface ApiVideo {
     id: number;
-    url?: string | null;
-    cdn_url?: string | null;
     video_url?: string | null;
     thumbnail_url: string | null;
     duration: number | null;
@@ -81,7 +78,7 @@ function toEntity(raw: ApiExercise): Exercise {
         title: raw.name ?? '',
         description: raw.description ?? '',
         thumbnailUrl: video?.thumbnail_url ?? '',
-        videoUrl: video?.video_url ?? video?.cdn_url ?? video?.url ?? '',
+        videoUrl: video?.video_url ?? '',
         specialty: raw.physio_area?.name ?? '',
         bodyArea: raw.physio_subarea?.name ?? '',
         bodyRegion: raw.body_region?.name ?? '',
@@ -100,7 +97,7 @@ function toEntity(raw: ApiExercise): Exercise {
         referenceImages: (video?.metadata?.reference_images ?? []).map(
             (image) => ({
                 path: image.file_path ?? '',
-                url: image.url ?? image.cdn_url ?? '',
+                url: image.url ?? '',
             }),
         ),
         mediaProposalPending: raw.media_proposal_pending ?? false,

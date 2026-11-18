@@ -58,6 +58,18 @@ class PatientClinicIsolationTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_list_signs_own_patient_photo_and_never_another_clinic_photo(): void
+    {
+        $response = $this->actingAs($this->adminA, 'clinic')
+            ->getJson('/api/clinic/patients')
+            ->assertOk();
+
+        $row = collect($response->json('data.data') ?? $response->json('data'))->firstWhere('id', $this->patientA->id);
+        $this->assertSignedImageUrl($row['photo_url'], 'patients/photos/a.jpg');
+        $this->assertArrayNotHasKey('photo_path', $row);
+        $this->assertStringNotContainsString('patients/photos/b.jpg', $response->getContent());
+    }
+
     public function test_update_changes_own_patient_and_not_another_clinic_patient(): void
     {
         $this->actingAs($this->adminA, 'clinic')

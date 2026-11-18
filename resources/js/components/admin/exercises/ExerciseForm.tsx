@@ -31,8 +31,6 @@ interface VideoOption {
     original_filename: string;
     thumbnail_url?: string | null;
     video_url?: string | null;
-    cdn_url?: string | null;
-    url?: string | null;
 }
 
 export interface ExerciseFormState {
@@ -260,22 +258,13 @@ export function ExerciseForm({
                                 este exercício.
                             </p>
                         </div>
-                        {(selectedVideoData?.video_url ??
-                            selectedVideoData?.cdn_url ??
-                            selectedVideoData?.url) && (
+                        {selectedVideoData?.video_url && (
                             <AdminExerciseVideoPreview
-                                src={
-                                    selectedVideoData?.video_url ??
-                                    selectedVideoData?.cdn_url ??
-                                    selectedVideoData?.url ??
-                                    null
-                                }
+                                src={selectedVideoData?.video_url ?? null}
                                 poster={selectedVideoData?.thumbnail_url}
                                 title={selectedVideoData?.original_filename}
                                 onRefresh={async () =>
-                                    (await refreshVideo())?.cdn_url ??
-                                    (await refreshVideo())?.url ??
-                                    null
+                                    (await refreshVideo())?.video_url ?? null
                                 }
                                 onRefreshPoster={async () =>
                                     (await refreshVideo())?.thumbnail_url ??

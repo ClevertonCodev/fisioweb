@@ -20,8 +20,7 @@ afterEach(() => {
 function makeVideo(overrides = {}) {
     return {
         id: 1,
-        url: 'http://storage.example.com/video.mp4',
-        cdn_url: null as string | null,
+        video_url: 'https://signed.example/video.mp4' as string | null,
         thumbnail_url: 'http://storage.example.com/thumb.jpg',
         duration: 30,
         status: 'completed',
@@ -198,14 +197,13 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
                     videos: [
                         makeVideo({
                             id: 1,
-                            cdn_url: null,
-                            url: 'url-processing',
+                            video_url: 'url-processing',
                             thumbnail_url: 'thumb1',
                             status: 'processing',
                         }),
                         makeVideo({
                             id: 2,
-                            cdn_url: 'cdn-completed',
+                            video_url: 'signed-completed',
                             thumbnail_url: 'thumb2',
                             status: 'completed',
                         }),
@@ -214,7 +212,7 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
             ]),
         );
         const [ex] = await apiClinicExercisesRepository.list();
-        expect(ex.videoUrl).toBe('cdn-completed');
+        expect(ex.videoUrl).toBe('signed-completed');
         expect(ex.thumbnailUrl).toBe('thumb2');
     });
 
@@ -225,14 +223,12 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
                     videos: [
                         makeVideo({
                             id: 1,
-                            url: 'url-first',
-                            cdn_url: null,
+                            video_url: 'url-first',
                             status: 'processing',
                         }),
                         makeVideo({
                             id: 2,
-                            url: 'url-second',
-                            cdn_url: null,
+                            video_url: 'url-second',
                             status: 'processing',
                         }),
                     ],
@@ -243,49 +239,15 @@ describe('apiClinicExercisesRepository — seleção de vídeo', () => {
         expect(ex.videoUrl).toBe('url-first');
     });
 
-    it('prefere cdn_url sobre url para o videoUrl', async () => {
-        mockGet.mockResolvedValueOnce(
-            makePaginatorResponse([
-                makeApiExercise({
-                    videos: [
-                        makeVideo({
-                            url: 'storage-url',
-                            cdn_url: 'cdn-url',
-                            status: 'completed',
-                        }),
-                    ],
-                }),
-            ]),
-        );
-        const [ex] = await apiClinicExercisesRepository.list();
-        expect(ex.videoUrl).toBe('cdn-url');
-    });
-
-    it('usa url como fallback quando cdn_url é null', async () => {
-        mockGet.mockResolvedValueOnce(
-            makePaginatorResponse([
-                makeApiExercise({
-                    videos: [
-                        makeVideo({
-                            url: 'storage-url',
-                            cdn_url: null,
-                            status: 'completed',
-                        }),
-                    ],
-                }),
-            ]),
-        );
-        const [ex] = await apiClinicExercisesRepository.list();
-        expect(ex.videoUrl).toBe('storage-url');
-    });
-
-    it('usa video_url quando a API não manda cdn_url nem url', async () => {
+    it('ignora cdn_url e url antigos e usa só o video_url', async () => {
         mockGet.mockResolvedValueOnce(
             makePaginatorResponse([
                 makeApiExercise({
                     videos: [
                         {
                             id: 1,
+                            cdn_url: 'https://cdn.publico/video.mp4',
+                            url: 'https://cdn.publico/video.mp4',
                             video_url: 'https://signed.example/video',
                             thumbnail_url: 'https://signed.example/thumb',
                             status: 'completed',

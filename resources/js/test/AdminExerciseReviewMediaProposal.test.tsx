@@ -64,7 +64,7 @@ const apiProposal = {
     ],
     current: {
         thumbnail_url: 'https://cdn.test/capa-atual.jpg',
-        reference_images: [{ cdn_url: 'https://cdn.test/foto-atual.jpg' }],
+        reference_images: [{ url: 'https://cdn.test/foto-atual.jpg' }],
     },
     proposed: {
         thumbnail_url: 'https://cdn.test/capa-nova.jpg',

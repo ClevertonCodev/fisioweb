@@ -19,6 +19,7 @@ export function ProtectedImage({
 }: ProtectedImageProps) {
     const [current, setCurrent] = useState(src);
     const [tried, setTried] = useState(false);
+    const [attempt, setAttempt] = useState(0);
     const [seenSrc, setSeenSrc] = useState(src);
 
     if (src !== seenSrc) {
@@ -29,6 +30,7 @@ export function ProtectedImage({
 
     return (
         <img
+            key={attempt}
             src={current || undefined}
             alt={alt}
             className={className}
@@ -37,9 +39,13 @@ export function ProtectedImage({
                 onLoad?.();
                 if (tried || !onRefresh || !current) return;
                 setTried(true);
-                void onRefresh().then((fresh) => {
-                    if (fresh) setCurrent(fresh);
-                });
+                void onRefresh()
+                    .then((fresh) => {
+                        if (!fresh) return;
+                        setCurrent(fresh);
+                        setAttempt((n) => n + 1);
+                    })
+                    .catch(() => {});
             }}
         />
     );

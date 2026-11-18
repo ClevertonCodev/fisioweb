@@ -31,8 +31,6 @@ interface ImageServiceInterface
 
     public function getImage(int $id): ?Model;
 
-    public function getImageCdnUrl(int $imageId): ?string;
-
     public function getImagesByUploadable(Model $uploadable): Collection;
 
     public function getAllImages(int $perPage = 15): LengthAwarePaginator;

@@ -5,7 +5,7 @@ namespace Modules\Admin\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 
 class ExerciseMedia extends Model
 {
@@ -48,7 +48,7 @@ class ExerciseMedia extends Model
 
     protected function url(): Attribute
     {
-        return Attribute::get(fn () => SignedMedia::image($this->file_path));
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forImage($this->file_path));
     }
 
     public function exercise(): BelongsTo

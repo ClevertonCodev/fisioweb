@@ -75,9 +75,10 @@ export function useClinicProgramLibraryDetail(
 
 export function useFetchClinicProgramLibraryDetail() {
     const queryClient = useQueryClient();
-    return (id: number) =>
+    return (id: number, options?: { staleTime?: number }) =>
         queryClient.fetchQuery({
             queryKey: [...PROGRAMS_LIBRARY_KEY, 'detail', id],
             queryFn: () => apiClinicProgramsLibraryRepository.getDetail(id),
+            staleTime: options?.staleTime,
         });
 }

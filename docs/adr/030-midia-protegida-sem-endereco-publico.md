@@ -38,21 +38,29 @@ mas o domínio público continuava servindo o resto, e a regra de WAF só cobria
    pelo link assinado e esconde caminho, proposta e chave de upload. O admin
    que precisa da proposta usa `toAdminArray()`, ainda sem caminho.
 4. **O vídeo baixa como `blob:`.** O player pede o arquivo pelo link assinado
-   com o `storageClient` (`resources/js/infrastructure/api/storage-client.ts`),
-   um axios sem interceptor e sem `Authorization` — o R2 recusa o link se o JWT
+   por `downloadProtectedMedia` (`resources/js/application/protected-media.ts`),
+   que usa o `storageClient`, um axios sem interceptor e sem `Authorization` — o R2 recusa o link se o JWT
    for junto. O `<video>` recebe um `blob:` que o componente revoga ao sair, com
-   `controlsList="nodownload"` e sem menu de contexto. Imagem usa o link direto
-   e, se der erro, pede um link novo uma vez.
+   `controlsList="nodownload"` e sem menu de contexto. O `blob:` vale para o
+   arquivo, identificado pelo caminho do link sem a assinatura: cada resposta
+   traz uma assinatura nova para o mesmo vídeo, e trocar de vídeo no mesmo
+   player baixa o novo. Imagem usa o link direto e, se der erro, pede um link
+   novo uma vez.
 5. **A página do paciente sem login é risco aceito.** Quem tem o link do
    programa abre o vídeo enquanto o link assinado vale (30 minutos a partir da
    resposta). Não há sessão de paciente nessa página. O QR do PDF é gerado no
    processo (`chillerlan/php-qrcode`); não há fallback para um gerador externo.
 6. **O teste de arquitetura** `tests/Architecture/NoPublicMediaUrlTest` varre o
-   código de produção e falha se aparecer `getFileCdnUrl`, `getFileUrl` ou o
-   host `cdn-dev.ivsmed.com`.
+   código de produção, a config, as rotas, as views, o `infra/` e o
+   `.env.example`, e falha com `getFileCdnUrl`, `getFileUrl`, `generateCdnUrl`,
+   `cdn_url`, `CLOUDFLARE_CDN_URL`, `Storage::disk(...)->url(`, `*.r2.dev`,
+   `api.qrserver.com` ou um host `cdn*.ivsmed.com`. Os outros módulos usam só
+   `Modules\Cloudflare\Contracts\` (`ModuleBoundaryTest`).
 7. **Fechar o bucket é passo de painel**, fora do código:
    `docs/operacao/cloudflare-fechar-leitura-publica.md`. Até ele rodar, um
-   caminho conhecido ainda abre pelo domínio.
+   caminho conhecido ainda abre pelo domínio, e todo link assinado entregue
+   leva o caminho do arquivo: tirar o caminho da resposta não fecha nada
+   enquanto o domínio existir.
 
 ## Consequências
 
@@ -62,8 +70,6 @@ mas o domínio público continuava servindo o resto, e a regra de WAF só cobria
   duas saem juntas na serialização do vídeo.
 - A regra de WAF do ADR 027 perde o objeto quando o domínio sair (nota naquele
   ADR). Os itens de `reference_images` não têm mais `cdn_url` (nota no ADR 029).
-- `cdn_cache_ttl` e `cdn_enabled` continuam em `config/cloudflare.php` e ninguém
-  lê. Não geram endereço. Tirar os dois é limpeza, não esta decisão.
 - O disco `r2` segue com `visibility` `public`. No R2 isso não abre nem fecha
   leitura; quem abre é o domínio próprio.
 

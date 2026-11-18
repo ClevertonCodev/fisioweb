@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import {
+    mediaKey,
     useProtectedPlayback,
     type ProtectedRefresh,
 } from '@/components/protected-media/use-protected-playback';
@@ -26,7 +27,11 @@ interface VideoThumbProps {
  * botão "parar" (círculo com quadrado) no hover e opção de tela cheia.
  * Deve ser usado dentro de um container `.group.relative`.
  */
-export function VideoThumb({
+export function VideoThumb(props: VideoThumbProps) {
+    return <VideoThumbPlayer key={mediaKey(props.videoUrl)} {...props} />;
+}
+
+function VideoThumbPlayer({
     videoUrl,
     thumbnailUrl,
     size = 'sm',
@@ -47,7 +52,7 @@ export function VideoThumb({
             video.pause();
             setIsPlaying(false);
         } else {
-            void playback.play().then(() => setIsPlaying(true));
+            void playback.play().then(setIsPlaying);
         }
     };
 
@@ -89,6 +94,11 @@ export function VideoThumb({
                 onEnded={() => setIsPlaying(false)}
                 onLoadedData={() => setPosterReady(true)}
             />
+            {playback.error && (
+                <p className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center text-xs text-white drop-shadow-md">
+                    {playback.error}
+                </p>
+            )}
 
             {posterReady && (
                 <button

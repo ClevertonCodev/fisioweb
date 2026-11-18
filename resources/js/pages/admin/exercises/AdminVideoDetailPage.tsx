@@ -58,8 +58,7 @@ export default function AdminVideoDetailPage() {
     }
 
     const statusLabel = VIDEO_STATUS_LABELS[video.status] ?? video.status;
-    const canPlay =
-        video.status === 'completed' && (video.cdn_url || video.url);
+    const canPlay = video.status === 'completed' && !!video.video_url;
 
     return (
         <AdminLayout>
@@ -91,12 +90,15 @@ export default function AdminVideoDetailPage() {
                             <div className="relative aspect-video bg-muted">
                                 {canPlay ? (
                                     <ProtectedVideo
-                                        videoUrl={video.cdn_url ?? video.url}
+                                        title={
+                                            video.original_filename ??
+                                            video.filename
+                                        }
+                                        videoUrl={video.video_url}
                                         posterUrl={video.thumbnail_url}
                                         controls
                                         onRefresh={async () =>
-                                            (await refreshVideo())?.cdn_url ??
-                                            (await refreshVideo())?.url ??
+                                            (await refreshVideo())?.video_url ??
                                             null
                                         }
                                         onRefreshPoster={async () =>

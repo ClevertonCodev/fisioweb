@@ -121,7 +121,8 @@ function mapPrescription(raw?: ApiPrescription | null): ExercisePrescription {
         loadMin: raw.load_min ?? undefined,
         loadMax: raw.load_max ?? undefined,
         restTime: raw.rest_time ?? undefined,
-        intensity: (raw.intensity as ExercisePrescription['intensity']) ?? undefined,
+        intensity:
+            (raw.intensity as ExercisePrescription['intensity']) ?? undefined,
         durationMin: raw.duration_min ?? undefined,
         durationMax: raw.duration_max ?? undefined,
         maintainFor: raw.maintain_for ?? undefined,
@@ -180,9 +181,8 @@ function mapProgram(raw: ApiProgram): PatientProgram {
 }
 
 export async function listPatientPrograms(): Promise<PatientProgram[]> {
-    const { data } = await apiClient.get<ApiEnvelope<ApiProgram[]>>(
-        '/patient/programs',
-    );
+    const { data } =
+        await apiClient.get<ApiEnvelope<ApiProgram[]>>('/patient/programs');
     return (data.data ?? []).map(mapProgram);
 }
 
@@ -276,14 +276,18 @@ export async function submitPatientProgramFeedback(input: {
     }
     if (input.outcomeDifficultyEnabled) {
         body.difficulty = input.difficulty ?? 0;
-        if (input.difficultyNotes) body.difficulty_notes = input.difficultyNotes;
+        if (input.difficultyNotes)
+            body.difficulty_notes = input.difficultyNotes;
     }
     if (input.outcomeSatisfactionEnabled) {
         const stars = input.ratingStars ?? 0;
         body.rating = STAR_TO_RATING[stars] ?? 'Médio';
         if (input.ratingNotes) body.rating_notes = input.ratingNotes;
     }
-    await apiClient.post(`/patient/programs/${input.publicToken}/feedback`, body);
+    await apiClient.post(
+        `/patient/programs/${input.publicToken}/feedback`,
+        body,
+    );
 }
 
 export async function completePatientProgram(

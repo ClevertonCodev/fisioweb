@@ -6,6 +6,7 @@ import {
     libraryExercise,
     myExercise,
     type ModelDetail,
+    type ModelExercise,
     type ModelSummary,
     type Origin,
 } from '@/application/clinic/program-models';
@@ -128,11 +129,29 @@ export function useModelDetail(
 export function useFetchModelDetail() {
     const fetchLibrary = useFetchClinicProgramLibraryDetail();
     const fetchMine = useFetchClinicProgram();
-    return async (model: ModelSummary): Promise<ModelDetail | null> => {
+    return async (
+        model: ModelSummary,
+        options?: { staleTime?: number },
+    ): Promise<ModelDetail | null> => {
         if (model.origin === 'nossos') {
-            return libraryDetail(model, await fetchLibrary(Number(model.id)));
+            return libraryDetail(
+                model,
+                await fetchLibrary(Number(model.id), options),
+            );
         }
-        const p = await fetchMine(model.id);
+        const p = await fetchMine(model.id, options);
         return p ? mineDetail(model, p) : null;
+    };
+}
+
+export function useModelItemMedia(model: ModelSummary) {
+    const fetchDetail = useFetchModelDetail();
+    return async (itemId: string): Promise<ModelExercise | null> => {
+        const detail = await fetchDetail(model, { staleTime: 0 });
+        return (
+            detail?.groups
+                .flatMap((group) => group.exercises)
+                .find((exercise) => exercise.id === itemId) ?? null
+        );
     };
 }

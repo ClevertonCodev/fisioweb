@@ -2,7 +2,7 @@
 
 namespace Modules\Media\Support;
 
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 
 class VideoMetadataPresenter
 {
@@ -48,7 +48,7 @@ class VideoMetadataPresenter
         }
 
         if (!empty($metadata['proposed_thumbnail_path']) && is_string($metadata['proposed_thumbnail_path'])) {
-            $presented['proposed_thumbnail_url'] = SignedMedia::video($metadata['proposed_thumbnail_path']);
+            $presented['proposed_thumbnail_url'] = app(SignedMediaUrlInterface::class)->forVideo($metadata['proposed_thumbnail_path']);
         }
 
         return $presented;
@@ -72,7 +72,7 @@ class VideoMetadataPresenter
 
             $path        = $image['file_path'] ?? null;
             $presented[] = [
-                'url'               => is_string($path) && !empty($path) ? SignedMedia::image($path) : null,
+                'url'               => is_string($path) && !empty($path) ? app(SignedMediaUrlInterface::class)->forImage($path) : null,
                 'original_filename' => (string) ($image['original_filename'] ?? (is_string($path) ? basename($path) : '')),
                 'mime_type'         => (string) ($image['mime_type'] ?? 'image/jpeg'),
                 'size'              => (int) ($image['size'] ?? 0),

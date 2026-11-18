@@ -306,18 +306,11 @@ function SortableExerciseRow({
                             next?.videos as
                                 | {
                                       video_url?: string | null;
-                                      url?: string | null;
-                                      cdn_url?: string | null;
                                   }[]
                                 | undefined
                         )?.[0];
 
-                        return (
-                            video?.video_url ??
-                            video?.cdn_url ??
-                            video?.url ??
-                            null
-                        );
+                        return video?.video_url ?? null;
                     }}
                     onRefreshPoster={async () => {
                         const next = await refreshExercise();

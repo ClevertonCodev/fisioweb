@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Media\Contracts\MediaProposal;
 use Modules\Media\Contracts\VideoLockQueryInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
@@ -32,6 +32,7 @@ class VideoService implements VideoServiceInterface
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
         protected VideoLockQueryInterface $videoLock,
+        protected SignedMediaUrlInterface $signedMedia,
     ) {}
 
     public function deleteVideo(int $videoId, bool $forceDelete = false): bool
@@ -66,11 +67,6 @@ class VideoService implements VideoServiceInterface
         $video = $this->videoRepository->findOrFail($videoId);
 
         return $this->formatVideo($video);
-    }
-
-    public function getVideoCdnUrl(int $videoId): ?string
-    {
-        return $this->videoRepository->find($videoId)?->video_url;
     }
 
     public function updateMetadata(int $videoId, array $metadata): Video
@@ -356,6 +352,7 @@ class VideoService implements VideoServiceInterface
         $video    = $this->videoRepository->findOrFail($videoId);
         $existing = array_values($video->metadata['reference_images'] ?? []);
         $paths    = [];
+        ksort($slots);
 
         foreach (array_slice($slots, 0, 2) as $slot) {
             if (!is_array($slot)) {
@@ -701,7 +698,7 @@ class VideoService implements VideoServiceInterface
             currentReferenceImages: array_values(is_array($metadata['reference_images'] ?? null) ? $metadata['reference_images'] : []),
             proposedThumbnailUrl: empty($metadata['proposed_thumbnail_path'] ?? null)
                 ? null
-                : SignedMedia::video($metadata['proposed_thumbnail_path']),
+                : $this->signedMedia->forVideo($metadata['proposed_thumbnail_path']),
             proposedReferenceImages: array_key_exists('proposed_reference_images', $metadata)
                 ? array_values(is_array($metadata['proposed_reference_images']) ? $metadata['proposed_reference_images'] : [])
                 : null,

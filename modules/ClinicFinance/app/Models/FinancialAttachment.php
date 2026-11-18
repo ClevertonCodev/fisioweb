@@ -8,9 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Comprovante de um lançamento. O `path` no R2 nunca vai para a API: o arquivo
- * só abre pelo link assinado de `GET .../attachments/{id}/url`. Ele fica no bucket
- * que o CDN serve; quem barra `clinics/x/finances/` no CDN é uma regra de WAF,
- * pré-requisito de deploy (ADR 026).
+ * só abre pelo link assinado de `GET .../attachments/{id}/url` (ADR 030).
  */
 class FinancialAttachment extends Model
 {

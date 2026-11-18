@@ -182,8 +182,6 @@ function exerciseVideo(exercise: AdminExercise | null | undefined) {
             | {
                   thumbnail_url?: string | null;
                   video_url?: string | null;
-                  cdn_url?: string | null;
-                  url?: string | null;
               }[]
             | undefined
     )?.[0];
@@ -200,8 +198,7 @@ function ExerciseSelectCard({
 }) {
     const refreshExercise = useRefreshAdminExercise(exercise.id);
     const video = exerciseVideo(exercise);
-    const videoUrl =
-        video?.video_url ?? video?.cdn_url ?? video?.url ?? undefined;
+    const videoUrl = video?.video_url ?? undefined;
     const thumbnailUrl = video?.thumbnail_url ?? undefined;
 
     return (
@@ -220,12 +217,7 @@ function ExerciseSelectCard({
                     thumbnailUrl={thumbnailUrl}
                     onRefresh={async () => {
                         const next = exerciseVideo(await refreshExercise());
-                        return (
-                            next?.video_url ??
-                            next?.cdn_url ??
-                            next?.url ??
-                            null
-                        );
+                        return next?.video_url ?? null;
                     }}
                     onRefreshPoster={async () =>
                         exerciseVideo(await refreshExercise())?.thumbnail_url ??

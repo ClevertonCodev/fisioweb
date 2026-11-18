@@ -83,6 +83,72 @@ class ExerciseSubmissionTest extends TestCase
         $this->assertFalse($ids->contains('Privado A'));
     }
 
+    public function test_other_clinic_receives_no_media_link_of_a_pending_exercise(): void
+    {
+        $author  = $this->clinicAdmin();
+        $payload = $this->payload(['name' => 'Privado A'], $author->clinic_id);
+        Video::whereKey($payload['video_id'])->update([
+            'path'           => 'videos/privado-da-clinica-a.mp4',
+            'thumbnail_path' => 'covers/videos/privado-da-clinica-a.jpg',
+        ]);
+        $this->actingAs($author, 'clinic')->postJson('/api/clinic/exercises', $payload)->assertCreated();
+        $this->assertStringContainsString(
+            'privado-da-clinica-a',
+            $this->actingAs($author, 'clinic')->getJson('/api/clinic/exercises')->assertOk()->getContent(),
+        );
+
+        $otherClinicUser = $this->clinicAdmin();
+        $body            = $this->actingAs($otherClinicUser, 'clinic')
+            ->getJson('/api/clinic/exercises')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringNotContainsString('privado-da-clinica-a', $body);
+    }
+
+    public function test_show_returns_own_pending_exercise_with_a_fresh_signed_video_link(): void
+    {
+        $author  = $this->clinicAdmin();
+        $payload = $this->payload(['name' => 'Pendente A'], $author->clinic_id);
+        Video::whereKey($payload['video_id'])->update(['path' => 'videos/pendente-a.mp4']);
+        $id = $this->actingAs($author, 'clinic')->postJson('/api/clinic/exercises', $payload)->assertCreated()->json('data.id');
+
+        $response = $this->actingAs($author, 'clinic')->getJson("/api/clinic/exercises/{$id}")->assertOk();
+
+        $response->assertJsonPath('data.id', $id)->assertJsonPath('data.is_own_submission', true);
+        $this->assertSignedVideoUrl($response->json('data.videos.0.video_url'), 'videos/pendente-a.mp4');
+        $this->assertArrayNotHasKey('clinic_id', $response->json('data'));
+    }
+
+    public function test_show_hides_a_pending_exercise_of_another_clinic(): void
+    {
+        $author  = $this->clinicAdmin();
+        $payload = $this->payload(['name' => 'Pendente A'], $author->clinic_id);
+        Video::whereKey($payload['video_id'])->update(['path' => 'videos/pendente-a.mp4']);
+        $id = $this->actingAs($author, 'clinic')->postJson('/api/clinic/exercises', $payload)->assertCreated()->json('data.id');
+
+        $response = $this->actingAs($this->clinicAdmin(), 'clinic')->getJson("/api/clinic/exercises/{$id}");
+
+        $response->assertNotFound();
+        $this->assertStringNotContainsString('pendente-a', $response->getContent());
+    }
+
+    public function test_show_returns_an_approved_catalog_exercise(): void
+    {
+        $exercise = Exercise::create([
+            'name'           => 'Catálogo Global',
+            'physio_area_id' => $this->physioArea->id,
+            'review_status'  => Exercise::REVIEW_APPROVED,
+            'is_active'      => true,
+        ]);
+
+        $this->actingAs($this->clinicAdmin(), 'clinic')
+            ->getJson("/api/clinic/exercises/{$exercise->id}")
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Catálogo Global')
+            ->assertJsonPath('data.is_own_submission', false);
+    }
+
     public function test_non_admin_clinic_user_cannot_submit(): void
     {
         $clinic = Clinic::factory()->create();

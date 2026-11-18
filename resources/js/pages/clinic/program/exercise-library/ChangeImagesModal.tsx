@@ -7,6 +7,7 @@ import {
     hasImageChange,
     useChangeExerciseImages,
 } from '@/application/clinic/use-change-exercise-images';
+import { useRefreshExerciseMedia } from '@/application/clinic/use-exercises';
 import { DsAlert, DsButton, DsModal } from '@/components/ds';
 import type { Exercise } from '@/domain/clinic';
 import { ImageSlot } from '@/pages/clinic/exercise-submit/shared';
@@ -29,6 +30,7 @@ function ChangeImagesForm({
     const [photo1, setPhoto1] = useState<File | null>(null);
     const [photo2, setPhoto2] = useState<File | null>(null);
     const change = useChangeExerciseImages();
+    const refreshMedia = useRefreshExerciseMedia(exercise.id);
     const current = exercise.referenceImages ?? [];
     const input = {
         videoId,
@@ -115,6 +117,9 @@ function ChangeImagesForm({
                             file={thumbnail}
                             onFile={setThumbnail}
                             currentUrl={exercise.thumbnailUrl}
+                            onRefreshCurrent={async () =>
+                                (await refreshMedia())?.thumbnailUrl ?? null
+                            }
                         />
                     </div>
                     <div className="flex flex-col gap-3">
@@ -135,6 +140,10 @@ function ChangeImagesForm({
                                 file={photo1}
                                 onFile={setPhoto1}
                                 currentUrl={current[0]?.url}
+                                onRefreshCurrent={async () =>
+                                    (await refreshMedia())?.referenceImages?.[0]
+                                        ?.url ?? null
+                                }
                             />
                             <ImageSlot
                                 label="Foto 2 · posição final"
@@ -142,6 +151,10 @@ function ChangeImagesForm({
                                 file={photo2}
                                 onFile={setPhoto2}
                                 currentUrl={current[1]?.url}
+                                onRefreshCurrent={async () =>
+                                    (await refreshMedia())?.referenceImages?.[1]
+                                        ?.url ?? null
+                                }
                             />
                         </div>
                     </div>

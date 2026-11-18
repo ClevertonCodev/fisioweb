@@ -2,7 +2,7 @@
 
 Nenhum vídeo, capa, imagem ou foto tem mais endereço público: cada tela recebe um link assinado que vence, para que ninguém copie a biblioteca nem abra arquivo fora do sistema.
 
-- **Status:** planejada
+- **Status:** implementada, sem commit; revisão adversária parada no limite com 3 Major no player (ver `HANDOFF.md`)
 - **Branch:** `feat/midia-protegida`
 - **Plano:** [`plans/midia-protegida.md`](plans/midia-protegida.md)
 - **Decisões:** [`decisoes.md`](decisoes.md)
@@ -24,5 +24,5 @@ Nenhum vídeo, capa, imagem ou foto tem mais endereço público: cada tela receb
 
 ## Pastas
 
-- `decisoes.md`, `plans/`, `tasks/`: no git.
-- `evidence/`, `review/`, `DEFERRED.md`: locais, fora do git.
+- `decisoes.md`, `plans/`, `tasks/`, `DEFERRED.md`, `roteiros/`: no git (os roteiros do smoke não têm senha; o login vem de `FISIO_LOGIN`/`FISIO_SENHA` ou do `credentials.json`).
+- `evidence/`, `review/`: locais, fora do git.

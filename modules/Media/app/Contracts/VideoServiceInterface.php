@@ -15,8 +15,6 @@ interface VideoServiceInterface
 
     public function getVideoFormatted(int $videoId): array;
 
-    public function getVideoCdnUrl(int $videoId): ?string;
-
     public function updateMetadata(int $videoId, array $metadata): Video;
 
     public function getVideosByUploadable(Model $uploadable): Collection;

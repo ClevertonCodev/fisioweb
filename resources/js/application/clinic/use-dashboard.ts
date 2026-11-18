@@ -22,10 +22,6 @@ export function useDashboardSummary(scope?: DashboardScope, day?: string) {
     });
 }
 
-/**
- * Taxa de ocupação de um fisioterapeuta por granularidade. `queryKey` próprio
- * para recomputar de forma isolada ao trocar filtro (FR-021/SC-006/SC-007).
- */
 export function useRefreshBirthdayPhoto(scope: DashboardScope, day: string) {
     const queryClient = useQueryClient();
 
@@ -68,6 +64,10 @@ export function useRefreshAppointmentPhoto(scope: DashboardScope, day: string) {
     );
 }
 
+/**
+ * Taxa de ocupação de um fisioterapeuta por granularidade. `queryKey` próprio
+ * para recomputar de forma isolada ao trocar filtro (FR-021/SC-006/SC-007).
+ */
 export function useOccupancyRate(
     granularity: OccupancyGranularity,
     clinicUserId?: string,

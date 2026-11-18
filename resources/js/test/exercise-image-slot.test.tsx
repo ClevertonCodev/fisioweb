@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ImageSlot } from '@/pages/clinic/exercise-submit/shared';
@@ -60,5 +60,31 @@ describe('ImageSlot', () => {
         expect(
             screen.getByText('A imagem não pode passar de 5 MB.'),
         ).toBeInTheDocument();
+    });
+
+    it('pede um link novo da imagem salva quando o link venceu', async () => {
+        const onRefreshCurrent = vi
+            .fn()
+            .mockResolvedValue('https://conta.example/foto-nova.jpg');
+        render(
+            <ImageSlot
+                label="Foto 1"
+                hint="JPEG, PNG ou WebP"
+                file={null}
+                onFile={vi.fn()}
+                currentUrl="https://conta.example/foto.jpg"
+                onRefreshCurrent={onRefreshCurrent}
+            />,
+        );
+
+        fireEvent.error(screen.getByRole('img', { name: 'Foto 1' }));
+
+        await waitFor(() =>
+            expect(screen.getByRole('img', { name: 'Foto 1' })).toHaveAttribute(
+                'src',
+                'https://conta.example/foto-nova.jpg',
+            ),
+        );
+        expect(onRefreshCurrent).toHaveBeenCalledTimes(1);
     });
 });

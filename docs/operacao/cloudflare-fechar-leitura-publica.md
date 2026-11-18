@@ -42,12 +42,14 @@ Troque `<caminho>` por um objeto que existe no bucket (um `path` de
 `media_videos`). Antes de tirar o domínio, a primeira linha tende a dar 200
 (vídeo e foto não passam pela regra de WAF). Depois, as duas deixam de dar 200.
 
-Troque `dominio-publico.example` pelo domínio público do bucket.
+O `r2.dev` não tem um endereço que dê para adivinhar: se o painel mostrar uma
+Public Development URL ligada, troque `<id>` pelo que aparece lá (`pub-<id>.r2.dev`).
+Se ela estiver desligada, a segunda linha não tem o que testar e pode ser pulada.
 
 ```bash
 CAMINHO="<caminho>"
-curl -sI -o /dev/null -w 'cdn %{http_code}\n' "https://dominio-publico.example/${CAMINHO}"
-curl -sI -o /dev/null -w 'r2dev %{http_code}\n' "https://ivsdev.r2.dev/${CAMINHO}"
+curl -sI -o /dev/null -w 'cdn %{http_code}\n' "https://cdn-dev.ivsmed.com/${CAMINHO}"
+curl -sI -o /dev/null -w 'r2dev %{http_code}\n' "https://pub-<id>.r2.dev/${CAMINHO}"
 ```
 
 O esperado depois do passo 1: as duas linhas diferentes de 200 (404 ou erro de

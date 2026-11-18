@@ -3,6 +3,7 @@
 namespace Modules\Clinic\Http\Controllers;
 
 use App\Http\Controllers\ClinicAuthenticatedController;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Admin\Contracts\ExerciseServiceInterface;
@@ -32,8 +33,28 @@ class ExerciseController extends ClinicAuthenticatedController
         // Backend é fonte de verdade: só globais aprovados + exercícios da própria clínica.
         $filters['visible_to_clinic_id'] = $clinicId;
 
-        $perPage     = $request->integer('per_page', 15);
-        $result      = $this->exerciseService->list($filters, $perPage);
+        $result = $this->exerciseService->list($filters, $request->integer('per_page', 15));
+        $this->presentForClinic($result, $clinicId);
+
+        return response()->json(['data' => $result]);
+    }
+
+    public function show(int $id): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+        $result   = $this->exerciseService->list(['id' => $id, 'visible_to_clinic_id' => $clinicId], 1);
+
+        if ($result->isEmpty()) {
+            return response()->json(['message' => 'Exercício não encontrado.'], 404);
+        }
+
+        $this->presentForClinic($result, $clinicId);
+
+        return response()->json(['data' => $result->getCollection()->first()]);
+    }
+
+    private function presentForClinic(LengthAwarePaginator $result, int $clinicId): void
+    {
         $favoriteIds = ExerciseFavorite::where('clinic_user_id', $this->clinicUserId())->pluck('exercise_id')->all();
         $proposalIds = $this->videoService->videoIdsWithPendingMediaProposal(
             $result->getCollection()
@@ -54,8 +75,6 @@ class ExerciseController extends ClinicAuthenticatedController
 
             return $item;
         });
-
-        return response()->json(['data' => $result]);
     }
 
     public function options(): JsonResponse

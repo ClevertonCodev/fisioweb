@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Modules\Clinic\Models\Clinic;
 use Modules\Clinic\Models\ClinicUser;
-use Modules\Cloudflare\Support\SignedMedia;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Patient\Database\Factories\PatientFactory;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
@@ -101,7 +101,7 @@ class Patient extends Authenticatable implements JWTSubject
 
     protected function photoUrl(): Attribute
     {
-        return Attribute::get(fn () => SignedMedia::image($this->photo_path));
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forImage($this->photo_path));
     }
 
     /**

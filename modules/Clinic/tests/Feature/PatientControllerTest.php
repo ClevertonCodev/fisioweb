@@ -437,6 +437,77 @@ class PatientControllerTest extends TestCase
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+    public function test_removing_a_photo_shared_with_another_patient_keeps_the_file(): void
+    {
+        $patient = $this->createPatientForClinic();
+        $other   = $this->createPatientForClinic();
+        Patient::whereKey([$patient->id, $other->id])->update(['photo_path' => 'patients/photos/compartilhada.png']);
+
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldNotReceive('deletePrivateFile');
+        });
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->deleteJson("/api/clinic/patients/{$patient->id}/photo")
+            ->assertOk();
+
+        $this->assertDatabaseHas('patients', ['id' => $patient->id, 'photo_path' => null]);
+        $this->assertDatabaseHas('patients', ['id' => $other->id, 'photo_path' => 'patients/photos/compartilhada.png']);
+    }
+
+    public function test_replacing_a_photo_only_used_by_this_patient_deletes_the_old_file(): void
+    {
+        $patient = $this->createPatientForClinic();
+        $patient->forceFill(['photo_path' => 'patients/photos/antiga.png'])->save();
+
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('uploadFile')->once()->andReturn([
+                'filename'          => 'nova.png',
+                'original_filename' => 'nova.png',
+                'path'              => 'patients/photos/nova.png',
+                'mime_type'         => 'image/png',
+                'size'              => 512,
+            ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->with('patients/photos/antiga.png');
+        });
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$patient->id}/photo", [
+                'photo' => UploadedFile::fake()->create('nova.png', 100, 'image/png'),
+            ])->assertOk();
+    }
+
+    public function test_a_failure_deleting_the_old_photo_still_saves_the_new_one(): void
+    {
+        $patient = $this->createPatientForClinic();
+        $patient->forceFill(['photo_path' => 'patients/photos/antiga.png'])->save();
+
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('uploadFile')->once()->andReturn([
+                'filename'          => 'nova.png',
+                'original_filename' => 'nova.png',
+                'path'              => 'patients/photos/nova.png',
+                'mime_type'         => 'image/png',
+                'size'              => 512,
+            ]);
+            $mock->shouldReceive('deletePrivateFile')->once()->andThrow(new \RuntimeException('R2 fora do ar'));
+        });
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson("/api/clinic/patients/{$patient->id}/photo", [
+                'photo' => UploadedFile::fake()->create('nova.png', 100, 'image/png'),
+            ])->assertOk();
+        $this->assertDatabaseHas('patients', ['id' => $patient->id, 'photo_path' => 'patients/photos/nova.png']);
+
+        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+            $mock->shouldReceive('deletePrivateFile')->once()->andThrow(new \RuntimeException('R2 fora do ar'));
+        });
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->deleteJson("/api/clinic/patients/{$patient->id}/photo")
+            ->assertOk();
+        $this->assertDatabaseHas('patients', ['id' => $patient->id, 'photo_path' => null]);
+    }
+
     private function createPatientForClinic(): Patient
     {
         return Patient::factory()->forClinic(

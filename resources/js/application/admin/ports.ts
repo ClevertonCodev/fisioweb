@@ -183,8 +183,7 @@ export interface AdminVideo {
     id: number;
     filename: string;
     original_filename: string | null;
-    url: string | null;
-    cdn_url: string | null;
+    video_url: string | null;
     thumbnail_url: string | null;
     size: number | null;
     human_size: string;

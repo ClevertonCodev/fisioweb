@@ -33,6 +33,10 @@ class ExerciseRepository implements ExerciseRepositoryInterface
             $query->visibleToClinic((int) $filters['visible_to_clinic_id']);
         }
 
+        if (!empty($filters['id'])) {
+            $query->whereKey((int) $filters['id']);
+        }
+
         if (!empty($filters['review_status'])) {
             $query->where('review_status', $filters['review_status']);
         }

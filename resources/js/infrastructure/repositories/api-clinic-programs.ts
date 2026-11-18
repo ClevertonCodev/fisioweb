@@ -15,8 +15,6 @@ interface ApiExercise {
     videos?: {
         thumbnail_url?: string | null;
         video_url?: string | null;
-        cdn_url?: string | null;
-        url?: string | null;
     }[];
 }
 
@@ -92,7 +90,7 @@ function mapPlanExercise(raw: ApiTreatmentPlanExercise): ProgramExercise {
         exerciseId: String(raw.exercise_id),
         title: raw.exercise?.name ?? '',
         thumbnailUrl: video?.thumbnail_url ?? '',
-        videoUrl: video?.video_url ?? video?.cdn_url ?? video?.url ?? '',
+        videoUrl: video?.video_url ?? '',
         days: raw.days_of_week ?? [],
         period: raw.period ? (periodToDomain[raw.period] ?? null) : null,
         seriesMin: raw.sets_min,

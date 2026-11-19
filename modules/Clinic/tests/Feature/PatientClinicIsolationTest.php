@@ -83,6 +83,15 @@ class PatientClinicIsolationTest extends TestCase
         $this->assertDatabaseHas('patients', ['id' => $this->patientB->id, 'name' => 'Paciente B']);
     }
 
+    public function test_appointment_reminder_of_another_clinic_patient_is_not_found_and_stays_on(): void
+    {
+        $this->actingAs($this->adminA, 'clinic')
+            ->putJson("/api/clinic/patients/{$this->patientB->id}", ['receives_appointment_reminder_email' => false])
+            ->assertNotFound();
+
+        $this->assertTrue($this->patientB->fresh()->receives_appointment_reminder_email);
+    }
+
     public function test_upload_photo_reaches_own_patient_and_not_another_clinic_photo(): void
     {
         $this->mockFiles(function (MockInterface $mock) {

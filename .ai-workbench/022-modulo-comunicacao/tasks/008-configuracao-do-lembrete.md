@@ -31,14 +31,14 @@ Esta tarefa cria as duas, com as telas para mudar, e corrige a dica do celular n
 
 ## Critérios de Aceite
 
-- [ ] Depois da migration, as clínicas existentes ficam com o lembrete desligado e os pacientes existentes com o lembrete ligado (teste).
-- [ ] O mestre liga e desliga o lembrete pelo `PUT /api/clinic/profile`; um admin que não é mestre recebe o mesmo bloqueio de hoje (teste).
-- [ ] Cadastrar e editar paciente gravam e devolvem o campo do lembrete; sem o campo, o padrão é ligado (teste).
-- [ ] Editar paciente de outra clínica continua dando 404 (teste).
-- [ ] Em Dados da clínica, a chave aparece e fica desabilitada para quem não é mestre (Vitest).
-- [ ] No formulário do paciente, a chave aparece, e a dica do celular tem o texto novo (Vitest).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Depois da migration, as clínicas existentes ficam com o lembrete desligado e os pacientes existentes com o lembrete ligado (teste).
+- [x] O mestre liga e desliga o lembrete pelo `PUT /api/clinic/profile`; um admin que não é mestre recebe o mesmo bloqueio de hoje (teste).
+- [x] Cadastrar e editar paciente gravam e devolvem o campo do lembrete; sem o campo, o padrão é ligado (teste).
+- [x] Editar paciente de outra clínica continua dando 404 (teste).
+- [x] Em Dados da clínica, a chave aparece e fica desabilitada para quem não é mestre (Vitest).
+- [x] No formulário do paciente, a chave aparece, e a dica do celular tem o texto novo (Vitest).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

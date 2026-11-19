@@ -21,6 +21,7 @@ interface ApiClinicProfile {
     state?: string | null;
     plan_id?: number | null;
     plan?: { id: number; name: string } | null;
+    appointment_reminder_email_enabled?: boolean;
 }
 
 function toEntity(raw: ApiClinicProfile): ClinicProfile {
@@ -40,6 +41,8 @@ function toEntity(raw: ApiClinicProfile): ClinicProfile {
         state: raw.state ?? null,
         planId: raw.plan_id ?? raw.plan?.id ?? null,
         planName: raw.plan?.name ?? null,
+        appointmentReminderEmailEnabled:
+            raw.appointment_reminder_email_enabled ?? false,
     };
 }
 
@@ -55,6 +58,7 @@ function toApiPayload(dto: ClinicProfileUpdateDto): Record<string, unknown> {
         number: dto.number ?? null,
         city: dto.city ?? null,
         state: dto.state ?? null,
+        appointment_reminder_email_enabled: dto.appointmentReminderEmailEnabled,
     };
 }
 

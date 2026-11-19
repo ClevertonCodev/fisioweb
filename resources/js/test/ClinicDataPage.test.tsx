@@ -62,6 +62,7 @@ function makeProfile(overrides: Partial<ClinicProfile> = {}): ClinicProfile {
         state: 'SP',
         planId: 3,
         planName: 'Premium',
+        appointmentReminderEmailEnabled: false,
         ...overrides,
     };
 }
@@ -120,6 +121,39 @@ describe('ClinicDataPage', () => {
             }),
         );
         expect(updateProfile.mock.calls[0][0]).not.toHaveProperty('status');
+    });
+
+    it('o mestre liga o lembrete de consulta por e-mail e salva', async () => {
+        const user = userEvent.setup();
+        renderPage();
+
+        const reminder = await screen.findByRole('switch', {
+            name: /Lembrar o paciente por e-mail antes da consulta \(24 h\)/,
+        });
+        expect(reminder).not.toBeChecked();
+        await user.click(reminder);
+        await user.click(screen.getByRole('button', { name: 'Salvar' }));
+
+        await waitFor(() => {
+            expect(updateProfile).toHaveBeenCalledTimes(1);
+        });
+        expect(updateProfile).toHaveBeenCalledWith(
+            expect.objectContaining({ appointmentReminderEmailEnabled: true }),
+        );
+    });
+
+    it('quem não é mestre vê a chave do lembrete desabilitada', async () => {
+        authState.user.mestre = 0;
+        getProfile.mockResolvedValue(
+            makeProfile({ appointmentReminderEmailEnabled: true }),
+        );
+        renderPage();
+
+        const reminder = await screen.findByRole('switch', {
+            name: /Lembrar o paciente por e-mail antes da consulta \(24 h\)/,
+        });
+        expect(reminder).toBeChecked();
+        expect(reminder).toBeDisabled();
     });
 
     it('quem não é mestre só lê os dados', async () => {

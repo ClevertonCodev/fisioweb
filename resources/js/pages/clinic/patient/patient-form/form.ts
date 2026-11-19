@@ -69,7 +69,7 @@ export const SECTION_FIELDS: Record<SectionKey, Field[]> = {
         'education',
         'diagnosis',
     ],
-    contato: ['phone', 'email'],
+    contato: ['phone', 'email', 'receives_appointment_reminder_email'],
     endereco: [
         'zip_code',
         'address_street',

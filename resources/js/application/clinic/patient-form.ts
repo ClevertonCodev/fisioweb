@@ -94,6 +94,7 @@ export const patientFormSchema = z
         insurance: z.string(),
         insurance_number: z.string(),
         referral_source: z.string(),
+        receives_appointment_reminder_email: z.boolean(),
     })
     .superRefine((data, ctx) => {
         if (!data.cpf || data.cpf.trim().length === 0) {
@@ -152,6 +153,7 @@ export const patientFormDefaults: PatientFormValues = {
     insurance: '',
     insurance_number: '',
     referral_source: '',
+    receives_appointment_reminder_email: true,
 };
 
 // ─── Campos obrigatórios por aba (para indicadores de erro) ───────────────────
@@ -202,6 +204,8 @@ export function toPatientFormValues(detail: PatientDetail): PatientFormValues {
         insurance: detail.insurance ?? '',
         insurance_number: detail.insuranceNumber ?? '',
         referral_source: detail.referralSource ?? '',
+        receives_appointment_reminder_email:
+            detail.receivesAppointmentReminderEmail,
     };
 }
 
@@ -239,6 +243,8 @@ export function toPatientUpdateDto(data: PatientFormValues): PatientUpdateDto {
             ? data.insurance_number || undefined
             : undefined,
         referralSource: data.referral_source || undefined,
+        receivesAppointmentReminderEmail:
+            data.receives_appointment_reminder_email,
     };
 }
 
@@ -276,5 +282,7 @@ export function toPatientWriteDto(data: PatientFormValues): PatientWriteDto {
             ? data.insurance_number || undefined
             : undefined,
         referralSource: data.referral_source || undefined,
+        receivesAppointmentReminderEmail:
+            data.receives_appointment_reminder_email,
     };
 }

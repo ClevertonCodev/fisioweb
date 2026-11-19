@@ -23,6 +23,7 @@ import {
     AddressFields,
     ContactFields,
     IdentityFields,
+    ReminderFields,
 } from './ClinicDataFields';
 import { PatientViewPreview } from './PatientViewPreview';
 
@@ -118,6 +119,9 @@ export function ClinicDataForm({ profile }: { profile: ClinicProfile }) {
                             </Card>
                             <Card title="Contato">
                                 <ContactFields {...fields} />
+                            </Card>
+                            <Card title="Lembrete de consulta">
+                                <ReminderFields {...fields} />
                             </Card>
                             <Card title="Endereço">
                                 <AddressFields {...fields} />

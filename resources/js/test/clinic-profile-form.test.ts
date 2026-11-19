@@ -22,6 +22,7 @@ function validPj(overrides: Record<string, unknown> = {}) {
         number: '100',
         city: 'São Paulo',
         state: 'SP',
+        appointmentReminderEmailEnabled: false,
         ...overrides,
     };
 }
@@ -152,6 +153,7 @@ describe('clinicProfileToFormValues', () => {
             state: 'SP',
             planId: 3,
             planName: 'Premium',
+            appointmentReminderEmailEnabled: true,
         };
 
         const values = clinicProfileToFormValues(profile);
@@ -167,6 +169,7 @@ describe('clinicProfileToFormValues', () => {
             number: '100',
             city: 'São Paulo',
             state: 'SP',
+            appointmentReminderEmailEnabled: true,
         });
         expect(values).not.toHaveProperty('slug');
         expect(values).not.toHaveProperty('status');

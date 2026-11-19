@@ -63,14 +63,21 @@ class Clinic extends Model
         'working_days',
         'plan_id',
         'terms_accepted_at',
+        'appointment_reminder_email_enabled',
+    ];
+
+    /** @var array<string, mixed> */
+    protected $attributes = [
+        'appointment_reminder_email_enabled' => false,
     ];
 
     protected function casts(): array
     {
         return [
-            'status'            => 'integer',
-            'working_days'      => 'array',
-            'terms_accepted_at' => 'datetime',
+            'status'                             => 'integer',
+            'working_days'                       => 'array',
+            'terms_accepted_at'                  => 'datetime',
+            'appointment_reminder_email_enabled' => 'boolean',
         ];
     }
 

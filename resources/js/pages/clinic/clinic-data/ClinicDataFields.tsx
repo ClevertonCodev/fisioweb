@@ -16,6 +16,7 @@ import {
     dsCn,
     DsFieldSelect,
     DsInput,
+    DsSwitch,
     formatCnpj,
     formatCpf,
 } from '@/components/ds';
@@ -175,6 +176,29 @@ export function ContactFields({
                 )}
             />
         </div>
+    );
+}
+
+export function ReminderFields({
+    canEdit,
+    control,
+}: Pick<FormFields, 'canEdit' | 'control'>) {
+    return (
+        <Controller
+            control={control}
+            name="appointmentReminderEmailEnabled"
+            render={({ field }) => (
+                <DsSwitch
+                    label="Lembrar o paciente por e-mail antes da consulta (24 h)"
+                    description="Vai para o paciente com e-mail que não desligou o lembrete."
+                    name={field.name}
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={!canEdit}
+                />
+            )}
+        />
     );
 }
 

@@ -66,6 +66,7 @@ class ClinicProfileController extends ClinicAuthenticatedController
                 'id'   => $clinic->plan->id,
                 'name' => $clinic->plan->name,
             ] : null,
+            'appointment_reminder_email_enabled' => $clinic->appointment_reminder_email_enabled,
         ];
     }
 }

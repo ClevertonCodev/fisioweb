@@ -48,6 +48,7 @@ export interface PatientWriteDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
+    receivesAppointmentReminderEmail?: boolean;
 }
 
 /** DTO de atualização de paciente — sem senha (application concern, camelCase) */
@@ -75,6 +76,7 @@ export interface PatientUpdateDto {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
+    receivesAppointmentReminderEmail?: boolean;
 }
 
 export interface PatientListParams {
@@ -542,6 +544,7 @@ export interface ClinicProfileUpdateDto {
     number?: string | null;
     city?: string | null;
     state?: string | null;
+    appointmentReminderEmailEnabled?: boolean;
 }
 
 export interface ClinicProfileRepository {

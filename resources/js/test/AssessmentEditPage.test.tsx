@@ -73,6 +73,7 @@ function patient(): PatientDetail {
         birthDate: '1995-03-15',
         phone: '84977776666',
         insurance: 'Amil',
+        receivesAppointmentReminderEmail: true,
     };
 }
 

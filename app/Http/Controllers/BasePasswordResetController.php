@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -23,15 +23,11 @@ abstract class BasePasswordResetController extends Controller
 
     protected function handleForgotPassword(Request $request): JsonResponse
     {
-        ResetPassword::createUrlUsing(function ($notifiable, string $token): string {
-            return config('app.url')
-                . '/' . $this->resetFrontendPath()
-                . '?token=' . $token
-                . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
-        });
-
         Password::broker($this->brokerName())->sendResetLink(
-            $request->only('email')
+            $request->only('email'),
+            function ($user, string $token): void {
+                $user->notify(new QueuedResetPassword($token, $this->resetUrl($user, $token)));
+            }
         );
 
         // A resposta é a mesma com ou sem conta, e também quando o broker
@@ -40,6 +36,14 @@ abstract class BasePasswordResetController extends Controller
         return response()->json([
             'message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.',
         ]);
+    }
+
+    private function resetUrl(object $user, string $token): string
+    {
+        return rtrim((string) config('app.url'), '/')
+            . '/' . $this->resetFrontendPath()
+            . '?token=' . $token
+            . '&email=' . urlencode($user->getEmailForPasswordReset());
     }
 
     protected function handleResetPassword(Request $request): JsonResponse

@@ -93,3 +93,17 @@ if (!function_exists('logDebug')) {
         Log::channel('dated')->debug($message, $context);
     }
 }
+
+if (!function_exists('markdownLiteral')) {
+    function markdownLiteral(string $text): Illuminate\Support\HtmlString
+    {
+        $markdownChars = ['\\', '`', '*', '_', '[', ']', '(', ')', '!', '~', '|', '#', '+', '-', '=', '<', '>'];
+        $html          = '';
+
+        foreach (mb_str_split((string) preg_replace('/\s+/u', ' ', trim($text))) as $char) {
+            $html .= in_array($char, $markdownChars, true) ? '&#' . ord($char) . ';' : e($char);
+        }
+
+        return new Illuminate\Support\HtmlString($html);
+    }
+}

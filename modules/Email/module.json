@@ -1,0 +1,15 @@
+{
+    "name": "Email",
+    "alias": "email",
+    "description": "Templates e envio de e-mail do sistema e da clínica ao paciente",
+    "keywords": [
+        "email",
+        "mail",
+        "notification"
+    ],
+    "priority": 0,
+    "providers": [
+        "Modules\\Email\\Providers\\EmailServiceProvider"
+    ],
+    "files": []
+}

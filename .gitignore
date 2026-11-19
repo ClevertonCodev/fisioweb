@@ -58,3 +58,5 @@ yarn-error.log
 /CLAUDE.local.md
 /.cursor/rules/ambiente-docker.mdc
 /.kiro
+
+/.claude/worktrees/

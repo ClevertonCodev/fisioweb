@@ -2,10 +2,12 @@
 
 namespace Modules\Clinic\Tests\Feature;
 
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Queue;
 use Modules\Clinic\Models\ClinicUser;
 use Tests\TestCase;
 
@@ -29,6 +31,29 @@ class PasswordResetTest extends TestCase
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
     }
 
+    public function test_reset_link_goes_through_the_queue_encrypted_with_the_clinic_link(): void
+    {
+        Queue::fake();
+
+        $user = ClinicUser::factory()->create();
+
+        $this->postJson('/api/clinic/auth/forgot-password', ['email' => $user->email])->assertOk();
+
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($user): bool {
+            $notification = $job->notification;
+            if (!$notification instanceof QueuedResetPassword) {
+                return false;
+            }
+            $url = $notification->toMail($user)->actionUrl;
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+            return $job->shouldBeEncrypted
+                && Password::broker('clinic_users')->tokenExists($user, (string) ($query['token'] ?? ''))
+                && str_starts_with($url, rtrim((string) config('app.url'), '/') . '/clinica/redefinir-senha?token=')
+                && str_contains($url, 'email=' . urlencode($user->email));
+        });
+    }
+
     public function test_forgot_password_and_reset_ignore_email_case(): void
     {
         Notification::fake();
@@ -37,7 +62,7 @@ class PasswordResetTest extends TestCase
 
         $this->postJson('/api/clinic/auth/forgot-password', ['email' => 'joao@fisio.com'])->assertOk();
 
-        Notification::assertSentTo($user, ResetPassword::class);
+        Notification::assertSentTo($user, QueuedResetPassword::class);
 
         $token = Password::broker('clinic_users')->createToken($user);
 
@@ -97,7 +122,7 @@ class PasswordResetTest extends TestCase
         $response->assertOk()
             ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
 
-        Notification::assertSentToTimes($user, ResetPassword::class, 1);
+        Notification::assertSentToTimes($user, QueuedResetPassword::class, 1);
     }
 
     public function test_resets_password_with_valid_token(): void

@@ -281,6 +281,129 @@ class ModuleBoundaryTest extends TestCase
         );
     }
 
+    public function test_email_module_only_uses_public_contracts_and_events_of_other_modules(): void
+    {
+        $violations = [];
+
+        $scanned = 0;
+
+        foreach ($this->productionPhpFiles('modules/Email/app') as $file) {
+            $scanned++;
+            $contents = (string) file_get_contents($file->getPathname());
+            array_push($violations, ...$this->emailViolationsForContent($file->getPathname(), $contents));
+        }
+
+        $this->assertGreaterThan(0, $scanned);
+        $this->assertSame([], $violations, implode(PHP_EOL, $violations));
+    }
+
+    public function test_email_scanner_detects_inline_reference_to_another_module_model(): void
+    {
+        $violations = $this->emailViolationsForContent(
+            'modules/Email/app/Listeners/Synthetic.php',
+            "\$patient = \\Modules\\Patient\\Models\\Patient::find(1);\nuse Modules\\Patient\\Contracts\\Public\\Allowed;\n",
+        );
+
+        $this->assertSame(['modules/Email/app/Listeners/Synthetic.php references Modules\\Patient\\Models\\Patient'], $violations);
+    }
+
+    public function test_email_scanner_detects_group_use_namespace_alias_and_raw_table_access(): void
+    {
+        $violations = $this->emailViolationsForContent(
+            'modules/Email/app/Listeners/Synthetic.php',
+            "use Modules\\Patient\\{Models\\Patient};\nuse Modules\\Clinic as C;\n\$rows = DB::table('patients')->get();\n",
+        );
+
+        $this->assertCount(3, $violations, implode(PHP_EOL, $violations));
+    }
+
+    public function test_email_scanner_detects_root_group_use_raw_queries_and_lowercase_namespace(): void
+    {
+        $cases = [
+            "use Modules\\{Patient\\Models\\Patient};\n",
+            "\$rows = DB::select('select * from patients');\n",
+            "\$rows = DB::query()->from('patients')->get();\n",
+            "use modules\\patient\\Models\\Patient;\n",
+            "use Modules as M;\n",
+            "namespace X {\n    use Modules\\Clinic as C;\n}\n",
+            "protected \$table = 'clinic_patients';\n",
+            "\$rows = DB::table('patients')->get();\n",
+        ];
+
+        foreach ($cases as $content) {
+            $this->assertNotSame([], $this->emailViolationsForContent('modules/Email/app/Synthetic.php', $content), $content);
+        }
+    }
+
+    public function test_email_scanner_allows_the_email_module_own_tables(): void
+    {
+        $content = "protected \$table = 'email_appointment_reminders';\nDB::table('email_appointment_reminders')->insert([]);\n";
+
+        $this->assertSame([], $this->emailViolationsForContent('modules/Email/app/Models/Synthetic.php', $content));
+    }
+
+    public function test_email_scanner_ignores_the_mail_sender_address(): void
+    {
+        $this->assertSame([], $this->emailViolationsForContent('modules/Email/app/Mail/Synthetic.php', "\$mail->from('naoresponda@ivsmed.com');\n"));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function emailViolationsForContent(string $path, string $contents): array
+    {
+        preg_match_all('/(?<![A-Za-z0-9_]\\\\)(?<![A-Za-z0-9_])Modules(?:\\\\){1,2}([A-Za-z0-9_]+)(?:\\\\){1,2}([A-Za-z0-9_\\\\]+)/i', $contents, $matches, PREG_SET_ORDER);
+
+        $violations = [];
+
+        foreach ($matches as $match) {
+            $module = $match[1];
+            $tail   = str_replace('\\\\', '\\', $match[2]);
+
+            if (strcasecmp($module, 'Email') === 0) {
+                continue;
+            }
+
+            foreach (['Contracts\\Public\\', 'Data\\Public\\', 'Events\\'] as $allowed) {
+                if (stripos($tail, $allowed) === 0) {
+                    continue 2;
+                }
+            }
+
+            $violations[] = $path . ' references Modules\\' . $module . '\\' . $tail;
+        }
+
+        if (preg_match('/^\s*use\s+Modules\s*(?:\\\\\s*\{|\s+as\s)/mi', $contents) === 1) {
+            $violations[] = $path . ' imports from the Modules root as a group';
+        }
+
+        preg_match_all('/^\s*use\s+Modules\\\\([A-Za-z0-9_]+)\s*(?:\\\\\s*\{|\s+as\s|;)/mi', $contents, $groupOrAlias, PREG_SET_ORDER);
+
+        foreach ($groupOrAlias as $match) {
+            if (strcasecmp($match[1], 'Email') !== 0) {
+                $violations[] = $path . ' imports the namespace of Modules\\' . $match[1] . ' as a group or alias';
+            }
+        }
+
+        if (preg_match('/DB::(?:select|statement|raw|unprepared|insert|update|delete|query)\s*\(/i', $contents) === 1) {
+            $violations[] = $path . ' runs a raw query';
+        }
+
+        preg_match_all('/(?:DB::table|->table|->from)\s*\(\s*[\'"]([^\'"]+)[\'"]|\$table\s*=\s*[\'"]([^\'"]+)[\'"]/i', $contents, $tables, PREG_SET_ORDER);
+
+        foreach ($tables as $table) {
+            $name = !empty($table[2] ?? '') ? $table[2] : $table[1];
+            if (str_contains($name, '@')) {
+                continue;
+            }
+            if (!str_starts_with(strtolower($name), 'email_')) {
+                $violations[] = $path . ' uses the table ' . $name . ' of another module';
+            }
+        }
+
+        return array_values(array_unique($violations));
+    }
+
     public function test_boundary_scanner_detects_synthetic_prohibited_import(): void
     {
         $violations = $this->violationsForContent(

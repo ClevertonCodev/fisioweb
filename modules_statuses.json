@@ -11,5 +11,6 @@
     "ClinicScheduling": true,
     "ClinicalRecord": true,
     "ClinicQuestionnaire": true,
-    "TreatmentProgram": true
+    "TreatmentProgram": true,
+    "Email": true
 }

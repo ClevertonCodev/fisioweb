@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/email",
+    "description": "Templates e envio de e-mail do sistema e da clínica ao paciente",
+    "authors": [
+        {
+            "name": "Cleverton Santos",
+            "email": "cleverton@example.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Email\\": "app/",
+            "Modules\\Email\\Database\\Factories\\": "database/factories/",
+            "Modules\\Email\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Email\\Tests\\": "tests/"
+        }
+    }
+}

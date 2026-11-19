@@ -190,8 +190,8 @@ describe('ExerciseLibraryPage', () => {
             screen.queryByRole('tab', { name: 'Histórico' }),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Criar programa' }),
-        ).not.toBeInTheDocument();
+            screen.queryAllByRole('button', { name: 'Criar programa' }),
+        ).toHaveLength(0);
     });
 
     it('pede a próxima página no scroll infinito', async () => {

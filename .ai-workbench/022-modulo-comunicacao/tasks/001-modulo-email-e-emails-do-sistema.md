@@ -32,15 +32,15 @@ A origem não passa a depender do `Email`: o provider do módulo aponta o tema d
 
 ## Critérios de Aceite
 
-- [ ] O módulo `Email` aparece registrado e ativo, e os testes de arquitetura (`--testsuite Architecture`) passam com ele incluído no teste de fronteira.
-- [ ] A confirmação de cadastro da clínica sai com o layout IVS MED: cabeçalho "IVS MED", botão "Confirmar meu e-mail", o aviso de 24 horas e o rodapé novo (teste que renderiza a notificação).
-- [ ] O e-mail de redefinição de senha (admin e clínica) sai com o layout IVS MED, em português, com o link de hoje e "expira em 60 minutos" (teste que renderiza).
-- [ ] Pedir redefinição de senha põe o envio na fila em vez de mandar na hora (teste com `Notification::fake` ou `Queue::fake`).
-- [ ] O remetente é "IVS MED" `<naoresponda@ivsmed.com>` e os e-mails não têm Reply-To.
-- [ ] O logo vai embutido no e-mail (anexo inline), não como link para fora.
-- [ ] O ADR do módulo `Email` está em `docs/adr/`.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O módulo `Email` aparece registrado e ativo, e os testes de arquitetura (`--testsuite Architecture`) passam com ele incluído no teste de fronteira.
+- [x] A confirmação de cadastro da clínica sai com o layout IVS MED: cabeçalho "IVS MED", botão "Confirmar meu e-mail", o aviso de 24 horas e o rodapé novo (teste que renderiza a notificação).
+- [x] O e-mail de redefinição de senha (admin e clínica) sai com o layout IVS MED, em português, com o link de hoje e "expira em 60 minutos" (teste que renderiza).
+- [x] Pedir redefinição de senha põe o envio na fila em vez de mandar na hora (teste com `Notification::fake` ou `Queue::fake`).
+- [x] O remetente é "IVS MED" `<naoresponda@ivsmed.com>` e os e-mails não têm Reply-To.
+- [x] O logo vai embutido no e-mail (anexo inline), não como link para fora.
+- [x] O ADR do módulo `Email` está em `docs/adr/`.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

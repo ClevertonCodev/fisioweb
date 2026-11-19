@@ -2,10 +2,12 @@
 
 namespace Modules\Admin\Tests\Feature;
 
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Queue;
 use Modules\Admin\Models\User;
 use Tests\TestCase;
 
@@ -31,6 +33,29 @@ class PasswordResetTest extends TestCase
             ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
 
         $this->assertDatabaseHas('password_reset_tokens', ['email' => $user->email]);
+    }
+
+    public function test_reset_link_goes_through_the_queue_encrypted_with_the_admin_link(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+
+        $this->postJson('/api/admin/auth/forgot-password', ['email' => $user->email])->assertOk();
+
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($user): bool {
+            $notification = $job->notification;
+            if (!$notification instanceof QueuedResetPassword) {
+                return false;
+            }
+            $url = $notification->toMail($user)->actionUrl;
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+            return $job->shouldBeEncrypted
+                && Password::broker('users')->tokenExists($user, (string) ($query['token'] ?? ''))
+                && str_starts_with($url, rtrim((string) config('app.url'), '/') . '/admin/redefinir-senha?token=')
+                && str_contains($url, 'email=' . urlencode($user->email));
+        });
     }
 
     /** Sem conta, a resposta é a mesma: não revela quem tem acesso. */
@@ -81,7 +106,7 @@ class PasswordResetTest extends TestCase
         $response->assertOk()
             ->assertJson(['message' => 'Se houver uma conta com este e-mail, enviamos um link para criar uma senha nova.']);
 
-        Notification::assertSentToTimes($user, ResetPassword::class, 1);
+        Notification::assertSentToTimes($user, QueuedResetPassword::class, 1);
     }
 
     // -----------------------------------------------------------------------

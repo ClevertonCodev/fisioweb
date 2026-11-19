@@ -1,0 +1,203 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background-color: #f4f6fb;
+    font-family: 'Poppins', 'Segoe UI', Arial, Helvetica, sans-serif;
+    -webkit-text-size-adjust: none;
+}
+
+.wrapper {
+    background-color: #f4f6fb;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.wrapper-cell {
+    padding: 24px 12px;
+}
+
+.inner-body {
+    width: 600px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.brand-header {
+    background-color: #15183D;
+    border-radius: 16px 16px 0 0;
+    padding: 22px 32px;
+}
+
+.brand-logo {
+    display: block;
+    border: 0;
+}
+
+.brand-text {
+    padding-left: 12px;
+    color: #ffffff;
+    font-family: 'Poppins', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.brand-sender {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 22px;
+    color: #ffffff;
+}
+
+.brand-via {
+    font-size: 12px;
+    line-height: 16px;
+    color: #afbee3;
+}
+
+.brand-name {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    line-height: 22px;
+    color: #ffffff;
+}
+
+.content-cell {
+    background-color: #ffffff;
+    border-radius: 0 0 16px 16px;
+    padding: 32px;
+    font-family: 'Poppins', 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+.badge {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #3d5189;
+    margin: 0 0 8px;
+}
+
+h1 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #15183D;
+    margin: 0 0 18px;
+}
+
+p {
+    font-size: 15px;
+    line-height: 24px;
+    color: #2c2f45;
+    margin: 0 0 14px;
+}
+
+a {
+    color: #3d5189;
+}
+
+.action {
+    margin: 8px 0 22px;
+}
+
+.button-cell {
+    border-radius: 10px;
+    background-color: #3d5189;
+}
+
+.button {
+    display: block;
+    padding: 15px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 10px;
+    background-color: #3d5189;
+}
+
+.subcopy {
+    border-top: 1px solid #e6ebf6;
+    margin-top: 18px;
+    padding-top: 14px;
+}
+
+.subcopy p {
+    font-size: 12px;
+    line-height: 18px;
+    color: #8a8fa8;
+    margin: 0;
+}
+
+.subcopy a {
+    color: #5b73b4;
+}
+
+.break-all {
+    word-break: break-all;
+}
+
+.footer-cell {
+    padding: 24px 32px 8px;
+}
+
+.footer-cell p {
+    font-size: 11px;
+    line-height: 16px;
+    color: #8a8fa8;
+    margin: 0 0 6px;
+    text-align: center;
+}
+
+.details {
+    background-color: #f4f6fb;
+    border-radius: 12px;
+    margin: 0 0 24px;
+}
+
+.details-label {
+    font-size: 13px;
+    line-height: 20px;
+    color: #5b6180;
+    padding: 8px 0 8px 20px;
+    width: 120px;
+}
+
+.details-value {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #15183D;
+    padding: 8px 20px 8px 8px;
+}
+
+.details-struck {
+    color: #8a8fa8;
+    text-decoration: line-through;
+}
+
+.quote {
+    margin: 0 0 24px;
+}
+
+.quote-cell {
+    border-left: 3px solid #afbee3;
+    padding: 4px 0 4px 16px;
+}
+
+.quote-text {
+    font-size: 14px;
+    line-height: 22px;
+    font-style: italic;
+    color: #2c2f45;
+    margin: 0 0 8px;
+}
+
+.quote-author {
+    font-size: 13px;
+    line-height: 18px;
+    color: #5b6180;
+    margin: 0;
+}

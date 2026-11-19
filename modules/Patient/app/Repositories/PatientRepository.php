@@ -15,6 +15,13 @@ class PatientRepository implements PatientRepositoryInterface
         return Patient::with('clinicUser:id,name')->find($id);
     }
 
+    public function findForClinic(int $clinicId, int $id): ?Patient
+    {
+        return Patient::query()
+            ->where('clinic_id', $clinicId)
+            ->find($id);
+    }
+
     public function findOrFail(int $id): Patient
     {
         return Patient::findOrFail($id);

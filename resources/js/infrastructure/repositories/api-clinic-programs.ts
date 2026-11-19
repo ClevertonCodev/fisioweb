@@ -270,4 +270,8 @@ export const apiClinicProgramsRepository: ProgramsRepository = {
         );
         return res.data;
     },
+
+    async sendEmail(id) {
+        await apiClient.post(`/clinic/treatment-plans/${id}/email`);
+    },
 };

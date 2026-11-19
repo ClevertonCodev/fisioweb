@@ -1,4 +1,4 @@
-@props(['sender' => null, 'badge' => null])
+@props(['sender' => null, 'badge' => null, 'phone' => null, 'address' => null])
 <x-mail::layout>
 <x-slot:header>
 <x-mail::header :sender="$sender" />
@@ -21,7 +21,7 @@
 @endisset
 
 <x-slot:footer>
-<x-mail::footer :sender="$sender">
+<x-mail::footer :sender="$sender" :phone="$phone" :address="$address">
 {{ $footer ?? '' }}
 </x-mail::footer>
 </x-slot:footer>

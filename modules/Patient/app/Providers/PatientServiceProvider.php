@@ -12,10 +12,12 @@ use Modules\Patient\Auth\EligiblePatientProvider;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
+use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 use Modules\Patient\Contracts\Public\PatientDirectoryReadServiceInterface;
 use Modules\Patient\Repositories\PatientRepository;
 use Modules\Patient\Services\PatientAppAccessService;
 use Modules\Patient\Services\PatientAuthService;
+use Modules\Patient\Services\PatientContactReadService;
 use Modules\Patient\Services\PatientDirectoryReadService;
 use Modules\Patient\Services\PatientService;
 use Nwidart\Modules\Traits\PathNamespace;
@@ -69,6 +71,7 @@ class PatientServiceProvider extends ServiceProvider
         $this->app->bind(PatientRepositoryInterface::class, PatientRepository::class);
         $this->app->bind(PatientServiceInterface::class, PatientService::class);
         $this->app->bind(PatientDirectoryReadServiceInterface::class, PatientDirectoryReadService::class);
+        $this->app->bind(PatientContactReadServiceInterface::class, PatientContactReadService::class);
         $this->app->bind(PatientAppAccessInterface::class, PatientAppAccessService::class);
 
         $this->app->register(EventServiceProvider::class);

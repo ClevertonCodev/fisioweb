@@ -10,6 +10,7 @@ use Modules\TreatmentProgram\Contracts\ListPatientProgramsServiceInterface;
 use Modules\TreatmentProgram\Contracts\PatientProgramRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\ProgramDraftRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\ProgramDraftServiceInterface;
+use Modules\TreatmentProgram\Contracts\Public\TreatmentPlanEmailReadServiceInterface;
 use Modules\TreatmentProgram\Contracts\Public\TreatmentProgramReadServiceInterface;
 use Modules\TreatmentProgram\Contracts\RegisterPatientProgramViewServiceInterface;
 use Modules\TreatmentProgram\Contracts\SavePatientProgramSeriesServiceInterface;
@@ -37,6 +38,7 @@ use Modules\TreatmentProgram\Services\PatientProgram\StartOrResumePatientProgram
 use Modules\TreatmentProgram\Services\PatientProgram\SubmitPatientProgramFeedbackService;
 use Modules\TreatmentProgram\Services\PatientProgram\UpdateUnfinishedExercisesService;
 use Modules\TreatmentProgram\Services\ProgramDraftService;
+use Modules\TreatmentProgram\Services\TreatmentPlanEmailReadService;
 use Modules\TreatmentProgram\Services\TreatmentPlanService;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -61,6 +63,7 @@ class TreatmentProgramServiceProvider extends ServiceProvider
         $this->app->bind(ProgramDraftRepositoryInterface::class, ProgramDraftRepository::class);
         $this->app->bind(ProgramDraftServiceInterface::class, ProgramDraftService::class);
         $this->app->bind(TreatmentProgramReadServiceInterface::class, TreatmentProgramReadService::class);
+        $this->app->bind(TreatmentPlanEmailReadServiceInterface::class, TreatmentPlanEmailReadService::class);
         $this->app->bind(PatientProgramRepositoryInterface::class, EloquentPatientProgramRepository::class);
         $this->app->bind(TreatmentPlanExecutionRepositoryInterface::class, EloquentTreatmentPlanExecutionRepository::class);
         $this->app->bind(TreatmentPlanFeedbackRepositoryInterface::class, EloquentTreatmentPlanFeedbackRepository::class);

@@ -21,6 +21,7 @@ use Modules\Clinic\Contracts\ClinicUserServiceInterface;
 use Modules\Clinic\Contracts\DashboardRepositoryInterface;
 use Modules\Clinic\Contracts\DashboardServiceInterface;
 use Modules\Clinic\Contracts\MasterFirstAccessServiceInterface;
+use Modules\Clinic\Contracts\Public\ClinicContactReadServiceInterface;
 use Modules\Clinic\Contracts\Public\ClinicUserGoogleConnectionReadServiceInterface;
 use Modules\Clinic\Contracts\Public\GoogleCalendarConnectionWriteServiceInterface;
 use Modules\Clinic\Models\Clinic;
@@ -32,6 +33,7 @@ use Modules\Clinic\Repositories\ClinicRepository;
 use Modules\Clinic\Repositories\ClinicUserPreferenceRepository;
 use Modules\Clinic\Repositories\DashboardRepository;
 use Modules\Clinic\Services\ActivityLogger;
+use Modules\Clinic\Services\ClinicContactReadService;
 use Modules\Clinic\Services\ClinicImpersonationService;
 use Modules\Clinic\Services\ClinicRegistrationService;
 use Modules\Clinic\Services\ClinicService;
@@ -90,6 +92,7 @@ class ClinicServiceProvider extends ServiceProvider
         $this->app->bind(ClinicUserPreferenceServiceInterface::class, ClinicUserPreferenceService::class);
         $this->app->bind(ClinicUserGoogleConnectionReadServiceInterface::class, GoogleCalendarConnectionService::class);
         $this->app->bind(GoogleCalendarConnectionWriteServiceInterface::class, GoogleCalendarConnectionService::class);
+        $this->app->bind(ClinicContactReadServiceInterface::class, ClinicContactReadService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

@@ -9,6 +9,10 @@ interface TreatmentPlanRepositoryInterface
 {
     public function find(int $id): ?TreatmentPlan;
 
+    public function findForClinic(int $clinicId, int $id): ?TreatmentPlan;
+
+    public function findForClinicWithEmailDetails(int $clinicId, int $id): ?TreatmentPlan;
+
     public function findOrFail(int $id): TreatmentPlan;
 
     public function paginate(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator;

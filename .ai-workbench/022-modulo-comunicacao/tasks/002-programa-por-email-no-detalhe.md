@@ -51,22 +51,22 @@ O primeiro uso é no detalhe do programa.
 
 ## Critérios de Aceite
 
-- [ ] `POST /api/clinic/treatment-plans/{id}/email` de um programa ativo com paciente com e-mail responde 202 e dispara `TreatmentPlanEmailRequested` com os ids certos (`Event::fake`).
-- [ ] Programa de outra clínica dá 404 e não dispara evento.
-- [ ] Programa em rascunho ou sem paciente dá 422; paciente sem e-mail dá 422.
-- [ ] O sexto pedido no mesmo minuto pelo mesmo usuário dá 429.
-- [ ] Com o listener rodando (`Mail::fake`), o e-mail vai para o e-mail do paciente:
+- [x] `POST /api/clinic/treatment-plans/{id}/email` de um programa ativo com paciente com e-mail responde 202 e dispara `TreatmentPlanEmailRequested` com os ids certos (`Event::fake`).
+- [x] Programa de outra clínica dá 404 e não dispara evento.
+- [x] Programa em rascunho ou sem paciente dá 422; paciente sem e-mail dá 422.
+- [x] O sexto pedido no mesmo minuto pelo mesmo usuário dá 429.
+- [x] Com o listener rodando (`Mail::fake`), o e-mail vai para o e-mail do paciente:
   - De "<clínica> via IVS MED" `<naoresponda@ivsmed.com>`, sem Reply-To;
   - assunto sem o título do programa;
   - corpo com título, datas no fuso da clínica, número de exercícios, mensagem, botão com o `share_url` e telefone da clínica.
-- [ ] Paciente que usa apelido é chamado pelo apelido na saudação.
-- [ ] Os contratos de contato do paciente, de contato da clínica e do programa não devolvem nada quando o id é de outra clínica (teste de cada contrato).
-- [ ] O listener não envia quando o programa do evento não é da clínica do evento.
-- [ ] O log do envio tem o tipo, `clinic_id`, id do programa e `patient_id`, e não tem o e-mail do paciente.
-- [ ] No detalhe do programa, "Enviar ao paciente" abre o modal C. E-mail mostra "Enviado <hora>" e "Reenviar"; sem e-mail, o botão fica desabilitado com "Paciente sem e-mail cadastrado"; WhatsApp e Copiar link funcionam (Vitest).
-- [ ] O teste de fronteira continua passando: o `Email` só usa contratos públicos e os eventos não referenciam Model.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Paciente que usa apelido é chamado pelo apelido na saudação.
+- [x] Os contratos de contato do paciente, de contato da clínica e do programa não devolvem nada quando o id é de outra clínica (teste de cada contrato).
+- [x] O listener não envia quando o programa do evento não é da clínica do evento.
+- [x] O log do envio tem o tipo, `clinic_id`, id do programa e `patient_id`, e não tem o e-mail do paciente.
+- [x] No detalhe do programa, "Enviar ao paciente" abre o modal C. E-mail mostra "Enviado <hora>" e "Reenviar"; sem e-mail, o botão fica desabilitado com "Paciente sem e-mail cadastrado"; WhatsApp e Copiar link funcionam (Vitest).
+- [x] O teste de fronteira continua passando: o `Email` só usa contratos públicos e os eventos não referenciam Model.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

@@ -4,9 +4,9 @@ import {
     CheckCircle2,
     Dumbbell,
     Eye,
-    MessageCircle,
     Pencil,
     Play,
+    Send,
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -19,6 +19,8 @@ import {
     scheduleOf,
 } from '@/application/clinic/program-detail';
 import { programWhatsAppUrl } from '@/application/clinic/program-share';
+import { useSendClinicProgramEmail } from '@/application/clinic/use-programs';
+import { SendToPatientModal } from '@/components/clinic/SendToPatientModal';
 import { DsAlert, DsButton, DsKpi, DsModal, DsTooltip } from '@/components/ds';
 import type { Program, ProgramExercise } from '@/domain/clinic';
 import {
@@ -42,36 +44,46 @@ function editPath(program: Program) {
     return `/clinica/programas/${program.id}/editar`;
 }
 
-function whatsAppBlockedReason(program: Program, url: string | null) {
-    if (program.status === 'draft') {
-        return 'Rascunho: o paciente ainda não recebeu';
-    }
-    if (!url) return 'Paciente sem telefone';
-    return null;
-}
-
-function WhatsAppButton({ program }: { program: Program }) {
-    const url = programWhatsAppUrl(program);
-    const blocked = whatsAppBlockedReason(program, url);
+function SendToPatientButton({ program }: { program: Program }) {
+    const [open, setOpen] = useState(false);
+    const sendEmail = useSendClinicProgramEmail();
+    const isDraft = program.status === 'draft';
     const button = (
         <DsButton
             variant="secondary"
             iconPosition="left"
-            icon={<MessageCircle />}
-            label="WhatsApp"
-            disabled={blocked !== null}
-            onClick={() => {
-                if (url) window.open(url, '_blank', 'noopener,noreferrer');
-            }}
+            icon={<Send />}
+            label="Enviar ao paciente"
+            disabled={isDraft}
+            onClick={() => setOpen(true)}
         />
     );
-    if (!blocked) return button;
+
+    if (isDraft) {
+        return (
+            <DsTooltip content="Rascunho: o paciente ainda não recebeu" asChild>
+                <span tabIndex={0} className="inline-flex rounded-ds-md">
+                    {button}
+                </span>
+            </DsTooltip>
+        );
+    }
+
     return (
-        <DsTooltip content={blocked} asChild>
-            <span tabIndex={0} className="inline-flex rounded-ds-md">
-                {button}
-            </span>
-        </DsTooltip>
+        <>
+            {button}
+            <SendToPatientModal
+                open={open}
+                onClose={() => setOpen(false)}
+                meta={program.title}
+                description="Escolha como o paciente vai receber o link do programa."
+                patientEmail={program.patientEmail}
+                patientPhone={program.patientPhone}
+                whatsappUrl={programWhatsAppUrl(program)}
+                shareUrl={program.shareUrl}
+                onSendEmail={() => sendEmail.mutateAsync(program.id)}
+            />
+        </>
     );
 }
 
@@ -94,7 +106,7 @@ function DetailActions({ program }: { program: Program }) {
                 label="Voltar"
                 onClick={() => navigate(programBackPath(location.state))}
             />
-            {program.patientId && <WhatsAppButton program={program} />}
+            {program.patientId && <SendToPatientButton program={program} />}
             <DsButton
                 iconPosition="left"
                 icon={<Pencil />}

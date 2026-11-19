@@ -11,6 +11,10 @@ interface TreatmentPlanServiceInterface
 
     public function find(int $id): TreatmentPlan;
 
+    public function findForClinic(int $clinicId, int $id): ?TreatmentPlan;
+
+    public function requestEmail(TreatmentPlan $plan, ?int $actorId): void;
+
     public function create(array $data): TreatmentPlan;
 
     public function update(int $id, array $data): TreatmentPlan;

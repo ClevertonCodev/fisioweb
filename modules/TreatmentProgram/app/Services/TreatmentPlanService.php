@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Admin\Contracts\Public\ExerciseCatalogReadServiceInterface;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Enums\ActivityType;
+use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 use Modules\TreatmentProgram\Contracts\ProgramDraftRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanRepositoryInterface;
 use Modules\TreatmentProgram\Contracts\TreatmentPlanServiceInterface;
@@ -21,6 +22,7 @@ use Modules\TreatmentProgram\Events\TreatmentPlanActivated;
 use Modules\TreatmentProgram\Events\TreatmentPlanArchived;
 use Modules\TreatmentProgram\Events\TreatmentPlanCompleted;
 use Modules\TreatmentProgram\Events\TreatmentPlanCreated;
+use Modules\TreatmentProgram\Events\TreatmentPlanEmailRequested;
 use Modules\TreatmentProgram\Models\TreatmentPlan;
 
 class TreatmentPlanService implements TreatmentPlanServiceInterface
@@ -52,6 +54,7 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
         protected ProgramDraftRepositoryInterface $programDraftRepository,
         protected ActivityLoggerInterface $activityLogger,
         protected ExerciseCatalogReadServiceInterface $exerciseCatalog,
+        protected PatientContactReadServiceInterface $patientContacts,
     ) {}
 
     public function list(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator
@@ -62,6 +65,43 @@ class TreatmentPlanService implements TreatmentPlanServiceInterface
     public function find(int $id): TreatmentPlan
     {
         return $this->repository->findOrFail($id);
+    }
+
+    public function findForClinic(int $clinicId, int $id): ?TreatmentPlan
+    {
+        return $this->repository->findForClinic($clinicId, $id);
+    }
+
+    public function requestEmail(TreatmentPlan $plan, ?int $actorId): void
+    {
+        if ($plan->status === TreatmentPlan::STATUS_DRAFT) {
+            throw ValidationException::withMessages([
+                'treatment_plan' => 'Rascunho não pode ser enviado ao paciente.',
+            ]);
+        }
+
+        if (is_null($plan->patient_id)) {
+            throw ValidationException::withMessages([
+                'patient' => 'Este programa não tem paciente vinculado.',
+            ]);
+        }
+
+        $patient = $this->patientContacts->findById((int) $plan->clinic_id, (int) $plan->patient_id);
+
+        if (is_null($patient) || empty($patient->email) || !filter_var($patient->email, FILTER_VALIDATE_EMAIL)) {
+            throw ValidationException::withMessages([
+                'email' => 'Paciente sem e-mail cadastrado.',
+            ]);
+        }
+
+        $this->dispatchEvent(new TreatmentPlanEmailRequested(
+            version: self::EVENT_VERSION,
+            clinicId: (int) $plan->clinic_id,
+            treatmentPlanId: (int) $plan->id,
+            patientId: (int) $plan->patient_id,
+            actorId: $actorId,
+            occurredAt: CarbonImmutable::now(),
+        ));
     }
 
     public function create(array $data): TreatmentPlan

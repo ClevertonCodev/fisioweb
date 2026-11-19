@@ -15,6 +15,9 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::delete('{id}', [TreatmentPlanController::class, 'destroy'])->name('destroy');
         Route::post('{id}/duplicate', [TreatmentPlanController::class, 'duplicate'])->name('duplicate');
         Route::post('{id}/to-model', [TreatmentPlanController::class, 'toModel'])->name('to-model');
+        Route::post('{id}/email', [TreatmentPlanController::class, 'sendEmail'])
+            ->name('email')
+            ->middleware('throttle:clinic-patient-email');
     });
 
     Route::prefix('program-drafts')->name('clinic.program-drafts.')->group(function () {

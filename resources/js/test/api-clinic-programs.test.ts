@@ -352,3 +352,17 @@ describe('apiClinicProgramsRepository: período do exercício', () => {
         ]);
     });
 });
+
+describe('apiClinicProgramsRepository.sendEmail', () => {
+    it('envia POST para o endpoint de e-mail do programa', async () => {
+        vi.mocked(apiClient.post).mockResolvedValueOnce({
+            data: { data: { queued: true } },
+        });
+
+        await apiClinicProgramsRepository.sendEmail('42');
+
+        expect(apiClient.post).toHaveBeenCalledWith(
+            '/clinic/treatment-plans/42/email',
+        );
+    });
+});

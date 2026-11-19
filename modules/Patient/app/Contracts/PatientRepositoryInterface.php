@@ -10,6 +10,8 @@ interface PatientRepositoryInterface
 {
     public function find(int $id): ?Patient;
 
+    public function findForClinic(int $clinicId, int $id): ?Patient;
+
     public function findOrFail(int $id): Patient;
 
     public function paginateByClinic(int $clinicId, array $filters = [], int $perPage = 15): LengthAwarePaginator;

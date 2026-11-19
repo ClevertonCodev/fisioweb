@@ -29,9 +29,22 @@ class TreatmentPlanPolicyTest extends TestCase
 
     public function test_any_role_can_view(): void
     {
-        $plan = new TreatmentPlan;
+        $plan = (new TreatmentPlan)->forceFill(['clinic_id' => 10]);
         foreach ($this->allRoles() as $role) {
-            $this->assertTrue($this->policy->view($this->user($role), $plan));
+            $this->assertTrue($this->policy->view($this->user($role, clinicId: 10), $plan));
+        }
+    }
+
+    public function test_cannot_view_plan_of_another_clinic_or_with_missing_clinic_id(): void
+    {
+        $planClinicA  = (new TreatmentPlan)->forceFill(['clinic_id' => 10]);
+        $planNoClinic = new TreatmentPlan;
+
+        foreach ($this->allRoles() as $role) {
+            $this->assertFalse($this->policy->view($this->user($role, clinicId: 20), $planClinicA), "role=$role");
+            $this->assertFalse($this->policy->view($this->user($role, clinicId: null), $planClinicA), "role=$role");
+            $this->assertFalse($this->policy->view($this->user($role, clinicId: 10), $planNoClinic), "role=$role");
+            $this->assertFalse($this->policy->view($this->user($role, clinicId: null), $planNoClinic), "role=$role");
         }
     }
 
@@ -71,8 +84,8 @@ class TreatmentPlanPolicyTest extends TestCase
         return [ClinicUser::ROLE_ADMIN, ClinicUser::ROLE_SECRETARY, ClinicUser::ROLE_PHYSIOTHERAPIST];
     }
 
-    private function user(string $role, int $id = 1): ClinicUser
+    private function user(string $role, int $id = 1, ?int $clinicId = 10): ClinicUser
     {
-        return (new ClinicUser)->forceFill(['id' => $id, 'role' => $role]);
+        return (new ClinicUser)->forceFill(['id' => $id, 'role' => $role, 'clinic_id' => $clinicId]);
     }
 }

@@ -223,3 +223,9 @@ export function useConvertToModelClinicProgram() {
         },
     });
 }
+
+export function useSendClinicProgramEmail() {
+    return useMutation({
+        mutationFn: (id: string) => apiClinicProgramsRepository.sendEmail(id),
+    });
+}

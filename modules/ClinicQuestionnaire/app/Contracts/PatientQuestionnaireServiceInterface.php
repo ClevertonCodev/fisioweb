@@ -27,11 +27,14 @@ interface PatientQuestionnaireServiceInterface
     public function destroy(PatientQuestionnaire $questionnaire): void;
 
     /**
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Modules\ClinicQuestionnaire\Exceptions\QuestionnaireUnavailableException
      */
     public function showForPublic(string $token): PatientQuestionnaire;
 
     /**
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws \Modules\ClinicQuestionnaire\Exceptions\QuestionnaireUnavailableException
      * @throws \Illuminate\Validation\ValidationException
      */
     public function submitPublicAnswer(string $token, array $answers): PatientQuestionnaire;

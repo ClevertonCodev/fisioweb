@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
+use Modules\ClinicQuestionnaire\Exceptions\QuestionnaireUnavailableException;
 use Modules\ClinicQuestionnaire\Http\Requests\AnswerPatientQuestionnaireRequest;
 
 class QuestionnaireAnswerController extends Controller
@@ -21,6 +22,8 @@ class QuestionnaireAnswerController extends Controller
             $result = $this->questionnaireService->submitPublicAnswer($token, $request->validated()['answers']);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
+        } catch (QuestionnaireUnavailableException $exception) {
+            return $this->unavailable($exception);
         } catch (ValidationException $exception) {
             $message = collect($exception->errors())->flatten()->first() ?? $exception->getMessage();
 
@@ -36,6 +39,8 @@ class QuestionnaireAnswerController extends Controller
             $questionnaire = $this->questionnaireService->showForPublic($token);
         } catch (ModelNotFoundException) {
             return response()->json(['message' => 'Questionário não encontrado.'], 404);
+        } catch (QuestionnaireUnavailableException $exception) {
+            return $this->unavailable($exception);
         } catch (ValidationException $exception) {
             $message = collect($exception->errors())->flatten()->first() ?? $exception->getMessage();
 
@@ -43,5 +48,13 @@ class QuestionnaireAnswerController extends Controller
         }
 
         return response()->json(['data' => $questionnaire]);
+    }
+
+    private function unavailable(QuestionnaireUnavailableException $exception): JsonResponse
+    {
+        return response()->json([
+            'message' => collect($exception->errors())->flatten()->first(),
+            'reason'  => $exception->reason->value,
+        ], 422);
     }
 }

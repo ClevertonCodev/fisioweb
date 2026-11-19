@@ -20,6 +20,7 @@ export interface DsPatientNavbarProps {
     total?: number;
     onBack?: () => void;
     hideAuthAction?: boolean;
+    disableBrandLink?: boolean;
     clinicName?: string;
     className?: string;
 }
@@ -30,6 +31,7 @@ export function DsPatientNavbar({
     total,
     onBack,
     hideAuthAction = false,
+    disableBrandLink = false,
     clinicName,
     className,
 }: DsPatientNavbarProps) {
@@ -43,7 +45,8 @@ export function DsPatientNavbar({
     const isPatientLogged = isAuthenticated && guard === 'patient';
     const isRestoringSession = isLoading && isPatientArea;
     const isOnProgramList =
-        !!clinicSlug && isPatientProgramsListPath(location.pathname);
+        disableBrandLink ||
+        (!!clinicSlug && isPatientProgramsListPath(location.pathname));
 
     const goToProgramList = () => {
         if (clinicSlug) {

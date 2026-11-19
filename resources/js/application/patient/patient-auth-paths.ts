@@ -24,8 +24,7 @@ export function safePatientNext(
     const isGenericPatientLogin =
         next === '/paciente/login' || next.startsWith('/paciente/login?');
 
-    const isClinicScopedPatient =
-        /^\/[^/]+\/paciente(\/|$)/.test(next);
+    const isClinicScopedPatient = /^\/[^/]+\/paciente(\/|$)/.test(next);
 
     return isGenericPatientLogin || isClinicScopedPatient ? next : null;
 }

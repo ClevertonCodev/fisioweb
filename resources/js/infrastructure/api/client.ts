@@ -192,7 +192,12 @@ export const apiClient = axios.create({
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 });
 
+function isAnonymousRequest(url?: string): boolean {
+    return !!url && /^\/questionnaires(\/|$)/.test(url);
+}
+
 apiClient.interceptors.request.use((config) => {
+    if (isAnonymousRequest(config.url)) return config;
     const guard = inferGuardFromApiUrl(config.url);
     const auth = guard ? getStoredAuth(guard) : getStoredAuth();
     if (auth?.token) {
@@ -206,7 +211,10 @@ apiClient.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status !== 401) {
+        if (
+            error.response?.status !== 401 ||
+            isAnonymousRequest(originalRequest?.url)
+        ) {
             return Promise.reject(error);
         }
 

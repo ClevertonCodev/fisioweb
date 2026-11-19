@@ -28,16 +28,16 @@ O link do questionário (`/<clínica>/paciente/questionarios/<token>`) cai hoje 
 
 ## Critérios de Aceite
 
-- [ ] O `GET` público devolve `clinic_name` e continua sem `clinic_user_id` nem dado do profissional (teste).
-- [ ] Envio já respondido dá 422 com `reason: answered`; envio vencido dá 422 com `reason: expired`, no `GET` e no `POST` (teste).
-- [ ] Id numérico ou token inexistente continua dando 404 (os testes do ADR 023 seguem passando).
-- [ ] A página mostra as perguntas dos quatro tipos por seção, com o nome da clínica no cabeçalho (Vitest).
-- [ ] Enviar com obrigatória em branco não chama a API, rola até a primeira e mostra "Responda esta pergunta" (Vitest).
-- [ ] Enviar completo chama o `POST` com `{ answers: [{ question_id, answer }] }` e mostra "Respostas enviadas" (Vitest).
-- [ ] Os estados vencido, já respondido e link inválido mostram a mensagem certa (Vitest).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O `GET` público devolve `clinic_name` e continua sem `clinic_user_id` nem dado do profissional (teste).
+- [x] Envio já respondido dá 422 com `reason: answered`; envio vencido dá 422 com `reason: expired`, no `GET` e no `POST` (teste).
+- [x] Id numérico ou token inexistente continua dando 404 (os testes do ADR 023 seguem passando).
+- [x] A página mostra as perguntas dos quatro tipos por seção, com o nome da clínica no cabeçalho (Vitest).
+- [x] Enviar com obrigatória em branco não chama a API, rola até a primeira e mostra "Responda esta pergunta" (Vitest).
+- [x] Enviar completo chama o `POST` com `{ answers: [{ question_id, answer }] }` e mostra "Respostas enviadas" (Vitest).
+- [x] Os estados vencido, já respondido e link inválido mostram a mensagem certa (Vitest).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

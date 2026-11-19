@@ -45,6 +45,7 @@ interface ApiPatientDto {
     insurance?: string;
     insurance_number?: string;
     referral_source?: string;
+    receives_appointment_reminder_email?: boolean;
 }
 
 interface ApiPatientPage {
@@ -98,6 +99,8 @@ function toDetailEntity(raw: ApiPatientDto): PatientDetail {
         insurance: raw.insurance ?? undefined,
         insuranceNumber: raw.insurance_number ?? undefined,
         referralSource: raw.referral_source ?? undefined,
+        receivesAppointmentReminderEmail:
+            raw.receives_appointment_reminder_email ?? true,
     };
 }
 
@@ -126,6 +129,8 @@ function toApiUpdatePayload(dto: PatientUpdateDto): Record<string, unknown> {
         insurance: dto.insurance,
         insurance_number: dto.insuranceNumber,
         referral_source: dto.referralSource,
+        receives_appointment_reminder_email:
+            dto.receivesAppointmentReminderEmail,
     };
 }
 
@@ -155,6 +160,8 @@ function toApiPayload(dto: PatientWriteDto): Record<string, unknown> {
         insurance: dto.insurance,
         insurance_number: dto.insuranceNumber,
         referral_source: dto.referralSource,
+        receives_appointment_reminder_email:
+            dto.receivesAppointmentReminderEmail,
     };
 }
 

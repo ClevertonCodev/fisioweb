@@ -51,6 +51,8 @@ class StorePatientRequest extends FormRequest
             'use_apelido'       => ['nullable', 'boolean'],
             'status'            => ['nullable', 'string', 'max:50'],
             'diagnosis'         => ['nullable', 'string', 'max:500'],
+
+            'receives_appointment_reminder_email' => ['sometimes', 'boolean'],
         ];
     }
 

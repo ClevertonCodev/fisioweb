@@ -46,6 +46,8 @@ class UpdateClinicProfileRequest extends FormRequest
             'city'        => ['nullable', 'string', 'max:100'],
             'state'       => ['nullable', 'string', 'size:2'],
             'phone'       => ['nullable', 'string', 'max:30'],
+
+            'appointment_reminder_email_enabled' => ['sometimes', 'boolean'],
         ];
     }
 

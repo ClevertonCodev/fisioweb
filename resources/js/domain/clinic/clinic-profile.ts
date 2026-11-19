@@ -16,4 +16,5 @@ export interface ClinicProfile {
     state: string | null;
     planId: number | null;
     planName: string | null;
+    appointmentReminderEmailEnabled: boolean;
 }

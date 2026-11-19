@@ -24,8 +24,8 @@ O primeiro uso é no detalhe do programa.
   - Programa sem paciente ou em rascunho dá 422; paciente sem e-mail dá 422.
   - Dispara `TreatmentPlanEmailRequested` (versão, `clinicId`, `treatmentPlanId`, `patientId`, `actorId`, `occurredAt`) e responde 202 com `{ data: { queued: true } }`.
 - **Contratos públicos de leitura,** cada um filtrando por `clinicId` na própria busca:
-  - `Patient`: contato do paciente (nome, apelido quando usa apelido, e-mail, celular).
-  - `Clinic`: contato da clínica (nome, telefone, endereço, fuso) e nome e papel do profissional.
+  - `Patient`: contato do paciente (nome, apelido quando usa apelido, e-mail, celular e `receives_appointment_reminder_email`, criado na 008).
+  - `Clinic`: contato da clínica (nome, telefone, endereço, fuso e `appointment_reminder_email_enabled`, criado na 008) e nome e papel do profissional.
   - `TreatmentProgram`: dados do programa para o e-mail (título, mensagem, início, fim, número de exercícios, status, paciente, `share_url`).
 - **Listener na fila no `Email`** (3 tentativas, espera de 10, 30 e 60 s):
   - Lê os contratos com o `clinicId` do evento; se o item não for da clínica, não envia e registra.

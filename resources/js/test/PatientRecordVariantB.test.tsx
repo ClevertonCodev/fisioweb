@@ -40,6 +40,7 @@ function detail(overrides: Partial<PatientDetail> = {}): PatientDetail {
         apelido: 'QA Apelido',
         useApelido: true,
         isForeign: false,
+        receivesAppointmentReminderEmail: true,
         ...overrides,
     };
 }

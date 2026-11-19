@@ -47,6 +47,7 @@ export const clinicProfileFormSchema = z
         number: z.string().optional().default(''),
         city: z.string().optional().default(''),
         state: z.string().optional().default(''),
+        appointmentReminderEmailEnabled: z.boolean(),
     })
     .superRefine((data, ctx) => {
         const docError = documentError(data.typePerson, data.document);
@@ -84,6 +85,8 @@ export function clinicProfileToFormValues(
         number: profile.number ?? '',
         city: profile.city ?? '',
         state: profile.state ?? '',
+        appointmentReminderEmailEnabled:
+            profile.appointmentReminderEmailEnabled,
     };
 }
 
@@ -99,5 +102,6 @@ export function clinicProfileFormToUpdateDto(values: ClinicProfileFormValues) {
         number: values.number.trim() || null,
         city: values.city.trim() || null,
         state: values.state.trim() || null,
+        appointmentReminderEmailEnabled: values.appointmentReminderEmailEnabled,
     };
 }

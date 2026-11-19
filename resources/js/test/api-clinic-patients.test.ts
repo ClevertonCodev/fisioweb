@@ -297,3 +297,45 @@ describe('apiClinicPatientsRepository.bulkInactivate', () => {
         );
     });
 });
+
+describe('apiClinicPatientsRepository: lembrete de consulta por e-mail', () => {
+    it('lê o campo no detalhe e considera ligado quando a API não manda', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: makeApiPatient({
+                    receives_appointment_reminder_email: false,
+                }),
+            },
+        });
+        const off = await apiClinicPatientsRepository.getDetailById('1');
+        expect(off.receivesAppointmentReminderEmail).toBe(false);
+
+        mockGet.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
+        const missing = await apiClinicPatientsRepository.getDetailById('1');
+        expect(missing.receivesAppointmentReminderEmail).toBe(true);
+    });
+
+    it('manda o campo no cadastro e na edição', async () => {
+        mockPost.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
+        mockPut.mockResolvedValueOnce({ data: { data: makeApiPatient() } });
+
+        await apiClinicPatientsRepository.create({
+            name: 'Maria Silva',
+            phone: '84999999999',
+            birthDate: '1990-01-01',
+            email: 'maria@clinica.test',
+            password: '52998224725',
+            receivesAppointmentReminderEmail: false,
+        });
+        await apiClinicPatientsRepository.update('1', {
+            receivesAppointmentReminderEmail: true,
+        });
+
+        expect(mockPost.mock.calls[0][1]).toMatchObject({
+            receives_appointment_reminder_email: false,
+        });
+        expect(mockPut.mock.calls[0][1]).toMatchObject({
+            receives_appointment_reminder_email: true,
+        });
+    });
+});

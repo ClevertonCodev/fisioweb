@@ -365,7 +365,7 @@ export function ContactFields({ form }: { form: Form }) {
                 render={({ field, fieldState }) => (
                     <OutlinedSlot
                         invalid={!!fieldState.error}
-                        hint="Recebe os lembretes da clínica"
+                        hint="Usado para enviar programas e avisos pelo WhatsApp"
                     >
                         <DsPhoneField
                             label="Celular (WhatsApp)"
@@ -390,6 +390,19 @@ export function ContactFields({ form }: { form: Form }) {
                 {...register('email')}
                 state={errors.email ? 'error' : 'default'}
                 helper={errors.email?.message ?? 'Usado no acesso ao app'}
+            />
+            <Controller
+                control={control}
+                name="receives_appointment_reminder_email"
+                render={({ field }) => (
+                    <DsSwitch
+                        label="Receber lembrete de consulta por e-mail"
+                        description="Quando a clínica liga o lembrete, chega 24 h antes"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        onBlur={field.onBlur}
+                    />
+                )}
             />
         </div>
     );

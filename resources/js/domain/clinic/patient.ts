@@ -43,4 +43,5 @@ export interface PatientDetail extends Patient {
     insurance?: string;
     insuranceNumber?: string;
     referralSource?: string;
+    receivesAppointmentReminderEmail: boolean;
 }

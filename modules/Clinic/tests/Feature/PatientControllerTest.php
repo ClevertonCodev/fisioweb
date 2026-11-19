@@ -441,6 +441,52 @@ class PatientControllerTest extends TestCase
         $this->assertSame('AB-123.456', $patient->fresh()->cpf);
     }
 
+    public function test_created_patient_receives_appointment_reminder_by_default(): void
+    {
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson('/api/clinic/patients', $this->validPayload())
+            ->assertCreated()
+            ->assertJsonPath('data.receives_appointment_reminder_email', true);
+
+        $this->assertTrue(Patient::find($response->json('data.id'))->receives_appointment_reminder_email);
+    }
+
+    public function test_creates_patient_without_appointment_reminder(): void
+    {
+        $response = $this->actingAs($this->clinicUser, 'clinic')
+            ->postJson('/api/clinic/patients', $this->validPayload([
+                'receives_appointment_reminder_email' => false,
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.receives_appointment_reminder_email', false);
+
+        $this->assertFalse(Patient::find($response->json('data.id'))->receives_appointment_reminder_email);
+    }
+
+    public function test_update_turns_appointment_reminder_off_and_on(): void
+    {
+        $patient = $this->createPatientForClinic();
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->putJson("/api/clinic/patients/{$patient->id}", ['receives_appointment_reminder_email' => false])
+            ->assertOk()
+            ->assertJsonPath('data.receives_appointment_reminder_email', false);
+
+        $this->assertFalse($patient->fresh()->receives_appointment_reminder_email);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->getJson("/api/clinic/patients/{$patient->id}")
+            ->assertOk()
+            ->assertJsonPath('data.receives_appointment_reminder_email', false);
+
+        $this->actingAs($this->clinicUser, 'clinic')
+            ->putJson("/api/clinic/patients/{$patient->id}", ['receives_appointment_reminder_email' => true])
+            ->assertOk()
+            ->assertJsonPath('data.receives_appointment_reminder_email', true);
+
+        $this->assertTrue($patient->fresh()->receives_appointment_reminder_email);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────────
 
     private function createPatientForClinic(): Patient

@@ -75,6 +75,11 @@ class Patient extends Authenticatable implements JWTSubject
         'status',
         'diagnosis',
         'photo_url',
+        'receives_appointment_reminder_email',
+    ];
+
+    protected $attributes = [
+        'receives_appointment_reminder_email' => true,
     ];
 
     protected $hidden = [
@@ -89,6 +94,8 @@ class Patient extends Authenticatable implements JWTSubject
             'is_active'   => 'boolean',
             'use_apelido' => 'boolean',
             'is_foreign'  => 'boolean',
+
+            'receives_appointment_reminder_email' => 'boolean',
         ];
     }
 

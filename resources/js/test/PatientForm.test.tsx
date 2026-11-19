@@ -312,6 +312,47 @@ describe('cadastro de paciente (tela de verdade)', () => {
         ).toBeDisabled();
     });
 
+    it('a chave do lembrete por e-mail vem ligada e desligada vai na criação', async () => {
+        const user = userEvent.setup();
+        create.mockResolvedValue(patient());
+        renderNew();
+
+        await fillRequired(user);
+        const reminder = screen.getByRole('switch', {
+            name: /receber lembrete de consulta por e-mail/i,
+        });
+        expect(reminder).toBeChecked();
+        await user.click(reminder);
+        await user.click(
+            screen.getByRole('button', { name: 'Concluir cadastro' }),
+        );
+
+        expect(
+            await screen.findByText('Lista de pacientes'),
+        ).toBeInTheDocument();
+        expect(create).toHaveBeenCalledWith(
+            expect.objectContaining({
+                receivesAppointmentReminderEmail: false,
+            }),
+        );
+    });
+
+    it('a dica do celular diz para que ele é usado', async () => {
+        const user = userEvent.setup();
+        renderNew();
+
+        await user.click(screen.getByRole('tab', { name: 'Contato' }));
+
+        expect(
+            screen.getByText(
+                'Usado para enviar programas e avisos pelo WhatsApp',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText('Recebe os lembretes da clínica'),
+        ).not.toBeInTheDocument();
+    });
+
     it('com o switch ligado o painel mostra o apelido no lugar do nome', async () => {
         const user = userEvent.setup();
         renderNew();
@@ -349,6 +390,7 @@ function detail(overrides: Partial<PatientDetail> = {}): PatientDetail {
         phone: '(84) 99999-9999',
         email: 'bruno@clinica.test',
         photoUrl: 'https://cdn.test/bruno.png',
+        receivesAppointmentReminderEmail: true,
         ...overrides,
     };
 }
@@ -553,6 +595,31 @@ describe('edição de paciente (tela de verdade)', () => {
             expect.objectContaining({ name: 'Bruno Reis Jr' }),
         );
         expect(uploadPhoto).toHaveBeenCalledWith('7', expect.any(File));
+    });
+
+    it('a chave do lembrete mostra o valor salvo e religada vai no PUT', async () => {
+        const user = userEvent.setup();
+        update.mockResolvedValue(patient({ id: '7' }));
+        renderEdit(detail({ receivesAppointmentReminderEmail: false }));
+
+        await screen.findByRole('heading', { name: 'Editar paciente' });
+        await user.click(screen.getByRole('tab', { name: 'Contato' }));
+        const reminder = screen.getByRole('switch', {
+            name: /receber lembrete de consulta por e-mail/i,
+        });
+        expect(reminder).not.toBeChecked();
+        await user.click(reminder);
+        await user.click(
+            screen.getByRole('button', { name: 'Salvar alterações' }),
+        );
+
+        expect(await screen.findByText('Prontuário')).toBeInTheDocument();
+        expect(update).toHaveBeenCalledWith(
+            '7',
+            expect.objectContaining({
+                receivesAppointmentReminderEmail: true,
+            }),
+        );
     });
 
     it('foto removida é apagada depois de salvar', async () => {

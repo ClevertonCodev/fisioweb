@@ -125,6 +125,21 @@ class TreatmentPlanController extends ClinicAuthenticatedController
         }
     }
 
+    public function sendEmail(int $id): JsonResponse
+    {
+        $plan = $this->treatmentPlanService->findForClinic($this->clinicId(), $id);
+
+        if (is_null($plan)) {
+            return response()->json(['message' => 'Plano de tratamento não encontrado.'], 404);
+        }
+
+        $this->authorize('view', $plan);
+
+        $this->treatmentPlanService->requestEmail($plan, $this->clinicUserId());
+
+        return response()->json(['data' => ['queued' => true]], 202);
+    }
+
     public function downloadPdf(int $id)
     {
         $clinicId = $this->clinicId();

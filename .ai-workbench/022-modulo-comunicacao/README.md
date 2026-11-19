@@ -15,7 +15,7 @@ A clínica passa a mandar programa, questionário e avisos de consulta ao pacien
 | Tarefa | Status | Issue | PR |
 |---|---|---|---|
 | [001 · Módulo Email e e-mails do sistema](tasks/001-modulo-email-e-emails-do-sistema.md) | concluída | | |
-| [002 · Programa por e-mail no detalhe + modal C](tasks/002-programa-por-email-no-detalhe.md) | a fazer | | |
+| [002 · Programa por e-mail no detalhe + modal C](tasks/002-programa-por-email-no-detalhe.md) | concluída | | |
 | [003 · Modal C no assistente de programa](tasks/003-modal-no-assistente-de-programa.md) | a fazer | | |
 | [004 · Página pública do questionário](tasks/004-pagina-publica-do-questionario.md) | concluída | | |
 | [005 · Questionário por e-mail](tasks/005-questionario-por-email.md) | a fazer | | |

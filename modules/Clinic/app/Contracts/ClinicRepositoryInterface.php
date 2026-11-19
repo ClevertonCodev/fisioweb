@@ -22,6 +22,8 @@ interface ClinicRepositoryInterface
 
     public function findClinicUserWithClinic(int $clinicUserId): ?ClinicUser;
 
+    public function findClinicUserForClinic(int $clinicId, int $clinicUserId): ?ClinicUser;
+
     public function findActiveUnverifiedUserByEmail(string $email): ?ClinicUser;
 
     public function markClinicUserEmailVerified(ClinicUser $user): void;

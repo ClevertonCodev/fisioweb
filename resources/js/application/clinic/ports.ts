@@ -300,6 +300,7 @@ export interface ProgramsRepository {
     destroy(id: string): Promise<void>;
     /** PDF binário para abrir em nova aba (GET autenticado). */
     fetchPdfBlob(id: string): Promise<Blob>;
+    sendEmail(id: string): Promise<void>;
 }
 
 export interface AssessmentAnswerWriteDto {

@@ -88,6 +88,13 @@ class ClinicRepository implements ClinicRepositoryInterface
         return ClinicUser::with('clinic')->find($clinicUserId);
     }
 
+    public function findClinicUserForClinic(int $clinicId, int $clinicUserId): ?ClinicUser
+    {
+        return ClinicUser::withTrashed()
+            ->where('clinic_id', $clinicId)
+            ->find($clinicUserId);
+    }
+
     public function findActiveUnverifiedUserByEmail(string $email): ?ClinicUser
     {
         return ClinicUser::query()

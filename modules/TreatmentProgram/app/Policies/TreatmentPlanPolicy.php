@@ -13,7 +13,11 @@ class TreatmentPlanPolicy
 
     public function view($user, TreatmentPlan $plan): bool
     {
-        return true;
+        if (is_null($user->clinic_id) || is_null($plan->clinic_id)) {
+            return false;
+        }
+
+        return (int) $user->clinic_id === (int) $plan->clinic_id;
     }
 
     public function create($user): bool

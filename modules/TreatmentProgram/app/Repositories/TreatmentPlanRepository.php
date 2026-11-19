@@ -17,6 +17,22 @@ class TreatmentPlanRepository implements TreatmentPlanRepositoryInterface
         return $this->model->find($id);
     }
 
+    public function findForClinic(int $clinicId, int $id): ?TreatmentPlan
+    {
+        return $this->model->newQuery()
+            ->forClinic($clinicId)
+            ->find($id);
+    }
+
+    public function findForClinicWithEmailDetails(int $clinicId, int $id): ?TreatmentPlan
+    {
+        return $this->model->newQuery()
+            ->forClinic($clinicId)
+            ->with(['clinic'])
+            ->withCount('exercises')
+            ->find($id);
+    }
+
     public function findOrFail(int $id): TreatmentPlan
     {
         return $this->model->findOrFail($id);

@@ -133,6 +133,7 @@ a {
 
 .subcopy a {
     color: #5b73b4;
+    word-break: break-all;
 }
 
 .break-all {
@@ -149,6 +150,22 @@ a {
     color: #8a8fa8;
     margin: 0 0 6px;
     text-align: center;
+}
+
+.footer-cell p.footer-clinic {
+    font-size: 12px;
+    line-height: 18px;
+    color: #5b6180;
+}
+
+.footer-clinic strong {
+    color: #2c2f45;
+}
+
+.footer-cell p.footer-address {
+    font-size: 12px;
+    line-height: 18px;
+    margin: 0 0 12px;
 }
 
 .details {

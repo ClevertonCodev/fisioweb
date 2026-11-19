@@ -38,6 +38,7 @@ const getById = vi.fn();
 const duplicateProgram = vi.fn();
 const destroyProgram = vi.fn();
 const toModelProgram = vi.fn();
+const sendEmailProgram = vi.fn();
 
 vi.mock('@/infrastructure/repositories', async (importOriginal) => {
     const actual =
@@ -49,6 +50,7 @@ vi.mock('@/infrastructure/repositories', async (importOriginal) => {
             duplicate: (...args: unknown[]) => duplicateProgram(...args),
             toModel: (...args: unknown[]) => toModelProgram(...args),
             destroy: (...args: unknown[]) => destroyProgram(...args),
+            sendEmail: (...args: unknown[]) => sendEmailProgram(...args),
             fetchPdfBlob: vi.fn(),
         },
     };
@@ -538,15 +540,39 @@ describe('ProgramDetailPage (painel v2)', () => {
         expect(downloadPdf).toHaveBeenCalledWith('6');
     });
 
-    it('WhatsApp abre o wa.me do paciente com a mensagem e o link do programa', async () => {
-        getById.mockResolvedValue(program({ patientPhone: '(11) 98765-4321' }));
+    it('"Enviar ao paciente" abre o modal C, envia por e-mail, abre WhatsApp e copia o link', async () => {
+        getById.mockResolvedValue(
+            program({
+                patientEmail: 'paciente@exemplo.test',
+                patientPhone: '(11) 98765-4321',
+            }),
+        );
+        sendEmailProgram.mockResolvedValue(undefined);
         const open = vi.spyOn(window, 'open').mockReturnValue(null);
         const user = userEvent.setup();
         renderPage();
 
         await user.click(
-            await screen.findByRole('button', { name: 'WhatsApp' }),
+            await screen.findByRole('button', { name: 'Enviar ao paciente' }),
         );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+
+        await user.click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+
+        expect(sendEmailProgram).toHaveBeenCalledWith('6');
+        expect(
+            await within(dialog).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+        expect(
+            within(dialog).getByRole('button', { name: 'Reenviar' }),
+        ).toBeInTheDocument();
+
+        await user.click(within(dialog).getByRole('button', { name: 'Abrir' }));
 
         expect(open).toHaveBeenCalledWith(
             expect.stringMatching(/^https:\/\/wa\.me\/11987654321\?text=/),
@@ -557,38 +583,72 @@ describe('ProgramDetailPage (painel v2)', () => {
             'text',
         );
         expect(text).toContain('Acesse: https://exemplo.test/p/6');
+
+        await user.click(
+            within(dialog).getByRole('button', { name: 'Copiar' }),
+        );
+        await vi.waitFor(async () =>
+            expect(await navigator.clipboard.readText()).toBe(
+                'https://exemplo.test/p/6',
+            ),
+        );
+
         open.mockRestore();
     });
 
-    it('WhatsApp fica desabilitado, com a dica, quando o paciente não tem telefone', async () => {
+    it('sem e-mail, o modal desabilita o envio por e-mail com o motivo', async () => {
+        getById.mockResolvedValue(
+            program({ patientEmail: null, patientPhone: '(11) 98765-4321' }),
+        );
         const user = userEvent.setup();
         renderPage();
 
-        const button = await screen.findByRole('button', { name: 'WhatsApp' });
-        expect(button).toBeDisabled();
+        await user.click(
+            await screen.findByRole('button', { name: 'Enviar ao paciente' }),
+        );
 
-        await user.hover(button.parentElement!);
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
         expect(
-            (await screen.findAllByText('Paciente sem telefone'))[0],
+            within(dialog).getByText('Paciente sem e-mail cadastrado'),
         ).toBeInTheDocument();
+        expect(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        ).toBeDisabled();
+        expect(
+            within(dialog).getByRole('button', { name: 'Abrir' }),
+        ).toBeEnabled();
     });
 
-    it('WhatsApp fica desabilitado no rascunho mesmo com telefone', async () => {
+    it('"Enviar ao paciente" fica desabilitado no rascunho com a dica', async () => {
         getById.mockResolvedValue(
             program({
                 status: 'draft',
                 patientViewedAt: null,
+                patientEmail: 'paciente@exemplo.test',
                 patientPhone: '(11) 98765-4321',
             }),
         );
+        const user = userEvent.setup();
         renderPage();
 
+        const button = await screen.findByRole('button', {
+            name: 'Enviar ao paciente',
+        });
+        expect(button).toBeDisabled();
+
+        await user.hover(button.parentElement!);
         expect(
-            await screen.findByRole('button', { name: 'WhatsApp' }),
-        ).toBeDisabled();
+            (
+                await screen.findAllByText(
+                    'Rascunho: o paciente ainda não recebeu',
+                )
+            ).length,
+        ).toBeGreaterThanOrEqual(2);
     });
 
-    it('programa sem paciente não mostra WhatsApp', async () => {
+    it('programa sem paciente não mostra "Enviar ao paciente"', async () => {
         getById.mockResolvedValue(
             program({ patientId: null, patientName: null }),
         );
@@ -596,7 +656,7 @@ describe('ProgramDetailPage (painel v2)', () => {
 
         await screen.findByRole('button', { name: 'Editar' });
         expect(
-            screen.queryByRole('button', { name: 'WhatsApp' }),
+            screen.queryByRole('button', { name: 'Enviar ao paciente' }),
         ).not.toBeInTheDocument();
     });
 

@@ -13,6 +13,7 @@ import { clinicRoutes } from '@/routes/clinic-routes';
 import { devRoutes } from '@/routes/dev-routes';
 import { patientAuthRoutes } from '@/routes/patient/auth-routes';
 import { patientProgramRoutes } from '@/routes/patient/program-routes';
+import { patientQuestionnaireRoutes } from '@/routes/patient/questionnaire-routes';
 
 import NotFound from './pages/NotFound';
 
@@ -30,6 +31,7 @@ const router = createBrowserRouter(
         adminRoutes,
         ...patientAuthRoutes,
         ...patientProgramRoutes,
+        ...patientQuestionnaireRoutes,
         ...devRoutes,
         { path: '*', element: <NotFound /> },
     ],

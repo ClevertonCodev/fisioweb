@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireRepositoryInterface;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
+use Modules\ClinicQuestionnaire\Enums\QuestionnaireUnavailableReason;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireAnswered;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireCancelled;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireExpired;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireSent;
+use Modules\ClinicQuestionnaire\Exceptions\QuestionnaireUnavailableException;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
 
 class PatientQuestionnaireService implements PatientQuestionnaireServiceInterface
@@ -189,6 +191,10 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
 
     private function presentForPublic(PatientQuestionnaire $questionnaire): PatientQuestionnaire
     {
+        $questionnaire->loadMissing('clinic');
+        $questionnaire->setAttribute('clinic_name', $questionnaire->clinic?->name);
+        $questionnaire->syncOriginalAttribute('clinic_name');
+
         $questionnaire->unsetRelation('clinicUser');
         $questionnaire->unsetRelation('clinic');
         $questionnaire->makeHidden(['clinic_user_id']);
@@ -198,21 +204,32 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
 
     private function ensurePendingAndNotExpired(PatientQuestionnaire $questionnaire): PatientQuestionnaire
     {
+        if ($questionnaire->status === PatientQuestionnaire::STATUS_ANSWERED) {
+            throw QuestionnaireUnavailableException::because(
+                QuestionnaireUnavailableReason::Answered,
+                'Este questionário já foi respondido.',
+            );
+        }
+
         if ($questionnaire->status !== PatientQuestionnaire::STATUS_PENDING) {
-            throw ValidationException::withMessages([
-                'questionnaire' => ['Este questionário já foi respondido ou expirou.'],
-            ]);
+            throw $this->expiredException();
         }
 
         if (!is_null($questionnaire->expires_at) && $questionnaire->expires_at->isPast()) {
             $this->markExpired($questionnaire);
 
-            throw ValidationException::withMessages([
-                'questionnaire' => ['Este questionário expirou.'],
-            ]);
+            throw $this->expiredException();
         }
 
         return $questionnaire;
+    }
+
+    private function expiredException(): QuestionnaireUnavailableException
+    {
+        return QuestionnaireUnavailableException::because(
+            QuestionnaireUnavailableReason::Expired,
+            'Este questionário expirou.',
+        );
     }
 
     /**

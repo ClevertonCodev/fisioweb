@@ -111,11 +111,11 @@ function SendToPatientModalDialog({
         setSending(true);
         try {
             await onSendEmail();
-            if (!mountedRef.current) return;
-            setEmailSentAt(nowTimeLabel());
             toast.success(`E-mail enviado para ${email}`);
+            if (mountedRef.current) {
+                setEmailSentAt(nowTimeLabel());
+            }
         } catch (error) {
-            if (!mountedRef.current) return;
             toast.error(resolveApiErrorMessage(error));
         } finally {
             if (mountedRef.current) {
@@ -142,7 +142,10 @@ function SendToPatientModalDialog({
     return (
         <DsModal
             open
-            onOpenChange={(isOpen) => !isOpen && onClose()}
+            onOpenChange={(isOpen) => {
+                if (!isOpen && !sending) onClose();
+            }}
+            closeOnBackdrop={!sending}
             size="sm"
             title={title}
             meta={meta}
@@ -151,6 +154,7 @@ function SendToPatientModalDialog({
                     <DsButton
                         variant={anySent ? 'primary' : 'tertiary'}
                         label={anySent ? 'Concluir' : dismissLabel}
+                        disabled={sending}
                         onClick={onClose}
                     />
                 </div>

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-    programMailtoUrl,
-    programWhatsAppUrl,
-} from '@/application/clinic/program-share';
+import { programWhatsAppUrl } from '@/application/clinic/program-share';
 import type { Program } from '@/domain/clinic';
 
 function program(overrides: Partial<Program> = {}): Program {
@@ -61,21 +58,5 @@ describe('programWhatsAppUrl', () => {
     it('devolve null sem telefone', () => {
         expect(programWhatsAppUrl(program({ patientPhone: null }))).toBeNull();
         expect(programWhatsAppUrl(program({ patientPhone: '  ' }))).toBeNull();
-    });
-});
-
-describe('programMailtoUrl', () => {
-    it('usa o mesmo texto do WhatsApp no corpo do e-mail', () => {
-        const mail = programMailtoUrl(program())!;
-        const body = decodeURIComponent(mail.split('&body=')[1]!);
-
-        expect(mail.startsWith('mailto:ana%40exemplo.test?subject=')).toBe(
-            true,
-        );
-        expect(body).toBe(textOf(programWhatsAppUrl(program())!, 'text'));
-    });
-
-    it('devolve null sem e-mail', () => {
-        expect(programMailtoUrl(program({ patientEmail: null }))).toBeNull();
     });
 });

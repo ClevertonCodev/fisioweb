@@ -18,10 +18,3 @@ export function programWhatsAppUrl(program: Program): string | null {
     if (!phone) return null;
     return `https://wa.me/${phone}?text=${encodeURIComponent(shareText(program))}`;
 }
-
-export function programMailtoUrl(program: Program): string | null {
-    const email = program.patientEmail?.trim();
-    if (!email) return null;
-    const subject = `Programa de tratamento: ${program.title}`;
-    return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText(program))}`;
-}

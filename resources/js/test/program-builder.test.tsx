@@ -90,15 +90,19 @@ const LIBRARY = [
 ];
 
 const listPaginated = vi.fn();
+const sendEmailProgram = vi.fn();
 vi.mock('@/infrastructure/repositories', async (importOriginal) => {
-    const actual = await importOriginal<{
-        apiClinicExercisesRepository: object;
-    }>();
+    const actual =
+        await importOriginal<typeof import('@/infrastructure/repositories')>();
     return {
         ...actual,
         apiClinicExercisesRepository: {
             ...actual.apiClinicExercisesRepository,
             listPaginated: (...a: unknown[]) => listPaginated(...a),
+        },
+        apiClinicProgramsRepository: {
+            ...actual.apiClinicProgramsRepository,
+            sendEmail: (...a: unknown[]) => sendEmailProgram(...a),
         },
     };
 });
@@ -199,6 +203,7 @@ beforeEach(() => {
     draftGet.mockResolvedValue(null);
     draftSave.mockResolvedValue(undefined);
     draftDiscard.mockResolvedValue(undefined);
+    sendEmailProgram.mockResolvedValue(undefined);
     create.mockResolvedValue(savedProgram({ id: '50' }));
     update.mockResolvedValue(savedProgram());
     vi.spyOn(useProgramsHook, 'useCreateClinicProgram').mockReturnValue({
@@ -460,6 +465,174 @@ describe('assistente: novo programa', () => {
         expect(update).not.toHaveBeenCalled();
     });
 
+    it('salvar com paciente abre "Enviar ao paciente", envia e-mail pelo repositório, mostra "Enviado <hora>" e "Concluir" leva ao programa', async () => {
+        renderAt('/clinica/programas/novo?patientId=15');
+        await pick('Ponte Glútea');
+        await advance();
+        await advance();
+        await user().type(
+            screen.getByLabelText('Nome do programa'),
+            'Quadril fase 1',
+        );
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar e enviar para Ana' }),
+        );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        expect(
+            within(dialog).getByText('ana@exemplo.test'),
+        ).toBeInTheDocument();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+
+        expect(sendEmailProgram).toHaveBeenCalledWith('50');
+        expect(
+            await within(dialog).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+        expect(
+            within(dialog).getByRole('button', { name: 'Reenviar' }),
+        ).toBeInTheDocument();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Concluir' }),
+        );
+
+        expect(
+            await screen.findByText('destino /clinica/programas/50'),
+        ).toBeInTheDocument();
+    });
+
+    it('fechar "Enviar ao paciente" pelo botão "Fechar" sem envio leva ao programa criado', async () => {
+        renderAt('/clinica/programas/novo?patientId=15');
+        await pick('Ponte Glútea');
+        await advance();
+        await advance();
+        await user().type(
+            screen.getByLabelText('Nome do programa'),
+            'Quadril fase 1',
+        );
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar e enviar para Ana' }),
+        );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        await user().click(
+            within(dialog).getAllByRole('button', { name: 'Fechar' }).at(-1)!,
+        );
+
+        expect(
+            await screen.findByText('destino /clinica/programas/50'),
+        ).toBeInTheDocument();
+        expect(sendEmailProgram).not.toHaveBeenCalled();
+    });
+
+    it('paciente sem e-mail desabilita o envio por e-mail com o motivo, mantendo WhatsApp e Copiar link', async () => {
+        create.mockResolvedValueOnce(
+            savedProgram({
+                id: '51',
+                patientEmail: null,
+                patientPhone: '(11) 98888-7777',
+                shareUrl: 'http://localhost/p/sem-email',
+            }),
+        );
+        const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+        renderAt('/clinica/programas/novo?patientId=15');
+        await pick('Ponte Glútea');
+        await advance();
+        await advance();
+        await user().type(
+            screen.getByLabelText('Nome do programa'),
+            'Quadril fase 1',
+        );
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar e enviar para Ana' }),
+        );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        expect(
+            within(dialog).getByText('Paciente sem e-mail cadastrado'),
+        ).toBeInTheDocument();
+        expect(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        ).toBeDisabled();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Abrir' }),
+        );
+        expect(openSpy).toHaveBeenCalledWith(
+            expect.stringMatching(/^https:\/\/wa\.me\/11988887777\?text=/),
+            '_blank',
+            'noopener,noreferrer',
+        );
+        expect(
+            within(dialog).getByText(/^Aberto \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Copiar' }),
+        );
+        await waitFor(async () =>
+            expect(await navigator.clipboard.readText()).toBe(
+                'http://localhost/p/sem-email',
+            ),
+        );
+        expect(
+            within(dialog).getByRole('button', { name: 'Copiado' }),
+        ).toBeInTheDocument();
+        expect(sendEmailProgram).not.toHaveBeenCalled();
+
+        openSpy.mockRestore();
+    });
+
+    it('mostra "Salvando programa" enquanto a API não responde e depois troca para "Enviar ao paciente"', async () => {
+        let resolveCreate!: (value: Program) => void;
+        create.mockReturnValueOnce(
+            new Promise<Program>((resolve) => {
+                resolveCreate = resolve;
+            }),
+        );
+        renderAt('/clinica/programas/novo?patientId=15');
+        await pick('Ponte Glútea');
+        await advance();
+        await advance();
+        await user().type(
+            screen.getByLabelText('Nome do programa'),
+            'Lombar aguda',
+        );
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar e enviar para Ana' }),
+        );
+
+        const savingDialog = await screen.findByRole('dialog', {
+            name: 'Salvando programa',
+        });
+        expect(
+            within(savingDialog).getByText('Salvando “Lombar aguda”…'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('dialog', { name: 'Enviar ao paciente' }),
+        ).not.toBeInTheDocument();
+
+        act(() => {
+            resolveCreate(savedProgram({ id: '52', title: 'Lombar aguda' }));
+        });
+
+        expect(
+            await screen.findByRole('dialog', { name: 'Enviar ao paciente' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('dialog', { name: 'Salvando programa' }),
+        ).not.toBeInTheDocument();
+    });
+
     it('sem paciente, vai para Meus modelos', async () => {
         renderAt('/clinica/programas/novo');
         await pick('Ponte Glútea');
@@ -544,6 +717,53 @@ describe('assistente: novo programa', () => {
         expect(screen.getByLabelText('Nome do programa')).toHaveValue(
             'Modelo lombar (Cópia)',
         );
+    });
+
+    it('"Usar modelo" salvo com paciente abre "Enviar ao paciente" e envia o e-mail', async () => {
+        create.mockResolvedValueOnce(
+            savedProgram({
+                id: '55',
+                title: 'Modelo lombar (Cópia)',
+                patientId: '16',
+                patientName: 'Bruno Lima',
+                patientEmail: 'bruno@exemplo.test',
+                shareUrl: 'http://localhost/p/token-modelo',
+            }),
+        );
+        renderAt('/clinica/programas/novo', {
+            state: {
+                program: savedProgram({
+                    id: '9',
+                    title: 'Modelo lombar',
+                    patientId: null,
+                }),
+            },
+        });
+
+        await user().click(
+            screen.getByRole('button', { name: '3. Paciente e envio' }),
+        );
+        await user().click(screen.getByRole('button', { name: /^Paciente/ }));
+        await user().click(screen.getByRole('option', { name: 'Bruno Lima' }));
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar e enviar para Bruno' }),
+        );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        expect(
+            within(dialog).getByText('http://localhost/p/token-modelo'),
+        ).toBeInTheDocument();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+
+        expect(sendEmailProgram).toHaveBeenCalledWith('55');
+        expect(
+            await within(dialog).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
     });
 });
 
@@ -892,6 +1112,36 @@ describe('assistente: editar programa', () => {
         expect(dto.patientId).toBe(16);
     });
 
+    it('editar com paciente abre "Enviar ao paciente", envia e-mail pelo id do programa e "Concluir" volta ao painel', async () => {
+        renderAt('/clinica/programas/7/editar', { program: savedProgram() });
+        await user().click(
+            screen.getByRole('button', { name: '3. Paciente e envio' }),
+        );
+        await user().click(
+            screen.getByRole('button', { name: 'Salvar alterações' }),
+        );
+
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+
+        expect(sendEmailProgram).toHaveBeenCalledWith('7');
+        expect(
+            await within(dialog).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+
+        await user().click(
+            within(dialog).getByRole('button', { name: 'Concluir' }),
+        );
+
+        expect(
+            await screen.findByText('destino /clinica/programas/7'),
+        ).toBeInTheDocument();
+    });
+
     it('tirar o paciente no seletor salva sem paciente e volta ao painel', async () => {
         update.mockResolvedValueOnce(
             savedProgram({ patientId: null, patientName: null }),
@@ -981,6 +1231,9 @@ describe('assistente: modelo', () => {
         expect(
             await screen.findByText('destino /clinica/programas/meus-modelos'),
         ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('dialog', { name: 'Enviar ao paciente' }),
+        ).not.toBeInTheDocument();
         expect(lastDto(create)).toMatchObject({
             title: 'Ponte Glútea',
             patientId: null,

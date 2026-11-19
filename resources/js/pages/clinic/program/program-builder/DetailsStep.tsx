@@ -6,17 +6,7 @@
  * abre (e o backend ativa o rascunho, ADR 025).
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-    CalendarRange,
-    Check,
-    CircleCheck,
-    Copy,
-    Dumbbell,
-    Layers,
-    Mail,
-    MessageCircle,
-    UserRound,
-} from 'lucide-react';
+import { CalendarRange, Dumbbell, Layers, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -33,19 +23,18 @@ import {
     startOfToday,
     type ProgramDetailsForm,
 } from '@/application/clinic/program-details-form';
-import {
-    programMailtoUrl,
-    programWhatsAppUrl,
-} from '@/application/clinic/program-share';
+import { programWhatsAppUrl } from '@/application/clinic/program-share';
 import {
     buildProgramWriteDto,
     type SavedIds,
 } from '@/application/clinic/program-write';
 import {
     useCreateClinicProgram,
+    useSendClinicProgramEmail,
     useUpdateClinicProgram,
 } from '@/application/clinic/use-programs';
 import { getValidationErrors } from '@/application/clinic/validation-errors';
+import { SendToPatientModal } from '@/components/clinic/SendToPatientModal';
 import {
     DsAlert,
     DsButton,
@@ -145,62 +134,44 @@ function Summary({
 
 type Phase = 'closed' | 'saving' | 'ready' | 'error';
 
-function ShareDialog({
+function SaveProgressModal({
     phase,
     title,
-    program,
     errorMessage,
     onClose,
-    onDone,
 }: {
     phase: Phase;
     title: string;
-    program: Program | null;
     errorMessage: string | null;
     onClose: () => void;
-    onDone: () => void;
 }) {
-    const [copied, setCopied] = useState(false);
-    const shareUrl = program?.shareUrl ?? null;
-    const whatsappUrl = program ? programWhatsAppUrl(program) : null;
-    const mailtoUrl = program ? programMailtoUrl(program) : null;
-
-    async function copyLink() {
-        if (!shareUrl) return;
-        try {
-            await navigator.clipboard.writeText(shareUrl);
-            setCopied(true);
-            toast.success('Link copiado');
-            window.setTimeout(() => setCopied(false), 2000);
-        } catch {
-            toast.error('Não foi possível copiar o link');
-        }
+    const [lastActivePhase, setLastActivePhase] = useState<'saving' | 'error'>(
+        'saving',
+    );
+    if (
+        (phase === 'saving' || phase === 'error') &&
+        lastActivePhase !== phase
+    ) {
+        setLastActivePhase(phase);
     }
-
+    const open = phase === 'saving' || phase === 'error';
+    const activePhase = open ? phase : lastActivePhase;
     const heading =
-        phase === 'saving'
+        activePhase === 'saving'
             ? 'Salvando programa'
-            : phase === 'error'
-              ? 'Não foi possível salvar'
-              : 'Programa enviado';
+            : 'Não foi possível salvar';
 
     return (
         <DsModal
-            open={phase !== 'closed'}
-            onOpenChange={(o) => {
-                if (o) return;
-                if (phase === 'ready') onDone();
-                if (phase === 'error') onClose();
+            open={open}
+            onOpenChange={(isOpen) => {
+                if (!isOpen && phase === 'error') onClose();
             }}
-            closeOnBackdrop={phase !== 'saving'}
+            closeOnBackdrop={phase === 'error'}
             size="sm"
             title={heading}
             footer={
-                phase === 'ready' ? (
-                    <div className="flex w-full justify-end">
-                        <DsButton label="Concluir" onClick={onDone} />
-                    </div>
-                ) : phase === 'error' ? (
+                activePhase === 'error' ? (
                     <div className="flex w-full justify-end">
                         <DsButton
                             variant="secondary"
@@ -211,7 +182,7 @@ function ShareDialog({
                 ) : null
             }
         >
-            {phase === 'saving' && (
+            {activePhase === 'saving' && (
                 <div className="flex flex-col items-center gap-3 py-6">
                     <span className="size-8 animate-spin rounded-ds-full border-3 border-ds-primary-20 border-t-ds-primary-80" />
                     <p className="text-ds-body-sm text-ds-content-secondary">
@@ -219,81 +190,12 @@ function ShareDialog({
                     </p>
                 </div>
             )}
-            {phase === 'error' && (
+            {activePhase === 'error' && (
                 <p className="text-ds-body-sm text-ds-content-secondary">
                     {errorMessage ??
                         'Ocorreu um erro ao salvar o programa. Tente novamente.'}{' '}
                     O que você montou continua aqui.
                 </p>
-            )}
-            {phase === 'ready' && program && (
-                <div className="flex flex-col gap-5">
-                    <div className="flex items-center gap-3">
-                        <CircleCheck className="size-10 shrink-0 text-ds-status-success-content" />
-                        <p className="text-ds-body-sm text-ds-content-secondary">
-                            <strong className="text-ds-content-primary">
-                                {program.title}
-                            </strong>{' '}
-                            está pronto para{' '}
-                            {program.patientName ?? 'o paciente'}. Mande o link
-                            por onde for mais fácil.
-                        </p>
-                    </div>
-                    {shareUrl && (
-                        <div className="flex items-center gap-2 rounded-ds-md border border-ds-border-subtle bg-ds-surface-subtle px-3 py-2">
-                            <span className="min-w-0 flex-1 truncate font-ds-mono text-ds-caption text-ds-content-secondary">
-                                {shareUrl}
-                            </span>
-                            <DsButton
-                                variant="tertiary"
-                                size="sm"
-                                iconPosition="left"
-                                icon={copied ? <Check /> : <Copy />}
-                                label={copied ? 'Copiado' : 'Copiar'}
-                                onClick={() => void copyLink()}
-                            />
-                        </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-2">
-                        <DsButton
-                            variant="secondary"
-                            size="full"
-                            iconPosition="left"
-                            icon={<MessageCircle />}
-                            label="WhatsApp"
-                            disabled={!whatsappUrl}
-                            title={
-                                whatsappUrl
-                                    ? undefined
-                                    : 'Paciente sem telefone cadastrado'
-                            }
-                            onClick={() =>
-                                whatsappUrl &&
-                                window.open(
-                                    whatsappUrl,
-                                    '_blank',
-                                    'noopener,noreferrer',
-                                )
-                            }
-                        />
-                        <DsButton
-                            variant="secondary"
-                            size="full"
-                            iconPosition="left"
-                            icon={<Mail />}
-                            label="E-mail"
-                            disabled={!mailtoUrl}
-                            title={
-                                mailtoUrl
-                                    ? undefined
-                                    : 'Paciente sem e-mail cadastrado'
-                            }
-                            onClick={() => {
-                                if (mailtoUrl) window.location.href = mailtoUrl;
-                            }}
-                        />
-                    </div>
-                </div>
             )}
         </DsModal>
     );
@@ -329,6 +231,7 @@ export function DetailsStep({
     const isEdit = Boolean(target.programId);
     const createProgram = useCreateClinicProgram();
     const updateProgram = useUpdateClinicProgram();
+    const sendEmail = useSendClinicProgramEmail();
     const { data } = usePatients({ perPage: 200 });
     const listed = data?.data;
     // O paciente que já vem escolhido pode estar fora da lista carregada.
@@ -404,6 +307,7 @@ export function DetailsStep({
         });
         const withPatient = dto.patientId !== null;
         if (withPatient) {
+            setSaved(null);
             setErrorMessage(null);
             setPhase('saving');
         }
@@ -659,16 +563,32 @@ export function DetailsStep({
                 />
             </aside>
 
-            <ShareDialog
+            <SaveProgressModal
                 phase={phase}
                 title={title}
-                program={saved}
                 errorMessage={errorMessage}
                 onClose={() => setPhase('closed')}
-                onDone={() => {
+            />
+            <SendToPatientModal
+                open={phase === 'ready' && saved !== null}
+                onClose={() => {
+                    const programId = saved?.id;
                     setPhase('closed');
-                    if (saved) navigate(`/clinica/programas/${saved.id}`);
+                    if (programId) navigate(`/clinica/programas/${programId}`);
                 }}
+                meta={saved?.title}
+                description={
+                    saved?.patientName
+                        ? `O programa está pronto para ${saved.patientName}. Escolha como enviar o link.`
+                        : 'Escolha como o paciente vai receber o link do programa.'
+                }
+                patientEmail={saved?.patientEmail ?? null}
+                patientPhone={saved?.patientPhone ?? null}
+                whatsappUrl={saved ? programWhatsAppUrl(saved) : null}
+                shareUrl={saved?.shareUrl ?? null}
+                onSendEmail={() =>
+                    saved ? sendEmail.mutateAsync(saved.id) : Promise.resolve()
+                }
             />
         </div>
     );

@@ -20,13 +20,13 @@ Ao salvar um programa no assistente, abre hoje o diálogo "Programa enviado", co
 
 ## Critérios de Aceite
 
-- [ ] Salvar um programa com paciente no assistente abre o modal C. Enviar o e-mail mostra "Enviado <hora>" e chama o endpoint do programa (Vitest com o repositório mockado).
-- [ ] Paciente sem e-mail: o botão de e-mail fica desabilitado com "Paciente sem e-mail cadastrado"; WhatsApp e Copiar link continuam funcionando.
-- [ ] As fases de salvar e de erro continuam como antes (os testes atuais do assistente passam).
-- [ ] Salvar um modelo de programa não abre o modal de envio.
-- [ ] Não sobra uso de `mailto:` no assistente.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Salvar um programa com paciente no assistente abre o modal C. Enviar o e-mail mostra "Enviado <hora>" e chama o endpoint do programa (Vitest com o repositório mockado).
+- [x] Paciente sem e-mail: o botão de e-mail fica desabilitado com "Paciente sem e-mail cadastrado"; WhatsApp e Copiar link continuam funcionando.
+- [x] As fases de salvar e de erro continuam como antes (os testes atuais do assistente passam).
+- [x] Salvar um modelo de programa não abre o modal de envio.
+- [x] Não sobra uso de `mailto:` no assistente.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

@@ -259,4 +259,56 @@ describe('SendToPatientModal (variante C)', () => {
             ),
         );
     });
+
+    it('impede fechar pelo rodapé ou Escape enquanto envia e ainda exibe toast de erro se desmontar em voo', async () => {
+        let rejectSend!: (error: unknown) => void;
+        const onSendEmail = vi.fn(
+            () =>
+                new Promise<void>((_, reject) => {
+                    rejectSend = reject;
+                }),
+        );
+        const onClose = vi.fn();
+        const user = userEvent.setup();
+        const { unmount } = renderModal({ onSendEmail, onClose });
+
+        const dialog = screen.getByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+
+        await user.click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+
+        expect(
+            within(dialog).getByRole('button', { name: 'Enviando…' }),
+        ).toBeDisabled();
+        const footerClose = within(dialog)
+            .getAllByRole('button', { name: 'Fechar' })
+            .at(-1)!;
+        expect(footerClose).toBeDisabled();
+
+        await user.keyboard('{Escape}');
+        await user.click(
+            within(dialog).getAllByRole('button', { name: 'Fechar' })[0]!,
+        );
+        expect(onClose).not.toHaveBeenCalled();
+
+        unmount();
+        rejectSend(
+            new AxiosError('Too Many Requests', '429', undefined, undefined, {
+                status: 429,
+                data: {
+                    message:
+                        'Muitas tentativas de envio. Aguarde um minuto e tente de novo.',
+                },
+            } as AxiosResponse),
+        );
+
+        await waitFor(() =>
+            expect(toast.error).toHaveBeenCalledWith(
+                'Muitas tentativas de envio. Aguarde um minuto e tente de novo.',
+            ),
+        );
+    });
 });

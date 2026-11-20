@@ -1,0 +1,33 @@
+{
+    "titulo": "Webhook do provedor de cobrança para compra de créditos de mensagens",
+    "intencao": "Recebe o webhook do provedor de cobrança em POST /api/webhooks/billing (rota pública no módulo Clinic, sem guard, porque quem chama é o provedor, que assina o corpo com HMAC SHA-256 no header X-Billing-Signature). Quando o evento é credits.purchased, soma os créditos de mensagens (lembretes por WhatsApp) comprados na clínica. Adiciona a coluna message_credits em clinics, addMessageCredits no ClinicService e no ClinicRepository, o BillingWebhookRequest e o BillingWebhookController, o segredo em config/services.php e no .env.example, e testes de feature.",
+    "bugs": [
+        {
+            "id": "B1",
+            "arquivo": "modules/Clinic/app/Http/Requests/BillingWebhookRequest.php",
+            "linha_aproximada": 14,
+            "categoria": "seguranca",
+            "gravidade": "blocker",
+            "descricao": "A assinatura só é conferida quando o header X-Billing-Signature vem na requisição (e quando o segredo está configurado): sem o header, authorize() devolve true. Como a rota é pública, qualquer pessoa manda um POST sem assinatura e credita a clínica que quiser.",
+            "como_reconhecer": "Aponta que requisição sem o header de assinatura passa (a validação HMAC é pulada quando a assinatura está ausente ou o segredo vazio), permitindo webhook forjado."
+        },
+        {
+            "id": "B2",
+            "arquivo": "modules/Clinic/app/Http/Controllers/BillingWebhookController.php",
+            "linha_aproximada": 19,
+            "categoria": "correcao",
+            "gravidade": "ajustar",
+            "descricao": "O processamento não é idempotente: o id do evento é validado mas nunca guardado nem conferido, então a reentrega do mesmo evento pelo provedor (retry depois de timeout) soma os créditos de novo.",
+            "como_reconhecer": "Aponta que o mesmo evento entregue duas vezes credita duas vezes, por falta de registro/checagem do id do evento (idempotência)."
+        },
+        {
+            "id": "B3",
+            "arquivo": "modules/Clinic/tests/Feature/BillingWebhookTest.php",
+            "linha_aproximada": 35,
+            "categoria": "testes",
+            "gravidade": "ajustar",
+            "descricao": "Os testes cobrem assinatura válida, assinatura errada e evento de outro tipo, mas não a requisição sem assinatura, que é o caso que pegaria o B1.",
+            "como_reconhecer": "Aponta a falta de teste para requisição sem o header de assinatura."
+        }
+    ]
+}

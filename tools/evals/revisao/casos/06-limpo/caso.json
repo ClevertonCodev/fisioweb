@@ -1,0 +1,5 @@
+{
+    "titulo": "Limite de tamanho da senha no login",
+    "intencao": "Limita a senha do login a 255 caracteres nos guards admin e clinic (LoginRequest do Admin e do Clinic), para a API recusar com 422 uma senha enorme antes de tentar a autenticação, como o login do paciente já faz. Acrescenta um teste de feature em cada módulo conferindo o erro de validação no campo password.",
+    "bugs": []
+}

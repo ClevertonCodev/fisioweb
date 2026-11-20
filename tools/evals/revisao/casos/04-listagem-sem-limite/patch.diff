@@ -1,0 +1,310 @@
+diff --git a/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireRepositoryInterface.php b/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireRepositoryInterface.php
+index 8906b62..8e7505b 100644
+--- a/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireRepositoryInterface.php
++++ b/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireRepositoryInterface.php
+@@ -2,6 +2,7 @@
+ 
+ namespace Modules\ClinicQuestionnaire\Contracts;
+ 
++use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+ use Illuminate\Support\Collection;
+ use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+ 
+@@ -9,6 +10,11 @@ interface PatientQuestionnaireRepositoryInterface
+ {
+     public function listByPatient(int $clinicId, int $patientId): Collection;
+ 
++    /**
++     * @return LengthAwarePaginator<int, PatientQuestionnaire>
++     */
++    public function paginateForClinic(int $clinicId, ?string $status, int $perPage): LengthAwarePaginator;
++
+     public function find(int $id): PatientQuestionnaire;
+ 
+     public function findForPublic(string $token): PatientQuestionnaire;
+diff --git a/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireServiceInterface.php b/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireServiceInterface.php
+index bc236cd..47d3d18 100644
+--- a/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireServiceInterface.php
++++ b/modules/ClinicQuestionnaire/app/Contracts/PatientQuestionnaireServiceInterface.php
+@@ -2,12 +2,18 @@
+ 
+ namespace Modules\ClinicQuestionnaire\Contracts;
+ 
++use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+ use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+ 
+ interface PatientQuestionnaireServiceInterface
+ {
+     public function listByPatient(int $clinicId, int $patientId);
+ 
++    /**
++     * @return LengthAwarePaginator<int, PatientQuestionnaire>
++     */
++    public function paginateForClinic(int $clinicId, ?string $status, int $perPage): LengthAwarePaginator;
++
+     public function find(int $id): PatientQuestionnaire;
+ 
+     public function findForPatient(int $clinicId, int $patientId, int $questionnaireId): ?PatientQuestionnaire;
+diff --git a/modules/ClinicQuestionnaire/app/Http/Controllers/PatientQuestionnaireController.php b/modules/ClinicQuestionnaire/app/Http/Controllers/PatientQuestionnaireController.php
+index e82acc2..d58eb50 100644
+--- a/modules/ClinicQuestionnaire/app/Http/Controllers/PatientQuestionnaireController.php
++++ b/modules/ClinicQuestionnaire/app/Http/Controllers/PatientQuestionnaireController.php
+@@ -8,7 +8,9 @@
+ use Illuminate\Validation\ValidationException;
+ use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
+ use Modules\ClinicQuestionnaire\Http\Requests\AnswerPatientQuestionnaireRequest;
++use Modules\ClinicQuestionnaire\Http\Requests\ListPatientQuestionnairesRequest;
+ use Modules\ClinicQuestionnaire\Http\Requests\SendPatientQuestionnaireRequest;
++use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+ use Modules\Patient\Contracts\PatientServiceInterface;
+ 
+ class PatientQuestionnaireController extends ClinicAuthenticatedController
+@@ -18,6 +20,36 @@ public function __construct(
+         protected PatientServiceInterface $patientService,
+     ) {}
+ 
++    public function index(ListPatientQuestionnairesRequest $request): JsonResponse
++    {
++        $this->authorize('viewAny', PatientQuestionnaire::class);
++
++        $page = $this->questionnaireService->paginateForClinic(
++            $this->clinicId(),
++            $request->validated('status'),
++            $request->perPage(),
++        );
++
++        return response()->json([
++            'data' => $page->getCollection()->map(fn (PatientQuestionnaire $questionnaire) => [
++                'id'             => $questionnaire->id,
++                'patient_id'     => $questionnaire->patient_id,
++                'template_title' => $questionnaire->template?->title,
++                'sent_by'        => $questionnaire->clinicUser?->name,
++                'status'         => $questionnaire->status,
++                'modality'       => $questionnaire->modality,
++                'expires_at'     => $questionnaire->expires_at?->toIso8601String(),
++                'answered_at'    => $questionnaire->answered_at?->toIso8601String(),
++                'created_at'     => $questionnaire->created_at?->toIso8601String(),
++            ])->values(),
++            'meta' => [
++                'page'    => $page->currentPage(),
++                'perPage' => $page->perPage(),
++                'total'   => $page->total(),
++            ],
++        ]);
++    }
++
+     public function indexByPatient(int $patient): JsonResponse
+     {
+         $clinicId = $this->clinicId();
+diff --git a/modules/ClinicQuestionnaire/app/Http/Requests/ListPatientQuestionnairesRequest.php b/modules/ClinicQuestionnaire/app/Http/Requests/ListPatientQuestionnairesRequest.php
+new file mode 100644
+index 0000000..5da231c
+--- /dev/null
++++ b/modules/ClinicQuestionnaire/app/Http/Requests/ListPatientQuestionnairesRequest.php
+@@ -0,0 +1,35 @@
++<?php
++
++namespace Modules\ClinicQuestionnaire\Http\Requests;
++
++use Illuminate\Foundation\Http\FormRequest;
++use Illuminate\Validation\Rule;
++use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
++
++class ListPatientQuestionnairesRequest extends FormRequest
++{
++    public const DEFAULT_PER_PAGE = 15;
++
++    public function authorize(): bool
++    {
++        return true;
++    }
++
++    public function rules(): array
++    {
++        return [
++            'page'     => ['sometimes', 'integer', 'min:1'],
++            'per_page' => ['sometimes', 'integer', 'min:1'],
++            'status'   => ['sometimes', 'string', Rule::in([
++                PatientQuestionnaire::STATUS_PENDING,
++                PatientQuestionnaire::STATUS_ANSWERED,
++                PatientQuestionnaire::STATUS_EXPIRED,
++            ])],
++        ];
++    }
++
++    public function perPage(): int
++    {
++        return (int) $this->validated('per_page', self::DEFAULT_PER_PAGE);
++    }
++}
+diff --git a/modules/ClinicQuestionnaire/app/Repositories/PatientQuestionnaireRepository.php b/modules/ClinicQuestionnaire/app/Repositories/PatientQuestionnaireRepository.php
+index 0c10712..61219ff 100644
+--- a/modules/ClinicQuestionnaire/app/Repositories/PatientQuestionnaireRepository.php
++++ b/modules/ClinicQuestionnaire/app/Repositories/PatientQuestionnaireRepository.php
+@@ -2,6 +2,7 @@
+ 
+ namespace Modules\ClinicQuestionnaire\Repositories;
+ 
++use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+ use Illuminate\Database\Eloquent\ModelNotFoundException;
+ use Illuminate\Support\Collection;
+ use Illuminate\Support\Str;
+@@ -24,6 +25,16 @@ public function listByPatient(int $clinicId, int $patientId): Collection
+             ->get();
+     }
+ 
++    public function paginateForClinic(int $clinicId, ?string $status, int $perPage): LengthAwarePaginator
++    {
++        return PatientQuestionnaire::query()
++            ->forClinic($clinicId)
++            ->when(!is_null($status), fn ($query) => $query->where('status', $status))
++            ->orderByDesc('created_at')
++            ->orderByDesc('id')
++            ->paginate($perPage);
++    }
++
+     public function find(int $id): PatientQuestionnaire
+     {
+         $questionnaire = PatientQuestionnaire::query()
+diff --git a/modules/ClinicQuestionnaire/app/Services/PatientQuestionnaireService.php b/modules/ClinicQuestionnaire/app/Services/PatientQuestionnaireService.php
+index 70e4a2e..ff42870 100644
+--- a/modules/ClinicQuestionnaire/app/Services/PatientQuestionnaireService.php
++++ b/modules/ClinicQuestionnaire/app/Services/PatientQuestionnaireService.php
+@@ -3,6 +3,7 @@
+ namespace Modules\ClinicQuestionnaire\Services;
+ 
+ use Carbon\CarbonImmutable;
++use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+ use Illuminate\Support\Facades\DB;
+ use Illuminate\Support\Facades\Event;
+ use Illuminate\Validation\ValidationException;
+@@ -28,6 +29,11 @@ public function listByPatient(int $clinicId, int $patientId)
+             ->map(fn (PatientQuestionnaire $questionnaire) => $this->withShareUrl($questionnaire));
+     }
+ 
++    public function paginateForClinic(int $clinicId, ?string $status, int $perPage): LengthAwarePaginator
++    {
++        return $this->repository->paginateForClinic($clinicId, $status, $perPage);
++    }
++
+     public function find(int $id): PatientQuestionnaire
+     {
+         return $this->repository->find($id);
+diff --git a/modules/ClinicQuestionnaire/routes/clinic.php b/modules/ClinicQuestionnaire/routes/clinic.php
+index 739b480..b7467c1 100644
+--- a/modules/ClinicQuestionnaire/routes/clinic.php
++++ b/modules/ClinicQuestionnaire/routes/clinic.php
+@@ -5,6 +5,8 @@
+ use Modules\ClinicQuestionnaire\Http\Controllers\QuestionnaireTemplateController;
+ 
+ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(function () {
++    Route::get('questionnaires', [PatientQuestionnaireController::class, 'index'])->name('clinic.questionnaires.index');
++
+     Route::prefix('patients')->name('clinic.patients.')->group(function () {
+         Route::get('{patient}/questionnaires', [PatientQuestionnaireController::class, 'indexByPatient'])->name('questionnaires.index');
+         Route::post('{patient}/questionnaires', [PatientQuestionnaireController::class, 'storeForPatient'])->name('questionnaires.store');
+diff --git a/modules/ClinicQuestionnaire/tests/Feature/ClinicQuestionnaireListTest.php b/modules/ClinicQuestionnaire/tests/Feature/ClinicQuestionnaireListTest.php
+new file mode 100644
+index 0000000..b147ca7
+--- /dev/null
++++ b/modules/ClinicQuestionnaire/tests/Feature/ClinicQuestionnaireListTest.php
+@@ -0,0 +1,99 @@
++<?php
++
++namespace Modules\ClinicQuestionnaire\Tests\Feature;
++
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Modules\Clinic\Models\Clinic;
++use Modules\Clinic\Models\ClinicUser;
++use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
++use Modules\ClinicQuestionnaire\Models\QuestionnaireTemplate;
++use Modules\Patient\Models\Patient;
++use Tests\TestCase;
++
++class ClinicQuestionnaireListTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private ClinicUser $clinicUser;
++
++    private Clinic $clinic;
++
++    private Patient $patient;
++
++    private QuestionnaireTemplate $template;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        $this->clinicUser = ClinicUser::factory()->create();
++        $this->clinic     = Clinic::find($this->clinicUser->clinic_id);
++        $this->patient    = Patient::factory()->forClinic($this->clinic)->create();
++        $this->template   = QuestionnaireTemplate::factory()->forClinic($this->clinic)->create(['title' => 'Anamnese inicial']);
++    }
++
++    private function questionnaire(array $attributes = []): PatientQuestionnaire
++    {
++        return PatientQuestionnaire::factory()
++            ->forPatient($this->patient, $this->clinic)
++            ->create(array_merge([
++                'questionnaire_template_id' => $this->template->id,
++                'clinic_user_id'            => $this->clinicUser->id,
++            ], $attributes));
++    }
++
++    public function test_lista_so_os_questionarios_da_clinica_do_mais_recente_para_o_mais_antigo(): void
++    {
++        $older = $this->questionnaire(['created_at' => now()->subDays(2)]);
++        $newer = $this->questionnaire(['created_at' => now()->subDay()]);
++        PatientQuestionnaire::factory()->create();
++
++        $this->actingAs($this->clinicUser, 'clinic')
++            ->getJson('/api/clinic/questionnaires')
++            ->assertOk()
++            ->assertJsonPath('meta.total', 2)
++            ->assertJsonPath('data.0.id', $newer->id)
++            ->assertJsonPath('data.1.id', $older->id)
++            ->assertJsonPath('data.0.template_title', 'Anamnese inicial')
++            ->assertJsonPath('data.0.sent_by', $this->clinicUser->name);
++    }
++
++    public function test_filtra_pelo_status(): void
++    {
++        $this->questionnaire();
++        $answered = $this->questionnaire(['status' => PatientQuestionnaire::STATUS_ANSWERED, 'answered_at' => now()]);
++
++        $this->actingAs($this->clinicUser, 'clinic')
++            ->getJson('/api/clinic/questionnaires?status=answered')
++            ->assertOk()
++            ->assertJsonPath('meta.total', 1)
++            ->assertJsonPath('data.0.id', $answered->id);
++    }
++
++    public function test_pagina_pelo_per_page(): void
++    {
++        $this->questionnaire();
++        $this->questionnaire();
++        $this->questionnaire();
++
++        $this->actingAs($this->clinicUser, 'clinic')
++            ->getJson('/api/clinic/questionnaires?per_page=2')
++            ->assertOk()
++            ->assertJsonPath('meta.perPage', 2)
++            ->assertJsonPath('meta.total', 3)
++            ->assertJsonCount(2, 'data');
++    }
++
++    public function test_per_page_invalido_responde_422(): void
++    {
++        $this->actingAs($this->clinicUser, 'clinic')
++            ->getJson('/api/clinic/questionnaires?per_page=0')
++            ->assertUnprocessable()
++            ->assertJsonValidationErrors(['per_page']);
++    }
++
++    public function test_sem_token_responde_401(): void
++    {
++        $this->getJson('/api/clinic/questionnaires')->assertUnauthorized();
++    }
++}

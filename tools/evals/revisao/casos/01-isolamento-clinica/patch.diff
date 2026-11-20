@@ -1,0 +1,185 @@
+diff --git a/modules/Clinic/app/Contracts/DashboardRepositoryInterface.php b/modules/Clinic/app/Contracts/DashboardRepositoryInterface.php
+index b4c73d2..999db06 100644
+--- a/modules/Clinic/app/Contracts/DashboardRepositoryInterface.php
++++ b/modules/Clinic/app/Contracts/DashboardRepositoryInterface.php
+@@ -44,6 +44,13 @@ public function monthBirthdays(DashboardScope $scope): array;
+      */
+     public function recentActivities(int $clinicId, string $timezone): array;
+ 
++    /**
++     * Detalhe de uma atividade do feed, com o nome de quem fez.
++     *
++     * @return array<string,mixed>|null
++     */
++    public function findActivity(int $id): ?array;
++
+     /**
+      * Captação de pacientes por origem, comparando os últimos 3 anos — FR-015/016/017.
+      *
+diff --git a/modules/Clinic/app/Http/Controllers/DashboardController.php b/modules/Clinic/app/Http/Controllers/DashboardController.php
+index 4bc56f3..ef17d32 100644
+--- a/modules/Clinic/app/Http/Controllers/DashboardController.php
++++ b/modules/Clinic/app/Http/Controllers/DashboardController.php
+@@ -79,6 +79,22 @@ public function activities(): JsonResponse
+         ]);
+     }
+ 
++    /**
++     * Detalhe de uma atividade do feed (admin/secretário). 403 para fisioterapeuta.
++     */
++    public function activity(int $id): JsonResponse
++    {
++        abort_if($this->clinicUser()->isPhysiotherapist(), 403);
++
++        $activity = $this->dashboardRepository->findActivity($id);
++
++        if (is_null($activity)) {
++            return response()->json(['message' => 'Atividade não encontrada.'], 404);
++        }
++
++        return response()->json(['data' => $activity]);
++    }
++
+     private function resolveOccupancyUser(ClinicUser $user, ?int $requested): int
+     {
+         // Fisioterapeuta só vê a própria ocupação (param ignorado — FR-020/SC-004).
+diff --git a/modules/Clinic/app/Repositories/DashboardRepository.php b/modules/Clinic/app/Repositories/DashboardRepository.php
+index ba83619..af4aa0a 100644
+--- a/modules/Clinic/app/Repositories/DashboardRepository.php
++++ b/modules/Clinic/app/Repositories/DashboardRepository.php
+@@ -105,6 +105,26 @@ public function recentActivities(int $clinicId, string $timezone): array
+             ->all();
+     }
+ 
++    public function findActivity(int $id): ?array
++    {
++        $activity = ClinicActivity::query()
++            ->with('actor:id,name')
++            ->find($id);
++
++        if (is_null($activity)) {
++            return null;
++        }
++
++        return [
++            'id'          => $activity->id,
++            'type'        => $activity->type->value,
++            'label'       => $activity->type->label(),
++            'description' => $activity->description,
++            'actor_name'  => $activity->actor?->name,
++            'created_at'  => $activity->created_at?->toIso8601String(),
++        ];
++    }
++
+     public function patientAcquisition(DashboardScope $scope): array
+     {
+         $currentYear = Carbon::now($scope->timezone)->year;
+diff --git a/modules/Clinic/routes/clinic.php b/modules/Clinic/routes/clinic.php
+index 45e7b30..824a753 100644
+--- a/modules/Clinic/routes/clinic.php
++++ b/modules/Clinic/routes/clinic.php
+@@ -13,6 +13,7 @@
+     Route::get('dashboard/occupancy-rate', [DashboardController::class, 'occupancyRate'])->name('clinic.dashboard.occupancy-rate');
+     Route::get('dashboard/patient-acquisition', [DashboardController::class, 'patientAcquisition'])->name('clinic.dashboard.patient-acquisition');
+     Route::get('dashboard/activities', [DashboardController::class, 'activities'])->name('clinic.dashboard.activities');
++    Route::get('dashboard/activities/{id}', [DashboardController::class, 'activity'])->whereNumber('id')->name('clinic.dashboard.activities.show');
+ 
+     Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
+     Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
+diff --git a/modules/Clinic/tests/Feature/Dashboard/ActivityDetailTest.php b/modules/Clinic/tests/Feature/Dashboard/ActivityDetailTest.php
+new file mode 100644
+index 0000000..778dda1
+--- /dev/null
++++ b/modules/Clinic/tests/Feature/Dashboard/ActivityDetailTest.php
+@@ -0,0 +1,91 @@
++<?php
++
++namespace Modules\Clinic\Tests\Feature\Dashboard;
++
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Modules\Clinic\Enums\ActivityType;
++use Modules\Clinic\Models\Clinic;
++use Modules\Clinic\Models\ClinicActivity;
++use Modules\Clinic\Models\ClinicUser;
++use Tests\TestCase;
++
++class ActivityDetailTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private Clinic $clinic;
++
++    private ClinicUser $admin;
++
++    private ClinicUser $secretary;
++
++    private ClinicUser $physio;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        $this->clinic    = Clinic::factory()->create();
++        $this->admin     = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
++        $this->secretary = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_SECRETARY]);
++        $this->physio    = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
++    }
++
++    private function activity(Clinic $clinic, ClinicUser $actor): ClinicActivity
++    {
++        return ClinicActivity::query()->create([
++            'clinic_id'      => $clinic->id,
++            'clinic_user_id' => $actor->id,
++            'type'           => ActivityType::AppointmentScheduled,
++            'description'    => 'Consulta agendada — Paciente Teste',
++        ]);
++    }
++
++    public function test_admin_ve_o_detalhe_de_uma_atividade_da_clinica(): void
++    {
++        $activity = $this->activity($this->clinic, $this->secretary);
++
++        $this->actingAs($this->admin, 'clinic')
++            ->getJson("/api/clinic/dashboard/activities/{$activity->id}")
++            ->assertOk()
++            ->assertJsonPath('data.id', $activity->id)
++            ->assertJsonPath('data.type', ActivityType::AppointmentScheduled->value)
++            ->assertJsonPath('data.label', 'Consulta agendada')
++            ->assertJsonPath('data.description', 'Consulta agendada — Paciente Teste')
++            ->assertJsonPath('data.actor_name', $this->secretary->name);
++    }
++
++    public function test_secretaria_ve_o_detalhe_de_uma_atividade_da_clinica(): void
++    {
++        $activity = $this->activity($this->clinic, $this->admin);
++
++        $this->actingAs($this->secretary, 'clinic')
++            ->getJson("/api/clinic/dashboard/activities/{$activity->id}")
++            ->assertOk()
++            ->assertJsonPath('data.id', $activity->id);
++    }
++
++    public function test_fisioterapeuta_recebe_403(): void
++    {
++        $activity = $this->activity($this->clinic, $this->admin);
++
++        $this->actingAs($this->physio, 'clinic')
++            ->getJson("/api/clinic/dashboard/activities/{$activity->id}")
++            ->assertForbidden();
++    }
++
++    public function test_atividade_inexistente_responde_404(): void
++    {
++        $this->actingAs($this->admin, 'clinic')
++            ->getJson('/api/clinic/dashboard/activities/999999')
++            ->assertNotFound()
++            ->assertExactJson(['message' => 'Atividade não encontrada.']);
++    }
++
++    public function test_sem_token_responde_401(): void
++    {
++        $activity = $this->activity($this->clinic, $this->admin);
++
++        $this->getJson("/api/clinic/dashboard/activities/{$activity->id}")->assertUnauthorized();
++    }
++}

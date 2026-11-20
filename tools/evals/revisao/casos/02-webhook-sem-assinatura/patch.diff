@@ -1,0 +1,284 @@
+diff --git a/.env.example b/.env.example
+index 83e0985..60e63ef 100644
+--- a/.env.example
++++ b/.env.example
+@@ -97,3 +97,6 @@ GOOGLE_CLIENT_SECRET=
+ GOOGLE_REDIRECT_URI="${APP_URL}/api/clinic/google-calendar/callback"
+ # Intervalo do polling reverso (Google → sistema), em minutos
+ GOOGLE_PULL_INTERVAL_MINUTES=5
++
++# Webhook do provedor de cobrança (compra de créditos de mensagens)
++BILLING_WEBHOOK_SECRET=
+diff --git a/config/services.php b/config/services.php
+index 6e676ed..7aa50d4 100644
+--- a/config/services.php
++++ b/config/services.php
+@@ -21,6 +21,10 @@
+         'key' => env('RESEND_API_KEY'),
+     ],
+ 
++    'billing' => [
++        'webhook_secret' => env('BILLING_WEBHOOK_SECRET'),
++    ],
++
+     'ses' => [
+         'key'    => env('AWS_ACCESS_KEY_ID'),
+         'secret' => env('AWS_SECRET_ACCESS_KEY'),
+diff --git a/modules/Clinic/app/Contracts/ClinicRepositoryInterface.php b/modules/Clinic/app/Contracts/ClinicRepositoryInterface.php
+index d8bbef6..c262522 100644
+--- a/modules/Clinic/app/Contracts/ClinicRepositoryInterface.php
++++ b/modules/Clinic/app/Contracts/ClinicRepositoryInterface.php
+@@ -45,6 +45,8 @@ public function saveClinicUser(ClinicUser $user, array $attributes): void;
+ 
+     public function update(int $id, array $data): Clinic;
+ 
++    public function addMessageCredits(int $clinicId, int $amount): void;
++
+     public function delete(int $id): bool;
+ 
+     public function slugExistsWithTrashed(string $slug): bool;
+diff --git a/modules/Clinic/app/Contracts/ClinicServiceInterface.php b/modules/Clinic/app/Contracts/ClinicServiceInterface.php
+index 64c44b9..3cde882 100644
+--- a/modules/Clinic/app/Contracts/ClinicServiceInterface.php
++++ b/modules/Clinic/app/Contracts/ClinicServiceInterface.php
+@@ -15,5 +15,7 @@ public function create(array $data): Clinic;
+ 
+     public function update(int $id, array $data): Clinic;
+ 
++    public function addMessageCredits(int $clinicId, int $amount): void;
++
+     public function delete(int $id): bool;
+ }
+diff --git a/modules/Clinic/app/Http/Controllers/BillingWebhookController.php b/modules/Clinic/app/Http/Controllers/BillingWebhookController.php
+new file mode 100644
+index 0000000..674e6a3
+--- /dev/null
++++ b/modules/Clinic/app/Http/Controllers/BillingWebhookController.php
+@@ -0,0 +1,24 @@
++<?php
++
++namespace Modules\Clinic\Http\Controllers;
++
++use App\Http\Controllers\Controller;
++use Illuminate\Http\JsonResponse;
++use Modules\Clinic\Contracts\ClinicServiceInterface;
++use Modules\Clinic\Http\Requests\BillingWebhookRequest;
++
++class BillingWebhookController extends Controller
++{
++    public function __construct(
++        protected ClinicServiceInterface $clinicService,
++    ) {}
++
++    public function __invoke(BillingWebhookRequest $request): JsonResponse
++    {
++        if ($request->validated('type') === 'credits.purchased') {
++            $this->clinicService->addMessageCredits($request->integer('clinic_id'), $request->integer('data.amount'));
++        }
++
++        return response()->json(['received' => true]);
++    }
++}
+diff --git a/modules/Clinic/app/Http/Requests/BillingWebhookRequest.php b/modules/Clinic/app/Http/Requests/BillingWebhookRequest.php
+new file mode 100644
+index 0000000..d6d4975
+--- /dev/null
++++ b/modules/Clinic/app/Http/Requests/BillingWebhookRequest.php
+@@ -0,0 +1,30 @@
++<?php
++
++namespace Modules\Clinic\Http\Requests;
++
++use Illuminate\Foundation\Http\FormRequest;
++
++class BillingWebhookRequest extends FormRequest
++{
++    public function authorize(): bool
++    {
++        $secret    = config('services.billing.webhook_secret');
++        $signature = $this->header('X-Billing-Signature');
++
++        if (empty($secret) || is_null($signature)) {
++            return true;
++        }
++
++        return hash_equals(hash_hmac('sha256', $this->getContent(), $secret), $signature);
++    }
++
++    public function rules(): array
++    {
++        return [
++            'id'          => ['required', 'string', 'max:255'],
++            'type'        => ['required', 'string', 'max:100'],
++            'clinic_id'   => ['required', 'integer', 'exists:clinics,id'],
++            'data.amount' => ['required', 'integer', 'min:1'],
++        ];
++    }
++}
+diff --git a/modules/Clinic/app/Models/Clinic.php b/modules/Clinic/app/Models/Clinic.php
+index 27def72..682f138 100644
+--- a/modules/Clinic/app/Models/Clinic.php
++++ b/modules/Clinic/app/Models/Clinic.php
+@@ -71,6 +71,7 @@ protected function casts(): array
+             'status'            => 'integer',
+             'working_days'      => 'array',
+             'terms_accepted_at' => 'datetime',
++            'message_credits'   => 'integer',
+         ];
+     }
+ 
+diff --git a/modules/Clinic/app/Repositories/ClinicRepository.php b/modules/Clinic/app/Repositories/ClinicRepository.php
+index f285159..e93be63 100644
+--- a/modules/Clinic/app/Repositories/ClinicRepository.php
++++ b/modules/Clinic/app/Repositories/ClinicRepository.php
+@@ -153,6 +153,11 @@ public function update(int $id, array $data): Clinic
+         return $clinic->fresh(['plan']);
+     }
+ 
++    public function addMessageCredits(int $clinicId, int $amount): void
++    {
++        $this->model->newQuery()->whereKey($clinicId)->increment('message_credits', $amount);
++    }
++
+     public function delete(int $id): bool
+     {
+         return (bool) $this->model->findOrFail($id)->delete();
+diff --git a/modules/Clinic/app/Services/ClinicService.php b/modules/Clinic/app/Services/ClinicService.php
+index fce0d81..ea4b573 100644
+--- a/modules/Clinic/app/Services/ClinicService.php
++++ b/modules/Clinic/app/Services/ClinicService.php
+@@ -42,6 +42,13 @@ public function update(int $id, array $data): Clinic
+         return $clinic;
+     }
+ 
++    public function addMessageCredits(int $clinicId, int $amount): void
++    {
++        $this->clinicRepository->addMessageCredits($clinicId, $amount);
++
++        Log::info('créditos de mensagem somados à clínica', ['clinic_id' => $clinicId, 'amount' => $amount]);
++    }
++
+     public function cancel(int $id): Clinic
+     {
+         $clinic = $this->clinicRepository->findOrFail($id);
+diff --git a/modules/Clinic/database/migrations/2026_11_20_000001_add_message_credits_to_clinics_table.php b/modules/Clinic/database/migrations/2026_11_20_000001_add_message_credits_to_clinics_table.php
+new file mode 100644
+index 0000000..410bb31
+--- /dev/null
++++ b/modules/Clinic/database/migrations/2026_11_20_000001_add_message_credits_to_clinics_table.php
+@@ -0,0 +1,22 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        Schema::table('clinics', function (Blueprint $table): void {
++            $table->unsignedInteger('message_credits')->default(0)->after('plan_id');
++        });
++    }
++
++    public function down(): void
++    {
++        Schema::table('clinics', function (Blueprint $table): void {
++            $table->dropColumn('message_credits');
++        });
++    }
++};
+diff --git a/modules/Clinic/routes/api.php b/modules/Clinic/routes/api.php
+index 4308e50..c91e090 100644
+--- a/modules/Clinic/routes/api.php
++++ b/modules/Clinic/routes/api.php
+@@ -2,6 +2,7 @@
+ 
+ use Illuminate\Support\Facades\Route;
+ use Modules\Clinic\Http\Controllers\AuthController;
++use Modules\Clinic\Http\Controllers\BillingWebhookController;
+ use Modules\Clinic\Http\Controllers\ClinicRegistrationController;
+ use Modules\Clinic\Http\Controllers\PasswordResetController;
+ 
+@@ -21,3 +22,5 @@
+         Route::get('me', [AuthController::class, 'me']);
+     });
+ });
++
++Route::post('webhooks/billing', BillingWebhookController::class)->name('webhooks.billing');
+diff --git a/modules/Clinic/tests/Feature/BillingWebhookTest.php b/modules/Clinic/tests/Feature/BillingWebhookTest.php
+new file mode 100644
+index 0000000..e8dd3c2
+--- /dev/null
++++ b/modules/Clinic/tests/Feature/BillingWebhookTest.php
+@@ -0,0 +1,69 @@
++<?php
++
++namespace Modules\Clinic\Tests\Feature;
++
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Illuminate\Testing\TestResponse;
++use Modules\Clinic\Models\Clinic;
++use Tests\TestCase;
++
++class BillingWebhookTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private const SECRET = 'segredo-de-teste';
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        config(['services.billing.webhook_secret' => self::SECRET]);
++    }
++
++    public function test_compra_de_creditos_soma_os_creditos_na_clinica(): void
++    {
++        $clinic  = Clinic::factory()->create();
++        $payload = $this->payload($clinic->id, 50);
++
++        $this->postSigned($payload, hash_hmac('sha256', json_encode($payload), self::SECRET))
++            ->assertOk()
++            ->assertExactJson(['received' => true]);
++
++        $this->assertSame(50, $clinic->fresh()->message_credits);
++    }
++
++    public function test_assinatura_invalida_responde_403_e_nao_soma_creditos(): void
++    {
++        $clinic = Clinic::factory()->create();
++
++        $this->postSigned($this->payload($clinic->id, 50), 'assinatura-falsa')->assertForbidden();
++
++        $this->assertSame(0, $clinic->fresh()->message_credits);
++    }
++
++    public function test_evento_de_outro_tipo_e_aceito_sem_somar_creditos(): void
++    {
++        $clinic  = Clinic::factory()->create();
++        $payload = ['id' => 'evt_456', 'type' => 'invoice.created', 'clinic_id' => $clinic->id, 'data' => ['amount' => 50]];
++
++        $this->postSigned($payload, hash_hmac('sha256', json_encode($payload), self::SECRET))->assertOk();
++
++        $this->assertSame(0, $clinic->fresh()->message_credits);
++    }
++
++    /**
++     * @return array{id: string, type: string, clinic_id: int, data: array{amount: int}}
++     */
++    private function payload(int $clinicId, int $amount): array
++    {
++        return ['id' => 'evt_123', 'type' => 'credits.purchased', 'clinic_id' => $clinicId, 'data' => ['amount' => $amount]];
++    }
++
++    /**
++     * @param  array<string, mixed>  $payload
++     */
++    private function postSigned(array $payload, string $signature): TestResponse
++    {
++        return $this->withHeader('X-Billing-Signature', $signature)->postJson('/api/webhooks/billing', $payload);
++    }
++}

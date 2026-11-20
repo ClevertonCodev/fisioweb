@@ -66,7 +66,7 @@ Padrões React 19 + TypeScript no SPA. Foca em hooks customizados, performance, 
 | Tópico | Referência | Carregar quando |
 |--------|-----------|-----------------|
 | Padrões de hook custom + dependências corretas + cleanup | [`references/hooks-patterns.md`](references/hooks-patterns.md) | Escrever hook customizado |
-| Performance: useMemo/useCallback/memo/lazy/Suspense, quando rendem ganho | [`references/performance.md`](references/performance.md) | Otimizar componente lento |
+| Performance: useMemo/useCallback/memo/lazy/Suspense, quando rendem ganho; componente dentro de componente; `import()` analisável pelo Vite; `preconnect`/`preload` do `react-dom` | [`references/performance.md`](references/performance.md) | Otimizar componente lento |
 | React 19 features aplicáveis ao SPA (useActionState, useOptimistic, use(), Error Boundary) | [`references/react-19.md`](references/react-19.md) | Forms com loading nativo, UI otimista, suspender promise |
 
 ## Output esperado

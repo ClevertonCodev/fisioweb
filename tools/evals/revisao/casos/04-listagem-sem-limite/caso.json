@@ -1,0 +1,24 @@
+{
+    "titulo": "Listagem paginada dos questionários enviados pela clínica",
+    "intencao": "Adiciona GET /api/clinic/questionnaires no módulo ClinicQuestionnaire, para a clínica ver todos os questionários enviados aos pacientes, do mais recente para o mais antigo, com filtro opcional por status e per_page opcional na query string (padrão 15). Cada item traz id, paciente, título do modelo, quem enviou, status, modalidade e datas. Cria o ListPatientQuestionnairesRequest, paginateForClinic no repositório e no service (com as interfaces), o método index no PatientQuestionnaireController, a rota e testes de feature.",
+    "bugs": [
+        {
+            "id": "B1",
+            "arquivo": "modules/ClinicQuestionnaire/app/Http/Requests/ListPatientQuestionnairesRequest.php",
+            "linha_aproximada": 22,
+            "categoria": "borda",
+            "gravidade": "ajustar",
+            "descricao": "per_page só tem mínimo, sem máximo: um cliente pede per_page=1000000 e o endpoint carrega todos os questionários da clínica numa resposta (memória, tempo e carga no banco). O PatientHistoryRequest do ClinicScheduling, que é o mesmo padrão, tem MAX_PER_PAGE.",
+            "como_reconhecer": "Aponta que per_page não tem limite máximo (falta max:), permitindo páginas enormes."
+        },
+        {
+            "id": "B2",
+            "arquivo": "modules/ClinicQuestionnaire/app/Http/Controllers/PatientQuestionnaireController.php",
+            "linha_aproximada": 37,
+            "categoria": "correcao",
+            "gravidade": "ajustar",
+            "descricao": "Cada item da página acessa $questionnaire->template e $questionnaire->clinicUser sem eager loading (o paginateForClinic não tem with()), então a listagem faz duas consultas extras por questionário (N+1). Somado ao B1, uma página grande dispara milhares de consultas.",
+            "como_reconhecer": "Aponta N+1 / lazy loading dos relacionamentos template ou clinicUser no map da página (falta with(['template', 'clinicUser']) na consulta paginada)."
+        }
+    ]
+}

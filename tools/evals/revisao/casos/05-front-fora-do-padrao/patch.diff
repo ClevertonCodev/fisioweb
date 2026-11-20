@@ -1,0 +1,200 @@
+diff --git a/resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx b/resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx
+new file mode 100644
+index 0000000..97e2195
+--- /dev/null
++++ b/resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx
+@@ -0,0 +1,115 @@
++import { useEffect, useState } from 'react';
++
++import { patientDisplayName } from '@/application/clinic/patient-display-name';
++import { DsDrawer } from '@/components/ds';
++import type { Patient } from '@/domain/clinic/patient';
++import { getStoredAuth } from '@/infrastructure/api/client';
++
++interface PatientContact {
++    phone: string;
++    email: string;
++}
++
++interface ApiPatientContact {
++    phone?: string | null;
++    email?: string | null;
++}
++
++const LOAD_ERROR = 'Não foi possível carregar o contato do paciente.';
++
++function toContact(raw: ApiPatientContact): PatientContact {
++    return {
++        phone: raw.phone ?? '',
++        email: raw.email ?? '',
++    };
++}
++
++function ContactLine({ label, value }: { label: string; value: string }) {
++    return (
++        <div>
++            <dt className="text-ds-caption text-ds-content-muted">{label}</dt>
++            <dd className="text-ds-body-sm text-ds-content-primary">
++                {value || '—'}
++            </dd>
++        </div>
++    );
++}
++
++/** Telefone e e-mail do paciente num painel lateral. `patient` nulo fecha o painel. */
++export function PatientContactDrawer({
++    patient,
++    onClose,
++}: {
++    patient: Patient | null;
++    onClose: () => void;
++}) {
++    const patientId = patient?.id ?? null;
++    const [shownPatientId, setShownPatientId] = useState(patientId);
++    const [contact, setContact] = useState<PatientContact | null>(null);
++    const [isLoading, setIsLoading] = useState(!!patientId);
++    const [error, setError] = useState<string | null>(null);
++
++    if (patientId !== shownPatientId) {
++        setShownPatientId(patientId);
++        setContact(null);
++        setError(null);
++        setIsLoading(!!patientId);
++    }
++
++    useEffect(() => {
++        if (!patientId) {
++            return;
++        }
++
++        fetch(`/api/clinic/patients/${patientId}`, {
++            headers: {
++                Accept: 'application/json',
++                Authorization: `Bearer ${getStoredAuth('clinic')?.token ?? ''}`,
++            },
++        })
++            .then(async (response) => {
++                if (!response.ok) {
++                    setIsLoading(false);
++                    setError(LOAD_ERROR);
++
++                    return;
++                }
++
++                const body = (await response.json()) as {
++                    data: ApiPatientContact;
++                };
++                setContact(toContact(body.data));
++                setIsLoading(false);
++            })
++            .catch(() => setError(LOAD_ERROR));
++    }, [patientId]);
++
++    return (
++        <DsDrawer
++            open={!!patient}
++            onClose={onClose}
++            title={patient ? patientDisplayName(patient) : undefined}
++            size="sm"
++        >
++            {isLoading && (
++                <p className="text-ds-body-sm text-ds-content-muted">
++                    Carregando contato...
++                </p>
++            )}
++            {!isLoading && error && (
++                <p
++                    role="alert"
++                    className="text-ds-body-sm text-ds-content-danger"
++                >
++                    {error}
++                </p>
++            )}
++            {!isLoading && contact && (
++                <dl className="space-y-3">
++                    <ContactLine label="Telefone" value={contact.phone} />
++                    <ContactLine label="E-mail" value={contact.email} />
++                </dl>
++            )}
++        </DsDrawer>
++    );
++}
+diff --git a/resources/js/test/PatientContactDrawer.test.tsx b/resources/js/test/PatientContactDrawer.test.tsx
+new file mode 100644
+index 0000000..e0f7a89
+--- /dev/null
++++ b/resources/js/test/PatientContactDrawer.test.tsx
+@@ -0,0 +1,73 @@
++import { render, screen } from '@testing-library/react';
++import { afterEach, describe, expect, it, vi } from 'vitest';
++
++import type { Patient } from '@/domain/clinic/patient';
++import { PatientContactDrawer } from '@/pages/clinic/patient/patient-list/PatientContactDrawer';
++
++function makePatient(overrides: Partial<Patient> = {}): Patient {
++    return {
++        id: '7',
++        name: 'Paciente Teste',
++        initial: 'P',
++        professional: 'Dra. Ana Paula',
++        professionalInitial: 'D',
++        status: 'em_tratamento',
++        diagnosis: 'Lombalgia',
++        isActive: true,
++        ...overrides,
++    };
++}
++
++function mockPatientResponse(body: unknown, status = 200) {
++    return vi
++        .spyOn(globalThis, 'fetch')
++        .mockResolvedValueOnce(new Response(JSON.stringify(body), { status }));
++}
++
++describe('PatientContactDrawer', () => {
++    afterEach(() => {
++        vi.restoreAllMocks();
++    });
++
++    it('mostra o telefone e o e-mail do paciente', async () => {
++        const fetchSpy = mockPatientResponse({
++            data: { phone: '(11) 90000-0000', email: 'paciente@example.com' },
++        });
++
++        render(
++            <PatientContactDrawer patient={makePatient()} onClose={vi.fn()} />,
++        );
++
++        expect(screen.getByText('Carregando contato...')).toBeInTheDocument();
++        expect(await screen.findByText('(11) 90000-0000')).toBeInTheDocument();
++        expect(screen.getByText('paciente@example.com')).toBeInTheDocument();
++        expect(screen.getByText('Paciente Teste')).toBeInTheDocument();
++        expect(fetchSpy).toHaveBeenCalledWith(
++            '/api/clinic/patients/7',
++            expect.anything(),
++        );
++    });
++
++    it('avisa quando a API recusa', async () => {
++        mockPatientResponse({ message: 'Paciente não encontrado.' }, 404);
++
++        render(
++            <PatientContactDrawer patient={makePatient()} onClose={vi.fn()} />,
++        );
++
++        expect(await screen.findByRole('alert')).toHaveTextContent(
++            'Não foi possível carregar o contato do paciente.',
++        );
++        expect(
++            screen.queryByText('Carregando contato...'),
++        ).not.toBeInTheDocument();
++    });
++
++    it('não busca nada com o painel fechado', () => {
++        const fetchSpy = vi.spyOn(globalThis, 'fetch');
++
++        render(<PatientContactDrawer patient={null} onClose={vi.fn()} />);
++
++        expect(fetchSpy).not.toHaveBeenCalled();
++    });
++});

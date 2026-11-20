@@ -127,6 +127,7 @@ Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/
 | Modelar Eloquent (Model, scopes, casts, observers, relacionamentos, transações) | [`laravel-eloquent`](.claude/skills/laravel-eloquent/SKILL.md) |
 | Job async (WhatsApp, PDF, upload R2, e-mail) | [`laravel-queues`](.claude/skills/laravel-queues/SKILL.md) |
 | Tipos modernos (Enum, DTO readonly, Value Object, match, never) | [`php-modern`](.claude/skills/php-modern/SKILL.md) |
+| Postgres: migration, índice, tipo de coluna, query lenta e `EXPLAIN`, lock e deadlock, paginação, upsert | [`postgres`](.claude/skills/postgres/SKILL.md) |
 | Testes PHPUnit + Mockery + Laravel fakes | [`php-testing`](.claude/skills/php-testing/SKILL.md) |
 
 ### Frontend
@@ -156,6 +157,7 @@ Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/
 | Auditar o débito técnico com arquivo e linha em `.ai-workbench/TECH_DEBT_AUDIT.md` (só o usuário chama) | [`tech-debt-audit`](.claude/skills/tech-debt-audit/SKILL.md) |
 | Explicar uma área antiga em linguagem simples, glossário (`docs/glossario.md`) e ADR | [`domain-modeling`](.claude/skills/domain-modeling/SKILL.md) |
 | Investigar bug, teste falhando ou comportamento estranho antes de sair corrigindo | [`systematic-debugging`](.claude/skills/systematic-debugging/SKILL.md) |
+| Resolver conflito de merge ou rebase (trazer a `main` para a branch da worktree ou levar a branch de volta) | [`conflitos-de-merge`](.claude/skills/conflitos-de-merge/SKILL.md) |
 | Bug simples ou ajuste pequeno fora do ciclo (três linhas, teste vermelho, correção mínima) | [`correcao-rapida`](.claude/skills/correcao-rapida/SKILL.md) |
 
 ## Princípios não-negociáveis

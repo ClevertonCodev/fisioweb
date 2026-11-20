@@ -1,0 +1,33 @@
+{
+    "titulo": "Painel com o contato do paciente na lista de pacientes",
+    "intencao": "Adiciona o PatientContactDrawer (resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx), um painel lateral da tela v2 (DsDrawer) que, ao receber um paciente da lista, busca o detalhe dele na API e mostra telefone e e-mail; mostra 'Carregando contato...' durante a busca e uma mensagem de erro quando a API recusa. O botão que abre o painel no cartão do paciente entra numa PR seguinte. Inclui testes com Vitest.",
+    "bugs": [
+        {
+            "id": "B1",
+            "arquivo": "resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx",
+            "linha_aproximada": 64,
+            "categoria": "regra-do-projeto",
+            "gravidade": "ajustar",
+            "descricao": "O componente faz HTTP com fetch direto dentro de um useEffect, montando o header Authorization com getStoredAuth de @/infrastructure/api/client. As regras do projeto pedem HTTP só pelo apiClient (que também trata o refresh do token e o 401), página sem importar infrastructure/ e dado do servidor por hook React Query de application/; o usePatientDetail(id) de application/clinic/use-patients já busca esse mesmo detalhe.",
+            "como_reconhecer": "Aponta que a busca com fetch em useEffect na página fere a regra do projeto (HTTP fora do apiClient/repositório, página importando infrastructure, sem TanStack Query/usePatientDetail)."
+        },
+        {
+            "id": "B2",
+            "arquivo": "resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx",
+            "linha_aproximada": 59,
+            "categoria": "correcao",
+            "gravidade": "ajustar",
+            "descricao": "Condição de corrida: o efeito não cancela nem ignora a resposta anterior (sem AbortController nem flag no cleanup). Se o usuário abre o painel do paciente A e logo depois o do paciente B, e a resposta de A chega depois da de B, o telefone e o e-mail de A aparecem sob o nome de B (dado de um paciente mostrado como se fosse de outro).",
+            "como_reconhecer": "Aponta que a resposta antiga pode chegar depois e sobrescrever o contato (falta cancelar/ignorar a requisição anterior no cleanup do efeito)."
+        },
+        {
+            "id": "B3",
+            "arquivo": "resources/js/pages/clinic/patient/patient-list/PatientContactDrawer.tsx",
+            "linha_aproximada": 84,
+            "categoria": "correcao",
+            "gravidade": "ajustar",
+            "descricao": "Em falha de rede (ou resposta que não é JSON), o catch grava o erro mas não desliga isLoading; como a tela mostra 'Carregando contato...' enquanto isLoading for true, o carregamento fica preso para sempre e a mensagem de erro nunca aparece.",
+            "como_reconhecer": "Aponta que no erro da requisição (catch) o estado de carregamento (isLoading) não é desligado, deixando o aviso de carregamento preso e escondendo o erro."
+        }
+    ]
+}

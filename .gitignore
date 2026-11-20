@@ -48,6 +48,9 @@ yarn-error.log
 /tools/playwright/credentials.json
 /tools/screenshot/
 
+# tools/evals (experimental, fora do ciclo do harness): resultados das rodadas
+/tools/evals/revisao/resultados/
+
 # bin/fisio-app: configuração pessoal (o modelo é o docker/fisio-app.example.json) e arquivos gerados
 /docker/fisio-app.json
 /AMBIENTE.md

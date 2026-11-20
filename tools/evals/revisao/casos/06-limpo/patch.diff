@@ -1,0 +1,68 @@
+diff --git a/modules/Admin/app/Http/Requests/LoginRequest.php b/modules/Admin/app/Http/Requests/LoginRequest.php
+index 6e1f8a9..bd67ce1 100644
+--- a/modules/Admin/app/Http/Requests/LoginRequest.php
++++ b/modules/Admin/app/Http/Requests/LoginRequest.php
+@@ -15,7 +15,7 @@ public function rules(): array
+     {
+         return [
+             'email'    => ['required', 'email'],
+-            'password' => ['required', 'string', 'min:6'],
++            'password' => ['required', 'string', 'min:6', 'max:255'],
+         ];
+     }
+ }
+diff --git a/modules/Admin/tests/Feature/AdminAuthThrottleTest.php b/modules/Admin/tests/Feature/AdminAuthThrottleTest.php
+index 939641f..b4eb8c1 100644
+--- a/modules/Admin/tests/Feature/AdminAuthThrottleTest.php
++++ b/modules/Admin/tests/Feature/AdminAuthThrottleTest.php
+@@ -47,6 +47,16 @@ public function test_the_right_password_before_the_limit_still_logs_in(): void
+         ])->assertOk()->assertJsonStructure(['access_token']);
+     }
+ 
++    public function test_login_with_password_longer_than_255_characters_is_a_validation_error(): void
++    {
++        $user = User::factory()->create();
++
++        $this->postJson('/api/admin/auth/login', [
++            'email'    => $user->email,
++            'password' => str_repeat('a', 256),
++        ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
++    }
++
+     public function test_login_limit_is_per_email_so_another_account_still_gets_in(): void
+     {
+         $blocked = User::factory()->create();
+diff --git a/modules/Clinic/app/Http/Requests/LoginRequest.php b/modules/Clinic/app/Http/Requests/LoginRequest.php
+index 8821205..b73444e 100644
+--- a/modules/Clinic/app/Http/Requests/LoginRequest.php
++++ b/modules/Clinic/app/Http/Requests/LoginRequest.php
+@@ -15,7 +15,7 @@ public function rules(): array
+     {
+         return [
+             'email'    => ['required', 'email'],
+-            'password' => ['required', 'string', 'min:6'],
++            'password' => ['required', 'string', 'min:6', 'max:255'],
+         ];
+     }
+ }
+diff --git a/modules/Clinic/tests/Feature/LoginSecurityTest.php b/modules/Clinic/tests/Feature/LoginSecurityTest.php
+index 18b27fb..3a5bf6b 100644
+--- a/modules/Clinic/tests/Feature/LoginSecurityTest.php
++++ b/modules/Clinic/tests/Feature/LoginSecurityTest.php
+@@ -87,6 +87,16 @@ public function test_login_with_email_as_a_list_is_a_validation_error(): void
+         ])->assertUnprocessable()->assertJsonValidationErrors(['email']);
+     }
+ 
++    public function test_login_with_password_longer_than_255_characters_is_a_validation_error(): void
++    {
++        $user = ClinicUser::factory()->create();
++
++        $this->postJson('/api/clinic/auth/login', [
++            'email'    => $user->email,
++            'password' => str_repeat('a', 256),
++        ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
++    }
++
+     public function test_login_limit_is_per_email_so_another_account_still_gets_in(): void
+     {
+         $blocked = ClinicUser::factory()->create();

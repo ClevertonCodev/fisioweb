@@ -1,0 +1,153 @@
+diff --git a/modules/Clinic/app/Http/Controllers/ClinicWorkingHoursController.php b/modules/Clinic/app/Http/Controllers/ClinicWorkingHoursController.php
+new file mode 100644
+index 0000000..0383e36
+--- /dev/null
++++ b/modules/Clinic/app/Http/Controllers/ClinicWorkingHoursController.php
+@@ -0,0 +1,22 @@
++<?php
++
++namespace Modules\Clinic\Http\Controllers;
++
++use App\Http\Controllers\ClinicAuthenticatedController;
++use Illuminate\Http\Response;
++use Modules\Clinic\Contracts\ClinicServiceInterface;
++use Modules\Clinic\Http\Requests\UpdateClinicWorkingHoursRequest;
++
++class ClinicWorkingHoursController extends ClinicAuthenticatedController
++{
++    public function __construct(
++        protected ClinicServiceInterface $clinicService,
++    ) {}
++
++    public function update(UpdateClinicWorkingHoursRequest $request): Response
++    {
++        $this->clinicService->update($this->clinicId(), $request->validated());
++
++        return response()->noContent();
++    }
++}
+diff --git a/modules/Clinic/app/Http/Requests/UpdateClinicWorkingHoursRequest.php b/modules/Clinic/app/Http/Requests/UpdateClinicWorkingHoursRequest.php
+new file mode 100644
+index 0000000..9cd6524
+--- /dev/null
++++ b/modules/Clinic/app/Http/Requests/UpdateClinicWorkingHoursRequest.php
+@@ -0,0 +1,36 @@
++<?php
++
++namespace Modules\Clinic\Http\Requests;
++
++use Illuminate\Foundation\Http\FormRequest;
++use Modules\Clinic\Models\ClinicUser;
++
++class UpdateClinicWorkingHoursRequest extends FormRequest
++{
++    public function authorize(): bool
++    {
++        $user = $this->user('clinic');
++
++        return $user instanceof ClinicUser && $user->isAdmin();
++    }
++
++    public function rules(): array
++    {
++        return [
++            'start'  => ['required', 'date_format:H:i'],
++            'end'    => ['required', 'date_format:H:i', 'after:start'],
++            'days'   => ['required', 'array', 'min:1'],
++            'days.*' => ['integer', 'between:1,7', 'distinct'],
++        ];
++    }
++
++    public function attributes(): array
++    {
++        return [
++            'start'  => 'início do atendimento',
++            'end'    => 'fim do atendimento',
++            'days'   => 'dias de atendimento',
++            'days.*' => 'dia de atendimento',
++        ];
++    }
++}
+diff --git a/modules/Clinic/routes/clinic.php b/modules/Clinic/routes/clinic.php
+index 45e7b30..4c92d08 100644
+--- a/modules/Clinic/routes/clinic.php
++++ b/modules/Clinic/routes/clinic.php
+@@ -4,6 +4,7 @@
+ use Modules\Clinic\Http\Controllers\ClinicProfileController;
+ use Modules\Clinic\Http\Controllers\ClinicUserController;
+ use Modules\Clinic\Http\Controllers\ClinicUserPreferenceController;
++use Modules\Clinic\Http\Controllers\ClinicWorkingHoursController;
+ use Modules\Clinic\Http\Controllers\DashboardController;
+ use Modules\Clinic\Http\Controllers\ExerciseController;
+ use Modules\Clinic\Http\Controllers\PatientController;
+@@ -16,6 +17,7 @@
+ 
+     Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
+     Route::put('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
++    Route::put('profile/working-hours', [ClinicWorkingHoursController::class, 'update'])->name('clinic.profile.working-hours.update');
+ 
+     Route::get('me/preferences', [ClinicUserPreferenceController::class, 'index'])->name('clinic.me.preferences.index');
+     Route::put('me/preferences/{key}', [ClinicUserPreferenceController::class, 'update'])->name('clinic.me.preferences.update');
+diff --git a/modules/Clinic/tests/Feature/ClinicWorkingHoursTest.php b/modules/Clinic/tests/Feature/ClinicWorkingHoursTest.php
+new file mode 100644
+index 0000000..55babf4
+--- /dev/null
++++ b/modules/Clinic/tests/Feature/ClinicWorkingHoursTest.php
+@@ -0,0 +1,57 @@
++<?php
++
++namespace Modules\Clinic\Tests\Feature;
++
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Modules\Clinic\Models\Clinic;
++use Modules\Clinic\Models\ClinicUser;
++use Tests\TestCase;
++
++class ClinicWorkingHoursTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private Clinic $clinic;
++
++    private ClinicUser $admin;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        $this->clinic = Clinic::factory()->create();
++        $this->admin  = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
++    }
++
++    public function test_admin_salva_a_janela_de_atendimento(): void
++    {
++        $this->actingAs($this->admin, 'clinic')
++            ->putJson('/api/clinic/profile/working-hours', ['start' => '07:00', 'end' => '19:30', 'days' => [1, 2, 3, 4, 5, 6]])
++            ->assertNoContent();
++    }
++
++    public function test_fim_antes_do_inicio_responde_422(): void
++    {
++        $this->actingAs($this->admin, 'clinic')
++            ->putJson('/api/clinic/profile/working-hours', ['start' => '18:00', 'end' => '08:00', 'days' => [1]])
++            ->assertUnprocessable()
++            ->assertJsonValidationErrors(['end']);
++    }
++
++    public function test_dia_fora_da_semana_responde_422(): void
++    {
++        $this->actingAs($this->admin, 'clinic')
++            ->putJson('/api/clinic/profile/working-hours', ['start' => '08:00', 'end' => '18:00', 'days' => [1, 8]])
++            ->assertUnprocessable()
++            ->assertJsonValidationErrors(['days.1']);
++    }
++
++    public function test_fisioterapeuta_recebe_403(): void
++    {
++        $physio = ClinicUser::factory()->create(['clinic_id' => $this->clinic->id, 'role' => ClinicUser::ROLE_PHYSIOTHERAPIST]);
++
++        $this->actingAs($physio, 'clinic')
++            ->putJson('/api/clinic/profile/working-hours', ['start' => '08:00', 'end' => '18:00', 'days' => [1]])
++            ->assertForbidden();
++    }
++}

@@ -1,0 +1,24 @@
+{
+    "titulo": "Detalhe de uma atividade do painel por id",
+    "intencao": "Adiciona GET /api/clinic/dashboard/activities/{id} no módulo Clinic, para o administrador ou a secretária abrir o detalhe de uma atividade do feed do painel (tipo, rótulo, descrição, quem fez e quando). Acrescenta findActivity no DashboardRepositoryInterface e no DashboardRepository, o método activity no DashboardController (403 para fisioterapeuta, como o feed), a rota no grupo auth:clinic e testes de feature.",
+    "bugs": [
+        {
+            "id": "B1",
+            "arquivo": "modules/Clinic/app/Repositories/DashboardRepository.php",
+            "linha_aproximada": 110,
+            "categoria": "seguranca",
+            "gravidade": "blocker",
+            "descricao": "findActivity busca a atividade só pelo id, sem filtrar pela clínica do usuário autenticado (não usa forClinic nem recebe o clinic_id), e o controller também não confere a posse. Um admin ou secretária da clínica A lê a descrição (que traz o nome do paciente), o tipo e o nome do profissional de qualquer atividade da clínica B trocando o id na URL (IDOR entre clínicas).",
+            "como_reconhecer": "Aponta que a atividade é carregada por id sem filtrar/conferir o clinic_id do usuário autenticado e que, por isso, uma clínica vê atividade de outra clínica. Basta dizer isso no repositório ou no controller."
+        },
+        {
+            "id": "B2",
+            "arquivo": "modules/Clinic/tests/Feature/Dashboard/ActivityDetailTest.php",
+            "linha_aproximada": 44,
+            "categoria": "testes",
+            "gravidade": "ajustar",
+            "descricao": "Os testes cobrem a própria clínica (admin, secretária, fisioterapeuta, id inexistente e sem token), mas falta o teste de outra clínica (usuário da clínica A pedindo uma atividade da clínica B deveria receber 404), que a Definição de Pronto exige e que pegaria o B1.",
+            "como_reconhecer": "Aponta a falta de teste com usuário de outra clínica (isolamento entre clínicas) no endpoint novo."
+        }
+    ]
+}

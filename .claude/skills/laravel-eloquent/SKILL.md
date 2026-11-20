@@ -6,7 +6,7 @@ metadata:
   triggers: model, eloquent, scope, accessor, mutator, cast, observer, with, withCount, chunk, lazy, N+1, DB::transaction, softdeletes
   scope: implementation
   output-format: code
-  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, laravel-queues, php-testing, php-modern
+  related-skills: backend-clean-code, architecture-paradigm-modular-monolith, laravel-queues, php-testing, php-modern, postgres
 ---
 
 # Laravel Eloquent (fisioweb)
@@ -17,7 +17,7 @@ Padrões Eloquent que já estão no codebase ou que cabem como evolução natura
 
 - Criando Model novo em `modules/<Module>/app/Models/`.
 - Adicionando relacionamento (BelongsTo, HasMany, BelongsToMany, polymorphic).
-- Otimizando listagem lenta — eager loading, `withCount`, subqueries.
+- Otimizando listagem lenta — eager loading, `withCount`, subqueries. Índice, `EXPLAIN` e lock estão na [`postgres`](../postgres/SKILL.md).
 - Refatorando "cast manual" no Service para `protected function casts()` ou Custom Cast.
 - Reagindo a evento de model (post-create, post-update) com Observer — ver `TreatmentPlanObserver`.
 - Modelando query reutilizável → vira Scope (`scopeActive`, `scopeForClinic`).

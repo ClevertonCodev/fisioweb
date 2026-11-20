@@ -1,0 +1,24 @@
+{
+    "titulo": "Administrador configura a janela de atendimento da clínica",
+    "intencao": "Adiciona PUT /api/clinic/profile/working-hours para o administrador da clínica definir a janela de atendimento (hora de início, hora de fim e dias da semana ISO, 1 = segunda a 7 = domingo), que hoje só tem o padrão 08:00 às 18:00 de segunda a sexta e é usada no cálculo da taxa de ocupação. O corpo é {start, end, days}. Cria o UpdateClinicWorkingHoursRequest, o ClinicWorkingHoursController (responde 204, grava pelo ClinicService) e a rota no grupo auth:clinic, com testes de feature (sucesso, 422 e 403).",
+    "bugs": [
+        {
+            "id": "B1",
+            "arquivo": "modules/Clinic/app/Http/Controllers/ClinicWorkingHoursController.php",
+            "linha_aproximada": 18,
+            "categoria": "correcao",
+            "gravidade": "blocker",
+            "descricao": "O controller passa $request->validated() (chaves start, end e days) direto para o update do model Clinic, cujas colunas e fillable são working_start, working_end e working_days. O Eloquent descarta em silêncio os atributos que não estão no fillable, então nada é gravado e a API responde 204 como se tivesse dado certo.",
+            "como_reconhecer": "Aponta que start/end/days não correspondem às colunas/fillable working_start/working_end/working_days e por isso a janela não é salva (mass assignment descartado em silêncio), no controller ou no request."
+        },
+        {
+            "id": "B2",
+            "arquivo": "modules/Clinic/tests/Feature/ClinicWorkingHoursTest.php",
+            "linha_aproximada": 26,
+            "categoria": "testes",
+            "gravidade": "ajustar",
+            "descricao": "O teste de sucesso só confere o status 204 e não confere o banco (assertDatabaseHas, fresh() ou workingWindow()), então passa com a janela sem ser gravada.",
+            "como_reconhecer": "Aponta que o teste de sucesso não verifica se a janela de atendimento foi persistida, só o status da resposta."
+        }
+    ]
+}

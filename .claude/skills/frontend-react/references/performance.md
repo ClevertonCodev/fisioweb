@@ -233,6 +233,43 @@ Uso por rota (no `routes/<contexto>-routes.tsx`):
 
 React Router v6 também tem `errorElement` no `RouteObject` — use para erros vindos do `loader`.
 
+## Caminho de `import()` que o Vite analisa
+
+O Vite (Rollup no build) decide os chunks olhando os `import()`. Caminho vindo de variável ele não analisa: inclui arquivos demais ou o import funciona no `npm run dev` e quebra no build. Deixe o conjunto explícito, com um mapa de `import()` literal ou `import.meta.glob` com padrão fixo.
+
+```tsx
+// ❌ o caminho só existe em tempo de execução
+const SECTIONS = { agenda: './sections/agenda-section', financeiro: './sections/finance-section' };
+const load = (key: keyof typeof SECTIONS) => import(SECTIONS[key]);
+
+// ✅ cada entrada vira um chunk que o Vite conhece (envolva com <Suspense>)
+const SECTIONS = {
+    agenda: lazy(() => import('./sections/agenda-section')),
+    financeiro: lazy(() => import('./sections/finance-section')),
+};
+```
+
+Muitos arquivos com o mesmo padrão: `import.meta.glob('./icons/*.svg', { eager: true, import: 'default' })`. Sem `eager`, cada entrada vira um `() => import()` sob demanda.
+
+## Dicas de recurso do `react-dom`
+
+`preconnect`, `prefetchDNS` e `preload` do `react-dom`, chamados durante o render, viram `<link>` no `<head>` e adiantam conexão ou download. O React deduplica, então chamar de novo é seguro.
+
+- **`preconnect`** para o domínio de mídia (o CDN das imagens e vídeos de exercício) numa tela que vai mostrar mídia logo em seguida, como a biblioteca de exercícios ou o programa do paciente.
+- **`preload(url, { as: 'image', fetchPriority: 'high' })`** para a imagem principal da tela, assim que a URL chega da API.
+
+```tsx
+import { preconnect, preload } from 'react-dom';
+
+function ExerciseHero({ exercise }: { exercise: Exercise }) {
+    preconnect(new URL(exercise.coverUrl).origin);
+    preload(exercise.coverUrl, { as: 'image', fetchPriority: 'high' });
+    return <img src={exercise.coverUrl} alt={exercise.name} fetchPriority="high" />;
+}
+```
+
+Não precisa para a própria API (mesmo domínio, conexão aberta) nem para fontes empacotadas pelo Vite (nome com hash muda a cada build).
+
 ## Lista virtualizada
 
 Para tabelas com 1000+ rows visíveis (raro no projeto, mas relevante em listas de pacientes/sessões), use [`@tanstack/react-virtual`](https://tanstack.com/virtual). Não está instalado hoje — discutir antes de adicionar.
@@ -287,6 +324,39 @@ return <Page />;
 export default memo(AdminLayout);
 ```
 
+### 6. Componente declarado dentro de componente
+
+```tsx
+// ❌ PatientCard cria um tipo novo de Avatar a cada render: o React remonta do zero
+function PatientCard({ patient }: { patient: Patient }) {
+    const Avatar = () => <img src={patient.photoUrl} alt={patient.name} />;
+    return <Avatar />;
+}
+
+// ✅ componente no nível do módulo, recebendo props
+function PatientAvatar({ src, name }: { src: string; name: string }) {
+    return <img src={src} alt={name} />;
+}
+```
+
+Sintomas: campo perde o foco a cada tecla (comum com React Hook Form num componente interno), animação recomeça, efeito faz limpeza e setup a cada render do pai, rolagem volta ao topo. Função que só devolve JSX e é **chamada** (`{renderDetails()}`) não tem o problema; se crescer, vira componente.
+
+### 7. Um hook fazendo tarefas independentes
+
+```tsx
+// ❌ trocar a ordenação refaz o filtro
+const sorted = useMemo(
+    () => sessions.filter((s) => s.status === status).toSorted(byDate(order)),
+    [sessions, status, order],
+);
+
+// ✅ cada passo só roda quando as dependências dele mudam
+const filtered = useMemo(() => sessions.filter((s) => s.status === status), [sessions, status]);
+const sorted = useMemo(() => filtered.toSorted(byDate(order)), [filtered, order]);
+```
+
+O mesmo vale para `useEffect` que junta dois efeitos sem relação: um efeito por tarefa. Só vale a separação quando uma das partes é cara.
+
 ## Checklist — antes de otimizar
 
 - [ ] Tenho prova (DevTools Profiler) de que o componente está lento?
@@ -296,3 +366,5 @@ export default memo(AdminLayout);
 - [ ] O `useMemo` cobre cálculo > 0.1ms sobre array > 100 itens?
 - [ ] Posso usar `useDeferredValue` para "UI responsiva sem travar render pesado"?
 - [ ] Se rota raramente acessada, faz sentido `lazy()`?
+- [ ] Algum componente está declarado dentro de outro (remonta a cada render)?
+- [ ] O `import()` tem caminho literal (ou `import.meta.glob`), não vindo de variável?

@@ -5,12 +5,12 @@
  *
  * Uso (de qualquer pasta do repo):
  *   node tools/evals/revisao/run.mjs
- *   node tools/evals/revisao/run.mjs --casos 01,06
+ *   node tools/evals/revisao/run.mjs --casos 01,06 --revisores revisao-de-codigo
  *   node tools/evals/revisao/run.mjs --paralelo 1 --orcamento 10 --manter
  *
  * Opções:
  *   --casos A,B        prefixos ou nomes das pastas em casos/ (padrão: todos)
- *   --revisores A,B    chaves de REVIEWERS (padrão: todos; hoje só code-review)
+ *   --revisores A,B    revisao-de-codigo, code-review (padrão: os dois)
  *   --base REF         commit de onde cada worktree nasce (padrão: main)
  *   --paralelo N       quantas revisões rodam ao mesmo tempo (padrão: 2)
  *   --orcamento USD    teto de gasto por sessão do claude, revisor ou juiz (padrão: 20; 0 = sem teto)
@@ -45,8 +45,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: HERE, encoding: 'utf8' }).trim();
 const CASES_DIR = path.join(HERE, 'casos');
 
-// Para comparar outro revisor, acrescente aqui o comando que o chama (uma skill do projeto, por exemplo).
 const REVIEWERS = {
+    'revisao-de-codigo': '/revisao-de-codigo',
     'code-review': '/code-review high',
 };
 

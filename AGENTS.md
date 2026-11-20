@@ -160,6 +160,16 @@ Skills vivem só em **`.claude/skills/`** e subagentes só em **`.claude/agents/
 | Resolver conflito de merge ou rebase (trazer a `main` para a branch da worktree ou levar a branch de volta) | [`conflitos-de-merge`](.claude/skills/conflitos-de-merge/SKILL.md) |
 | Bug simples ou ajuste pequeno fora do ciclo (três linhas, teste vermelho, correção mínima) | [`correcao-rapida`](.claude/skills/correcao-rapida/SKILL.md) |
 
+### Produto e negócio (fora do ciclo do harness)
+
+Estas skills não fazem parte do ciclo (`refinar` → … → `revisao-adversaria`), não contam para a Definição de Pronto e não mudam código: entregam análise ou texto. Só rodam quando o usuário chamar; não sugira nem rode por conta própria. Se o resultado virar funcionalidade, ela entra no ciclo pelo `refinar`, como qualquer pedido.
+
+| Vou fazer | Skill |
+|-----------|-------|
+| Decidir preço e planos (Start, Performance, Premium), o que entra em cada um, cobrança por usuário, aumento de preço, página de preços | [`pricing`](.claude/skills/pricing/SKILL.md) |
+| Desenhar ou melhorar sequências e textos de e-mail: boas-vindas e primeiros passos da clínica, reativação, comunicação com o paciente (com os cuidados de LGPD) | [`emails`](.claude/skills/emails/SKILL.md) |
+| Mapear a jornada da clínica, do fisioterapeuta, da secretária ou do paciente num trecho do produto, sem inventar dado de pesquisa | [`jornada-do-cliente`](.claude/skills/jornada-do-cliente/SKILL.md) |
+
 ## Princípios não-negociáveis
 
 1. **Backend é fonte de verdade.** Frontend nunca decide autorização efetiva, validação de segurança, ou regra de negócio crítica. Frontend esconde para UX; backend protege para valer.

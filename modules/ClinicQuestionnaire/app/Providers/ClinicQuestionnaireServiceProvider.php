@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireRepositoryInterface;
 use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
+use Modules\ClinicQuestionnaire\Contracts\Public\QuestionnaireEmailReadServiceInterface;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateRepositoryInterface;
 use Modules\ClinicQuestionnaire\Contracts\QuestionnaireTemplateServiceInterface;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
@@ -15,6 +16,7 @@ use Modules\ClinicQuestionnaire\Policies\QuestionnaireTemplatePolicy;
 use Modules\ClinicQuestionnaire\Repositories\PatientQuestionnaireRepository;
 use Modules\ClinicQuestionnaire\Repositories\QuestionnaireTemplateRepository;
 use Modules\ClinicQuestionnaire\Services\PatientQuestionnaireService;
+use Modules\ClinicQuestionnaire\Services\QuestionnaireEmailReadService;
 use Modules\ClinicQuestionnaire\Services\QuestionnaireTemplateService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -41,6 +43,7 @@ class ClinicQuestionnaireServiceProvider extends ServiceProvider
         $this->app->bind(QuestionnaireTemplateRepositoryInterface::class, QuestionnaireTemplateRepository::class);
         $this->app->bind(PatientQuestionnaireServiceInterface::class, PatientQuestionnaireService::class);
         $this->app->bind(PatientQuestionnaireRepositoryInterface::class, PatientQuestionnaireRepository::class);
+        $this->app->bind(QuestionnaireEmailReadServiceInterface::class, QuestionnaireEmailReadService::class);
 
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);

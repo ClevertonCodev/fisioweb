@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import {
     usePatientQuestionnaires,
@@ -12,11 +11,6 @@ import type {
     QuestionnaireQuestion,
     QuestionnaireTemplate,
 } from '@/domain/clinic';
-import {
-    buildMailtoUrl,
-    buildWhatsAppUrl,
-    questionnaireShareText,
-} from '@/pages/clinic/patient/patient-record/share';
 
 export const DEADLINES = [
     { key: '1', label: '24 horas', days: 1 },
@@ -53,21 +47,13 @@ function expiresAtPayload(days: number, now: Date): string | null {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
 }
 
-export function useQuestionnaireSend(
-    patientId: string,
-    patientName: string,
-    patientPhone: string | undefined,
-    patientEmail: string | undefined,
-    onClose: () => void,
-) {
+export function useQuestionnaireSend(patientId: string, onClose: () => void) {
     const navigate = useNavigate();
     const templates = useQuestionnaireTemplates();
     const history = usePatientQuestionnaires(patientId);
     const sendMutation = useSendQuestionnaire(patientId);
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [deadline, setDeadline] = useState<string>('3');
-    const [sent, setSent] = useState<PatientQuestionnaire | null>(null);
-    const [copied, setCopied] = useState(false);
     const [now] = useState(() => new Date());
 
     const active = useMemo(
@@ -85,49 +71,17 @@ export function useQuestionnaireSend(
             .filter((q) => q.questionnaireTemplateId === templateId)
             .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
 
-    const shareUrl = sent?.shareUrl ?? null;
-    const title = selected?.title ?? sent?.template?.title ?? 'Questionário';
-    const text = questionnaireShareText(patientName, title, shareUrl ?? '');
-    const whatsappUrl = buildWhatsAppUrl(patientPhone, text);
-    const mailtoUrl = buildMailtoUrl(
-        patientEmail,
-        `Questionário: ${title}`,
-        text,
-    );
-
-    const send = async () => {
-        if (!selected) return;
+    const send = async (): Promise<PatientQuestionnaire | null> => {
+        if (!selected) return null;
         try {
-            const created = await sendMutation.mutateAsync({
+            return await sendMutation.mutateAsync({
                 questionnaireTemplateId: selected.id,
                 modality: 'remoto',
                 expiresAt: expiresAtPayload(days, now),
             });
-            setSent(created);
         } catch {
-            // toast no hook
+            return null;
         }
-    };
-
-    const copyLink = async () => {
-        if (!shareUrl) return;
-        try {
-            await navigator.clipboard.writeText(shareUrl);
-            setCopied(true);
-            toast.success('Link copiado');
-        } catch {
-            toast.error('Não foi possível copiar o link');
-        }
-    };
-
-    const openWhatsApp = () => {
-        if (!whatsappUrl) return;
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    };
-
-    const openEmail = () => {
-        if (!mailtoUrl) return;
-        window.location.href = mailtoUrl;
     };
 
     return {
@@ -139,7 +93,6 @@ export function useQuestionnaireSend(
         setDeadline,
         expiresAt,
         lastSentOf,
-        sent,
         sending: sendMutation.isPending,
         send,
         createNew: () => {
@@ -150,14 +103,6 @@ export function useQuestionnaireSend(
                 )}`,
             );
         },
-        shareUrl,
-        copied,
-        copyLink,
-        whatsappUrl,
-        openWhatsApp,
-        mailtoUrl,
-        openEmail,
-        finish: onClose,
     };
 }
 

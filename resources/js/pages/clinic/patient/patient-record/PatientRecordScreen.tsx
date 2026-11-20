@@ -4,10 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { patientDisplayName } from '@/application/clinic/patient-display-name';
 import { can } from '@/application/clinic/permissions';
+import { useSendPatientQuestionnaireEmail } from '@/application/clinic/use-patient-questionnaires';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { SendToPatientModal } from '@/components/clinic/SendToPatientModal';
 import { DsButton, DsEmptyState } from '@/components/ds';
 import { useAuth } from '@/contexts/AuthContext';
-import type { PatientEvolution } from '@/domain/clinic';
+import type { PatientEvolution, PatientQuestionnaire } from '@/domain/clinic';
 
 import { EvolutionFormModal } from '../evolution-form/EvolutionFormModal';
 import { FileUploadModal } from '../file-form/FileUploadModal';
@@ -15,6 +17,7 @@ import { QuestionnaireSendDrawer } from '../questionnaire-form/QuestionnaireSend
 
 import { usePatientRecord, type RecordItem } from './data';
 import { RecordDrawer, type QuickAction } from './parts';
+import { buildWhatsAppUrl, questionnaireShareText } from './share';
 import { VariantB } from './VariantB';
 
 export default function PatientRecordScreen() {
@@ -29,9 +32,15 @@ export default function PatientRecordScreen() {
     >();
     const [fileOpen, setFileOpen] = useState(false);
     const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
+    const [shareTarget, setShareTarget] = useState<PatientQuestionnaire | null>(
+        null,
+    );
+    const sendQuestionnaireEmail = useSendPatientQuestionnaireEmail();
     const open = data.items.find((i) => i.key === openKey) ?? null;
     const canManageClinical = can.manageClinicalRecords(user?.role);
     const shownName = data.patient ? patientDisplayName(data.patient) : '';
+    const shareTitle = shareTarget?.template?.title ?? 'Questionário';
+    const shareUrl = shareTarget?.shareUrl ?? null;
 
     const runAction = useCallback(
         (action: QuickAction) => {
@@ -95,12 +104,10 @@ export default function PatientRecordScreen() {
             <RecordDrawer
                 item={open}
                 patientId={id}
-                patientName={shownName}
-                patientPhone={data.patient?.phone}
-                patientEmail={data.patient?.email}
                 currentUserId={user == null ? undefined : Number(user.id)}
                 role={user?.role}
                 onClose={() => setOpenKey(null)}
+                onSendQuestionnaire={setShareTarget}
                 onEditEvolution={(evolution) => {
                     setOpenKey(null);
                     setEvolutionToEdit(evolution);
@@ -126,10 +133,36 @@ export default function PatientRecordScreen() {
             <QuestionnaireSendDrawer
                 open={questionnaireOpen}
                 onOpenChange={setQuestionnaireOpen}
+                onSent={setShareTarget}
                 patientId={id}
                 patientName={shownName}
-                patientPhone={data.patient?.phone}
-                patientEmail={data.patient?.email}
+            />
+            <SendToPatientModal
+                open={shareTarget !== null}
+                onClose={() => setShareTarget(null)}
+                meta={shownName}
+                patientEmail={data.patient?.email ?? null}
+                patientPhone={data.patient?.phone ?? null}
+                whatsappUrl={
+                    shareTarget
+                        ? buildWhatsAppUrl(
+                              data.patient?.phone,
+                              questionnaireShareText(
+                                  shownName,
+                                  shareTitle,
+                                  shareUrl ?? '',
+                              ),
+                          )
+                        : null
+                }
+                shareUrl={shareUrl}
+                onSendEmail={() => {
+                    if (!shareTarget) return Promise.resolve();
+                    return sendQuestionnaireEmail.mutateAsync({
+                        patientId: id,
+                        questionnaireId: String(shareTarget.id),
+                    });
+                }}
             />
         </ClinicLayout>
     );

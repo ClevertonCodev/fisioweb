@@ -24,6 +24,15 @@ class PatientQuestionnaireRepository implements PatientQuestionnaireRepositoryIn
             ->get();
     }
 
+    public function findForClinicWithEmailDetails(int $clinicId, int $questionnaireId): ?PatientQuestionnaire
+    {
+        return PatientQuestionnaire::query()
+            ->where('clinic_id', $clinicId)
+            ->whereKey($questionnaireId)
+            ->with(['clinic', 'template.sections.questions'])
+            ->first();
+    }
+
     public function find(int $id): PatientQuestionnaire
     {
         $questionnaire = PatientQuestionnaire::query()

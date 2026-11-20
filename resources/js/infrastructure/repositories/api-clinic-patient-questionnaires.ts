@@ -135,6 +135,11 @@ export const apiClinicPatientQuestionnairesRepository: PatientQuestionnairesRepo
             });
             return toPatientQuestionnaire(res.data.data);
         },
+        async sendEmail(patientId, questionnaireId) {
+            await apiClient.post(
+                `/clinic/patients/${patientId}/questionnaires/${questionnaireId}/email`,
+            );
+        },
         async answer(
             patientId,
             questionnaireId,

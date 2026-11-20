@@ -60,6 +60,13 @@ export function useSendQuestionnaire(patientId: string) {
     });
 }
 
+export function useSendPatientQuestionnaireEmail() {
+    return useMutation({
+        mutationFn: (vars: { patientId: string; questionnaireId: string }) =>
+            repo.sendEmail(vars.patientId, vars.questionnaireId),
+    });
+}
+
 export function useAnswerQuestionnaire(patientId: string) {
     const queryClient = useQueryClient();
     return useMutation({

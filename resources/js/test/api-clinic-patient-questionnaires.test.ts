@@ -37,6 +37,20 @@ function makeApiQuestionnaire(overrides = {}) {
     };
 }
 
+describe('apiClinicPatientQuestionnairesRepository.sendEmail', () => {
+    it('envia POST para o endpoint de e-mail do questionário', async () => {
+        mockPost.mockResolvedValueOnce({
+            data: { data: { queued: true } },
+        });
+
+        await apiClinicPatientQuestionnairesRepository.sendEmail('102', '11');
+
+        expect(apiClient.post).toHaveBeenCalledWith(
+            '/clinic/patients/102/questionnaires/11/email',
+        );
+    });
+});
+
 describe('apiClinicPatientQuestionnairesRepository.answer', () => {
     it('envia answers com question_id snake_case na rota da clínica', async () => {
         mockPost.mockResolvedValueOnce({

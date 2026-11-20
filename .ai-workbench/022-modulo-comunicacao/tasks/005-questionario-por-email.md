@@ -30,15 +30,15 @@ Depois de enviar um questionário, o prontuário mostra Copiar link, WhatsApp e 
 
 ## Critérios de Aceite
 
-- [ ] `POST …/questionnaires/{id}/email` de um envio pendente responde 202 e dispara `QuestionnaireEmailRequested` (`Event::fake`).
-- [ ] Paciente de outra clínica, envio de outra clínica ou envio de outro paciente dá 404.
-- [ ] Envio respondido ou vencido dá 422; paciente sem e-mail dá 422; o sexto pedido no minuto dá 429.
-- [ ] Com o listener (`Mail::fake`), o e-mail tem "De: <clínica> via IVS MED", sem Reply-To, assunto sem o título, prazo no fuso da clínica e botão com o `share_url`.
-- [ ] O contrato do envio não devolve nada para id de outra clínica.
-- [ ] Depois de enviar um questionário, o prontuário abre o modal C. O e-mail mostra "Enviado <hora>"; o questionário pendente tem "Enviar ao paciente" (Vitest).
-- [ ] Não sobra `mailto:` no fluxo do questionário.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] `POST …/questionnaires/{id}/email` de um envio pendente responde 202 e dispara `QuestionnaireEmailRequested` (`Event::fake`).
+- [x] Paciente de outra clínica, envio de outra clínica ou envio de outro paciente dá 404.
+- [x] Envio respondido ou vencido dá 422; paciente sem e-mail dá 422; o sexto pedido no minuto dá 429.
+- [x] Com o listener (`Mail::fake`), o e-mail tem "De: <clínica> via IVS MED", sem Reply-To, assunto sem o título, prazo no fuso da clínica e botão com o `share_url`.
+- [x] O contrato do envio não devolve nada para id de outra clínica.
+- [x] Depois de enviar um questionário, o prontuário abre o modal C. O e-mail mostra "Enviado <hora>"; o questionário pendente tem "Enviar ao paciente" (Vitest).
+- [x] Não sobra `mailto:` no fluxo do questionário.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

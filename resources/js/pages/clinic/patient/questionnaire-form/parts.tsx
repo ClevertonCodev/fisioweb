@@ -1,7 +1,7 @@
-import { Check, CheckCircle2, Copy, Mail, MessageCircle } from 'lucide-react';
+import { Check } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { DsBadge, DsButton, dsCn } from '@/components/ds';
+import { DsBadge, dsCn } from '@/components/ds';
 import type { QuestionnaireTemplate } from '@/domain/clinic';
 
 import {
@@ -116,58 +116,4 @@ export function deadlineText(s: QuestionnaireSend): string {
     return s.expiresAt
         ? `até ${s.expiresAt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })}`
         : 'sem prazo';
-}
-
-export function SentPanel({
-    s,
-    patientName,
-}: {
-    s: QuestionnaireSend;
-    patientName: string;
-}) {
-    const first = patientName.split(' ')[0];
-    return (
-        <div className="flex flex-col items-center gap-4 py-6 text-center">
-            <CheckCircle2 className="size-14 text-ds-status-success-content" />
-            <div>
-                <p className="text-ds-body-lg font-semibold">
-                    Pronto, agora é com {first}
-                </p>
-                <p className="mt-1 text-ds-body-sm text-ds-content-secondary">
-                    &quot;{s.selected?.title ?? s.shareUrl}&quot; para responder{' '}
-                    {deadlineText(s)}. Mande o link:
-                </p>
-                {s.shareUrl && (
-                    <p className="mt-2 font-ds-mono text-ds-caption break-all text-ds-content-muted">
-                        {s.shareUrl}
-                    </p>
-                )}
-            </div>
-            <div className="flex flex-wrap justify-center gap-2">
-                <DsButton
-                    iconPosition="left"
-                    icon={<MessageCircle />}
-                    label="WhatsApp"
-                    disabled={!s.whatsappUrl}
-                    onClick={s.openWhatsApp}
-                />
-                <DsButton
-                    variant="secondary"
-                    iconPosition="left"
-                    icon={<Mail />}
-                    label="E-mail"
-                    disabled={!s.mailtoUrl}
-                    onClick={s.openEmail}
-                />
-                <DsButton
-                    variant="secondary"
-                    iconPosition="left"
-                    icon={s.copied ? <Check /> : <Copy />}
-                    label={s.copied ? 'Link copiado' : 'Copiar link'}
-                    disabled={!s.shareUrl}
-                    onClick={() => void s.copyLink()}
-                />
-            </div>
-        </div>
-    );
 }

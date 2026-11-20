@@ -2,13 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {
-    fireEvent,
-    render,
-    screen,
-    waitFor,
-    within,
-} from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import {
@@ -71,6 +65,7 @@ const listAssessments = vi.fn();
 const listQuestionnaires = vi.fn();
 const findQuestionnaire = vi.fn();
 const storeQuestionnaire = vi.fn();
+const sendQuestionnaireEmail = vi.fn();
 const destroyQuestionnaire = vi.fn();
 const listQuestionnaireTemplates = vi.fn();
 const listFiles = vi.fn();
@@ -111,6 +106,7 @@ vi.mock(
             listByPatient: (...args: unknown[]) => listQuestionnaires(...args),
             findById: (...args: unknown[]) => findQuestionnaire(...args),
             store: (...args: unknown[]) => storeQuestionnaire(...args),
+            sendEmail: (...args: unknown[]) => sendQuestionnaireEmail(...args),
             destroy: (...args: unknown[]) => destroyQuestionnaire(...args),
         },
     }),
@@ -1070,7 +1066,7 @@ describe('prontuário do paciente (painel B)', () => {
         expect(storeFile).not.toHaveBeenCalled();
     });
 
-    it('enviar questionário cria o envio remoto e o passo Pronto mostra o shareUrl com token', async () => {
+    it('enviar questionário abre o modal Enviar ao paciente e o e-mail mostra Enviado', async () => {
         const user = userEvent.setup();
         const token = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
         const created = makeQuestionnaire({
@@ -1084,6 +1080,7 @@ describe('prontuário do paciente (painel B)', () => {
             listQuestionnaires.mockResolvedValue([created]);
             return created;
         });
+        sendQuestionnaireEmail.mockResolvedValue(undefined);
         getDetailById.mockResolvedValue(
             makePatient('108', { email: 'paciente@example.com' }),
         );
@@ -1110,10 +1107,13 @@ describe('prontuário do paciente (painel B)', () => {
         };
         expect(dto.modality).toBe('remoto');
 
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
         expect(
-            await screen.findByRole('heading', { name: 'Pronto' }),
-        ).toBeInTheDocument();
-        expect(screen.getByText(created.shareUrl!)).toBeInTheDocument();
+            screen.queryByRole('heading', { name: 'Pronto' }),
+        ).not.toBeInTheDocument();
+        expect(within(dialog).getByText(created.shareUrl!)).toBeInTheDocument();
         expect(
             screen.queryByText(/\/questionarios\/12\b/),
         ).not.toBeInTheDocument();
@@ -1121,14 +1121,17 @@ describe('prontuário do paciente (painel B)', () => {
             screen.queryByText(/\/questionnaires\/12\b/),
         ).not.toBeInTheDocument();
 
+        await user.click(
+            within(dialog).getByRole('button', { name: 'Enviar' }),
+        );
+        expect(sendQuestionnaireEmail).toHaveBeenCalledWith('108', '12');
         expect(
-            screen.getByRole('button', { name: /copiar link/i }),
-        ).toBeEnabled();
-        expect(screen.getByRole('button', { name: /whatsapp/i })).toBeEnabled();
-        expect(screen.getByRole('button', { name: /e-mail/i })).toBeEnabled();
-        fireEvent.click(screen.getByRole('button', { name: /whatsapp/i }));
+            await within(dialog).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+
+        await user.click(within(dialog).getByRole('button', { name: 'Abrir' }));
         expect(window.open).toHaveBeenCalledWith(
-            expect.stringContaining(`https://wa.me/84977776666?text=`),
+            expect.stringContaining('https://wa.me/84977776666?text='),
             '_blank',
             'noopener,noreferrer',
         );
@@ -1170,16 +1173,24 @@ describe('prontuário do paciente (painel B)', () => {
         await user.click(screen.getByText('Anamnese lombar'));
         await user.click(screen.getByRole('button', { name: /^enviar$/i }));
 
+        const dialog = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
         expect(
-            await screen.findByRole('heading', { name: 'Pronto' }),
+            within(dialog).getByText('Paciente sem e-mail cadastrado'),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: /copiar link/i }),
-        ).toBeEnabled();
+            within(dialog).getByText('Paciente sem celular cadastrado'),
+        ).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: /whatsapp/i }),
+            within(dialog).getByRole('button', { name: 'Enviar' }),
         ).toBeDisabled();
-        expect(screen.getByRole('button', { name: /e-mail/i })).toBeDisabled();
+        expect(
+            within(dialog).getByRole('button', { name: 'Abrir' }),
+        ).toBeDisabled();
+        expect(
+            within(dialog).getByRole('button', { name: 'Copiar' }),
+        ).toBeEnabled();
     });
 
     it('secretária vê evolução e avaliação aria-disabled; clique e Enter não abrem', async () => {
@@ -1279,7 +1290,7 @@ describe('prontuário do paciente (painel B)', () => {
         expect(window.open).toHaveBeenCalledTimes(1);
     });
 
-    it('drawer pendente tem os três botões; o respondido mostra respostas e não tem formulário', async () => {
+    it('questionário pendente tem Enviar ao paciente; o respondido mostra respostas', async () => {
         const user = userEvent.setup();
         listQuestionnaires.mockResolvedValue([
             makeQuestionnaire({
@@ -1326,18 +1337,24 @@ describe('prontuário do paciente (painel B)', () => {
         const pending = await screen.findByRole('dialog', {
             name: 'Dor lombar',
         });
-        expect(
-            within(pending).getByRole('button', { name: 'Copiar link' }),
-        ).toBeInTheDocument();
-        expect(
-            within(pending).getByRole('button', { name: 'WhatsApp' }),
-        ).toBeInTheDocument();
-        expect(
-            within(pending).getByRole('button', { name: 'E-mail' }),
-        ).toBeInTheDocument();
+        sendQuestionnaireEmail.mockResolvedValue(undefined);
         expect(
             within(pending).queryByRole('button', { name: /responder/i }),
         ).not.toBeInTheDocument();
+        await user.click(
+            within(pending).getByRole('button', { name: 'Enviar ao paciente' }),
+        );
+        const share = await screen.findByRole('dialog', {
+            name: 'Enviar ao paciente',
+        });
+        await user.click(within(share).getByRole('button', { name: 'Enviar' }));
+        expect(sendQuestionnaireEmail).toHaveBeenCalledWith('108', '41');
+        expect(
+            await within(share).findByText(/^Enviado \d{2}:\d{2}$/),
+        ).toBeInTheDocument();
+        await user.click(
+            within(share).getByRole('button', { name: 'Concluir' }),
+        );
         await user.click(
             within(pending).getByRole('button', { name: 'Fechar' }),
         );

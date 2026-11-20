@@ -8,9 +8,13 @@ use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Modules\ClinicQuestionnaire\Events\QuestionnaireEmailRequested;
+use Modules\Email\Contracts\QuestionnaireEmailSenderInterface;
 use Modules\Email\Contracts\TreatmentPlanEmailSenderInterface;
 use Modules\Email\Listeners\EmbedBrandLogo;
+use Modules\Email\Listeners\SendQuestionnaireEmail;
 use Modules\Email\Listeners\SendTreatmentPlanEmail;
+use Modules\Email\Services\QuestionnaireEmailSender;
 use Modules\Email\Services\TreatmentPlanEmailSender;
 use Modules\TreatmentProgram\Events\TreatmentPlanEmailRequested;
 
@@ -27,6 +31,7 @@ class EmailServiceProvider extends ServiceProvider
 
         Event::listen(MessageSending::class, EmbedBrandLogo::class);
         Event::listen(TreatmentPlanEmailRequested::class, SendTreatmentPlanEmail::class);
+        Event::listen(QuestionnaireEmailRequested::class, SendQuestionnaireEmail::class);
 
         RateLimiter::for('clinic-patient-email', function (Request $request) {
             $userId = $request->user('clinic')?->getAuthIdentifier();
@@ -44,6 +49,7 @@ class EmailServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(dirname(__DIR__, 2) . '/config/config.php', $this->nameLower);
 
         $this->app->bind(TreatmentPlanEmailSenderInterface::class, TreatmentPlanEmailSender::class);
+        $this->app->bind(QuestionnaireEmailSenderInterface::class, QuestionnaireEmailSender::class);
 
         $config = $this->app['config'];
         $config->set('mail.markdown.theme', 'ivsmed');

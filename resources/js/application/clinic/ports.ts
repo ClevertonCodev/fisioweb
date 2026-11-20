@@ -448,6 +448,7 @@ export interface PatientQuestionnairesRepository {
         patientId: string,
         dto: PatientQuestionnaireWriteDto,
     ): Promise<PatientQuestionnaire>;
+    sendEmail(patientId: string, questionnaireId: string): Promise<void>;
     answer(
         patientId: string,
         questionnaireId: string,

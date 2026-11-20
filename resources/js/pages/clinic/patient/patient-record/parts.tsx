@@ -6,13 +6,10 @@ import {
     Activity,
     CalendarDays,
     ClipboardList,
-    Copy,
     Download,
     Dumbbell,
     ExternalLink,
     FileText,
-    Mail,
-    MessageCircle,
     Paperclip,
     Pencil,
     PenLine,
@@ -22,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 import { evolutionDetailBlocks } from '@/application/clinic/evolution-sheet-text';
 import { can } from '@/application/clinic/permissions';
@@ -48,7 +44,12 @@ import {
     type BadgeVariant,
 } from '@/components/ds';
 import type { ClinicRole } from '@/domain/auth/session';
-import type { Appointment, PatientEvolution, Program } from '@/domain/clinic';
+import type {
+    Appointment,
+    PatientEvolution,
+    PatientQuestionnaire,
+    Program,
+} from '@/domain/clinic';
 import { TextBlocks } from '@/pages/clinic/patient/evolution-form/parts';
 
 import {
@@ -60,11 +61,6 @@ import {
     type RecordKind,
     type Tone,
 } from './data';
-import {
-    buildMailtoUrl,
-    buildWhatsAppUrl,
-    questionnaireShareText,
-} from './share';
 
 export const KIND_ICON: Record<RecordKind, LucideIcon> = {
     consulta: CalendarDays,
@@ -277,15 +273,11 @@ export function GuardedButton({
 export function RecordBody({
     item,
     patientId,
-    patientName,
-    patientPhone,
-    patientEmail,
+    onSendQuestionnaire,
 }: {
     item: RecordItem;
     patientId: string;
-    patientName?: string;
-    patientPhone?: string;
-    patientEmail?: string;
+    onSendQuestionnaire?: (questionnaire: PatientQuestionnaire) => void;
 }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -415,19 +407,22 @@ export function RecordBody({
                         }
                         answers={questionnaireDetail.data?.answers ?? []}
                     />
-                ) : (
+                ) : q.status === 'pending' ? (
                     <>
                         <p className="text-ds-body-sm text-ds-content-secondary">
-                            Aguardando o paciente responder. Envie o link:
+                            Aguardando o paciente responder.
                         </p>
-                        <QuestionnaireShareButtons
-                            shareUrl={q.shareUrl}
-                            title={q.template?.title ?? item.title}
-                            patientName={patientName}
-                            patientPhone={patientPhone}
-                            patientEmail={patientEmail}
-                        />
+                        <div>
+                            <DsButton
+                                label="Enviar ao paciente"
+                                onClick={() => onSendQuestionnaire?.(q)}
+                            />
+                        </div>
                     </>
+                ) : (
+                    <p className="text-ds-body-sm text-ds-content-secondary">
+                        O prazo deste questionário acabou.
+                    </p>
                 )}
             </div>
         );
@@ -562,74 +557,6 @@ function formatAnswer(answer: string | string[] | null): string {
     return Array.isArray(answer) ? answer.join(', ') : answer;
 }
 
-async function copyShareUrl(shareUrl: string | null) {
-    if (!shareUrl) return;
-    try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success('Link copiado');
-    } catch {
-        toast.error('Não foi possível copiar o link');
-    }
-}
-
-export function QuestionnaireShareButtons({
-    shareUrl,
-    title,
-    patientName,
-    patientPhone,
-    patientEmail,
-}: {
-    shareUrl: string | null;
-    title: string;
-    patientName?: string;
-    patientPhone?: string;
-    patientEmail?: string;
-}) {
-    const text = questionnaireShareText(patientName, title, shareUrl ?? '');
-    const whatsappUrl = buildWhatsAppUrl(patientPhone, text);
-    const mailtoUrl = buildMailtoUrl(
-        patientEmail,
-        `Questionário: ${title}`,
-        text,
-    );
-
-    return (
-        <div className="flex flex-col gap-2">
-            <GuardedButton
-                allowed={!!shareUrl}
-                denied="Link de acesso indisponível"
-                label="Copiar link"
-                icon={<Copy />}
-                onClick={() => void copyShareUrl(shareUrl)}
-            />
-            <GuardedButton
-                allowed={!!whatsappUrl}
-                denied="Paciente sem telefone cadastrado"
-                label="WhatsApp"
-                icon={<MessageCircle />}
-                onClick={() => {
-                    if (whatsappUrl) {
-                        window.open(
-                            whatsappUrl,
-                            '_blank',
-                            'noopener,noreferrer',
-                        );
-                    }
-                }}
-            />
-            <GuardedButton
-                allowed={!!mailtoUrl}
-                denied="Paciente sem e-mail cadastrado"
-                label="E-mail"
-                icon={<Mail />}
-                onClick={() => {
-                    if (mailtoUrl) window.location.href = mailtoUrl;
-                }}
-            />
-        </div>
-    );
-}
-
 function QuestionnaireAnswers({
     loading,
     sections,
@@ -695,23 +622,19 @@ type DeleteKind = 'evolucao' | 'arquivo' | 'questionario';
 export function RecordDrawer({
     item,
     patientId,
-    patientName,
-    patientPhone,
-    patientEmail,
     currentUserId,
     role,
     onClose,
     onEditEvolution,
+    onSendQuestionnaire,
 }: {
     item: RecordItem | null;
     patientId: string;
-    patientName?: string;
-    patientPhone?: string;
-    patientEmail?: string;
     currentUserId?: number;
     role?: ClinicRole;
     onClose: () => void;
     onEditEvolution?: (evolution: PatientEvolution) => void;
+    onSendQuestionnaire?: (questionnaire: PatientQuestionnaire) => void;
 }) {
     const [pendingDelete, setPendingDelete] = useState<DeleteKind | null>(null);
     const deleteEvolution = useDeleteEvolution(patientId);
@@ -800,9 +723,7 @@ export function RecordDrawer({
                     <RecordBody
                         item={item}
                         patientId={patientId}
-                        patientName={patientName}
-                        patientPhone={patientPhone}
-                        patientEmail={patientEmail}
+                        onSendQuestionnaire={onSendQuestionnaire}
                     />
                 )}
             </DsDrawer>

@@ -69,6 +69,28 @@ class PatientQuestionnaireController extends ClinicAuthenticatedController
         return response()->json(['data' => $record]);
     }
 
+    public function sendEmail(int $patient, int $questionnaire): JsonResponse
+    {
+        $clinicId = $this->clinicId();
+        $found    = $this->patientService->find($patient);
+
+        if (!$found || (int) $found->clinic_id !== $clinicId) {
+            return response()->json(['message' => 'Paciente não encontrado.'], 404);
+        }
+
+        $record = $this->questionnaireService->findForPatient($clinicId, $patient, $questionnaire);
+
+        if (is_null($record)) {
+            return response()->json(['message' => 'Questionário não encontrado.'], 404);
+        }
+
+        $this->authorize('view', $record);
+
+        $this->questionnaireService->requestEmail($record, $this->clinicUserId());
+
+        return response()->json(['data' => ['queued' => true]], 202);
+    }
+
     public function answer(AnswerPatientQuestionnaireRequest $request, int $patient, int $questionnaire): JsonResponse
     {
         $clinicId = $this->clinicId();

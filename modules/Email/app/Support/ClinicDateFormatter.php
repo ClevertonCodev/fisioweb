@@ -4,6 +4,7 @@ namespace Modules\Email\Support;
 
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
+use Throwable;
 
 final class ClinicDateFormatter
 {
@@ -24,6 +25,25 @@ final class ClinicDateFormatter
         }
 
         return $date ? $date->format('d/m/Y') : null;
+    }
+
+    public static function formatInstantDate(?string $instant, string $timezone): ?string
+    {
+        if (empty($instant)) {
+            return null;
+        }
+
+        $safeTimezone = in_array($timezone, timezone_identifiers_list(), true)
+            ? $timezone
+            : (string) config('app.timezone', 'America/Sao_Paulo');
+
+        try {
+            $date = CarbonImmutable::parse($instant)->timezone($safeTimezone);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $date->format('d/m/Y');
     }
 
     public static function singleLine(string $value): string

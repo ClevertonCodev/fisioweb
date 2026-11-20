@@ -12,6 +12,8 @@ interface PatientQuestionnaireServiceInterface
 
     public function findForPatient(int $clinicId, int $patientId, int $questionnaireId): ?PatientQuestionnaire;
 
+    public function requestEmail(PatientQuestionnaire $questionnaire, ?int $actorId): void;
+
     public function send(int $clinicId, int $patientId, int $clinicUserId, array $data): PatientQuestionnaire;
 
     public function answer(PatientQuestionnaire $questionnaire, array $answers): PatientQuestionnaire;

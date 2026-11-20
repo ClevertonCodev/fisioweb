@@ -11,6 +11,8 @@ interface PatientQuestionnaireRepositoryInterface
 
     public function find(int $id): PatientQuestionnaire;
 
+    public function findForClinicWithEmailDetails(int $clinicId, int $questionnaireId): ?PatientQuestionnaire;
+
     public function findForPublic(string $token): PatientQuestionnaire;
 
     public function create(array $data): PatientQuestionnaire;

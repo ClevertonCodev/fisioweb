@@ -9,6 +9,9 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::get('{patient}/questionnaires', [PatientQuestionnaireController::class, 'indexByPatient'])->name('questionnaires.index');
         Route::post('{patient}/questionnaires', [PatientQuestionnaireController::class, 'storeForPatient'])->name('questionnaires.store');
         Route::get('{patient}/questionnaires/{questionnaire}', [PatientQuestionnaireController::class, 'show'])->name('questionnaires.show');
+        Route::post('{patient}/questionnaires/{questionnaire}/email', [PatientQuestionnaireController::class, 'sendEmail'])
+            ->middleware('throttle:clinic-patient-email')
+            ->name('questionnaires.email');
         Route::post('{patient}/questionnaires/{questionnaire}/answer', [PatientQuestionnaireController::class, 'answer'])->name('questionnaires.answer');
         Route::delete('{patient}/questionnaires/{questionnaire}', [PatientQuestionnaireController::class, 'destroy'])->name('questionnaires.destroy');
     });

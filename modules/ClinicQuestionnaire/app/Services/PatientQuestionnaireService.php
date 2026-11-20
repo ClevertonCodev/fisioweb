@@ -11,10 +11,13 @@ use Modules\ClinicQuestionnaire\Contracts\PatientQuestionnaireServiceInterface;
 use Modules\ClinicQuestionnaire\Enums\QuestionnaireUnavailableReason;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireAnswered;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireCancelled;
+use Modules\ClinicQuestionnaire\Events\QuestionnaireEmailRequested;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireExpired;
 use Modules\ClinicQuestionnaire\Events\QuestionnaireSent;
 use Modules\ClinicQuestionnaire\Exceptions\QuestionnaireUnavailableException;
 use Modules\ClinicQuestionnaire\Models\PatientQuestionnaire;
+use Modules\ClinicQuestionnaire\Support\QuestionnaireShareUrl;
+use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 
 class PatientQuestionnaireService implements PatientQuestionnaireServiceInterface
 {
@@ -22,6 +25,7 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
 
     public function __construct(
         protected PatientQuestionnaireRepositoryInterface $repository,
+        protected PatientContactReadServiceInterface $patientContacts,
     ) {}
 
     public function listByPatient(int $clinicId, int $patientId)
@@ -47,6 +51,41 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
         }
 
         return $this->withShareUrl($questionnaire);
+    }
+
+    public function requestEmail(PatientQuestionnaire $questionnaire, ?int $actorId): void
+    {
+        if ($questionnaire->status !== PatientQuestionnaire::STATUS_PENDING) {
+            throw ValidationException::withMessages([
+                'questionnaire' => 'Este questionário não está pendente.',
+            ]);
+        }
+
+        if (!is_null($questionnaire->expires_at) && $questionnaire->expires_at->isPast()) {
+            throw ValidationException::withMessages([
+                'questionnaire' => 'Este questionário expirou.',
+            ]);
+        }
+
+        $patient = $this->patientContacts->findById(
+            (int) $questionnaire->clinic_id,
+            (int) $questionnaire->patient_id,
+        );
+
+        if (is_null($patient) || empty($patient->email) || !filter_var($patient->email, FILTER_VALIDATE_EMAIL)) {
+            throw ValidationException::withMessages([
+                'email' => 'Paciente sem e-mail cadastrado.',
+            ]);
+        }
+
+        $this->dispatchEvent(new QuestionnaireEmailRequested(
+            version: self::EVENT_VERSION,
+            clinicId: (int) $questionnaire->clinic_id,
+            patientQuestionnaireId: (int) $questionnaire->id,
+            patientId: (int) $questionnaire->patient_id,
+            actorId: $actorId,
+            occurredAt: CarbonImmutable::now(),
+        ));
     }
 
     public function send(int $clinicId, int $patientId, int $clinicUserId, array $data): PatientQuestionnaire
@@ -174,13 +213,10 @@ class PatientQuestionnaireService implements PatientQuestionnaireServiceInterfac
         $slug  = $questionnaire->clinic?->slug;
         $token = $questionnaire->public_token;
 
-        $shareUrl = null;
-        if (!empty($slug) && !empty($token)) {
-            $shareUrl = rtrim((string) config('app.url'), '/')
-                . '/' . $slug
-                . '/paciente/questionarios/'
-                . $token;
-        }
+        $shareUrl = QuestionnaireShareUrl::from(
+            is_null($slug) ? null : (string) $slug,
+            is_null($token) ? null : (string) $token,
+        );
 
         $questionnaire->unsetRelation('clinic');
         $questionnaire->setAttribute('share_url', $shareUrl);

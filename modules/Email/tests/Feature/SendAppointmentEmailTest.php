@@ -14,6 +14,8 @@ use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Events\AppointmentEmailRequested;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Email\Listeners\SendAppointmentEmail;
+use Modules\Email\Mail\AppointmentCancelledMail;
+use Modules\Email\Mail\AppointmentRescheduledMail;
 use Modules\Email\Mail\AppointmentScheduledMail;
 use Modules\Patient\Models\Patient;
 use Monolog\Handler\TestHandler;
@@ -343,5 +345,110 @@ class SendAppointmentEmailTest extends TestCase
         $this->dispatchRequested($appointment);
 
         Mail::assertNothingSent();
+    }
+
+    public function test_rescheduled_email_shows_only_the_new_time_in_clinic_timezone(): void
+    {
+        Mail::fake();
+        $appointment = $this->makeAppointment();
+
+        $this->dispatchRequested($appointment, 'rescheduled');
+
+        Mail::assertNotSent(AppointmentScheduledMail::class);
+        Mail::assertSent(AppointmentRescheduledMail::class, function (AppointmentRescheduledMail $mail): bool {
+            $envelope = $mail->envelope();
+            $html     = $mail->render();
+
+            $this->assertTrue($mail->hasTo('ana@example.test'));
+            $this->assertSame('Clínica Movimento via IVS MED', $envelope->from?->name);
+            $this->assertSame([], $envelope->replyTo);
+            $this->assertSame('Consulta remarcada para 26/11 às 14:00 · Clínica Movimento', $envelope->subject);
+            $this->assertSame([
+                ['Data', 'Quinta-feira, 26/11/2026'],
+                ['Horário', '14:00 às 15:00'],
+                ['Profissional', 'Rafael Lima'],
+                ['Local', 'Rua das Flores, 120 · São Paulo/SP'],
+            ], $mail->detailsRows);
+            $this->assertStringContainsString('Sua consulta mudou de horário', $html);
+            $this->assertStringNotContainsString('Antes', $html);
+            $this->assertStringNotContainsString('17:00', $html);
+            $this->assertStringContainsString('Como chegar', $html);
+            $this->assertStringContainsString('Esse horário não dá? Ligue para a clínica: (11) 4000-1234', $html);
+
+            return true;
+        });
+    }
+
+    public function test_does_not_send_rescheduled_email_for_cancelled_appointment(): void
+    {
+        Mail::fake();
+        $appointment = $this->makeAppointment(['status' => AppointmentStatus::Cancelled]);
+
+        $this->dispatchRequested($appointment, 'rescheduled');
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_cancelled_email_shows_struck_appointment_without_button_and_with_clinic_phone(): void
+    {
+        Mail::fake();
+        $appointment = $this->makeAppointment(['status' => AppointmentStatus::Cancelled]);
+
+        $this->dispatchRequested($appointment, 'cancelled');
+
+        Mail::assertSent(AppointmentCancelledMail::class, function (AppointmentCancelledMail $mail): bool {
+            $envelope = $mail->envelope();
+            $html     = $mail->render();
+
+            $this->assertTrue($mail->hasTo('ana@example.test'));
+            $this->assertSame('Clínica Movimento via IVS MED', $envelope->from?->name);
+            $this->assertSame('Consulta de 26/11 cancelada · Clínica Movimento', $envelope->subject);
+            $this->assertSame([
+                ['Data', 'Quinta-feira, 26/11/2026'],
+                ['Horário', '14:00 às 15:00'],
+                ['Profissional', 'Rafael Lima'],
+            ], $mail->detailsRows);
+            $this->assertNull($mail->mapsUrl);
+            $this->assertStringContainsString('Sua consulta foi cancelada', $html);
+            $this->assertStringContainsString('details-struck', $html);
+            $this->assertStringNotContainsString('Como chegar', $html);
+            $this->assertStringNotContainsString('class="button', $html);
+            $this->assertStringContainsString('Para marcar um novo horário, ligue para a clínica: (11) 4000-1234', $html);
+
+            return true;
+        });
+    }
+
+    public function test_does_not_send_cancelled_email_for_active_appointment(): void
+    {
+        Mail::fake();
+        $appointment = $this->makeAppointment();
+
+        $this->dispatchRequested($appointment, 'cancelled');
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_external_text_does_not_become_markdown_in_rescheduled_and_cancelled_emails(): void
+    {
+        Mail::fake();
+        $this->clinic->forceFill([
+            'name'  => 'Clínica [x](https://evil.test) <b>',
+            'phone' => '[ligue](https://evil.test)',
+        ])->save();
+        $active    = $this->makeAppointment(['location' => 'Sala [2](https://evil.test)']);
+        $cancelled = $this->makeAppointment(['status' => AppointmentStatus::Cancelled]);
+
+        $this->dispatchRequested($active, 'rescheduled');
+        $this->dispatchRequested($cancelled, 'cancelled');
+
+        $mails = Mail::sent(AppointmentRescheduledMail::class)->merge(Mail::sent(AppointmentCancelledMail::class));
+        $this->assertCount(2, $mails);
+
+        foreach ($mails as $mail) {
+            $html = $mail->render();
+            $this->assertStringNotContainsString('href="https://evil.test"', $html);
+            $this->assertStringNotContainsString('<b>', $html);
+        }
     }
 }

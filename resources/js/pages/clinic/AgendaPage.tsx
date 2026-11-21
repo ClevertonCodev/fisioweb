@@ -17,7 +17,7 @@ import {
     useUpdateAppointment,
     useUpdateAppointmentStatus,
 } from '@/application/clinic';
-import { appointmentScheduledWhatsAppUrl } from '@/application/clinic/appointment-share';
+import { appointmentWhatsAppUrl } from '@/application/clinic/appointment-share';
 import { can } from '@/application/clinic/permissions';
 import { AgendaView } from '@/components/clinic/agenda/AgendaView';
 import { AppointmentModal } from '@/components/clinic/agenda/appointment-modal/AppointmentModal';
@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type {
     AgendaView as AgendaViewId,
     Appointment,
+    AppointmentNoticeKind,
     AppointmentStatus,
     ServiceType,
     ServiceTypeDraft,
@@ -54,6 +55,25 @@ function appointmentToWriteDto(
         startsAt: new Date(startsAt).toISOString(),
         endsAt: new Date(endsAt).toISOString(),
     };
+}
+
+interface AppointmentNotice {
+    appointment: Appointment;
+    kind: AppointmentNoticeKind;
+}
+
+const NOTICE_DESCRIPTION: Record<AppointmentNoticeKind, string> = {
+    scheduled: 'A consulta foi marcada. Escolha como avisar o paciente.',
+    rescheduled: 'A consulta mudou de horário. Escolha como avisar o paciente.',
+    cancelled: 'A consulta foi cancelada. Escolha como avisar o paciente.',
+};
+
+function timeChanged(before: Appointment, after: Appointment): boolean {
+    return (
+        new Date(before.startsAt).getTime() !==
+            new Date(after.startsAt).getTime() ||
+        new Date(before.endsAt).getTime() !== new Date(after.endsAt).getTime()
+    );
 }
 
 function formatNoticeDate(startsAt: string): string {
@@ -105,8 +125,16 @@ export default function AgendaPage() {
     const cancelMutation = useCancelAppointment();
     const replaceServiceTypes = useReplaceServiceTypes(userId);
     const sendEmailMutation = useSendAppointmentEmail();
-    const [noticeAppointment, setNoticeAppointment] =
-        useState<Appointment | null>(null);
+    const [notice, setNotice] = useState<AppointmentNotice | null>(null);
+
+    const openNotice = (
+        appointment: Appointment,
+        kind: AppointmentNoticeKind,
+    ) => {
+        if (appointment.patientId) {
+            setNotice({ appointment, kind });
+        }
+    };
     const [appointments, setAppointments] =
         useState<Appointment[]>(appointmentsData);
     const [syncedData, setSyncedData] = useState(appointmentsData);
@@ -207,12 +235,18 @@ export default function AgendaPage() {
     const handleSubmit = async (dto: AppointmentWriteDto) => {
         if (selectedAppointment) {
             try {
-                await updateMutation.mutateAsync({
+                const updated = await updateMutation.mutateAsync({
                     id: selectedAppointment.id,
                     dto,
                 });
                 toast.success('Consulta atualizada.');
                 setModalOpen(false);
+                if (
+                    timeChanged(selectedAppointment, updated) &&
+                    !isTerminalAppointmentStatus(updated.status)
+                ) {
+                    openNotice(updated, 'rescheduled');
+                }
             } catch (error) {
                 toast.error(
                     apiErrorMessage(
@@ -228,9 +262,7 @@ export default function AgendaPage() {
             const created = await createMutation.mutateAsync(dto);
             toast.success('Consulta agendada com sucesso!');
             setModalOpen(false);
-            if (created.patientId) {
-                setNoticeAppointment(created);
-            }
+            openNotice(created, 'scheduled');
         } catch (error) {
             toast.error(
                 apiErrorMessage(error, 'Não foi possível agendar a consulta.'),
@@ -262,6 +294,10 @@ export default function AgendaPage() {
             );
             setSelectedAppointment(updated);
             toast.success('Consulta cancelada.');
+            if (updated.patientId) {
+                setModalOpen(false);
+                openNotice(updated, 'cancelled');
+            }
         } catch {
             toast.error('Não foi possível cancelar a consulta.');
         }
@@ -304,11 +340,14 @@ export default function AgendaPage() {
         );
 
         try {
-            await updateMutation.mutateAsync({
+            const updated = await updateMutation.mutateAsync({
                 id,
                 dto: appointmentToWriteDto(apt, start, end),
             });
             toast.success(successMessage);
+            if (timeChanged(apt, updated)) {
+                openNotice(updated, 'rescheduled');
+            }
         } catch {
             setAppointments(previous);
             toast.error('Não foi possível reagendar a consulta.');
@@ -393,23 +432,24 @@ export default function AgendaPage() {
                 isSavingServiceTypes={replaceServiceTypes.isPending}
             />
 
-            {noticeAppointment && (
+            {notice && (
                 <SendToPatientModal
                     open
-                    onClose={() => setNoticeAppointment(null)}
+                    onClose={() => setNotice(null)}
                     title="Avisar o paciente?"
-                    meta={`${noticeAppointment.patientName} · ${formatNoticeDate(noticeAppointment.startsAt)}`}
-                    description="A consulta foi marcada. Escolha como avisar o paciente."
-                    patientEmail={noticeAppointment.patientEmail}
-                    patientPhone={noticeAppointment.patientPhone}
-                    whatsappUrl={appointmentScheduledWhatsAppUrl(
-                        noticeAppointment,
+                    meta={`${notice.appointment.patientName} · ${formatNoticeDate(notice.appointment.startsAt)}`}
+                    description={NOTICE_DESCRIPTION[notice.kind]}
+                    patientEmail={notice.appointment.patientEmail}
+                    patientPhone={notice.appointment.patientPhone}
+                    whatsappUrl={appointmentWhatsAppUrl(
+                        notice.appointment,
+                        notice.kind,
                     )}
                     dismissLabel="Não avisar"
                     onSendEmail={() =>
                         sendEmailMutation.mutateAsync({
-                            id: noticeAppointment.id,
-                            kind: 'scheduled',
+                            id: notice.appointment.id,
+                            kind: notice.kind,
                         })
                     }
                 />

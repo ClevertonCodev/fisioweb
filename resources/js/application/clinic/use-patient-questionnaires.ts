@@ -50,7 +50,6 @@ export function useSendQuestionnaire(patientId: string) {
             queryClient.invalidateQueries({
                 queryKey: keys.patientQuestionnaires(patientId),
             });
-            toast.success('Questionário enviado com sucesso');
         },
         onError: (err: ApiErrorResponse) => {
             toast.error(

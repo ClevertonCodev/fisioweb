@@ -14,6 +14,7 @@ import { devRoutes } from '@/routes/dev-routes';
 import { patientAuthRoutes } from '@/routes/patient/auth-routes';
 import { patientProgramRoutes } from '@/routes/patient/program-routes';
 import { patientQuestionnaireRoutes } from '@/routes/patient/questionnaire-routes';
+import { patientReminderRoutes } from '@/routes/patient/reminder-routes';
 
 import NotFound from './pages/NotFound';
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter(
         ...patientAuthRoutes,
         ...patientProgramRoutes,
         ...patientQuestionnaireRoutes,
+        ...patientReminderRoutes,
         ...devRoutes,
         { path: '*', element: <NotFound /> },
     ],

@@ -17,6 +17,25 @@ final class ReminderUnsubscribeLink
             . http_build_query(['token' => self::token($clinicId, $patientId)]);
     }
 
+    /**
+     * @return array{clinicId: int, patientId: int}|null
+     */
+    public static function parse(string $token): ?array
+    {
+        if (!preg_match('/^([1-9][0-9]{0,18})\.([1-9][0-9]{0,18})\.([0-9a-f]{64})$/', $token, $parts)) {
+            return null;
+        }
+
+        $clinicId  = (int) $parts[1];
+        $patientId = (int) $parts[2];
+
+        if (!hash_equals(self::signature($clinicId, $patientId), $parts[3])) {
+            return null;
+        }
+
+        return ['clinicId' => $clinicId, 'patientId' => $patientId];
+    }
+
     private static function signature(int $clinicId, int $patientId): string
     {
         return hash_hmac('sha256', "appointment-reminder-unsubscribe|{$clinicId}|{$patientId}", (string) config('app.key'));

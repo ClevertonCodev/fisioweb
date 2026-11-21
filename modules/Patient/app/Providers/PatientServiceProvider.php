@@ -14,11 +14,13 @@ use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Contracts\Public\PatientAppAccessInterface;
 use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 use Modules\Patient\Contracts\Public\PatientDirectoryReadServiceInterface;
+use Modules\Patient\Contracts\Public\PatientReminderPreferenceWriteServiceInterface;
 use Modules\Patient\Repositories\PatientRepository;
 use Modules\Patient\Services\PatientAppAccessService;
 use Modules\Patient\Services\PatientAuthService;
 use Modules\Patient\Services\PatientContactReadService;
 use Modules\Patient\Services\PatientDirectoryReadService;
+use Modules\Patient\Services\PatientReminderPreferenceWriteService;
 use Modules\Patient\Services\PatientService;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
@@ -72,6 +74,7 @@ class PatientServiceProvider extends ServiceProvider
         $this->app->bind(PatientServiceInterface::class, PatientService::class);
         $this->app->bind(PatientDirectoryReadServiceInterface::class, PatientDirectoryReadService::class);
         $this->app->bind(PatientContactReadServiceInterface::class, PatientContactReadService::class);
+        $this->app->bind(PatientReminderPreferenceWriteServiceInterface::class, PatientReminderPreferenceWriteService::class);
         $this->app->bind(PatientAppAccessInterface::class, PatientAppAccessService::class);
 
         $this->app->register(EventServiceProvider::class);

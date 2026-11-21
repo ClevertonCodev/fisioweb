@@ -162,6 +162,32 @@ describe('apiClient — rotas públicas do questionário', () => {
         expect(seen).toEqual([undefined, undefined, 'Bearer clinic-token']);
     });
 
+    it('não manda o token guardado no POST público de sair dos lembretes', async () => {
+        const { apiClient } = await import('@/infrastructure/api/client');
+        setStoredAuth('clinic-token', 'clinic');
+        setStoredAuth('admin-token', 'admin');
+        const seen: Array<string | undefined> = [];
+        const adapter = vi.fn(async (config) => {
+            seen.push(config.headers?.Authorization as string | undefined);
+            return {
+                data: {},
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        });
+
+        await apiClient.post(
+            '/email/reminders/unsubscribe',
+            { token: 'x' },
+            { adapter },
+        );
+        await apiClient.post('/email/reminders/outra', {}, { adapter });
+
+        expect(seen).toEqual([undefined, 'Bearer admin-token']);
+    });
+
     it('um 401 em /questionnaires/... não renova nem reenvia com o token guardado', async () => {
         const { apiClient } = await import('@/infrastructure/api/client');
         setStoredAuth('clinic-token', 'clinic');
@@ -189,6 +215,33 @@ describe('apiClient — rotas públicas do questionário', () => {
         expect(calls).toEqual([
             '/questionnaires/6f1c2a4e-1b2c-4d5e-8f90-123456789abc -',
         ]);
+        expect(getStoredAuth('clinic')?.token).toBe('clinic-token');
+    });
+
+    it('um 401 no POST de sair dos lembretes não renova nem reenvia com o token guardado', async () => {
+        const { apiClient } = await import('@/infrastructure/api/client');
+        setStoredAuth('clinic-token', 'clinic');
+        const calls: string[] = [];
+        const adapter = vi.fn(async (config) => {
+            calls.push(`${config.url} ${config.headers?.Authorization ?? '-'}`);
+            return Promise.reject(
+                Object.assign(new Error('401'), {
+                    isAxiosError: true,
+                    config,
+                    response: { status: 401, data: {}, headers: {}, config },
+                }),
+            );
+        });
+
+        await expect(
+            apiClient.post(
+                '/email/reminders/unsubscribe',
+                { token: 'x' },
+                { adapter },
+            ),
+        ).rejects.toThrow();
+
+        expect(calls).toEqual(['/email/reminders/unsubscribe -']);
         expect(getStoredAuth('clinic')?.token).toBe('clinic-token');
     });
 });

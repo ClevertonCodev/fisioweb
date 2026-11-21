@@ -192,8 +192,13 @@ export const apiClient = axios.create({
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 });
 
+const ANONYMOUS_REQUESTS = [
+    /^\/questionnaires(\/|$)/,
+    /^\/email\/reminders\/unsubscribe$/,
+];
+
 function isAnonymousRequest(url?: string): boolean {
-    return !!url && /^\/questionnaires(\/|$)/.test(url);
+    return !!url && ANONYMOUS_REQUESTS.some((pattern) => pattern.test(url));
 }
 
 apiClient.interceptors.request.use((config) => {

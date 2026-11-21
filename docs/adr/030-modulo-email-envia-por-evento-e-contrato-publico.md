@@ -14,6 +14,7 @@ Os dados de cada e-mail têm donos diferentes: o programa é do `TreatmentProgra
 - **Tema único:** o `Email` aponta o markdown de e-mail do Laravel (`mail.markdown.paths` e `mail.markdown.theme`) para o layout IVS MED. Toda notificação `MailMessage`, inclusive as que já existiam (`VerifyClinicEmailNotification`, `ResetPassword`), sai com a marca sem depender do `Email`.
 - **Logo embutido:** os templates referenciam `cid:ivsmed-logo`, e um listener de `MessageSending` do `Email` anexa o PNG como parte inline. Assim o logo aparece no Gmail e no Outlook mesmo sem o servidor estar acessível.
 - **Lembrete de consulta:** o comando `clinic-scheduling:send-appointment-reminders` roda de hora em hora (`withoutOverlapping(55)`, `onOneServer`; o servidor precisa do `schedule:run` no cron) e dispara um `AppointmentReminderDue` por consulta que começa entre 23 e 24 h depois da hora cheia da rodada. A âncora na hora cheia faz uma rodada atrasada cobrir a mesma faixa. O `Email` grava cada horário lembrado em `email_appointment_reminders`, com único em (`appointment_id`, `starts_at`), antes de enviar: a mesma consulta é lembrada uma vez por horário, e remarcar para um horário ainda não lembrado permite um lembrete novo. Se o envio falha, a linha é apagada para a próxima tentativa da fila.
+- **Sair dos lembretes:** o link do rodapé do lembrete abre a página pública `/lembretes/sair?token=<clinicId>.<patientId>.<hmac>`. O HMAC-SHA256 usa a `app.key`, é comparado com `hash_equals` e não vence. A página só descadastra quando o paciente clica, porque leitores de e-mail e antivírus abrem links sozinhos. O botão chama o `POST /api/email/reminders/unsubscribe` (público, 10 por minuto por IP). O `Email` desliga o campo pelo contrato de escrita do `Patient` (`PatientReminderPreferenceWriteServiceInterface`), filtrado por `clinicId` + `patientId`. Token inválido ou de paciente de outra clínica dá 404.
 - **Reset de senha pela fila:** o link é montado na requisição (`QueuedResetPassword` guarda a URL pronta), porque o callback estático `ResetPassword::createUrlUsing` não existe no processo do worker.
 
 ## Consequências
@@ -34,5 +35,6 @@ Os dados de cada e-mail têm donos diferentes: o programa é do `TreatmentProgra
 
 - `tests/Architecture/ModuleBoundaryTest.php` (cerca do `Email`)
 - `modules/Email/tests/Feature/SystemEmailLayoutTest.php`
+- `modules/Email/tests/Feature/ReminderUnsubscribeTest.php` (sair dos lembretes)
 - `modules/Email/tests/Feature/SendAppointmentReminderTest.php` e `modules/ClinicScheduling/tests/Feature/AppointmentReminderCommandTest.php` (lembrete)
 - `modules/Clinic/tests/Feature/PasswordResetTest.php` e `modules/Admin/tests/Feature/PasswordResetTest.php` (reset pela fila)

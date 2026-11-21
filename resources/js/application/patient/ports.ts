@@ -3,6 +3,7 @@ import type {
     PublicQuestionnaireLookup,
     PublicQuestionnaireSubmitResult,
 } from '@/domain/patient/questionnaire';
+import type { ReminderUnsubscribeResult } from '@/domain/patient/reminder';
 
 export interface PublicQuestionnaireAnswerWriteDto {
     questionId: number;
@@ -15,4 +16,8 @@ export interface PublicQuestionnairesRepository {
         token: string,
         answers: PublicQuestionnaireAnswerWriteDto[],
     ): Promise<PublicQuestionnaireSubmitResult>;
+}
+
+export interface ReminderUnsubscribeRepository {
+    unsubscribe(token: string): Promise<ReminderUnsubscribeResult>;
 }

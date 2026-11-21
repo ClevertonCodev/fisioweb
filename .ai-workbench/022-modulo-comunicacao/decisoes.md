@@ -76,3 +76,8 @@
 - **Paciente com status de óbito, alta ou cancelado recebe o lembrete?** → Não. O contrato de contato do paciente passa a dizer se ele está ativo (fora de `Patient::INACTIVE_STATUSES`), e o lembrete automático não sai para paciente inativo. O envio pelo modal não muda. Decidido pelo usuário durante a revisão da 009 (ACHADO-007 da rodada 1).
 - **Consulta marcada entre 23 h e 24 h antes do horário recebe lembrete?** → Só se ela já existia na rodada da hora cheia anterior. Criada depois dessa rodada, ela fica abaixo das 23 h na rodada seguinte e não recebe lembrete. Efeito aceito do desenho de hora em hora, como o caso de menos de 23 h. Registrado na revisão da 009 (ACHADO-004 da rodada 2); o usuário pode rever.
 - **Paciente inativado pela clínica ("Inativar paciente", `is_active` desligado) recebe o lembrete?** → Não. O `active` do contrato de contato do paciente passa a exigir `is_active` ligado e status fora de óbito, alta e cancelado, juntando o `is_active` do filtro da lista com os status de saída do painel. O login é diferente e deixa entrar quem teve alta. Decidido pelo usuário depois da 3ª rodada da revisão da 009 (ACHADO-001 da rodada 3).
+
+## Implementação da 010 (2026-11-21, planejamento)
+
+- **Limite no POST público de sair dos lembretes?** → Sim: 10 pedidos por minuto por IP, com 429 depois disso. O token não dá para adivinhar; o limite só protege o servidor de pedidos em massa.
+- **Resposta do endpoint?** → 200 `{ data: { unsubscribed: true } }` com token válido, de novo a cada chamada; 404 para token inválido, adulterado ou de paciente que não é daquela clínica; 422 sem token.

@@ -29,15 +29,15 @@ A página pede confirmação porque antivírus e leitores de e-mail abrem links 
 
 ## Critérios de Aceite
 
-- [ ] Token válido desliga o lembrete do paciente certo e responde 200; chamar de novo continua 200 (teste).
-- [ ] Token adulterado, de outro paciente ou montado com outro `clinicId` dá 404 e não muda nenhum paciente (teste).
-- [ ] Depois de sair, o próximo lembrete não é enviado ao paciente (teste junto com o listener da 009).
-- [ ] Abrir a página não descadastra; só o botão faz o `POST` (Vitest).
-- [ ] A página mostra a confirmação e o estado de link inválido, sem nenhum dado do paciente (Vitest).
-- [ ] O link do rodapé do lembrete leva a essa página com o token (teste do template).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] Token válido desliga o lembrete do paciente certo e responde 200; chamar de novo continua 200 (teste).
+- [x] Token adulterado, de outro paciente ou montado com outro `clinicId` dá 404 e não muda nenhum paciente (teste).
+- [x] Depois de sair, o próximo lembrete não é enviado ao paciente (teste junto com o listener da 009).
+- [x] Abrir a página não descadastra; só o botão faz o `POST` (Vitest).
+- [x] A página mostra a confirmação e o estado de link inválido, sem nenhum dado do paciente (Vitest).
+- [x] O link do rodapé do lembrete leva a essa página com o token (teste do template).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

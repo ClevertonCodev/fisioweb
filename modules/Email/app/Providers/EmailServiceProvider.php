@@ -15,6 +15,7 @@ use Modules\Email\Contracts\AppointmentEmailSenderInterface;
 use Modules\Email\Contracts\AppointmentReminderRepositoryInterface;
 use Modules\Email\Contracts\AppointmentReminderSenderInterface;
 use Modules\Email\Contracts\QuestionnaireEmailSenderInterface;
+use Modules\Email\Contracts\ReminderUnsubscribeServiceInterface;
 use Modules\Email\Contracts\TreatmentPlanEmailSenderInterface;
 use Modules\Email\Listeners\EmbedBrandLogo;
 use Modules\Email\Listeners\SendAppointmentEmail;
@@ -25,6 +26,7 @@ use Modules\Email\Repositories\AppointmentReminderRepository;
 use Modules\Email\Services\AppointmentEmailSender;
 use Modules\Email\Services\AppointmentReminderSender;
 use Modules\Email\Services\QuestionnaireEmailSender;
+use Modules\Email\Services\ReminderUnsubscribeService;
 use Modules\Email\Services\TreatmentPlanEmailSender;
 use Modules\TreatmentProgram\Events\TreatmentPlanEmailRequested;
 
@@ -44,6 +46,12 @@ class EmailServiceProvider extends ServiceProvider
         Event::listen(QuestionnaireEmailRequested::class, SendQuestionnaireEmail::class);
         Event::listen(AppointmentEmailRequested::class, SendAppointmentEmail::class);
         Event::listen(AppointmentReminderDue::class, SendAppointmentReminder::class);
+
+        RateLimiter::for('reminder-unsubscribe', fn (Request $request) => Limit::perMinute(10)
+            ->by('reminder-unsubscribe|' . (string) $request->ip())
+            ->response(fn (Request $req, array $headers) => response()->json([
+                'message' => 'Muitas tentativas. Aguarde um minuto e tente de novo.',
+            ], 429, $headers)));
 
         RateLimiter::for('clinic-patient-email', function (Request $request) {
             $userId = $request->user('clinic')?->getAuthIdentifier();
@@ -65,6 +73,9 @@ class EmailServiceProvider extends ServiceProvider
         $this->app->bind(AppointmentEmailSenderInterface::class, AppointmentEmailSender::class);
         $this->app->bind(AppointmentReminderSenderInterface::class, AppointmentReminderSender::class);
         $this->app->bind(AppointmentReminderRepositoryInterface::class, AppointmentReminderRepository::class);
+        $this->app->bind(ReminderUnsubscribeServiceInterface::class, ReminderUnsubscribeService::class);
+
+        $this->app->register(RouteServiceProvider::class);
 
         $config = $this->app['config'];
         $config->set('mail.markdown.theme', 'ivsmed');

@@ -483,4 +483,29 @@ class SendAppointmentReminderTest extends TestCase
 
         Mail::assertNothingSent();
     }
+
+    public function test_after_leaving_through_the_email_link_the_next_reminder_is_not_sent(): void
+    {
+        Mail::fake();
+        $this->appointmentIn(23, 30);
+        $this->appointmentIn(47, 30);
+
+        $this->artisan(self::COMMAND)->assertSuccessful();
+
+        $url = null;
+        Mail::assertSent(AppointmentReminderMail::class, function (AppointmentReminderMail $mail) use (&$url): bool {
+            $url = $mail->unsubscribeUrl;
+
+            return true;
+        });
+        parse_str((string) parse_url((string) $url, PHP_URL_QUERY), $query);
+
+        $this->postJson('/api/email/reminders/unsubscribe', ['token' => $query['token'] ?? ''])->assertOk();
+        $this->assertFalse((bool) $this->patient->fresh()->receives_appointment_reminder_email);
+
+        $this->travel(24)->hours();
+        $this->artisan(self::COMMAND)->assertSuccessful();
+
+        Mail::assertSentCount(1);
+    }
 }

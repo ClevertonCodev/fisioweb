@@ -12,6 +12,9 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
         Route::put('{appointment}', [AppointmentController::class, 'update'])->name('update');
         Route::patch('{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('status');
         Route::post('{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
+        Route::post('{appointment}/email', [AppointmentController::class, 'sendEmail'])
+            ->middleware('throttle:clinic-patient-email')
+            ->name('email');
     });
 
     Route::get('patients/{patient}/appointments', [AppointmentController::class, 'patientHistory'])

@@ -12,14 +12,17 @@ import {
     useCreateAppointment,
     useReplaceServiceTypes,
     useSaveAgendaPreference,
+    useSendAppointmentEmail,
     useServiceTypes,
     useUpdateAppointment,
     useUpdateAppointmentStatus,
 } from '@/application/clinic';
+import { appointmentScheduledWhatsAppUrl } from '@/application/clinic/appointment-share';
 import { can } from '@/application/clinic/permissions';
 import { AgendaView } from '@/components/clinic/agenda/AgendaView';
 import { AppointmentModal } from '@/components/clinic/agenda/appointment-modal/AppointmentModal';
 import { ClinicLayout } from '@/components/clinic/ClinicLayout';
+import { SendToPatientModal } from '@/components/clinic/SendToPatientModal';
 import { useAuth } from '@/contexts/AuthContext';
 import type {
     AgendaView as AgendaViewId,
@@ -51,6 +54,19 @@ function appointmentToWriteDto(
         startsAt: new Date(startsAt).toISOString(),
         endsAt: new Date(endsAt).toISOString(),
     };
+}
+
+function formatNoticeDate(startsAt: string): string {
+    const date = new Date(startsAt);
+    const day = date.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+    });
+    const time = date.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+    return `${day} às ${time}`;
 }
 
 function apiErrorMessage(error: unknown, fallback: string): string {
@@ -88,6 +104,9 @@ export default function AgendaPage() {
     const statusMutation = useUpdateAppointmentStatus();
     const cancelMutation = useCancelAppointment();
     const replaceServiceTypes = useReplaceServiceTypes(userId);
+    const sendEmailMutation = useSendAppointmentEmail();
+    const [noticeAppointment, setNoticeAppointment] =
+        useState<Appointment | null>(null);
     const [appointments, setAppointments] =
         useState<Appointment[]>(appointmentsData);
     const [syncedData, setSyncedData] = useState(appointmentsData);
@@ -206,9 +225,12 @@ export default function AgendaPage() {
         }
 
         try {
-            await createMutation.mutateAsync(dto);
+            const created = await createMutation.mutateAsync(dto);
             toast.success('Consulta agendada com sucesso!');
             setModalOpen(false);
+            if (created.patientId) {
+                setNoticeAppointment(created);
+            }
         } catch (error) {
             toast.error(
                 apiErrorMessage(error, 'Não foi possível agendar a consulta.'),
@@ -370,6 +392,28 @@ export default function AgendaPage() {
                 }
                 isSavingServiceTypes={replaceServiceTypes.isPending}
             />
+
+            {noticeAppointment && (
+                <SendToPatientModal
+                    open
+                    onClose={() => setNoticeAppointment(null)}
+                    title="Avisar o paciente?"
+                    meta={`${noticeAppointment.patientName} · ${formatNoticeDate(noticeAppointment.startsAt)}`}
+                    description="A consulta foi marcada. Escolha como avisar o paciente."
+                    patientEmail={noticeAppointment.patientEmail}
+                    patientPhone={noticeAppointment.patientPhone}
+                    whatsappUrl={appointmentScheduledWhatsAppUrl(
+                        noticeAppointment,
+                    )}
+                    dismissLabel="Não avisar"
+                    onSendEmail={() =>
+                        sendEmailMutation.mutateAsync({
+                            id: noticeAppointment.id,
+                            kind: 'scheduled',
+                        })
+                    }
+                />
+            )}
         </ClinicLayout>
     );
 }

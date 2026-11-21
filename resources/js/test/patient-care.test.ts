@@ -19,6 +19,8 @@ function appointment(
         id: String(seq),
         patientId: '3',
         patientName: 'Paciente Teste',
+        patientEmail: null,
+        patientPhone: null,
         clinicUserId: '5',
         clinicUserName: 'Profissional Teste',
         title: null,

@@ -9,7 +9,7 @@ import type {
     AppointmentListParams,
     AppointmentWriteDto,
 } from '@/application/clinic/ports';
-import type { AppointmentStatus } from '@/domain/clinic';
+import type { AppointmentNoticeKind, AppointmentStatus } from '@/domain/clinic';
 import { apiClinicAppointmentsRepository } from '@/infrastructure/repositories';
 
 import {
@@ -134,5 +134,17 @@ export function useCancelAppointment() {
     return useMutation({
         mutationFn: (id: string) => repository.cancel(id),
         onSuccess: invalidate,
+    });
+}
+
+export function useSendAppointmentEmail() {
+    return useMutation({
+        mutationFn: ({
+            id,
+            kind,
+        }: {
+            id: string;
+            kind: AppointmentNoticeKind;
+        }) => repository.sendEmail(id, kind),
     });
 }

@@ -65,6 +65,7 @@ class SchedulingRouteCompatibilityTest extends TestCase
             'api/clinic/appointments'                       => ['GET', 'HEAD', 'POST'],
             'api/clinic/appointments/{appointment}'         => ['GET', 'HEAD', 'PUT'],
             'api/clinic/appointments/{appointment}/cancel'  => ['POST'],
+            'api/clinic/appointments/{appointment}/email'   => ['POST'],
             'api/clinic/appointments/{appointment}/status'  => ['PATCH'],
         ];
     }

@@ -8,10 +8,14 @@ export type AppointmentStatus =
 
 export type AppointmentSource = 'system' | 'google';
 
+export type AppointmentNoticeKind = 'scheduled' | 'rescheduled' | 'cancelled';
+
 export interface Appointment {
     id: string;
     patientId: string;
     patientName: string;
+    patientEmail: string | null;
+    patientPhone: string | null;
     clinicUserId: string;
     clinicUserName: string;
     title: string | null;

@@ -9,6 +9,7 @@ import type {
 } from '@/application/clinic/ports';
 import type {
     Appointment,
+    AppointmentNoticeKind,
     PatientAppointmentHistoryItem,
 } from '@/domain/clinic';
 import { apiClient } from '@/infrastructure/api/client';
@@ -16,6 +17,13 @@ import { apiClient } from '@/infrastructure/api/client';
 interface ApiNamedDto {
     id: number;
     name: string;
+}
+
+interface ApiAppointmentPatientDto {
+    id: number;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
 }
 
 interface ApiProfessionalDto {
@@ -35,7 +43,7 @@ interface ApiAppointmentDto {
     ends_at: string;
     status: Appointment['status'];
     source?: Appointment['source'] | null;
-    patient?: ApiNamedDto | null;
+    patient?: ApiAppointmentPatientDto | null;
     clinic_user?: ApiNamedDto | null;
 }
 
@@ -44,6 +52,8 @@ function toEntity(raw: ApiAppointmentDto): Appointment {
         id: String(raw.id),
         patientId: raw.patient_id !== null ? String(raw.patient_id) : '',
         patientName: raw.patient?.name ?? '',
+        patientEmail: raw.patient?.email?.trim() || null,
+        patientPhone: raw.patient?.phone?.trim() || null,
         clinicUserId: String(raw.clinic_user_id),
         clinicUserName: raw.clinic_user?.name ?? '',
         title: raw.title,
@@ -162,6 +172,10 @@ export const apiClinicAppointmentsRepository: AppointmentsRepository = {
             `/clinic/appointments/${id}/cancel`,
         );
         return toEntity(data.data);
+    },
+
+    async sendEmail(id: string, kind: AppointmentNoticeKind): Promise<void> {
+        await apiClient.post(`/clinic/appointments/${id}/email`, { kind });
     },
 
     async patientHistory(

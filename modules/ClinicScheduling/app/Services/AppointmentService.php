@@ -12,13 +12,16 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
 use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
+use Modules\ClinicScheduling\Enums\AppointmentEmailKind;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Events\AppointmentCancelled;
 use Modules\ClinicScheduling\Events\AppointmentCompleted;
+use Modules\ClinicScheduling\Events\AppointmentEmailRequested;
 use Modules\ClinicScheduling\Events\AppointmentRescheduled;
 use Modules\ClinicScheduling\Events\AppointmentScheduled;
 use Modules\ClinicScheduling\Jobs\AppointmentScheduledNotificationJob;
 use Modules\ClinicScheduling\Models\Appointment;
+use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 
 class AppointmentService implements AppointmentServiceInterface
 {
@@ -27,6 +30,7 @@ class AppointmentService implements AppointmentServiceInterface
 
     public function __construct(
         protected AppointmentRepositoryInterface $repository,
+        protected PatientContactReadServiceInterface $patientContacts,
     ) {}
 
     public function create(array $data): Appointment
@@ -85,6 +89,47 @@ class AppointmentService implements AppointmentServiceInterface
     public function cancel(int $id): Appointment
     {
         return $this->updateStatus($id, AppointmentStatus::Cancelled);
+    }
+
+    public function requestEmail(Appointment $appointment, AppointmentEmailKind $kind, ?int $actorId): void
+    {
+        if (is_null($appointment->patient_id)) {
+            throw ValidationException::withMessages([
+                'patient' => 'Esta consulta não tem paciente.',
+            ]);
+        }
+
+        if (!$kind->matchesStatus($appointment->status)) {
+            throw ValidationException::withMessages([
+                'kind' => $kind === AppointmentEmailKind::Cancelled
+                    ? 'Esta consulta não está cancelada.'
+                    : 'Esta consulta está cancelada.',
+            ]);
+        }
+
+        $patient = $this->patientContacts->findById((int) $appointment->clinic_id, (int) $appointment->patient_id);
+
+        if (is_null($patient)) {
+            throw ValidationException::withMessages([
+                'patient' => 'Paciente não encontrado.',
+            ]);
+        }
+
+        if (empty($patient->email) || !filter_var($patient->email, FILTER_VALIDATE_EMAIL)) {
+            throw ValidationException::withMessages([
+                'email' => 'Paciente sem e-mail cadastrado.',
+            ]);
+        }
+
+        $this->dispatchEvent(new AppointmentEmailRequested(
+            version: self::EVENT_VERSION,
+            clinicId: (int) $appointment->clinic_id,
+            appointmentId: (int) $appointment->id,
+            patientId: (int) $appointment->patient_id,
+            actorId: $actorId,
+            kind: $kind->value,
+            occurredAt: CarbonImmutable::now(),
+        ));
     }
 
     public function listForUser($user, array $filters = []): Collection

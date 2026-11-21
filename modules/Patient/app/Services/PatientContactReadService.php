@@ -5,6 +5,7 @@ namespace Modules\Patient\Services;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 use Modules\Patient\Data\Public\PatientContactDTO;
+use Modules\Patient\Models\Patient;
 
 class PatientContactReadService implements PatientContactReadServiceInterface
 {
@@ -29,6 +30,7 @@ class PatientContactReadService implements PatientContactReadServiceInterface
             email: $this->nullableTrim($patient->email),
             phone: $this->nullableTrim($patient->phone),
             receivesAppointmentReminderEmail: (bool) $patient->receives_appointment_reminder_email,
+            active: (bool) $patient->is_active && !in_array($patient->status, Patient::INACTIVE_STATUSES, true),
         );
     }
 

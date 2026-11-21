@@ -22,7 +22,7 @@ A clínica passa a mandar programa, questionário e avisos de consulta ao pacien
 | [006 · Agenda: avisar ao marcar](tasks/006-agenda-avisar-ao-marcar.md) | concluída | | |
 | [007 · Agenda: avisar ao remarcar e cancelar](tasks/007-agenda-avisar-ao-remarcar-e-cancelar.md) | concluída | | |
 | [008 · Configuração do lembrete](tasks/008-configuracao-do-lembrete.md) | concluída | | |
-| [009 · Disparar o lembrete 24 h antes](tasks/009-disparar-lembrete.md) | a fazer | | |
+| [009 · Disparar o lembrete 24 h antes](tasks/009-disparar-lembrete.md) | concluída | | |
 | [010 · Sair dos lembretes](tasks/010-sair-dos-lembretes.md) | a fazer | | |
 
 ## Pastas

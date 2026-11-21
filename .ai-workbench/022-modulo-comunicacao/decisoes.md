@@ -65,3 +65,14 @@
 ## Implementação da 007 (2026-11-21, revisão adversária)
 
 - **Mudar o horário de consulta concluída ou com falta abre o aviso?** → Não. O arrasto já não move consulta encerrada; pelo modal de edição, o aviso de remarcada só abre se a consulta não está concluída nem com falta. O endpoint continua aceitando `rescheduled` para consulta não cancelada, como a tarefa pede. Decidido durante a revisão (ACHADO-003); o usuário pode rever.
+
+## Implementação da 009 (2026-11-21, planejamento)
+
+- **Consulta entre 23h e 0h lembrada na madrugada do mesmo dia diz "amanhã"?** → Não. Quando a data da consulta, no fuso da clínica, é a mesma do dia em que a fila envia o e-mail, o assunto e o título dizem "hoje"; senão, "amanhã".
+- **Clínica cancelada com a chave ligada recebe lembrete?** → Não. O contrato de contato da clínica passa a dizer se ela está cancelada, e o listener do lembrete não envia para clínica cancelada.
+- **Endereço do link de sair dos lembretes?** → `APP_URL/lembretes/sair?token=<clinicId>.<patientId>.<hmac>`, HMAC-SHA256 com a `app.key`. A verificação e a página ficam na 010.
+- **Falha no envio depois de reservar o lembrete?** → A reserva é apagada e o erro sobe, para a próxima tentativa da fila enviar.
+- **A janela do lembrete depende do minuto em que o cron rodou?** → Não. A janela se ancora na hora cheia da rodada: [hora + 23 h, hora + 24 h). Uma rodada atrasada dentro da hora cobre a mesma faixa, e o único da tabela evita duplicata. Efeito aceito: uma rodada atrasada pode lembrar uma consulta marcada há pouco menos de 23 h. A trava do `withoutOverlapping` dura 55 minutos, para um processo que morreu não travar o lembrete por 24 h. Decidido durante a revisão (ACHADO-001 e ACHADO-005 da rodada 1).
+- **Paciente com status de óbito, alta ou cancelado recebe o lembrete?** → Não. O contrato de contato do paciente passa a dizer se ele está ativo (fora de `Patient::INACTIVE_STATUSES`), e o lembrete automático não sai para paciente inativo. O envio pelo modal não muda. Decidido pelo usuário durante a revisão da 009 (ACHADO-007 da rodada 1).
+- **Consulta marcada entre 23 h e 24 h antes do horário recebe lembrete?** → Só se ela já existia na rodada da hora cheia anterior. Criada depois dessa rodada, ela fica abaixo das 23 h na rodada seguinte e não recebe lembrete. Efeito aceito do desenho de hora em hora, como o caso de menos de 23 h. Registrado na revisão da 009 (ACHADO-004 da rodada 2); o usuário pode rever.
+- **Paciente inativado pela clínica ("Inativar paciente", `is_active` desligado) recebe o lembrete?** → Não. O `active` do contrato de contato do paciente passa a exigir `is_active` ligado e status fora de óbito, alta e cancelado, juntando o `is_active` do filtro da lista com os status de saída do painel. O login é diferente e deixa entrar quem teve alta. Decidido pelo usuário depois da 3ª rodada da revisão da 009 (ACHADO-001 da rodada 3).

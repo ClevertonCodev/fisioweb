@@ -2,19 +2,16 @@
 
 namespace Modules\Email\Services;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Modules\Clinic\Contracts\Public\ClinicContactReadServiceInterface;
-use Modules\Clinic\Data\Public\ClinicContactDTO;
 use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
-use Modules\ClinicScheduling\Data\Public\AppointmentSnapshotDTO;
 use Modules\ClinicScheduling\Events\AppointmentEmailRequested;
 use Modules\Email\Contracts\AppointmentEmailSenderInterface;
 use Modules\Email\Mail\AppointmentCancelledMail;
 use Modules\Email\Mail\AppointmentMail;
 use Modules\Email\Mail\AppointmentRescheduledMail;
 use Modules\Email\Mail\AppointmentScheduledMail;
+use Modules\Email\Support\ClinicDateFormatter;
 use Modules\Email\Support\GoogleMapsLink;
 use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 
@@ -39,6 +36,7 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
         protected AppointmentReadServiceInterface $appointments,
         protected PatientContactReadServiceInterface $patients,
         protected ClinicContactReadServiceInterface $clinics,
+        protected AppointmentDetailsBuilder $details,
     ) {}
 
     public function send(AppointmentEmailRequested $event): void
@@ -83,7 +81,7 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
             return;
         }
 
-        $timezone = $this->safeTimezone($clinic->timezone);
+        $timezone = ClinicDateFormatter::safeTimezone($clinic->timezone);
         $startsAt = $appointment->startsAt->setTimezone($timezone);
         $endsAt   = $appointment->endsAt->setTimezone($timezone);
 
@@ -97,59 +95,10 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
             greetingName: $patient->greetingName(),
             subjectDate: $startsAt->format('d/m'),
             subjectTime: $startsAt->format('H:i'),
-            detailsRows: $this->detailsRows($appointment, $clinic, $startsAt, $endsAt, withPlace: !$cancelled),
+            detailsRows: $this->details->rows($appointment, $clinic, $startsAt, $endsAt, withPlace: !$cancelled),
             mapsUrl: $cancelled || $appointment->isHomeVisit() ? null : GoogleMapsLink::forClinic($clinic),
         ));
 
         logInfo('E-mail de consulta enviado', $logContext);
-    }
-
-    /**
-     * @return list<array{0: string, 1: string}>
-     */
-    private function detailsRows(
-        AppointmentSnapshotDTO $appointment,
-        ClinicContactDTO $clinic,
-        CarbonImmutable $startsAt,
-        CarbonImmutable $endsAt,
-        bool $withPlace,
-    ): array {
-        $weekday = Str::ucfirst($startsAt->locale('pt_BR')->isoFormat('dddd'));
-        $rows    = [
-            ['Data', "{$weekday}, {$startsAt->format('d/m/Y')}"],
-            ['Horário', "{$startsAt->format('H:i')} às {$endsAt->format('H:i')}"],
-        ];
-
-        if (!is_null($appointment->clinicUserId)) {
-            $professional = $this->clinics->findProfessional($clinic->id, $appointment->clinicUserId);
-
-            if (!is_null($professional) && !empty(trim($professional->name))) {
-                $rows[] = ['Profissional', trim($professional->name)];
-            }
-        }
-
-        if (!$withPlace) {
-            return $rows;
-        }
-
-        $place = $appointment->isHomeVisit()
-            ? 'Atendimento em domicílio'
-            : implode(' · ', array_values(array_filter(
-                [(string) $appointment->room(), (string) $clinic->formattedAddress()],
-                fn (string $part) => !empty($part),
-            )));
-
-        if (!empty($place)) {
-            $rows[] = ['Local', $place];
-        }
-
-        return $rows;
-    }
-
-    private function safeTimezone(string $timezone): string
-    {
-        return in_array($timezone, timezone_identifiers_list(), true)
-            ? $timezone
-            : (string) config('app.timezone', 'America/Sao_Paulo');
     }
 }

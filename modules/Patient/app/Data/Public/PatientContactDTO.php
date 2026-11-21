@@ -13,6 +13,7 @@ final readonly class PatientContactDTO
         public ?string $email,
         public ?string $phone,
         public bool $receivesAppointmentReminderEmail,
+        public bool $active,
     ) {}
 
     public function greetingName(): string

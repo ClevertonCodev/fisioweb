@@ -38,7 +38,18 @@ class ClinicContactReadServiceTest extends TestCase
         $this->assertSame('SP', $contact->state);
         $this->assertSame('America/Manaus', $contact->timezone);
         $this->assertTrue($contact->appointmentReminderEmailEnabled);
+        $this->assertFalse($contact->cancelled);
         $this->assertSame('Rua das Flores, 120 · São Paulo/SP', $contact->formattedAddress());
+    }
+
+    public function test_tells_when_the_clinic_is_cancelled(): void
+    {
+        $clinic = Clinic::factory()->create(['status' => Clinic::STATUS_CANCELLED]);
+
+        $contact = app(ClinicContactReadServiceInterface::class)->findClinic($clinic->id);
+
+        $this->assertNotNull($contact);
+        $this->assertTrue($contact->cancelled);
     }
 
     public function test_returns_null_for_missing_or_deleted_clinic(): void

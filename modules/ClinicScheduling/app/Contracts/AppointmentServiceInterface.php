@@ -4,6 +4,7 @@ namespace Modules\ClinicScheduling\Contracts;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Modules\ClinicScheduling\Enums\AppointmentEmailKind;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
 
@@ -16,6 +17,11 @@ interface AppointmentServiceInterface
     public function updateStatus(int $id, AppointmentStatus $status): Appointment;
 
     public function cancel(int $id): Appointment;
+
+    /**
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function requestEmail(Appointment $appointment, AppointmentEmailKind $kind, ?int $actorId): void;
 
     /**
      * Lista as consultas visíveis para o usuário autenticado (guard clinic).

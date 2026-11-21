@@ -11,6 +11,7 @@ use Modules\ClinicScheduling\Events\AppointmentScheduled;
 use Modules\ClinicScheduling\Jobs\AppointmentScheduledNotificationJob;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\ClinicScheduling\Services\AppointmentService;
+use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
 use Tests\TestCase;
 
 class AppointmentServiceCreateTest extends TestCase
@@ -39,7 +40,7 @@ class AppointmentServiceCreateTest extends TestCase
             }))
             ->andReturn($appointment);
 
-        $service = new AppointmentService($repository);
+        $service = new AppointmentService($repository, Mockery::mock(PatientContactReadServiceInterface::class));
         $result  = $service->create([
             'clinic_id'      => 1,
             'patient_id'     => 1,

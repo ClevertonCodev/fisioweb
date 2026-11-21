@@ -193,6 +193,10 @@ export interface AppointmentsRepository {
         status: import('@/domain/clinic').AppointmentStatus,
     ): Promise<Appointment>;
     cancel(id: string): Promise<Appointment>;
+    sendEmail(
+        id: string,
+        kind: import('@/domain/clinic').AppointmentNoticeKind,
+    ): Promise<void>;
     /**
      * Uma página do histórico do paciente, da consulta mais recente para a
      * mais antiga. `null` quando o usuário não pode vê-lo (404 da API).

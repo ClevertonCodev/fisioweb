@@ -44,15 +44,15 @@ Ao marcar uma consulta com paciente, a agenda abre o modal C, com "Avisar o paci
 
 ## Critérios de Aceite
 
-- [ ] `POST /api/clinic/appointments/{id}/email` com `kind: scheduled` responde 202 e dispara `AppointmentEmailRequested` (`Event::fake`).
-- [ ] Consulta de outra clínica dá 404. O fisioterapeuta, numa consulta de outro profissional, recebe o mesmo bloqueio que já recebe para editá-la.
-- [ ] Consulta sem paciente dá 422; paciente sem e-mail dá 422; `kind` incoerente com o status dá 422; o sexto pedido no minuto dá 429.
-- [ ] Com o listener (`Mail::fake`), o e-mail "Consulta marcada" tem a data e o horário no fuso da clínica (consulta gravada em UTC aparece no horário local), profissional, local e "Precisa remarcar? Ligue…".
-- [ ] "Como chegar" aparece com endereço da clínica e some sem endereço (teste).
-- [ ] O listener não envia se a consulta não for da clínica do evento.
-- [ ] Na agenda, marcar uma consulta com paciente abre "Avisar o paciente?"; marcar sem paciente não abre; "Não avisar" fecha sem chamar a API (Vitest).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] `POST /api/clinic/appointments/{id}/email` com `kind: scheduled` responde 202 e dispara `AppointmentEmailRequested` (`Event::fake`).
+- [x] Consulta de outra clínica dá 404. O fisioterapeuta, numa consulta de outro profissional, recebe o mesmo bloqueio que já recebe para editá-la.
+- [x] Consulta sem paciente dá 422; paciente sem e-mail dá 422; `kind` incoerente com o status dá 422; o sexto pedido no minuto dá 429.
+- [x] Com o listener (`Mail::fake`), o e-mail "Consulta marcada" tem a data e o horário no fuso da clínica (consulta gravada em UTC aparece no horário local), profissional, local e "Precisa remarcar? Ligue…".
+- [x] "Como chegar" aparece com endereço da clínica e some sem endereço (teste).
+- [x] O listener não envia se a consulta não for da clínica do evento.
+- [x] Na agenda, marcar uma consulta com paciente abre "Avisar o paciente?"; marcar sem paciente não abre; "Não avisar" fecha sem chamar a API (Vitest).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

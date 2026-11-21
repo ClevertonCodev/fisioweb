@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
 use Modules\ClinicScheduling\Http\Requests\ListAppointmentsRequest;
 use Modules\ClinicScheduling\Http\Requests\PatientHistoryRequest;
+use Modules\ClinicScheduling\Http\Requests\SendAppointmentEmailRequest;
 use Modules\ClinicScheduling\Http\Requests\StoreAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentRequest;
 use Modules\ClinicScheduling\Http\Requests\UpdateAppointmentStatusRequest;
@@ -97,6 +98,16 @@ class AppointmentController extends ClinicAuthenticatedController
         $cancelled = $this->appointmentService->cancel($appointment->id);
 
         return response()->json(['data' => $cancelled]);
+    }
+
+    public function sendEmail(SendAppointmentEmailRequest $request, Appointment $appointment): JsonResponse
+    {
+        $this->authorizeClinic($appointment);
+        $this->authorize('sendEmail', $appointment);
+
+        $this->appointmentService->requestEmail($appointment, $request->kind(), $this->clinicUserId());
+
+        return response()->json(['data' => ['queued' => true]], 202);
     }
 
     /**

@@ -185,3 +185,47 @@ describe('apiClinicAppointmentsRepository.update', () => {
         expect(result.title).toBe('Reavaliação');
     });
 });
+
+describe('apiClinicAppointmentsRepository: contato do paciente', () => {
+    it('lê o e-mail e o celular do paciente da consulta', async () => {
+        mockGet.mockResolvedValueOnce({
+            data: {
+                data: [
+                    makeApiAppointment({
+                        patient: {
+                            id: 3,
+                            name: 'João',
+                            email: 'joao@example.test',
+                            phone: '(11) 98888-7777',
+                        },
+                    }),
+                    makeApiAppointment({
+                        id: 8,
+                        patient: null,
+                        patient_id: null,
+                    }),
+                ],
+            },
+        });
+
+        const [withPatient, withoutPatient] =
+            await apiClinicAppointmentsRepository.list();
+
+        expect(withPatient.patientEmail).toBe('joao@example.test');
+        expect(withPatient.patientPhone).toBe('(11) 98888-7777');
+        expect(withoutPatient.patientEmail).toBeNull();
+        expect(withoutPatient.patientPhone).toBeNull();
+    });
+});
+
+describe('apiClinicAppointmentsRepository.sendEmail', () => {
+    it('faz POST na rota de e-mail com o tipo do aviso', async () => {
+        mockPost.mockResolvedValueOnce({ data: { data: { queued: true } } });
+
+        await apiClinicAppointmentsRepository.sendEmail('7', 'scheduled');
+
+        expect(mockPost).toHaveBeenCalledWith('/clinic/appointments/7/email', {
+            kind: 'scheduled',
+        });
+    });
+});

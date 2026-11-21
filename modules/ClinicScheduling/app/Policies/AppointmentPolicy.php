@@ -33,6 +33,11 @@ class AppointmentPolicy
         return $this->canManageRecord($user, $appointment);
     }
 
+    public function sendEmail($user, Appointment $appointment): bool
+    {
+        return $this->canManageRecord($user, $appointment);
+    }
+
     /**
      * Acesso ao registro: sempre dentro da própria clínica (isolamento
      * multi-tenant — FR-021). Admin/secretário gerenciam toda a clínica;

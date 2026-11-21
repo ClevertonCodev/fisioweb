@@ -185,6 +185,8 @@ function makeAppointment(overrides: Partial<Appointment> = {}): Appointment {
         id: '21',
         patientId: '108',
         patientName: 'QA Mobile',
+        patientEmail: null,
+        patientPhone: null,
         clinicUserId: '5',
         clinicUserName: 'Cleverton',
         title: 'Sessão de joelho',

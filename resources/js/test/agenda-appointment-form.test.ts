@@ -44,6 +44,8 @@ function appointment(start: Date, end: Date): Appointment {
         id: '9',
         patientId: '1',
         patientName: 'Paciente',
+        patientEmail: null,
+        patientPhone: null,
         clinicUserId: '2',
         clinicUserName: 'Profissional',
         title: 'Sessão',

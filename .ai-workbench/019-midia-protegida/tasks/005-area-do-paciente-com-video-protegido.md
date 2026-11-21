@@ -19,14 +19,14 @@ Esta tarefa troca o player pelo vídeo protegido: o vídeo é baixado inteiro no
 
 ## Critérios de Aceite
 
-- [ ] As páginas do paciente não têm mais `iframe` de vídeo.
-- [ ] O vídeo baixado continua tocando depois de uma pausa maior que o prazo do link (teste Vitest com o link vencido).
-- [ ] Com o link vencido antes do play, a página pede o programa de novo e o vídeo toca.
-- [ ] A resposta do programa só traz mídia dos exercícios daquele programa, e um token inexistente dá 404.
-- [ ] A página abre sem login, como hoje.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Um paciente não vê nem altera nada de outro paciente
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] As páginas do paciente não têm mais `iframe` de vídeo.
+- [x] O vídeo baixado continua tocando depois de uma pausa maior que o prazo do link (teste Vitest com o link vencido).
+- [x] Com o link vencido antes do play, a página pede o programa de novo e o vídeo toca.
+- [x] A resposta do programa só traz mídia dos exercícios daquele programa, e um token inexistente dá 404.
+- [x] A página abre sem login, como hoje.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Um paciente não vê nem altera nada de outro paciente
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

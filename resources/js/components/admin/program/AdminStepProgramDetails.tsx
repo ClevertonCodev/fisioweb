@@ -6,6 +6,8 @@ import type {
     AdminProgramGroupWriteDto,
     AdminProgramWriteDto,
 } from '@/application/admin/ports';
+import { useRefreshAdminExercise } from '@/application/admin/use-admin-exercises';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,6 +30,37 @@ interface AdminStepProgramDetailsProps {
         durationMinutes?: number | null;
         isActive?: boolean;
     };
+}
+
+function SummaryThumb({
+    exerciseId,
+    src,
+}: {
+    exerciseId: number;
+    src: string | null;
+}) {
+    const refresh = useRefreshAdminExercise(exerciseId);
+    if (!src) return null;
+
+    return (
+        <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted">
+            <ProtectedImage
+                src={src}
+                alt=""
+                onRefresh={async () => {
+                    const next = await refresh();
+                    const video = (
+                        next?.videos as
+                            | { thumbnail_url?: string | null }[]
+                            | undefined
+                    )?.[0];
+
+                    return video?.thumbnail_url ?? null;
+                }}
+                className="h-full w-full object-cover"
+            />
+        </div>
+    );
 }
 
 export function AdminStepProgramDetails({
@@ -61,11 +94,8 @@ export function AdminStepProgramDetails({
 
     const totalExercises = groups.reduce((s, g) => s + g.exercises.length, 0);
 
-    const thumbnails = groups
-        .flatMap((g) => g.exercises)
-        .slice(0, 3)
-        .map((e) => e.thumbnailUrl);
-    const remaining = totalExercises - thumbnails.length;
+    const previewExercises = groups.flatMap((g) => g.exercises).slice(0, 3);
+    const remaining = totalExercises - previewExercises.length;
 
     const handleSubmit = () => {
         if (!title.trim()) return;
@@ -249,19 +279,12 @@ export function AdminStepProgramDetails({
 
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-2">
-                            {thumbnails.map((url, i) => (
-                                <div
-                                    key={i}
-                                    className="h-10 w-10 overflow-hidden rounded-full border-2 border-card bg-muted"
-                                >
-                                    {url && (
-                                        <img
-                                            src={url}
-                                            alt=""
-                                            className="h-full w-full object-cover"
-                                        />
-                                    )}
-                                </div>
+                            {previewExercises.map((exercise) => (
+                                <SummaryThumb
+                                    key={exercise.id}
+                                    exerciseId={exercise.exerciseId}
+                                    src={exercise.thumbnailUrl}
+                                />
                             ))}
                             {remaining > 0 && (
                                 <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium text-muted-foreground">

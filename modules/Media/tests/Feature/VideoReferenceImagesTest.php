@@ -35,16 +35,17 @@ class VideoReferenceImagesTest extends TestCase
         $exercise->videos()->attach($video->id);
 
         $paths = [
-            'thumbnails/videos/ref-1.jpeg',
-            'thumbnails/videos/ref-2.png',
+            'covers/videos/ref-1.jpeg',
+            'covers/videos/ref-2.png',
         ];
 
-        $this->actingAs($admin, 'admin')
+        $synced = $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
                 'reference_image_paths' => $paths,
             ])
-            ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
+            ->assertOk();
+        $this->assertSignedImageUrl($synced->json('data.metadata.reference_images.0.url'), $paths[0]);
+        $this->assertArrayNotHasKey('file_path', $synced->json('data.metadata.reference_images.0'));
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
     }
@@ -70,7 +71,7 @@ class VideoReferenceImagesTest extends TestCase
 
         $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
-                'reference_image_paths' => ['thumbnails/videos/ref-1.jpeg'],
+                'reference_image_paths' => ['covers/videos/ref-1.jpeg'],
             ])
             ->assertOk();
 
@@ -134,8 +135,8 @@ class VideoReferenceImagesTest extends TestCase
         ]);
         $area  = PhysioArea::create(['name' => 'Área Clínica Ref']);
         $paths = [
-            'thumbnails/videos/clinic-ref-1.jpeg',
-            'thumbnails/videos/clinic-ref-2.png',
+            'covers/videos/clinic-ref-1.jpeg',
+            'covers/videos/clinic-ref-2.png',
         ];
         $video = Video::factory()->create([
             'clinic_id' => $clinic->id,
@@ -153,12 +154,12 @@ class VideoReferenceImagesTest extends TestCase
         ]);
         $exercise->videos()->attach($video->id);
 
-        $this->actingAs($user, 'clinic')
+        $syncedClinic = $this->actingAs($user, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
                 'reference_image_paths' => $paths,
             ])
-            ->assertOk()
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $paths[0]);
+            ->assertOk();
+        $this->assertSignedImageUrl($syncedClinic->json('data.metadata.reference_images.0.url'), $paths[0]);
 
         $this->assertSame(2, ExerciseMedia::query()->where('exercise_id', $exercise->id)->count());
     }
@@ -172,7 +173,7 @@ class VideoReferenceImagesTest extends TestCase
             'clinic_id' => $clinic->id,
             'role'      => ClinicUser::ROLE_ADMIN,
         ]);
-        $paths = ['thumbnails/videos/evento-1.jpeg', 'thumbnails/videos/evento-2.png'];
+        $paths = ['covers/videos/evento-1.jpeg', 'covers/videos/evento-2.png'];
         $video = Video::factory()->create([
             'clinic_id' => $clinic->id,
             'status'    => Video::STATUS_COMPLETED,
@@ -201,12 +202,119 @@ class VideoReferenceImagesTest extends TestCase
 
         $this->actingAs($admin, 'admin')
             ->putJson("/api/admin/media/videos/{$video->id}/reference-images", [
-                'reference_image_paths' => ['thumbnails/videos/catalogo-1.jpeg'],
+                'reference_image_paths' => ['covers/videos/catalogo-1.jpeg'],
             ])
             ->assertOk();
 
         Event::assertDispatched(VideoReferenceImagesChanged::class, fn (VideoReferenceImagesChanged $event) => $event->videoId === $video->id
             && is_null($event->ownerClinicId)
             && $event->changedByOperator === true);
+    }
+
+    public function test_clinic_keeps_an_existing_image_by_position_and_adds_a_new_one(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create(['clinic_id' => $clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+        $video  = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => [
+                'issued_image_paths' => ['covers/videos/nova.jpg'],
+                'reference_images'   => [
+                    ['file_path' => 'covers/videos/primeira.jpg', 'original_filename' => 'primeira.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                    ['file_path' => 'covers/videos/segunda.jpg', 'original_filename' => 'segunda.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                ],
+            ],
+        ]);
+
+        $response = $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_slots' => [
+                    ['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a'],
+                    ['path' => 'covers/videos/nova.jpg'],
+                ],
+            ])
+            ->assertOk();
+
+        $this->assertSignedImageUrl($response->json('data.metadata.reference_images.0.url'), 'covers/videos/segunda.jpg');
+        $this->assertSignedImageUrl($response->json('data.metadata.reference_images.1.url'), 'covers/videos/nova.jpg');
+        $this->assertSame(
+            ['covers/videos/segunda.jpg', 'covers/videos/nova.jpg'],
+            array_column($video->fresh()->metadata['reference_images'], 'file_path'),
+        );
+    }
+
+    public function test_keeping_a_position_whose_image_changed_since_the_screen_opened_is_refused(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create(['clinic_id' => $clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+        $video  = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => [
+                'issued_image_paths' => ['covers/videos/nova.jpg'],
+                'reference_images'   => [
+                    ['file_path' => 'covers/videos/primeira.jpg', 'original_filename' => 'primeira.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                    ['file_path' => 'covers/videos/trocada.jpg', 'original_filename' => 'trocada.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_slots' => [
+                    ['path' => 'covers/videos/nova.jpg'],
+                    ['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a'],
+                ],
+            ])
+            ->assertStatus(422)
+            ->assertJsonFragment(['message' => 'As imagens de referência mudaram. Recarregue a tela e tente de novo.']);
+
+        $this->assertSame(
+            ['covers/videos/primeira.jpg', 'covers/videos/trocada.jpg'],
+            array_column($video->fresh()->metadata['reference_images'], 'file_path'),
+        );
+    }
+
+    public function test_clinic_cannot_keep_a_position_that_has_no_image(): void
+    {
+        $clinic = Clinic::factory()->create();
+        $user   = ClinicUser::factory()->create(['clinic_id' => $clinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
+        $video  = Video::factory()->create([
+            'clinic_id' => $clinic->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => ['reference_images' => [
+                ['file_path' => 'covers/videos/unica.jpg', 'original_filename' => 'unica.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+            ]],
+        ]);
+
+        $this->actingAs($user, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_slots' => [['keep' => 1, 'url' => 'https://conta.example/ivsdev/covers/videos/segunda.jpg?X-Amz-Signature=a']],
+            ])
+            ->assertStatus(422);
+
+        $this->assertSame(['covers/videos/unica.jpg'], array_column($video->fresh()->metadata['reference_images'], 'file_path'));
+    }
+
+    public function test_other_clinic_cannot_keep_images_of_this_clinic_video(): void
+    {
+        $owner = Clinic::factory()->create();
+        $other = ClinicUser::factory()->create(['role' => ClinicUser::ROLE_ADMIN]);
+        $video = Video::factory()->create([
+            'clinic_id' => $owner->id,
+            'status'    => Video::STATUS_COMPLETED,
+            'metadata'  => ['reference_images' => [
+                ['file_path' => 'covers/videos/da-dona.jpg', 'original_filename' => 'da-dona.jpg', 'mime_type' => 'image/jpeg', 'size' => 1],
+            ]],
+        ]);
+
+        $response = $this->actingAs($other, 'clinic')
+            ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", [
+                'reference_image_slots' => [['keep' => 0, 'url' => 'https://conta.example/ivsdev/covers/videos/da-dona.jpg?X-Amz-Signature=a']],
+            ]);
+
+        $this->assertContains($response->status(), [403, 404]);
+        $this->assertStringNotContainsString('da-dona', $response->getContent());
     }
 }

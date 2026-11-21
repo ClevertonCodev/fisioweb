@@ -15,8 +15,6 @@ interface VideoServiceInterface
 
     public function getVideoFormatted(int $videoId): array;
 
-    public function getVideoCdnUrl(int $videoId): ?string;
-
     public function updateMetadata(int $videoId, array $metadata): Video;
 
     public function getVideosByUploadable(Model $uploadable): Collection;
@@ -79,6 +77,12 @@ interface VideoServiceInterface
      * @return array<string, mixed>
      */
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array;
+
+    /**
+     * @param  list<array{path?: string|null, keep?: int}>  $slots
+     * @return list<string>
+     */
+    public function referencePathsFromSlots(int $videoId, array $slots): array;
 
     /**
      * Troca feita pela clínica dona: aplica na hora, ou guarda como proposta quando o vídeo está travado.

@@ -1,7 +1,13 @@
 import { Info, Maximize, Pencil, Play, Star, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import {
+    mediaKey,
+    useProtectedPlayback,
+    type ProtectedRefresh,
+} from '@/components/protected-media/use-protected-playback';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -9,7 +15,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useMediaReady } from '@/hooks/use-media-ready';
 import { cn } from '@/lib/utils';
 
 interface ExerciseCardProps {
@@ -29,9 +34,15 @@ interface ExerciseCardProps {
     onEdit?: () => void;
     /** Quando fornecido, exibe botão de excluir no footer */
     onDelete?: () => void;
+    onRefresh?: ProtectedRefresh;
+    onRefreshPoster?: ProtectedRefresh;
 }
 
-export function ExerciseCard({
+export function ExerciseCard(props: ExerciseCardProps) {
+    return <ExerciseCardView key={mediaKey(props.videoUrl)} {...props} />;
+}
+
+function ExerciseCardView({
     videoUrl,
     thumbnailUrl,
     title,
@@ -43,22 +54,23 @@ export function ExerciseCard({
     onInfo,
     onEdit,
     onDelete,
+    onRefresh,
+    onRefreshPoster,
 }: ExerciseCardProps) {
-    const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const { ready, markReady } = useMediaReady(thumbnailUrl, videoUrl);
+    const [posterReady, setPosterReady] = useState(!thumbnailUrl);
+    const playback = useProtectedPlayback({ url: videoUrl, onRefresh });
 
     const togglePlay = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        const video = videoRef.current;
+        const video = playback.ref.current;
         if (!video) return;
 
         if (isPlaying) {
             video.pause();
             setIsPlaying(false);
         } else {
-            video.play();
-            setIsPlaying(true);
+            void playback.play().then(setIsPlaying);
         }
     };
 
@@ -68,7 +80,7 @@ export function ExerciseCard({
 
     const handleFullscreen = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const video = videoRef.current;
+        const video = playback.ref.current;
         if (!video) return;
         if (document.fullscreenElement) {
             document.exitFullscreen();
@@ -81,25 +93,31 @@ export function ExerciseCard({
         <div className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
             {/* Thumbnail / Video Container — vídeo com respiro (padding) como no Vedius */}
             <div className="relative mx-3 mt-3 aspect-square overflow-hidden rounded-lg bg-muted">
-                {!ready && (
+                {!posterReady && (
                     <Skeleton className="absolute inset-0 z-[1] h-full w-full rounded-none" />
                 )}
+                {thumbnailUrl && !playback.active && (
+                    <ProtectedImage
+                        src={thumbnailUrl}
+                        alt=""
+                        onRefresh={onRefreshPoster}
+                        onLoad={() => setPosterReady(true)}
+                        className="absolute inset-0 size-full object-cover"
+                    />
+                )}
                 <video
-                    ref={videoRef}
-                    src={videoUrl ?? undefined}
-                    poster={thumbnailUrl ?? undefined}
-                    className={cn(
-                        'h-full w-full object-cover transition-opacity duration-200',
-                        !ready && 'opacity-0',
-                    )}
+                    {...playback.videoProps}
+                    className="h-full w-full object-cover"
                     onEnded={handleVideoEnded}
-                    onLoadedData={markReady}
-                    onError={markReady}
-                    playsInline
                 />
+                {playback.error && (
+                    <p className="pointer-events-none absolute inset-x-0 bottom-2 z-10 text-center text-xs text-white drop-shadow-md">
+                        {playback.error}
+                    </p>
+                )}
 
                 {/* Overlay de player — estilo Vedius (cores do sistema) */}
-                {canPlay && ready && (
+                {canPlay && posterReady && (
                     <>
                         <button
                             onClick={togglePlay}

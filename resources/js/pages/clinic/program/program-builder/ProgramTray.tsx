@@ -10,6 +10,24 @@ import {
     type ProgramBuilder,
 } from '@/application/clinic/program-builder';
 import { DsButton, dsCn } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProgramExercise } from '@/domain/clinic';
+import { useRefreshItemMedia } from '@/pages/clinic/program/exercise-library/media';
+
+function TrayThumb({ exercise }: { exercise: ProgramExercise }) {
+    const refresh = useRefreshItemMedia(exercise);
+
+    if (!exercise.thumbnailUrl) return null;
+
+    return (
+        <ProtectedImage
+            src={exercise.thumbnailUrl}
+            alt=""
+            onRefresh={async () => (await refresh())?.thumbnailUrl ?? null}
+            className="size-10 shrink-0 rounded-ds-sm object-cover"
+        />
+    );
+}
 
 export function ProgramTray({ builder }: { builder: ProgramBuilder }) {
     const { groups, target, total } = builder;
@@ -72,11 +90,7 @@ export function ProgramTray({ builder }: { builder: ProgramBuilder }) {
                                         key={e.id}
                                         className="flex items-center gap-2.5 rounded-ds-md bg-ds-surface-default p-1.5"
                                     >
-                                        <img
-                                            src={e.thumbnailUrl}
-                                            alt=""
-                                            className="size-10 shrink-0 rounded-ds-sm object-cover"
-                                        />
+                                        <TrayThumb exercise={e} />
                                         <span className="line-clamp-2 min-w-0 flex-1 text-ds-caption font-medium text-ds-content-primary">
                                             {e.title}
                                         </span>

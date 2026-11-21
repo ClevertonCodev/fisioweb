@@ -4,17 +4,21 @@ namespace Modules\Patient\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Modules\Clinic\Contracts\ActivityLoggerInterface;
 use Modules\Clinic\Enums\ActivityType;
+use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Contracts\PatientRepositoryInterface;
 use Modules\Patient\Contracts\PatientServiceInterface;
 use Modules\Patient\Models\Patient;
+use Throwable;
 
 class PatientService implements PatientServiceInterface
 {
     public function __construct(
         protected PatientRepositoryInterface $repository,
         protected ActivityLoggerInterface $activityLogger,
+        protected FileServiceInterface $files,
     ) {}
 
     public function find(int $id): ?Patient
@@ -54,6 +58,37 @@ class PatientService implements PatientServiceInterface
         );
 
         return $patient->load('clinicUser:id,name');
+    }
+
+    public function replacePhoto(int $id, string $path): Patient
+    {
+        $previous = $this->repository->findOrFail($id)->photo_path;
+        $patient  = $this->update($id, ['photo_path' => $path]);
+        $this->deletePhotoIfUnused($previous);
+
+        return $patient;
+    }
+
+    public function removePhoto(int $id): Patient
+    {
+        $previous = $this->repository->findOrFail($id)->photo_path;
+        $patient  = $this->update($id, ['photo_path' => null]);
+        $this->deletePhotoIfUnused($previous);
+
+        return $patient;
+    }
+
+    private function deletePhotoIfUnused(?string $path): void
+    {
+        if (empty($path) || $this->repository->isPhotoInUse($path)) {
+            return;
+        }
+
+        try {
+            $this->files->deletePrivateFile($path);
+        } catch (Throwable $e) {
+            Log::warning('Foto antiga do paciente ficou no armazenamento.', ['exception' => $e::class]);
+        }
     }
 
     public function update(int $id, array $data): Patient

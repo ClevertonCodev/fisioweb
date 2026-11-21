@@ -3,10 +3,13 @@
 namespace Modules\Media\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
+use Modules\Media\Support\VideoMetadataPresenter;
 
 class Video extends Model
 {
@@ -21,8 +24,6 @@ class Video extends Model
 
     public const STATUS_FAILED = 'failed';
 
-    public const PUBLIC_METADATA_KEYS = ['reference_images'];
-
     public const MEDIA_PROPOSAL_KEYS = ['proposed_thumbnail_path', 'proposed_reference_images', 'proposed_at', 'proposed_by_clinic_user_id'];
 
     protected $table = 'media_videos';
@@ -31,20 +32,27 @@ class Video extends Model
         'filename',
         'original_filename',
         'path',
-        'url',
-        'cdn_url',
         'mime_type',
         'size',
         'duration',
         'width',
         'height',
         'thumbnail_path',
-        'thumbnail_url',
         'status',
         'uploadable_type',
         'uploadable_id',
         'clinic_id',
         'metadata',
+    ];
+
+    protected $hidden = [
+        'path',
+        'thumbnail_path',
+    ];
+
+    protected $appends = [
+        'video_url',
+        'thumbnail_url',
     ];
 
     protected function casts(): array
@@ -57,6 +65,16 @@ class Video extends Model
             'clinic_id' => 'integer',
             'metadata'  => 'array',
         ];
+    }
+
+    protected function videoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forVideo($this->path));
+    }
+
+    protected function thumbnailUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(SignedMediaUrlInterface::class)->forVideo($this->thumbnail_path));
     }
 
     public function uploadable(): MorphTo
@@ -124,8 +142,10 @@ class Video extends Model
     {
         $attributes = parent::toArray();
 
-        if (is_array($attributes['metadata'] ?? null)) {
-            $attributes['metadata'] = array_intersect_key($attributes['metadata'], array_flip(self::PUBLIC_METADATA_KEYS));
+        if (array_key_exists('metadata', $attributes)) {
+            $attributes['metadata'] = VideoMetadataPresenter::forPublic(
+                is_array($this->metadata) ? $this->metadata : null,
+            );
         }
 
         return $attributes;
@@ -136,7 +156,15 @@ class Video extends Model
      */
     public function toAdminArray(): array
     {
-        return parent::toArray();
+        $attributes = parent::toArray();
+
+        if (array_key_exists('metadata', $attributes)) {
+            $attributes['metadata'] = VideoMetadataPresenter::forAdmin(
+                is_array($this->metadata) ? $this->metadata : null,
+            );
+        }
+
+        return $attributes;
     }
 
     protected static function newFactory(): \Modules\Media\Database\Factories\VideoFactory

@@ -27,7 +27,7 @@ class PatientFile extends Model
 
     protected $table = 'clinic_patient_files';
 
-    protected $hidden = ['file_path', 'cdn_url'];
+    protected $hidden = ['file_path'];
 
     protected static function newFactory(): PatientFileFactory
     {
@@ -41,7 +41,6 @@ class PatientFile extends Model
         'original_name',
         'name',
         'file_path',
-        'cdn_url',
         'mime_type',
         'size',
     ];

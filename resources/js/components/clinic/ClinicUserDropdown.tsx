@@ -14,7 +14,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { can } from '@/application/clinic/permissions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import { mediaKey } from '@/components/protected-media/use-protected-playback';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     Popover,
     PopoverContent,
@@ -72,8 +74,15 @@ export function ClinicUserDropdown({
 }: ClinicUserDropdownProps) {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, logout, reloadUser } = useAuth();
     const [open, setOpen] = useState(false);
+    const [photoLoaded, setPhotoLoaded] = useState(false);
+    const [photoSeen, setPhotoSeen] = useState(user?.photoUrl);
+    if (user?.photoUrl !== photoSeen) {
+        setPhotoSeen(user?.photoUrl);
+        if (mediaKey(user?.photoUrl) !== mediaKey(photoSeen))
+            setPhotoLoaded(false);
+    }
     const role = user?.role as ClinicRole | undefined;
     const isAdmin = can.manageClinicData(role);
     const isSidebar = placement === 'sidebar';
@@ -204,11 +213,22 @@ export function ClinicUserDropdown({
                 className="h-8 w-8 shrink-0"
             >
                 {user.photoUrl ? (
-                    <AvatarImage src={user.photoUrl} alt={user.name} />
+                    <ProtectedImage
+                        src={user.photoUrl}
+                        alt={user.name}
+                        onRefresh={reloadUser}
+                        onLoad={() => setPhotoLoaded(true)}
+                        className={cn(
+                            'absolute inset-0 aspect-square size-full object-cover',
+                            !photoLoaded && 'opacity-0',
+                        )}
+                    />
                 ) : null}
-                <AvatarFallback className="bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
-                    {firstLetter(user.name)}
-                </AvatarFallback>
+                {!photoLoaded && (
+                    <AvatarFallback className="bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
+                        {firstLetter(user.name)}
+                    </AvatarFallback>
+                )}
             </Avatar>
             {!collapsed && isSidebar ? (
                 <>

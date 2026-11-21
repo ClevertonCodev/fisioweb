@@ -18,6 +18,8 @@ import {
     DsEmptyState,
     DsKpi,
 } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import { useAuth } from '@/contexts/AuthContext';
 import type {
     Birthday,
@@ -82,13 +84,30 @@ interface ClinicDashboardProps {
     scope: DashboardScope;
     onScopeChange: (scope: DashboardScope) => void;
     now: Date;
+    onRefreshPhoto: (patientId: string) => Promise<string | null>;
+    onRefreshAppointmentPhoto: (
+        appointmentId: string,
+    ) => Promise<string | null>;
 }
 
-function InitialsAvatar({ name, src }: { name: string; src?: string }) {
+function InitialsAvatar({
+    name,
+    src,
+    onRefresh,
+}: {
+    name: string;
+    src?: string;
+    onRefresh?: ProtectedRefresh;
+}) {
     return (
         <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-ds-full bg-ds-surface-brand-subtle text-ds-caption font-semibold text-ds-content-brand">
             {src ? (
-                <img src={src} alt="" className="size-full object-cover" />
+                <ProtectedImage
+                    src={src}
+                    alt=""
+                    onRefresh={onRefresh}
+                    className="size-full object-cover"
+                />
             ) : (
                 initials(name)
             )}
@@ -130,6 +149,8 @@ export function ClinicDashboard({
     scope,
     onScopeChange,
     now,
+    onRefreshPhoto,
+    onRefreshAppointmentPhoto,
 }: ClinicDashboardProps) {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -216,7 +237,13 @@ export function ClinicDashboard({
                 ) : null}
 
                 {nextSession ? (
-                    <NextSessionAlert appointment={nextSession} now={now} />
+                    <NextSessionAlert
+                        appointment={nextSession}
+                        now={now}
+                        onRefresh={() =>
+                            onRefreshAppointmentPhoto(nextSession.id)
+                        }
+                    />
                 ) : null}
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -331,6 +358,11 @@ export function ClinicDashboard({
                                         <InitialsAvatar
                                             name={item.patientName}
                                             src={item.patientPhotoUrl}
+                                            onRefresh={() =>
+                                                onRefreshAppointmentPhoto(
+                                                    item.id,
+                                                )
+                                            }
                                         />
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-ds-body-xs font-medium text-ds-content-primary">
@@ -396,6 +428,11 @@ export function ClinicDashboard({
                                         <InitialsAvatar
                                             name={birthday.name}
                                             src={birthday.photoUrl}
+                                            onRefresh={() =>
+                                                onRefreshPhoto(
+                                                    birthday.patientId,
+                                                )
+                                            }
                                         />
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-ds-body-xs font-medium text-ds-content-primary">

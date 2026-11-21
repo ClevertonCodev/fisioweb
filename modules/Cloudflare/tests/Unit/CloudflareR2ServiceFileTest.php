@@ -21,7 +21,6 @@ class CloudflareR2ServiceFileTest extends TestCase
         parent::setUp();
 
         config(['cloudflare.r2_disk' => 'r2']);
-        config(['cloudflare.cdn_url' => 'https://cdn.example.com']);
         config(['cloudflare.image_directory' => 'images']);
         config(['cloudflare.thumbnail_directory' => 'thumbnails']);
 
@@ -39,14 +38,13 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->assertArrayHasKey('filename', $result);
         $this->assertArrayHasKey('original_filename', $result);
         $this->assertArrayHasKey('path', $result);
-        $this->assertArrayHasKey('url', $result);
-        $this->assertArrayHasKey('cdn_url', $result);
+        $this->assertArrayNotHasKey('url', $result);
+        $this->assertArrayNotHasKey('cdn_url', $result);
         $this->assertArrayHasKey('mime_type', $result);
         $this->assertArrayHasKey('size', $result);
 
         $this->assertEquals('photo.png', $result['original_filename']);
         $this->assertStringStartsWith('files/', $result['path']);
-        $this->assertStringContainsString('cdn.example.com', $result['cdn_url']);
 
         Storage::disk('r2')->assertExists($result['path']);
     }
@@ -286,20 +284,6 @@ class CloudflareR2ServiceFileTest extends TestCase
         $this->assertFalse($this->service->fileExists('non-existent/file.png'));
     }
 
-    public function test_should_return_cdn_url_for_path_on_get_file_cdn_url(): void
-    {
-        $url = $this->service->getFileCdnUrl('images/photo.png');
-
-        $this->assertEquals('https://cdn.example.com/images/photo.png', $url);
-    }
-
-    public function test_should_handle_leading_slash_on_get_file_cdn_url(): void
-    {
-        $url = $this->service->getFileCdnUrl('/images/photo.png');
-
-        $this->assertEquals('https://cdn.example.com/images/photo.png', $url);
-    }
-
     public function test_should_upload_from_local_path_and_return_data(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'test_');
@@ -313,15 +297,14 @@ class CloudflareR2ServiceFileTest extends TestCase
             $this->assertArrayHasKey('filename', $result);
             $this->assertArrayHasKey('original_filename', $result);
             $this->assertArrayHasKey('path', $result);
-            $this->assertArrayHasKey('url', $result);
-            $this->assertArrayHasKey('cdn_url', $result);
+            $this->assertArrayNotHasKey('url', $result);
+            $this->assertArrayNotHasKey('cdn_url', $result);
             $this->assertArrayHasKey('mime_type', $result);
             $this->assertArrayHasKey('size', $result);
 
             $this->assertEquals('original.mp4', $result['original_filename']);
             $this->assertStringStartsWith('videos/', $result['path']);
             $this->assertStringEndsWith('.mp4', $result['filename']);
-            $this->assertStringContainsString('cdn.example.com', $result['cdn_url']);
 
             Storage::disk('r2')->assertExists($result['path']);
         } finally {

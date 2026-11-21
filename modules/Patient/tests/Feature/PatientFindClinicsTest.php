@@ -35,7 +35,6 @@ class PatientFindClinicsTest extends TestCase
         ], $overrides));
     }
 
-
     public function test_identificador_sem_vinculo_devolve_lista_vazia_e_nao_404(): void
     {
         $this->postJson(self::ENDPOINT, ['identifier' => '00000000000'])
@@ -54,7 +53,6 @@ class PatientFindClinicsTest extends TestCase
         $this->assertSame($semVinculo->status(), $inelegivel->status());
         $this->assertSame($semVinculo->json(), $inelegivel->json());
     }
-
 
     public function test_descobre_clinicas_por_cpf(): void
     {
@@ -92,7 +90,6 @@ class PatientFindClinicsTest extends TestCase
             ->assertStatus(200)
             ->assertJsonCount(2, 'data');
     }
-
 
     public function test_clinica_com_paciente_inelegivel_nao_aparece(): void
     {

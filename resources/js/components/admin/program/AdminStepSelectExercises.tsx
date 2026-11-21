@@ -2,7 +2,9 @@ import { Check, Search, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import type { AdminExercise } from '@/application/admin/ports';
+import { useRefreshAdminExercise } from '@/application/admin/use-admin-exercises';
 import { ExerciseCardSkeleton } from '@/components/ExerciseCardSkeleton';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -119,30 +121,12 @@ export function AdminStepSelectExercises({
                     <ScrollArea className="flex-1">
                         <div className="space-y-1 p-2">
                             {selectedExercises.map((ex) => {
-                                const video = (
-                                    ex.videos as
-                                        | {
-                                              thumbnail_url?: string | null;
-                                              cdn_url?: string | null;
-                                              url?: string | null;
-                                          }[]
-                                        | undefined
-                                )?.[0];
                                 return (
                                     <div
                                         key={ex.id}
                                         className="flex items-center gap-3 rounded-md p-2 hover:bg-accent/50"
                                     >
-                                        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
-                                            <img
-                                                src={
-                                                    video?.thumbnail_url ??
-                                                    undefined
-                                                }
-                                                alt={ex.name}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </div>
+                                        <SelectedExerciseThumb exercise={ex} />
                                         <p className="line-clamp-2 flex-1 text-xs font-medium text-foreground">
                                             {ex.name}
                                         </p>
@@ -174,6 +158,35 @@ export function AdminStepSelectExercises({
     );
 }
 
+function SelectedExerciseThumb({ exercise }: { exercise: AdminExercise }) {
+    const refresh = useRefreshAdminExercise(exercise.id);
+    const video = exerciseVideo(exercise);
+
+    return (
+        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
+            <ProtectedImage
+                src={video?.thumbnail_url}
+                alt={exercise.name}
+                onRefresh={async () =>
+                    exerciseVideo(await refresh())?.thumbnail_url ?? null
+                }
+                className="h-full w-full object-cover"
+            />
+        </div>
+    );
+}
+
+function exerciseVideo(exercise: AdminExercise | null | undefined) {
+    return (
+        exercise?.videos as
+            | {
+                  thumbnail_url?: string | null;
+                  video_url?: string | null;
+              }[]
+            | undefined
+    )?.[0];
+}
+
 function ExerciseSelectCard({
     exercise,
     isSelected,
@@ -183,16 +196,9 @@ function ExerciseSelectCard({
     isSelected: boolean;
     onToggleSelect: () => void;
 }) {
-    const video = (
-        exercise.videos as
-            | {
-                  thumbnail_url?: string | null;
-                  cdn_url?: string | null;
-                  url?: string | null;
-              }[]
-            | undefined
-    )?.[0];
-    const videoUrl = video?.cdn_url ?? video?.url ?? undefined;
+    const refreshExercise = useRefreshAdminExercise(exercise.id);
+    const video = exerciseVideo(exercise);
+    const videoUrl = video?.video_url ?? undefined;
     const thumbnailUrl = video?.thumbnail_url ?? undefined;
 
     return (
@@ -206,7 +212,18 @@ function ExerciseSelectCard({
         >
             {/* Thumbnail with play */}
             <div className="relative aspect-square overflow-hidden bg-muted">
-                <VideoThumb videoUrl={videoUrl} thumbnailUrl={thumbnailUrl} />
+                <VideoThumb
+                    videoUrl={videoUrl}
+                    thumbnailUrl={thumbnailUrl}
+                    onRefresh={async () => {
+                        const next = exerciseVideo(await refreshExercise());
+                        return next?.video_url ?? null;
+                    }}
+                    onRefreshPoster={async () =>
+                        exerciseVideo(await refreshExercise())?.thumbnail_url ??
+                        null
+                    }
+                />
 
                 {/* Select overlay */}
                 <button

@@ -1,6 +1,9 @@
 import { Camera, Crop, ImageUp, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
+
 import { DsButton } from '../button/DsButton';
 import { dsCn } from '../utils/ds-cn';
 
@@ -39,6 +42,7 @@ export function DsAvatarPhotoField({
     accept = DEFAULT_ACCEPT,
     validateSource = defaultSourceError,
     validateResult = defaultResultError,
+    onRefreshCurrent,
 }: {
     /** Foto já recortada (o que vai para a API). */
     value: File | null;
@@ -51,6 +55,7 @@ export function DsAvatarPhotoField({
     accept?: string;
     validateSource?: (file: File) => string | null;
     validateResult?: (file: File) => string | null;
+    onRefreshCurrent?: ProtectedRefresh;
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [source, setSource] = useState<File | null>(null);
@@ -121,11 +126,20 @@ export function DsAvatarPhotoField({
                 >
                     {shown ? (
                         <>
-                            <img
-                                src={shown}
-                                alt=""
-                                className="size-full object-cover"
-                            />
+                            {preview ? (
+                                <img
+                                    src={preview}
+                                    alt=""
+                                    className="size-full object-cover"
+                                />
+                            ) : (
+                                <ProtectedImage
+                                    src={currentUrl}
+                                    alt=""
+                                    onRefresh={onRefreshCurrent}
+                                    className="size-full object-cover"
+                                />
+                            )}
                             <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-ds-black/50 text-ds-caption font-medium text-ds-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                                 <Crop className="size-5" />
                                 Ajustar

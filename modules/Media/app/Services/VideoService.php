@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Cloudflare\Contracts\FileServiceInterface;
+use Modules\Cloudflare\Contracts\SignedMediaUrlInterface;
 use Modules\Media\Contracts\MediaProposal;
 use Modules\Media\Contracts\VideoLockQueryInterface;
 use Modules\Media\Contracts\VideoServiceInterface;
@@ -20,6 +21,7 @@ use Modules\Media\Exceptions\MediaProposalNotPendingException;
 use Modules\Media\Exceptions\VideoStorageFileMissingException;
 use Modules\Media\Models\Video;
 use Modules\Media\Repositories\VideoRepository;
+use Modules\Media\Support\VideoMetadataPresenter;
 
 class VideoService implements VideoServiceInterface
 {
@@ -30,6 +32,7 @@ class VideoService implements VideoServiceInterface
         protected FileServiceInterface $fileService,
         protected VideoRepository $videoRepository,
         protected VideoLockQueryInterface $videoLock,
+        protected SignedMediaUrlInterface $signedMedia,
     ) {}
 
     public function deleteVideo(int $videoId, bool $forceDelete = false): bool
@@ -64,11 +67,6 @@ class VideoService implements VideoServiceInterface
         $video = $this->videoRepository->findOrFail($videoId);
 
         return $this->formatVideo($video);
-    }
-
-    public function getVideoCdnUrl(int $videoId): ?string
-    {
-        return $this->videoRepository->find($videoId)?->cdn_url;
     }
 
     public function updateMetadata(int $videoId, array $metadata): Video
@@ -217,7 +215,6 @@ class VideoService implements VideoServiceInterface
             }
 
             $update['thumbnail_path'] = $data['thumbnail_path'];
-            $update['thumbnail_url']  = $this->fileService->getFileCdnUrl($data['thumbnail_path']);
 
             $metadata = $video->metadata ?? [];
             unset($metadata['pending_thumbnail_path']);
@@ -277,7 +274,6 @@ class VideoService implements VideoServiceInterface
 
         if (!empty($thumbnailPath)) {
             $update['thumbnail_path'] = $thumbnailPath;
-            $update['thumbnail_url']  = $this->fileService->getFileCdnUrl($thumbnailPath);
         }
 
         return $this->formatVideo($this->saveConfirmation($videoId, $update, $thumbnailPath));
@@ -329,7 +325,6 @@ class VideoService implements VideoServiceInterface
                 $this->discardProposal($video);
                 $video = $this->videoRepository->update($videoId, [
                     'thumbnail_path' => $thumbnailPath,
-                    'thumbnail_url'  => $this->fileService->getFileCdnUrl($thumbnailPath),
                 ]);
 
                 return $this->withProposalFlag($this->formatVideo($video));
@@ -350,6 +345,54 @@ class VideoService implements VideoServiceInterface
     {
         return $this->videoRepository->getAvailableForExercise($alsoIncludeVideoIds)
             ->map(fn (Video $video) => $this->formatVideo($video));
+    }
+
+    public function referencePathsFromSlots(int $videoId, array $slots): array
+    {
+        $video    = $this->videoRepository->findOrFail($videoId);
+        $existing = array_values($video->metadata['reference_images'] ?? []);
+        $paths    = [];
+        ksort($slots);
+
+        foreach (array_slice($slots, 0, 2) as $slot) {
+            if (!is_array($slot)) {
+                continue;
+            }
+
+            if (!empty($slot['path']) && is_string($slot['path'])) {
+                $paths[] = $slot['path'];
+
+                continue;
+            }
+
+            if (!array_key_exists('keep', $slot)) {
+                continue;
+            }
+
+            $path = $existing[(int) $slot['keep']]['file_path'] ?? null;
+            if (empty($path)) {
+                throw new \InvalidArgumentException('Imagem de referência não encontrada.');
+            }
+
+            if (!$this->linkPointsTo($slot['url'] ?? null, $path)) {
+                throw new \InvalidArgumentException('As imagens de referência mudaram. Recarregue a tela e tente de novo.');
+            }
+
+            $paths[] = $path;
+        }
+
+        return $paths;
+    }
+
+    private function linkPointsTo(?string $url, string $path): bool
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        $urlPath = rawurldecode((string) parse_url($url, PHP_URL_PATH));
+
+        return str_ends_with($urlPath, '/' . ltrim($path, '/'));
     }
 
     public function syncReferenceImages(int $videoId, array $referenceImagePaths, bool $changedByOperator): array
@@ -425,7 +468,6 @@ class VideoService implements VideoServiceInterface
 
             if (!empty($metadata['proposed_thumbnail_path'])) {
                 $update['thumbnail_path'] = $metadata['proposed_thumbnail_path'];
-                $update['thumbnail_url']  = $this->fileService->getFileCdnUrl($metadata['proposed_thumbnail_path']);
             }
 
             if (array_key_exists('proposed_reference_images', $metadata)) {
@@ -508,8 +550,6 @@ class VideoService implements VideoServiceInterface
         }
 
         $update = [
-            'url'      => $this->fileService->getFileUrl($video->path),
-            'cdn_url'  => $this->fileService->getFileCdnUrl($video->path),
             'status'   => Video::STATUS_COMPLETED,
             'metadata' => $metadata,
         ];
@@ -543,7 +583,7 @@ class VideoService implements VideoServiceInterface
 
     /**
      * @param  list<string>  $referenceImagePaths
-     * @return list<array{file_path: string, cdn_url: string, original_filename: string, mime_type: string, size: int}>
+     * @return list<array{file_path: string, original_filename: string, mime_type: string, size: int}>
      */
     private function referenceImages(array $referenceImagePaths): array
     {
@@ -554,7 +594,6 @@ class VideoService implements VideoServiceInterface
 
         return array_map(fn (string $path) => [
             'file_path'         => $path,
-            'cdn_url'           => $this->fileService->getFileCdnUrl($path),
             'original_filename' => basename($path),
             'mime_type'         => str_ends_with(strtolower($path), '.png') ? 'image/png' : 'image/jpeg',
             'size'              => 0,
@@ -671,12 +710,12 @@ class VideoService implements VideoServiceInterface
             proposedAt: (string) $metadata['proposed_at'],
             proposedByClinicUserId: isset($metadata['proposed_by_clinic_user_id']) ? (int) $metadata['proposed_by_clinic_user_id'] : null,
             currentThumbnailUrl: $video->thumbnail_url,
-            currentReferenceImages: $this->imageLinks($metadata['reference_images'] ?? []),
+            currentReferenceImages: array_values(is_array($metadata['reference_images'] ?? null) ? $metadata['reference_images'] : []),
             proposedThumbnailUrl: empty($metadata['proposed_thumbnail_path'] ?? null)
                 ? null
-                : $this->fileService->getFileCdnUrl($metadata['proposed_thumbnail_path']),
+                : $this->signedMedia->forVideo($metadata['proposed_thumbnail_path']),
             proposedReferenceImages: array_key_exists('proposed_reference_images', $metadata)
-                ? $this->imageLinks($metadata['proposed_reference_images'] ?? [])
+                ? array_values(is_array($metadata['proposed_reference_images']) ? $metadata['proposed_reference_images'] : [])
                 : null,
         );
     }
@@ -699,29 +738,16 @@ class VideoService implements VideoServiceInterface
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $images
-     * @return list<array{file_path: string, cdn_url: string, original_filename: string, mime_type: string, size: int}>
-     */
-    private function imageLinks(array $images): array
-    {
-        return array_values(array_map(fn (array $image) => [
-            'file_path'         => (string) ($image['file_path'] ?? ''),
-            'cdn_url'           => (string) ($image['cdn_url'] ?? ''),
-            'original_filename' => (string) ($image['original_filename'] ?? basename((string) ($image['file_path'] ?? ''))),
-            'mime_type'         => (string) ($image['mime_type'] ?? 'image/jpeg'),
-            'size'              => (int) ($image['size'] ?? 0),
-        ], $images));
-    }
-
-    /**
      * @param  array<string, mixed>  $formattedVideo
      * @return array<string, mixed>
      */
     private function withProposalFlag(array $formattedVideo): array
     {
+        $stored = $this->videoRepository->find($formattedVideo['id'] ?? null);
+
         return [
             ...$formattedVideo,
-            'proposal_pending' => !empty($formattedVideo['metadata']['proposed_at'] ?? null),
+            'proposal_pending' => !empty($stored?->metadata['proposed_at'] ?? null),
         ];
     }
 
@@ -731,14 +757,13 @@ class VideoService implements VideoServiceInterface
             'id'                => $video->id,
             'filename'          => $video->filename,
             'original_filename' => $video->original_filename,
-            'url'               => $video->url,
-            'cdn_url'           => $video->cdn_url,
+            'video_url'         => $video->video_url,
             'thumbnail_url'     => $video->thumbnail_url,
             'size'              => $video->size,
             'human_size'        => $video->human_size,
             'duration'          => $video->duration,
             'human_duration'    => $video->human_duration,
-            'metadata'          => $video->metadata,
+            'metadata'          => VideoMetadataPresenter::forPublic(is_array($video->metadata) ? $video->metadata : null),
             'status'            => $video->status,
             'mime_type'         => $video->mime_type,
         ];

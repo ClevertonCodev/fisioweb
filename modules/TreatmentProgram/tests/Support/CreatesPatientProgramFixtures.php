@@ -58,9 +58,8 @@ trait CreatesPatientProgramFixtures
         ]);
 
         $video = Video::factory()->create([
-            'url'           => 'http://example.com/video.mp4',
-            'cdn_url'       => 'http://cdn.example.com/video.mp4',
-            'thumbnail_url' => 'http://example.com/thumb.jpg',
+            'path'           => 'videos/programa.mp4',
+            'thumbnail_path' => 'covers/videos/programa.jpg',
         ]);
         $exercise->videos()->attach($video->id);
 

@@ -3,7 +3,6 @@
 namespace Modules\Media\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Modules\Admin\Models\Exercise;
 use Modules\Admin\Models\PhysioArea;
 use Modules\Clinic\Models\Clinic;
@@ -16,11 +15,11 @@ class MediaProposalObjectsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const CURRENT_IMAGE = 'thumbnails/videos/foto-aprovada.jpg';
+    private const CURRENT_IMAGE = 'covers/videos/foto-aprovada.jpg';
 
-    private const OLD_PROPOSED_THUMBNAIL = 'thumbnails/videos/capa-proposta-antiga.jpg';
+    private const OLD_PROPOSED_THUMBNAIL = 'covers/videos/capa-proposta-antiga.jpg';
 
-    private const OLD_PROPOSED_IMAGE = 'thumbnails/videos/foto-proposta-antiga.jpg';
+    private const OLD_PROPOSED_IMAGE = 'covers/videos/foto-proposta-antiga.jpg';
 
     private Clinic $clinicA;
 
@@ -33,7 +32,7 @@ class MediaProposalObjectsTest extends TestCase
     {
         parent::setUp();
 
-        $fileService = Mockery::mock(FileServiceInterface::class);
+        $fileService = $this->mockFiles();
         $fileService->shouldReceive('createPresignedUploadUrl')->andReturnUsing(fn (string $path) => [
             'upload_url' => 'https://r2.invalid/put/' . $path,
             'path'       => $path,
@@ -64,11 +63,12 @@ class MediaProposalObjectsTest extends TestCase
         $approved->videos()->detach($video->id);
         $newImage = $this->issuedPath($video);
 
-        $this->actingAs($this->adminA, 'clinic')
+        $replaced = $this->actingAs($this->adminA, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/reference-images", ['reference_image_paths' => [$newImage]])
             ->assertOk()
-            ->assertJsonPath('data.proposal_pending', false)
-            ->assertJsonPath('data.metadata.reference_images.0.file_path', $newImage);
+            ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedImageUrl($replaced->json('data.metadata.reference_images.0.url'), $newImage);
+        $this->assertArrayNotHasKey('file_path', $replaced->json('data.metadata.reference_images.0'));
 
         $metadata = $video->fresh()->metadata;
         $this->assertSame([], array_intersect_key($metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS)));
@@ -84,11 +84,11 @@ class MediaProposalObjectsTest extends TestCase
         $approved->videos()->detach($video->id);
         $newThumbnail = $this->issuedPath($video);
 
-        $this->actingAs($this->adminA, 'clinic')
+        $thumb = $this->actingAs($this->adminA, 'clinic')
             ->putJson("/api/clinic/media/videos/{$video->id}/thumbnail", ['thumbnail_path' => $newThumbnail])
             ->assertOk()
-            ->assertJsonPath('data.proposal_pending', false)
-            ->assertJsonPath('data.thumbnail_url', 'https://cdn.invalid/' . $newThumbnail);
+            ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedVideoUrl($thumb->json('data.thumbnail_url'), $newThumbnail);
 
         $video = $video->fresh();
         $this->assertSame([], array_intersect_key($video->metadata, array_flip(Video::MEDIA_PROPOSAL_KEYS)));
@@ -123,11 +123,11 @@ class MediaProposalObjectsTest extends TestCase
         $this->linkedExercise($video, Exercise::REVIEW_PENDING);
         $thumbnail = $this->pendingThumbnailPath($video);
 
-        $this->actingAs($this->adminA, 'clinic')
+        $confirmed = $this->actingAs($this->adminA, 'clinic')
             ->postJson("/api/clinic/media/videos/{$video->id}/confirm-upload", ['thumbnail_path' => $thumbnail])
             ->assertOk()
-            ->assertJsonPath('data.proposal_pending', false)
-            ->assertJsonPath('data.thumbnail_url', 'https://cdn.invalid/' . $thumbnail);
+            ->assertJsonPath('data.proposal_pending', false);
+        $this->assertSignedVideoUrl($confirmed->json('data.thumbnail_url'), $thumbnail);
 
         $video = $video->fresh();
         $this->assertSame($thumbnail, $video->thumbnail_path);
@@ -159,7 +159,6 @@ class MediaProposalObjectsTest extends TestCase
             'clinic_id'      => $this->clinicA->id,
             'status'         => Video::STATUS_PENDING,
             'thumbnail_path' => null,
-            'thumbnail_url'  => null,
             'metadata'       => [
                 'proposed_thumbnail_path'    => self::OLD_PROPOSED_THUMBNAIL,
                 'proposed_reference_images'  => [[
@@ -215,8 +214,7 @@ class MediaProposalObjectsTest extends TestCase
         return Video::factory()->create([
             'clinic_id'      => $this->clinicA->id,
             'status'         => Video::STATUS_COMPLETED,
-            'thumbnail_path' => 'thumbnails/videos/capa-aprovada.jpg',
-            'thumbnail_url'  => 'https://cdn.invalid/thumbnails/videos/capa-aprovada.jpg',
+            'thumbnail_path' => 'covers/videos/capa-aprovada.jpg',
             'metadata'       => [
                 'reference_images' => [[
                     'file_path'         => self::CURRENT_IMAGE,

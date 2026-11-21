@@ -47,7 +47,7 @@ class ProfessionalsListTest extends TestCase
     public function test_admin_sees_admin_and_physiotherapists_as_professionals(): void
     {
         $this->physio->forceFill([
-            'photo_url' => 'https://cdn.example.com/physio.jpg',
+            'photo_path' => 'clinic-users/photos/physio.jpg',
         ])->save();
 
         $response = $this->actingAs($this->admin, 'clinic')
@@ -60,10 +60,9 @@ class ProfessionalsListTest extends TestCase
         $this->assertContains($this->admin->id, $ids);
         $this->assertContains($this->physio->id, $ids);
         $this->assertNotContains($this->secretary->id, $ids);
-        $this->assertSame(
-            'https://cdn.example.com/physio.jpg',
-            collect($response->json('data'))->firstWhere('id', $this->physio->id)['photo_url'],
-        );
+        $physio = collect($response->json('data'))->firstWhere('id', $this->physio->id);
+        $this->assertSignedImageUrl($physio['photo_url'], 'clinic-users/photos/physio.jpg');
+        $this->assertArrayNotHasKey('photo_path', $physio);
     }
 
     public function test_secretary_sees_admin_and_physiotherapists_as_professionals(): void

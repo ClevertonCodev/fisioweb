@@ -22,12 +22,9 @@ class CloudflareR2Service implements FileServiceInterface
 
     protected string $disk;
 
-    protected string $cdnUrl;
-
     public function __construct()
     {
-        $this->disk   = config('cloudflare.r2_disk');
-        $this->cdnUrl = config('cloudflare.cdn_url');
+        $this->disk = config('cloudflare.r2_disk');
     }
 
     public function uploadFile(
@@ -55,8 +52,6 @@ class CloudflareR2Service implements FileServiceInterface
                 'filename'          => $filename,
                 'original_filename' => $file->getClientOriginalName(),
                 'path'              => $path,
-                'url'               => Storage::disk($this->disk)->url($path),
-                'cdn_url'           => $this->generateCdnUrl($path),
                 'mime_type'         => $file->getMimeType(),
                 'size'              => $file->getSize(),
             ];
@@ -174,16 +169,6 @@ class CloudflareR2Service implements FileServiceInterface
         return Storage::disk($this->disk)->exists($path);
     }
 
-    public function getFileUrl(string $path): string
-    {
-        return Storage::disk($this->disk)->url($path);
-    }
-
-    public function getFileCdnUrl(string $path): string
-    {
-        return $this->generateCdnUrl($path);
-    }
-
     public function uploadFromPath(
         string $localPath,
         string $directory = 'files',
@@ -215,8 +200,6 @@ class CloudflareR2Service implements FileServiceInterface
                 'filename'          => $filename,
                 'original_filename' => $originalFilename,
                 'path'              => $path,
-                'url'               => Storage::disk($this->disk)->url($path),
-                'cdn_url'           => $this->generateCdnUrl($path),
                 'mime_type'         => mime_content_type($localPath) ?: 'application/octet-stream',
                 'size'              => filesize($localPath),
             ];
@@ -280,6 +263,7 @@ class CloudflareR2Service implements FileServiceInterface
         int $expiresInSeconds = 300,
         ?string $downloadFilename = null,
         ?string $contentType = null,
+        ?\DateTimeInterface $startsAt = null,
     ): array {
         try {
             /** @var \Illuminate\Filesystem\AwsS3V3Adapter $adapter */
@@ -300,14 +284,16 @@ class CloudflareR2Service implements FileServiceInterface
                 );
             }
 
+            $start            = $startsAt ? \Illuminate\Support\Carbon::instance($startsAt) : now();
             $presignedRequest = $client->createPresignedRequest(
                 $client->getCommand('GetObject', $params),
-                "+{$expiresInSeconds} seconds"
+                "+{$expiresInSeconds} seconds",
+                ['start_time' => $start->getTimestamp()],
             );
 
             return [
                 'url'        => (string) $presignedRequest->getUri(),
-                'expires_at' => now()->addSeconds($expiresInSeconds)->toISOString(),
+                'expires_at' => $start->copy()->addSeconds($expiresInSeconds)->toISOString(),
             ];
         } catch (\Throwable $e) {
             // Só a pasta: o caminho completo abriria o arquivo pelo CDN.
@@ -339,10 +325,5 @@ class CloudflareR2Service implements FileServiceInterface
     protected function generateFilename(UploadedFile $file): string
     {
         return Str::uuid() . '_' . now()->timestamp . '.' . $file->getClientOriginalExtension();
-    }
-
-    protected function generateCdnUrl(string $path): string
-    {
-        return rtrim($this->cdnUrl, '/') . '/' . ltrim($path, '/');
     }
 }

@@ -31,8 +31,6 @@ class VideoSeeder extends Seeder
      */
     public function run(): void
     {
-        $cdn = rtrim(config('cloudflare.cdn_url', 'https://pub-c505783a14d2470eb49d00e4e17df019.r2.dev'), '/');
-
         // Chaveado por id (1 e 2) para preservar as referências do ExerciseSeeder
         // mesmo quando os arquivos do bucket são trocados.
         $videos = [
@@ -50,12 +48,11 @@ class VideoSeeder extends Seeder
             ],
         ];
 
-        $referenceImages = collect(self::REFERENCE_IMAGES)->map(function (array $image) use ($cdn) {
-            $path = 'thumbnails/videos/' . $image['file'];
+        $referenceImages = collect(self::REFERENCE_IMAGES)->map(function (array $image) {
+            $path = 'covers/videos/' . $image['file'];
 
             return [
                 'file_path'         => $path,
-                'cdn_url'           => $cdn . '/' . $path,
                 'original_filename' => $image['filename'],
                 'mime_type'         => $image['mime'],
                 'size'              => 102400,
@@ -64,7 +61,7 @@ class VideoSeeder extends Seeder
 
         foreach ($videos as $id => $data) {
             $path          = 'videos/' . $data['filename'];
-            $thumbnailPath = 'thumbnails/videos/' . $data['thumbnail'];
+            $thumbnailPath = 'covers/videos/' . $data['thumbnail'];
 
             Video::withTrashed()->updateOrCreate(
                 ['id' => $id],
@@ -72,15 +69,12 @@ class VideoSeeder extends Seeder
                     'filename'          => $data['filename'],
                     'original_filename' => $data['original_filename'],
                     'path'              => $path,
-                    'url'               => $cdn . '/' . $path,
-                    'cdn_url'           => $cdn . '/' . $path,
                     'mime_type'         => 'video/mp4',
                     'size'              => 5242880,
                     'duration'          => $data['duration'],
                     'width'             => 1920,
                     'height'            => 1080,
                     'thumbnail_path'    => $thumbnailPath,
-                    'thumbnail_url'     => $cdn . '/' . $thumbnailPath,
                     'status'            => Video::STATUS_COMPLETED,
                     'metadata'          => [
                         'reference_images' => $referenceImages,

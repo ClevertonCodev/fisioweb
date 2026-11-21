@@ -42,6 +42,7 @@ Route::prefix('clinic')->middleware(['auth:clinic', 'clinic.guard'])->group(func
     Route::prefix('exercises')->name('clinic.exercises.')->group(function () {
         Route::get('/', [ExerciseController::class, 'index'])->name('index');
         Route::get('options', [ExerciseController::class, 'options'])->name('options');
+        Route::get('{id}', [ExerciseController::class, 'show'])->whereNumber('id')->name('show');
         Route::post('/', [ExerciseController::class, 'store'])->name('store');
         Route::post('{id}/favorite', [ExerciseController::class, 'toggleFavorite'])->name('favorite');
     });

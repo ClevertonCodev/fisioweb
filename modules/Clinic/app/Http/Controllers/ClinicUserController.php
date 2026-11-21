@@ -47,7 +47,7 @@ class ClinicUserController extends ClinicAuthenticatedController
             $query->where('id', $authUser->id);
         }
 
-        $users = $query->orderBy('name')->get(['id', 'name', 'photo_url']);
+        $users = $query->orderBy('name')->get(['id', 'name', 'photo_path']);
 
         return response()->json(['data' => $users]);
     }
@@ -96,7 +96,7 @@ class ClinicUserController extends ClinicAuthenticatedController
         ]);
 
         $uploaded = $this->fileService->uploadFile($request->file('photo'), 'clinic-users/photos');
-        $user     = $this->clinicUserService->update($user, ['photo_url' => $uploaded['cdn_url']], impersonating: !is_null($this->impersonatorId()));
+        $user     = $this->clinicUserService->replacePhoto($user, $uploaded['path'], impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }
@@ -105,7 +105,7 @@ class ClinicUserController extends ClinicAuthenticatedController
     {
         $this->authorize('update', $user);
 
-        $user = $this->clinicUserService->update($user, ['photo_url' => null], impersonating: !is_null($this->impersonatorId()));
+        $user = $this->clinicUserService->removePhoto($user, impersonating: !is_null($this->impersonatorId()));
 
         return response()->json(['data' => $user]);
     }

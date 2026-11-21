@@ -104,7 +104,7 @@ class PatientFileControllerTest extends TestCase
 
     public function test_upload_stores_file_and_returns_201(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFileAs')
                 ->once()
                 ->andReturn([
@@ -127,13 +127,12 @@ class PatientFileControllerTest extends TestCase
             'patient_id' => $this->patient->id,
             'clinic_id'  => $this->clinicUser->clinic_id,
             'file_path'  => 'patients/files/arquivo.pdf',
-            'cdn_url'    => null,
         ]);
     }
 
     public function test_upload_removes_the_object_when_the_record_cannot_be_saved(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturn([
                 'filename'          => 'arquivo.pdf',
                 'original_filename' => 'meu-arquivo.pdf',
@@ -155,7 +154,7 @@ class PatientFileControllerTest extends TestCase
 
     public function test_upload_accepts_jpeg_png_and_docx(): void
     {
-        $this->mock(FileServiceInterface::class, function (MockInterface $mock) {
+        $this->mockFiles(function (MockInterface $mock) {
             $mock->shouldReceive('uploadFileAs')->andReturn([
                 'filename'          => 'file.png',
                 'original_filename' => 'foto.png',

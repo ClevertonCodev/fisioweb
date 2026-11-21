@@ -39,7 +39,6 @@ class PatientLoginTest extends TestCase
         ], $overrides));
     }
 
-
     public function test_senha_incorreta_e_recusada(): void
     {
         $patient = $this->makePatient();
@@ -77,7 +76,6 @@ class PatientLoginTest extends TestCase
             'clinic_id'  => $patient->clinic_id,
         ])->assertStatus(422);
     }
-
 
     public function test_senha_com_mascara_autentica_quando_a_senha_e_o_cpf(): void
     {
@@ -125,7 +123,6 @@ class PatientLoginTest extends TestCase
             'clinic_id'  => $patient->clinic_id,
         ])->assertStatus(401);
     }
-
 
     public function test_autentica_com_clinic_slug_em_vez_de_clinic_id(): void
     {
@@ -182,7 +179,6 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(422);
     }
 
-
     public static function identifierProvider(): array
     {
         return [
@@ -207,7 +203,6 @@ class PatientLoginTest extends TestCase
         $response->assertStatus(200);
         $this->assertSame($patient->id, $response->json('user.id'));
     }
-
 
     public static function ineligibleProvider(): array
     {
@@ -256,7 +251,6 @@ class PatientLoginTest extends TestCase
         ])->assertStatus(401);
     }
 
-
     public function test_falhas_sao_indistinguiveis(): void
     {
         $patient = $this->makePatient();
@@ -287,7 +281,6 @@ class PatientLoginTest extends TestCase
         $this->assertSame($inexistente->json(), $clinicaInexistente->json());
     }
 
-
     public function test_mesmo_cpf_em_duas_clinicas_autentica_identidades_distintas(): void
     {
         $clinicaA = Clinic::factory()->create();
@@ -317,7 +310,6 @@ class PatientLoginTest extends TestCase
         $this->assertSame($pacienteB->id, $respostaB->json('user.id'));
         $this->assertNotSame($respostaA->json('user.id'), $respostaB->json('user.id'));
     }
-
 
     public function test_senha_nao_aparece_na_resposta(): void
     {

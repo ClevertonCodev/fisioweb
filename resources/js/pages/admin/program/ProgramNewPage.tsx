@@ -73,8 +73,7 @@ export default function ProgramNewPage() {
                     ex.videos as
                         | {
                               thumbnail_url?: string | null;
-                              cdn_url?: string | null;
-                              url?: string | null;
+                              video_url?: string | null;
                           }[]
                         | undefined
                 )?.[0];
@@ -83,7 +82,7 @@ export default function ProgramNewPage() {
                     exerciseId: ex.id,
                     name: ex.name,
                     thumbnailUrl: video?.thumbnail_url ?? null,
-                    videoUrl: video?.cdn_url ?? video?.url ?? null,
+                    videoUrl: video?.video_url ?? null,
                     days: [],
                     period: null,
                     setsMin: null,

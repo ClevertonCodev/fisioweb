@@ -13,5 +13,9 @@ interface ClinicUserServiceInterface
 
     public function update(ClinicUser $clinicUser, array $data, bool $impersonating): ClinicUser;
 
+    public function replacePhoto(ClinicUser $clinicUser, string $path, bool $impersonating): ClinicUser;
+
+    public function removePhoto(ClinicUser $clinicUser, bool $impersonating): ClinicUser;
+
     public function delete(ClinicUser $clinicUser): void;
 }

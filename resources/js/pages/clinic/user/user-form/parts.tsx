@@ -26,6 +26,7 @@ import {
     type ClinicUserFormRole,
 } from '@/application/clinic/clinic-user-form';
 import { CLINIC_USER_PHOTO_INPUT_ACCEPT } from '@/application/clinic/clinic-user-photo-rules';
+import { useRefreshClinicUserPhoto } from '@/application/clinic/use-clinic-users';
 import { useGoogleCalendarReturn } from '@/components/clinic/agenda/AgendaGoogleCalendarActions';
 import {
     DsBadge,
@@ -36,6 +37,8 @@ import {
     DsInput,
     DsSwitch,
 } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 import type { ClinicUserSummary } from '@/domain/clinic/clinic-user';
 import type { ClinicUserDocumentKind } from '@/lib/br-document-validation';
 
@@ -79,11 +82,13 @@ export function Avatar({
     name,
     size = 72,
     className,
+    onRefresh,
 }: {
     url: string | null;
     name: string;
     size?: number;
     className?: string;
+    onRefresh?: ProtectedRefresh;
 }) {
     return (
         <span
@@ -99,7 +104,12 @@ export function Avatar({
             }}
         >
             {url ? (
-                <img src={url} alt="" className="size-full object-cover" />
+                <ProtectedImage
+                    src={url}
+                    alt=""
+                    onRefresh={onRefresh}
+                    className="size-full object-cover"
+                />
             ) : initials(name) ? (
                 initials(name)
             ) : (
@@ -145,6 +155,7 @@ export function PhotoAvatar({
     className?: string;
 }) {
     const picker = usePhotoInput(f);
+    const refreshPhoto = useRefreshClinicUserPhoto(f.userId);
     return (
         <>
             <button
@@ -156,7 +167,12 @@ export function PhotoAvatar({
                 )}
                 aria-label="Trocar foto"
             >
-                <Avatar url={f.photo.url} name={name} size={size} />
+                <Avatar
+                    url={f.photo.url}
+                    name={name}
+                    size={size}
+                    onRefresh={f.photo.file ? undefined : refreshPhoto}
+                />
                 <span className="absolute inset-0 flex items-center justify-center rounded-ds-full bg-ds-black/45 text-ds-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                     <Camera className="size-6" />
                 </span>

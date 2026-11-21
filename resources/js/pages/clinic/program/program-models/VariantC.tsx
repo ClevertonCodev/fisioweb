@@ -2,6 +2,11 @@ import { ChevronDown, Footprints, Stethoscope, X } from 'lucide-react';
 import { useRef, useState, type ReactNode } from 'react';
 
 import { DsBadge, DsButton, dsCn, DsTooltip } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import {
+    ItemMediaSource,
+    useRefreshItemMedia,
+} from '@/pages/clinic/program/exercise-library/media';
 import { useInView } from '@/pages/clinic/use-in-view';
 
 import {
@@ -10,7 +15,9 @@ import {
     REGIONS,
     regionsOf,
     useModelDetail,
+    useModelItemMedia,
     type ModelDetail,
+    type ModelExercise,
     type ModelSummary,
     type Region,
 } from './data';
@@ -209,12 +216,28 @@ function SessionBar({
     );
 }
 
+function ModelThumb({ exercise }: { exercise: ModelExercise }) {
+    const refreshMedia = useRefreshItemMedia(exercise);
+
+    if (!exercise.thumbnailUrl) return null;
+
+    return (
+        <ProtectedImage
+            src={exercise.thumbnailUrl}
+            alt={exercise.title}
+            onRefresh={async () => (await refreshMedia())?.thumbnailUrl ?? null}
+            className="size-11 rounded-ds-md object-cover"
+        />
+    );
+}
+
 function SessionCard({ model }: { model: ModelSummary }) {
     const { run, deleteModal } = useModelActions();
     const ref = useRef<HTMLElement>(null);
     const inView = useInView(ref);
     const [open, setOpen] = useState(false);
     const { detail, isError } = useModelDetail(model, inView || open);
+    const itemMedia = useModelItemMedia(model);
     const thumbs = exercisesOf(detail);
     const regions = regionsOf(model);
     const facts = [
@@ -230,93 +253,90 @@ function SessionCard({ model }: { model: ModelSummary }) {
                 .join(' '),
     ].filter(Boolean);
     return (
-        <article
-            ref={ref}
-            className="flex flex-col gap-4 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs sm:p-5"
-        >
-            <div className="flex items-start gap-4">
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    {model.area && (
-                        <div>
-                            <DsBadge variant="info" icon={<Stethoscope />}>
-                                {model.area}
-                            </DsBadge>
-                        </div>
-                    )}
-                    <h3 className="text-ds-body-md font-semibold text-ds-content-primary">
-                        {model.title}
-                    </h3>
-                    {model.description && (
-                        <p className="line-clamp-2 text-ds-body-xs text-ds-content-secondary">
-                            {model.description}
-                        </p>
-                    )}
-                    {facts.length > 0 && (
-                        <p className="text-ds-caption text-ds-content-muted">
-                            {facts.join(' · ')}
-                        </p>
-                    )}
+        <ItemMediaSource value={itemMedia}>
+            <article
+                ref={ref}
+                className="flex flex-col gap-4 rounded-ds-xl border border-ds-border-subtle bg-ds-surface-default p-4 shadow-ds-xs sm:p-5"
+            >
+                <div className="flex items-start gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                        {model.area && (
+                            <div>
+                                <DsBadge variant="info" icon={<Stethoscope />}>
+                                    {model.area}
+                                </DsBadge>
+                            </div>
+                        )}
+                        <h3 className="text-ds-body-md font-semibold text-ds-content-primary">
+                            {model.title}
+                        </h3>
+                        {model.description && (
+                            <p className="line-clamp-2 text-ds-body-xs text-ds-content-secondary">
+                                {model.description}
+                            </p>
+                        )}
+                        {facts.length > 0 && (
+                            <p className="text-ds-caption text-ds-content-muted">
+                                {facts.join(' · ')}
+                            </p>
+                        )}
+                    </div>
+                    <div className="hidden items-center gap-1 sm:flex">
+                        <UseModelButton model={model} size="sm" />
+                        <ModelActionsMenu model={model} onAction={run} />
+                    </div>
                 </div>
-                <div className="hidden items-center gap-1 sm:flex">
-                    <UseModelButton model={model} size="sm" />
+
+                <SessionBar model={model} detail={detail} isError={isError} />
+
+                <div className="flex items-center gap-3">
+                    <ul className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
+                        {thumbs.slice(0, 8).map((e) => (
+                            <li key={e.id} className="shrink-0">
+                                <ModelThumb exercise={e} />
+                            </li>
+                        ))}
+                    </ul>
+                    <DsButton
+                        variant="tertiary"
+                        size="sm"
+                        iconPosition="right"
+                        icon={
+                            <ChevronDown
+                                className={dsCn(
+                                    'transition-transform',
+                                    open && 'rotate-180',
+                                )}
+                            />
+                        }
+                        label={open ? 'Fechar' : 'Ver exercícios'}
+                        onClick={() => setOpen((o) => !o)}
+                    />
+                </div>
+
+                {open && (
+                    <div className="border-t border-ds-border-subtle pt-4">
+                        {detail ? (
+                            <GroupSections groups={detail.groups} />
+                        ) : isError ? (
+                            <p className="text-ds-body-sm text-ds-content-muted">
+                                Não foi possível carregar os exercícios.
+                            </p>
+                        ) : (
+                            <div className="h-24 animate-pulse rounded-ds-md bg-ds-surface-subtle" />
+                        )}
+                    </div>
+                )}
+
+                <div className="flex items-center gap-2 sm:hidden">
+                    <div className="flex-1">
+                        <UseModelButton model={model} size="full" />
+                    </div>
                     <ModelActionsMenu model={model} onAction={run} />
                 </div>
-            </div>
-
-            <SessionBar model={model} detail={detail} isError={isError} />
-
-            <div className="flex items-center gap-3">
-                <ul className="flex min-w-0 flex-1 gap-1.5 overflow-hidden">
-                    {thumbs.slice(0, 8).map((e) => (
-                        <li key={e.id} className="shrink-0">
-                            <img
-                                src={e.thumbnailUrl}
-                                alt={e.title}
-                                title={e.title}
-                                className="size-11 rounded-ds-md object-cover"
-                            />
-                        </li>
-                    ))}
-                </ul>
-                <DsButton
-                    variant="tertiary"
-                    size="sm"
-                    iconPosition="right"
-                    icon={
-                        <ChevronDown
-                            className={dsCn(
-                                'transition-transform',
-                                open && 'rotate-180',
-                            )}
-                        />
-                    }
-                    label={open ? 'Fechar' : 'Ver exercícios'}
-                    onClick={() => setOpen((o) => !o)}
-                />
-            </div>
-
-            {open && (
-                <div className="border-t border-ds-border-subtle pt-4">
-                    {detail ? (
-                        <GroupSections groups={detail.groups} />
-                    ) : isError ? (
-                        <p className="text-ds-body-sm text-ds-content-muted">
-                            Não foi possível carregar os exercícios.
-                        </p>
-                    ) : (
-                        <div className="h-24 animate-pulse rounded-ds-md bg-ds-surface-subtle" />
-                    )}
-                </div>
-            )}
-
-            <div className="flex items-center gap-2 sm:hidden">
-                <div className="flex-1">
-                    <UseModelButton model={model} size="full" />
-                </div>
-                <ModelActionsMenu model={model} onAction={run} />
-            </div>
-            {deleteModal}
-        </article>
+                {deleteModal}
+            </article>
+        </ItemMediaSource>
     );
 }
 

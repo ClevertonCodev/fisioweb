@@ -27,6 +27,8 @@ import {
     DsTooltip,
     type BadgeVariant,
 } from '@/components/ds';
+import { ProtectedImage } from '@/components/protected-media/ProtectedImage';
+import type { ProtectedRefresh } from '@/components/protected-media/use-protected-playback';
 
 import { ExerciseImageCropModal } from './ExerciseImageCropModal';
 import { useObjectUrl } from './use-object-url';
@@ -403,6 +405,7 @@ export function ImageSlot({
     aspect = 'aspect-square',
     cropAspect,
     currentUrl,
+    onRefreshCurrent,
 }: {
     label: string;
     hint: string;
@@ -412,6 +415,7 @@ export function ImageSlot({
     cropAspect?: number;
     /** Imagem já salva, mostrada enquanto não há arquivo novo; remover o arquivo novo volta para ela. */
     currentUrl?: string;
+    onRefreshCurrent?: ProtectedRefresh;
 }) {
     const input = useRef<HTMLInputElement>(null);
     const fileUrl = useObjectUrl(file);
@@ -451,11 +455,20 @@ export function ImageSlot({
             >
                 {url ? (
                     <>
-                        <img
-                            src={url}
-                            alt={label}
-                            className="size-full object-cover"
-                        />
+                        {fileUrl ? (
+                            <img
+                                src={fileUrl}
+                                alt={label}
+                                className="size-full object-cover"
+                            />
+                        ) : (
+                            <ProtectedImage
+                                src={url}
+                                alt={label}
+                                onRefresh={onRefreshCurrent}
+                                className="size-full object-cover"
+                            />
+                        )}
                         <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1.5 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                             <DsTooltip content="Trocar imagem" asChild>
                                 <button

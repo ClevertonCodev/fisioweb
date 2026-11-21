@@ -10,7 +10,6 @@ use Modules\Clinic\Models\ClinicUser;
 use Modules\ClinicalRecord\Models\Assessment;
 use Modules\ClinicalRecord\Models\EvolutionTemplate;
 use Modules\ClinicalRecord\Models\PatientEvolution;
-use Modules\Cloudflare\Contracts\FileServiceInterface;
 use Modules\Patient\Models\Patient;
 use Tests\TestCase;
 
@@ -165,7 +164,7 @@ class ClinicalRecordIsolationTest extends TestCase
         // Pré-condição: id do usuário ≠ id da clínica, para que trocar um pelo outro seja detectável.
         $this->assertNotSame($this->patientA->clinic_id, $this->physioA->id);
 
-        $this->mock(FileServiceInterface::class, function ($mock) {
+        $this->mockFiles(function ($mock) {
             $mock->shouldReceive('uploadFileAs')->once()->andReturn([
                 'filename'          => 'laudo.pdf',
                 'original_filename' => 'laudo.pdf',

@@ -26,11 +26,6 @@ return [
     ],
 
     /*
-     * Cloudflare CDN Configuration
-     */
-    'cdn_url' => env('CLOUDFLARE_CDN_URL'), // Your custom domain with CDN enabled
-
-    /*
      * Video Upload Settings
      */
     'max_video_size' => env('CLOUDFLARE_MAX_VIDEO_SIZE', 20971520), // 20MB default
@@ -95,13 +90,6 @@ return [
         'image/png',
         'image/webp',
     ],
-
-    /*
-     * CDN Settings
-     */
-    'cdn_cache_ttl' => env('CLOUDFLARE_CDN_CACHE_TTL', 86400), // 24 hours
-
-    'cdn_enabled' => env('CLOUDFLARE_CDN_ENABLED', true),
 
     /*
      * Performance Settings

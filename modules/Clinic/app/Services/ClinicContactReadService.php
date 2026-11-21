@@ -34,6 +34,7 @@ class ClinicContactReadService implements ClinicContactReadServiceInterface
             state: $this->nullableTrim($clinic->state),
             timezone: $timezone,
             appointmentReminderEmailEnabled: (bool) $clinic->appointment_reminder_email_enabled,
+            cancelled: $clinic->isCancelled(),
         );
     }
 

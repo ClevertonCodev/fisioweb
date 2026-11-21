@@ -33,15 +33,15 @@ Com as chaves da tarefa 008, esta tarefa manda o lembrete automático: o único 
 
 ## Critérios de Aceite
 
-- [ ] O comando está agendado de hora em hora com `withoutOverlapping` e `onOneServer` (teste no `Schedule`).
-- [ ] Com `travelTo`, o comando dispara `AppointmentReminderDue` só para consultas com paciente, marcada ou confirmada, entre 23 e 24 h à frente. Fora da janela, cancelada ou sem paciente não dispara (teste).
-- [ ] Clínica com o lembrete desligado não recebe e-mail; paciente com o lembrete desligado ou sem e-mail não recebe (teste com `Mail::fake`).
-- [ ] Rodar o comando de novo na mesma janela não manda um segundo lembrete para a mesma consulta (teste).
-- [ ] Remarcar a consulta para outro horário e rodar o comando na nova janela manda um lembrete novo (teste).
-- [ ] O lembrete mostra o horário no fuso da clínica, "Como chegar" só com endereço e o link "Não quero mais receber lembretes".
-- [ ] O listener não envia quando a consulta não é da clínica do evento.
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] O comando está agendado de hora em hora com `withoutOverlapping` e `onOneServer` (teste no `Schedule`).
+- [x] Com `travelTo`, o comando dispara `AppointmentReminderDue` só para consultas com paciente, marcada ou confirmada, entre 23 e 24 h à frente. Fora da janela, cancelada ou sem paciente não dispara (teste).
+- [x] Clínica com o lembrete desligado não recebe e-mail; paciente com o lembrete desligado ou sem e-mail não recebe (teste com `Mail::fake`).
+- [x] Rodar o comando de novo na mesma janela não manda um segundo lembrete para a mesma consulta (teste).
+- [x] Remarcar a consulta para outro horário e rodar o comando na nova janela manda um lembrete novo (teste).
+- [x] O lembrete mostra o horário no fuso da clínica, "Como chegar" só com endereço e o link "Não quero mais receber lembretes".
+- [x] O listener não envia quando a consulta não é da clínica do evento.
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

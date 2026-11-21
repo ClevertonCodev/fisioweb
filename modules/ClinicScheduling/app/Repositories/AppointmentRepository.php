@@ -2,8 +2,10 @@
 
 namespace Modules\ClinicScheduling\Repositories;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\LazyCollection;
 use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
 use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Models\Appointment;
@@ -85,5 +87,18 @@ class AppointmentRepository implements AppointmentRepositoryInterface
             ->orderByDesc('starts_at')
             ->orderByDesc('id')
             ->paginate($perPage, ['id', 'clinic_user_id', 'title', 'starts_at', 'ends_at', 'status']);
+    }
+
+    public function dueForReminder(CarbonImmutable $from, CarbonImmutable $to): LazyCollection
+    {
+        $timezone = (string) config('app.timezone');
+
+        return $this->model->newQuery()
+            ->select(['id', 'clinic_id', 'patient_id', 'starts_at'])
+            ->whereNotNull('patient_id')
+            ->whereIn('status', [AppointmentStatus::Scheduled->value, AppointmentStatus::Confirmed->value])
+            ->where('starts_at', '>=', $from->setTimezone($timezone))
+            ->where('starts_at', '<', $to->setTimezone($timezone))
+            ->lazyById();
     }
 }

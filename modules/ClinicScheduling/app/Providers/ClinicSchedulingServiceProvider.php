@@ -2,8 +2,11 @@
 
 namespace Modules\ClinicScheduling\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\ClinicScheduling\Console\Commands\SendAppointmentRemindersCommand;
+use Modules\ClinicScheduling\Contracts\AppointmentReminderServiceInterface;
 use Modules\ClinicScheduling\Contracts\AppointmentRepositoryInterface;
 use Modules\ClinicScheduling\Contracts\AppointmentServiceInterface;
 use Modules\ClinicScheduling\Contracts\Public\AppointmentCancelFromExternalSourceInterface;
@@ -20,6 +23,7 @@ use Modules\ClinicScheduling\Policies\ServiceTypePolicy;
 use Modules\ClinicScheduling\Repositories\AppointmentRepository;
 use Modules\ClinicScheduling\Repositories\ServiceTypeRepository;
 use Modules\ClinicScheduling\Services\AppointmentExternalSyncService;
+use Modules\ClinicScheduling\Services\AppointmentReminderService;
 use Modules\ClinicScheduling\Services\AppointmentService;
 use Modules\ClinicScheduling\Services\SchedulingReadService;
 use Modules\ClinicScheduling\Services\ServiceTypeService;
@@ -40,12 +44,27 @@ class ClinicSchedulingServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
         $this->registerPolicies();
+        $this->registerCommands();
+    }
+
+    protected function registerCommands(): void
+    {
+        $this->commands([SendAppointmentRemindersCommand::class]);
+
+        $this->app->booted(function () {
+            $this->app->make(Schedule::class)
+                ->command(SendAppointmentRemindersCommand::class)
+                ->hourly()
+                ->withoutOverlapping(55)
+                ->onOneServer();
+        });
     }
 
     public function register(): void
     {
         $this->app->bind(AppointmentRepositoryInterface::class, AppointmentRepository::class);
         $this->app->bind(AppointmentServiceInterface::class, AppointmentService::class);
+        $this->app->bind(AppointmentReminderServiceInterface::class, AppointmentReminderService::class);
         $this->app->bind(SchedulingReadServiceInterface::class, SchedulingReadService::class);
         $this->app->bind(AppointmentReadServiceInterface::class, AppointmentExternalSyncService::class);
         $this->app->bind(AppointmentSyncWriteServiceInterface::class, AppointmentExternalSyncService::class);

@@ -168,6 +168,15 @@ a {
     margin: 0 0 12px;
 }
 
+.footer-cell p.footer-unsubscribe {
+    margin: 8px 0 0;
+}
+
+.footer-unsubscribe a {
+    color: #8a8fa8;
+    text-decoration: underline;
+}
+
 .details {
     background-color: #f4f6fb;
     border-radius: 12px;

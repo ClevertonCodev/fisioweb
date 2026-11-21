@@ -38,6 +38,30 @@ class PatientContactReadServiceTest extends TestCase
         $this->assertSame('ana@example.test', $contact->email);
         $this->assertSame('(11) 98888-7777', $contact->phone);
         $this->assertFalse($contact->receivesAppointmentReminderEmail);
+        $this->assertTrue($contact->active);
+    }
+
+    public function test_patient_inactivated_by_the_clinic_is_not_active(): void
+    {
+        $clinic  = Clinic::factory()->create();
+        $patient = Patient::factory()->create(['clinic_id' => $clinic->id, 'is_active' => false, 'status' => 'em_tratamento']);
+
+        $contact = app(PatientContactReadServiceInterface::class)->findById($clinic->id, $patient->id);
+
+        $this->assertNotNull($contact);
+        $this->assertFalse($contact->active);
+    }
+
+    public function test_patient_with_death_discharge_or_cancelled_status_is_not_active(): void
+    {
+        $clinic  = Clinic::factory()->create();
+        $service = app(PatientContactReadServiceInterface::class);
+
+        foreach (Patient::INACTIVE_STATUSES as $status) {
+            $patient = Patient::factory()->create(['clinic_id' => $clinic->id, 'status' => $status]);
+
+            $this->assertFalse($service->findById($clinic->id, $patient->id)?->active, $status);
+        }
     }
 
     public function test_greeting_name_uses_first_name_when_use_apelido_is_false_or_apelido_is_empty(): void

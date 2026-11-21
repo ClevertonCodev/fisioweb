@@ -2,8 +2,10 @@
 
 namespace Modules\ClinicScheduling\Contracts;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\LazyCollection;
 use Modules\ClinicScheduling\Models\Appointment;
 
 interface AppointmentRepositoryInterface
@@ -28,4 +30,12 @@ interface AppointmentRepositoryInterface
      * recente para a mais antiga.
      */
     public function paginateForPatient(int $clinicId, int $patientId, int $perPage): LengthAwarePaginator;
+
+    /**
+     * Consultas de todas as clínicas que pedem lembrete: com paciente, marcadas ou
+     * confirmadas, com início em [`$from`, `$to`).
+     *
+     * @return LazyCollection<int, Appointment>
+     */
+    public function dueForReminder(CarbonImmutable $from, CarbonImmutable $to): LazyCollection;
 }

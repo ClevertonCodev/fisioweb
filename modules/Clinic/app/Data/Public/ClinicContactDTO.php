@@ -14,6 +14,7 @@ final readonly class ClinicContactDTO
         public ?string $state,
         public string $timezone,
         public bool $appointmentReminderEmailEnabled,
+        public bool $cancelled,
     ) {}
 
     public function formattedAddress(): ?string

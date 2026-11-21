@@ -14,9 +14,7 @@ final class ClinicDateFormatter
             return null;
         }
 
-        $safeTimezone = in_array($timezone, timezone_identifiers_list(), true)
-            ? $timezone
-            : (string) config('app.timezone', 'America/Sao_Paulo');
+        $safeTimezone = self::safeTimezone($timezone);
 
         try {
             $date = CarbonImmutable::createFromFormat('!Y-m-d', $ymd, $safeTimezone);
@@ -33,9 +31,7 @@ final class ClinicDateFormatter
             return null;
         }
 
-        $safeTimezone = in_array($timezone, timezone_identifiers_list(), true)
-            ? $timezone
-            : (string) config('app.timezone', 'America/Sao_Paulo');
+        $safeTimezone = self::safeTimezone($timezone);
 
         try {
             $date = CarbonImmutable::parse($instant)->timezone($safeTimezone);
@@ -44,6 +40,13 @@ final class ClinicDateFormatter
         }
 
         return $date->format('d/m/Y');
+    }
+
+    public static function safeTimezone(string $timezone): string
+    {
+        return in_array($timezone, timezone_identifiers_list(), true)
+            ? $timezone
+            : (string) config('app.timezone', 'America/Sao_Paulo');
     }
 
     public static function singleLine(string $value): string

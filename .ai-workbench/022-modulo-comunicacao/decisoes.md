@@ -61,3 +61,7 @@
 - **Nome no "Olá, <nome>!"?** → O apelido quando o paciente usa apelido; senão, o primeiro nome. Datas e horas no fuso da clínica.
 - **Clicar em "Reenviar" muitas vezes?** → Limite no backend de 5 envios por minuto por usuário nos endpoints de e-mail (429 depois disso).
 - **Consulta marcada a menos de 23 h do horário recebe lembrete?** → Não. O lembrete pega só consultas que começam entre 23 h e 24 h depois da rodada de hora em hora, com status marcada ou confirmada.
+
+## Implementação da 007 (2026-11-21, revisão adversária)
+
+- **Mudar o horário de consulta concluída ou com falta abre o aviso?** → Não. O arrasto já não move consulta encerrada; pelo modal de edição, o aviso de remarcada só abre se a consulta não está concluída nem com falta. O endpoint continua aceitando `rescheduled` para consulta não cancelada, como a tarefa pede. Decidido durante a revisão (ACHADO-003); o usuário pode rever.

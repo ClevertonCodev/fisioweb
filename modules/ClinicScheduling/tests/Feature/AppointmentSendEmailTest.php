@@ -11,6 +11,7 @@ use Modules\ClinicScheduling\Enums\AppointmentStatus;
 use Modules\ClinicScheduling\Events\AppointmentEmailRequested;
 use Modules\ClinicScheduling\Models\Appointment;
 use Modules\Patient\Models\Patient;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class AppointmentSendEmailTest extends TestCase
@@ -70,16 +71,29 @@ class AppointmentSendEmailTest extends TestCase
         });
     }
 
-    public function test_appointment_of_another_clinic_returns_404_and_dispatches_nothing(): void
+    /**
+     * @return array<string, array{0: string, 1: AppointmentStatus}>
+     */
+    public static function kindsWithCoherentStatus(): array
+    {
+        return [
+            'scheduled'   => ['scheduled', AppointmentStatus::Scheduled],
+            'rescheduled' => ['rescheduled', AppointmentStatus::Confirmed],
+            'cancelled'   => ['cancelled', AppointmentStatus::Cancelled],
+        ];
+    }
+
+    #[DataProvider('kindsWithCoherentStatus')]
+    public function test_appointment_of_another_clinic_returns_404_and_dispatches_nothing(string $kind, AppointmentStatus $status): void
     {
         Event::fake([AppointmentEmailRequested::class]);
-        $appointment = $this->makeAppointment();
+        $appointment = $this->makeAppointment(['status' => $status]);
 
         $otherClinic = Clinic::factory()->create();
         $otherAdmin  = ClinicUser::factory()->create(['clinic_id' => $otherClinic->id, 'role' => ClinicUser::ROLE_ADMIN]);
 
         $this->actingAs($otherAdmin, 'clinic')
-            ->postJson("/api/clinic/appointments/{$appointment->id}/email", ['kind' => 'scheduled'])
+            ->postJson("/api/clinic/appointments/{$appointment->id}/email", ['kind' => $kind])
             ->assertNotFound();
 
         Event::assertNotDispatched(AppointmentEmailRequested::class);
@@ -181,6 +195,14 @@ class AppointmentSendEmailTest extends TestCase
             ->assertStatus(202);
 
         Event::assertDispatchedTimes(AppointmentEmailRequested::class, 2);
+        Event::assertDispatched(
+            AppointmentEmailRequested::class,
+            fn (AppointmentEmailRequested $event) => $event->appointmentId === $cancelled->id && $event->kind === 'cancelled',
+        );
+        Event::assertDispatched(
+            AppointmentEmailRequested::class,
+            fn (AppointmentEmailRequested $event) => $event->appointmentId === $confirmed->id && $event->kind === 'rescheduled',
+        );
     }
 
     public function test_missing_or_unknown_kind_returns_422(): void

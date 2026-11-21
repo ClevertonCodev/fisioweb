@@ -33,15 +33,15 @@ Sobre a base da tarefa 006, esta tarefa avisa o paciente quando a consulta muda 
 
 ## Critérios de Aceite
 
-- [ ] `kind: rescheduled` numa consulta ativa e `kind: cancelled` numa cancelada respondem 202 e disparam `AppointmentEmailRequested` com o tipo certo.
-- [ ] `kind: cancelled` numa consulta ativa e `kind: rescheduled` numa cancelada dão 422.
-- [ ] Consulta de outra clínica dá 404.
-- [ ] Com o listener (`Mail::fake`), "Consulta remarcada" mostra só o horário novo, no fuso da clínica.
-- [ ] "Consulta cancelada" mostra a consulta riscada, sem botão e com o telefone da clínica.
-- [ ] Arrastar uma consulta com paciente para outro horário abre o modal; editar só a observação não abre (Vitest).
-- [ ] Cancelar uma consulta com paciente abre o modal com o tipo cancelada; marcar como realizada ou faltou não abre (Vitest).
-- [ ] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
-- [ ] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
+- [x] `kind: rescheduled` numa consulta ativa e `kind: cancelled` numa cancelada respondem 202 e disparam `AppointmentEmailRequested` com o tipo certo.
+- [x] `kind: cancelled` numa consulta ativa e `kind: rescheduled` numa cancelada dão 422.
+- [x] Consulta de outra clínica dá 404.
+- [x] Com o listener (`Mail::fake`), "Consulta remarcada" mostra só o horário novo, no fuso da clínica.
+- [x] "Consulta cancelada" mostra a consulta riscada, sem botão e com o telefone da clínica.
+- [x] Arrastar uma consulta com paciente para outro horário abre o modal; editar só a observação não abre (Vitest).
+- [x] Cancelar uma consulta com paciente abre o modal com o tipo cancelada; marcar como realizada ou faltou não abre (Vitest).
+- [x] Um usuário de outra clínica não vê nem altera nada desta funcionalidade
+- [x] Definição de Pronto cumprida (`docs/ai-harness/DEFINITION_OF_DONE.md`)
 
 ## Depende de
 

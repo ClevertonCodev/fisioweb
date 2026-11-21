@@ -11,6 +11,9 @@ use Modules\ClinicScheduling\Contracts\Public\AppointmentReadServiceInterface;
 use Modules\ClinicScheduling\Data\Public\AppointmentSnapshotDTO;
 use Modules\ClinicScheduling\Events\AppointmentEmailRequested;
 use Modules\Email\Contracts\AppointmentEmailSenderInterface;
+use Modules\Email\Mail\AppointmentCancelledMail;
+use Modules\Email\Mail\AppointmentMail;
+use Modules\Email\Mail\AppointmentRescheduledMail;
 use Modules\Email\Mail\AppointmentScheduledMail;
 use Modules\Email\Support\GoogleMapsLink;
 use Modules\Patient\Contracts\Public\PatientContactReadServiceInterface;
@@ -19,7 +22,18 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
 {
     private const KIND_SCHEDULED = 'scheduled';
 
+    private const KIND_RESCHEDULED = 'rescheduled';
+
+    private const KIND_CANCELLED = 'cancelled';
+
     private const STATUS_CANCELLED = 'cancelled';
+
+    /** @var array<string, class-string<AppointmentMail>> */
+    private const MAIL_BY_KIND = [
+        self::KIND_SCHEDULED   => AppointmentScheduledMail::class,
+        self::KIND_RESCHEDULED => AppointmentRescheduledMail::class,
+        self::KIND_CANCELLED   => AppointmentCancelledMail::class,
+    ];
 
     public function __construct(
         protected AppointmentReadServiceInterface $appointments,
@@ -36,7 +50,7 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
             'patient_id'     => $event->patientId,
         ];
 
-        if ($event->kind !== self::KIND_SCHEDULED) {
+        if (!array_key_exists($event->kind, self::MAIL_BY_KIND)) {
             logWarning('Envio de e-mail de consulta ignorado: tipo sem template', $logContext);
 
             return;
@@ -47,7 +61,7 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
         if (is_null($appointment)
             || $appointment->clinicId !== $event->clinicId
             || $appointment->patientId !== $event->patientId
-            || $appointment->status === self::STATUS_CANCELLED) {
+            || ($appointment->status === self::STATUS_CANCELLED) !== ($event->kind === self::KIND_CANCELLED)) {
             logWarning('Envio de e-mail de consulta ignorado: consulta indisponível para a clínica', $logContext);
 
             return;
@@ -73,15 +87,18 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
         $startsAt = $appointment->startsAt->setTimezone($timezone);
         $endsAt   = $appointment->endsAt->setTimezone($timezone);
 
-        Mail::to($patient->email)->send(new AppointmentScheduledMail(
+        $mailClass = self::MAIL_BY_KIND[$event->kind];
+        $cancelled = $event->kind === self::KIND_CANCELLED;
+
+        Mail::to($patient->email)->send(new $mailClass(
             clinicName: $clinic->name,
             clinicPhone: $clinic->phone,
             clinicAddress: $clinic->formattedAddress(),
             greetingName: $patient->greetingName(),
             subjectDate: $startsAt->format('d/m'),
             subjectTime: $startsAt->format('H:i'),
-            detailsRows: $this->detailsRows($appointment, $clinic, $startsAt, $endsAt),
-            mapsUrl: $appointment->isHomeVisit() ? null : GoogleMapsLink::forClinic($clinic),
+            detailsRows: $this->detailsRows($appointment, $clinic, $startsAt, $endsAt, withPlace: !$cancelled),
+            mapsUrl: $cancelled || $appointment->isHomeVisit() ? null : GoogleMapsLink::forClinic($clinic),
         ));
 
         logInfo('E-mail de consulta enviado', $logContext);
@@ -95,6 +112,7 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
         ClinicContactDTO $clinic,
         CarbonImmutable $startsAt,
         CarbonImmutable $endsAt,
+        bool $withPlace,
     ): array {
         $weekday = Str::ucfirst($startsAt->locale('pt_BR')->isoFormat('dddd'));
         $rows    = [
@@ -108,6 +126,10 @@ class AppointmentEmailSender implements AppointmentEmailSenderInterface
             if (!is_null($professional) && !empty(trim($professional->name))) {
                 $rows[] = ['Profissional', trim($professional->name)];
             }
+        }
+
+        if (!$withPlace) {
+            return $rows;
         }
 
         $place = $appointment->isHomeVisit()

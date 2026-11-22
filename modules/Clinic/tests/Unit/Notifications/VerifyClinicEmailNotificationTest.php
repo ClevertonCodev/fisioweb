@@ -29,7 +29,7 @@ class VerifyClinicEmailNotificationTest extends TestCase
     {
         $html = (string) $this->notification()->toMail(new AnonymousNotifiable)->render();
 
-        $this->assertStringContainsString('Atenciosamente,', $html);
+        $this->assertStringNotContainsString('Atenciosamente', $html);
         $this->assertStringContainsString('Se o botão', $html);
         $this->assertStringContainsString('Enviado pela IVS MED. Este endereço não recebe respostas.', $html);
         $this->assertStringNotContainsString('Regards', $html);

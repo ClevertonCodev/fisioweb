@@ -25,6 +25,10 @@ class VerifyClinicEmailNotification extends Notification
     {
         return (new MailMessage)
             ->subject('Confirme o e-mail da sua clínica — ' . config('app.name'))
+            ->markdown('notifications::email', [
+                'badge' => 'Confirmação de e-mail',
+                'title' => 'Confirme o e-mail da sua clínica',
+            ])
             ->greeting('Olá!')
             ->line(new HtmlString('Sua conta para a clínica ' . markdownLiteral($this->clinicName)->toHtml() . ' foi criada.'))
             ->line('Confirme seu e-mail pelo botão abaixo para liberar o acesso ao painel.')

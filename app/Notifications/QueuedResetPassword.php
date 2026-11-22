@@ -6,6 +6,7 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class QueuedResetPassword extends ResetPassword implements ShouldBeEncrypted, ShouldQueue
 {
@@ -26,6 +27,14 @@ class QueuedResetPassword extends ResetPassword implements ShouldBeEncrypted, Sh
     protected function resetUrl($notifiable): string
     {
         return $this->url;
+    }
+
+    protected function buildMailMessage($url): MailMessage
+    {
+        return parent::buildMailMessage($url)->markdown('notifications::email', [
+            'badge' => 'Redefinição de senha',
+            'title' => 'Crie uma senha nova',
+        ]);
     }
 
     public function failed(\Throwable $e): void

@@ -2,6 +2,7 @@
 
 namespace Modules\Email\Tests\Feature;
 
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -40,6 +41,36 @@ class SystemEmailLayoutTest extends TestCase
         $this->assertStringContainsString('expira em 60 minutos', $html);
         $this->assertStringContainsString('https://app.test/clinica/redefinir-senha?token=abc', $html);
         $this->assertStringContainsString('Este endereço não recebe respostas.', $html);
+    }
+
+    public function test_clinic_verification_email_has_badge_title_and_no_signature(): void
+    {
+        $html = (string) (new VerifyClinicEmailNotification('https://app.test/clinica/verificar-email?token=abc', 'Clínica Teste'))
+            ->toMail(new AnonymousNotifiable)
+            ->render();
+
+        $this->assertMatchesRegularExpression('/<div class="badge"[^>]*>Confirmação de e-mail<\/div>/u', $html);
+        $this->assertMatchesRegularExpression('/<h1[^>]*>Confirme o e-mail da sua clínica<\/h1>/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<h1[^>]*>Olá!<\/h1>/', $html);
+        $this->assertMatchesRegularExpression('/<p[^>]*>Olá!<\/p>/u', $html);
+        $this->assertStringNotContainsString('Atenciosamente', $html);
+    }
+
+    public function test_reset_password_email_has_badge_title_and_no_signature(): void
+    {
+        app()->setLocale('pt_BR');
+
+        $html = (string) (new QueuedResetPassword('abc', 'https://app.test/clinica/redefinir-senha?token=abc'))
+            ->toMail(new AnonymousNotifiable)
+            ->render();
+
+        $this->assertMatchesRegularExpression('/<div class="badge"[^>]*>Redefinição de senha<\/div>/u', $html);
+        $this->assertMatchesRegularExpression('/<h1[^>]*>Crie uma senha nova<\/h1>/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<h1[^>]*>Olá!<\/h1>/', $html);
+        $this->assertMatchesRegularExpression('/<p[^>]*>Olá!<\/p>/u', $html);
+        $this->assertStringContainsString('Redefinir senha', $html);
+        $this->assertStringContainsString('https://app.test/clinica/redefinir-senha?token=abc', $html);
+        $this->assertStringNotContainsString('Atenciosamente', $html);
     }
 
     public function test_sent_email_carries_the_logo_inline(): void

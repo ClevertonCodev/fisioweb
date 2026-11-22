@@ -39,6 +39,10 @@ class EmailServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadViewsFrom(module_path($this->name, 'resources/views'), $this->nameLower);
+        $this->callAfterResolving('view', fn ($view) => $view->prependNamespace(
+            'notifications',
+            module_path($this->name, 'resources/views/notifications'),
+        ));
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
         Event::listen(MessageSending::class, EmbedBrandLogo::class);

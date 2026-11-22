@@ -35,7 +35,7 @@ class ResetPasswordEmailTranslationTest extends TestCase
         $this->assertStringContainsString('Este link para redefinir a senha expira em 60 minutos.', $html);
         $this->assertStringContainsString('Se você não pediu para redefinir a senha, não precisa fazer nada.', $html);
         $this->assertStringContainsString('Olá!', $html);
-        $this->assertStringContainsString('Atenciosamente,', $html);
+        $this->assertStringNotContainsString('Atenciosamente', $html);
 
         foreach (['Hello', 'Reset Password', 'You are receiving', 'will expire in', 'If you did not', 'Regards', 'having trouble', 'All rights reserved'] as $english) {
             $this->assertStringNotContainsString($english, $html);

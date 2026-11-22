@@ -81,3 +81,8 @@
 
 - **Limite no POST público de sair dos lembretes?** → Sim: 10 pedidos por minuto por IP, com 429 depois disso. O token não dá para adivinhar; o limite só protege o servidor de pedidos em massa.
 - **Resposta do endpoint?** → 200 `{ data: { unsubscribed: true } }` com token válido, de novo a cada chamada; 404 para token inválido, adulterado ou de paciente que não é daquela clínica; 422 sem token.
+
+## QA de aceite (2026-11-21, rodada 1)
+
+- **Cabeçalho da página pública do questionário sem a seta de voltar e sem o título "Questionário" do protótipo B?** → Fica como está: a página é aberta por link e não tem tela anterior. (Decidido pelo usuário no QA da feature.)
+- **Modal "Enviar ao paciente" sem a frase de orientação acima dos canais do protótipo C?** → Fica como está: o título e as linhas dos canais já dizem o que fazer. (Decidido pelo usuário no QA da feature.)
